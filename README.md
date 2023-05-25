@@ -4,30 +4,6 @@ Swift Foundation extensions and useful Classes & utilities.
 
 ## Notable Extensions & Classes
 
-### ContentConfiguration
-Configurate several aspects of views, windows, etc. Examples:
-- VisualEffect
-```
-window.visualEffect = .darkAqua
-```
-- Shadow
-```
-let view = NSView()
-let shadowConfiguration = ContentConfiguration.Shadow(opacity: 0.5, radius: 2.0)
-            view.configurate(using: shadowConfiguration)
-```
-- Border
-```
-let borderConfiguration = ContentConfiguration.Border(color: .black, width: 1.0)
-view.configurate(using: borderConfiguration)
-```
-- Text
-```
-let textField = NSTextField()
-let textConfiguration = ContentConfiguration.Text(font: .ystemFont(ofSize: 12), textColor: .red, numberOfLines: 1)
-textField.configurate(using: textConfiguration)
-```
-
 ### DataSize
 A data size abstraction 
 ```
