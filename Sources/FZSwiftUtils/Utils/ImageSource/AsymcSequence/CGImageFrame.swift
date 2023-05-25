@@ -12,18 +12,18 @@ import UIKit
 #endif
 
 public struct CGImageFrame {
-    var image: CGImage
-    var duration: TimeInterval
-    init(_ image: CGImage, _ duration: TimeInterval) {
+    public var image: CGImage
+    public var duration: TimeInterval
+    public init(_ image: CGImage, _ duration: TimeInterval) {
         self.image = image
         self.duration = duration
     }
 }
 
 public struct ImageFrame {
-    var image: NSUIImage
-    var duration: TimeInterval
-    init(_ image: NSUIImage, _ duration: TimeInterval) {
+    public var image: NSUIImage
+    public var duration: TimeInterval
+    public init(_ image: NSUIImage, _ duration: TimeInterval) {
         self.image = image
         self.duration = duration
     }
