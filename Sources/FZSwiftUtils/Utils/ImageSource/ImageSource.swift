@@ -264,35 +264,35 @@ extension ImageSource {
 }
 
 #if os(macOS)
-    import AppKit
-    public extension ImageSource {
-        /**
-         Creates an image source that reads from a NSImage,
+import AppKit
+public extension ImageSource {
+    /**
+     Creates an image source that reads from a NSImage,
 
-         - Parameters:
-            - image: The NSImage object.
-         */
-        convenience init?(image: NSImage) {
-            guard let data = image.tiffRepresentation else { return nil }
-            self.init(data: data)
-        }
+     - Parameters:
+        - image: The NSImage object.
+     */
+    convenience init?(image: NSImage) {
+        guard let data = image.tiffRepresentation else { return nil }
+        self.init(data: data)
     }
+}
 #endif
 
 #if canImport(UIKit)
-    import UIKit
-    public extension ImageSource {
-        /**
-         Creates an image source that reads from a UIImage,
+import UIKit
+public extension ImageSource {
+    /**
+     Creates an image source that reads from a UIImage,
 
-         - Parameters:
-            - image: The UIImage object.
-         */
-        convenience init?(image: UIImage) {
-            guard let data = image.pngData() else { return nil }
-            self.init(data: data)
-        }
+     - Parameters:
+        - image: The UIImage object.
+     */
+    convenience init?(image: UIImage) {
+        guard let data = image.pngData() else { return nil }
+        self.init(data: data)
     }
+}
 #endif
 
 // The set of status values for images and image sources.

@@ -114,15 +114,15 @@ internal extension PartialKeyPath where Root == URLResourceValues {
         }
 
         #if os(macOS)
-            switch self {
-            case \Root.thumbnail: return .thumbnailKey
-            case \Root.customIcon: return .customIconKey
-            case \Root.effectiveIcon: return .effectiveIconKey
-            case \Root.labelColor: return .labelColorKey
-            case \Root.quarantineProperties: return .quarantinePropertiesKey
-            case \Root.tagNames: return .tagNamesKey
-            default: break
-            }
+        switch self {
+        case \Root.thumbnail: return .thumbnailKey
+        case \Root.customIcon: return .customIconKey
+        case \Root.effectiveIcon: return .effectiveIconKey
+        case \Root.labelColor: return .labelColorKey
+        case \Root.quarantineProperties: return .quarantinePropertiesKey
+        case \Root.tagNames: return .tagNamesKey
+        default: break
+        }
         #endif
 
         if #available(macOS 11.3, iOS 14.5, *) {

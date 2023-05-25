@@ -7,11 +7,11 @@
 
 import Foundation
 #if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 #endif
 
 #if os(macOS)
-    import AppKit
+import AppKit
 #endif
 
 public extension URL {
@@ -215,8 +215,8 @@ public class URLResources {
     public var isAliasFile: Bool { (try? value(for: \.isAliasFile)) ?? false }
 
     #if canImport(UniformTypeIdentifiers)
-        @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
-        public var contentType: UTType? { try? value(for: \.contentType) }
+    @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
+    public var contentType: UTType? { try? value(for: \.contentType) }
     #endif
 }
 
@@ -245,47 +245,47 @@ extension URLResources {
 }
 
 #if os(macOS)
-    public extension URLResources {
-        /// True if the resource is scriptable. Only applies to applications.
-        @available(macOS 10.11, *)
-        var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
+public extension URLResources {
+    /// True if the resource is scriptable. Only applies to applications.
+    @available(macOS 10.11, *)
+    var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
 
-        @available(macOS 12.0, *)
-        var supportedApplicationURLs: [URL]? {
-            return contentType?.supportedApplicationURLs
-        }
-
-        @available(macOS 10.10, *)
-        var quarantineProperties: [String: Any]? {
-            get { try? value(for: \.quarantineProperties) }
-            set { try? setValue(newValue, for: \.quarantineProperties) }
-        }
-
-        @available(macOS 10.9, *)
-        var tags: [String] {
-            get { (try? value(for: \.tagNames)) ?? [] }
-            set {
-                let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
-                url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
-            }
-        }
-
-        var whereFroms: [String]? {
-            get { return url.extendedAttributes["com.apple.metadata:kMDItemWhereFroms"] }
-            set { url.extendedAttributes["com.apple.metadata:kMDItemWhereFroms"] = newValue }
-        }
-
-        var downloadDate: Date? {
-            get { return url.extendedAttributes["com.apple.metadata:kMDItemDownloadedDate"] }
-            set { url.extendedAttributes["com.apple.metadata:kMDItemDownloadedDate"] = newValue }
-        }
-
-        var customIcon: NSUIImage? { try? value(for: \.customIcon) }
-
-        var effectiveIcon: NSUIImage? { (try? value(for: \.effectiveIcon)) as? NSUIImage }
-
-        var labelColor: NSUIColor? { try? value(for: \.labelColor) }
+    @available(macOS 12.0, *)
+    var supportedApplicationURLs: [URL]? {
+        return contentType?.supportedApplicationURLs
     }
+
+    @available(macOS 10.10, *)
+    var quarantineProperties: [String: Any]? {
+        get { try? value(for: \.quarantineProperties) }
+        set { try? setValue(newValue, for: \.quarantineProperties) }
+    }
+
+    @available(macOS 10.9, *)
+    var tags: [String] {
+        get { (try? value(for: \.tagNames)) ?? [] }
+        set {
+            let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
+            url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+        }
+    }
+
+    var whereFroms: [String]? {
+        get { return url.extendedAttributes["com.apple.metadata:kMDItemWhereFroms"] }
+        set { url.extendedAttributes["com.apple.metadata:kMDItemWhereFroms"] = newValue }
+    }
+
+    var downloadDate: Date? {
+        get { return url.extendedAttributes["com.apple.metadata:kMDItemDownloadedDate"] }
+        set { url.extendedAttributes["com.apple.metadata:kMDItemDownloadedDate"] = newValue }
+    }
+
+    var customIcon: NSUIImage? { try? value(for: \.customIcon) }
+
+    var effectiveIcon: NSUIImage? { (try? value(for: \.effectiveIcon)) as? NSUIImage }
+
+    var labelColor: NSUIColor? { try? value(for: \.labelColor) }
+}
 #endif
 
 public extension URLResources {

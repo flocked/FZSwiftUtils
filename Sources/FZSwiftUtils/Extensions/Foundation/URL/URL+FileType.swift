@@ -8,11 +8,11 @@
 import Foundation
 
 #if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 #endif
 
 #if canImport(UIKit)
-    import MobileCoreServices
+import MobileCoreServices
 #endif
 
 public extension URL {
@@ -96,28 +96,28 @@ public extension URL {
         }
 
         #if canImport(UniformTypeIdentifiers)
-            @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-            public init?(uttype: UTType) {
-                let uttypes = uttype + Array(uttype.supertypes)
-                var fileType: FileType?
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        public init?(uttype: UTType) {
+            let uttypes = uttype + Array(uttype.supertypes)
+            var fileType: FileType?
 
-                var allFileTypes = FileType.allCases
+            var allFileTypes = FileType.allCases
 
-                while fileType == nil, let type = allFileTypes.first {
-                    if let uttype = type.uttype, uttypes.contains(uttype) {
-                        fileType = type
-                    }
-                    allFileTypes.removeFirst()
+            while fileType == nil, let type = allFileTypes.first {
+                if let uttype = type.uttype, uttypes.contains(uttype) {
+                    fileType = type
                 }
-
-                if let fileType = fileType {
-                    self = fileType
-                } else if let pathExtension = uttype.preferredFilenameExtension {
-                    self = .other(pathExtension)
-                } else {
-                    return nil
-                }
+                allFileTypes.removeFirst()
             }
+
+            if let fileType = fileType {
+                self = fileType
+            } else if let pathExtension = uttype.preferredFilenameExtension {
+                self = .other(pathExtension)
+            } else {
+                return nil
+            }
+        }
         #endif
     }
 
@@ -233,13 +233,13 @@ public extension URL.FileType {
     static var imageTypes: [URL.FileType] = [.gif, .image]
 
     #if canImport(UniformTypeIdentifiers)
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        var uttype: UTType? {
-            if let identifier = identifier {
-                return UTType(identifier)
-            }
-            return nil
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    var uttype: UTType? {
+        if let identifier = identifier {
+            return UTType(identifier)
         }
+        return nil
+    }
     #endif
 
     internal var predicate: NSPredicate {

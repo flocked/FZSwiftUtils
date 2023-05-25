@@ -8,9 +8,9 @@
 import Foundation
 
 #if os(macOS)
-    import AppKit
+import AppKit
 #elseif os(iOS)
-    import UIKit
+import UIKit
 #endif
 
 public extension BinaryFloatingPoint {
@@ -23,9 +23,9 @@ public extension BinaryFloatingPoint {
 public extension CGFloat {
     var scaledIntegral: Self {
         #if os(macOS)
-            let scale = NSScreen.main?.backingScaleFactor ?? 1.0
+        let scale = NSScreen.main?.backingScaleFactor ?? 1.0
         #elseif os(iOS)
-            let scale = UIScreen.main.scale
+        let scale = UIScreen.main.scale
         #endif
         return floor(self * scale) / scale
     }

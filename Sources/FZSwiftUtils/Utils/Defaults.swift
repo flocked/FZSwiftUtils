@@ -113,7 +113,7 @@ public final class Defaults {
             return decoded
         } catch {
             #if DEBUG
-                print(error)
+            print(error)
             #endif
         }
 
@@ -138,7 +138,7 @@ public final class Defaults {
             userDefaults.synchronize()
         } catch {
             #if DEBUG
-                print(error)
+            print(error)
             #endif
         }
     }

@@ -357,9 +357,9 @@ public extension Sequence {
 }
 
 #if os(macOS)
-    import AppKit
+import AppKit
 #elseif canImport(UIKit)
-    import UIKit
+import UIKit
 #endif
 
 public extension Collection {

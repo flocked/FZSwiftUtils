@@ -20,27 +20,27 @@ public extension FileManager {
     }
 
     #if os(macOS)
-        enum ApplicationSupportDirectoryType {
-            case identifier
-            case name
-        }
+    enum ApplicationSupportDirectoryType {
+        case identifier
+        case name
+    }
 
-        func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, create: Bool = true) -> URL? {
-            if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
-                let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
-                if directoryExists(at: directoryURL) {
+    func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, create: Bool = true) -> URL? {
+        if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
+            let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
+            if directoryExists(at: directoryURL) {
+                return directoryURL
+            } else if create {
+                do {
+                    try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
                     return directoryURL
-                } else if create {
-                    do {
-                        try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-                        return directoryURL
-                    } catch {
-                        Swift.print(error)
-                    }
+                } catch {
+                    Swift.print(error)
                 }
             }
-            return nil
         }
+        return nil
+    }
     #endif
 
     func directoryExists(atPath path: String) -> Bool {

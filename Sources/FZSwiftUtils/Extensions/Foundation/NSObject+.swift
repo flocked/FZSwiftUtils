@@ -57,9 +57,9 @@ public extension NSObject {
         }
         return false
     }
-    
-    func observeNew<Value>(_ keyPath: KeyPath<NSObject, Value>, changeHandler: @escaping ((NSObject, Value)->())) -> NSKeyValueObservation {
-        return self.observe(keyPath, options: [.new], changeHandler: { object, value in
+
+    func observeNew<Value>(_ keyPath: KeyPath<NSObject, Value>, changeHandler: @escaping ((NSObject, Value) -> Void)) -> NSKeyValueObservation {
+        return observe(keyPath, options: [.new], changeHandler: { object, value in
             if let newValue = value.newValue {
                 changeHandler(object, newValue)
             }

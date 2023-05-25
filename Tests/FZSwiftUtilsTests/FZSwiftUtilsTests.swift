@@ -1,6 +1,4 @@
-import XCTest
 @testable import FZSwiftUtils
+import XCTest
 
-final class FZSwiftUtilsTests: XCTestCase {
-
-}
+final class FZSwiftUtilsTests: XCTestCase {}

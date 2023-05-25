@@ -144,14 +144,14 @@ public extension URL {
 }
 
 #if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
-    @available(macOS 11.0, *)
-    internal extension URL.FileTypeNew {
-        var uttype: UTType? {
-            if let identifier = typeIdentifier {
-                return UTType(identifier)
-            }
-            return nil
+import UniformTypeIdentifiers
+@available(macOS 11.0, *)
+internal extension URL.FileTypeNew {
+    var uttype: UTType? {
+        if let identifier = typeIdentifier {
+            return UTType(identifier)
         }
+        return nil
     }
+}
 #endif

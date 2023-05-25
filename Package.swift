@@ -9,16 +9,19 @@ let package = Package(
     products: [
         .library(
             name: "FZSwiftUtils",
-            targets: ["FZSwiftUtils"]),
+            targets: ["FZSwiftUtils"]
+        ),
     ],
     dependencies: [
     ],
     targets: [
         .target(
             name: "FZSwiftUtils",
-            dependencies: []),
+            dependencies: []
+        ),
         .testTarget(
             name: "FZSwiftUtilsTests",
-            dependencies: ["FZSwiftUtils"]),
+            dependencies: ["FZSwiftUtils"]
+        ),
     ]
 )
