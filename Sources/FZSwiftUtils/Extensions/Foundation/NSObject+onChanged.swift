@@ -15,7 +15,7 @@ public extension NSObjectProtocol where Self: NSObject {
         }
     }
     
-    func observeChange<Value>(_ keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
+    func observeChange<Value>(_  keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
         self.observe(keyPath, options: [.new]) { object, change in
             if let newValue = change.newValue {
                 handler(object, newValue)
