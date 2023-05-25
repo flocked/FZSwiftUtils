@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import AppKit
 
 public extension NSKeyedUnarchiver {
     enum Errors: Error {
@@ -56,13 +57,5 @@ public extension NSObject {
             currentClass = superClass
         }
         return false
-    }
-
-    func observeNew<Value>(_ keyPath: KeyPath<NSObject, Value>, changeHandler: @escaping ((NSObject, Value) -> Void)) -> NSKeyValueObservation {
-        return observe(keyPath, options: [.new], changeHandler: { object, value in
-            if let newValue = value.newValue {
-                changeHandler(object, newValue)
-            }
-        })
     }
 }
