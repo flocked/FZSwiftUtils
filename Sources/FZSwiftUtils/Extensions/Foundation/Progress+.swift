@@ -8,12 +8,12 @@
 import Foundation
 
 public extension Progress {
-    func estimatedTimeRemaining(dateStarted: Date) {
+    func updateEstimatedTimeRemaining(dateStarted: Date) {
         let elapsedTime = Date().timeIntervalSince(dateStarted)
-        self.estimatedTimeRemaining(timeElapsed: elapsedTime)
+        self.updateEstimatedTimeRemaining(timeElapsed: elapsedTime)
     }
     
-    func estimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval) {
+    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval) {
         guard Int64(elapsedTime) > 1 else {
             self.setUserInfoObject(0, forKey: .throughputKey)
             self.setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
