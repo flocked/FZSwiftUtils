@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Florian Zand on 24.01.23.
 //
@@ -18,41 +18,41 @@ public extension FileManager {
         let folderName = ProcessInfo.processInfo.globallyUniqueString
         return temporaryDirectoryURL.appendingPathComponent(folderName)
     }
-    
-#if os(macOS)
-    enum ApplicationSupportDirectoryType {
-        case identifier
-        case name
-    }
-    
-    func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, create: Bool = true) -> URL? {
-        if let appSupportURL = self.urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ?  Bundle.main.bundleName :  Bundle.main.bundleIdentifier {
-            let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
-            if (self.directoryExists(at: directoryURL)) {
-                return directoryURL
-            } else if (create) {
-                do {
-                    try self.createDirectory (at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+
+    #if os(macOS)
+        enum ApplicationSupportDirectoryType {
+            case identifier
+            case name
+        }
+
+        func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, create: Bool = true) -> URL? {
+            if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
+                let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
+                if directoryExists(at: directoryURL) {
                     return directoryURL
-                } catch {
-                    Swift.print(error)
+                } else if create {
+                    do {
+                        try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+                        return directoryURL
+                    } catch {
+                        Swift.print(error)
+                    }
                 }
             }
+            return nil
         }
-        return nil
-    }
-#endif
-    
+    #endif
+
     func directoryExists(atPath path: String) -> Bool {
-        var isDir:ObjCBool = true
-        return self.fileExists(atPath: path, isDirectory: &isDir)
+        var isDir: ObjCBool = true
+        return fileExists(atPath: path, isDirectory: &isDir)
     }
-    
+
     func fileExists(at url: URL) -> Bool {
-        return self.fileExists(atPath: url.path)
+        return fileExists(atPath: url.path)
     }
-    
+
     func directoryExists(at url: URL) -> Bool {
-        return self.directoryExists(atPath: url.path)
+        return directoryExists(atPath: url.path)
     }
 }

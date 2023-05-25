@@ -5,15 +5,14 @@
 //  Created by Florian Zand on 10.03.23.
 //
 
-
 import Foundation
 
 #if canImport(UniformTypeIdentifiers)
-import UniformTypeIdentifiers
+    import UniformTypeIdentifiers
 #endif
 
 #if canImport(UIKit)
-import MobileCoreServices
+    import MobileCoreServices
 #endif
 
 public extension URL {
@@ -34,7 +33,7 @@ public extension URL {
         case symbolicLink
         case text
         case video
-        
+
         public init?(url: URL) {
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
                 if let uttype = UTType(url: url), let fileType = FileType(uttype: uttype) {
@@ -57,21 +56,21 @@ public extension URL {
                 return nil
             }
         }
-        
+
         public init?(fileExtension: String) {
             guard fileExtension != "" else {
                 self = .folder
                 return
             }
-            
+
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
                 if let uttype = UTType(filenameExtension: fileExtension), let fileType = FileType(uttype: uttype) {
                     self = fileType
                     return
                 }
             }
-            
-            if let fileType =  FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension.lowercased())}) {
+
+            if let fileType = FileType.allCases.first(where: { $0.commonExtensions.contains(fileExtension.lowercased()) }) {
                 self = fileType
                 return
             } else {
@@ -80,14 +79,14 @@ public extension URL {
         }
 
         public init?(contentTypeIdentifier: String) {
-            guard let fileType = FileType.allCases.first(where: {$0.identifier == contentTypeIdentifier}) else {
+            guard let fileType = FileType.allCases.first(where: { $0.identifier == contentTypeIdentifier }) else {
                 return nil
             }
             self = fileType
         }
-        
+
         public init?(contentTypeTree: [String]) {
-            let allIdentifiers = FileType.allCases.compactMap({$0.identifier})
+            let allIdentifiers = FileType.allCases.compactMap { $0.identifier }
             if let identifier = contentTypeTree.first(where: { allIdentifiers.contains($0) }), let fileType = FileType(contentTypeIdentifier: identifier) {
                 self = fileType
                 return
@@ -95,51 +94,51 @@ public extension URL {
                 return nil
             }
         }
-        
-#if canImport(UniformTypeIdentifiers)
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0,  *)
-        public init?(uttype: UTType) {
-            let uttypes = uttype + Array(uttype.supertypes)
-            var fileType: FileType? = nil
-            
-            var allFileTypes = FileType.allCases
-            
-            while fileType == nil, let type = allFileTypes.first {
-                if let uttype = type.uttype, uttypes.contains(uttype) {
-                    fileType = type
+
+        #if canImport(UniformTypeIdentifiers)
+            @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+            public init?(uttype: UTType) {
+                let uttypes = uttype + Array(uttype.supertypes)
+                var fileType: FileType?
+
+                var allFileTypes = FileType.allCases
+
+                while fileType == nil, let type = allFileTypes.first {
+                    if let uttype = type.uttype, uttypes.contains(uttype) {
+                        fileType = type
+                    }
+                    allFileTypes.removeFirst()
                 }
-                allFileTypes.removeFirst()
+
+                if let fileType = fileType {
+                    self = fileType
+                } else if let pathExtension = uttype.preferredFilenameExtension {
+                    self = .other(pathExtension)
+                } else {
+                    return nil
+                }
             }
-            
-            if let fileType = fileType {
-                self = fileType
-            } else if let pathExtension = uttype.preferredFilenameExtension  {
-                self = .other(pathExtension)
-            } else {
-                return nil
-            }
-        }
-#endif
+        #endif
     }
-    
+
     var fileType: FileType? {
         return FileType(url: self)
     }
-    
+
     var isVideo: Bool {
-        self.fileType == .video
+        fileType == .video
     }
-    
+
     var isImage: Bool {
-        self.fileType == .image
+        fileType == .image
     }
-    
+
     var isGIF: Bool {
-        self.fileType == .gif
+        fileType == .gif
     }
-    
+
     var isMultimedia: Bool {
-        self.fileType?.isMultimedia ?? false
+        fileType?.isMultimedia ?? false
     }
 }
 
@@ -156,7 +155,7 @@ public extension URL.FileType {
         case .folder: return "public.folder"
         case .gif: return "com.compuserve.gif"
         case .image: return "public.image"
-        case .other(let pathExtension):
+        case let .other(pathExtension):
             guard pathExtension != "" else {
                 return "public.folder"
             }
@@ -166,8 +165,8 @@ public extension URL.FileType {
                 }
             }
             if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue(), let mimeIdentifier = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
-                        return mimeIdentifier as String
-                }
+                return mimeIdentifier as String
+            }
             return nil
         case .pdf: return "com.adobe.pdf"
         case .presentation: return "public.presentation"
@@ -176,7 +175,7 @@ public extension URL.FileType {
         case .video: return "public.video"
         }
     }
-    
+
     var commonExtensions: [String] {
         switch self {
         case .image:
@@ -202,7 +201,7 @@ public extension URL.FileType {
             return []
         }
     }
-    
+
     var description: String {
         switch self {
         case .aliasFile: return "AliasFile"
@@ -215,34 +214,34 @@ public extension URL.FileType {
         case .folder: return "Folder"
         case .gif: return "GIF"
         case .image: return "Image"
-        case .other(let value): return "File: .\(value)"
-        case .pdf:  return "PDF"
+        case let .other(value): return "File: .\(value)"
+        case .pdf: return "PDF"
         case .presentation: return "Application"
         case .symbolicLink: return "SymbolicLink"
         case .text: return "Text"
         case .video: return "Movie"
         }
     }
-    
+
     var isMultimedia: Bool {
         self == .video || self == .audio || self == .gif || self == .image
     }
-    
+
     static let allCases: [URL.FileType] = [.aliasFile, .symbolicLink, .application, .executable, .archive, .video, .audio, .diskImage, .document, .folder, .gif, .image, .pdf, .presentation, .text]
-    
+
     static var multimediaTypes: [URL.FileType] = [.gif, .image, .video]
     static var imageTypes: [URL.FileType] = [.gif, .image]
-    
-#if canImport(UniformTypeIdentifiers)
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0,  *)
-    var uttype: UTType? {
-        if let identifier = self.identifier {
-            return UTType(identifier)
+
+    #if canImport(UniformTypeIdentifiers)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        var uttype: UTType? {
+            if let identifier = identifier {
+                return UTType(identifier)
+            }
+            return nil
         }
-        return nil
-    }
-#endif
-    
+    #endif
+
     internal var predicate: NSPredicate {
         let key: NSExpression
         let type: NSComparisonPredicate.Operator
@@ -250,7 +249,7 @@ public extension URL.FileType {
         case .executable, .folder, .image, .video, .audio, .pdf, .presentation:
             key = NSExpression(forKeyPath: "_kMDItemGroupId")
             type = .equalTo
-        case  .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other(_):
+        case .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other:
             key = NSExpression(forKeyPath: "kMDItemContentTypeTree")
             type = .like
         }
@@ -271,12 +270,12 @@ public extension URL.FileType {
         case .text: value = NSExpression(format: "%@", "public.text")
         case .aliasFile: value = NSExpression(format: "%@", "com.apple.alias-file")
         case .symbolicLink: value = NSExpression(format: "%@", "public.symlink")
-        case .other(let oValue): value = NSExpression(format: "%@", oValue)
+        case let .other(oValue): value = NSExpression(format: "%@", oValue)
         }
-        
+
         let modifier: NSComparisonPredicate.Modifier
         switch self {
-        case .application, .archive, .text, .document, .other(_):
+        case .application, .archive, .text, .document, .other:
             modifier = .any
         default:
             modifier = .direct
@@ -307,4 +306,3 @@ public extension URL.FileType {
      }
  }
  */
-

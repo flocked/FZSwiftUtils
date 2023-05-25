@@ -5,11 +5,11 @@
 //  Created by Florian Zand on 02.06.22.
 //
 
-import Foundation
 import CoreLocation
+import Foundation
 
-extension ImageProperties {
-    public struct GPS: Codable { // "{GPS}"
+public extension ImageProperties {
+    struct GPS: Codable { // "{GPS}"
         public var version: [Double]?
         public var latitudeRef: LatitudeRef?
         public var latitude: Double?
@@ -42,48 +42,53 @@ extension ImageProperties {
         public var dateStamp: Date?
         public var differental: Double?
         public var hPositioningError: Double?
-        
+
         public enum LatitudeRef: String, Codable {
             case north = "N"
             case south = "S"
         }
-        
+
         public enum LongitudeRef: String, Codable {
             case east = "E"
             case west = "W"
         }
-        
+
         public enum AltitudeRef: Int, Codable {
-              case aboveSeaLevel = 0
-              case belowSeaLevel = 1
-          }
-          public enum DirectionRef: String, Codable {
-              case trueDirection = "T"
-              case magneticDirection = "M"
-          }
-          public enum DistanceRef: String, Codable {
-              case kilometers = "K"
-              case miles = "M"
-              case knots = "N"
-          }
-          public enum SpeedRef: String, Codable {
-              case kilometersPerHour = "K"
-              case milesPerHour = "M"
-              case knots = "N"
-          }
-          public enum MeasureMode: String, Codable {
-              case twoDimensional = "2"
-              case threeDimensional = "3"
-          }
-          public enum Status: String, Codable {
-              case active = "A"
-              case void = "V"
-          }
-        
+            case aboveSeaLevel = 0
+            case belowSeaLevel = 1
+        }
+
+        public enum DirectionRef: String, Codable {
+            case trueDirection = "T"
+            case magneticDirection = "M"
+        }
+
+        public enum DistanceRef: String, Codable {
+            case kilometers = "K"
+            case miles = "M"
+            case knots = "N"
+        }
+
+        public enum SpeedRef: String, Codable {
+            case kilometersPerHour = "K"
+            case milesPerHour = "M"
+            case knots = "N"
+        }
+
+        public enum MeasureMode: String, Codable {
+            case twoDimensional = "2"
+            case threeDimensional = "3"
+        }
+
+        public enum Status: String, Codable {
+            case active = "A"
+            case void = "V"
+        }
+
         public var location: CLLocation? {
             guard let coordinate = coordinate else { return nil }
             if var altitude = altitude, let timestamp = timeStamp {
-                if (altitudeRef == .belowSeaLevel){
+                if altitudeRef == .belowSeaLevel {
                     altitude = -altitude
                 }
                 var location = CLLocation(coordinate: coordinate, altitude: CLLocationDistance(altitude), horizontalAccuracy: .zero, verticalAccuracy: .zero, timestamp: timestamp)
@@ -97,12 +102,12 @@ extension ImageProperties {
         }
 
         public var coordinate: CLLocationCoordinate2D? {
-           guard let latitude = latitude, let longitude = longitude else { return nil }
+            guard let latitude = latitude, let longitude = longitude else { return nil }
             var coord = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-            if (latitudeRef == .south) {
+            if latitudeRef == .south {
                 coord.latitude = -coord.latitude
             }
-            if (longitudeRef == .west) {
+            if longitudeRef == .west {
                 coord.longitude = -coord.longitude
             }
             return coord

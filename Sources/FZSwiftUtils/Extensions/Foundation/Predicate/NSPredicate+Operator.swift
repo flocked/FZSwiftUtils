@@ -9,14 +9,14 @@ import Foundation
 
 public extension NSComparisonPredicate.Options {
     var predicateFormat: String {
-        var value: String = ""
-        if (self.contains(.caseInsensitive)) {
+        var value = ""
+        if contains(.caseInsensitive) {
             value = value + "c"
         }
-        if (self.contains(.diacriticInsensitive)) {
+        if contains(.diacriticInsensitive) {
             value = value + "d"
         }
-        if (self.contains(.normalized)) {
+        if contains(.normalized) {
             value = value + "w"
         }
         return value
@@ -34,7 +34,6 @@ public func && (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
 public func || (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
     NSCompoundPredicate(orPredicateWithSubpredicates: [lhs, rhs])
 }
-
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
     return NSComparisonPredicate(lhs == rhs)

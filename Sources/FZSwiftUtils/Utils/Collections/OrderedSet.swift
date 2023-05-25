@@ -6,129 +6,96 @@
 //  © 2017-2022 1024jp
 
 struct OrderedSet<Element: Hashable>: RandomAccessCollection {
-    
     typealias Index = Array<Element>.Index
-    
+
     private var elements: [Element] = []
-    
-    
-    
+
     // MARK: -
+
     // MARK: Lifecycle
-    
-    init() { }
-    
-    
+
+    init() {}
+
     init(_ elements: some Sequence<Element>) {
-        
-        self.append(contentsOf: elements)
+        append(contentsOf: elements)
     }
-    
-    
-    
+
     // MARK: Collection Methods
-    
+
     /// return the element at the specified position.
     subscript(_ index: Index) -> Element {
-        
-        self.elements[index]
+        elements[index]
     }
-    
-    
+
     var startIndex: Index {
-        
-        self.elements.startIndex
+        elements.startIndex
     }
-    
-    
+
     var endIndex: Index {
-        
-        self.elements.endIndex
+        elements.endIndex
     }
-    
-    
+
     func index(after index: Index) -> Index {
-        
-        self.elements.index(after: index)
+        elements.index(after: index)
     }
-    
-    
-    
+
     // MARK: Methods
-    
+
     var array: [Element] {
-        
-        self.elements
+        elements
     }
-    
-    
+
     var set: Set<Element> {
-        
-        Set(self.elements)
+        Set(elements)
     }
-    
-    
+
     /// return a new set with the elements that are common to both this set and the given sequence.
     func intersection(_ other: some Sequence<Element>) -> Self {
-        
         var set = OrderedSet()
-        set.elements = self.elements.filter { other.contains($0) }
-        
+        set.elements = elements.filter { other.contains($0) }
+
         return set
     }
-    
-    
-    
+
     // MARK: Mutating Methods
-    
+
     /// insert the given element in the set if it is not already present.
     mutating func append(_ element: Element) {
-        
-        guard !self.elements.contains(element) else { return }
-        
-        self.elements.append(element)
+        guard !elements.contains(element) else { return }
+
+        elements.append(element)
     }
-    
-    
+
     /// insert the given elements in the set only which it is not already present.
     mutating func append(contentsOf elements: some Sequence<Element>) {
-        
         for element in elements {
-            self.append(element)
+            append(element)
         }
     }
-    
-    
+
     /// insert the given element at the desired position.
     mutating func insert(_ element: Element, at index: Index) {
-        
-        guard !self.elements.contains(element) else { return }
-        
-        self.elements.insert(element, at: index)
+        guard !elements.contains(element) else { return }
+
+        elements.insert(element, at: index)
     }
-    
-    
+
     /// remove the elements of the set that aren’t also in the given sequence.
     mutating func formIntersection(_ other: some Sequence<Element>) {
-        
-        self.elements.removeAll { !other.contains($0) }
+        elements.removeAll { !other.contains($0) }
     }
-    
-    
+
     /// remove the the element at the position from the set.
     @discardableResult
     mutating func remove(at index: Index) -> Element {
-        
-        self.elements.remove(at: index)
+        elements.remove(at: index)
     }
-    
-    
+
     /// remove the specified element from the set.
     @discardableResult
     mutating func remove(_ element: Element) -> Element? {
-        
-        guard let index = self.firstIndex(of: element) else { return nil }
-        
-        return self.remove(at: index)
+        guard let index = firstIndex(of: element) else { return nil }
+
+        return remove(at: index)
     }
 }

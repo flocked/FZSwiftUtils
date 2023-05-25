@@ -1,7 +1,7 @@
 /**
-*  CollectionConcurrencyKit
-*  Copyright (c) John Sundell 2021
-*/
+ *  CollectionConcurrencyKit
+ *  Copyright (c) John Sundell 2021
+ */
 
 // MARK: - ForEach
 
@@ -357,41 +357,41 @@ public extension Sequence {
 }
 
 #if os(macOS)
-import AppKit
+    import AppKit
 #elseif canImport(UIKit)
-import UIKit
+    import UIKit
 #endif
 
 public extension Collection {
     /* Transform the sequence into an array of new values asynchronously amd returning it a completionHandler.
      */
-    func asyncMap<R>(_ block: (Element, @escaping (R) -> Void) -> Void, completion:  @escaping ([R]) -> Void) {
+    func asyncMap<R>(_ block: (Element, @escaping (R) -> Void) -> Void, completion: @escaping ([R]) -> Void) {
         let group = DispatchGroup()
         let semaphore = DispatchSemaphore(value: 1)
         var results = [R?](repeating: nil, count: count)
-        for (index, object) in self.enumerated() {
+        for (index, object) in enumerated() {
             group.enter()
-            block(object, { result in
+            block(object) { result in
                 semaphore.wait()
                 results[index] = result
                 semaphore.signal()
                 group.leave()
-            })
+            }
         }
         group.notify(queue: DispatchQueue.global(qos: .default)) {
             completion(results as! [R])
         }
     }
-    
+
     /* Transform the sequence into an array of new values asynchronously amd returning it a completionHandler.
      */
-    func asyncCompactMap<R>(_ block: (Element, @escaping (R?) -> Void) -> Void, completion:  @escaping ([R]) -> Void) {
+    func asyncCompactMap<R>(_ block: (Element, @escaping (R?) -> Void) -> Void, completion: @escaping ([R]) -> Void) {
         let group = DispatchGroup()
         let semaphore = DispatchSemaphore(value: 1)
         var results = [R?](repeating: nil, count: count)
-        for (index, object) in self.enumerated() {
+        for (index, object) in enumerated() {
             group.enter()
-            block(object, { result in
+            block(object) { result in
                 guard let result = result else {
                     group.leave()
                     return
@@ -400,11 +400,10 @@ public extension Collection {
                 results[index] = result
                 semaphore.signal()
                 group.leave()
-            })
+            }
         }
         group.notify(queue: DispatchQueue.global(qos: .default)) {
-            completion(results.compactMap{$0})
+            completion(results.compactMap { $0 })
         }
     }
 }
-

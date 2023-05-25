@@ -7,12 +7,12 @@
 
 import Foundation
 
-extension ImageProperties {
-    public struct IPTC: Codable {
+public extension ImageProperties {
+    struct IPTC: Codable {
         public var orientation: Orientation?
-        
+
         enum CodingKeys: String, CodingKey {
             case orientation = "ImageOrientation"
-          }
+        }
     }
 }

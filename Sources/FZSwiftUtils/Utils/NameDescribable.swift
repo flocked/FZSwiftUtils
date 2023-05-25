@@ -12,7 +12,6 @@ public protocol NameDescribable {
     static var typeName: String { get }
 }
 
-
 public extension NameDescribable {
     var typeName: String {
         return String(describing: type(of: self))

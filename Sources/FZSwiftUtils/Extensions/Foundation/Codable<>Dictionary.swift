@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Guerson Perez on 21/07/20.
 //
@@ -11,7 +11,7 @@ public extension Encodable {
     func toCFDictionary() -> CFDictionary {
         return (toDictionary(encoder: .init()) as [CFString: Any]) as CFDictionary
     }
-    
+
     func toDictionary() -> [String: Any] {
         return toDictionary(encoder: .init())
     }
@@ -33,7 +33,7 @@ public extension CFDictionary {
     func toModel<T: Codable>() -> T? {
         return toModel(T.self, decoder: .init())
     }
-    
+
     func toModel<T: Codable>(_ type: T.Type = T.self, decoder: JSONDecoder) -> T? {
         do {
             let data = try JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)

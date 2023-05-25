@@ -1,6 +1,6 @@
 //
 //  URLRequest+.swift
-//  
+//
 //
 //  Created by Florian Zand on 06.03.23.
 //
@@ -9,20 +9,20 @@ import Foundation
 
 public extension URLRequest {
     mutating func addHTTPHeaders(_ headerValues: [String: String]) {
-        headerValues.forEach({self.addValue($0.value, forHTTPHeaderField: $0.key)})
+        headerValues.forEach { self.addValue($0.value, forHTTPHeaderField: $0.key) }
     }
-    
+
     init?(string: String) {
         guard let url = URL(string: string) else { return nil }
         self.init(url: url)
     }
-    
+
     var bytesRanges: ClosedRange<Int>? {
         get {
-            if let string = self.allHTTPHeaderFields?["Range"] {
-            let matches = string.matches(regex: "bytes=(\\d+)-(\\d+)")
+            if let string = allHTTPHeaderFields?["Range"] {
+                let matches = string.matches(regex: "bytes=(\\d+)-(\\d+)")
                 if matches.count == 2, let from = Int(matches[0]), let to = Int(matches[1]) {
-                    return from...to
+                    return from ... to
                 }
             }
             return nil
@@ -30,20 +30,20 @@ public extension URLRequest {
         set {
             if let byteRange = newValue {
                 // bytes=345234-34555
-                self.setValue("bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)", forHTTPHeaderField: "Range")
+                setValue("bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)", forHTTPHeaderField: "Range")
             } else {
-                self.setValue(nil, forHTTPHeaderField: "Range")
+                setValue(nil, forHTTPHeaderField: "Range")
             }
         }
     }
-    
+
     /*
      request.setValue(
                      "bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)",
                      forHTTPHeaderField: "Range"
                  )
      */
-    
+
     var curlString: String {
         guard let url = url else { return "" }
 
@@ -64,7 +64,8 @@ public extension URLRequest {
         }
 
         if let data = httpBody,
-            let body = String(data: data, encoding: .utf8) {
+           let body = String(data: data, encoding: .utf8)
+        {
             command.append("-d '\(body)'")
         }
 

@@ -17,6 +17,7 @@ public struct SwizzlaePair: CustomStringConvertible {
     var `operator`: String {
         `static` ? "<~>" : "<->"
     }
+
     public var description: String {
         "\(old) \(self.operator) \(new)"
     }
@@ -26,15 +27,15 @@ public extension Selector {
     static func <-> (lhs: Selector, rhs: Selector) -> SwizzlaePair {
         SwizzlaePair(old: lhs, new: rhs)
     }
-    
+
     static func <-> (lhs: Selector, rhs: String) -> SwizzlaePair {
         SwizzlaePair(old: lhs, new: Selector(rhs))
     }
-    
+
     static func <~> (lhs: Selector, rhs: Selector) -> SwizzlaePair {
         SwizzlaePair(old: lhs, new: rhs, static: true)
     }
-    
+
     static func <~> (lhs: Selector, rhs: String) -> SwizzlaePair {
         SwizzlaePair(old: lhs, new: Selector(rhs), static: true)
     }
@@ -44,7 +45,7 @@ public extension String {
     static func <-> (lhs: String, rhs: Selector) -> SwizzlaePair {
         SwizzlaePair(old: Selector(lhs), new: rhs)
     }
-    
+
     static func <~> (lhs: String, rhs: Selector) -> SwizzlaePair {
         SwizzlaePair(old: Selector(lhs), new: rhs, static: true)
     }
@@ -52,32 +53,32 @@ public extension String {
 
 public struct Swizzle {
     @resultBuilder
-    public struct Builder {
+    public enum Builder {
         public static func buildBlock(_ swizzlePairs: SwizzlaePair...) -> [SwizzlaePair] {
             Array(swizzlePairs)
         }
     }
-    
+
     @discardableResult
     public init(_ class_: AnyClass, @Builder _ makeSwizzlePairs: () -> [SwizzlaePair]) throws {
         try self.init(class_, swizzlePairs: makeSwizzlePairs())
     }
-    
+
     @discardableResult
     public init(_ class_: AnyClass, @Builder _ makeSwizzlePairs: () -> SwizzlaePair) throws {
         try self.init(class_, swizzlePairs: [makeSwizzlePairs()])
     }
-    
+
     @discardableResult
     public init(_ className: String, @Builder _ makeSwizzlePairs: () -> [SwizzlaePair]) throws {
         try self.init(className, swizzlePairs: makeSwizzlePairs())
     }
-    
+
     @discardableResult
     public init(_ className: String, @Builder _ makeSwizzlePairs: () -> SwizzlaePair) throws {
         try self.init(className, swizzlePairs: [makeSwizzlePairs()])
     }
-    
+
     @discardableResult
     internal init(_ class_: AnyClass, swizzlePairs: [SwizzlaePair]) throws {
         guard object_isClass(class_) else {
@@ -85,7 +86,7 @@ public struct Swizzle {
         }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
-    
+
     @discardableResult
     internal init(_ className: String, swizzlePairs: [SwizzlaePair]) throws {
         guard let class_ = NSClassFromString(className) else {
@@ -93,33 +94,36 @@ public struct Swizzle {
         }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
-    
+
     private func swizzle(
         type: AnyObject.Type,
         pairs: [SwizzlaePair]
     ) throws {
         try pairs.forEach { pair in
             guard let `class` =
-                    pair.static ?
-                    object_getClass(type) : type
+                pair.static ?
+                object_getClass(type) : type
             else {
                 throw Error.missingClass(type.description())
             }
             guard
                 let lhs =
-                    class_getInstanceMethod(`class`, pair.old) else {
+                class_getInstanceMethod(`class`, pair.old)
+            else {
                 throw Error.missingMethod(`class`, pair.static, true, pair)
             }
             guard let rhs =
-                    class_getInstanceMethod(`class`, pair.new) else {
+                class_getInstanceMethod(`class`, pair.new)
+            else {
                 throw Error.missingMethod(`class`, pair.static, false, pair)
             }
-            
+
             if pair.static,
                class_addMethod(
-                `class`, pair.old,
-                method_getImplementation(rhs), method_getTypeEncoding(rhs)
-               ) {
+                   `class`, pair.old,
+                   method_getImplementation(rhs), method_getTypeEncoding(rhs)
+               )
+            {
                 class_replaceMethod(
                     `class`,
                     pair.new,
@@ -139,7 +143,7 @@ extension Swizzle {
         static let prefix: String = "Swizzle.Error: "
         case missingClass(_ name: String),
              missingMethod(
-                _ type: AnyObject.Type, _ static: Bool, _ old: Bool, SwizzlaePair
+                 _ type: AnyObject.Type, _ static: Bool, _ old: Bool, SwizzlaePair
              )
         var failureReason: String? {
             switch self {
@@ -147,25 +151,26 @@ extension Swizzle {
                 return "Missing class: \(type)"
             case let .missingMethod(type, `static`, old, pair):
                 return
-            """
-            Missing \(old ? "old" : "new")\(`static` ? " static" : "") method for \
-            \(type.description()): \(pair)
-            """
+                    """
+                    Missing \(old ? "old" : "new")\(`static` ? " static" : "") method for \
+                    \(type.description()): \(pair)
+                    """
             }
         }
+
         var recoverySuggestion: String? {
             switch self {
             case .missingClass:
                 return nil
             case let .missingMethod(type, `static`, old, pair):
                 return
-             """
-             Create \(old ? "old" : "new")\(`static` ? " static" : "") method for \
-             \(type.description()): \(pair)
-             """
+                    """
+                    Create \(old ? "old" : "new")\(`static` ? " static" : "") method for \
+                    \(type.description()): \(pair)
+                    """
             }
         }
-        
+
         var errorDescription: String? {
             switch self {
             case .missingClass:

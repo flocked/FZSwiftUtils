@@ -1,6 +1,6 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Florian Zand on 13.05.23.
 //
@@ -25,7 +25,7 @@ public extension URL {
         case symbolicLink
         case text
         case video
-        
+
         var typeIdentifier: String? {
             switch self {
             case .aliasFile: return "com.apple.alias-file"
@@ -38,7 +38,7 @@ public extension URL {
             case .folder: return "public.folder"
             case .gif: return "com.compuserve.gif"
             case .image: return "public.image"
-            case .other(_): return nil
+            case .other: return nil
             case .pdf: return "com.adobe.pdf"
             case .presentation: return "public.presentation"
             case .symbolicLink: return "public.symlink"
@@ -46,7 +46,7 @@ public extension URL {
             case .video: return "public.movie"
             }
         }
-        
+
         var commonExtensions: [String] {
             switch self {
             case .image:
@@ -72,13 +72,13 @@ public extension URL {
                 return []
             }
         }
-        
+
         var isMultimedia: Bool {
             self == .video || self == .audio || self == .gif || self == .image
         }
-        
+
         internal static let allCases: [FileType] = [.aliasFile, .symbolicLink, .application, .executable, .archive, .video, .audio, .diskImage, .document, .folder, .gif, .image, .pdf, .presentation, .text]
-        
+
         public var description: String {
             switch self {
             case .aliasFile: return "AliasFile"
@@ -91,15 +91,15 @@ public extension URL {
             case .folder: return "Folder"
             case .gif: return "GIF"
             case .image: return "Image"
-            case .other(let value): return "File: .\(value)"
-            case .pdf:  return "PDF"
+            case let .other(value): return "File: .\(value)"
+            case .pdf: return "PDF"
             case .presentation: return "Application"
             case .symbolicLink: return "SymbolicLink"
             case .text: return "Text"
             case .video: return "Movie"
             }
         }
-        
+
         internal var predicate: NSPredicate {
             let key: NSExpression
             let type: NSComparisonPredicate.Operator
@@ -107,7 +107,7 @@ public extension URL {
             case .executable, .folder, .image, .video, .audio, .pdf, .presentation:
                 key = NSExpression(forKeyPath: "_kMDItemGroupId")
                 type = .equalTo
-            case  .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other(_):
+            case .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other:
                 key = NSExpression(forKeyPath: "kMDItemContentTypeTree")
                 type = .like
             }
@@ -128,31 +128,30 @@ public extension URL {
             case .text: value = NSExpression(format: "%@", "public.text")
             case .aliasFile: value = NSExpression(format: "%@", "com.apple.alias-file")
             case .symbolicLink: value = NSExpression(format: "%@", "public.symlink")
-            case .other(let oValue): value = NSExpression(format: "%@", oValue)
+            case let .other(oValue): value = NSExpression(format: "%@", oValue)
             }
-            
+
             let modifier: NSComparisonPredicate.Modifier
             switch self {
-            case .application, .archive, .text, .document, .other(_):
+            case .application, .archive, .text, .document, .other:
                 modifier = .any
             default:
                 modifier = .direct
             }
             return NSComparisonPredicate(leftExpression: key, rightExpression: value, modifier: modifier, type: type)
         }
-        
     }
 }
 
 #if canImport(UniformTypeIdentifiers)
-import UniformTypeIdentifiers
-@available(macOS 11.0, *)
-public extension URL.FileTypeNew {
-    internal var uttype: UTType? {
-        if let identifier = self.typeIdentifier {
-            return UTType(identifier)
+    import UniformTypeIdentifiers
+    @available(macOS 11.0, *)
+    internal extension URL.FileTypeNew {
+        var uttype: UTType? {
+            if let identifier = typeIdentifier {
+                return UTType(identifier)
+            }
+            return nil
         }
-        return nil
     }
-}
 #endif

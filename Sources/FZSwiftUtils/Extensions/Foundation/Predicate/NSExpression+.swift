@@ -1,6 +1,6 @@
 //
 //  NSExpression+.swift
-//  
+//
 //
 //  Created by Florian Zand on 10.03.23.
 //

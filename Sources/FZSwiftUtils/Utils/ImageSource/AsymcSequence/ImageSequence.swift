@@ -5,9 +5,9 @@
 //  Created by Florian Zand on 03.06.22.
 //
 
+import Combine
 import Foundation
 import ImageIO
-import Combine
 
 public extension ImageSource {
     struct ImageSequence: AsyncSequence {
@@ -15,21 +15,22 @@ public extension ImageSource {
             case image
             case thumbnail
         }
+
         public typealias Element = CGImage
         public let source: ImageSource
         public let type: ImageType
         public let imageOptions: ImageOptions?
         public let thumbnailOptions: ThumbnailOptions?
         public let loop: Bool
-        
+
         static func thumbnail(_ source: ImageSource, options: ThumbnailOptions? = nil, loop: Bool = false) -> ImageSequence {
             ImageSequence(source: source, type: .thumbnail, thumbnailOptions: options, loop: loop)
         }
-        
+
         static func image(_ source: ImageSource, options: ImageOptions? = nil, loop: Bool = false) -> ImageSequence {
             ImageSequence(source: source, type: .image, imageOptions: options, loop: loop)
         }
-        
+
         init(source: ImageSource, type: ImageType, imageOptions: ImageOptions? = nil, thumbnailOptions: ThumbnailOptions? = nil, loop: Bool = false) {
             self.source = source
             self.type = type
@@ -37,7 +38,7 @@ public extension ImageSource {
             self.thumbnailOptions = thumbnailOptions
             self.loop = loop
         }
-        
+
         public func makeAsyncIterator() -> ImageIterator {
             switch type {
             case .image:
@@ -62,42 +63,41 @@ public extension ImageSource {
             case image
             case thumbnail
         }
-        
-        public static func thumbnail(source: ImageSource, options: ThumbnailOptions? = nil, loop: Bool = false) -> ImageIterator {
+
+        public static func thumbnail(source: ImageSource, options: ThumbnailOptions? = nil, loop _: Bool = false) -> ImageIterator {
             return ImageIterator(source: source, type: .thumbnail, thumbnailOptions: options, imageOptions: nil)
         }
-        
-        public static func image(source: ImageSource, options: ImageOptions? = nil, loop: Bool = false) -> ImageIterator {
+
+        public static func image(source: ImageSource, options: ImageOptions? = nil, loop _: Bool = false) -> ImageIterator {
             return ImageIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
         }
-        
+
         public init(source: ImageSource, type: ImageType, thumbnailOptions: ThumbnailOptions?, imageOptions: ImageOptions?, loop: Bool = false) {
             self.source = source
-            self.frameCount = source.count
-            self.currentFrame = 0
+            frameCount = source.count
+            currentFrame = 0
             self.loop = loop
             self.type = type
             self.thumbnailOptions = thumbnailOptions
             self.imageOptions = imageOptions
         }
-        
-        
+
         func nextImage() async -> CGImage? {
             switch type {
             case .image:
-                return await source.image(at: currentFrame, options: self.imageOptions)
+                return await source.image(at: currentFrame, options: imageOptions)
             case .thumbnail:
-                return await source.thumbnail(at: currentFrame, options: self.thumbnailOptions)
+                return await source.thumbnail(at: currentFrame, options: thumbnailOptions)
             }
         }
-        
+
         public mutating func next() async -> CGImage? {
             if currentFrame >= frameCount {
                 if loop { currentFrame = 0 }
                 else { return nil }
             }
             let image = await nextImage()
-            self.currentFrame = self.currentFrame + 1
+            currentFrame = currentFrame + 1
             return image
         }
     }

@@ -5,8 +5,8 @@
 //  Created by Florian Zand on 02.06.22.
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 
 public struct ImageProperties: Codable {
     /// The file size of the image.
@@ -44,60 +44,60 @@ public struct ImageProperties: Codable {
 
     /// The pixel size of the image.
     public var pixelSize: CGSize? {
-        guard var width = pixelWidth, var height = self.pixelHeight else {return nil}
-        if self.orientation.needsSwap {
+        guard var width = pixelWidth, var height = pixelHeight else { return nil }
+        if orientation.needsSwap {
             swap(&width, &height)
         }
         return CGSize(width: width, height: height)
     }
-    
+
     /// The dpi size of the image.
     public var dpiSize: CGSize? {
-        guard var width = dpiWidth, var height = self.dpiHeight else {return nil}
-        if self.orientation.needsSwap {
+        guard var width = dpiWidth, var height = dpiHeight else { return nil }
+        if orientation.needsSwap {
             swap(&width, &height)
         }
         return CGSize(width: width, height: height)
     }
-    
+
     /// The orientation of the image.
     public var orientation: Orientation {
         return _orientation ?? tiff?.orientation ?? iptc?.orientation ?? .up
     }
-    
+
     /// Returns if the image is a screenshot.
     public var isScreenshot: Bool {
         return exif?.isScreenshot ?? false
     }
-    
+
     public var loopCount: Int {
-             return heic?.loopCount ?? gif?.loopCount ?? png?.loopCount ?? 1
+        return heic?.loopCount ?? gif?.loopCount ?? png?.loopCount ?? 1
     }
-        
+
     public var clampedDelayTime: Double? {
-            return heic?.clampedDelayTime ?? gif?.clampedDelayTime ?? png?.clampedDelayTime
-        }
-        
+        return heic?.clampedDelayTime ?? gif?.clampedDelayTime ?? png?.clampedDelayTime
+    }
+
     public var unclampedDelayTime: Double? {
-            return heic?.unclampedDelayTime ?? gif?.unclampedDelayTime ?? png?.unclampedDelayTime
-        }
-    
+        return heic?.unclampedDelayTime ?? gif?.unclampedDelayTime ?? png?.unclampedDelayTime
+    }
+
     private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
     public var delayTime: Double? {
-        let value = self.unclampedDelayTime ?? self.clampedDelayTime
+        let value = unclampedDelayTime ?? clampedDelayTime
         if let value = value, value < ImageProperties.capDurationThreshold {
             return 0.1
         }
         return value
     }
-    
+
     public var dataSize: DataSize? {
-        if let fileSize = self.fileSize {
+        if let fileSize = fileSize {
             return DataSize(fileSize)
         }
         return nil
     }
-                
+
     enum CodingKeys: String, CodingKey, CaseIterable {
         case fileSize = "FileSize"
         case pixelWidth = "PixelWidth"
@@ -116,12 +116,12 @@ public struct ImageProperties: Codable {
         case colorProfile = "ProfileName"
         case colorModel = "ColorModel"
         case depth = "Depth"
-      }
+    }
 }
 
-extension ImageProperties {
+public extension ImageProperties {
     /// The image orientation.
-    public enum Orientation : UInt32, Codable {
+    enum Orientation: UInt32, Codable {
         case up = 1 // 0th row at top,    0th column on left   - default orientation
         case upMirrored = 2 // 0th row at top,    0th column on right  - horizontal flip
         case down = 3 // 0th row at bottom, 0th column on right  - 180 deg rotation
@@ -130,33 +130,34 @@ extension ImageProperties {
         case right = 6 // 0th row on right,  0th column at top    - 90 deg CW
         case rightMirrored = 7 // 0th row on right,  0th column on bottom
         case left = 8 // 0th row on left,   0th column at bottom - 90 deg CCW
-        
+
         var needsSwap: Bool {
-            switch self.rawValue {
-            case 5...8: return true
-            default: return false }
+            switch rawValue {
+            case 5 ... 8: return true
+            default: return false
+            }
         }
-        
+
         var transform: CGAffineTransform {
-            switch self.rawValue {
-        case 2:
-            return CGAffineTransform(scaleX: -1, y: 1)
-        case 3:
-            return CGAffineTransform(scaleX: -1, y: -1)
-        case 4:
-            return CGAffineTransform(scaleX: 1, y: -1)
-        case 5:
-            return CGAffineTransform(scaleX: -1, y: 1).rotated(by: .pi / 2)
-        case 6:
-            return CGAffineTransform(rotationAngle: .pi / 2)
-        case 7:
-            return CGAffineTransform(scaleX: -1, y: 1).rotated(by: -.pi / 2)
-        case 8:
-            return CGAffineTransform(rotationAngle: -.pi / 2)
-        default: // 1
-            return CGAffineTransform.identity
+            switch rawValue {
+            case 2:
+                return CGAffineTransform(scaleX: -1, y: 1)
+            case 3:
+                return CGAffineTransform(scaleX: -1, y: -1)
+            case 4:
+                return CGAffineTransform(scaleX: 1, y: -1)
+            case 5:
+                return CGAffineTransform(scaleX: -1, y: 1).rotated(by: .pi / 2)
+            case 6:
+                return CGAffineTransform(rotationAngle: .pi / 2)
+            case 7:
+                return CGAffineTransform(scaleX: -1, y: 1).rotated(by: -.pi / 2)
+            case 8:
+                return CGAffineTransform(rotationAngle: -.pi / 2)
+            default: // 1
+                return CGAffineTransform.identity
+            }
         }
-    }
     }
 }
 
@@ -164,18 +165,19 @@ extension ImageProperties {
     static var decoder: JSONDecoder {
         .init(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
     }
+
     static var encoder: JSONEncoder {
         .init(dateEncodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
     }
 }
 
-extension ImageProperties {
-    public var shape: Shape? {
+public extension ImageProperties {
+    var shape: Shape? {
         guard let pixelSize = pixelSize else { return nil }
         return Shape(size: pixelSize)
     }
-    
-    public enum Shape: String {
+
+    enum Shape: String {
         case landscape
         case portrait
         case square

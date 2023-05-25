@@ -7,19 +7,19 @@
 
 import Foundation
 
-extension ImageProperties {
-    public struct PNG: Codable {
+public extension ImageProperties {
+    struct PNG: Codable {
         public var loopCount: Int?
         public var clampedDelayTime: Double?
         public var unclampedDelayTime: Double?
         public var delayTime: Double? {
-            return self.unclampedDelayTime ?? self.clampedDelayTime
+            return unclampedDelayTime ?? clampedDelayTime
         }
-        
+
         enum CodingKeys: String, CodingKey {
             case loopCount = "LoopCount"
             case clampedDelayTime = "DelayTime"
             case unclampedDelayTime = "UnclampedDelayTime"
-          }
+        }
     }
 }

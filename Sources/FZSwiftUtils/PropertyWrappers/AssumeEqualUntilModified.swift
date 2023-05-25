@@ -1,6 +1,6 @@
 //
 //  AssumeEqualUntilModified.swift
-//  
+//
 //
 //  Created by zwaldowski
 //
@@ -10,7 +10,6 @@ import Foundation
 /// Customizes the behavior of automatically-generated `Equatable` and `Hashable` conformances.
 @propertyWrapper
 public struct AssumeEqualUntilModified<Wrapped> {
-
     var modificationCount = 0
 
     public var wrappedValue: Wrapped {
@@ -22,11 +21,9 @@ public struct AssumeEqualUntilModified<Wrapped> {
     public init(wrappedValue: Wrapped) {
         self.wrappedValue = wrappedValue
     }
-
 }
 
 extension AssumeEqualUntilModified: Hashable {
-
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.modificationCount == 0 && rhs.modificationCount == 0
     }
@@ -34,7 +31,6 @@ extension AssumeEqualUntilModified: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(modificationCount)
     }
-
 }
 
 /*

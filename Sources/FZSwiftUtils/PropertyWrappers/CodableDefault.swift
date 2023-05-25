@@ -13,7 +13,7 @@ import Foundation
 /// a reasonable default value for missing Decodable data.
 public protocol DefaultCodableStrategy {
     associatedtype DefaultValue: Decodable
-    
+
     /// The fallback value used when decoding fails
     static var defaultValue: DefaultValue { get }
 }
@@ -25,7 +25,7 @@ public protocol DefaultCodableStrategy {
 @propertyWrapper
 public struct DefaultCodable<Default: DefaultCodableStrategy> {
     public var wrappedValue: Default.DefaultValue
-    
+
     public init(wrappedValue: Default.DefaultValue) {
         self.wrappedValue = wrappedValue
     }
@@ -34,7 +34,7 @@ public struct DefaultCodable<Default: DefaultCodableStrategy> {
 extension DefaultCodable: Decodable where Default.DefaultValue: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        self.wrappedValue = (try? container.decode(Default.DefaultValue.self)) ?? Default.defaultValue
+        wrappedValue = (try? container.decode(Default.DefaultValue.self)) ?? Default.defaultValue
     }
 }
 
@@ -44,14 +44,14 @@ extension DefaultCodable: Encodable where Default.DefaultValue: Encodable {
     }
 }
 
-extension DefaultCodable: Equatable where Default.DefaultValue: Equatable { }
-extension DefaultCodable: Hashable where Default.DefaultValue: Hashable { }
+extension DefaultCodable: Equatable where Default.DefaultValue: Equatable {}
+extension DefaultCodable: Hashable where Default.DefaultValue: Hashable {}
 
 // MARK: - KeyedDecodingContainer
+
 public protocol BoolCodableStrategy: DefaultCodableStrategy where DefaultValue == Bool {}
 
 public extension KeyedDecodingContainer {
-
     /// Default implementation of decoding a DefaultCodable
     ///
     /// Decodes successfully if key is available if not fallsback to the default value provided.
@@ -73,16 +73,19 @@ public extension KeyedDecodingContainer {
         do {
             let value = try decode(Bool.self, forKey: key)
             return DefaultCodable(wrappedValue: value)
-        } catch let error {
+        } catch {
             guard let decodingError = error as? DecodingError,
-                case .typeMismatch = decodingError else {
-                    return DefaultCodable(wrappedValue: P.defaultValue)
+                  case .typeMismatch = decodingError
+            else {
+                return DefaultCodable(wrappedValue: P.defaultValue)
             }
             if let intValue = try? decodeIfPresent(Int.self, forKey: key),
-                let bool = Bool(exactly: NSNumber(value: intValue)) {
+               let bool = Bool(exactly: NSNumber(value: intValue))
+            {
                 return DefaultCodable(wrappedValue: bool)
             } else if let stringValue = try? decodeIfPresent(String.self, forKey: key),
-                let bool = Bool(stringValue) {
+                      let bool = Bool(stringValue)
+            {
                 return DefaultCodable(wrappedValue: bool)
             } else {
                 return DefaultCodable(wrappedValue: P.defaultValue)

@@ -1,6 +1,6 @@
 //
 //  URL+ResourceValue.swift
-//  
+//
 //
 //  Created by Florian Zand on 24.03.23.
 //
@@ -112,26 +112,26 @@ internal extension PartialKeyPath where Root == URLResourceValues {
         case \Root.typeIdentifier: return .typeIdentifierKey
         default: break
         }
-        
-#if os(macOS)
-        switch self {
-        case \Root.thumbnail: return .thumbnailKey
-        case \Root.customIcon: return .customIconKey
-        case \Root.effectiveIcon: return .effectiveIconKey
-        case \Root.labelColor: return .labelColorKey
-        case \Root.quarantineProperties: return .quarantinePropertiesKey
-        case \Root.tagNames: return .tagNamesKey
-        default: break
-        }
-#endif
-        
+
+        #if os(macOS)
+            switch self {
+            case \Root.thumbnail: return .thumbnailKey
+            case \Root.customIcon: return .customIconKey
+            case \Root.effectiveIcon: return .effectiveIconKey
+            case \Root.labelColor: return .labelColorKey
+            case \Root.quarantineProperties: return .quarantinePropertiesKey
+            case \Root.tagNames: return .tagNamesKey
+            default: break
+            }
+        #endif
+
         if #available(macOS 11.3, iOS 14.5, *) {
             switch self {
             case \Root.ubiquitousItemIsExcludedFromSync: return .ubiquitousItemIsExcludedFromSyncKey
             default: break
             }
         }
-        
+
         if #available(macOS 11.0, iOS 14.0, *) {
             switch self {
             case \Root.mayShareFileContent: return .mayShareFileContentKey
@@ -144,7 +144,7 @@ internal extension PartialKeyPath where Root == URLResourceValues {
             default: break
             }
         }
-            return nil
+        return nil
     }
 }
 
@@ -162,16 +162,16 @@ internal extension PartialKeyPath where Root == URLResourceValues {
              }
          }
      }
-     
+
      var resourceValue: ResourceValue {
          return ResourceValue(self)
      }
-     
+
      internal func resourceValue<V>(for keyPath: KeyPath<URLResourceValues, V?>) throws -> V? {
          guard let resourceKey = keyPath.resourceKey else { return nil }
          return try self.resourceValues(for: resourceKey)[keyPath: keyPath]
      }
-     
+
      internal mutating func setResourceValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) throws {
          var urlResouceValues = URLResourceValues()
          urlResouceValues[keyPath: keyPath] = newValue

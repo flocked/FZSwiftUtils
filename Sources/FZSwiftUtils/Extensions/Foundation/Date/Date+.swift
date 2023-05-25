@@ -9,61 +9,70 @@ import Foundation
 
 public extension Date {
     func adding(_ value: Int, to component: Calendar.Component) -> Date {
-       return Calendar.current.date(byAdding: component, value: value, to: self)!
-   }
-        
+        return Calendar.current.date(byAdding: component, value: value, to: self)!
+    }
+
     func value(for component: Calendar.Component) -> Int {
-        let components = Calendar.current.dateComponents([component], from:self)
+        let components = Calendar.current.dateComponents([component], from: self)
         return components.value(for: component) ?? 0
     }
-    
+
     mutating func setValue(_ value: Int, for component: Calendar.Component) {
         self = Calendar.current.date(bySetting: component, value: value, of: self) ?? self
     }
-    
+
     func isSame(_ component: Calendar.Component, to date: Date, in calendar: Calendar = .current) -> Bool {
         calendar.isDate(self, equalTo: date, toGranularity: component)
     }
-    
+
     func isBetween(_ date1: Date, _ date2: Date) -> Bool {
         return DateInterval(start: date1, end: date2).contains(self)
     }
-    
-     var year: Int {
+
+    var year: Int {
         get { value(for: .year) }
-        set { setValue(newValue, for: .year) } }
-    
+        set { setValue(newValue, for: .year) }
+    }
+
     var month: Int {
-       get { value(for: .month) }
-       set { setValue(newValue, for: .month) } }
-    
+        get { value(for: .month) }
+        set { setValue(newValue, for: .month) }
+    }
+
     var weekOfMonth: Int {
-       get { value(for: .weekOfMonth) }
-       set { setValue(newValue, for: .weekOfMonth) } }
-    
+        get { value(for: .weekOfMonth) }
+        set { setValue(newValue, for: .weekOfMonth) }
+    }
+
     var weekOfYear: Int {
-       get { value(for: .weekOfYear) }
-       set { setValue(newValue, for: .weekOfYear) } }
-    
+        get { value(for: .weekOfYear) }
+        set { setValue(newValue, for: .weekOfYear) }
+    }
+
     var day: Int {
-       get { value(for: .day) }
-       set { setValue(newValue, for: .day) } }
-    
+        get { value(for: .day) }
+        set { setValue(newValue, for: .day) }
+    }
+
     var weekday: Int {
-       get { value(for: .weekday) }
-       set { setValue(newValue, for: .weekday) } }
-    
+        get { value(for: .weekday) }
+        set { setValue(newValue, for: .weekday) }
+    }
+
     var hour: Int {
-       get { value(for: .hour) }
-       set { setValue(newValue, for: .hour) } }
-    
+        get { value(for: .hour) }
+        set { setValue(newValue, for: .hour) }
+    }
+
     var minute: Int {
-       get { value(for: .minute) }
-       set { setValue(newValue, for: .minute) } }
-    
+        get { value(for: .minute) }
+        set { setValue(newValue, for: .minute) }
+    }
+
     var second: Int {
-       get { value(for: .second) }
-       set { setValue(newValue, for: .second) } }
+        get { value(for: .second) }
+        set { setValue(newValue, for: .second) }
+    }
 }
 
 public extension Date {
@@ -159,8 +168,8 @@ public extension Date {
     func isInCurrent(_ component: Calendar.Component) -> Bool {
         return Calendar.current.isDate(self, equalTo: Date(), toGranularity: component)
     }
-    
-     enum Component {
+
+    enum Component {
         case year(Int = 1)
         case quarter(Int = 1)
         case month(Int = 1)
@@ -170,38 +179,37 @@ public extension Date {
         case minute(Int = 1)
         case second(Int = 1)
         case nanosecond(Int = 1)
-        internal var value: ( Calendar.Component,  Int) {
+        internal var value: (Calendar.Component, Int) {
             switch self {
-            case .year(let value): return (.year, value)
-            case .quarter(let value): return (.quarter, value)
-            case .month(let value): return (.month, value)
-            case .week(let value): return (.weekOfYear, value)
-            case .day(let value): return (.day, value)
-            case .hour(let value): return (.hour, value)
-            case .minute(let value): return (.minute, value)
-            case .second(let value): return (.second, value)
-            case .nanosecond(let value): return (.nanosecond, value)
+            case let .year(value): return (.year, value)
+            case let .quarter(value): return (.quarter, value)
+            case let .month(value): return (.month, value)
+            case let .week(value): return (.weekOfYear, value)
+            case let .day(value): return (.day, value)
+            case let .hour(value): return (.hour, value)
+            case let .minute(value): return (.minute, value)
+            case let .second(value): return (.second, value)
+            case let .nanosecond(value): return (.nanosecond, value)
             }
         }
-        
     }
-    
+
     static func + (lhs: Self, rhs: Component) -> Self {
         return lhs.adding(rhs.value.1, to: rhs.value.0)
     }
-    
-    static func += (lhs: inout Self, rhs: Component)  {
+
+    static func += (lhs: inout Self, rhs: Component) {
         lhs = lhs.adding(rhs.value.1, to: rhs.value.0)
     }
 
     static func - (lhs: Self, rhs: Component) -> Self {
         return lhs.adding(-rhs.value.1, to: rhs.value.0)
     }
-    
-    static func -= (lhs: inout Self, rhs: Component)  {
+
+    static func -= (lhs: inout Self, rhs: Component) {
         lhs = lhs.adding(-rhs.value.1, to: rhs.value.0)
     }
-    
+
     enum ComparisonType {
         case now
         case today
@@ -213,36 +221,36 @@ public extension Date {
         case last(Int, Calendar.Component)
         case sameDay(Date)
     }
-    
-    static func ==(lhs: Date, rhs: ComparisonType) -> Bool {
+
+    static func == (lhs: Date, rhs: ComparisonType) -> Bool {
         let from: Date
         let to: Date
         switch rhs {
         case .today:
-           from = lhs.start(of: .day)
+            from = lhs.start(of: .day)
             to = from.end(of: .day)
         case .yesterday:
-           from = lhs.adding(-1, to: .day).start(of: .day)
+            from = lhs.adding(-1, to: .day).start(of: .day)
             to = from.end(of: .day)
         case .tomorrow:
-           from = lhs.adding(1, to: .day).start(of: .day)
+            from = lhs.adding(1, to: .day).start(of: .day)
             to = from.end(of: .day)
-        case .this(let unit):
+        case let .this(unit):
             from = lhs.start(of: unit)
-             to = from.end(of: unit)
-        case .next(let unit):
+            to = from.end(of: unit)
+        case let .next(unit):
             from = lhs.adding(1, to: unit).start(of: unit)
-             to = from.end(of: unit)
-        case .last(let value, let unit):
+            to = from.end(of: unit)
+        case let .last(value, unit):
             from = lhs.adding(-value, to: unit).start(of: unit)
-             to = from.end(of: unit)
+            to = from.end(of: unit)
         case .now:
             from = Date()
             to = Date().adding(30, to: .second)
-        case .previous(let unit):
+        case let .previous(unit):
             from = lhs.adding(-1, to: unit).start(of: unit)
-             to = from.end(of: unit)
-        case .sameDay(let date):
+            to = from.end(of: unit)
+        case let .sameDay(date):
             from = date.start(of: .day)
             to = date.end(of: .day)
         }

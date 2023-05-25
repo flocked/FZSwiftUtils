@@ -7,24 +7,24 @@
 
 import Foundation
 
-extension ByteCountFormatter {
-   public convenience init(allowedUnits: Units, countStyle: CountStyle = .file) {
+public extension ByteCountFormatter {
+    convenience init(allowedUnits: Units, countStyle: CountStyle = .file) {
         self.init()
         self.allowedUnits = allowedUnits
         self.countStyle = countStyle
     }
-    
-    public func localizedString(from measurement: Measurement<UnitInformationStorage>, locale: Locale) -> String {
+
+    func localizedString(from measurement: Measurement<UnitInformationStorage>, locale: Locale) -> String {
         let string = self.string(from: measurement)
         return localizedString(string, locale: locale)
     }
-    
-    public func localizedString(fromByteCount byteCount: Int64, locale: Locale) -> String {
+
+    func localizedString(fromByteCount byteCount: Int64, locale: Locale) -> String {
         let string = self.string(fromByteCount: byteCount)
         return localizedString(string, locale: locale)
     }
-    
-    public func localizedString(for obj: Any?, locale:  Locale) -> String? {
+
+    func localizedString(for obj: Any?, locale: Locale) -> String? {
         let string = string(for: obj)
         if let string = string {
             return localizedString(string, locale: locale)
@@ -34,7 +34,7 @@ extension ByteCountFormatter {
 
     internal func localizedString(_ string: String, locale: Locale) -> String {
         var string = string
-        if self.includesUnit {
+        if includesUnit {
             let englishDescriptions = localizedDescriptions(for: locale)
             let localizedDescriptions = localizedDescriptions(for: locale)
             for (index, description) in localizedDescriptions.enumerated() {
@@ -43,15 +43,14 @@ extension ByteCountFormatter {
         }
         return string
     }
-    
-    
+
     internal func localizedDescriptions(for locale: Locale) -> [String] {
         let units: [UnitInformationStorage] = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .zettabytes, .yottabytes]
-        return units.map({ unit -> String in
+        return units.map { unit -> String in
             let formatter = MeasurementFormatter()
             formatter.unitStyle = .short
             formatter.locale = locale
             return formatter.string(from: unit)
-        })
+        }
     }
 }

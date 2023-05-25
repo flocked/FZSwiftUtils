@@ -16,10 +16,11 @@ open class AsyncOperation: Operation, Pausable {
         case cancelled = "isCancelled"
         case paused = "isPaused"
     }
-    open var onStateChange: ((State)->())? = nil
+
+    open var onStateChange: ((State) -> Void)? = nil
     open var error: Error? = nil
-    
-    open var state: State = State.waiting {
+
+    open var state: State = .waiting {
         willSet {
             willChangeValue(forKey: State.ready.rawValue)
             willChangeValue(forKey: State.executing.rawValue)
@@ -49,13 +50,13 @@ open class AsyncOperation: Operation, Pausable {
             didChangeValue(forKey: State.finished.rawValue)
             didChangeValue(forKey: State.executing.rawValue)
             didChangeValue(forKey: State.ready.rawValue)
-            if (oldValue != self.state) {
+            if oldValue != self.state {
                 self.onStateChange?(self.state)
             }
         }
     }
-        
-    open override var isReady: Bool {
+
+    override open var isReady: Bool {
         if self.state == .waiting {
             return super.isReady
         } else {
@@ -63,7 +64,7 @@ open class AsyncOperation: Operation, Pausable {
         }
     }
 
-    open override var isExecuting: Bool {
+    override open var isExecuting: Bool {
         if self.state == .waiting {
             return super.isExecuting
         } else {
@@ -71,7 +72,7 @@ open class AsyncOperation: Operation, Pausable {
         }
     }
 
-    open override var isFinished: Bool {
+    override open var isFinished: Bool {
         if self.state == .waiting {
             return super.isFinished
         } else {
@@ -79,60 +80,60 @@ open class AsyncOperation: Operation, Pausable {
         }
     }
 
-    open override var isCancelled: Bool {
+    override open var isCancelled: Bool {
         if self.state == .waiting {
             return super.isCancelled
         } else {
             return self.state == .cancelled
         }
     }
-    
+
     open var isPaused: Bool {
         return self.state == .paused
     }
-    
+
     open func resume() {
-        if (self.isExecuting && self.state == .paused) {
-            self.state = .executing
-        }
-    }
-    
-    open func pause() {
-        if (self.isExecuting && self.state != .paused) {
-            self.state = .paused
-        }
-    }
-    
-    open func finish() {
-        if isExecuting {
-            self.state = .finished
-        }
-    }
-    
-    open override func cancel() {
-        if isExecuting {
-            self.state = .cancelled
+        if isExecuting && state == .paused {
+            state = .executing
         }
     }
 
-    open override var isAsynchronous: Bool {
+    open func pause() {
+        if isExecuting && state != .paused {
+            state = .paused
+        }
+    }
+
+    open func finish() {
+        if isExecuting {
+            state = .finished
+        }
+    }
+
+    override open func cancel() {
+        if isExecuting {
+            state = .cancelled
+        }
+    }
+
+    override open var isAsynchronous: Bool {
         return true
     }
 }
 
 open class AsyncBlockOperation: AsyncOperation {
-    public typealias Closure = (AsyncBlockOperation) -> ()
+    public typealias Closure = (AsyncBlockOperation) -> Void
 
     let closure: Closure
 
     public init(closure: @escaping Closure) {
         self.closure = closure
     }
-    
-    open override func start() {
+
+    override open func start() {
         super.start()
-        guard self.isExecuting else { return }
-        self.closure(self)
+        guard isExecuting else { return }
+        closure(self)
     }
 }
 
@@ -141,9 +142,9 @@ open class AsyncBlockOperation: AsyncOperation {
      get { return stateQueue.sync { rawState } }
      set { stateQueue.sync(flags: .barrier) { rawState = newValue } }
  }
- 
+
  private let stateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier! + ".rw.state", attributes: .concurrent)
- 
+
  private var rawState: State = .ready {
      willSet {
          willChangeValue(forKey: State.ready.rawValue)

@@ -1,17 +1,17 @@
 //
 //  File.swift
-//  
+//
 //
 //  Created by Florian Zand on 22.09.22.
 //
 
-import Foundation
 import CryptoKit
+import Foundation
 
-extension HashFunction {
-    public static func hash(string: String) -> Digest? {
+public extension HashFunction {
+    static func hash(string: String) -> Digest? {
         if let data = string.data(using: .utf16) {
-            return self.hash(data: data)
+            return hash(data: data)
         }
         return nil
     }

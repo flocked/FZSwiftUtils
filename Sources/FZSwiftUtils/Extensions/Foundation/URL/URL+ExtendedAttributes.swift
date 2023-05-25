@@ -1,13 +1,12 @@
 import Foundation
 
-
-public extension URL {
+private extension URL {
     /// Wrap the xattr functions's POSIX error codes in `NSError` instances.
     ///
     /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
     /// - parameter err: POSIX error code.
     /// - returns: NSError in the `NSPOSIXErrorDomain` with the code `err` and `userInfo` with a default localized description for the error code.
-    fileprivate static func posixError(_ err: Int32) -> NSError {
+    static func posixError(_ err: Int32) -> NSError {
         return NSError(domain: NSPOSIXErrorDomain, code: Int(err),
                        userInfo: [NSLocalizedDescriptionKey: String(cString: strerror(err))])
     }
@@ -17,22 +16,22 @@ public extension URL {
     var extendedAttributes: ExtendedAttributes {
         return ExtendedAttributes(self)
     }
-    
+
     class ExtendedAttributes {
         public typealias Key = String
-        
+
         private var url: URL
-        public  init(_ url: URL) {
+        public init(_ url: URL) {
             self.url = url
         }
-        
-        public subscript<T>(key: Key, initalValue: T? = nil) -> T?  {
+
+        public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
-                if let value: T = self.extendedAttribute(for: key) {
+                if let value: T = extendedAttribute(for: key) {
                     return value
                 } else if let initalValue = initalValue {
                     do {
-                        try self.setExtendedAttribute(initalValue, for: key)
+                        try setExtendedAttribute(initalValue, for: key)
                         return initalValue
                     } catch {
                         return nil
@@ -40,36 +39,31 @@ public extension URL {
                 }
                 return nil
             }
-            set {  try? self.setExtendedAttribute(newValue, for: key) }
+            set { try? setExtendedAttribute(newValue, for: key) }
         }
-        
-        public  func setExtendedAttribute<T>(_ value:T?, for key:Key) throws
-        {
+
+        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
             if let value = value {
-                let data = try PropertyListSerialization.data(fromPropertyList:value,format:.binary,options:0)
-                try self.setExtendedAttributeData(data,for: key)
+                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
+                try setExtendedAttributeData(data, for: key)
             } else {
-                try self.removeExtendedAttribute(key)
+                try removeExtendedAttribute(key)
             }
         }
-        
-        
+
         /// Get extended attribute
-        
-        public  func extendedAttribute<T>(for key: Key) -> T?
-        {
-            if let data = self.extendedAttributeData(for: key),
-               let any = try? PropertyListSerialization.propertyList(from:data, format:nil),
+
+        public func extendedAttribute<T>(for key: Key) -> T? {
+            if let data = extendedAttributeData(for: key),
+               let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
                let value = any as? T
             {
                 return value
             }
-            
+
             return nil
         }
-        
-        
-        
+
         /// Extended attribute data.
         ///
         /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
@@ -79,30 +73,30 @@ public extension URL {
         private func extendedAttributeData(for key: Key) -> Data? {
             let data = try? url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in
-                
+
                 // Determine attribute size
-                
-                let length = getxattr(fileSystemPath,key,nil,0,0,0)
+
+                let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
                 guard length >= 0 else { throw URL.posixError(errno) }
-                
+
                 // Create buffer with required size
-                
-                var data = Data(count:length)
-                
+
+                var data = Data(count: length)
+
                 // Retrieve attribute
-                
+
                 let count = data.count
-                let result =  data.withUnsafeMutableBytes {
-                    getxattr(fileSystemPath, key, $0.baseAddress ,count, 0,0)
+                let result = data.withUnsafeMutableBytes {
+                    getxattr(fileSystemPath, key, $0.baseAddress, count, 0, 0)
                 }
-                
+
                 guard result >= 0 else { throw URL.posixError(errno) }
                 return data
             }
-            
+
             return data
         }
-        
+
         /// Set or overwrite an extended attribute.
         ///
         /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
@@ -117,7 +111,7 @@ public extension URL {
                 guard result >= 0 else { throw URL.posixError(errno) }
             }
         }
-        
+
         /// Removed the extended attribute of `name`.
         ///
         /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
@@ -129,66 +123,60 @@ public extension URL {
                 guard result >= 0 else { throw URL.posixError(errno) }
             }
         }
-        
-        public  func hasExtendedAttribute(_ key: Key) -> Bool
-        {
-            let result = url.withUnsafeFileSystemRepresentation
-            {
+
+        public func hasExtendedAttribute(_ key: Key) -> Bool {
+            let result = url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Bool in
-                let length = getxattr(fileSystemPath,key,nil,0,0,0)
+                let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
                 return length >= 0
             }
-            
+
             return result
         }
-        
+
         public func allExtendedAttributes() throws -> [Key: Any] {
-            let keys = try self.listExtendedAttributes()
+            let keys = try listExtendedAttributes()
             var values: [String: Any] = [:]
             for key in keys {
-                if let data = self.extendedAttributeData(for: key),
-                   let value = try? PropertyListSerialization.propertyList(from:data, format:nil) {
+                if let data = extendedAttributeData(for: key),
+                   let value = try? PropertyListSerialization.propertyList(from: data, format: nil)
+                {
                     values[key] = value
                 }
             }
             return values
         }
-        
-        public func listExtendedAttributes() throws -> [Key]
-        {
-            let list = try url.withUnsafeFileSystemRepresentation
-            {
+
+        public func listExtendedAttributes() throws -> [Key] {
+            let list = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> [String] in
-                
-                let length = listxattr(fileSystemPath,nil,0,0)
+
+                let length = listxattr(fileSystemPath, nil, 0, 0)
                 guard length >= 0 else { throw URL.posixError(errno) }
-                
+
                 // Create buffer with required size
-                
-                var data = Data(count:length)
+
+                var data = Data(count: length)
                 let count = data.count
-                
+
                 // Retrieve attribute list
-                
-                try data.withUnsafeMutableBytes
-                {
-                    let bytes = $0.baseAddress?.bindMemory(to:CChar.self, capacity:count)
+
+                try data.withUnsafeMutableBytes {
+                    let bytes = $0.baseAddress?.bindMemory(to: CChar.self, capacity: count)
                     let result = listxattr(fileSystemPath, bytes, count, 0)
                     if result < 0 { throw URL.posixError(errno) }
                 }
-                
+
                 // Extract attribute names
-                
-                let list = data.split(separator: 0).compactMap
-                {
-                    String(data:Data($0), encoding:.utf8)
+
+                let list = data.split(separator: 0).compactMap {
+                    String(data: Data($0), encoding: .utf8)
                 }
-                
+
                 return list
             }
-            
+
             return list
         }
-        
     }
 }

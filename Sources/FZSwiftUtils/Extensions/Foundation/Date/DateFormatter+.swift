@@ -10,7 +10,7 @@ import Foundation
 public extension DateFormatter {
     convenience init(_ format: String) {
         self.init()
-        self.dateFormat = format
+        dateFormat = format
     }
 }
 
@@ -19,8 +19,8 @@ public extension DateComponentsFormatter {
         get { allowedUnits.components }
         set {
             var unit: NSCalendar.Unit = []
-            newValue.compactMap({$0.nsUnit}).forEach({unit.insert($0)})
-            self.allowedUnits = unit
+            newValue.compactMap { $0.nsUnit }.forEach { unit.insert($0) }
+            allowedUnits = unit
         }
     }
 }

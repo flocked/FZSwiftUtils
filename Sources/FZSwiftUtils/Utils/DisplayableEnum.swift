@@ -7,8 +7,7 @@
 
 import Foundation
 
-
-public protocol DisplayableEnum : CaseIterable,Equatable {
+public protocol DisplayableEnum: CaseIterable, Equatable {
     static var count: Int { get }
     static func value(at index: Int) -> Self
     static func index(of value: Self) -> Int
@@ -18,22 +17,22 @@ public protocol DisplayableEnum : CaseIterable,Equatable {
 
 public extension DisplayableEnum {
     static var count: Int {
-        return self.allCases.count
+        return allCases.count
     }
 
     static func value(at index: Int) -> Self {
-        return Array(self.allCases)[index]
+        return Array(allCases)[index]
     }
 
     static func index(of value: Self) -> Int {
-        return Array(self.allCases).firstIndex(of:value)!
+        return Array(allCases).firstIndex(of: value)!
     }
 
     static func localizedName(at index: Int) -> String {
-        return self.value(at: index).localizedName
+        return value(at: index).localizedName
     }
-    
-    var localizedName:String {
+
+    var localizedName: String {
         return "\(self)"
     }
 }

@@ -28,14 +28,14 @@ public struct DateValue<Formatter: DateValueCodableStrategy> {
 
     public init(wrappedValue: Date) {
         self.wrappedValue = wrappedValue
-        self.value = Formatter.encode(wrappedValue)
+        value = Formatter.encode(wrappedValue)
     }
 }
 
 extension DateValue: Decodable where Formatter.RawValue: Decodable {
     public init(from decoder: Decoder) throws {
-        self.value = try Formatter.RawValue(from: decoder)
-        self.wrappedValue = try Formatter.decode(value)
+        value = try Formatter.RawValue(from: decoder)
+        wrappedValue = try Formatter.decode(value)
     }
 }
 

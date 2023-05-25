@@ -5,7 +5,6 @@
 //  Copyright (c) 2017 - 2018 Nuno Manuel Dias
 //
 
-
 import Foundation
 
 public class DefaultsKey {}
@@ -27,20 +26,19 @@ public final class Key<ValueType: Codable>: DefaultsKey {
 /// These should not be used to store sensitive information that could compromise
 /// the application or the user's security and privacy.
 public final class Defaults {
-    
     private var userDefaults: UserDefaults
-    
+
     /// Shared instance of `Defaults`, used for ad-hoc access to the user's
     /// defaults database throughout the app.
     public static let shared = Defaults()
-    
+
     /// An instance of `Defaults` with the specified `UserDefaults` instance.
     ///
     /// - Parameter userDefaults: The UserDefaults.
     public init(userDefaults: UserDefaults = UserDefaults.standard) {
         self.userDefaults = userDefaults
     }
-    
+
     /// Deletes the value associated with the specified key, if any.
     ///
     /// - Parameter key: The key.
@@ -48,7 +46,7 @@ public final class Defaults {
         userDefaults.set(nil, forKey: key._key)
         userDefaults.synchronize()
     }
-    
+
     /// Checks if there is a value associated with the specified key.
     ///
     /// - Parameter key: The key to look for.
@@ -56,46 +54,46 @@ public final class Defaults {
     public func has<ValueType>(_ key: Key<ValueType>) -> Bool {
         return userDefaults.value(forKey: key._key) != nil
     }
-    
-    public subscript<T: Codable>(key: Key<T>) -> T?  {
-        get { self.get(for: key) }
+
+    public subscript<T: Codable>(key: Key<T>) -> T? {
+        get { get(for: key) }
         set {
             if let newValue = newValue {
-                self.set(newValue, for: key)
+                set(newValue, for: key)
             } else {
-                self.clear(key)
+                clear(key)
             }
         }
     }
-    
-    public subscript<T: Codable>(key: String) -> T?  {
+
+    public subscript<T: Codable>(key: String) -> T? {
         get {
             let key = Key<T>(key)
-            return self.get(for: key)
+            return get(for: key)
         }
         set {
             let key = Key<T>(key)
             if let newValue = newValue {
-                self.set(newValue, for: key)
+                set(newValue, for: key)
             } else {
-                self.clear(key)
+                clear(key)
             }
         }
     }
-    
+
     /*
-    public func get<ValueType: Codable>(for key: String) -> ValueType? {
-        let key: Key<ValueType> = Key<ValueType>(key)
-        return self.get(for: key)
-    }
-    
-    public func set<ValueType: Codable>(_ value: ValueType, for key: String) {
-        let key: Key<ValueType> = Key<ValueType>(key)
-        self.set(value, for: key)
-    }
-     
-    */
-        
+     public func get<ValueType: Codable>(for key: String) -> ValueType? {
+         let key: Key<ValueType> = Key<ValueType>(key)
+         return self.get(for: key)
+     }
+
+     public func set<ValueType: Codable>(_ value: ValueType, for key: String) {
+         let key: Key<ValueType> = Key<ValueType>(key)
+         self.set(value, for: key)
+     }
+
+     */
+
     /// Returns the value associated with the specified key.
     ///
     /// - Parameter key: The key.
@@ -104,11 +102,11 @@ public final class Defaults {
         if isSwiftCodableType(ValueType.self) || isFoundationCodableType(ValueType.self) {
             return userDefaults.value(forKey: key._key) as? ValueType
         }
-        
+
         guard let data = userDefaults.data(forKey: key._key) else {
             return nil
         }
-        
+
         do {
             let decoder = JSONDecoder()
             let decoded = try decoder.decode(ValueType.self, from: data)
@@ -120,9 +118,8 @@ public final class Defaults {
         }
 
         return nil
-        
     }
-        
+
     /// Sets a value associated with the specified key.
     ///
     /// - Parameters:
@@ -133,7 +130,7 @@ public final class Defaults {
             userDefaults.set(value, forKey: key._key)
             return
         }
-        
+
         do {
             let encoder = JSONEncoder()
             let encoded = try encoder.encode(value)
@@ -145,29 +142,29 @@ public final class Defaults {
             #endif
         }
     }
-    
+
     public func get<ValueType: Codable>(for key: String) -> ValueType? {
         let key = Key<ValueType>(key)
-        return self.get(for: key)
+        return get(for: key)
     }
-    
-    public func set<ValueType: Codable>(_ value: ValueType?, for key: String)  {
+
+    public func set<ValueType: Codable>(_ value: ValueType?, for key: String) {
         let key = Key<ValueType>(key)
         if let value = value {
-            self.set(value, for: key)
+            set(value, for: key)
         } else {
-            self.clear(key)
+            clear(key)
         }
     }
-    
+
     /// Removes given bundle's persistent domain
     ///
     /// - Parameter type: Bundle.
-    public func removeAll(bundle : Bundle = Bundle.main) {
+    public func removeAll(bundle: Bundle = Bundle.main) {
         guard let name = bundle.bundleIdentifier else { return }
-        self.userDefaults.removePersistentDomain(forName: name)
+        userDefaults.removePersistentDomain(forName: name)
     }
-    
+
     /// Checks if the specified type is a Codable from the Swift standard library.
     ///
     /// - Parameter type: The type.
@@ -180,7 +177,7 @@ public final class Defaults {
             return false
         }
     }
-    
+
     /// Checks if the specified type is a Codable, from the Swift's core libraries
     /// Foundation framework.
     ///
@@ -194,17 +191,16 @@ public final class Defaults {
             return false
         }
     }
-    
 }
 
 // MARK: ValueType with RawRepresentable conformance
 
-extension Defaults {
+public extension Defaults {
     /// Returns the value associated with the specified key.
     ///
     /// - Parameter key: The key.
     /// - Returns: A `ValueType` or nil if the key was not found.
-    public func get<ValueType: RawRepresentable>(for key: Key<ValueType>) -> ValueType? where ValueType.RawValue: Codable {
+    func get<ValueType: RawRepresentable>(for key: Key<ValueType>) -> ValueType? where ValueType.RawValue: Codable {
         let convertedKey = Key<ValueType.RawValue>(key._key)
         if let raw = get(for: convertedKey) {
             return ValueType(rawValue: raw)
@@ -217,7 +213,7 @@ extension Defaults {
     /// - Parameters:
     ///   - some: The value to set.
     ///   - key: The associated `Key<ValueType>`.
-    public func set<ValueType: RawRepresentable>(_ value: ValueType, for key: Key<ValueType>) where ValueType.RawValue: Codable {
+    func set<ValueType: RawRepresentable>(_ value: ValueType, for key: Key<ValueType>) where ValueType.RawValue: Codable {
         let convertedKey = Key<ValueType.RawValue>(key._key)
         set(value.rawValue, for: convertedKey)
     }

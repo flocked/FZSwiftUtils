@@ -7,8 +7,8 @@
 
 import Foundation
 
-extension ImageProperties {
-    public struct TIFF: Codable {
+public extension ImageProperties {
+    struct TIFF: Codable {
         public var xResolution: Int?
         public var yResolution: Int?
         public var orientation: Orientation?
@@ -23,7 +23,6 @@ extension ImageProperties {
             case timestamp = "DateTime"
             case cameraMaker = "Make"
             case cameraModel = "Model"
-
-          }
+        }
     }
 }

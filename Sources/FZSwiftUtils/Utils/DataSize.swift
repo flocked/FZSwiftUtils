@@ -9,12 +9,12 @@ import Foundation
 
 public struct DataSize: Hashable, Sendable {
     public typealias CountStyle = ByteCountFormatter.CountStyle
-    
+
     public init(_ bytes: Int, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
     }
-    
+
     public init(terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
@@ -23,44 +23,44 @@ public struct DataSize: Hashable, Sendable {
         self.bytes += self.bytes(for: gigabytes, .gigabyte)
         self.bytes += self.bytes(for: terabytes, .terabyte)
     }
-    
+
     public var countStyle: CountStyle
-    
+
     public var bytes: Int
-    
+
     public var kilobytes: Double {
         get { value(for: .kilobyte) }
-        set { self.bytes = bytes(for: newValue, .kilobyte) }
+        set { bytes = bytes(for: newValue, .kilobyte) }
     }
-    
+
     public var megabytes: Double {
         get { value(for: .megabyte) }
-        set { self.bytes = bytes(for: newValue, .megabyte) }
+        set { bytes = bytes(for: newValue, .megabyte) }
     }
-    
-    public  var gigabytes: Double {
+
+    public var gigabytes: Double {
         get { value(for: .gigabyte) }
-        set { self.bytes = bytes(for: newValue, .gigabyte) }
+        set { bytes = bytes(for: newValue, .gigabyte) }
     }
-    
+
     public var terabytes: Double {
         get { value(for: .terabyte) }
-        set { self.bytes = bytes(for: newValue, .terabyte) }
+        set { bytes = bytes(for: newValue, .terabyte) }
     }
-    
+
     public var petabytes: Double {
         get { value(for: .petabyte) }
-        set { self.bytes = bytes(for: newValue, .petabyte) }
+        set { bytes = bytes(for: newValue, .petabyte) }
     }
-    
+
     internal func value(for unit: Unit) -> Double {
-        Unit.byte.convert(Double(self.bytes), to: unit, countStyle: self.countStyle)
+        Unit.byte.convert(Double(bytes), to: unit, countStyle: countStyle)
     }
-    
+
     internal func bytes(for value: Double, _ unit: Unit) -> Int {
-        Int(unit.self.convert(value, to: .byte, countStyle: self.countStyle))
+        Int(unit.convert(value, to: .byte, countStyle: countStyle))
     }
-    
+
     public static var zero: DataSize {
         return DataSize()
     }
@@ -71,13 +71,13 @@ extension DataSize: Codable {
         case bytes
         case countStyle
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Self.CodingKeys)
-        try container.encode(self.bytes, forKey: .bytes)
-        try container.encode(self.countStyle.rawValue, forKey: .countStyle)
+        try container.encode(bytes, forKey: .bytes)
+        try container.encode(countStyle.rawValue, forKey: .countStyle)
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let bytes = try container.decode(Int.self, forKey: .bytes)
@@ -89,8 +89,8 @@ extension DataSize: Codable {
 
 extension DataSize: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
-        self.bytes = value
-        self.countStyle = .file
+        bytes = value
+        countStyle = .file
     }
 }
 
@@ -105,7 +105,7 @@ public extension DataSize {
         case exabyte = 6
         case zettabyte = 7
         case yottabyte = 8
-        
+
         internal var byteCountFormatterUnit: ByteCountFormatter.Units {
             switch self {
             case .byte:
@@ -128,10 +128,10 @@ public extension DataSize {
                 return .useYBOrHigher
             }
         }
-        
+
         internal func convert(_ number: Double, to targetUnit: Unit, countStyle: CountStyle = .file) -> Double {
             let factor: Double = (countStyle == .binary) ? 1024 : 1000
-            let conversionFactor = pow(factor, Double(self.rawValue - targetUnit.rawValue))
+            let conversionFactor = pow(factor, Double(rawValue - targetUnit.rawValue))
             return number * conversionFactor
         }
     }
@@ -140,95 +140,95 @@ public extension DataSize {
 public extension Collection where Element == DataSize {
     func averageSize() -> DataSize {
         guard !isEmpty else { return .zero }
-        let average = Int(self.compactMap({$0.bytes}).average().rounded(.down))
+        let average = Int(compactMap { $0.bytes }.average().rounded(.down))
         return DataSize(average)
     }
-    
+
     func totalSize() -> DataSize {
         guard !isEmpty else { return .zero }
-        var total: Int = 0
-        self.forEach({ total += $0.bytes })
+        var total = 0
+        forEach { total += $0.bytes }
         return DataSize(total)
     }
 }
 
 extension DataSize: Comparable {
-    public static func +(lhs: Self, rhs: Self) -> Self {
-        Self(lhs.bytes+rhs.bytes, countStyle: lhs.countStyle)
+    public static func + (lhs: Self, rhs: Self) -> Self {
+        Self(lhs.bytes + rhs.bytes, countStyle: lhs.countStyle)
     }
-    
-    public static func +=(lhs: inout Self, rhs: Self) {
+
+    public static func += (lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
     }
-    
-    public static func -(lhs: Self, rhs: Self) -> Self {
-        var bytes = lhs.bytes-rhs.bytes
-        if (bytes < 0) { bytes = 0 }
+
+    public static func - (lhs: Self, rhs: Self) -> Self {
+        var bytes = lhs.bytes - rhs.bytes
+        if bytes < 0 { bytes = 0 }
         return Self(bytes, countStyle: lhs.countStyle)
     }
-    
-    public static func -=(lhs: inout Self, rhs: Self) {
+
+    public static func -= (lhs: inout Self, rhs: Self) {
         lhs = lhs - rhs
     }
-    
-    public static func <(lhs: Self, rhs: Self) -> Bool {
+
+    public static func < (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes < rhs.bytes
     }
-    
-    public static func <=(lhs: Self, rhs: Self) -> Bool {
+
+    public static func <= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes <= rhs.bytes
     }
-    
-    public static func >(lhs: Self, rhs: Self) -> Bool {
+
+    public static func > (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes > rhs.bytes
     }
-    
-    public static func >=(lhs: Self, rhs: Self) -> Bool {
+
+    public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes >= rhs.bytes
     }
-    
+
     /*
-    public static func +(lhs: Self, rhs: Int) -> Self {
-        Self(lhs.bytes+rhs, countStyle: lhs.countStyle)
-    }
-    
-    public static func +=(lhs: inout Self, rhs: Int) {
-        lhs = lhs + rhs
-    }
-    
-    public static func -(lhs: Self, rhs: Int) -> Self {
-        var bytes = lhs.bytes-rhs
-        if (bytes < 0) { bytes = 0 }
-        return Self(bytes, countStyle: lhs.countStyle)
-    }
-    
-    public static func -=(lhs: inout Self, rhs: Int) {
-        lhs = lhs - rhs
-    }
-    
-    public static func <(lhs: Self, rhs: Int) -> Bool {
-        return lhs.bytes < rhs
-    }
-    
-    public static func <=(lhs: Self, rhs: Int) -> Bool {
-        return lhs.bytes <= rhs
-    }
-    
-    public static func >(lhs: Self, rhs: Int) -> Bool {
-        return lhs.bytes > rhs
-    }
-    
-    public static func >=(lhs: Self, rhs: Int) -> Bool {
-        return lhs.bytes >= rhs
-    }
-     */
+     public static func +(lhs: Self, rhs: Int) -> Self {
+         Self(lhs.bytes+rhs, countStyle: lhs.countStyle)
+     }
+
+     public static func +=(lhs: inout Self, rhs: Int) {
+         lhs = lhs + rhs
+     }
+
+     public static func -(lhs: Self, rhs: Int) -> Self {
+         var bytes = lhs.bytes-rhs
+         if (bytes < 0) { bytes = 0 }
+         return Self(bytes, countStyle: lhs.countStyle)
+     }
+
+     public static func -=(lhs: inout Self, rhs: Int) {
+         lhs = lhs - rhs
+     }
+
+     public static func <(lhs: Self, rhs: Int) -> Bool {
+         return lhs.bytes < rhs
+     }
+
+     public static func <=(lhs: Self, rhs: Int) -> Bool {
+         return lhs.bytes <= rhs
+     }
+
+     public static func >(lhs: Self, rhs: Int) -> Bool {
+         return lhs.bytes > rhs
+     }
+
+     public static func >=(lhs: Self, rhs: Int) -> Bool {
+         return lhs.bytes >= rhs
+     }
+      */
 }
 
 extension DataSize: LosslessStringConvertible {
     public init?(_ description: String) {
         guard let intValue = Int(description) else { return nil }
-        self.bytes = intValue
-        self.countStyle = .binary
+        bytes = intValue
+        countStyle = .binary
     }
 }
 
@@ -236,25 +236,25 @@ extension DataSize: CustomStringConvertible {
     public var description: String {
         let formatter = self.formatter
         formatter.includesActualByteCount = true
-        return formatter.string(fromByteCount: Int64(self.bytes))
+        return formatter.string(fromByteCount: Int64(bytes))
     }
-    
+
     public var formatter: ByteCountFormatter {
-        return ByteCountFormatter(allowedUnits: .useAll, countStyle: self.countStyle)
+        return ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
     }
-    
+
     public var string: String {
         return string()
     }
-    
+
     public func string(for unit: Unit, includesUnit: Bool = true) -> String {
-        return self.string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
+        return string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
     }
-    
+
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true) -> String {
         let formatter = self.formatter
         formatter.allowedUnits = allowedUnits
         formatter.includesUnit = includesUnit
-        return formatter.string(fromByteCount: Int64(self.bytes))
+        return formatter.string(fromByteCount: Int64(bytes))
     }
 }

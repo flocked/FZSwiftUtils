@@ -115,14 +115,14 @@ public func || <Root>(lhs: @escaping (Root) -> Bool, rhs: @escaping (Root) -> Bo
     return { lhs($0) || rhs($0) }
 }
 
-// MARK:- Range
+// MARK: - Range
 
 // In Range
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: ClosedRange<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0))}
+    return { value.contains(block($0)) }
 }
 
-//In Range?
+// In Range?
 public func << <Root, Value>(block: @escaping (Root) -> Value?, value: ClosedRange<Value>) -> (Root) -> Bool where Value: Comparable {
     return { if let block = block($0) {
         return value.contains(block)
@@ -133,7 +133,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: ClosedRan
 
 // In PartialRangeFrom
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: PartialRangeFrom<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0))}
+    return { value.contains(block($0)) }
 }
 
 // In PartialRangeFrom?
@@ -147,7 +147,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: PartialRa
 
 // In PartialRangeUpTo
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: PartialRangeUpTo<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0))}
+    return { value.contains(block($0)) }
 }
 
 // In PartialRangeUpTo?
@@ -161,7 +161,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: PartialRa
 
 // In PartialRangeThrough
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: PartialRangeThrough<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0))}
+    return { value.contains(block($0)) }
 }
 
 // In PartialRangeThrough?
@@ -202,19 +202,19 @@ func <<~ <Root, Value>(block: @escaping (Root) -> Value?, value: Value) -> (Root
     }}
 }
 
-public func <<~ <Root, S>(block: @escaping (Root) -> S.Element, value: S) -> (Root) -> Bool where S: Sequence, S.Element: StringProtocol  {
-    return { value.compactMap({$0.lowercased()}).contains(block($0).lowercased()) }
+public func <<~ <Root, S>(block: @escaping (Root) -> S.Element, value: S) -> (Root) -> Bool where S: Sequence, S.Element: StringProtocol {
+    return { value.compactMap { $0.lowercased() }.contains(block($0).lowercased()) }
 }
 
-public func <<~ <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: StringProtocol  {
+public func <<~ <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: StringProtocol {
     return { if let block = block($0) {
-        return value.compactMap({$0.lowercased()}).contains(block.lowercased())
+        return value.compactMap { $0.lowercased() }.contains(block.lowercased())
     } else {
         return false
     }}
 }
 
-// MARK:- Sequence
+// MARK: - Sequence
 
 public func << <Root, S>(block: @escaping (Root) -> S.Element, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
     return { value.contains(block($0)) }
@@ -229,7 +229,7 @@ public func << <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (Ro
 }
 
 public func >> <Root, S>(block: @escaping (Root) -> S, value: S.Element) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { block($0).contains(value)}
+    return { block($0).contains(value) }
 }
 
 public func >> <Root, S>(block: @escaping (Root) -> S?, value: S.Element) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -290,8 +290,6 @@ public func >>! <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> 
     }}
 }
 
-
- 
 public func == <Root, Value>(block: @escaping (Root) -> Value, value: (Value, Value)) -> (Root) -> Bool where Value: FloatingPoint {
     return { abs(block($0) - value.0) < value.1 }
 }
@@ -304,9 +302,8 @@ public func == <Root, Value>(block: @escaping (Root) -> Value?, value: (Value, V
     }}
 }
 
-infix operator ± : NilCoalescingPrecedence
+infix operator ±: NilCoalescingPrecedence
 
 public func ± <Value>(number: Value, accuracy: Value) -> (Value, Value) where Value: FloatingPoint {
     return (number, accuracy)
 }
-
