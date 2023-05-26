@@ -15,13 +15,6 @@ public extension AttributedString {
         self.init(string, attributes: attributes)
     }
     
-    mutating func editAttributes(_ block: ((inout AttributeContainer)->())) {
-        if var attributes = self.runs.first?.attributes {
-            block(&attributes)
-            self.setAttributes(attributes)
-        }
-    }
-    
     func lowercased() -> AttributedString {
         return AttributedString(NSAttributedString(self).lowercased())
     }
