@@ -5,8 +5,28 @@
 //
 
 import Foundation
-
+import AppKit
 public extension NSObjectProtocol where Self: NSObject {
+    func observeChange<Value: Equatable>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, Value) -> ())) -> NSKeyValueObservation {
+        return self.observe(keyPath, options: [.old, .new]) { object, change in
+            if let newValue = change.newValue {
+                if  change.newValue != change.oldValue {
+                    handler(object, newValue)
+                }
+            }
+        }
+    }
+    
+    func observeChange<Value: Equatable>(_ keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
+        return self.observe(keyPath, options: [.old, .new]) { object, change in
+            if let newValue = change.newValue {
+                if  change.newValue != change.oldValue {
+                    handler(object, newValue)
+                }
+            }
+        }
+    }
+    
     func observeChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, Value) -> ())) -> NSKeyValueObservation {
         self.observe(keyPath, options: [.new]) { object, change in
             if let newValue = change.newValue {
@@ -15,7 +35,7 @@ public extension NSObjectProtocol where Self: NSObject {
         }
     }
     
-    func observeChange<Value>(_  keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
+    func observeChange<Value>(_ keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
         self.observe(keyPath, options: [.new]) { object, change in
             if let newValue = change.newValue {
                 handler(object, newValue)
@@ -29,12 +49,24 @@ import Combine
 
 @available(macOS 10.15.2, iOS 13.2, tvOS 13, watchOS 6, *)
 public extension NSObjectProtocol where Self: NSObject {
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = .new, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [.old, .new], handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        return publisher(for: keypath, options: options)
+            .removeDuplicates(by: { ($0 == $1) })
+            .sink(receiveValue: handler)
+    }
+    
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.old, .new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+        return publisher(for: keypath, options: options)
+            .removeDuplicates(by: { ($0 == $1) })
+            .sink(receiveValue: handler)
+    }
+    
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [ .new], handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
     
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = .new, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
@@ -67,5 +99,4 @@ public extension NSObjectProtocol where Self: NSObject {
             .sink(receiveValue: handler)
     }
 }
-
 #endif
