@@ -6,23 +6,27 @@
 //
 
 import Foundation
-import AppKit
 
 public extension NSKeyedUnarchiver {
     enum Errors: Error {
-        case unpackingErrorr
+        case unpackingError
     }
 }
 
 public extension NSCoding where Self: NSObject {
     func archiveBasedCopy() throws -> Self {
         let o = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-        guard let object = try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: o) else { throw NSKeyedUnarchiver.Errors.unpackingErrorr }
+        guard let object = try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: o) else { throw NSKeyedUnarchiver.Errors.unpackingError }
         return object
     }
 }
 
 public extension NSObject {
+    func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<NSObject, Value>) {
+        guard let keypathString = keypath._kvcKeyPathString else { return }
+        self.removeObserver(observer, forKeyPath: keypathString)
+    }
+    
     func setValueSafely(_ value: Any?, forKey key: String) {
         if containsProperty(named: key) {
             setValue(value, forKey: key)

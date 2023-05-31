@@ -7,27 +7,48 @@
 
 import Foundation
 
+public enum SequenceSortingOrder {
+    case ascending
+    case descending
+}
+
 public extension Sequence {
-    func sorted<T: Comparable>(by compare: (Element) -> T, ascending: Bool = true) -> [Element] {
-        if ascending {
+    func sorted<T: Comparable>(by compare: (Element) -> T, _ order : SequenceSortingOrder = .ascending) -> [Element] {
+        if order == .ascending {
             return sorted { compare($0) < compare($1) }
         } else {
             return sorted { compare($0) > compare($1) }
         }
     }
+    
+    func sorted<T: Comparable>(by keyPath: KeyPath<Element, T>, order: SequenceSortingOrder = .ascending) -> [Element] {
+        if order == .ascending {
+            return self.sorted(by: keyPath, using: <)
+        } else {
+            return self.sorted(by: keyPath, using: >)
+        }
+    }
+    
+    func sorted<T: Comparable>(by keyPath: KeyPath<Element, T?>, order: SequenceSortingOrder = .ascending) -> [Element] {
+        if order == .ascending {
+            return self.sorted(by: keyPath, using: <)
+        } else {
+            return self.sorted(by: keyPath, using: >)
+        }
+    }
 
-    func sorted<T: Comparable>(
+    internal func sorted<T: Comparable>(
         by keyPath: KeyPath<Element, T>,
-        using comparator: (T, T) -> Bool = (<)
+        using comparator: (T, T) -> Bool
     ) -> [Element] {
         sorted { a, b in
             comparator(a[keyPath: keyPath], b[keyPath: keyPath])
         }
     }
 
-    func sorted<T: Comparable>(
+    internal func sorted<T: Comparable>(
         by keyPath: KeyPath<Element, T?>,
-        using comparator: (T, T) -> Bool = (<)
+        using comparator: (T, T) -> Bool
     ) -> [Element] {
         sorted { a, b in
             guard let b = b[keyPath: keyPath] else { return true }
@@ -182,6 +203,7 @@ internal extension Equatable {
 }
 
 internal extension Comparable {
+    
     func isLessThan(_ other: any Comparable) -> Bool {
         guard let other = other as? Self else {
             return false
@@ -208,5 +230,28 @@ internal extension Comparable {
             return false
         }
         return lhs < other
+    }
+}
+
+public extension KeyPath where Value: Comparable {
+    func isLessThan<Value: Comparable>(_ keypath: KeyPath<Root, Value>) -> Bool {
+        guard let b = keypath as? any Comparable else { return true }
+        guard let a = self as? any Comparable else { return false }
+        return a.isLessThan(b)
+    }
+}
+
+public extension PartialKeyPath {
+    func isLessThan(_ keypath: PartialKeyPath<Root>) -> Bool {
+        guard let b = keypath as? any Comparable else { return true }
+        guard let a = self as? any Comparable else { return false }
+        return a.isLessThan(b)
+    }
+    
+    func isEqual(_ keypath: PartialKeyPath<Root>) -> Bool {
+        guard let keypath = keypath as? Self else {
+            return false
+        }
+        return self == keypath
     }
 }

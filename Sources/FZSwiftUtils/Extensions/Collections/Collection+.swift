@@ -7,6 +7,14 @@
 
 import Foundation
 
+public extension MutableCollection {
+    mutating func editEach(_ body: (inout Element) throws -> Void) rethrows {
+        for index in self.indices {
+            try body(&self[index])
+        }
+    }
+}
+
 public extension Collection where Index == Int {
     subscript(safe safeIndex: Index) -> Element? {
         if isEmpty == false, safeIndex < count - 1 {
@@ -16,6 +24,10 @@ public extension Collection where Index == Int {
     }
 
     subscript(indexes: IndexSet) -> [Element] {
+        return indexes.compactMap { self[safe: $0] }
+    }
+    
+    subscript(indexes: [Index]) -> [Element] {
         return indexes.compactMap { self[safe: $0] }
     }
 }

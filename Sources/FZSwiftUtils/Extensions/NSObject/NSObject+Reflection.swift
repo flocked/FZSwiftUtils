@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import ObjectiveC.runtime
 
 public extension NSObject {
     static func classReflection(includeSuperclass: Bool = false, excludeReadOnlyProperties: Bool = false) -> [String: Any]? {

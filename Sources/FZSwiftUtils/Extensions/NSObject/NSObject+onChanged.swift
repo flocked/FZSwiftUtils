@@ -5,40 +5,22 @@
 //
 
 import Foundation
-import AppKit
+
 public extension NSObjectProtocol where Self: NSObject {
-    func observeChange<Value: Equatable>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, Value) -> ())) -> NSKeyValueObservation {
+    func observeChange<Value: Equatable>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, _ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         return self.observe(keyPath, options: [.old, .new]) { object, change in
-            if let newValue = change.newValue {
+            if let newValue = change.newValue, let oldValue = change.oldValue {
                 if  change.newValue != change.oldValue {
-                    handler(object, newValue)
+                    handler(object, oldValue, newValue)
                 }
             }
         }
     }
     
-    func observeChange<Value: Equatable>(_ keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
+    func observeChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, _ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         return self.observe(keyPath, options: [.old, .new]) { object, change in
-            if let newValue = change.newValue {
-                if  change.newValue != change.oldValue {
-                    handler(object, newValue)
-                }
-            }
-        }
-    }
-    
-    func observeChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, Value) -> ())) -> NSKeyValueObservation {
-        self.observe(keyPath, options: [.new]) { object, change in
-            if let newValue = change.newValue {
-                handler(object, newValue)
-            }
-        }
-    }
-    
-    func observeChange<Value>(_ keyPath: KeyPath<Self, Value?>, handler: @escaping ((Self, Value?) -> ())) -> NSKeyValueObservation {
-        self.observe(keyPath, options: [.new]) { object, change in
-            if let newValue = change.newValue {
-                handler(object, newValue)
+            if let newValue = change.newValue, let oldValue = change.oldValue {
+                    handler(object, oldValue, newValue)
             }
         }
     }

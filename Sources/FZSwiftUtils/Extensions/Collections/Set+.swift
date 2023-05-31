@@ -9,25 +9,19 @@ import Foundation
 
 extension Set {
     mutating func remove<S: Sequence<Element>>(_ elements: S) {
-        for element in elements {
-            remove(element)
-        }
+        elements.forEach({ self.remove($0) })
     }
 
     mutating func insert<S: Sequence<Element>>(_ elements: S) {
-        for element in elements {
-            insert(element)
-        }
+        elements.forEach({ self.insert($0) })
     }
 
     func filter(where filter: (Self.Element) -> Bool) -> Set<Self.Element> {
-        var filteredElements = Set<Self.Element>()
-        for element in self {
-            if filter(element) == true {
-                filteredElements.insert(element)
-            }
-        }
-        return filteredElements
+        return Set( self.filter({filter($0)}) )
+    }
+    
+    mutating func removeAll<Value>(containing keypath: KeyPath<Element, Value>) {
+       // filter(keypath)
     }
 
     mutating func removeAll(where remove: (Self.Element) -> Bool) {
