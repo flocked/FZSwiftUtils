@@ -12,6 +12,8 @@ import UniformTypeIdentifiers
 
 #if os(macOS)
 import AppKit
+#elseif canImport(MobileCoreServices)
+import MobileCoreServices
 #endif
 
 public extension URL {

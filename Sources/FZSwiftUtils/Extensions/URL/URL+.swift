@@ -7,11 +7,8 @@
 
 import Foundation
 
+
 public extension URL {
-    var contentTypeIdentifier: String? { resources.contentTypeIdentifier }
-
-    var contentTypeIdentifierTree: [String] { resources.contentTypeIdentifierTree }
-
     var isDirectory: Bool {
         resources.isDirectory
     }
@@ -59,6 +56,16 @@ public extension URL {
         let droppedScheme = String(absoluteString.dropFirst(2))
         return URL(string: droppedScheme)
     }
+}
+
+@available(macOS, deprecated: 11.0, message: "Use contentType instead")
+@available(iOS, deprecated: 14.0, message: "Use contentType instead")
+@available(macCatalyst, deprecated: 14.0, message: "Use contentType instead")
+@available(tvOS, deprecated: 14.0, message: "Use contentType instead")
+@available(watchOS, deprecated: 7.0, message: "Use contentType instead")
+public extension URL {
+    var contentTypeIdentifier: String? { resources.contentTypeIdentifier }
+    var contentTypeIdentifierTree: [String] { resources.contentTypeIdentifierTree }
 }
 
 #if canImport(UniformTypeIdentifiers)
