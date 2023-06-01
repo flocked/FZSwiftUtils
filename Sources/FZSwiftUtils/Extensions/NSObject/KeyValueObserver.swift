@@ -10,44 +10,7 @@ import Foundation
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     internal var observers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
     public fileprivate(set) weak var observedObject: Object?
-    
-    public subscript<Value: Equatable>(keyPath: KeyPath<Object, Value>) -> ((_ oldValue: Value, _ newValue: Value)->())? {
-        get {
-            guard let name = keyPath._kvcKeyPathString else { return nil }
-            return self.observers[name] as ((_ oldValue: Value, _ newValue: Value)->())?
-        }
-        set {
-            self.remove(keyPath)
-            if let newValue = newValue {
-                self.add(keyPath, handler: newValue)
-            }
-        }
         
-    }
-    
-    public subscript<Value>(keyPath: KeyPath<Object, Value>) -> ((_ oldValue: Value, _ newValue: Value)->())? {
-        get {
-            guard let name = keyPath._kvcKeyPathString else { return nil }
-            return self.observers[name] as ((_ oldValue: Value, _ newValue: Value)->())?
-        }
-        set {
-            self.remove(keyPath)
-            if let newValue = newValue {
-                self.add(keyPath, handler: newValue)
-            }
-        }
-    }
-    
-    public subscript(keyPath: String) -> ((_ oldValue: Any, _ newValue: Any)->())? {
-        get { self.observers[keyPath] }
-        set {
-            self.remove(keyPath)
-            if let newValue = newValue {
-                self.add(keyPath, handler: newValue)
-            }
-        }
-    }
-    
     public init(_ observedObject: Object) {
         self.observedObject = observedObject
         super.init()
@@ -127,5 +90,68 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     deinit {
         self.removeAll()
+    }
+}
+
+public extension KeyValueObserver {
+    subscript<Value: Equatable>(keyPath: KeyPath<Object, Value>) -> ((_ oldValue: Value, _ newValue: Value)->())? {
+        get {
+            guard let name = keyPath._kvcKeyPathString else { return nil }
+            return self.observers[name] as ((_ oldValue: Value, _ newValue: Value)->())?
+        }
+        set {
+            if let newValue = newValue {
+                guard let name = keyPath._kvcKeyPathString else { return }
+                if self.observers[name] == nil {
+                    self.add(keyPath, handler: newValue)
+                } else {
+                    self.observers[name] = { old, new in
+                        guard let old = old as? Value, let new = new as? Value, old != new else { return }
+                        newValue(old, new)
+                    }
+                }
+            } else {
+                self.remove(keyPath)
+            }
+        }
+        
+    }
+    
+    subscript<Value>(keyPath: KeyPath<Object, Value>) -> ((_ oldValue: Value, _ newValue: Value)->())? {
+        get {
+            guard let name = keyPath._kvcKeyPathString else { return nil }
+            return self.observers[name] as ((_ oldValue: Value, _ newValue: Value)->())?
+        }
+        set {
+            if let newValue = newValue {
+                guard let name = keyPath._kvcKeyPathString else { return }
+                if self.observers[name] == nil {
+                    self.add(keyPath, handler: newValue)
+                } else {
+                    self.observers[name] = { old, new in
+                        guard let old = old as? Value, let new = new as? Value else { return }
+                        newValue(old, new)
+                    }
+                }
+            } else {
+                self.remove(keyPath)
+            }
+        }
+    }
+    
+    subscript(keyPath: String) -> ((_ oldValue: Any, _ newValue: Any)->())? {
+        get { self.observers[keyPath] }
+        set {
+            self.remove(keyPath)
+            if let newValue = newValue {
+                if self.observers[keyPath] == nil {
+                    self.add(keyPath, handler: newValue)
+                } else {
+                    self.observers[keyPath] = newValue
+                }
+            } else {
+                self.remove(keyPath)
+            }
+        }
     }
 }
