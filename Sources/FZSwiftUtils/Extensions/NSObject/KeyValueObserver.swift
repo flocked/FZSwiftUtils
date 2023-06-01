@@ -9,7 +9,6 @@ import Foundation
 
 public class KeyValueObserver<Object> where Object: NSObject {
     internal var observers: [String: NSKeyValueObservation] = [:]
-    internal var handlers: [String: ((Object, _ oldValue: Any, _ newValue: Any)->())] = [:]
 
     public fileprivate(set) weak var object: Object?
     
@@ -52,20 +51,7 @@ public class KeyValueObserver<Object> where Object: NSObject {
         }
     }
     
-    subscript<Value>(keypath: KeyPath<Object, Value>) -> ((Object, _ oldValue: Value, _ newValue: Value)->())? {
-        get {
-            guard let name = keypath._kvcKeyPathString else { return nil }
-            guard let handler = handlers[name] else { return nil }
-            return handler as ((Object, _ oldValue: Value, _ newValue: Value)->())
-        }
-        set {
-            guard let name = keypath._kvcKeyPathString else { return }
-            if (observers[name] != nil) {
-                self.remove(keypath)
-            }
-            guard let newValue = newValue else { return }
-            self.add(keypath, handler: newValue)
-        }
+    public func hasObservers() -> Bool {
+        return self.observers.isEmpty != false
     }
-    
 }
