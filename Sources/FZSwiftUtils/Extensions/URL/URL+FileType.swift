@@ -100,16 +100,13 @@ public extension URL {
         #if canImport(UniformTypeIdentifiers)
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public init?(uttype: UTType) {
-            var fileType: FileType?
             
-            for allFileType in FileType.allCases {
-                if let allUTType = allFileType.uttype, uttype.conforms(to: allUTType) {
-                    fileType = allFileType
-                    break
+            if let fileType = FileType.allCases.first(where: {
+                if let allUTType = $0.uttype, uttype.conforms(to: allUTType) {
+                    return true
                 }
-            }
-
-            if let fileType = fileType {
+                return false
+            }) {
                 self = fileType
             } else if let pathExtension = uttype.preferredFilenameExtension {
                 self = .other(pathExtension)
