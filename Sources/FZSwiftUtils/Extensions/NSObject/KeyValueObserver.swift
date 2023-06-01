@@ -7,7 +7,16 @@
 
 import Foundation
 
+/// Lightweight wrapper class that provides closure based API around KVO. Instances of this class can be attached
+/// to other classes. When the instances are deallocated, the KVO is automatically unregistered.
+
+/**
+ Observes multiple keypaths of an object.
+ 
+ When the instances are deallocated, the KVO is automatically unregistered.
+ */
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
+
     internal var observers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
     public fileprivate(set) weak var observedObject: Object?
         
@@ -61,7 +70,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
-    public func hasObservers() -> Bool {
+    public func isObserving() -> Bool {
         return  self.observers.isEmpty != false
     }
     
