@@ -9,8 +9,8 @@ import Foundation
 
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     internal var observers: [String: NSKeyValueObservation] = [:]
-    internal var handlers: [String:  (Any?,Any?)->()] = [:]
-
+    internal var handlers: [String:  (Object, _ oldValue: Any, _ newValue: Any)->()] = [:]
+    
     public fileprivate(set) weak var object: Object?
     
     public init(_ object: Object) {
@@ -45,7 +45,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         self.observers.keys.forEach({ self.remove( $0) })
         self.handlers.keys.forEach({ self.remove( $0) })
     }
-
+    
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping ((Object, _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
         if (observers[name] == nil) {
@@ -60,7 +60,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
-    public func add(_ keypath: String, handler: @escaping (Any?, Any?)->()) {
+    public func add(_ keypath: String, handler: @escaping (Object, _ oldValue: Any, _ newValue: Any)->()) {
         if (handlers[keypath] == nil) {
             handlers[keypath] = handler
             object?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
@@ -92,19 +92,18 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     override public func observeValue(forKeyPath keyPath:String?, of object:Any?, change:[NSKeyValueChangeKey:Any]?, context:UnsafeMutableRawPointer?) {
-            guard let keyPath = keyPath, let handler = self.handlers[keyPath] else {
-                super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
-                return
-            }
-            var oldValue:Any? = nil
-            var newValue:Any? = nil
-            
-            if let change = change {
-                oldValue = change[NSKeyValueChangeKey.oldKey]
-                newValue = change[NSKeyValueChangeKey.newKey]
-            }
-        handler(oldValue,newValue)
+        guard
+            let object = self.object,
+            let keyPath = keyPath,
+            let handler = self.handlers[keyPath],
+            let change = change,
+            let oldValue = change[NSKeyValueChangeKey.oldKey],
+            let newValue = change[NSKeyValueChangeKey.newKey] else {
+            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+            return
         }
+        handler(object, oldValue, newValue)
+    }
     
     deinit {
         self.removeAll()
