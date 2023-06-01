@@ -33,6 +33,8 @@ public extension URL {
         case symbolicLink
         case text
         case video
+        
+        
 
         public init?(url: URL) {
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
@@ -98,16 +100,13 @@ public extension URL {
         #if canImport(UniformTypeIdentifiers)
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public init?(uttype: UTType) {
-            let uttypes = uttype + Array(uttype.supertypes)
             var fileType: FileType?
-
-            var allFileTypes = FileType.allCases
-
-            while fileType == nil, let type = allFileTypes.first {
-                if let uttype = type.uttype, uttypes.contains(uttype) {
-                    fileType = type
+            
+            for allFileType in FileType.allCases {
+                if let allUTType = allFileType.uttype, uttype.conforms(to: allUTType) {
+                    fileType = allFileType
+                    break
                 }
-                allFileTypes.removeFirst()
             }
 
             if let fileType = fileType {
@@ -146,15 +145,20 @@ public extension URL.FileType {
     var identifier: String? {
         switch self {
         case .aliasFile: return "com.apple.alias-file"
+        case .symbolicLink: return "public.symlink"
+        case .folder: return "public.folder"
         case .application: return "com.apple.application"
         case .archive: return "public.archive"
         case .audio: return "public.audio"
         case .diskImage: return "public.disk-image"
-        case .document: return "public.composite-content"
         case .executable: return "public.executable"
-        case .folder: return "public.folder"
+        case .video: return "public.video"
         case .gif: return "com.compuserve.gif"
         case .image: return "public.image"
+        case .pdf: return "com.adobe.pdf"
+        case .presentation: return "public.presentation"
+        case .text: return "public.text"
+        case .document: return "public.composite-content"
         case let .other(pathExtension):
             guard pathExtension != "" else {
                 return "public.folder"
@@ -168,11 +172,6 @@ public extension URL.FileType {
                 return mimeIdentifier as String
             }
             return nil
-        case .pdf: return "com.adobe.pdf"
-        case .presentation: return "public.presentation"
-        case .symbolicLink: return "public.symlink"
-        case .text: return "public.text"
-        case .video: return "public.video"
         }
     }
 
@@ -214,7 +213,7 @@ public extension URL.FileType {
         case .folder: return "Folder"
         case .gif: return "GIF"
         case .image: return "Image"
-        case let .other(value): return "File: .\(value)"
+        case let .other(value): return "File (.\(value))"
         case .pdf: return "PDF"
         case .presentation: return "Application"
         case .symbolicLink: return "SymbolicLink"
@@ -227,7 +226,7 @@ public extension URL.FileType {
         self == .video || self == .audio || self == .gif || self == .image
     }
 
-    static let allCases: [URL.FileType] = [.aliasFile, .symbolicLink, .application, .executable, .archive, .video, .audio, .diskImage, .document, .folder, .gif, .image, .pdf, .presentation, .text]
+    static let allCases: [URL.FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio,  .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
 
     static var multimediaTypes: [URL.FileType] = [.gif, .image, .video]
     static var imageTypes: [URL.FileType] = [.gif, .image]
