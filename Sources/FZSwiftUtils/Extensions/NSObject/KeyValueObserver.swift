@@ -55,6 +55,26 @@ public class KeyValueObserver<Object> where Object: NSObject {
         return self.observers.isEmpty != false
     }
     
+    public func isObserving(_ keypath: PartialKeyPath<Object>) -> Bool {
+        guard let name = keypath._kvcKeyPathString else { return false }
+        return self.observers[name] != nil
+    }
+    
+    internal func isObserving(_ name: String) -> Bool {
+        return self.observers[name] != nil
+    }
+    
+    public func isObserving<S: Sequence<PartialKeyPath<Object>>>(_ keypaths: S) -> Bool {
+        let names = keypaths.compactMap({$0._kvcKeyPathString})
+        var isObserving = true
+        names.forEach({
+            if (self.isObserving($0) == false) {
+                isObserving = false
+            }
+        })
+        return isObserving
+    }
+    
     deinit {
         self.removeAll()
     }
