@@ -37,12 +37,12 @@ public extension URL {
         
 
         public init?(url: URL) {
-            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
+        /*    if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
                 if let uttype = UTType(url: url), let fileType = FileType(uttype: uttype) {
                     self = fileType
                     return
                 }
-            } else {
+            } else { */
                 if let contentTypeIdentifier = url.contentTypeIdentifier, let fileType = FileType(contentTypeIdentifier: contentTypeIdentifier) {
                     self = fileType
                     return
@@ -50,7 +50,7 @@ public extension URL {
                     self = fileType
                     return
                 }
-            }
+           // }
             if let fileType = FileType(fileExtension: url.pathExtension) {
                 self = fileType
                 return
