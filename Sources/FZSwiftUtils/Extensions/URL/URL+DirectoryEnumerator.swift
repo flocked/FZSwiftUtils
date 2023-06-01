@@ -137,26 +137,15 @@ public extension URL {
     func iterateFiles(contentTypes: [UTType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         return iterate(predicate: {
             if contentTypes.isEmpty { return $0.isFile }
-            if let type = $0.contentType, contentTypes.contains(type) { return true } else { return false }
+            if let type = $0.contentType, (contentTypes.contains(type) || type.conforms(toAny: contentTypes))  {
+                return true
+            } else { return false }
         }, options: options)
     }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     func iterateFiles(contentTypes: [UTType], _ options: DirectoryEnumerationOption...) -> URLSequence {
         iterateFiles(contentTypes: contentTypes, options: Set(options))
-    }
-
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    func iterateFiles(conformingTo contentTypes: [UTType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        return iterate(predicate: {
-            if contentTypes.isEmpty { return $0.isFile }
-            return $0.contentType?.conforms(toAny: contentTypes) ?? false
-        }, options: options)
-    }
-
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    func iterateFiles(conformingTo contentTypes: [UTType], _ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterateFiles(conformingTo: contentTypes, options: Set(options))
     }
 
     // iterateFiles Extensions
