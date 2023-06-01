@@ -8,8 +8,7 @@
 import Foundation
 
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
-    internal var observers: [String: NSKeyValueObservation] = [:]
-    internal var handlers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
+    internal var observers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
     public fileprivate(set) weak var object: Object?
     
     public init(_ object: Object) {
@@ -18,29 +17,24 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     public func remove(_ keyPath: PartialKeyPath<Object>) {
-        guard let object = self.object else { return }
         guard let name = keyPath._kvcKeyPathString else { return }
-        if self.observers[name] != nil {
-            object.removeObserver(object, forKeyPath: name)
-            self.observers[name] = nil
-        }
+        self.remove(name)
     }
     
     public func remove<S: Sequence<PartialKeyPath<Object>>>(_ keyPaths: S)  {
-        keyPaths.forEach({ self.remove($0) })
+        keyPaths.compactMap({$0._kvcKeyPathString}).forEach({ self.remove($0) })
     }
     
     public func remove(_ keyPath: String) {
         guard let object = self.object else { return }
-        if self.handlers[keyPath] != nil {
+        if self.observers[keyPath] != nil {
             object.removeObserver(self, forKeyPath: keyPath)
-            self.handlers[keyPath] = nil
+            self.observers[keyPath] = nil
         }
     }
     
     public func removeAll() {
         self.observers.keys.forEach({ self.remove( $0) })
-        self.handlers.keys.forEach({ self.remove( $0) })
     }
     
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
@@ -74,14 +68,14 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     public func add(_ keypath: String, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
-        if (handlers[keypath] == nil) {
-            handlers[keypath] = handler
+        if (observers[keypath] == nil) {
+            observers[keypath] = handler
             object?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
         }
     }
     
     public func hasObservers() -> Bool {
-        return self.observers.isEmpty != false && self.handlers.isEmpty != false
+        return  self.observers.isEmpty != false
     }
     
     public func isObserving(_ keypath: PartialKeyPath<Object>) -> Bool {
@@ -90,14 +84,14 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     public func isObserving(_ keypath: String) -> Bool {
-        return self.observers[keypath] != nil || self.handlers[keypath] != nil
+        return self.observers[keypath] != nil
     }
     
     override public func observeValue(forKeyPath keyPath:String?, of object:Any?, change:[NSKeyValueChangeKey:Any]?, context:UnsafeMutableRawPointer?) {
         guard
             self.object != nil,
             let keyPath = keyPath,
-            let handler = self.handlers[keyPath],
+            let handler = self.observers[keyPath],
             let change = change,
             let oldValue = change[NSKeyValueChangeKey.oldKey],
             let newValue = change[NSKeyValueChangeKey.newKey] else {
