@@ -32,6 +32,19 @@ public extension Collection where Index == Int {
     }
 }
 
+public extension RangeReplaceableCollection where Element: Equatable {
+    mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
+        var removedElements: [Element] = []
+        for element in elements {
+            while let index = self.firstIndex(of: element) {
+                let removed = self.remove(at: index)
+                removedElements.append(removed)
+            }
+        }
+        return removedElements
+    }
+}
+
 public extension RangeReplaceableCollection where Self.Indices.Element == Int {
     @discardableResult
     mutating func remove(at indexSet: IndexSet) -> [Self.Element] {
