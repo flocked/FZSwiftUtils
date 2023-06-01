@@ -61,7 +61,7 @@ public extension Sequence {
      
      - Returns: An array containing, in order, the elements of the sequence that contain the keypath element.
      */
-    func filter<T>(containing keyPath: KeyPath<Element, T?>) -> [Element] {
+    func filter<T>(contains keyPath: KeyPath<Element, T?>) -> [Element] {
         return filter { $0[keyPath: keyPath] != nil }
     }
 
