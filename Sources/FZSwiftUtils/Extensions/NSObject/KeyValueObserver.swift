@@ -9,10 +9,47 @@ import Foundation
 
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     internal var observers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
-    public fileprivate(set) weak var object: Object?
+    public fileprivate(set) weak var observedObject: Object?
     
-    public init(_ object: Object) {
-        self.object = object
+    public subscript<Value: Equatable>(keyPath: KeyPath<Object, Value>) -> ((_ oldValue: Value, _ newValue: Value)->())? {
+        get {
+            guard let name = keyPath._kvcKeyPathString else { return nil }
+            return self.observers[name] as ((_ oldValue: Value, _ newValue: Value)->())?
+        }
+        set {
+            self.remove(keyPath)
+            if let newValue = newValue {
+                self.add(keyPath, handler: newValue)
+            }
+        }
+        
+    }
+    
+    public subscript<Value>(keyPath: KeyPath<Object, Value>) -> ((_ oldValue: Value, _ newValue: Value)->())? {
+        get {
+            guard let name = keyPath._kvcKeyPathString else { return nil }
+            return self.observers[name] as ((_ oldValue: Value, _ newValue: Value)->())?
+        }
+        set {
+            self.remove(keyPath)
+            if let newValue = newValue {
+                self.add(keyPath, handler: newValue)
+            }
+        }
+    }
+    
+    public subscript(keyPath: String) -> ((_ oldValue: Any, _ newValue: Any)->())? {
+        get { self.observers[keyPath] }
+        set {
+            self.remove(keyPath)
+            if let newValue = newValue {
+                self.add(keyPath, handler: newValue)
+            }
+        }
+    }
+    
+    public init(_ observedObject: Object) {
+        self.observedObject = observedObject
         super.init()
     }
     
@@ -26,9 +63,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     public func remove(_ keyPath: String) {
-        guard let object = self.object else { return }
+        guard let observedObject = self.observedObject else { return }
         if self.observers[keyPath] != nil {
-            object.removeObserver(self, forKeyPath: keyPath)
+            observedObject.removeObserver(self, forKeyPath: keyPath)
             self.observers[keyPath] = nil
         }
     }
@@ -39,18 +76,10 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
-        
         self.add(name) { old, new in
             guard let old = old as? Value, let new = new as? Value, old != new else { return }
             handler(old, new)
         }
-        
-        /*
-        if (observers[name] == nil) {
-            
-            observers[name] = object?.observeChange(keyPath, handler: { _, old, new in   handler(old, new) })
-        }
-         */
     }
     
     public func add<Value>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
@@ -60,17 +89,12 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(old, new)
         }
-        /*
-        if (observers[name] == nil) {
-            observers[name] = object?.observeChange(keyPath, handler: { _, old, new in   handler(old, new) })
-        }
-         */
     }
     
     public func add(_ keypath: String, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
         if (observers[keypath] == nil) {
             observers[keypath] = handler
-            object?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
+            observedObject?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
         }
     }
     
@@ -89,7 +113,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     override public func observeValue(forKeyPath keyPath:String?, of object:Any?, change:[NSKeyValueChangeKey:Any]?, context:UnsafeMutableRawPointer?) {
         guard
-            self.object != nil,
+            self.observedObject != nil,
             let keyPath = keyPath,
             let handler = self.observers[keyPath],
             let change = change,
