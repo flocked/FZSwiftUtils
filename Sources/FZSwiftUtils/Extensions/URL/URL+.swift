@@ -70,7 +70,7 @@ public extension URL {
 
 #if canImport(UniformTypeIdentifiers)
 import UniformTypeIdentifiers
-@available(macOS 11.0, iOS 14.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 public extension URL {
     var contentType: UTType? {
         UTType(url: self)
