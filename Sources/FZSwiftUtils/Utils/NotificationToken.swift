@@ -22,7 +22,7 @@ public class NotificationToken: NSObject {
 }
 
 public extension NotificationCenter {
-    func observe(_ name: NSNotification.Name?, object obj: Any?,
+    func observe(name: NSNotification.Name?, object obj: Any?,
                  queue: OperationQueue? = nil, using block: @escaping (Notification) -> Void)
         -> NotificationToken
     {
