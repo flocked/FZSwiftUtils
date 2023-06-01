@@ -41,7 +41,7 @@ public extension UTType {
     }
 
     var fileType: URL.FileType? {
-        return URL.FileType(uttype: self)
+        return URL.FileType(contentType: self)
     }
 
     /**

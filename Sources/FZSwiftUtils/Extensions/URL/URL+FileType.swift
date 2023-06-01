@@ -66,7 +66,7 @@ public extension URL {
             }
 
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
-                if let uttype = UTType(filenameExtension: fileExtension), let fileType = FileType(uttype: uttype) {
+                if let contentType = UTType(filenameExtension: fileExtension), let fileType = FileType(contentType: contentType) {
                     self = fileType
                     return
                 }
@@ -99,16 +99,16 @@ public extension URL {
 
         #if canImport(UniformTypeIdentifiers)
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        public init?(uttype: UTType) {
+        public init?(contentType: UTType) {
             
             if let fileType = FileType.allCases.first(where: {
-                if let allUTType = $0.uttype, uttype.conforms(to: allUTType) {
+                if let allContentType = $0.contentType, contentType.conforms(to: allContentType) {
                     return true
                 }
                 return false
             }) {
                 self = fileType
-            } else if let pathExtension = uttype.preferredFilenameExtension {
+            } else if let pathExtension = contentType.preferredFilenameExtension {
                 self = .other(pathExtension)
             } else {
                 return nil
@@ -230,7 +230,7 @@ public extension URL.FileType {
 
     #if canImport(UniformTypeIdentifiers)
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    var uttype: UTType? {
+    var contentType: UTType? {
         if let identifier = identifier {
             return UTType(identifier)
         }
