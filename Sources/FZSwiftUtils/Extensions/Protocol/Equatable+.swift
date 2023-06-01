@@ -34,3 +34,9 @@ public extension Equatable {
         return self == other
     }
 }
+
+public extension PartialKeyPath {
+    func isEqual(_ keypath: PartialKeyPath<Root>) -> Bool {
+        return self == keypath
+    }
+}

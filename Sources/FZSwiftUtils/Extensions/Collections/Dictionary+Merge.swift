@@ -6,10 +6,21 @@
 //
 
 public extension Dictionary {
+    /**
+     The dictionary merged with another dictionary.
+     
+     - Parameters dictionary: The dictionary for merging.
+     - Returns: A dictionary with merged values.
+     */
     func merged(_ dictionary: Self) -> Self {
         self + dictionary
     }
     
+    /**
+     Merges the dictionary with another dictionary.
+     
+     - Parameters dictionary: The dictionary for merging.
+     */
     mutating func merging(_ dictionary: Self) {
         self += dictionary
     }

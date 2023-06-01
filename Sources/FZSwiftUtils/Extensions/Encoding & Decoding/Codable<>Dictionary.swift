@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 public extension Encodable {
     func toCFDictionary() -> CFDictionary {
         return (toDictionary(encoder: .init()) as [CFString: Any]) as CFDictionary

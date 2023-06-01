@@ -110,3 +110,13 @@ public extension Sequence {
     }
 }
 
+public extension RangeReplaceableCollection {
+    /**
+     Removes all elements that satisfy the contain a value at the given keypath.
+
+     - Parameters keypath: The keypath.
+     */
+    mutating func removeAll<Value>(containing keypath: KeyPath<Element, Value?>) {
+        self.removeAll(where: { $0[keyPath: keypath] != nil })
+    }
+}

@@ -76,15 +76,6 @@ public extension Comparable {
     }
 }
 
-/*
-public extension KeyPath where Value: Comparable {
-    func isLessThan<Value: Comparable>(_ keypath: KeyPath<Root, Value>) -> Bool {
-        guard let b = keypath as? any Comparable else { return true }
-        guard let a = self as? any Comparable else { return false }
-        return a.isLessThan(b)
-    }
-}
-
 public extension PartialKeyPath {
     func isLessThan(_ keypath: PartialKeyPath<Root>) -> Bool {
         guard let b = keypath as? any Comparable else { return true }
@@ -92,11 +83,9 @@ public extension PartialKeyPath {
         return a.isLessThan(b)
     }
     
-    func isEqual(_ keypath: PartialKeyPath<Root>) -> Bool {
-        guard let keypath = keypath as? Self else {
-            return false
-        }
-        return self == keypath
+    func isLessThanOrEqual(_ keypath: PartialKeyPath<Root>) -> Bool {
+        guard let b = keypath as? any Comparable else { return true }
+        guard let a = self as? any Comparable else { return false }
+        return a.isLessThanOrEqual(b)
     }
 }
-*/
