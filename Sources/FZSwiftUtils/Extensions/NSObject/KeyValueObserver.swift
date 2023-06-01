@@ -9,8 +9,7 @@ import Foundation
 
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     internal var observers: [String: NSKeyValueObservation] = [:]
-    internal var handlers: [String:  (Object, _ oldValue: Any, _ newValue: Any)->()] = [:]
-    
+    internal var handlers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
     public fileprivate(set) weak var object: Object?
     
     public init(_ object: Object) {
@@ -19,22 +18,20 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     public func remove(_ keyPath: PartialKeyPath<Object>) {
+        guard let object = self.object else { return }
         guard let name = keyPath._kvcKeyPathString else { return }
-        self.remove(name)
+        if self.observers[name] != nil {
+            object.removeObserver(object, forKeyPath: name)
+            self.observers[name] = nil
+        }
     }
     
     public func remove<S: Sequence<PartialKeyPath<Object>>>(_ keyPaths: S)  {
-        let names = keyPaths.compactMap({$0._kvcKeyPathString})
-        names.forEach({ self.remove($0) })
+        keyPaths.forEach({ self.remove($0) })
     }
     
     public func remove(_ keyPath: String) {
         guard let object = self.object else { return }
-        if self.observers[keyPath] != nil {
-            object.removeObserver(object, forKeyPath: keyPath)
-            self.observers[keyPath] = nil
-        }
-        
         if self.handlers[keyPath] != nil {
             object.removeObserver(self, forKeyPath: keyPath)
             self.handlers[keyPath] = nil
@@ -46,21 +43,37 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         self.handlers.keys.forEach({ self.remove( $0) })
     }
     
-    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping ((Object, _ oldValue: Value, _ newValue: Value)->())) {
+    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
-        if (observers[name] == nil) {
-            observers[name] = object?.observeChange(keyPath, handler: handler)
+        
+        self.add(name) { old, new in
+            guard let old = old as? Value, let new = new as? Value, old != new else { return }
+            handler(old, new)
         }
+        
+        /*
+        if (observers[name] == nil) {
+            
+            observers[name] = object?.observeChange(keyPath, handler: { _, old, new in   handler(old, new) })
+        }
+         */
     }
     
-    public func add<Value>(_ keypath: KeyPath<Object, Value>, handler: @escaping ((Object, _ oldValue: Value, _ newValue: Value)->())) {
-        guard let name = keypath._kvcKeyPathString else { return }
-        if (observers[name] == nil) {
-            observers[name] = object?.observeChange(keypath, handler: handler)
+    public func add<Value>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+        guard let name = keyPath._kvcKeyPathString else { return }
+        
+        self.add(name) { old, new in
+            guard let old = old as? Value, let new = new as? Value else { return }
+            handler(old, new)
         }
+        /*
+        if (observers[name] == nil) {
+            observers[name] = object?.observeChange(keyPath, handler: { _, old, new in   handler(old, new) })
+        }
+         */
     }
     
-    public func add(_ keypath: String, handler: @escaping (Object, _ oldValue: Any, _ newValue: Any)->()) {
+    public func add(_ keypath: String, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
         if (handlers[keypath] == nil) {
             handlers[keypath] = handler
             object?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
@@ -73,27 +86,16 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     public func isObserving(_ keypath: PartialKeyPath<Object>) -> Bool {
         guard let name = keypath._kvcKeyPathString else { return false }
-        return self.observers[name] != nil
+        return self.isObserving(name)
     }
     
     public func isObserving(_ keypath: String) -> Bool {
-        return self.handlers[keypath] != nil
-    }
-    
-    public func isObserving<S: Sequence<PartialKeyPath<Object>>>(_ keypaths: S) -> Bool {
-        let names = keypaths.compactMap({$0._kvcKeyPathString})
-        var isObserving = true
-        names.forEach({
-            if (self.isObserving($0) == false) {
-                isObserving = false
-            }
-        })
-        return isObserving
+        return self.observers[keypath] != nil || self.handlers[keypath] != nil
     }
     
     override public func observeValue(forKeyPath keyPath:String?, of object:Any?, change:[NSKeyValueChangeKey:Any]?, context:UnsafeMutableRawPointer?) {
         guard
-            let object = self.object,
+            self.object != nil,
             let keyPath = keyPath,
             let handler = self.handlers[keyPath],
             let change = change,
@@ -102,7 +104,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
-        handler(object, oldValue, newValue)
+        handler(oldValue, newValue)
     }
     
     deinit {
