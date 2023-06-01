@@ -17,8 +17,8 @@ public extension Sequence where Element: Identifiable {
         first { $0.id == id }
     }
 
-    subscript(id id: Element.ID) -> [Element] {
-        self.filter({$0.id == id})
+    subscript(id id: Element.ID) -> Element? {
+        self.first(where: {$0.id == id})
     }
 
     subscript<S: Sequence<Element.ID>>(ids ids: S) -> [Element] {
