@@ -154,7 +154,7 @@ public extension URL.FileType {
         case .executable: return "public.executable"
         case .video: return "public.video"
         case .gif: return "com.compuserve.gif"
-        case .image: return "public.image"
+        case .image: return "public.movie"
         case .pdf: return "com.adobe.pdf"
         case .presentation: return "public.presentation"
         case .text: return "public.text"
