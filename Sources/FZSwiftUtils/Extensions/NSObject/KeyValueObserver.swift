@@ -54,4 +54,8 @@ public class KeyValueObserver<Object> where Object: NSObject {
     public func hasObservers() -> Bool {
         return self.observers.isEmpty != false
     }
+    
+    deinit {
+        self.removeAll()
+    }
 }
