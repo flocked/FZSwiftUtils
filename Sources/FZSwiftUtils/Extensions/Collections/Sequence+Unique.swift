@@ -8,6 +8,7 @@
 import Foundation
 
 public extension Sequence where Element: Equatable {
+    /// An array of unique elements.
     func uniqued() -> [Element] {
         var elements: [Element] = []
         for element in self {
@@ -20,10 +21,20 @@ public extension Sequence where Element: Equatable {
 }
 
 public extension Sequence {
+    /**
+     An array of elements by filtering the keypath for unique values.
+     
+     - Parameters keyPath: The keypath for filtering the object.
+     */
     func uniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
         return uniqued(by: { $0[keyPath: keyPath] })
     }
 
+    /**
+     An array of unique elements.
+     
+     - Parameters map: A mapping closure. map accepts an element of this sequence as its parameter and returns a value of the same or of a different type.
+     */
     func uniqued<T: Equatable>(by map: (Element) -> T) -> [Element] {
         var uniqueElements: [T] = []
         var ordered: [Element] = []

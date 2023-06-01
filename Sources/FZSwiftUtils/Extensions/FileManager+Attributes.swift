@@ -8,6 +8,9 @@
 import Foundation
 
 public extension FileManager {
+    /**
+     The attributes of an file.
+     */
     struct Attributes {
         // MARK: Init
 

@@ -7,74 +7,108 @@
 
 import Foundation
 
-public enum OSHash {
-    public enum HashError: Error {
+/**
+ An implementation of the OpenSuptitle hash.
+ 
+ The OSHash is calculated via the provided file/data size + the checksum of the first and last 64k bytes (even if they overlap because the file/data is smaller than 128k bytes).
+ */
+public struct OSHash {
+    /// OSHash errors.
+    public enum Errors: Error {
+        /// The file isn't available.
         case invalidFile
+        /// The data / gile is too small.
         case toSmall
     }
 
-    private static let chunkSize: Int = 65536
-    private static let UInt64Size = 8
-
-    public static func stringValue(for fileURL: URL) throws -> String {
-        let hash = try value(for: fileURL)
-        return String(format: "%qx", arguments: [hash])
+    /// The number of bytes in an OSHash.
+    public static let byteCount: Int = 65536
+    /// The number of bytes that represents the hash function’s internal state.
+    public static let blockByteCount = 8
+    
+    /// The hash value.
+    let value: UInt64
+    
+    internal init(value: UInt64) {
+        self.value = value
     }
+}
 
-    public static func stringValue(for filePath: String) throws -> String {
-        let hash = try value(for: filePath)
-        return String(format: "%qx", arguments: [hash])
+public extension OSHash {
+    /// The hash value.
+    var stringValue: String {
+        String(format: "%qx", arguments: [self.value])
     }
-
-    public static func stringValue(from data: Data) throws -> String {
-        let hash = try value(from: data)
-        return String(format: "%qx", arguments: [hash])
+    
+    /**
+     Creates a OpenSubtitle hash for the file path.
+     
+     - Parameters path: The path to the file for calculating the hash.
+     
+     - Returns: The OpenSubtitle hash.
+     
+     - Throws: Throws if the file isn't available or to small.
+     */
+    init(path: String) throws  {
+        try self.init(url: URL(fileURLWithPath: path))
     }
-
-    public static func value(from data: Data) throws -> UInt64 {
-        guard UInt64(OSHash.chunkSize) <= data.count else {
-            throw HashError.toSmall
-        }
-        let dataBegin = data[0 ..< OSHash.chunkSize]
-        let dataEnd = data[(data.count - 1 - OSHash.chunkSize) ... data.count - 1]
-        return try value(startData: dataBegin, endData: dataEnd)
-    }
-
-    public static func value(for fileURL: URL) throws -> UInt64 {
-        try value(for: fileURL.path)
-    }
-
-    public static func value(for filePath: String) throws -> UInt64 {
-        guard let fileHandler = FileHandle(forReadingAtPath: filePath) else {
-            throw HashError.invalidFile
-        }
-        let fileDataBegin: Data = fileHandler.readData(ofLength: OSHash.chunkSize) as Data
+    
+    /**
+     Creates a OpenSubtitle hash for the file at the url.
+     
+     - Parameters url: The url to the file for calculating the hash.
+     
+     - Returns: The OpenSubtitle hash.
+     
+     - Throws: Throws if the file isn't available or to small.
+     */
+    init(url: URL) throws  {
+        let fileHandler = try FileHandle(forReadingFrom: url)
+        let startData: Data = fileHandler.readData(ofLength: Self.byteCount) as Data
+        
         fileHandler.seekToEndOfFile()
-
         let fileSize: UInt64 = fileHandler.offsetInFile
-        guard UInt64(OSHash.chunkSize) <= fileSize else {
+        guard UInt64(Self.byteCount) <= fileSize else {
             fileHandler.closeFile()
-            throw HashError.toSmall
+            throw Errors.toSmall
         }
 
-        fileHandler.seek(toFileOffset: max(0, fileSize - UInt64(OSHash.chunkSize)))
-        let fileDataEnd: Data = fileHandler.readData(ofLength: OSHash.chunkSize)
+        fileHandler.seek(toFileOffset: max(0, fileSize - UInt64(Self.byteCount)))
+        let endData: Data = fileHandler.readData(ofLength: Self.byteCount)
 
-        let hashValue = try value(startData: fileDataBegin, endData: fileDataEnd)
+        try self.init(size: fileSize, startData: startData, endData: endData)
         fileHandler.closeFile()
-        return hashValue
     }
-
-    internal static func value(startData: Data, endData: Data) throws -> UInt64 {
-        guard UInt64(OSHash.chunkSize) <= startData.count else {
-            throw HashError.toSmall
+    
+    /**
+     Creates a OpenSubtitle hash for the data.
+     
+     - Parameters data: The data for calculating the hash.
+     
+     - Returns: The OpenSubtitle hash.
+     
+     - Throws: Throws if the data is to small.
+     */
+    init(data: Data) throws  {
+        let size = UInt64(data.count)
+        guard UInt64(Self.byteCount) <= size else {
+            throw Errors.toSmall
         }
-        var hash = UInt64(startData.count)
+        let startData = data[0 ..< Self.byteCount]
+        let endData = data[(data.count - 1 - Self.byteCount) ... data.count - 1]
+        try self.init(size: size, startData: startData, endData: endData)
+    }
+    
+    internal init(size: UInt64, startData: Data, endData: Data) throws  {
+        guard UInt64(Self.byteCount) <= startData.count else {
+            throw Errors.toSmall
+        }
+        var hash = size
         startData.withUnsafeBytes { buffer in
             let binded = buffer.bindMemory(to: UInt64.self)
             let data_bytes = UnsafeBufferPointer<UInt64>(
                 start: binded.baseAddress,
-                count: startData.count / OSHash.UInt64Size
+                count: startData.count / Self.blockByteCount
             )
             hash = data_bytes.reduce(into: hash) { hash = $0 &+ $1 }
         }
@@ -83,10 +117,10 @@ public enum OSHash {
             let binded = buffer.bindMemory(to: UInt64.self)
             let data_bytes = UnsafeBufferPointer<UInt64>(
                 start: binded.baseAddress,
-                count: endData.count / OSHash.UInt64Size
+                count: endData.count / Self.blockByteCount
             )
             hash = data_bytes.reduce(into: hash) { hash = $0 &+ $1 }
         }
-        return hash
+        self.init(value: hash)
     }
 }

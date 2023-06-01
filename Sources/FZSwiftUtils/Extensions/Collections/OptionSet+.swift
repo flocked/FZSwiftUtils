@@ -8,7 +8,7 @@
 import Foundation
 
 public extension OptionSet {
-    func contains(all members: [Self.Element]) -> Bool {
+    func contains(_ members: [Self.Element]) -> Bool {
         for member in members {
             if contains(member) == false {
                 return false

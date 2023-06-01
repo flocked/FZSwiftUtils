@@ -1,26 +1,19 @@
 import Foundation
 
-private extension URL {
-    /// Wrap the xattr functions's POSIX error codes in `NSError` instances.
-    ///
-    /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
-    /// - parameter err: POSIX error code.
-    /// - returns: NSError in the `NSPOSIXErrorDomain` with the code `err` and `userInfo` with a default localized description for the error code.
-    static func posixError(_ err: Int32) -> NSError {
-        return NSError(domain: NSPOSIXErrorDomain, code: Int(err),
-                       userInfo: [NSLocalizedDescriptionKey: String(cString: strerror(err))])
-    }
-}
 
 public extension URL {
+    /// The extended attributes.
     var extendedAttributes: ExtendedAttributes {
         return ExtendedAttributes(self)
     }
 
+    /// An object for reading and writing extended attributes of a file system resource.
     class ExtendedAttributes {
         public typealias Key = String
 
-        private var url: URL
+        /// The url of the file system resource.
+        public private(set) var url: URL
+        
         public init(_ url: URL) {
             self.url = url
         }
@@ -42,6 +35,12 @@ public extension URL {
             set { try? setExtendedAttribute(newValue, for: key) }
         }
 
+        /**
+         Sets an attribute to a value.
+         
+         - Parameters value: The value, or nil if the attribute should be removed.
+         - Parameters key: The name of the attribute.
+         */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
             if let value = value {
                 let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
@@ -51,8 +50,13 @@ public extension URL {
             }
         }
 
-        /// Get extended attribute
-
+        /**
+         The value of an key.
+         
+         - Parameters key: The name of the attribute.
+         
+         - Returns: The value of the key, or nil if there isn't an attribute with the key.
+         */
         public func extendedAttribute<T>(for key: Key) -> T? {
             if let data = extendedAttributeData(for: key),
                let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
@@ -64,66 +68,27 @@ public extension URL {
             return nil
         }
 
-        /// Extended attribute data.
-        ///
-        /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
-        /// - parameter name: Attribute name
-        /// - throws: `NSError` in the `NSPOSIXErrorDomain` when no attribute of `name` was found.
-        /// - returns: Data representation of the attribute's value.
-        private func extendedAttributeData(for key: Key) -> Data? {
-            let data = try? url.withUnsafeFileSystemRepresentation {
-                fileSystemPath -> Data in
-
-                // Determine attribute size
-
-                let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
-                guard length >= 0 else { throw URL.posixError(errno) }
-
-                // Create buffer with required size
-
-                var data = Data(count: length)
-
-                // Retrieve attribute
-
-                let count = data.count
-                let result = data.withUnsafeMutableBytes {
-                    getxattr(fileSystemPath, key, $0.baseAddress, count, 0, 0)
-                }
-
-                guard result >= 0 else { throw URL.posixError(errno) }
-                return data
-            }
-
-            return data
-        }
-
-        /// Set or overwrite an extended attribute.
-        ///
-        /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
-        /// - parameter data: Data representation of any value to be stored in the xattrs.
-        /// - parameter name: Attribute name
-        /// - throws: `NSError` in the `NSPOSIXErrorDomain` when writing the attribute failed.
-        private func setExtendedAttributeData(_ data: Data, for key: Key) throws {
-            try url.withUnsafeFileSystemRepresentation { fileSystemPath in
-                let result = data.withUnsafeBytes {
-                    setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
-                }
-                guard result >= 0 else { throw URL.posixError(errno) }
-            }
-        }
-
-        /// Removed the extended attribute of `name`.
-        ///
-        /// - note: Originally written by Martin R on StackOverflow: <https://stackoverflow.com/a/38343753/1460929>
-        /// - parameter name: Attribute name to remove.
-        /// - throws: `NSError` in the `NSPOSIXErrorDomain`.
+        /**
+         Removes an attribute.
+         
+         - Parameters key: The name of the attribute.
+         
+         - Throws: Throws if the value couldn't be removed.
+         */
         public func removeExtendedAttribute(_ key: Key) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = removexattr(fileSystemPath, key, 0)
-                guard result >= 0 else { throw URL.posixError(errno) }
+                guard result >= 0 else { throw NSError.posix(errno) }
             }
         }
 
+        /**
+         A bool indicating whether the attribute with an name exists.
+         
+         - Parameters key: The name of the attribute.
+         
+         - Returns: True if the attribute exists, or false if it isn't.
+         */
         public func hasExtendedAttribute(_ key: Key) -> Bool {
             let result = url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Bool in
@@ -134,6 +99,7 @@ public extension URL {
             return result
         }
 
+        /// A dictionary of all attributes.
         public func allExtendedAttributes() throws -> [Key: Any] {
             let keys = try listExtendedAttributes()
             var values: [String: Any] = [:]
@@ -147,12 +113,13 @@ public extension URL {
             return values
         }
 
+        /// An array of all attribute names.
         public func listExtendedAttributes() throws -> [Key] {
             let list = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> [String] in
 
                 let length = listxattr(fileSystemPath, nil, 0, 0)
-                guard length >= 0 else { throw URL.posixError(errno) }
+                guard length >= 0 else { throw NSError.posix(errno) }
 
                 // Create buffer with required size
 
@@ -164,10 +131,8 @@ public extension URL {
                 try data.withUnsafeMutableBytes {
                     let bytes = $0.baseAddress?.bindMemory(to: CChar.self, capacity: count)
                     let result = listxattr(fileSystemPath, bytes, count, 0)
-                    if result < 0 { throw URL.posixError(errno) }
+                    if result < 0 { throw NSError.posix(errno) }
                 }
-
-                // Extract attribute names
 
                 let list = data.split(separator: 0).compactMap {
                     String(data: Data($0), encoding: .utf8)
@@ -177,6 +142,42 @@ public extension URL {
             }
 
             return list
+        }
+        
+        private func extendedAttributeData(for key: Key) -> Data? {
+            let data = try? url.withUnsafeFileSystemRepresentation {
+                fileSystemPath -> Data in
+
+                // Determine attribute size
+
+                let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
+                guard length >= 0 else { throw NSError.posix(errno) }
+
+                // Create buffer with required size
+
+                var data = Data(count: length)
+
+                // Retrieve attribute
+
+                let count = data.count
+                let result = data.withUnsafeMutableBytes {
+                    getxattr(fileSystemPath, key, $0.baseAddress, count, 0, 0)
+                }
+
+                guard result >= 0 else { throw NSError.posix(errno) }
+                return data
+            }
+
+            return data
+        }
+
+        private func setExtendedAttributeData(_ data: Data, for key: Key) throws {
+            try url.withUnsafeFileSystemRepresentation { fileSystemPath in
+                let result = data.withUnsafeBytes {
+                    setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
+                }
+                guard result >= 0 else { throw NSError.posix(errno) }
+            }
         }
     }
 }

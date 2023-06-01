@@ -8,13 +8,44 @@
 import Foundation
 
 public protocol OutlineItem {
-    associatedtype ItemType
     var isExpandable: Bool { get }
-    var children: [ItemType] { get }
+    var children: [any OutlineItem] { get set }
 }
 
 public extension OutlineItem {
     var isExpandable: Bool {
         return (children.isEmpty == false)
+    }
+}
+
+public protocol ExpandingOutlineItem {
+    var isExpandable: Bool { get }
+    var isExpanded: Bool { get set }
+    var children: [any ExpandingOutlineItem] { get set }
+}
+
+public extension ExpandingOutlineItem {
+    var isExpandable: Bool {
+        return (children.isEmpty == false)
+    }
+}
+
+public extension ExpandingOutlineItem {
+    mutating func expandAll(includingSubchildren: Bool = false) {
+        children.editEach({
+            $0.isExpanded = true
+            if includingSubchildren {
+                $0.expandAll(includingSubchildren: true)
+            }
+        })
+    }
+    
+    mutating func collapseAll(includingSubchildren: Bool = false) {
+        children.editEach({
+            $0.isExpanded = false
+            if includingSubchildren {
+                $0.collapseAll(includingSubchildren: true)
+            }
+        })
     }
 }

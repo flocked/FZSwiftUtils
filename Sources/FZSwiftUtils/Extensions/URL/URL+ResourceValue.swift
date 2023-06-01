@@ -147,35 +147,3 @@ internal extension PartialKeyPath where Root == URLResourceValues {
         return nil
     }
 }
-
-/*
- extension URL {
-     internal struct ResourceValue {
-         var url: URL
-         init(_ url: URL) {
-             self.url = url
-         }
-         subscript<T>(keyPath: WritableKeyPath<URLResourceValues, T?>) -> T?  {
-             get { try? url.resourceValue(for: keyPath) }
-             set {
-                 try? url.setResourceValue(newValue, for: keyPath)
-             }
-         }
-     }
-
-     var resourceValue: ResourceValue {
-         return ResourceValue(self)
-     }
-
-     internal func resourceValue<V>(for keyPath: KeyPath<URLResourceValues, V?>) throws -> V? {
-         guard let resourceKey = keyPath.resourceKey else { return nil }
-         return try self.resourceValues(for: resourceKey)[keyPath: keyPath]
-     }
-
-     internal mutating func setResourceValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) throws {
-         var urlResouceValues = URLResourceValues()
-         urlResouceValues[keyPath: keyPath] = newValue
-         try self.setResourceValues(urlResouceValues)
-     }
- }
- */

@@ -7,9 +7,6 @@
 
 import Foundation
 
-/// Lightweight wrapper class that provides closure based API around KVO. Instances of this class can be attached
-/// to other classes. When the instances are deallocated, the KVO is automatically unregistered.
-
 /**
  Observes multiple keypaths of an object.
  
