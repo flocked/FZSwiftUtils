@@ -5,10 +5,60 @@
 //  Created by Florian Zand on 06.06.22.
 //
 
+import Foundation
+
+extension String {
+    func height(withConstrainedWidth width: CGFloat, font: NSUIFont) -> CGFloat {
+        let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
+    
+        return ceil(boundingBox.height)
+    }
+
+    func width(withConstrainedHeight height: CGFloat, font: NSUIFont) -> CGFloat {
+        let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
+        let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
+
+        return ceil(boundingBox.width)
+    }
+}
+
+extension NSAttributedString {
+    func height(withConstrainedWidth width: CGFloat) -> CGFloat {
+        let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
+        let boundingBox = boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, context: nil)
+    
+        return ceil(boundingBox.height)
+    }
+
+    func width(withConstrainedHeight height: CGFloat) -> CGFloat {
+        let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
+        let boundingBox = boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, context: nil)
+    
+        return ceil(boundingBox.width)
+    }
+}
+
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+extension AttributedString {
+    func height(withConstrainedWidth width: CGFloat) -> CGFloat {
+        let nsAttributedString = NSAttributedString(self)
+        return nsAttributedString.height(withConstrainedWidth: width)
+    }
+
+    func width(withConstrainedHeight height: CGFloat) -> CGFloat {
+        let nsAttributedString = NSAttributedString(self)
+        return nsAttributedString.width(withConstrainedHeight: height)
+    }
+}
+
 #if os(macOS)
 import AppKit
 
+
 public extension String {
+    
+    
     func height(using width: CGFloat, font: NSFont, maxLines: Int? = nil) -> CGFloat {
         let textField = NSTextField()
         textField.preferredMaxLayoutWidth = width
