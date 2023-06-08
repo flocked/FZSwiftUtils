@@ -30,25 +30,15 @@ public extension String {
         }
         return array
     }
-
-    var words: [String] {
-        return substrings(.byWords)
+    
+    func substringRanges(_ option: EnumerationOptions) -> [(string: String, range: Range<Index>)] {
+        var array = [(string: String, range: Range<Index>)]()
+        enumerateSubstrings(in: startIndex..., options: option) { _, range, _, _ in
+            array.append((String(self[range]), range))
+        }
+        return array
     }
-
-    var lines: [String] {
-        return substrings(.byLines)
-    }
-
-    var sentences: [String] {
-        return substrings(.bySentences)
-    }
-
-    func matches(pattern: String) -> [StringMatch] {
-        let string = self
-        let regex = try? NSRegularExpression(pattern: pattern, options: [])
-        return regex?.matches(in: string, range: NSMakeRange(0, string.utf16.count)).compactMap { StringMatch($0, source: string) } ?? []
-    }
-
+    
     func substrings(between fromString: String, and toString: String, includingFromTo: Bool = false) -> [String] {
         let pattern = fromString + "(.*?)" + toString
         let matches = self.matches(regex: pattern)
@@ -56,6 +46,27 @@ public extension String {
             return matches.compactMap { String($0.dropFirst(fromString.count).dropLast(toString.count)) }
         }
         return matches
+    }
+
+    /// An array of words of the string.
+    var words: [String] {
+        return substrings(.byWords)
+    }
+
+    /// An array of lines of the string.
+    var lines: [String] {
+        return substrings(.byLines)
+    }
+
+    /// An array of sentences of the string.
+    var sentences: [String] {
+        return substrings(.bySentences)
+    }
+        
+    func matches(pattern: String) -> [StringMatch] {
+        let string = self
+        let regex = try? NSRegularExpression(pattern: pattern, options: [])
+        return regex?.matches(in: string, range: NSMakeRange(0, string.utf16.count)).compactMap { StringMatch($0, source: string) } ?? []
     }
 
     func matches(regex pattern: String) -> [String] {

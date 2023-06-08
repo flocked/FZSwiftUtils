@@ -57,6 +57,13 @@ public extension String {
         return string
     }
     
+    func replaceEmojiFlags() -> String {
+        var string = self
+        string = string.replacingOccurrences(of: ["🇩🇪", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇫🇷", "🇺🇦", "🇮🇹", "🇬🇧", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "💯"], with: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "100%"])
+        string = string.replacingOccurrences(of: ["%", "٪", "﹪", "％"], with: "%")
+        return string
+    }
+    
     /// A mangled representation of the string.
     var mangled: String {
         String(utf16.map { $0 - 1 }.compactMap(UnicodeScalar.init).map(Character.init))
