@@ -8,11 +8,20 @@
 import Foundation
 
 public extension URLSession {
-    internal enum Errors: Error {
-        case downloadError
+    /// Download Errors.
+    internal enum DownloadErrors: Error {
+        case noFile
+        case noData
     }
 
-    func downloadTask(with request: URLRequest) throws -> (location: URL, response: URLResponse?) {
+    /**
+     Downloads a file from the request.
+     
+     - Parameter request: A URL request object that provides the URL, cache policy, request type, body data or body stream, and so on.
+     - Throws: Throws when the file couln't be downloaded.
+     - Returns: Returns the location of the downloaded file and the response metadata. The file is temporarly saved at the location and should be copied.
+     */
+    func downloadFile(with request: URLRequest) throws -> (location: URL, response: URLResponse?) {
         var location: URL?
         var response: URLResponse?
         var error: Error?
@@ -29,11 +38,18 @@ public extension URLSession {
         if let error = error {
             throw error
         }
-        guard let location = location else { throw Errors.downloadError }
+        guard let location = location else { throw DownloadErrors.noFile }
         return (location, response)
     }
 
-    func dataTask(with request: URLRequest) throws -> (data: Data, response: URLResponse?) {
+    /**
+     Downloads data from the request.
+     
+     - Parameter request: A URL request object that provides the URL, cache policy, request type, body data or body stream, and so on.
+     - Throws: Throws when the data couln't be downloaded.
+     - Returns: Returns the downloaded data  and the response metadata.
+     */
+    func downloadData(with request: URLRequest) throws -> (data: Data, response: URLResponse?) {
         var data: Data?
         var response: URLResponse?
         var error: Error?
@@ -51,7 +67,7 @@ public extension URLSession {
         if let error = error {
             throw error
         }
-        guard let data = data else { throw Errors.downloadError }
+        guard let data = data else { throw DownloadErrors.noData }
         return (data, response)
     }
 }
