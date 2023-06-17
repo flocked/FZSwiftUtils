@@ -36,19 +36,6 @@ public extension Collection where Element: Identifiable {
     }
 }
 
-public extension RangeReplaceableCollection where Element: Identifiable {
-    mutating func remove(_ element: Element) {
-        if let index = index(of: element) {
-            remove(at: index)
-        }
-    }
-
-    mutating func remove<S: Sequence>(_ elements: S) where S.Element == Element {
-        for element in elements {
-            remove(element)
-        }
-    }
-}
 
 public extension Array where Element: Identifiable {
     mutating func move<S: Sequence>(_ elements: S, before: Element) where S.Element == Element {
