@@ -2,7 +2,11 @@ import Foundation
 
 
 public extension URL {
-    /// The extended attributes.
+    /**
+     The extended attributes of a file.
+     
+     An object for reading and writing the extended attributes of a file.
+     */
     var extendedAttributes: ExtendedAttributes {
         return ExtendedAttributes(self)
     }
@@ -12,6 +16,11 @@ public extension URL {
         /// The url of the file system resource.
         public private(set) var url: URL
         
+        /**
+         Creates an extended attributes object from the specified url.
+         - Parameters url: The url of the file.
+         - Returns: An object for reading and writing extended attributes of the file.
+         */
         public init(_ url: URL) {
             self.url = url
         }
