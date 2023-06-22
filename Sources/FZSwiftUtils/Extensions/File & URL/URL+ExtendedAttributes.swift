@@ -17,23 +17,6 @@ public extension URL {
         public init(_ url: URL) {
             self.url = url
         }
-        
-        public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
-            get {
-                if let value: T = extendedAttribute(for: key) {
-                    return value
-                } else if let initalValue = initalValue {
-                    do {
-                        try setExtendedAttribute(initalValue, for: key)
-                        return initalValue
-                    } catch {
-                        return nil
-                    }
-                }
-                return nil
-            }
-            set { try? setExtendedAttribute(newValue, for: key) }
-        }
 
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
