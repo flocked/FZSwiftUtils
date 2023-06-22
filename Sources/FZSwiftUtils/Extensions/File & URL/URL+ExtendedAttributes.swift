@@ -17,6 +17,23 @@ public extension URL {
         public init(_ url: URL) {
             self.url = url
         }
+        
+        public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
+            get {
+                if let value: T = extendedAttribute(for: key) {
+                    return value
+                } else if let initalValue = initalValue {
+                    do {
+                        try setExtendedAttribute(initalValue, for: key)
+                        return initalValue
+                    } catch {
+                        return nil
+                    }
+                }
+                return nil
+            }
+            set { try? setExtendedAttribute(newValue, for: key) }
+        }
 
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
@@ -34,6 +51,21 @@ public extension URL {
             }
             set { try? setExtendedAttribute(newValue, for: key) }
         }
+        
+        /**
+         Sets an attribute to a value.
+         
+         - Parameters value: The value, or nil if the attribute should be removed.
+         - Parameters key: The name of the attribute.
+         */
+        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws  where T: Codable {
+            if let value = value {
+                let data = try JSONEncoder().encode(value)
+                try setExtendedAttributeData(data, for: key)
+            } else {
+                try removeExtendedAttribute(key)
+            }
+        }
 
         /**
          Sets an attribute to a value.
@@ -48,6 +80,22 @@ public extension URL {
             } else {
                 try removeExtendedAttribute(key)
             }
+        }
+        
+        /**
+         The value of an key.
+         
+         - Parameters key: The name of the attribute.
+         
+         - Returns: The value of the key, or nil if there isn't an attribute with the key.
+         */
+        public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
+            if let data = extendedAttributeData(for: key),
+               let value = try? JSONDecoder().decode(T.self, from: data) {
+                return value
+            }
+
+            return nil
         }
 
         /**
