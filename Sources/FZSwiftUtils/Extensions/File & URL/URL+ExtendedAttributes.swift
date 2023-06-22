@@ -9,8 +9,6 @@ public extension URL {
 
     /// An object for reading and writing extended attributes of a file system resource.
     class ExtendedAttributes {
-        public typealias Key = String
-
         /// The url of the file system resource.
         public private(set) var url: URL
         
@@ -18,7 +16,7 @@ public extension URL {
             self.url = url
         }
 
-        public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
+        public subscript<T>(key: String, initalValue: T? = nil) -> T? {
             get {
                 if let value: T = extendedAttribute(for: key) {
                     return value
@@ -41,7 +39,7 @@ public extension URL {
          - Parameters value: The value, or nil if the attribute should be removed.
          - Parameters key: The name of the attribute.
          */
-        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws  where T: Codable {
+        public func setExtendedAttribute<T>(_ value: T?, for key: String) throws  where T: Codable {
             if let value = value {
                 let data = try JSONEncoder().encode(value)
                 try setExtendedAttributeData(data, for: key)
@@ -56,7 +54,7 @@ public extension URL {
          - Parameters value: The value, or nil if the attribute should be removed.
          - Parameters key: The name of the attribute.
          */
-        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
+        public func setExtendedAttribute<T>(_ value: T?, for key: String) throws {
             if let value = value {
                 let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
                 try setExtendedAttributeData(data, for: key)
@@ -72,7 +70,7 @@ public extension URL {
          
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
-        public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
+        public func extendedAttribute<T>(for key: String) -> T? where T: Codable {
             if let data = extendedAttributeData(for: key),
                let value = try? JSONDecoder().decode(T.self, from: data) {
                 return value
@@ -88,7 +86,7 @@ public extension URL {
          
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
-        public func extendedAttribute<T>(for key: Key) -> T? {
+        public func extendedAttribute<T>(for key: String) -> T? {
             if let data = extendedAttributeData(for: key),
                let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
                let value = any as? T
@@ -106,7 +104,7 @@ public extension URL {
          
          - Throws: Throws if the value couldn't be removed.
          */
-        public func removeExtendedAttribute(_ key: Key) throws {
+        public func removeExtendedAttribute(_ key: String) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = removexattr(fileSystemPath, key, 0)
                 guard result >= 0 else { throw NSError.posix(errno) }
@@ -120,7 +118,7 @@ public extension URL {
          
          - Returns: True if the attribute exists, or false if it isn't.
          */
-        public func hasExtendedAttribute(_ key: Key) -> Bool {
+        public func hasExtendedAttribute(_ key: String) -> Bool {
             let result = url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Bool in
                 let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
@@ -131,7 +129,7 @@ public extension URL {
         }
 
         /// A dictionary of all attributes.
-        public func allExtendedAttributes() throws -> [Key: Any] {
+        public func allExtendedAttributes() throws -> [String: Any] {
             let keys = try listExtendedAttributes()
             var values: [String: Any] = [:]
             for key in keys {
@@ -145,7 +143,7 @@ public extension URL {
         }
 
         /// An array of all attribute names.
-        public func listExtendedAttributes() throws -> [Key] {
+        public func listExtendedAttributes() throws -> [String] {
             let list = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> [String] in
 
@@ -175,7 +173,7 @@ public extension URL {
             return list
         }
         
-        private func extendedAttributeData(for key: Key) -> Data? {
+        private func extendedAttributeData(for key: String) -> Data? {
             let data = try? url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in
 
@@ -202,7 +200,7 @@ public extension URL {
             return data
         }
 
-        private func setExtendedAttributeData(_ data: Data, for key: Key) throws {
+        private func setExtendedAttributeData(_ data: Data, for key: String) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = data.withUnsafeBytes {
                     setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
