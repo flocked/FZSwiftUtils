@@ -26,7 +26,10 @@ public extension Date {
     }
 
     func isBetween(_ date1: Date, _ date2: Date) -> Bool {
-        return DateInterval(start: date1, end: date2).contains(self)
+        if (date1 == date2) {
+            return self == date1
+        }
+        return DateInterval(start:  (date1 < date2) ? date1 : date2, end:  (date1 < date2) ? date2 : date1).contains(self)
     }
 
     var year: Int {
