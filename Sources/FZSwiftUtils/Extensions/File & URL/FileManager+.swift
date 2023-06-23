@@ -8,7 +8,7 @@
 import Foundation
 
 public extension FileManager {
-    func createTemporaryDirectory() -> URL {
+    func createTemporaryDirectory() throws -> URL {
         let temporaryDirectoryURL: URL
         if #available(macOS 10.12, iOS 10.0, *) {
             temporaryDirectoryURL = temporaryDirectory
@@ -16,7 +16,9 @@ public extension FileManager {
             temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         }
         let folderName = ProcessInfo.processInfo.globallyUniqueString
-        return temporaryDirectoryURL.appendingPathComponent(folderName)
+        let folderURL = temporaryDirectoryURL.appendingPathComponent(folderName)
+        try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
+        return folderURL
     }
 
     #if os(macOS)
