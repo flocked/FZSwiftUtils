@@ -257,6 +257,7 @@ public extension ImageSource {
      Returns nil if the image isn't animated.
      */
     var animationDuration: Double? {
+        guard self.count > 1 else { return nil }
         let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? 0.0) }
         return (totalDuration != 0.0) ? totalDuration : nil
     }
