@@ -9,6 +9,52 @@ import Foundation
 import NaturalLanguage
 
 public extension String {
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by another given string.
+
+     - Parameters:
+        - strings: An array of target strings to be replaced.
+        - replacement: The replacement string.
+
+     - Returns: A new string with occurrences of target strings replaced by the replacement string.
+     */
+    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement) -> String where Target: StringProtocol, Replacement: StringProtocol {
+        var newString = self
+        for string in strings {
+            newString = newString.replacingOccurrences(of: string, with: replacement)
+        }
+        return newString
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
+
+     - Parameters:
+        - values: A dictionary mapping target strings to their replacement strings.
+
+     - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
+     */
+    func replacingOccurrences<Target, Replacement>(_ values: [Target : Replacement]) -> String where Target: StringProtocol, Replacement: StringProtocol {
+        var string = self
+        for value in values {
+            string = string.replacingOccurrences(of: value.key, with: value.value)
+        }
+        return string
+    }
+        
+    /**
+     Replaces emoji representations of numbers.
+
+     - Returns: A new string with emoji numbers replaced by their corresponding decimal representations.
+     */
+    func replaceEmojiNumbers() -> String {
+        return self.replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣":"2", "3️⃣":"3", "4️⃣":"4", "5️⃣":"5", "6️⃣":"6", "7️⃣":"7", "8️⃣": "8", "9️⃣":"9", "🔟": "10"])
+    }
+
+}
+
+
+public extension StringProtocol {
     /// A representation of the string where the first character is lowercased.
     func lowercasedFirst() -> String {
         if isEmpty { return "" }
@@ -20,49 +66,6 @@ public extension String {
         if isEmpty { return "" }
         return prefix(1).uppercased() + dropFirst()
     }
-
-    /// Returns a new string in which all occurrences of target strings in a specified range of the string are replaced by another given string.
-    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement) -> String where Target: StringProtocol, Replacement: StringProtocol {
-        var newString = self
-        for string in strings {
-            newString = newString.replacingOccurrences(of: string, with: replacement)
-        }
-        return newString
-    }
-    
-    /**
-     Returns a new string in which all occurrences of target strings in a specified range of the string are replaced by other given strings.
-     
-     - Note: The number of target strings has to be the same as the number of replacement strings.
-     */
-    func replacingOccurrences<Target, Replacement>(of values: [Target], with withValues: [Replacement]) -> String where Target: StringProtocol, Replacement: StringProtocol {
-        guard values.count == withValues.count else { return self }
-        var string = self
-        for value in zip(values, withValues) {
-            string = string.replacingOccurrences(of: value.0, with: value.1)
-        }
-        return string
-    }
-    
-    /// Returns a string with all emoji characters removed.
-    func withoutEmoji() -> String {
-        filter { $0.isASCII }
-    }
-    
-    /// Returns a string where all numbers represented as emoji characters are replaced with numeric characters.
-    func replaceEmojiNumbers() -> String {
-        var string = self
-        string = string.replacingOccurrences(of: ["0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "💯"], with: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "100"])
-        string = string.replacingOccurrences(of: ["%", "٪", "﹪", "％"], with: "%")
-        return string
-    }
-    
-    func replaceEmojiFlags() -> String {
-        var string = self
-        string = string.replacingOccurrences(of: ["🇩🇪", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🇫🇷", "🇺🇦", "🇮🇹", "🇬🇧", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "💯"], with: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "100%"])
-        string = string.replacingOccurrences(of: ["%", "٪", "﹪", "％"], with: "%")
-        return string
-    }
     
     /// A mangled representation of the string.
     var mangled: String {
@@ -73,8 +76,8 @@ public extension String {
     var unmangled: String {
         String(utf16.map { $0 + 1 }.compactMap(UnicodeScalar.init).map(Character.init))
     }
-
 }
+
 
 public extension StringProtocol {
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }

@@ -13,7 +13,6 @@ import Foundation
  When the instances are deallocated, the KVO is automatically unregistered.
  */
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
-
     internal var observers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
     public fileprivate(set) weak var observedObject: Object?
         

@@ -7,20 +7,38 @@
 import Foundation
 
 public extension NSObjectProtocol where Self: NSObject {
-    func observeChange<Value: Equatable>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, _ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
+    /**
+     Observes changes for a property identified by the given key path.
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         return self.observe(keyPath, options: [.old, .new]) { object, change in
             if let newValue = change.newValue, let oldValue = change.oldValue {
                 if  change.newValue != change.oldValue {
-                    handler(object, oldValue, newValue)
+                    handler(oldValue, newValue)
                 }
             }
         }
     }
     
-    func observeChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((Self, _ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
+    /**
+     Observes changes for a property identified by the given key path.
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         return self.observe(keyPath, options: [.old, .new]) { object, change in
             if let newValue = change.newValue, let oldValue = change.oldValue {
-                    handler(object, oldValue, newValue)
+                    handler(oldValue, newValue)
             }
         }
     }
@@ -31,23 +49,63 @@ import Combine
 
 @available(macOS 10.15.2, iOS 13.2, tvOS 13, watchOS 6, *)
 public extension NSObjectProtocol where Self: NSObject {
+    /**
+     Observes changes to a property identified by the given key path using Combine publishers.
+     
+     - Parameters:
+        - keypath: The key path of the property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [.old, .new], handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates(by: { ($0 == $1) })
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes in to optional property identified by the given key path using Combine publishers.
+     
+     - Parameters:
+        - keypath: The key path of the optional property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.old, .new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates(by: { ($0 == $1) })
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes to a property identified by the given key path using Combine publishers.
+     
+     - Parameters:
+        - keypath: The key path of the property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [ .new], handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes to an optional property identified by the given key path using Combine publishers.
+     
+     - Parameters:
+        - keypath: The key path of the optional property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
@@ -60,6 +118,17 @@ public extension NSObjectProtocol where Self: NSObject {
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes to a property identified by the given key path using Combine publishers with throttling.
+     
+     - Parameters:
+        - keypath: The key path of the property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - interval: The time interval used for throttling.
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = .new, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates { $0 == $1 }
@@ -67,6 +136,17 @@ public extension NSObjectProtocol where Self: NSObject {
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes to an optional property identified by the given key path using Combine publishers with throttling.
+     
+     - Parameters:
+        - keypath: The key path of the optional property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - interval: The time interval used for throttling.
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = .new, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates { $0 == $1 }
@@ -74,6 +154,17 @@ public extension NSObjectProtocol where Self: NSObject {
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes to a property identified by the given key path using Combine publishers with debouncing.
+     
+     - Parameters:
+        - keypath: The key path of the property to observe.
+        - options: The options for observing the property. The default value is `[.old, .new].
+        - interval: The time interval used for debouncing.
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = .new, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates { $0 == $1 }

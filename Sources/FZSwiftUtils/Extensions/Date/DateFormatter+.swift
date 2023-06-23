@@ -8,6 +8,13 @@
 import Foundation
 
 public extension DateFormatter {
+    /**
+     Creates a `DateFormatter` with the specified date format.
+
+     - Parameter format: The date format string to use for the `DateFormatter`.
+
+     - Returns: A `DateFormatter` object with the specified date format.
+     */
     convenience init(_ format: String) {
         self.init()
         dateFormat = format

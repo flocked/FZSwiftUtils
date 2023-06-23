@@ -8,6 +8,11 @@
 import Foundation
 
 public extension HTTPCookieStorage {
+    /**
+     Removes all cookies stored in the HTTPCookieStorage.
+
+     This method removes all cookies currently stored in the HTTPCookieStorage instance.
+     */
     func removeAllCookies() {
         cookies?.forEach { self.deleteCookie($0) }
     }

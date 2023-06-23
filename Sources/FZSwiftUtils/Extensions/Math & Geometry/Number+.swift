@@ -14,6 +14,15 @@ import UIKit
 #endif
 
 public extension BinaryFloatingPoint {
+    /**
+     Interpolates a value from one range to another range.
+     
+     - Parameters:
+        - from: The source range.
+        - to: The target range.
+     
+     - Returns: The interpolated value within the target range.
+     */
     func interpolated(from: ClosedRange<Self>, to: ClosedRange<Self>) -> Self {
         let positionInRange = (self - from.lowerBound) / (from.upperBound - from.lowerBound)
         return (positionInRange * (to.upperBound - to.lowerBound)) + to.lowerBound
@@ -21,6 +30,12 @@ public extension BinaryFloatingPoint {
 }
 
 public extension CGFloat {
+    /**
+     Returns the scaled integral value of the CGFloat.
+     The value is scaled based on the current device's screen scale.
+     
+     - Returns: The scaled integral value of the CGFloat.
+     */
     var scaledIntegral: Self {
         #if os(macOS)
         let scale = NSScreen.main?.backingScaleFactor ?? 1.0
@@ -32,36 +47,24 @@ public extension CGFloat {
 }
 
 public extension CGFloat {
+    /**
+     Converts the value from degrees to radians.
+     
+     - Returns: The value converted to radians.
+     */
     func degreesToRadians() -> CGFloat {
         return CGFloat(CGFloat.pi) * self / 180.0
     }
 }
 
 public extension BinaryFloatingPoint {
+    /**
+     Converts the value from degrees to radians.
+     
+     - Returns: The value converted to radians.
+     */
     func degreesToRadians() -> Self {
         return Self.pi * self / 180.0
-    }
-}
-
-public extension Int {
-    static func random(in range: ClosedRange<Self>, excluding: Self) -> Self {
-        var randomNumber = Self.random(in: range)
-        if range.count > 1 {
-            while excluding == randomNumber {
-                randomNumber = Self.random(in: range)
-            }
-        }
-        return randomNumber
-    }
-
-    static func random(in range: ClosedRange<Self>, excluding: [Self]) -> Self {
-        var randomNumber = Self.random(in: range)
-        if range.count > excluding.count {
-            while excluding.contains(randomNumber) == true {
-                randomNumber = Self.random(in: range)
-            }
-        }
-        return randomNumber
     }
 }
 
@@ -116,7 +119,7 @@ public extension Int {
                 index = range.upperBound
             }
         case .random:
-            index = Int.random(in: range, excluding: self)
+            index = Int.random(in: range)
         case .first:
             index = range.lowerBound
         case .last:
@@ -126,8 +129,11 @@ public extension Int {
     }
 }
 
+/// Floating point rounding rules for decimal places.
 public enum FloatingPointPlacesRoundingRule {
+    /// Rounds the value to the specified number of decimal places.
     case toPlaces(Int)
+    /// Rounds the value to the specified number of decimal places towards zero.
     case toPlacesTowardZero(Int)
     internal var places: Int {
         switch self {
@@ -151,16 +157,37 @@ public enum FloatingPointPlacesRoundingRule {
 }
 
 public extension BinaryFloatingPoint {
+    /**
+     Rounds the value using the specified rounding rule.
+     
+     - Parameters:
+        - rule: The rounding rule to apply.
+     
+     - Returns: The rounded value.
+     */
     func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
         let divisor = Self(rule.divisor)
         return (self * divisor).rounded(rule.rounding) / divisor
     }
 
+    /**
+     Rounds the value using the specified rounding rule.
+     
+     - Parameters:
+        - rule: The rounding rule to apply.
+     
+     - Returns: The rounded value.
+     */
     mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
         let divisor = Self(rule.divisor)
         self = (self * divisor).rounded(rule.rounding) / divisor
     }
 
+    /**
+     Returns the number of decimal places in the value.
+     
+     - Returns: The count of decimal places.
+     */
     var placesCount: Int {
         let decimal = Decimal(Double(self))
         return max(-decimal.exponent, 0)

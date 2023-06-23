@@ -8,6 +8,14 @@
 import Foundation
 
 public extension NumberFormatter {
+    /**
+     Returns a value of a specified number type  extracted from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the value.
+     
+     - Returns: The extracted value of the specified type, or `nil` if the extraction fails.
+     */
     func value<C: LosslessStringConvertible>(from string: String) -> C? {
         let type = C.self
         if type == Float.self { return floatValue(from: string) as? C }
@@ -26,76 +34,180 @@ public extension NumberFormatter {
         return nil
     }
 
+    /**
+     Extracts an `Int` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Int` value.
+     
+     - Returns: The extracted `Int` value, or `nil` if the extraction fails.
+     */
     func intValue(from string: String) -> Int? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.intValue ?? Int(str)
     }
 
+    /**
+     Extracts an `Int8` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Int8` value.
+     
+     - Returns: The extracted `Int8` value, or `nil` if the extraction fails.
+     */
     func int8Value(from string: String) -> Int8? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.int8Value ?? Int8(str)
     }
 
+    /**
+     Extracts an `Int16` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Int16` value.
+     
+     - Returns: The extracted `Int16` value, or `nil` if the extraction fails.
+     */
     func int16Value(from string: String) -> Int16? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.int16Value ?? Int16(str)
     }
 
+    /**
+     Extracts an `Int32` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Int32` value.
+     
+     - Returns: The extracted `Int32` value, or `nil` if the extraction fails.
+     */
     func int32Value(from string: String) -> Int32? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.int32Value ?? Int32(str)
     }
 
+    /**
+     Extracts an `Int64` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Int64` value.
+     
+     - Returns: The extracted `Int64` value, or `nil` if the extraction fails.
+     */
     func int64Value(from string: String) -> Int64? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.int64Value ?? Int64(str)
     }
 
+    /**
+     Extracts an `UInt` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `UInt` value.
+     
+     - Returns: The extracted `UInt` value, or `nil` if the extraction fails.
+     */
     func uintValue(from string: String) -> UInt? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.uintValue ?? UInt(str)
     }
 
+    /**
+     Extracts an `UInt8` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `UInt8` value.
+     
+     - Returns: The extracted `UInt8` value, or `nil` if the extraction fails.
+     */
     func uint8Value(from string: String) -> UInt8? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.uint8Value ?? UInt8(str)
     }
 
+    /**
+     Extracts an `UInt16` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `UInt16` value.
+     
+     - Returns: The extracted `UInt16` value, or `nil` if the extraction fails.
+     */
     func uint16Value(from string: String) -> UInt16? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.uint16Value ?? UInt16(str)
     }
 
+    /**
+     Extracts an `UInt32` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `UInt32` value.
+     
+     - Returns: The extracted `UInt32` value, or `nil` if the extraction fails.
+     */
     func uint32Value(from string: String) -> UInt32? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.uint32Value ?? UInt32(str)
     }
 
+    /**
+     Extracts an `UInt64` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `UInt64` value.
+     
+     - Returns: The extracted `UInt64` value, or `nil` if the extraction fails.
+     */
     func uint64Value(from string: String) -> UInt64? {
         let str = strippingNonNumericCharacters(from: string)
         let formatter = NumberFormatter.forInteger()
         return formatter.number(from: str)?.uint64Value ?? UInt64(str)
     }
 
+    /**
+     Extracts an `Float` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Float` value.
+     
+     - Returns: The extracted `Float` value, or `nil` if the extraction fails.
+     */
     func floatValue(from string: String) -> Float? {
         let str = strippingNonNumericCharacters(from: string)
         return floatingValue(Float.self, from: str) ?? number(from: str)?.floatValue ?? Float(str)
     }
 
+    /**
+     Extracts an `Double` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Double` value.
+     
+     - Returns: The extracted `Double` value, or `nil` if the extraction fails.
+     */
     func doubleValue(from string: String) -> Double? {
         let str = strippingNonNumericCharacters(from: string)
         return floatingValue(Double.self, from: str) ?? number(from: str)?.doubleValue ?? Double(str)
     }
 
+    /**
+     Extracts an `Bool` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `Bool` value.
+     
+     - Returns: The extracted `Bool` value, or `nil` if the extraction fails.
+     */
     func boolValue(from string: String) -> Bool? {
         switch string.lowercased() {
         case "no", "0", "false", "n", "+":
@@ -107,6 +219,14 @@ public extension NumberFormatter {
         }
     }
 
+    /**
+     Extracts an `TimeInterval` value from the given string.
+     
+     - Parameters:
+        - string: The string from which to extract the `TimeInterval` value.
+     
+     - Returns: The extracted `TimeInterval` value, or `nil` if the extraction fails.
+     */
     func timeInterval(from string: String) -> TimeInterval? {
         let allUnitStrings = Calendar.Component.allCases.flatMap { $0.stringRepresentations ?? [] }
         let components = string.components(separatedBy: " ")

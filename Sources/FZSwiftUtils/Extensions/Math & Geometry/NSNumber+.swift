@@ -20,6 +20,7 @@ public extension NSNumber {
     convenience init(_ value: UInt16) { self.init(value: value) }
     convenience init(_ value: UInt32) { self.init(value: value) }
     convenience init(_ value: UInt64) { self.init(value: value) }
+    
     convenience init?(_ string: String) {
         let formatter = NumberFormatter()
         if let value: Float = formatter.value(from: string) {

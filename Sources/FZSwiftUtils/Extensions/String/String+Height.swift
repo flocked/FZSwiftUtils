@@ -8,6 +8,15 @@
 import Foundation
 
 extension String {
+    /**
+     Calculates the height of the string with the given constrained width and font.
+
+     - Parameters:
+        - width: The width constraint for the string.
+        - font: The font used for rendering the string.
+
+     - Returns: The calculated height of the string.
+     */
     func height(withConstrainedWidth width: CGFloat, font: NSUIFont) -> CGFloat {
         let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
         let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
@@ -15,6 +24,15 @@ extension String {
         return ceil(boundingBox.height)
     }
 
+    /**
+     Calculates the width of the string with the given constrained height and font.
+
+     - Parameters:
+        - height: The height constraint for the string.
+        - font: The font used for rendering the string.
+
+     - Returns: The calculated width of the string.
+     */
     func width(withConstrainedHeight height: CGFloat, font: NSUIFont) -> CGFloat {
         let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
         let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
@@ -24,6 +42,14 @@ extension String {
 }
 
 extension NSAttributedString {
+    /**
+     Calculates the height of the attributed string with the given constrained width.
+
+     - Parameters:
+        - width: The width constraint for the attributed string.
+
+     - Returns: The calculated height of the attributed string.
+     */
     func height(withConstrainedWidth width: CGFloat) -> CGFloat {
         let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
         let boundingBox = boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, context: nil)
@@ -31,6 +57,14 @@ extension NSAttributedString {
         return ceil(boundingBox.height)
     }
 
+    /**
+     Calculates the width of the attributed string with the given constrained height.
+
+     - Parameters:
+        - height: The height constraint for the attributed string.
+
+     - Returns: The calculated width of the attributed string.
+     */
     func width(withConstrainedHeight height: CGFloat) -> CGFloat {
         let constraintRect = CGSize(width: .greatestFiniteMagnitude, height: height)
         let boundingBox = boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, context: nil)
@@ -41,11 +75,27 @@ extension NSAttributedString {
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 extension AttributedString {
+    /**
+     Calculates the height of the attributed string with the given constrained width.
+
+     - Parameters:
+        - width: The width constraint for the attributed string.
+
+     - Returns: The calculated height of the attributed string.
+     */
     func height(withConstrainedWidth width: CGFloat) -> CGFloat {
         let nsAttributedString = NSAttributedString(self)
         return nsAttributedString.height(withConstrainedWidth: width)
     }
+    
+    /**
+     Calculates the height of the attributed string with the given constrained width.
 
+     - Parameters:
+        - width: The width constraint for the attributed string.
+
+     - Returns: The calculated height of the attributed string.
+     */
     func width(withConstrainedHeight height: CGFloat) -> CGFloat {
         let nsAttributedString = NSAttributedString(self)
         return nsAttributedString.width(withConstrainedHeight: height)
@@ -55,114 +105,60 @@ extension AttributedString {
 #if os(macOS)
 import AppKit
 
-
 public extension String {
-    
-    
-    func height(using width: CGFloat, font: NSFont, maxLines: Int? = nil) -> CGFloat {
-        let textField = NSTextField()
-        textField.preferredMaxLayoutWidth = width
-        textField.font = font
-        textField.stringValue = self
-        textField.textLayout = .truncates
-        textField.usesSingleLineMode = true
-        textField.maximumNumberOfLines = 1
-        if let maxLines = maxLines {
-            if maxLines > 1 {
-                textField.usesSingleLineMode = false
-                textField.maximumNumberOfLines = maxLines
-                textField.textLayout = .wraps
-            }
+    /**
+     Calculates the height of the string with the given constrained width, font, maximum number of lines and line break mode.
+
+     - Parameters:
+        - width: The width constraint for the string.
+        - font: The font used for rendering the string.
+        - maxNumberOfLines: The maximum number of lines.
+        - lineBreakMode:The line break mode.
+
+     - Returns: The calculated height of the string.
+     */
+    func height(withConstrainedWidth width: CGFloat, font: NSUIFont, maxNumberOfLines: Int, lineBreakMode: NSLineBreakMode = .byWordWrapping) -> CGFloat {
+        let textField = NSTextField.forCalculatingSize(width: width, font: font, maxNumberOfLines: maxNumberOfLines, lineBreakMode: lineBreakMode)
+            textField.stringValue = self
+            textField.invalidateIntrinsicContentSize()
+            return textField.intrinsicContentSize.height
         }
-        textField.invalidateIntrinsicContentSize()
-        return textField.intrinsicContentSize.height
-    }
 }
 
 public extension NSAttributedString {
-    func height(using width: CGFloat, maxLines: Int? = nil) -> CGFloat {
-        let textField = NSTextField()
-        textField.preferredMaxLayoutWidth = width
-        textField.attributedStringValue = self
-        textField.textLayout = .truncates
-        textField.usesSingleLineMode = true
-        textField.maximumNumberOfLines = 1
-        if let maxLines = maxLines {
-            if maxLines > 1 {
-                textField.usesSingleLineMode = false
-                textField.maximumNumberOfLines = maxLines
-                textField.textLayout = .wraps
-            }
-        }
+    /**
+     Calculates the height of the attributed string with the given constrained width, font, maximum number of lines and line break mode.
 
+     - Parameters:
+        - width: The width constraint for the attributed string.
+        - font: The font used for rendering the attributed string.
+        - maxNumberOfLines: The maximum number of lines.
+        - lineBreakMode:The line break mode.
+
+     - Returns: The calculated height of the attributed string.
+     */
+    func height(withConstrainedWidth width: CGFloat, font: NSUIFont, maxNumberOfLines: Int, lineBreakMode: NSLineBreakMode = .byWordWrapping) -> CGFloat {
+        let textField = NSTextField.forCalculatingSize(width: width, font: font, maxNumberOfLines: maxNumberOfLines, lineBreakMode: lineBreakMode)
+        textField.attributedStringValue = self
         textField.invalidateIntrinsicContentSize()
         return textField.intrinsicContentSize.height
     }
 }
 
 fileprivate extension NSTextField {
-    var textLayout: TextLayout? {
-        get {
-            switch (lineBreakMode, cell?.wraps, cell?.isScrollable) {
-            case (.byWordWrapping, true, false):
-                return .wraps
-            case (.byTruncatingTail, false, false):
-                return .truncates
-            case (.byClipping, false, true):
-                return .scrolls
-            default:
-                return nil
-            }
-        }
-        set {
-            if let newValue = newValue {
-                lineBreakMode = newValue.lineBreakMode
-                usesSingleLineMode = false
-                cell?.wraps = newValue.wraps
-                truncatesLastVisibleLine = true
-                cell?.isScrollable = newValue.isScrollable
-                setContentCompressionResistancePriority(newValue.layoutPriority, for: .horizontal)
-            }
-        }
-    }
-
-    var truncatesLastVisibleLine: Bool {
-        get { cell?.truncatesLastVisibleLine ?? false }
-        set { cell?.truncatesLastVisibleLine = newValue }
-    }
-
-    enum TextLayout: Int, CaseIterable {
-        case truncates = 0
-        case wraps = 1
-        case scrolls = 2
-
-        public init?(lineBreakMode: NSLineBreakMode) {
-            guard let found = Self.allCases.first(where: { $0.lineBreakMode == lineBreakMode }) else { return nil }
-            self = found
-        }
-
-        internal var isScrollable: Bool {
-            return (self == .scrolls)
-        }
-
-        internal var wraps: Bool {
-            return (self == .wraps)
-        }
-
-        internal var layoutPriority: NSLayoutConstraint.Priority {
-            return (self == .wraps) ? .fittingSizeCompression : .defaultLow
-        }
-
-        internal var lineBreakMode: NSLineBreakMode {
-            switch self {
-            case .wraps:
-                return .byWordWrapping
-            case .truncates:
-                return .byTruncatingTail
-            case .scrolls:
-                return .byClipping
-            }
-        }
+    static func forCalculatingSize(width: CGFloat, font: NSFont?, maxNumberOfLines: Int = 0, lineBreakMode: NSLineBreakMode = .byWordWrapping) -> NSTextField {
+        let textField = NSTextField()
+        textField.preferredMaxLayoutWidth = width
+        textField.font = font
+        textField.usesSingleLineMode = false
+        textField.maximumNumberOfLines = maxNumberOfLines
+        textField.invalidateIntrinsicContentSize()
+        textField.lineBreakMode = lineBreakMode
+        textField.cell?.wraps = true
+        textField.cell?.truncatesLastVisibleLine = true
+        textField.cell?.isScrollable = false
+        textField.setContentCompressionResistancePriority(.fittingSizeCompression, for: .horizontal)
+        return textField
     }
 }
 
@@ -170,34 +166,46 @@ fileprivate extension NSTextField {
 import UIKit
 
 public extension String {
-    func height(using width: CGFloat, font: UIFont, maxLines: Int? = nil) -> CGFloat {
+    /**
+     Calculates the height of the string with the given constrained width, font, maximum number of lines and line break mode.
+
+     - Parameters:
+        - width: The width constraint for the string.
+        - font: The font used for rendering the string.
+        - maxNumberOfLines: The maximum number of lines.
+        - lineBreakMode:The line break mode.
+
+     - Returns: The calculated height of the string.
+     */
+    func height(withConstrainedWidth width: CGFloat, font: NSUIFont, maxNumberOfLines: Int, lineBreakMode: NSLineBreakMode = .byWordWrapping) -> CGFloat {
         let textField = UILabel()
         textField.font = font
         textField.text = self
-
-        var numberOfLines = 1
-        if let maxLines = maxLines, maxLines > 1 {
-            numberOfLines = maxLines
-        }
+        textField.lineBreakMode = lineBreakMode
 
         let rect = CGRect(x: 0, y: 0, width: width, height: .greatestFiniteMagnitude)
-        let textRect = textField.textRect(forBounds: rect, limitedToNumberOfLines: numberOfLines)
+        let textRect = textField.textRect(forBounds: rect, limitedToNumberOfLines: maxNumberOfLines)
         return textRect.height
     }
 }
 
 public extension NSAttributedString {
-    func height(using width: CGFloat, maxLines: Int? = nil) -> CGFloat {
+    /**
+     Calculates the height of the string with the given constrained width, maximum number of lines and line break mode.
+
+     - Parameters:
+        - width: The width constraint for the string.
+        - maxNumberOfLines: The maximum number of lines.
+        - lineBreakMode:The line break mode.
+
+     - Returns: The calculated height of the string.
+     */
+    func height(withConstrainedWidth width: CGFloat, maxNumberOfLines: Int, lineBreakMode: NSLineBreakMode = .byWordWrapping) -> CGFloat {
         let textField = UILabel()
         textField.attributedText = self
-
-        var numberOfLines = 1
-        if let maxLines = maxLines, maxLines > 1 {
-            numberOfLines = maxLines
-        }
-
+        textField.lineBreakMode = lineBreakMode
         let rect = CGRect(x: 0, y: 0, width: width, height: .greatestFiniteMagnitude)
-        let textRect = textField.textRect(forBounds: rect, limitedToNumberOfLines: numberOfLines)
+        let textRect = textField.textRect(forBounds: rect, limitedToNumberOfLines: maxNumberOfLines)
         return textRect.height
     }
 }

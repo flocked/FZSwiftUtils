@@ -12,19 +12,46 @@ public extension String {
         case numbers = "0123456789"
         case letters = "abcdefghijklmnopqrstuvwxyz"
         case lettersUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        case symbols = "+-.,/:;!$%&()=?´`^#'*><-_"
     }
 
-    static func random(_ types: [RandomizationType] = [.letters, .lettersUppercase], length: Int = 8) -> String {
+    /**
+     Generates a random string.
+
+     - Parameters:
+        - types: An array of `RandomizationType` values specifying the types of characters to be used.
+        - length: The length of the generated random string.
+
+     - Returns: A randomly generated string based on the specified randomization types and length.
+     */
+    static func random(using types: [RandomizationType] = [.letters, .lettersUppercase], length: Int = 8) -> String {
         let letters = types.map(\.rawValue).reduce("", +)
         return String((0 ..< length).map { _ in letters.randomElement()! })
     }
 
-    static func random(_ types: [RandomizationType] = [.letters, .lettersUppercase], length: Range<Int>) -> String {
-        return random(Array(types), length: Int.random(in: length))
+    /**
+       Generates a random string.
+
+       - Parameters:
+          - types: An array of `RandomizationType` values specifying the types of characters to be used.
+          - length: A range representing the length of the generated random string.
+
+       - Returns: A randomly generated string based on the specified randomization types and a random length within the given range.
+       */
+    static func random(using types: [RandomizationType] = [.letters, .lettersUppercase], length: Range<Int>) -> String {
+        return random(using: Array(types), length: Int.random(in: length))
     }
 }
 
 public extension String {
+    /**
+     Generates a lorem ipsum string.
+
+      - Parameters:
+         - length: The length of the generated lorem ipsum string.
+
+      - Returns: A lorem ipsum string based on the specified length.
+      */
     static func loremIpsum(ofLength length: Int = 445) -> String {
         guard length > 0 else { return "" }
         let loremIpsum = """
