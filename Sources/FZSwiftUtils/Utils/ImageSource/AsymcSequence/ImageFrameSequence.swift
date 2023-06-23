@@ -96,7 +96,7 @@ public extension ImageFrameSequence {
                 if loop { currentFrame = 0 }
                 else { return nil }
             }
-            let duration = source.properties(at: currentFrame)?.delayTime ?? ImageSource.defaultFrameDuration
+            let duration = source.properties(at: currentFrame)?.delayTime
             let image = await nextImage()
             currentFrame = currentFrame + 1
             var imageFrame: CGImageFrame? = nil

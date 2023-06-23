@@ -226,10 +226,8 @@ extension ImageSource: Equatable {
 
 public extension ImageSource {
     /// Returns if the image source is animatable (contains several images)
-    var isAnimatable: Bool {
-        //  let utIdentifier = self.typeIdentifier
-        //     let animatableUTTs: [CFString] = [kUTTypeGIF, kUTTypePNG, "public.heif-standard" as CFString]
-        if count > 1 {
+    var isAnimatable: Bool {    
+        if count > 1, properties(at: 0)?.delayTime  != nil {
             return true
         }
         return false
