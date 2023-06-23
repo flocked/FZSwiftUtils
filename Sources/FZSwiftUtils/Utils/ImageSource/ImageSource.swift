@@ -225,9 +225,17 @@ extension ImageSource: Equatable {
 }
 
 public extension ImageSource {
-    /// Returns if the image source is animatable (contains several images)
-    var isAnimatable: Bool {    
+    /// Returns if the image source is animated (e.g. GIF)
+    var isAnimated: Bool {
         if count > 1, properties(at: 0)?.delayTime  != nil {
+            return true
+        }
+        return false
+    }
+    
+    /// Returns if the image source is animatable (contains several images)
+    var isAnimatable: Bool {
+        if count > 1 {
             return true
         }
         return false
