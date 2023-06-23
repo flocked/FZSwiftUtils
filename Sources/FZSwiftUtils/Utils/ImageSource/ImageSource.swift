@@ -251,10 +251,14 @@ public extension ImageSource {
     /// The default image frame duration for animating in seconds.
     static let defaultFrameDuration: Double = 1 / defaultFrameRate
 
-    /// The total animation duration of an image source that can be animated.
-    var animationDuration: Double {
-        let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? ImageSource.defaultFrameDuration) }
-        return totalDuration
+    /**
+     The total animation duration of an image source that is animated.
+     
+     Returns nil if the image isn't animated.
+     */
+    var animationDuration: Double? {
+        let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? 0.0) }
+        return (totalDuration != 0.0) ? totalDuration : nil
     }
 }
 
