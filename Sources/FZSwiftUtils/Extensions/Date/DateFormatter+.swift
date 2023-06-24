@@ -22,6 +22,9 @@ public extension DateFormatter {
 }
 
 public extension DateComponentsFormatter {
+    /**
+     An array of allowed calendar components for formatting.
+     */
     var allowedComponents: [Calendar.Component] {
         get { allowedUnits.components }
         set {

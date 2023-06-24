@@ -7,8 +7,11 @@
 
 import Foundation
 
+/// A protocol that represents an expandable item.
 public protocol OutlineItem {
+    /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get }
+    /// An array of child outline items.
     var children: [any OutlineItem] { get set }
 }
 
@@ -18,9 +21,13 @@ public extension OutlineItem {
     }
 }
 
+/// A protocol that represents an expandable item.
 public protocol ExpandingOutlineItem {
+    /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get }
+    /// A Boolean value indicating whether the item is expanded.
     var isExpanded: Bool { get set }
+    /// An array of child outline items.
     var children: [any ExpandingOutlineItem] { get set }
 }
 
@@ -31,6 +38,11 @@ public extension ExpandingOutlineItem {
 }
 
 public extension ExpandingOutlineItem {
+    /**
+     Expands the current item and optionally expands all subchildren as well.
+     
+     - Parameter includingSubchildren: A Boolean value indicating whether to expand all subchildren. The default value is `false`.
+     */
     mutating func expandAll(includingSubchildren: Bool = false) {
         children.editEach({
             $0.isExpanded = true
@@ -40,6 +52,11 @@ public extension ExpandingOutlineItem {
         })
     }
     
+    /**
+      Collapses the current item and optionally collapses all subchildren as well.
+      
+      - Parameter includingSubchildren: A Boolean value indicating whether to collapse all subchildren. The default value is `false`.
+      */
     mutating func collapseAll(includingSubchildren: Bool = false) {
         children.editEach({
             $0.isExpanded = false

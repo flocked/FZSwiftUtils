@@ -7,14 +7,34 @@
 
 import Foundation
 
+/// A struct representing a data size.
 public struct DataSize: Hashable, Sendable {
+    /// The count style for formatting the data size.
     public typealias CountStyle = ByteCountFormatter.CountStyle
 
+    /**
+      Initializes a `DataSize` instance with the given number of bytes and count style.
+      
+      - Parameters:
+        - bytes: The number of bytes.
+        - countStyle: The count style for formatting the data size. Default is `.file`.
+      */
     public init(_ bytes: Int, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
     }
 
+    /**
+     Initializes a `DataSize` instance with the specified sizes in various units and count style.
+     
+     - Parameters:
+       - terabytes: The size in terabytes. Default is 0.
+       - gigabytes: The size in gigabytes. Default is 0.
+       - megabytes: The size in megabytes. Default is 0.
+       - kilobytes: The size in kilobytes. Default is 0.
+       - bytes: The size in bytes. Default is 0.
+       - countStyle: The count style for formatting the data size. Default is `.file`.
+     */
     public init(terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
@@ -24,30 +44,37 @@ public struct DataSize: Hashable, Sendable {
         self.bytes += self.bytes(for: terabytes, .terabyte)
     }
 
+    /// The count style for formatting the data size.
     public var countStyle: CountStyle
 
+    /// The size in bytes.
     public var bytes: Int
 
+    /// The size in kilobytes.
     public var kilobytes: Double {
         get { value(for: .kilobyte) }
         set { bytes = bytes(for: newValue, .kilobyte) }
     }
 
+    /// The size in megabytes.
     public var megabytes: Double {
         get { value(for: .megabyte) }
         set { bytes = bytes(for: newValue, .megabyte) }
     }
 
+    /// The size in gigabytes.
     public var gigabytes: Double {
         get { value(for: .gigabyte) }
         set { bytes = bytes(for: newValue, .gigabyte) }
     }
 
+    /// The size in terabytes.
     public var terabytes: Double {
         get { value(for: .terabyte) }
         set { bytes = bytes(for: newValue, .terabyte) }
     }
 
+    /// The size in petabytes.
     public var petabytes: Double {
         get { value(for: .petabyte) }
         set { bytes = bytes(for: newValue, .petabyte) }
@@ -60,7 +87,8 @@ public struct DataSize: Hashable, Sendable {
     internal func bytes(for value: Double, _ unit: Unit) -> Int {
         Int(unit.convert(value, to: .byte, countStyle: countStyle))
     }
-
+    
+    /// Returns a `DataSize`  with zero bytes.
     public static var zero: DataSize {
         return DataSize()
     }
@@ -95,6 +123,7 @@ extension DataSize: ExpressibleByIntegerLiteral {
 }
 
 public extension DataSize {
+    ///  Enumeration representing different units for data size.
     enum Unit: Int {
         case byte = 0
         case kilobyte = 1
@@ -138,17 +167,83 @@ public extension DataSize {
 }
 
 public extension Collection where Element == DataSize {
+    /**
+      The average size of the data sizes in the collection.
+      
+      - Returns: A `DataSize` instance representing the average size. If the collection is empty, returns a `DataSize` instance with 0 bytes.
+      */
     func averageSize() -> DataSize {
         guard !isEmpty else { return .zero }
         let average = Int(compactMap { $0.bytes }.average().rounded(.down))
         return DataSize(average)
     }
 
+    /**
+     The total size of the data sizes in the collection.
+     
+     - Returns: A `DataSize` instance representing the total size. If the collection is empty, returns a `DataSize` instance with 0 bytes.
+     */
     func totalSize() -> DataSize {
         guard !isEmpty else { return .zero }
         var total = 0
         forEach { total += $0.bytes }
         return DataSize(total)
+    }
+}
+
+extension DataSize: CustomStringConvertible {
+    /// A string representation of the data size.
+    public var description: String {
+        let formatter = self.formatter
+        formatter.includesActualByteCount = true
+        return formatter.string(fromByteCount: Int64(bytes))
+    }
+
+    /// A byte count formatter configured with the data size's count style.
+    public var formatter: ByteCountFormatter {
+        return ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
+    }
+
+    /// A string representation of the data size.
+    public var string: String {
+        return string()
+    }
+
+    /**
+     Returns a string representation of the data size using the specified unit.
+     
+     - Parameters:
+       - unit: The unit to use for formatting the data size.
+       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. Default is `true`.
+     
+     - Returns: A string representation of the data size.
+     */
+    public func string(for unit: Unit, includesUnit: Bool = true) -> String {
+        return string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
+    }
+
+    /**
+     Returns a string representation of the data size using the specified allowed units.
+     
+     - Parameters:
+       - allowedUnits: The allowed units for formatting the data size.
+       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. Default is `true`.
+     
+     - Returns: A string representation of the data size.
+     */
+    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true) -> String {
+        let formatter = self.formatter
+        formatter.allowedUnits = allowedUnits
+        formatter.includesUnit = includesUnit
+        return formatter.string(fromByteCount: Int64(bytes))
+    }
+}
+
+extension DataSize: LosslessStringConvertible {
+    public init?(_ description: String) {
+        guard let intValue = Int(description) else { return nil }
+        bytes = intValue
+        countStyle = .binary
     }
 }
 
@@ -186,75 +281,42 @@ extension DataSize: Comparable {
     public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes >= rhs.bytes
     }
-
-    /*
-     public static func +(lhs: Self, rhs: Int) -> Self {
-         Self(lhs.bytes+rhs, countStyle: lhs.countStyle)
-     }
-
-     public static func +=(lhs: inout Self, rhs: Int) {
-         lhs = lhs + rhs
-     }
-
-     public static func -(lhs: Self, rhs: Int) -> Self {
-         var bytes = lhs.bytes-rhs
-         if (bytes < 0) { bytes = 0 }
-         return Self(bytes, countStyle: lhs.countStyle)
-     }
-
-     public static func -=(lhs: inout Self, rhs: Int) {
-         lhs = lhs - rhs
-     }
-
-     public static func <(lhs: Self, rhs: Int) -> Bool {
-         return lhs.bytes < rhs
-     }
-
-     public static func <=(lhs: Self, rhs: Int) -> Bool {
-         return lhs.bytes <= rhs
-     }
-
-     public static func >(lhs: Self, rhs: Int) -> Bool {
-         return lhs.bytes > rhs
-     }
-
-     public static func >=(lhs: Self, rhs: Int) -> Bool {
-         return lhs.bytes >= rhs
-     }
-      */
 }
 
-extension DataSize: LosslessStringConvertible {
-    public init?(_ description: String) {
-        guard let intValue = Int(description) else { return nil }
-        bytes = intValue
-        countStyle = .binary
-    }
-}
+/*
+ /*
+  public static func +(lhs: Self, rhs: Int) -> Self {
+      Self(lhs.bytes+rhs, countStyle: lhs.countStyle)
+  }
 
-extension DataSize: CustomStringConvertible {
-    public var description: String {
-        let formatter = self.formatter
-        formatter.includesActualByteCount = true
-        return formatter.string(fromByteCount: Int64(bytes))
-    }
+  public static func +=(lhs: inout Self, rhs: Int) {
+      lhs = lhs + rhs
+  }
 
-    public var formatter: ByteCountFormatter {
-        return ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
-    }
+  public static func -(lhs: Self, rhs: Int) -> Self {
+      var bytes = lhs.bytes-rhs
+      if (bytes < 0) { bytes = 0 }
+      return Self(bytes, countStyle: lhs.countStyle)
+  }
 
-    public var string: String {
-        return string()
-    }
+  public static func -=(lhs: inout Self, rhs: Int) {
+      lhs = lhs - rhs
+  }
 
-    public func string(for unit: Unit, includesUnit: Bool = true) -> String {
-        return string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
-    }
+  public static func <(lhs: Self, rhs: Int) -> Bool {
+      return lhs.bytes < rhs
+  }
 
-    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true) -> String {
-        let formatter = self.formatter
-        formatter.allowedUnits = allowedUnits
-        formatter.includesUnit = includesUnit
-        return formatter.string(fromByteCount: Int64(bytes))
-    }
-}
+  public static func <=(lhs: Self, rhs: Int) -> Bool {
+      return lhs.bytes <= rhs
+  }
+
+  public static func >(lhs: Self, rhs: Int) -> Bool {
+      return lhs.bytes > rhs
+  }
+
+  public static func >=(lhs: Self, rhs: Int) -> Bool {
+      return lhs.bytes >= rhs
+  }
+   */
+ */

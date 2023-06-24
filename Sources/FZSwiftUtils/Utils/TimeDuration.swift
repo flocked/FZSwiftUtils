@@ -8,15 +8,39 @@
 import AVKit
 import Foundation
 
+/// A structure representing a time duration.
 public struct TimeDuration: Hashable, Sendable {
+    /**
+     Initializes a new `TimeDuration` instance with the specified duration in seconds.
+     
+     - Parameter seconds: The duration in seconds.
+     */
     public init(_ seconds: Double) {
         self.seconds = seconds
     }
 
+    /**
+     Initializes a new `TimeDuration` instance with the specified `CMTime`.
+     
+     - Parameter time: The `CMTime` to use for the duration.
+     */
     public init(_ time: CMTime) {
         seconds = time.seconds
     }
 
+    /**
+     Initializes a new `TimeDuration` instance with the specified duration in various units of time.
+     
+     - Parameters:
+       - nanoSeconds: The duration in nanoseconds. The default value is `0`.
+       - milliseconds: The duration in milliseconds. The default value is `0`.
+       - seconds: The duration in seconds. The default value is `0`.
+       - minutes: The duration in minutes. The default value is `0`.
+       - days: The duration in days. The default value is `0`.
+       - weeks: The duration in weeks. The default value is `0`.
+       - months: The duration in months. The default value is `0`.
+       - years: The duration in years. The default value is `0`.
+     */
     public init(nanoSeconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
         self.seconds = seconds
         self.seconds += (milliseconds / 1000)
@@ -29,56 +53,82 @@ public struct TimeDuration: Hashable, Sendable {
         self.seconds += self.seconds(for: years, .year)
     }
 
+    /**
+     Initializes a new `TimeDuration` instance with the duration between the start and end dates of the specified `DateInterval`.
+     
+     - Parameter dateInterval: The `DateInterval` to calculate the duration from.
+     */
     public init(dateInterval: DateInterval) {
         seconds = dateInterval.start.timeIntervalSince(dateInterval.end)
     }
 
+    /// The duration in seconds.
     public var seconds: Double
 
+    /// The duration in nanoSeconds.
     public var nanoSeconds: Double {
         get { milliseconds / 1_000_000 }
         set { milliseconds = newValue / 1_000_000 }
     }
 
+    /// The duration in milliseconds.
     public var milliseconds: Double {
         get { seconds / 1000 }
         set { seconds = newValue / 1000 }
     }
 
+    /// The duration in minutes.
     public var minutes: Double {
         get { value(for: .minute) }
         set { seconds = seconds(for: newValue, .minute) }
     }
 
+    /// The duration in hours.
     public var hours: Double {
         get { value(for: .hour) }
         set { seconds = seconds(for: newValue, .hour) }
     }
 
+    /// The duration in days.
     public var days: Double {
         get { value(for: .day) }
         set { seconds = seconds(for: newValue, .day) }
     }
 
+    /// The duration in weeks.
     public var weeks: Double {
         get { value(for: .week) }
         set { seconds = seconds(for: newValue, .week) }
     }
 
+    /// The duration in months.
     public var months: Double {
         get { value(for: .month) }
         set { seconds = seconds(for: newValue, .month) }
     }
 
+    /// The duration in years.
     public var years: Double {
         get { value(for: .year) }
         set { seconds = seconds(for: newValue, .year) }
     }
 
+    /**
+     Returns the start date based on the given end date and the current duration.
+     
+     - Parameter end: The end date from which to calculate the start date.
+     - Returns: The calculated start date.
+     */
     public func startDate(end: Date) -> Date {
         end.adding(-Int(seconds), to: .second)
     }
 
+    /**
+     Returns the end date based on the given start date and the current duration.
+     
+     - Parameter start: The start date from which to calculate the end date.
+     - Returns: The calculated end date.
+     */
     public func endDate(start: Date) -> Date {
         DateInterval(start: start, duration: seconds).end
     }
@@ -91,6 +141,8 @@ public struct TimeDuration: Hashable, Sendable {
         return unit.convert(value, to: .second)
     }
 
+    
+    /// Returns a `TimeDuration`  with zero seconds.
     public static var zero: TimeDuration {
         return TimeDuration(0.0)
     }
