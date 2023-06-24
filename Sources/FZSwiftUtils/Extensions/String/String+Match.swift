@@ -23,6 +23,7 @@ internal extension StringMatch {
     init(_ result: NSTextCheckingResult, source: String) {
         range = Range(result.range, in: source)!
         string = String(source[range])
+        Swift.print(string, range)
         score = string.distance(from: range.lowerBound, to: range.upperBound)
     }
 }
