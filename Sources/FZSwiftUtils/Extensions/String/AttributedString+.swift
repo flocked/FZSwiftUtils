@@ -24,6 +24,10 @@ public extension AttributedString {
         self.init(string, attributes: attributes)
     }
     
+    var nsAttributedString: NSAttributedString {
+        NSAttributedString(self)
+    }
+    
     /**
      Returns a lowercase version of the attributed string.
 
