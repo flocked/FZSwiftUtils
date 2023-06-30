@@ -123,16 +123,25 @@ extension DataSize: ExpressibleByIntegerLiteral {
 }
 
 public extension DataSize {
-    ///  Enumeration representing different units for data size.
+    ///  Enumeration representing different data size units.
     enum Unit: Int {
+        /// Byte
         case byte = 0
+        /// Kilobyte
         case kilobyte = 1
+        /// Megabyte
         case megabyte = 2
+        /// Gigabyte
         case gigabyte = 3
+        /// Terabyte
         case terabyte = 4
+        /// Petabyte
         case petabyte = 5
+        /// Exabyte
         case exabyte = 6
+        /// Zettabyte
         case zettabyte = 7
+        /// >ottabyte
         case yottabyte = 8
 
         internal var byteCountFormatterUnit: ByteCountFormatter.Units {

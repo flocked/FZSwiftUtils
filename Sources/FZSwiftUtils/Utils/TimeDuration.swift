@@ -132,6 +132,11 @@ public struct TimeDuration: Hashable, Sendable {
     public func endDate(start: Date) -> Date {
         DateInterval(start: start, duration: seconds).end
     }
+    
+    /// Returns a `TimeDuration`  with zero seconds.
+    public static var zero: TimeDuration {
+        return TimeDuration(0.0)
+    }
 
     internal func value(for unit: Unit) -> Double {
         return seconds / unit.calendarUnit.timeInterval!
@@ -140,22 +145,17 @@ public struct TimeDuration: Hashable, Sendable {
     internal func seconds(for value: Double, _ unit: Unit) -> Double {
         return unit.convert(value, to: .second)
     }
-
-    
-    /// Returns a `TimeDuration`  with zero seconds.
-    public static var zero: TimeDuration {
-        return TimeDuration(0.0)
-    }
 }
 
 public extension DateInterval {
+    /// The time duration.
     var timeDuration: TimeDuration {
         TimeDuration(duration)
     }
 }
 
 extension TimeDuration: Codable {
-    enum CodingKeys: CodingKey {
+    public enum CodingKeys: CodingKey {
         case seconds
     }
 
@@ -183,19 +183,29 @@ extension TimeDuration: ExpressibleByFloatLiteral {
 }
 
 public extension TimeDuration {
+    ///  Enumeration representing different duration time units.
     enum Unit: Int, CaseIterable {
-        case nanoSecond
+        /// Nanosecond
+        case nanoSecond = 0
+        /// Millisecond
         case millisecond
+        /// Second
         case second
+        /// Minute
         case minute
+        /// Hour
         case hour
+        /// Day
         case day
+        /// Week
         case week
+        /// Month
         case month
+        /// Year
         case year
         internal var calendarUnit: Calendar.Component {
             switch self {
-            case .nanoSecond: return .nanosecond
+            case .nanoSecond: return .second
             case .millisecond: return .second
             case .second: return .second
             case .minute: return .minute
@@ -213,9 +223,83 @@ public extension TimeDuration {
             return number * conversionFactor
         }
     }
+    
+    /// The time duration units.
+    struct Units: OptionSet {
+        public let rawValue: UInt
+        /// Nanosecond
+        public static let nanoSecond = Units(rawValue: 1 << 0)
+        /// Millisecond
+        public static let millisecond = Units(rawValue: 1 << 1)
+        /// Second
+        public static let second = Units(rawValue: 1 << 2)
+        /// Minute
+        public static let minute = Units(rawValue: 1 << 3)
+        /// Hour
+        public static let hour = Units(rawValue: 1 << 4)
+        /// Day
+        public static let day = Units(rawValue: 1 << 5)
+        /// Week
+        public static let week = Units(rawValue: 1 << 6)
+        /// Month
+        public static let month = Units(rawValue: 1 << 7)
+        /// Year
+        public static let year = Units(rawValue: 1 << 8)
+        
+        /// All used units.
+        public static let all = Units(rawValue: 1 << 9)
+        /// All used units compact.
+        public static let allCompact = Units(rawValue: 1 << 10)
+        /// All used units detailed.
+        public static let allDetailed: Units = [.second, .minute, .hour, .hour, .day, .week, .month, .year]
+        
+        /// Creates a units structure with the specified raw value.
+        public init(rawValue: UInt) {
+            self.rawValue = rawValue
+        }
+        
+        /// Creates a units structure with the specified time duration unit.
+        public init(unit: Unit) {
+            self.rawValue = Self.allCases.first(where: {$0.unit == unit})?.rawValue ??  1 << 2
+        }
+        
+        internal static let allCases: [Units] = [.nanoSecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
+        internal var unit: Unit? {
+            switch self {
+            case .nanoSecond: return .nanoSecond
+            case .millisecond: return .millisecond
+            case .second: return .second
+            case .minute: return .minute
+            case .hour: return .hour
+            case .day: return .day
+            case .week: return .week
+            case .month: return .month
+            case .year: return .year
+            default: return nil
+            }
+        }
+        
+        internal func units(for duration: TimeDuration) -> [TimeDuration.Unit] {
+            var units: [TimeDuration.Unit] = []
+            for unitCase in Self.allCases {
+                if let unit = unitCase.unit {
+                    if self.contains(unitCase) {
+                        units.append(unit) }
+                }
+            }
+            if self == .allDetailed {
+                units.append(contentsOf: self.elements().compactMap({$0.unit}).collect())
+            }
+            if self.contains(.all) { units.append(contentsOf: duration.preferredUnits(compact: false)) }
+            if self.contains(.allCompact) { units.append(contentsOf: duration.preferredUnits(compact: true)) }
+            units = units.uniqued()
+            return units
+        }
+    }
 }
 
 extension TimeDuration: CustomStringConvertible {
+    /// A string representation of the time duration.
     public var description: String {
         return string()
     }
@@ -226,23 +310,67 @@ extension TimeDuration: CustomStringConvertible {
         return formatter
     }
 
+    /// A string representation of the time duration.
     public var string: String {
-        return string()
+        return string(allowedUnits: .all)
     }
 
+    /// A compact string representation of the time duration.
     public var stringCompact: String {
-        return string(style: .brief)
+        return string(allowedUnits: .allCompact, style: .brief)
     }
 
+    /**
+     Returns a string representation of the time duration using the specified time unit and style.
+     
+     - Parameters:
+       - unit: The unit to use for formatting the time duration.
+       - style: The formatting style.
+     
+     - Returns: A string representation of the time duration.
+     */
     public func string(for unit: Unit, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
-        return string(allowedUnits: [unit], style: style)
+        return string(allowedUnits: .init(unit: unit), style: style)
     }
 
-    public func string(allowedUnits: [Unit] = [.hour, .minute, .second], style: DateComponentsFormatter.UnitsStyle = .full) -> String {
+    /**
+     Returns a string representation of the time duration using the specified allowed time units and style.
+     
+     - Parameters:
+       - allowedUnits: The allowed units for formatting the time duration.
+       - style: The formatting style.
+     
+     - Returns: A string representation of the time duration.
+     */
+    public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
+        let allowedUnits = allowedUnits.units(for: self)
         let formatter = self.formatter
-        formatter.allowedComponents = allowedUnits.compactMap { $0.calendarUnit }
+        formatter.allowedComponents = allowedUnits.compactMap { $0.calendarUnit }.uniqued()
         formatter.unitsStyle = style
         return formatter.string(from: TimeInterval(seconds))!
+    }
+    
+    internal func allCurrentUnits() -> [Unit] {
+        var units: [Unit] = []
+        if self.years >= 1 {  units.append(.year)  }
+        if self.months >= 1 { units.append(.month) }
+        if self.weeks >= 1 {  units.append(.week) }
+        if self.days >= 1 {  units.append(.day) }
+        if self.hours >= 1 { units.append(.hour) }
+        if self.minutes >= 1 { units.append(.minute) }
+        units.append(.second)
+        return units
+    }
+    
+    internal func preferredUnits(compact: Bool = true) -> [Unit] {
+        let currentUnits = allCurrentUnits()
+        if compact == false, currentUnits.count >= 3 {
+            return Array(currentUnits[0..<3])
+        } else if currentUnits.count >= 2 {
+            return Array(currentUnits[0..<2])
+        } else {
+            return [.second]
+        }
     }
 }
 

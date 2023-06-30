@@ -213,6 +213,7 @@ public class ImageSource {
 }
 
 extension ImageSource: CustomStringConvertible {
+    /// A string representation of the image source.
     public var description: String {
         return "ImageSource[\(ObjectIdentifier(self))"
     }

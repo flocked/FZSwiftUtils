@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 22.12.22.
 //
 
+/*
 import Foundation
 
 public enum Chance {
@@ -20,3 +21,4 @@ public enum Chance {
         }
     }
 }
+*/

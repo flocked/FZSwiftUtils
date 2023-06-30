@@ -11,15 +11,16 @@ infix operator <->
 infix operator <~>
 
 public struct SwizzlaePair: CustomStringConvertible {
-    public private(set) var old: Selector
-    public private(set) var new: Selector
-    public var `static` = false
-    var `operator`: String {
-        `static` ? "<~>" : "<->"
+    public let old: Selector
+    public let new: Selector
+    public let `static`: Bool
+    public init(old: Selector, new: Selector, `static`: Bool = false) {
+        self.old = old
+        self.new = new
+        self.static = `static`
     }
-    
-    internal var reversed: SwizzlaePair {
-        SwizzlaePair(old: self.new, new: self.old, static: self.static)
+    internal var `operator`: String {
+        `static` ? "<~>" : "<->"
     }
 
     public var description: String {
@@ -57,9 +58,6 @@ public extension String {
 
 /// Swizzling of class selectors.
 public struct Swizzle {
-    internal let swizzlePairs:  [SwizzlaePair]
-    internal let class_: AnyClass
-    
     @resultBuilder
     public enum Builder {
         public static func buildBlock(_ swizzlePairs: SwizzlaePair...) -> [SwizzlaePair] {
@@ -116,20 +114,10 @@ public struct Swizzle {
     }
     
     @discardableResult
-    /// Resets the swizzling.
-    public func reset() throws -> Swizzle {
-        let swizzlePairs = self.swizzlePairs.compactMap({$0.reversed})
-        try swizzle(type: self.class_, pairs: swizzlePairs)
-        return self
-    }
-
-    @discardableResult
     internal init(_ class_: AnyClass, swizzlePairs: [SwizzlaePair]) throws {
         guard object_isClass(class_) else {
             throw Error.missingClass(String(describing: class_))
         }
-        self.swizzlePairs = swizzlePairs
-        self.class_ = class_
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
@@ -138,8 +126,6 @@ public struct Swizzle {
         guard let class_ = NSClassFromString(className) else {
             throw Error.missingClass(className)
         }
-        self.swizzlePairs = swizzlePairs
-        self.class_ = class_
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
@@ -165,10 +151,6 @@ public struct Swizzle {
             else {
                 throw Error.missingMethod(`class`, pair.static, false, pair)
             }
-            
-            let didAddMethod = class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs))
-            Swift.print("didAddMethod", didAddMethod)
-
 
             if pair.static,
                class_addMethod(
@@ -176,15 +158,14 @@ public struct Swizzle {
                    method_getImplementation(rhs), method_getTypeEncoding(rhs)
                )
             {
-                Swift.print("class_replaceMethod")
                 class_replaceMethod(
                     `class`,
                     pair.new,
                     method_getImplementation(lhs),
                     method_getTypeEncoding(lhs)
                 )
+                
             } else {
-                Swift.print("method_exchangeImplementations")
                 method_exchangeImplementations(lhs, rhs)
             }
             debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
