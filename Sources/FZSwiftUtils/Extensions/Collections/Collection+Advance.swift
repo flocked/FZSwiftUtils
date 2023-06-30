@@ -8,17 +8,32 @@
 
 import Foundation
 
+/// Advance option used to advance collections.
 public enum AdvanceOption {
+    /// Next element.
     case next
+    /// Previous element.
     case previous
+    /// Next element looping.
     case nextLooping
+    /// Previous element looping.
     case previousLooping
+    /// First element.
     case first
+    /// Last element.
     case last
+    /// Random element.
     case random
 }
 
 public extension Collection where Element: Equatable, Index == Int {
+    /**
+     Returns the advanced element for the specified current element and advance type.
+     - Parameters type: The advance type.
+     - Parameters current: The current element used to advance the index.
+     - Parameters excluding: Elements to exclude from advancing.
+     - Returns: The advanced element for the current element.
+     */
     func advance(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Element? {
         if let index = advanceIndex(by: type, current: current, excluding: excluding) {
             return self[index]
@@ -26,6 +41,13 @@ public extension Collection where Element: Equatable, Index == Int {
         return nil
     }
 
+    /**
+     Returns the advanced index for the specified current element and advance type.
+     - Parameters type: The advance type.
+     - Parameters current: The current element used to advance the index.
+     - Parameters excluding: Elements to exclude from advancing.
+     - Returns: The advanced index for the current element.
+     */
     func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {
         var excluding = excluding
         if let current = current {

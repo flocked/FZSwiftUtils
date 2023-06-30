@@ -47,6 +47,11 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
 }
 
 public extension Sequence where Element: Equatable {
+    /**
+     A boolean value indicating whether the sequence contains any of the specified elements.
+     - Parameters elements: The elements.
+     - Returns: `true` if any of the elements exists in the sequence, or` false` if non exist in the sequence.
+     */
     func contains<S: Sequence<Element>>(any elements: S) -> Bool {
         for element in elements {
             if contains(element) {
@@ -56,6 +61,11 @@ public extension Sequence where Element: Equatable {
         return false
     }
 
+    /**
+     A boolean value indicating whether the sequence contains all specified elements.
+     - Parameters elements: The elements.
+     - Returns: `true` if all elements exist in the sequence, or` false` if not.
+     */
     func contains<S: Sequence<Element>>(all elements: S) -> Bool {
         for checkElement in elements {
             if contains(checkElement) == false {
@@ -67,15 +77,26 @@ public extension Sequence where Element: Equatable {
 }
 
 public extension Sequence where Element == String {
+    /**
+     Returns a new string by concatenating the elements of the sequence, adding a separator for the option.
+     
+     - Parameters option: The option for joining the strings.
+     - Returns: A single, concatenated string.
+     */
     func joined(by option: String.JoinOptions) -> String {
-        switch option {
-        case .line: return self.joined(separator: "\n")
-        }
+        return self.joined(separator: option.seperator)
     }
 }
 
 public extension String {
+    /// The option for joining string sequences.
     enum JoinOptions {
+        /// Joined by adding lines.
         case line
+        internal var seperator: String {
+            switch self {
+            case .line: return "\n"
+            }
+        }
     }
 }

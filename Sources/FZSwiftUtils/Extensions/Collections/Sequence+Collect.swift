@@ -8,17 +8,23 @@
 import Foundation
 
 public extension Sequence {
+    /// Returns an array of all elements.
     func collect() -> [Element] {
         return reduce(into: [Element]()) { $0.append($1) }
     }
 
+    /// Returns an array of all elements.
     func collect() async -> [Element] {
         await withCheckedContinuation { continuation in
             collect { continuation.resume(returning: $0) }
         }
     }
 
-    func collect(completionHandler: @escaping ([Element]) -> Void) {
+    /**
+     Returns an array of all elements to the specified completion handler
+     - Parameters completionHandler: The handler which gets called when all elements got collected.
+     */
+    func collect(completionHandler: @escaping ([Element]) -> ()) {
         DispatchQueue.global(qos: .userInitiated).async {
             let elements = reduce(into: [Element]()) { $0.append($1) }
             DispatchQueue.main.async {

@@ -8,18 +8,21 @@
 import Foundation
 
 public extension Collection where Element: Collection {
+    /// Returns a flattened array of all collection elements.
     func flattened() -> [Element.Element] {
         return flatMap { $0 }
     }
 }
 
 public extension Collection where Element: OptionalProtocol {
+    /// Returns a flattened array of all collection elements.
     func flattened<V>() -> [V] where Element.Wrapped: Collection<V> {
         return compactMap { $0.optional }.flattened()
     }
 }
 
 public extension Collection where Element: Any {
+    /// Returns a flattened array of all elements.
     func anyFlattened() -> [Any] {
         flatMap { x -> [Any] in
             if let anyarray = x as? [Any] {
