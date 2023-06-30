@@ -12,7 +12,9 @@ import Foundation
  */
 public class MeasureTime {
     /**
-     Meassures the time of executing a closure block.
+     Meassures the time executing a closure block and printing it's result.
+     - Parameters operation: The closure block to meassure.
+     - Parameters title: The title used for printing.
      */
     @discardableResult
     public class func printTimeElapsed(title: String, running operation: () -> Void) -> Double {
@@ -23,6 +25,10 @@ public class MeasureTime {
         return Double(timeElapsed)
     }
 
+    /**
+     Meassures the time executing a closure block.
+     - Parameters operation: The closure block to meassure.
+     */
     public class func timeElapsed(running operation: () -> Void) -> Double {
         let startTime = CFAbsoluteTimeGetCurrent()
         operation()

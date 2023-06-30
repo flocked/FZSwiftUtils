@@ -15,5 +15,6 @@ public protocol OptionalProtocol: ExpressibleByNilLiteral {
 }
 
 extension Optional: OptionalProtocol {
+    /// The optional value.
     public var optional: Self { self }
 }

@@ -8,15 +8,19 @@
 import Foundation
 
 public protocol NameDescribable {
+    /// The name of this type.
     var typeName: String { get }
+    /// The name of this type.
     static var typeName: String { get }
 }
 
 public extension NameDescribable {
+    /// The name of this type.
     var typeName: String {
         return String(describing: type(of: self))
     }
 
+    /// The name of this type.
     static var typeName: String {
         return String(describing: self)
     }

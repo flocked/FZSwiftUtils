@@ -11,11 +11,15 @@ infix operator <->
 infix operator <~>
 
 public struct SwizzlaePair: CustomStringConvertible {
-    let old: Selector
-    let new: Selector
-    var `static` = false
+    public private(set) var old: Selector
+    public private(set) var new: Selector
+    public var `static` = false
     var `operator`: String {
         `static` ? "<~>" : "<->"
+    }
+    
+    internal var reversed: SwizzlaePair {
+        SwizzlaePair(old: self.new, new: self.old, static: self.static)
     }
 
     public var description: String {
@@ -51,7 +55,11 @@ public extension String {
     }
 }
 
+/// Swizzling of class selectors.
 public struct Swizzle {
+    internal let swizzlePairs:  [SwizzlaePair]
+    internal let class_: AnyClass
+    
     @resultBuilder
     public enum Builder {
         public static func buildBlock(_ swizzlePairs: SwizzlaePair...) -> [SwizzlaePair] {
@@ -60,23 +68,59 @@ public struct Swizzle {
     }
 
     @discardableResult
+    /**
+     Swizzles selectors of the specified class.
+     - Parameters class_:  The class to swizzle.
+     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
     public init(_ class_: AnyClass, @Builder _ makeSwizzlePairs: () -> [SwizzlaePair]) throws {
         try self.init(class_, swizzlePairs: makeSwizzlePairs())
     }
 
     @discardableResult
+    /**
+     Swizzles selectors of the specified class.
+     - Parameters class_:  The class to swizzle.
+     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
     public init(_ class_: AnyClass, @Builder _ makeSwizzlePairs: () -> SwizzlaePair) throws {
         try self.init(class_, swizzlePairs: [makeSwizzlePairs()])
     }
 
     @discardableResult
+    /**
+     Swizzles selectors of the class with the specified name.
+     - Parameters className:  The name of the class.
+     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
     public init(_ className: String, @Builder _ makeSwizzlePairs: () -> [SwizzlaePair]) throws {
         try self.init(className, swizzlePairs: makeSwizzlePairs())
     }
 
     @discardableResult
+    /**
+     Swizzles selectors of the class with the specified name.
+     - Parameters className:  The name of the class.
+     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
     public init(_ className: String, @Builder _ makeSwizzlePairs: () -> SwizzlaePair) throws {
         try self.init(className, swizzlePairs: [makeSwizzlePairs()])
+    }
+    
+    @discardableResult
+    /// Resets the swizzling.
+    public func reset() throws -> Swizzle {
+        let swizzlePairs = self.swizzlePairs.compactMap({$0.reversed})
+        try swizzle(type: self.class_, pairs: swizzlePairs)
+        return self
     }
 
     @discardableResult
@@ -84,14 +128,18 @@ public struct Swizzle {
         guard object_isClass(class_) else {
             throw Error.missingClass(String(describing: class_))
         }
+        self.swizzlePairs = swizzlePairs
+        self.class_ = class_
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
     @discardableResult
-    internal init(_ className: String, swizzlePairs: [SwizzlaePair]) throws {
+    internal init(_ className: String, swizzlePairs: [SwizzlaePair], reset: Bool = false) throws {
         guard let class_ = NSClassFromString(className) else {
             throw Error.missingClass(className)
         }
+        self.swizzlePairs = swizzlePairs
+        self.class_ = class_
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
@@ -124,6 +172,7 @@ public struct Swizzle {
                    method_getImplementation(rhs), method_getTypeEncoding(rhs)
                )
             {
+                Swift.print("class_replaceMethod")
                 class_replaceMethod(
                     `class`,
                     pair.new,
@@ -131,6 +180,7 @@ public struct Swizzle {
                     method_getTypeEncoding(lhs)
                 )
             } else {
+                Swift.print("method_exchangeImplementations")
                 method_exchangeImplementations(lhs, rhs)
             }
             debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
