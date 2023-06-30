@@ -69,6 +69,15 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
+    public func add(_ keyPaths: [PartialKeyPath<Object>], handler: @escaping (()->())) {
+        let names = keyPaths.compactMap({$0._kvcKeyPathString})
+        for name in names {
+            self.add(name, handler: { old, new in
+                handler()
+            })
+        }
+    }
+    
     /**
      Removes the observer for the specified keypath.
      
