@@ -165,6 +165,10 @@ public struct Swizzle {
             else {
                 throw Error.missingMethod(`class`, pair.static, false, pair)
             }
+            
+            let didAddMethod = class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs))
+            Swift.print("didAddMethod", didAddMethod)
+
 
             if pair.static,
                class_addMethod(
