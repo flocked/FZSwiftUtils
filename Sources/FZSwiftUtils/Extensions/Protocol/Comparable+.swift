@@ -7,14 +7,6 @@
 
 import Foundation
 
-/*
- /**
-  Returns a Boolean value indicating whether the keypath's value is equatable to another keypath's value.
-  
-  - Parameters other: A partial keypath
-  - Returns: Returns true if the keypath's value is equal to the other keypath's value; or false if it isn't equal or if isn't the same Equatable type.
-  */
- */
 
 public extension Comparable {
     /**

@@ -1,5 +1,5 @@
 //
-//  URL+NewFileType.swift
+//  URL+FileType.swift
 //
 //
 //  Created by Florian Zand on 10.03.23.
@@ -16,26 +16,42 @@ import MobileCoreServices
 #endif
 
 public extension URL {
+    /// The type of a file.
     enum FileType: Hashable, CustomStringConvertible, CaseIterable {
+        /// Alias
         case aliasFile
+        /// Application
         case application
+        /// Archive
         case archive
+        /// Audio
         case audio
+        /// Disk image
         case diskImage
+        /// Document
         case document
+        /// Executable
         case executable
+        /// Folder
         case folder
+        /// GIF
         case gif
+        /// Image
         case image
+        /// Other
         case other(_ pathExtension: String)
+        /// PDF
         case pdf
+        /// Presentation
         case presentation
+        /// Symbolic Link
         case symbolicLink
+        /// Text
         case text
+        /// Video
         case video
         
-        
-
+        /// Returns the type for the file at the specified url.
         public init?(url: URL) {
         /*    if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
                 if let uttype = UTType(url: url), let fileType = FileType(uttype: uttype) {
@@ -59,6 +75,7 @@ public extension URL {
             }
         }
 
+        /// Returns the type for the specified file extension.
         public init?(fileExtension: String) {
             guard fileExtension != "" else {
                 self = .folder
@@ -80,25 +97,9 @@ public extension URL {
             }
         }
 
-        public init?(contentTypeIdentifier: String) {
-            guard let fileType = FileType.allCases.first(where: { $0.identifier == contentTypeIdentifier }) else {
-                return nil
-            }
-            self = fileType
-        }
-
-        public init?(contentTypeTree: [String]) {
-            let allIdentifiers = FileType.allCases.compactMap { $0.identifier }
-            if let identifier = contentTypeTree.first(where: { allIdentifiers.contains($0) }), let fileType = FileType(contentTypeIdentifier: identifier) {
-                self = fileType
-                return
-            } else {
-                return nil
-            }
-        }
-
         #if canImport(UniformTypeIdentifiers)
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        /// Returns the type for the specified content type.
         public init?(contentType: UTType) {
             
             if let fileType = FileType.allCases.first(where: {
@@ -117,6 +118,7 @@ public extension URL {
         #endif
     }
 
+    /// The file type of the url.
     var fileType: FileType? {
         return FileType(url: self)
     }
@@ -138,7 +140,34 @@ public extension URL {
     }
 }
 
+@available(macOS, deprecated: 11.0, message: "Use contentType instead")
+@available(iOS, deprecated: 14.0, message: "Use contentType instead")
+@available(macCatalyst, deprecated: 14.0, message: "Use contentType instead")
+@available(tvOS, deprecated: 14.0, message: "Use contentType instead")
+@available(watchOS, deprecated: 7.0, message: "Use contentType instead")
 public extension URL.FileType {
+    /// Returns the type for the specified content type identifier.
+    init?(contentTypeIdentifier: String) {
+        guard let fileType = URL.FileType.allCases.first(where: { $0.identifier == contentTypeIdentifier }) else {
+            return nil
+        }
+        self = fileType
+    }
+
+    /// Returns the type for the specified content type tree.
+    init?(contentTypeTree: [String]) {
+        let allIdentifiers = URL.FileType.allCases.compactMap { $0.identifier }
+        if let identifier = contentTypeTree.first(where: { allIdentifiers.contains($0) }), let fileType = URL.FileType(contentTypeIdentifier: identifier) {
+            self = fileType
+            return
+        } else {
+            return nil
+        }
+    }
+}
+
+public extension URL.FileType {
+    /// The content type identifier of the file type.
     var identifier: String? {
         switch self {
         case .aliasFile: return "com.apple.alias-file"
@@ -172,6 +201,7 @@ public extension URL.FileType {
         }
     }
 
+    /// The most common file extensions of the file type.
     var commonExtensions: [String] {
         switch self {
         case .image:
@@ -198,6 +228,7 @@ public extension URL.FileType {
         }
     }
 
+    /// The description of the file type.
     var description: String {
         switch self {
         case .aliasFile: return "AliasFile"
@@ -219,17 +250,23 @@ public extension URL.FileType {
         }
     }
 
+    /// A boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
     var isMultimedia: Bool {
         self == .video || self == .audio || self == .gif || self == .image
     }
 
+    /// An array of all file types.
     static let allCases: [URL.FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio,  .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
-
+    
+    /// An array of all multimedia file types (`audio`, `video`, `image` and `gif`).
     static var multimediaTypes: [URL.FileType] = [.gif, .image, .video]
+    
+    /// An array of all image file types (`image` and `gif`).
     static var imageTypes: [URL.FileType] = [.gif, .image]
 
     #if canImport(UniformTypeIdentifiers)
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    /// The content type of the file type.
     var contentType: UTType? {
         if let identifier = identifier {
             return UTType(identifier)

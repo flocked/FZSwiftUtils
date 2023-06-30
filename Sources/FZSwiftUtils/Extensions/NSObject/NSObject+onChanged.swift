@@ -1,7 +1,10 @@
 //
 //  NSObject+onChanged.swift
-//    Adds convenience API for KVO Combine publishers
+//
+//  Adopted from:
 //  Copyright ©2020 Peter Baumgartner. All rights reserved.
+//
+//  Created by Florian Zand on 10.10.22.
 //
 
 import Foundation

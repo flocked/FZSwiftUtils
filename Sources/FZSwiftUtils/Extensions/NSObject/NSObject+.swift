@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NSObject+.swift
 //
 //
 //  Created by Florian Zand on 10.10.22.
@@ -9,6 +9,7 @@ import Foundation
 
 public extension NSKeyedUnarchiver {
     enum Errors: Error {
+        /// Unpacking failed.
         case unpackingError
     }
 }

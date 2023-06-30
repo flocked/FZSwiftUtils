@@ -17,6 +17,8 @@ import MobileCoreServices
 #endif
 
 public extension URL {
+    
+    ///  The properties of a file system resource.
     var resources: URLResources {
         return URLResources(url: self)
     }
@@ -25,15 +27,16 @@ public extension URL {
 /**
  The properties of a file system resource.
  
- Some of the properties can be changed. Not all properties exist for all files. For example, if a file is located on a volume that doesn’t support creation dates, the creationDate property will return nil.
+ Some of the properties can be modified. Not all properties exist for all files. For example, if a file is located on a volume that doesn’t support creation dates, the creationDate property will return nil.
  */
 public class URLResources {
     /// The url to the resource
     public private(set) var url: URL
     
     /**
-    The properties of a file.
-     - Parameters url: The url to the file.
+     Creates an object for accessing and modifying properties of the resource at the specified url.
+     - Parameters url: The url to the resource.
+     - Returns: `URLResources` for the specified resource.
      */
     public init(url: URL) {
         self.url = url
@@ -352,10 +355,12 @@ public extension URLResources {
 #endif
 
 public extension URLResources {
+    /// The volume properties of the resource.
     var volume: VolumeURLResources {
         return VolumeURLResources(url)
     }
 
+    ///  The volume properties of a file system resource.
     struct VolumeURLResources {
         internal let _url: URL
         public init(_ _url: URL) {

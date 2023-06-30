@@ -14,34 +14,25 @@ import Foundation
  */
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     internal var observers: [String:  (_ oldValue: Any, _ newValue: Any)->()] = [:]
+    /// The object to register for KVO notifications.
     public fileprivate(set) weak var observedObject: Object?
-        
+    
+    /**
+    Creates a key-value observer with the specifed observed object.
+     - Parameters observedObject: The object to register for KVO notifications.
+     - Returns: The  key-value observer.
+     */
     public init(_ observedObject: Object) {
         self.observedObject = observedObject
         super.init()
     }
     
-    public func remove(_ keyPath: PartialKeyPath<Object>) {
-        guard let name = keyPath._kvcKeyPathString else { return }
-        self.remove(name)
-    }
-    
-    public func remove<S: Sequence<PartialKeyPath<Object>>>(_ keyPaths: S)  {
-        keyPaths.compactMap({$0._kvcKeyPathString}).forEach({ self.remove($0) })
-    }
-    
-    public func remove(_ keyPath: String) {
-        guard let observedObject = self.observedObject else { return }
-        if self.observers[keyPath] != nil {
-            observedObject.removeObserver(self, forKeyPath: keyPath)
-            self.observers[keyPath] = nil
-        }
-    }
-    
-    public func removeAll() {
-        self.observers.keys.forEach({ self.remove( $0) })
-    }
-    
+    /**
+     Adds an observer for the specified keypath which calls the specified handler.
+     
+     - Parameters keyPath: The keypath to the value to observe.
+     - Parameters handler: The handler to be called when the keypath values changes.
+     */
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
         self.add(name) { old, new in
@@ -50,6 +41,12 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
+    /**
+     Adds an observer for the specified keypath which calls the specified handler.
+     
+     - Parameters keyPath: The keypath to the value to observe.
+     - Parameters handler: The handler to be called when the keypath values changes.
+     */
     public func add<Value>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
         
@@ -59,6 +56,12 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
+    /**
+     Adds an observer for the specified keypath which calls the specified handler.
+     
+     - Parameters keyPath: The keypath to the value to observe.
+     - Parameters handler: The handler to be called when the keypath values changes.
+     */
     public func add(_ keypath: String, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
         if (observers[keypath] == nil) {
             observers[keypath] = handler
@@ -66,17 +69,65 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
+    /**
+     Removes the observer for the specified keypath.
+     
+     - Parameters keyPath: The keypath to remove.
+     */
+    public func remove(_ keyPath: PartialKeyPath<Object>) {
+        guard let name = keyPath._kvcKeyPathString else { return }
+        self.remove(name)
+    }
+    
+    /**
+     Removes the observesr for the specified keypaths.
+     
+     - Parameters keyPaths: The keypaths to remove.
+     */
+    public func remove<S: Sequence<PartialKeyPath<Object>>>(_ keyPaths: S)  {
+        keyPaths.compactMap({$0._kvcKeyPathString}).forEach({ self.remove($0) })
+    }
+    
+    /**
+     Removes the observer for the specified keypath.
+     
+     - Parameters keyPath: The keypath to remove.
+     */
+    public func remove(_ keyPath: String) {
+        guard let observedObject = self.observedObject else { return }
+        if self.observers[keyPath] != nil {
+            observedObject.removeObserver(self, forKeyPath: keyPath)
+            self.observers[keyPath] = nil
+        }
+    }
+    
+    /// Removes all observers.
+    public func removeAll() {
+        self.observers.keys.forEach({ self.remove( $0) })
+    }
+    
+    /// A bool indicating whether any value is observed.
     public func isObserving() -> Bool {
         return  self.observers.isEmpty != false
     }
     
-    public func isObserving(_ keypath: PartialKeyPath<Object>) -> Bool {
-        guard let name = keypath._kvcKeyPathString else { return false }
+    /**
+     A bool indicating whether the value at the specified keypath is observed.
+     
+     - Parameters keyPath: The keyPath to the value.
+     */
+    public func isObserving(_ keyPath: PartialKeyPath<Object>) -> Bool {
+        guard let name = keyPath._kvcKeyPathString else { return false }
         return self.isObserving(name)
     }
     
-    public func isObserving(_ keypath: String) -> Bool {
-        return self.observers[keypath] != nil
+    /**
+     A bool indicating whether the value at the specified keypath is observed.
+     
+     - Parameters keyPath: The keyPath to the value.
+     */
+    public func isObserving(_ keyPath: String) -> Bool {
+        return self.observers[keyPath] != nil
     }
     
     override public func observeValue(forKeyPath keyPath:String?, of object:Any?, change:[NSKeyValueChangeKey:Any]?, context:UnsafeMutableRawPointer?) {

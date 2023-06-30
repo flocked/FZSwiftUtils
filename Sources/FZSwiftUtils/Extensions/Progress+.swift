@@ -45,6 +45,7 @@ public extension Progress {
             return
         }
         
+        setUserInfoObject(TimeInterval(secondsRemaining), forKey: .estimatedTimeRemainingKey)
         estimatedTimeRemaining = TimeInterval(secondsRemaining)
     }
     

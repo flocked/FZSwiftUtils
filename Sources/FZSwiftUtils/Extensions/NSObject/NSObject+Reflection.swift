@@ -1,9 +1,12 @@
 //
 //  NSObject+Reflection.swift
-//  NSObject+Reflection
+//  
 //
-//  Created by Cyon Alexander (Ext. Netlight) on 01/09/16.
+//  Adopted from:
+//  Cyon Alexander (Ext. Netlight) on 01/09/16.
 //  Copyright © 2016 com.cyon. All rights reserved.
+//
+//  Created by Florian Zand on 10.10.22.
 //
 
 import Foundation

@@ -146,6 +146,10 @@ public class URLSessionResumableDataTask: NSObject {
      */
     public func resume() {
         if self.state == .suspended || self.state == .canceling {
+            if let retryCount = retryCount, retryCount < 0 {
+                self.retryCount = self.retryAmount
+            }
+            
             if let updatedRequest = requestUpdateHandler?() {
                 self.currentRequest = updatedRequest
             }
@@ -461,7 +465,7 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
                 self.retryCount = retryCount - 1
             }
             
-            if (retryCount ?? -1) >= 0 {
+            if (retryCount ?? 1000) >= 0 {
                 if let retryInterval = retryInterval {
                     retryTimer = Timer(timeInterval: retryInterval, repeats: false, block: { [weak self] timer in
                         guard let self = self else { return }

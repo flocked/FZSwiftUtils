@@ -9,14 +9,17 @@ import Foundation
 
 
 public extension URL {
+    ///  A bool indicating whether the resource is a directory.
     var isDirectory: Bool {
         resources.isDirectory
     }
 
+    ///  A bool indicating whether the resource is a file.
     var isFile: Bool {
-        pathExtension != ""
+        resources.isRegularFile
     }
 
+    /// A bool indicating whether the URL’s resource exists and is reachable.
     var isReachable: Bool {
         (try? checkResourceIsReachable()) == true
     }
@@ -25,6 +28,7 @@ public extension URL {
         return try resourceValues(forKeys: [key])
     }
 
+    /// The parent directory of the url.
     var parent: URL? {
         let parent = deletingLastPathComponent()
         if parent.path != path {
@@ -33,18 +37,27 @@ public extension URL {
         return nil
     }
 
+    ///  A bool indicating whether the resource exist.
     var fileExists: Bool {
         FileManager.default.fileExists(atPath: path)
     }
 
-    func urlComponents(resolvingAgainstBase _: Bool = false) -> URLComponents? {
-        return URLComponents(url: self, resolvingAgainstBaseURL: false)
+    /**
+     The components of the url.
+     
+     - Parameters resolve: Controls whether the URL should be resolved against its base URL before parsing. If true, and if the url parameter contains a relative URL, the original URL is resolved against its base URL before parsing by calling the absoluteURL method. Otherwise, the string portion is used by itself.
+     - Returns: A `URLComponents` for the url.
+     */
+    func urlComponents(resolvingAgainstBase resolve: Bool = false) -> URLComponents? {
+        return URLComponents(url: self, resolvingAgainstBaseURL: resolve)
     }
 
+    /// An array of query items for the URL in the order in which they appear in the original query string.
     var queryItems: [URLQueryItem]? {
         return urlComponents()?.queryItems
     }
 
+    /// Returns the url without schema.
     func droppedScheme() -> URL? {
         if let scheme = scheme {
             let droppedScheme = String(absoluteString.dropFirst(scheme.count + 3))
@@ -64,7 +77,9 @@ public extension URL {
 @available(tvOS, deprecated: 14.0, message: "Use contentType instead")
 @available(watchOS, deprecated: 7.0, message: "Use contentType instead")
 public extension URL {
+    /// The content type identifier of the url.
     var contentTypeIdentifier: String? { resources.contentTypeIdentifier }
+    /// The content type identifier tree of the url.
     var contentTypeIdentifierTree: [String] { resources.contentTypeIdentifierTree }
 }
 
@@ -72,6 +87,7 @@ public extension URL {
 import UniformTypeIdentifiers
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 public extension URL {
+    /// The content type of the url.
     var contentType: UTType? {
         UTType(url: self)
     }

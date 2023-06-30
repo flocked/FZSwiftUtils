@@ -10,6 +10,7 @@ import Foundation
 internal struct _EmptyDecodable: Decodable {}
 
 public extension UnkeyedDecodingContainer {
+    /// Skips decoding.
     mutating func skip() throws {
         _ = try decode(_EmptyDecodable.self)
     }
