@@ -66,15 +66,25 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         if (observers[keypath] == nil) {
             observers[keypath] = handler
             observedObject?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
+        } else {
+            observers[keypath] = handler
         }
     }
     
-    public func add(_ keyPaths: [PartialKeyPath<Object>], handler: @escaping (()->())) {
+    public func add(_ keyPaths: [PartialKeyPath<Object>], handler: @escaping ((_ keyPath: PartialKeyPath<Object>)->())) {
         let names = keyPaths.compactMap({$0._kvcKeyPathString})
-        for name in names {
-            self.add(name, handler: { old, new in
-                handler()
-            })
+        for keyPath in keyPaths {
+            if let name = keyPath._kvcKeyPathString {
+                self.add(name) { old, new in
+                    if let old = old as? any Equatable, let new = new as? any Equatable {
+                        if old.isEqual(new) == false {
+                            handler(keyPath)
+                        }
+                    } else {
+                        handler(keyPath)
+                    }
+                }
+            }
         }
     }
     
@@ -167,14 +177,7 @@ public extension KeyValueObserver {
         set {
             if let newValue = newValue {
                 guard let name = keyPath._kvcKeyPathString else { return }
-                if self.observers[name] == nil {
-                    self.add(keyPath, handler: newValue)
-                } else {
-                    self.observers[name] = { old, new in
-                        guard let old = old as? Value, let new = new as? Value, old != new else { return }
-                        newValue(old, new)
-                    }
-                }
+                self.add(keyPath, handler: newValue)
             } else {
                 self.remove(keyPath)
             }
@@ -190,14 +193,7 @@ public extension KeyValueObserver {
         set {
             if let newValue = newValue {
                 guard let name = keyPath._kvcKeyPathString else { return }
-                if self.observers[name] == nil {
-                    self.add(keyPath, handler: newValue)
-                } else {
-                    self.observers[name] = { old, new in
-                        guard let old = old as? Value, let new = new as? Value else { return }
-                        newValue(old, new)
-                    }
-                }
+                self.add(keyPath, handler: newValue)
             } else {
                 self.remove(keyPath)
             }
@@ -209,11 +205,7 @@ public extension KeyValueObserver {
         set {
             self.remove(keyPath)
             if let newValue = newValue {
-                if self.observers[keyPath] == nil {
-                    self.add(keyPath, handler: newValue)
-                } else {
-                    self.observers[keyPath] = newValue
-                }
+                self.add(keyPath, handler: newValue)
             } else {
                 self.remove(keyPath)
             }

@@ -10,7 +10,14 @@ import Foundation
 
 public struct ImageProperties: Codable {
     /// The file size of the image.
-    public var fileSize: Int?
+    public var fileSize: DataSize? {
+        if let fileSize = _fileSize {
+            return DataSize(fileSize)
+        }
+        return nil
+    }
+    private var _fileSize: Int?
+    
     /// The pixel width of the image.
     public var pixelWidth: CGFloat?
     /// The pixel height of the image.
@@ -65,41 +72,51 @@ public struct ImageProperties: Codable {
         return _orientation ?? tiff?.orientation ?? iptc?.orientation ?? .up
     }
 
-    /// Returns if the image is a screenshot.
+    /// A boolean value indicating whether the image is a screenshot.
     public var isScreenshot: Bool {
         return exif?.isScreenshot ?? false
     }
 
-    public var loopCount: Int {
-        return heic?.loopCount ?? gif?.loopCount ?? png?.loopCount ?? 1
+    /**
+     The number of times that an animated image should play through its frames before stopping.
+     
+     A value of 0 means the animated image repeats forever.
+     */
+    public var loopCount: Int? {
+        return heic?.loopCount ?? gif?.loopCount ?? png?.loopCount
     }
 
+    /**
+     The number of seconds to wait before displaying the next image in an animated sequence.
+     
+     The value of this key is never less than 50 millseconds, and the system adjusts values less than that amount to 50 milliseconds, as needed. See kCGImagePropertyAPNGUnclampedDelayTime.
+     */
     public var clampedDelayTime: Double? {
         return heic?.clampedDelayTime ?? gif?.clampedDelayTime ?? png?.clampedDelayTime
     }
 
+    /**
+     The number of seconds to wait before displaying the next image in an animated sequence.
+     
+     This value may be 0 milliseconds or higher. Unlike the `clampedDelayTime` property, this value is not clamped at the low end of the range.
+     */
     public var unclampedDelayTime: Double? {
         return heic?.unclampedDelayTime ?? gif?.unclampedDelayTime ?? png?.unclampedDelayTime
     }
 
     private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
+    
+    /// The number of seconds to wait before displaying the next image in an animated sequence.
     public var delayTime: Double? {
-        let value = unclampedDelayTime ?? clampedDelayTime
+        let value = clampedDelayTime ?? unclampedDelayTime
         if let value = value, value < ImageProperties.capDurationThreshold {
             return 0.1
         }
         return value
     }
 
-    public var dataSize: DataSize? {
-        if let fileSize = fileSize {
-            return DataSize(fileSize)
-        }
-        return nil
-    }
-
     enum CodingKeys: String, CodingKey, CaseIterable {
-        case fileSize = "FileSize"
+        case _fileSize = "FileSize"
         case pixelWidth = "PixelWidth"
         case pixelHeight = "PixelHeight"
         case _orientation = "Orientation"
@@ -172,14 +189,19 @@ extension ImageProperties {
 }
 
 public extension ImageProperties {
+    /// The shape of the image.
     var shape: Shape? {
         guard let pixelSize = pixelSize else { return nil }
         return Shape(size: pixelSize)
     }
 
+    /// The shape of an image.
     enum Shape: String {
+        /// Landscape shape.
         case landscape
+        /// Portrait shape.
         case portrait
+        /// Square shape.
         case square
 
         init(size: CGSize) {
