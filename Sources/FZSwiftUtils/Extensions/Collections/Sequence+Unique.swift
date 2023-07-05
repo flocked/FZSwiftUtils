@@ -8,6 +8,20 @@
 import Foundation
 
 public extension Sequence where Element: Equatable {
+    /**
+     Returns a random element of the collection excluding any of the specified elements.
+     
+     - Parameters excluding: The elements excluded for the returned element.
+     - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns nil.
+     */
+    func randomElement(excluding: [Element]) -> Element? {
+       let elements = self.filter({excluding.contains($0) == false})
+        guard elements.isEmpty == false else { return nil }
+        return elements.randomElement()
+    }
+}
+
+public extension Sequence where Element: Equatable {
     /// An array of unique elements.
     func uniqued() -> [Element] {
         var elements: [Element] = []
