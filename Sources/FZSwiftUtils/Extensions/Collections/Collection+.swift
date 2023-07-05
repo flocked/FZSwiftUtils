@@ -255,26 +255,26 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
 }
 
 public extension Collection where Element: BinaryInteger {
-    /// The average value of all values in the collection. If the collection is empty it returns 0.
+    /// The average value of all values in the collection. If the collection is empty, it returns 0.
     func average() -> Double {
         guard !isEmpty else { return .zero }
         return Double(reduce(.zero, +)) / Double(count)
     }
 
-    /// The total sum value of all values in the collection. If the collection is empty it returns 0.
+    /// The total sum value of all values in the collection. If the collection is empty, it returns 0.
     func sum() -> Self.Element {
         reduce(0, +)
     }
 }
 
 public extension Collection where Element: FloatingPoint {
-    /// The average value of all values in the collection. If the collection is empty it returns 0.
+    /// The average value of all values in the collection. If the collection is empty, it returns 0.
     func average() -> Element {
         guard !isEmpty else { return .zero }
         return reduce(.zero, +) / Element(count)
     }
 
-    /// The total sum value of all values in the collection. If the collection is empty it returns 0.
+    /// The total sum value of all values in the collection. If the collection is empty, it returns 0.
     func sum() -> Self.Element {
         reduce(0, +)
     }

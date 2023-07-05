@@ -139,7 +139,7 @@ public struct TimeDuration: Hashable, Sendable {
     }
 
     internal func value(for unit: Unit) -> Double {
-        return seconds / unit.calendarUnit.timeInterval!
+        return seconds / unit.calendarComponent.timeInterval!
     }
 
     internal func seconds(for value: Double, _ unit: Unit) -> Double {
@@ -203,7 +203,7 @@ public extension TimeDuration {
         case month
         /// Year
         case year
-        internal var calendarUnit: Calendar.Component {
+        internal var calendarComponent: Calendar.Component {
             switch self {
             case .nanoSecond: return .second
             case .millisecond: return .second
@@ -345,7 +345,7 @@ extension TimeDuration: CustomStringConvertible {
     public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
         let allowedUnits = allowedUnits.units(for: self)
         let formatter = self.formatter
-        formatter.allowedComponents = allowedUnits.compactMap { $0.calendarUnit }.uniqued()
+        formatter.allowedComponents = allowedUnits.compactMap { $0.calendarComponent }.uniqued()
         formatter.unitsStyle = style
         return formatter.string(from: TimeInterval(seconds))!
     }
