@@ -151,6 +151,7 @@ public extension String {
             case .listStars: return " * "
             case .listNumericDot: return ". "
             case .listNumericColon: return ": "
+            case .listNumeric: return " "
             default: return nil
             }
         }
