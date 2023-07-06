@@ -85,9 +85,11 @@ public extension Sequence where Element == String {
      */
     func joined(by option: String.JoinOptions) -> String {
         var strings = Array(self)
+        if let prefix = option.prefix {
+            strings = strings.compactMap({ prefix + $0 })
+        }
         if option.isNumeric {
-           strings = strings.enumerated().compactMap({ "\($0.offset + 1)\(option.lastSeperator ?? "") \($0.element)" })
-            return strings.joined(separator: option.seperator)
+           strings = strings.enumerated().compactMap({ "\($0.offset + 1)\($0.element)" })
         }
         if let lastSeperator = option.lastSeperator, strings.count >= 2 {
             let lastString = strings.removeLast()
@@ -95,7 +97,7 @@ public extension Sequence where Element == String {
             string = [string, lastString].joined(separator: lastSeperator)
             return string
         }
-        return self.joined(separator: option.seperator)
+        return strings.joined(separator: option.seperator)
     }
 }
 
@@ -129,10 +131,7 @@ public extension String {
         
         internal var seperator: String {
             switch self {
-            case .line: return "\n"
-            case .list: return "\n - "
-            case .listStars: return "\n * "
-            case .listNumeric, .listNumericDot, .listNumericColon: return "\n"
+            case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
             case .and: return " and "
             case .or: return " or "
@@ -146,13 +145,21 @@ public extension String {
             }
         }
         
+        internal var prefix: String? {
+            switch self {
+            case .list: return " - "
+            case .listStars: return " * "
+            case .listNumericDot: return ". "
+            case .listNumericColon: return ": "
+            default: return nil
+            }
+        }
+        
         internal var lastSeperator: String? {
             switch self {
             case .commaAnd: return " and "
             case .commaOr: return " or "
             case .commaAmpersand: return " & "
-            case .listNumericDot: return "."
-            case .listNumericColon: return ":"
             default: return nil
             }
         }
