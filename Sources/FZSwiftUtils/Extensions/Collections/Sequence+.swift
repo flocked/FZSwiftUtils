@@ -84,18 +84,76 @@ public extension Sequence where Element == String {
      - Returns: A single, concatenated string.
      */
     func joined(by option: String.JoinOptions) -> String {
+        var strings = Array(self)
+        if option.isNumeric {
+           strings = strings.enumerated().compactMap({ "\($0.offset)\(option.lastSeperator ?? "") \($0.element)" })
+            return strings.joined(separator: option.seperator)
+        }
+        if let lastSeperator = option.lastSeperator, strings.count >= 2 {
+            let lastString = strings.removeLast()
+            var string = strings.joined(separator: option.seperator)
+            string = [string, lastString].joined(separator: lastSeperator)
+            return string
+        }
         return self.joined(separator: option.seperator)
     }
 }
 
 public extension String {
     /// The option for joining string sequences.
-    enum JoinOptions {
+    enum JoinOptions: Int {
         /// Joined by adding lines.
         case line
+        /// Joined by adding comma's.
+        case comma
+        /// Joined by adding comma's and `and` to join the last string.
+        case commaAnd
+        /// Joined by adding comma's and `or` to join the last string.
+        case commaOr
+        /// Joined by adding comma's and `&` to join the last string.
+        case commaAmpersand
+        /// Joined by adding `and`.
+        case and
+        /// Joined by adding `or`.
+        case or
+        /// Joined by adding new lines and `-`.
+        case list
+        /// Joined by adding new lines and `*`.
+        case listStars
+        /// Joined by adding new lines and numbers.
+        case listNumeric
+        /// Joined by adding new lines and numbers.
+        case listNumericDot
+        /// Joined by adding new lines and numbers.
+        case listNumericColon
+        
         internal var seperator: String {
             switch self {
             case .line: return "\n"
+            case .list: return "\n - "
+            case .listStars: return "\n * "
+            case .listNumeric, .listNumericDot, .listNumericColon: return "\n"
+            case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
+            case .and: return " and "
+            case .or: return " or "
+            }
+        }
+        
+        internal var isNumeric: Bool {
+            switch self {
+            case .listNumeric, .listNumericDot, .listNumericColon: return true
+            default: return false
+            }
+        }
+        
+        internal var lastSeperator: String? {
+            switch self {
+            case .commaAnd: return " and "
+            case .commaOr: return " or "
+            case .commaAmpersand: return " & "
+            case .listNumericDot: return "."
+            case .listNumericColon: return ":"
+            default: return nil
             }
         }
     }
