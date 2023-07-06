@@ -35,13 +35,14 @@ public struct DataSize: Hashable, Sendable {
        - bytes: The size in bytes. Default is 0.
        - countStyle: The count style for formatting the data size. Default is `.file`.
      */
-    public init(terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
+    public init(petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
         self.bytes += self.bytes(for: kilobytes, .kilobyte)
         self.bytes += self.bytes(for: megabytes, .megabyte)
         self.bytes += self.bytes(for: gigabytes, .gigabyte)
         self.bytes += self.bytes(for: terabytes, .terabyte)
+        self.bytes += self.bytes(for: petabytes, .petabyte)
     }
 
     /// The count style for formatting the data size.
@@ -92,6 +93,57 @@ public struct DataSize: Hashable, Sendable {
     public static var zero: DataSize {
         return DataSize()
     }
+}
+
+public extension DataSize {
+    /**
+     Returns a data size with the specified bytes.
+     
+     - Parameters value: The bytes.
+     - Returns: `DataSize`with the specified bytes.
+     */
+    static func bytes(_ value: Int, countStyle: CountStyle = .file) -> Self { Self(bytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified kilobytes.
+     
+     - Parameters value: The kilobytes.
+     - Returns: `DataSize`with the specified kilobytes.
+     */
+    static func kilobytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(kilobytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified megabytes.
+     
+     - Parameters value: The megabytes.
+     - Returns: `DataSize`with the specified megabytes.
+     */
+    static func megabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(megabytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified gigabytes.
+     
+     - Parameters value: The gigabytes.
+     - Returns: `DataSize`with the specified gigabytes.
+     */
+    static func gigabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(gigabytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified terabytes.
+     
+     - Parameters value: The terabytes.
+     - Returns: `DataSize`with the specified terabytes.
+     */
+    static func terabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(terabytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified petabytes.
+     
+     - Parameters value: The petabytes.
+     - Returns: `DataSize`with the specified petabytes.
+     */
+    static func petabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(petabytes: value, countStyle: countStyle) }
+
 }
 
 extension DataSize: Codable {
@@ -289,6 +341,33 @@ extension DataSize: Comparable {
 
     public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes >= rhs.bytes
+    }
+}
+
+import ObjectiveC
+public extension Timer {
+    convenience init(fire: Date, interval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) {
+        self.init(fire: fire, interval: interval.seconds, repeats: repeats, block: block)
+    }
+    
+    convenience init(fireAt date: Date, interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
+        self.init(fireAt: date, interval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
+    }
+    
+    convenience init(timeInterval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) {
+        self.init(timeInterval: timeInterval.seconds, repeats: repeats, block: block)
+    }
+    
+    convenience init(timeInterval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
+        self.init(timeInterval: timeInterval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
+    }
+    
+    static func scheduledTimer(withTimeInterval timeInterval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) -> Timer {
+        return self.scheduledTimer(withTimeInterval: timeInterval.seconds, repeats: repeats, block: block)
+    }
+    
+    static func scheduledTimer(timeInterval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) -> Timer {
+        return self.scheduledTimer(timeInterval: timeInterval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
 }
 

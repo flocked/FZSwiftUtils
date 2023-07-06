@@ -72,7 +72,6 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     public func add(_ keyPaths: [PartialKeyPath<Object>], handler: @escaping ((_ keyPath: PartialKeyPath<Object>)->())) {
-        let names = keyPaths.compactMap({$0._kvcKeyPathString})
         for keyPath in keyPaths {
             if let name = keyPath._kvcKeyPathString {
                 self.add(name) { old, new in
@@ -176,7 +175,7 @@ public extension KeyValueObserver {
         }
         set {
             if let newValue = newValue {
-                guard let name = keyPath._kvcKeyPathString else { return }
+                guard keyPath._kvcKeyPathString != nil else { return }
                 self.add(keyPath, handler: newValue)
             } else {
                 self.remove(keyPath)
@@ -192,7 +191,7 @@ public extension KeyValueObserver {
         }
         set {
             if let newValue = newValue {
-                guard let name = keyPath._kvcKeyPathString else { return }
+                guard keyPath._kvcKeyPathString != nil else { return }
                 self.add(keyPath, handler: newValue)
             } else {
                 self.remove(keyPath)

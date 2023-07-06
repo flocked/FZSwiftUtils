@@ -36,15 +36,16 @@ public struct TimeDuration: Hashable, Sendable {
        - milliseconds: The duration in milliseconds. The default value is `0`.
        - seconds: The duration in seconds. The default value is `0`.
        - minutes: The duration in minutes. The default value is `0`.
+    - hours: The duration in hours. The default value is `0`.
        - days: The duration in days. The default value is `0`.
        - weeks: The duration in weeks. The default value is `0`.
        - months: The duration in months. The default value is `0`.
        - years: The duration in years. The default value is `0`.
      */
-    public init(nanoSeconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
+    public init(nanoseconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, hours: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
         self.seconds = seconds
         self.seconds += (milliseconds / 1000)
-        self.seconds += (nanoSeconds / 1_000_000_000)
+        self.seconds += (nanoseconds / 1_000_000_000)
         self.seconds += self.seconds(for: minutes, .minute)
         self.seconds += self.seconds(for: hours, .hour)
         self.seconds += self.seconds(for: days, .day)
@@ -61,12 +62,9 @@ public struct TimeDuration: Hashable, Sendable {
     public init(dateInterval: DateInterval) {
         seconds = dateInterval.start.timeIntervalSince(dateInterval.end)
     }
-
-    /// The duration in seconds.
-    public var seconds: Double
-
+    
     /// The duration in nanoSeconds.
-    public var nanoSeconds: Double {
+    public var nanoseconds: Double {
         get { milliseconds / 1_000_000 }
         set { milliseconds = newValue / 1_000_000 }
     }
@@ -76,6 +74,9 @@ public struct TimeDuration: Hashable, Sendable {
         get { seconds / 1000 }
         set { seconds = newValue / 1000 }
     }
+
+    /// The duration in seconds.
+    public var seconds: Double
 
     /// The duration in minutes.
     public var minutes: Double {
@@ -145,6 +146,80 @@ public struct TimeDuration: Hashable, Sendable {
     internal func seconds(for value: Double, _ unit: Unit) -> Double {
         return unit.convert(value, to: .second)
     }
+}
+
+public extension TimeDuration {
+    /**
+     Returns a time duration with the specified nanoseconds.
+     
+     - Parameters value: The nanoseconds.
+     - Returns: `TimeDuration`with the specified nanoseconds.
+     */
+    static func nanoseconds(_ value: Double) -> Self { return Self(nanoseconds: value) }
+    
+    /**
+     Returns a time duration with the specified milliseconds.
+     
+     - Parameters value: The milliseconds.
+     - Returns: `TimeDuration`with the specified milliseconds.
+     */
+    static func milliseconds(_ value: Double) -> Self { Self(milliseconds: value) }
+    
+    /**
+     Returns a time duration with the specified seconds.
+     
+     - Parameters value: The seconds.
+     - Returns: `TimeDuration`with the specified seconds.
+     */
+    static func seconds(_ value: Double) -> Self { Self(seconds: value) }
+    
+    /**
+     Returns a time duration with the specified minutes.
+     
+     - Parameters value: The minutes.
+     - Returns: `TimeDuration`with the specified minutes.
+     */
+    static func minutes(_ value: Double) -> Self { Self(minutes: value) }
+    
+    /**
+     Returns a time duration with the specified hours.
+     
+     - Parameters value: The hours.
+     - Returns: `TimeDuration`with the specified hours.
+     */
+    static func hours(_ value: Double) -> Self { Self(hours: value) }
+    
+    /**
+     Returns a time duration with the specified days.
+     
+     - Parameters value: The days.
+     - Returns: `TimeDuration`with the specified days.
+     */
+    static func days(_ value: Double) -> Self { Self(days: value) }
+    
+    /**
+     Returns a time duration with the specified weeks.
+     
+     - Parameters value: The weeks.
+     - Returns: `TimeDuration`with the specified weeks.
+     */
+    static func weeks(_ value: Double) -> Self { Self(weeks: value) }
+    
+    /**
+     Returns a time duration with the specified months.
+     
+     - Parameters value: The months.
+     - Returns: `TimeDuration`with the specified months.
+     */
+    static func months(_ value: Double) -> Self { Self(months: value) }
+        
+    /**
+     Returns a time duration with the specified years.
+     
+     - Parameters value: The years.
+     - Returns: `TimeDuration`with the specified years.
+     */
+    static func years(_ value: Double) -> Self { Self(years: value) }
 }
 
 public extension DateInterval {
