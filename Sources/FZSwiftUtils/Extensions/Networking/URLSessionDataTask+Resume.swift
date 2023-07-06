@@ -424,15 +424,18 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
     }
 
     
+    /*
     public func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping @Sendable (URLSession.DelayedRequestDisposition, URLRequest?) -> Void) {
         self.delegate?.urlSession?(session, task: task, willBeginDelayedRequest: request, completionHandler: completionHandler)
     }
+     */
     
     public func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask) {
         self.delegate?.urlSession?(session, taskIsWaitingForConnectivity: task)
     }
 
     
+    /*
     public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
         self.delegate?.urlSession?(session, task: task, willPerformHTTPRedirection: response, newRequest: request, completionHandler: completionHandler)
     }
@@ -445,6 +448,7 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
         self.delegate?.urlSession?(session, task: task, needNewBodyStream: completionHandler)
     }
+     */
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         self.delegate?.urlSession?(session, task: task, didSendBodyData: bytesSent, totalBytesSent: totalBytesSent, totalBytesExpectedToSend: totalBytesExpectedToSend)
@@ -499,9 +503,11 @@ extension URLSessionResumableDataTask: URLSessionDataDelegate {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
     }
     
+    /*
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping @Sendable (CachedURLResponse?) -> Void) {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, willCacheResponse: proposedResponse, completionHandler: completionHandler)
     }
+     */
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask) {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: streamTask)
@@ -511,9 +517,11 @@ extension URLSessionResumableDataTask: URLSessionDataDelegate {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
     }
     
+    /*
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
     }
+     */
 }
 
 @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
