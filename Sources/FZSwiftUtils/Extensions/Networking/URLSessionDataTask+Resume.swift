@@ -501,14 +501,13 @@ extension URLSessionResumableDataTask: URLSessionDataDelegate {
         }
         
         self.progress.updateEstimatedTimeRemaining(dateStarted: self.startDate)
-        if let resumableData = self.resumeData, let response = dataTask.response {
-            if ResumableData.isResumedResponse(response) {
-                  self.data = resumableData.data
-              }
-              self.resumeData = nil
-          }
-        
-        self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
+        if let resumableData = self.resumeData, let response = dataTask.response, ResumableData.isResumedResponse(response) {
+            self.data = resumableData.data
+            self.resumeData = nil
+        } else {
+            self.data += data
+            self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
+        }
     }
     
     /*
