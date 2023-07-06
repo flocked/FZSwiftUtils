@@ -496,6 +496,10 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
 @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 extension URLSessionResumableDataTask: URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        if let expectedFileSize = dataTask.expectedFileSize {
+            self.progress.totalUnitCount = Int64(expectedFileSize)
+        }
+        
         self.progress.updateEstimatedTimeRemaining(dateStarted: self.startDate)
         if let resumableData = self.resumeData, let response = dataTask.response {
             if ResumableData.isResumedResponse(response) {
@@ -521,13 +525,16 @@ extension URLSessionResumableDataTask: URLSessionDataDelegate {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
     }
     
-    
+    /*
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
         if let expectedFileSize = dataTask.expectedFileSize {
             self.progress.totalUnitCount = Int64(expectedFileSize)
         }
+        
+        completionHandler(.allow)
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
     }
+     */
      
 }
 
