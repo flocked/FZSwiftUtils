@@ -100,7 +100,7 @@ public extension URLSession {
      - Throws: Throws when the data couln't be downloaded.
      - Returns: Returns the downloaded data  and the response metadata.
      */
-    func downloadData(with request: URLRequest, retryAmount: Int, retryInterval: TimeInterval = 15.0 ) throws -> (data: Data, response: URLResponse?) {
+    func downloadData(with request: URLRequest, retryAmount: Int, retryInterval: TimeDuration = .seconds(15.0) ) throws -> (data: Data, response: URLResponse?) {
         var data: Data?
         var response: URLResponse?
         var error: Error?
@@ -209,7 +209,7 @@ public class URLSessionResumableDataTask: NSObject {
      
      The number of seconds between retrying downloading data. A value of nil will instantly retry downloading it.
      */
-    public var retryInterval: TimeInterval? = 15.0
+    public var retryInterval: TimeDuration? = .seconds(15.0)
     
     /// A representation of the overall task progress.
     public var progress: Progress {
