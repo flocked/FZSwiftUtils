@@ -460,6 +460,10 @@ extension TimeDuration: Comparable {
     public static func += (lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
     }
+    
+    public static func += (lhs: inout Self, rhs: Double) {
+        lhs = lhs + Self(rhs)
+    }
 
     public static func - (lhs: Self, rhs: Self) -> Self {
         var seconds = lhs.seconds - rhs.seconds
