@@ -137,6 +137,7 @@ public class URLSessionResumableDataTask: NSObject {
      */
     public func cancel() {
         dataTask.cancel()
+        self.stateHandler?(self.state)
     }
 
     /**
@@ -145,8 +146,8 @@ public class URLSessionResumableDataTask: NSObject {
      Newly-initialized tasks begin in a suspended state, so you need to call this method to start the task.
      */
     public func resume() {
-        self.startDate = Date()
-        if self.state == .suspended || self.state == .canceling {
+        guard (self.state == .suspended || self.state == .canceling) else { return }
+            self.startDate = Date()
             if let retryCount = retryCount, retryCount < 0 {
                 self.retryCount = self.retryAmount
             }
@@ -154,11 +155,13 @@ public class URLSessionResumableDataTask: NSObject {
             if let updatedRequest = requestUpdateHandler?() {
                 self.currentRequest = updatedRequest
             }
-            if self.state == .canceling, self.resumeData != nil, let session = session, let request = self.currentRequest {
+            
+            if let resumeData = self.resumeData, let session = session, var request = self.currentRequest {
+                resumeData.resume(request: &request)
                 self.dataTask = session.dataTask(with: request)
             }
             dataTask.resume()
-        }
+            stateHandler?(self.state)
     }
     
     /**
@@ -168,6 +171,7 @@ public class URLSessionResumableDataTask: NSObject {
      */
     public func suspend() {
         dataTask.suspend()
+        self.stateHandler?(self.state)
     }
     
     /// The current state of the task—active, suspended, in the process of being canceled, or completed.
@@ -387,6 +391,12 @@ public class URLSessionResumableDataTask: NSObject {
         set { dataTask.earliestBeginDate = newValue }
     }
     
+    public var stateHandler: ((URLSessionTask.State)->())? = nil
+    public var didReceiveDataHandler: ((Data)->())? = nil
+    public var completionHandler: CompletionHandler? = nil
+    
+    public typealias CompletionHandler = ((_ data: Data?, _ resumeData: URLSessionResumableDataTask.ResumableData?, _ response: URLResponse?, _ error: Error?) -> ())
+    
     internal init(dataTask: URLSessionDataTask, resumeData: ResumableData? = nil, session: URLSession? = nil, completionHandler: CompletionHandler? = nil) {
         self.resumeData = resumeData
         self.dataTask = dataTask
@@ -397,10 +407,7 @@ public class URLSessionResumableDataTask: NSObject {
         dataTask.delegate = self
     }
     
-    internal var completionHandler: CompletionHandler? = nil
     internal var startDate = Date()
-
-    internal typealias CompletionHandler = ((_ data: Data?, _ resumeData: URLSessionResumableDataTask.ResumableData?, _ response: URLResponse?, _ error: Error?) -> ())
         
     internal var dataDelegate: URLSessionDataDelegate? {
         self.delegate as? URLSessionDataDelegate
@@ -485,10 +492,12 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
                 self.retryCount = self.retryAmount
                 completionHandler?(nil, resumableData, response, error)
                 delegate?.urlSession?(session, task: task, didCompleteWithError: error)
+                self.stateHandler?(self.state)
             }
         } else {
             completionHandler?(data.isEmpty ? nil : data, nil, response, error)
             delegate?.urlSession?(session, task: task, didCompleteWithError: error)
+            self.stateHandler?(self.state)
         }
     }
 }
@@ -506,6 +515,7 @@ extension URLSessionResumableDataTask: URLSessionDataDelegate {
             self.resumeData = nil
         } else {
             self.data += data
+            self.didReceiveDataHandler?(data)
             self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: data)
         }
     }
@@ -555,6 +565,13 @@ public extension URLSessionResumableDataTask {
             }
             self.data = data
             self.validator = validator
+        }
+        
+        public func resume(request: inout URLRequest) {
+            var headers = request.allHTTPHeaderFields ?? [:]
+            headers["Range"] = "bytes=\(data.count)-"
+            headers["If-Range"] = validator
+            request.allHTTPHeaderFields = headers
         }
 
         private static func validator(from response: HTTPURLResponse) -> String? {
