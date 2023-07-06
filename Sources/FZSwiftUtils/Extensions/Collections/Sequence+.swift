@@ -86,7 +86,7 @@ public extension Sequence where Element == String {
     func joined(by option: String.JoinOptions) -> String {
         var strings = Array(self)
         if option.isNumeric {
-           strings = strings.enumerated().compactMap({ "\($0.offset)\(option.lastSeperator ?? "") \($0.element)" })
+           strings = strings.enumerated().compactMap({ "\($0.offset + 1)\(option.lastSeperator ?? "") \($0.element)" })
             return strings.joined(separator: option.seperator)
         }
         if let lastSeperator = option.lastSeperator, strings.count >= 2 {
