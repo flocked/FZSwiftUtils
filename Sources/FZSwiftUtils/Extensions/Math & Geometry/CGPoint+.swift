@@ -15,6 +15,10 @@ public extension CGPoint {
         self.init(x: x, y: y)
     }
 
+    /// Creates a point with the specified x and y value.
+    init(_ xY: CGFloat) {
+        self.init(x: xY, y: xY)
+    }
     
     /**
      Returns a new CGPoint by offsetting the current point by the specified offset.

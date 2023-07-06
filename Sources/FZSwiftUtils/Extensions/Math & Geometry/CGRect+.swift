@@ -23,6 +23,11 @@ public extension CGRect {
     init(size: CGSize) {
         self.init(x: 0, y: 0, width: size.width, height: size.height)
     }
+    
+    /// Creates a rect with the specified size.
+    init(size: CGFloat) {
+        self.init(x: 0, y: 0, width: size, height: size)
+    }
 
     /**
      Initializes a CGRect with the specified point and size.

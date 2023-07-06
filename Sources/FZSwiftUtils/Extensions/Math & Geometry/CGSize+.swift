@@ -13,6 +13,11 @@ public extension CGSize {
     init(_ width: CGFloat, _ height: CGFloat) {
         self.init(width: width, height: height)
     }
+    
+    /// Creates a size with the specified width and height.
+    init(_ widthHeight: CGFloat) {
+        self.init(width: widthHeight, height: widthHeight)
+    }
 
     /**
      Returns the scaled integral size of the size.
