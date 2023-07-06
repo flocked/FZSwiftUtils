@@ -36,15 +36,15 @@ public extension Progress {
         let unitsPerSecond = completedUnitCount.quotientAndRemainder(dividingBy: Int64(elapsedTime)).quotient
         let throughput = Int(unitsPerSecond)
         let unitsRemaining = totalUnitCount - completedUnitCount
-        let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
-        
-        setUserInfoObject(throughput, forKey: .throughputKey)
         
         guard throughput > 0 else {
             setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
             return
         }
         
+        let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
+        
+        setUserInfoObject(throughput, forKey: .throughputKey)
         setUserInfoObject(TimeInterval(secondsRemaining), forKey: .estimatedTimeRemainingKey)
         estimatedTimeRemaining = TimeInterval(secondsRemaining)
     }
