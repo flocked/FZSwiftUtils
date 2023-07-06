@@ -163,6 +163,22 @@ public extension String {
          */
         case or
         /**
+         Joined by adding `/`.
+         
+         ```
+         Apple / Orange / Banana
+         ```
+         */
+        case slash
+        /**
+         Joined by adding `\`.
+         
+         ```
+         Apple \ Orange \ Banana
+         ```
+         */
+        case backslash
+        /**
          Joined by adding new lines and `-`.
          
          ```
@@ -219,6 +235,8 @@ public extension String {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
             case .and: return " and "
+            case .slash: return " / "
+            case .backslash: return " \\ "
             case .or: return " or "
             }
         }
