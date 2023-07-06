@@ -104,29 +104,114 @@ public extension Sequence where Element == String {
 public extension String {
     /// The option for joining string sequences.
     enum JoinOptions: Int {
-        /// Joined by adding lines.
+        /**
+         Joined by adding lines.
+         
+         ```
+         Apple
+         Orange
+         Banana
+         ```
+         */
         case line
-        /// Joined by adding comma's.
+        /**
+         Joined by adding comma's.
+         
+         ```
+         Apple, Orange, Strawberry, Banana
+         ```
+         */
         case comma
-        /// Joined by adding comma's and `and` to join the last string.
+        /**
+         Joined by adding comma's and `and` to join the last string.
+         
+         ```
+         Apple, Orange, Strawberry and Banana
+         ```
+         */
         case commaAnd
-        /// Joined by adding comma's and `or` to join the last string.
+        /**
+         Joined by adding comma's and `or` to join the last string.
+         
+         ```
+         Apple, Orange, Strawberry or Banana
+         ```
+         */
         case commaOr
-        /// Joined by adding comma's and `&` to join the last string.
+        /**
+         Joined by adding comma's and `&` to join the last string.
+         
+         ```
+         Apple, Orange, Strawberry & Banana
+         ```
+         */
         case commaAmpersand
-        /// Joined by adding `and`.
+        /**
+         Joined by adding `and`.
+         
+         ```
+         Apple and Orange and Banana
+         ```
+         */
         case and
-        /// Joined by adding `or`.
+        /**
+         Joined by adding `or`.
+         
+         ```
+         Apple or Orange or Banana
+         ```
+         */
         case or
-        /// Joined by adding new lines and `-`.
+        /**
+         Joined by adding new lines and `-`.
+         
+         ```
+          - Apple
+          - Orange
+          - Banana
+         ```
+         */
         case list
-        /// Joined by adding new lines and `*`.
+        /**
+         Joined by adding new lines and `*`.
+         
+         ```
+          * Apple
+          * Orange
+          * Banana
+         ```
+         */
         case listStars
         /// Joined by adding new lines and numbers.
+        /**
+         Joined by adding new lines and numbers.
+         
+         ```
+         1 Apple
+         2 Orange
+         3 Banana
+         ```
+         */
         case listNumeric
-        /// Joined by adding new lines and numbers.
+        /**
+         Joined by adding new lines and numbers with dots.
+         
+         ```
+         1. Apple
+         2. Orange
+         3. Banana
+         ```
+         */
         case listNumericDot
-        /// Joined by adding new lines and numbers.
+        /**
+         Joined by adding new lines and numbers with colons.
+         
+         ```
+         1: Apple
+         2: Orange
+         3: Banana
+         ```
+         */
         case listNumericColon
         
         internal var seperator: String {
