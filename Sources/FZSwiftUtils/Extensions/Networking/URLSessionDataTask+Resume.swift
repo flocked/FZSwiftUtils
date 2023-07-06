@@ -145,6 +145,7 @@ public class URLSessionResumableDataTask: NSObject {
      Newly-initialized tasks begin in a suspended state, so you need to call this method to start the task.
      */
     public func resume() {
+        self.startDate = Date()
         if self.state == .suspended || self.state == .canceling {
             if let retryCount = retryCount, retryCount < 0 {
                 self.retryCount = self.retryAmount
@@ -397,6 +398,8 @@ public class URLSessionResumableDataTask: NSObject {
     }
     
     internal var completionHandler: CompletionHandler? = nil
+    internal var startDate = Date()
+
     internal typealias CompletionHandler = ((_ data: Data?, _ resumeData: URLSessionResumableDataTask.ResumableData?, _ response: URLResponse?, _ error: Error?) -> ())
         
     internal var dataDelegate: URLSessionDataDelegate? {
@@ -493,6 +496,7 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
 @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 extension URLSessionResumableDataTask: URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        self.progress.updateEstimatedTimeRemaining(dateStarted: self.startDate)
         if let resumableData = self.resumeData, let response = dataTask.response {
             if ResumableData.isResumedResponse(response) {
                   self.data = resumableData.data
@@ -517,11 +521,14 @@ extension URLSessionResumableDataTask: URLSessionDataDelegate {
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didBecome: downloadTask)
     }
     
-    /*
+    
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping @Sendable (URLSession.ResponseDisposition) -> Void) {
+        if let expectedFileSize = dataTask.expectedFileSize {
+            self.progress.totalUnitCount = Int64(expectedFileSize)
+        }
         self.dataDelegate?.urlSession?(session, dataTask: dataTask, didReceive: response, completionHandler: completionHandler)
     }
-     */
+     
 }
 
 @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
@@ -564,5 +571,16 @@ public extension URLSessionResumableDataTask {
         public static func isResumedResponse(_ response: URLResponse) -> Bool {
             return (response as? HTTPURLResponse)?.statusCode == 206
         }
+    }
+}
+
+fileprivate extension URLSessionDataTask {
+    var expectedFileSize: Int64? {
+        var fileSize = self.countOfBytesExpectedToReceive
+        if fileSize < 1 {
+            fileSize = response?.expectedContentLength ?? fileSize
+        }
+        guard fileSize > 0 else { return nil }
+        return fileSize
     }
 }
