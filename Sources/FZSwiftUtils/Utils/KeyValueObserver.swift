@@ -31,11 +31,12 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      Adds an observer for the specified keypath which calls the specified handler.
      
      - Parameters keyPath: The keypath to the value to observe.
-     - Parameters handler: The handler to be called when the keypath values changes.
+     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters handler: The handler to be called whenever the keypath value changes.
      */
-    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
-        self.add(name) { old, new in
+        self.add(name, sendInitalValue: sendInitalValue) { old, new in
             guard let old = old as? Value, let new = new as? Value, old != new else { return }
             handler(old, new)
         }
@@ -45,12 +46,13 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      Adds an observer for the specified keypath which calls the specified handler.
      
      - Parameters keyPath: The keypath to the value to observe.
-     - Parameters handler: The handler to be called when the keypath values changes.
+     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters handler: The handler to be called whenever the keypath value changes.
      */
-    public func add<Value>(_ keyPath: KeyPath<Object, Value>, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    public func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
         
-        self.add(name) { old, new in
+        self.add(name, sendInitalValue: sendInitalValue) { old, new in
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(old, new)
         }
@@ -60,17 +62,25 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      Adds an observer for the specified keypath which calls the specified handler.
      
      - Parameters keyPath: The keypath to the value to observe.
-     - Parameters handler: The handler to be called when the keypath values changes.
+     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters handler: The handler to be called whenever the keypath value changes.
      */
-    public func add(_ keypath: String, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
+    public func add(_ keypath: String, sendInitalValue: Bool = false, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
         if (observers[keypath] == nil) {
             observers[keypath] = handler
-            observedObject?.addObserver(self, forKeyPath: keypath, options: [.old, .new], context: nil)
+            let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
+            observedObject?.addObserver(self, forKeyPath: keypath, options: options, context: nil)
         } else {
             observers[keypath] = handler
         }
     }
     
+    /**
+     Adds observers for the specified keypaths which calls the specified handler whenever any of the keypaths properties changes.
+     
+     - Parameters keyPaths: The keypaths to the values to observe.
+     - Parameters handler: The handler to be called whenever any of keypaths values changes.
+     */
     public func add(_ keyPaths: [PartialKeyPath<Object>], handler: @escaping ((_ keyPath: PartialKeyPath<Object>)->())) {
         for keyPath in keyPaths {
             if let name = keyPath._kvcKeyPathString {
