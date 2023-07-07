@@ -131,9 +131,17 @@ public extension Progress {
         progress.isPausable = (pauseHandler != nil)
         progress.isCancellable = (cancellationHandler != nil)
         progress.pausingHandler = pauseHandler
+        progress.setUserInfoObject(nil, forKey: .fileURLKey)
         progress.cancellationHandler = cancellationHandler
         progress.totalUnitCount = Int64(size?.bytes ?? 0)
         progress.publish()
         return progress
     }
+}
+
+public extension ProgressUserInfoKey {
+    /**
+     A key with a corresponding value that represents the start date of the progress.
+     */
+    static let startedDateKey = ProgressUserInfoKey("startedDate")
 }
