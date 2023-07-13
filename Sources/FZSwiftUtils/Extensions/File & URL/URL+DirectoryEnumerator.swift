@@ -1,6 +1,6 @@
 //
-//  URL+DirectoryIrator.swift
-//  ImageViewer
+//  URL+DirectoryEnumerator.swift
+//  
 //
 //  Created by Florian Zand on 02.08.22.
 //  Copyright © 2022 MuffinStory. All rights reserved.

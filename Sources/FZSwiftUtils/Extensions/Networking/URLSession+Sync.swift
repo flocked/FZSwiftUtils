@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  URLSession+Sync.swift
 //
 //
 //  Created by Florian Zand on 23.02.23.

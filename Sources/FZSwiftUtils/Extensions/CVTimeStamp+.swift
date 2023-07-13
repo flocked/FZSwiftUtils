@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  CVTimeStamp+.swift
 //
 //
 //  Created by Florian Zand on 23.08.22.

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Collection+Flat.swift
 //
 //
 //  Created by Florian Zand on 04.05.23.

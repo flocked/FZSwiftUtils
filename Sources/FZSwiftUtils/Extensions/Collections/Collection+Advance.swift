@@ -1,5 +1,5 @@
 //
-//  Array+.swift
+//  Collection+Advance.swift
 //  ImageViewer
 //
 //  Created by Florian Zand on 02.08.22.

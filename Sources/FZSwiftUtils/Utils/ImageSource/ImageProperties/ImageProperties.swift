@@ -1,6 +1,6 @@
 //
 //  ImageProperties.swift
-//  ATest
+//  
 //
 //  Created by Florian Zand on 02.06.22.
 //

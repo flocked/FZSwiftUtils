@@ -2,8 +2,10 @@
 //  OrderedSet.swift
 //
 //
+// Parts taken from:
 //  Created by 1024jp on 2016-03-21.
-//  © 2017-2022 1024jp
+//  Created by Florian Zand on 15.10.21.
+//
 
 struct OrderedSet<Element: Hashable>: RandomAccessCollection {
     typealias Index = Array<Element>.Index

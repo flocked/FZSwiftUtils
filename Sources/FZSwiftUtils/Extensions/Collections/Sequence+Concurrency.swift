@@ -1,5 +1,5 @@
 /**
- *  CollectionConcurrencyKit
+ *  Sequence+Concurrency
  *  Copyright (c) John Sundell 2021
  */
 

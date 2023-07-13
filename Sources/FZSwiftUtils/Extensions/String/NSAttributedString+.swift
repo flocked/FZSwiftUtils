@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NSAttributedString+.swift
 //
 //
 //  Created by Florian Zand on 03.09.22.

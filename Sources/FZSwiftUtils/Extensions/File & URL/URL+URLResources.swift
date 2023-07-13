@@ -1,6 +1,6 @@
 //
 //  URL+Resource.swift
-//  FinalImageCollectionView
+//  
 //
 //  Created by Florian Zand on 25.12.21.
 //

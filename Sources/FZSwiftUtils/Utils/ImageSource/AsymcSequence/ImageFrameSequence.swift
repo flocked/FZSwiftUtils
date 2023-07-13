@@ -1,6 +1,6 @@
 //
-//  FrameSequence.swift
-//  ATest
+//  ImageFrameSequence.swift
+//  
 //
 //  Created by Florian Zand on 03.06.22.
 //

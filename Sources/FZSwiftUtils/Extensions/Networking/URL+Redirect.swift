@@ -1,6 +1,6 @@
 //
 //  URLRedirect.swift
-//  Recurbate
+//  
 //
 //  Created by Florian Zand on 09.12.22.
 //

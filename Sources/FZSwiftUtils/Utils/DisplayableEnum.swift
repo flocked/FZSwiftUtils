@@ -1,6 +1,6 @@
 //
 //  DisplayableEnum.swift
-//  DisplayableEnum
+//  
 //
 //  Created by Boinx on 29.08.22.
 //

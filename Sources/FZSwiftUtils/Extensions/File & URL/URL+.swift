@@ -1,5 +1,5 @@
 //
-//  URL+Extension.swift
+//  URL+.swift
 //  FZCollection
 //
 //  Created by Florian Zand on 07.05.22.

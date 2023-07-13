@@ -1,6 +1,6 @@
 //
-//  InfoPlist.swift
-//  ATest
+//  ApplicationInfo.swift
+//  
 //
 //  Created by Florian Zand on 15.01.22.
 //

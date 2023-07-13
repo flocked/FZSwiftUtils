@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  FileManager+.swift
 //
 //
 //  Created by Florian Zand on 24.01.23.
@@ -8,6 +8,11 @@
 import Foundation
 
 public extension FileManager {
+    /// An enumeration of file manager errors.
+    enum Errors: Error {
+        /// An error that occures if a file coudln't be moved to trash.
+        case moveToTrashError
+    }
     /**
      Moves an item to the trash.
      
@@ -17,10 +22,13 @@ public extension FileManager {
      - Returns: Returns the url of the trashed item if itl was successfully moved to the trash, or `nil` if the item was not moved to the trash.
      */
     @discardableResult
-    func trashItem(at url: URL) throws -> URL? {
+    func trashItem(at url: URL) throws -> URL {
         var trashedFileURL: NSURL? = nil
         try self.trashItem(at: url, resultingItemURL: &trashedFileURL)
-        return trashedFileURL as? URL
+        guard let fileURL = trashedFileURL as? URL else {
+            throw Errors.moveToTrashError
+        }
+        return fileURL
     }
     
     /**
@@ -72,6 +80,15 @@ public extension FileManager {
         return nil
     }
 #endif
+    /**
+     Returns a Boolean value that indicates whether a file or directory exists at a specified url.
+     
+     - Parameters url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with expandingTildeInPath, or this method will return false.
+     - Returns:true if a file or directory at the specified url exists, or false if the file or directory does not exist or its existence could not be determined.
+     */
+    func fileExists(at url: URL) -> Bool {
+        return fileExists(atPath: url.path)
+    }
     
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified path.
@@ -84,15 +101,6 @@ public extension FileManager {
         return fileExists(atPath: path, isDirectory: &isDir)
     }
     
-    /**
-     Returns a Boolean value that indicates whether a file or directory exists at a specified url.
-     
-     - Parameters url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with expandingTildeInPath, or this method will return false.
-     - Returns:true if a file or directory at the specified url exists, or false if the file or directory does not exist or its existence could not be determined.
-     */
-    func fileExists(at url: URL) -> Bool {
-        return fileExists(atPath: url.path)
-    }
     
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified url.

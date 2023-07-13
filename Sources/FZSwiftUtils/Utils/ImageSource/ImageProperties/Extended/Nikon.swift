@@ -1,3 +1,11 @@
+//
+//  ImageProperties+Nikon.swift
+//
+//
+//  Created by Florian Zand on 02.06.22.
+//
+
+
 import Foundation
 
 public extension ImageProperties {

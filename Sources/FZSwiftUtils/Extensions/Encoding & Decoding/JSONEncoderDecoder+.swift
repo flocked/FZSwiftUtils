@@ -1,5 +1,5 @@
 //
-//  JSONEncoder+.swift
+//  JSONEncoderDecoder+.swift
 //  FZCollection
 //
 //  Created by Florian Zand on 02.06.22.

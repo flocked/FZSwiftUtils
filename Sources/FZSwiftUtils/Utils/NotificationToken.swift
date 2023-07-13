@@ -1,6 +1,6 @@
 //
 //  NotificationToken.swift
-//  NotificationToken
+//  
 //
 //  Created by Florian Zand on 10.02.23.
 //

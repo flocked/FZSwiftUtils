@@ -1,6 +1,6 @@
 //
-//  Number+Clamp.swift
-//  FZExtensions
+//  Comparable+Clamp.swift
+//  
 //
 //  Created by Florian Zand on 06.06.22.
 //

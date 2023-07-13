@@ -1,5 +1,5 @@
 //
-//  Dictionary+Operator.swift
+//  Dictionary+Merge.swift
 //
 //
 //  Created by Florian Zand on 23.08.22.

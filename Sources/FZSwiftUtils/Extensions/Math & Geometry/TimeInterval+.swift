@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  TimeInterval+.swift
 //
 //
 //  Created by Florian Zand on 26.08.22.

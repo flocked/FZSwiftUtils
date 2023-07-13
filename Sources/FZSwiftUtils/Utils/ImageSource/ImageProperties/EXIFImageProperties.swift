@@ -1,6 +1,6 @@
 //
-//  EXIF.swift
-//  ATest
+//  EXIFImageProperties.swift
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //

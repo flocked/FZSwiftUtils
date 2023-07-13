@@ -1,6 +1,6 @@
 //
-//  NewOptions.swift
-//  ATest
+//  ImageOptions.swift
+//  
 //
 //  Created by Florian Zand on 03.06.22.
 //

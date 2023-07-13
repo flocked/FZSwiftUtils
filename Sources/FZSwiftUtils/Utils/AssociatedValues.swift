@@ -1,8 +1,10 @@
 //
 //  AssociatedValue.swift
 //
-//  From github.com/bradhilton/AssociatedValues
+//  Parts taken from:
+//  github.com/bradhilton/AssociatedValues
 //  Created by Skyvive
+//  Created by Florian Zand on 23.02.23.
 //
 
 import Foundation

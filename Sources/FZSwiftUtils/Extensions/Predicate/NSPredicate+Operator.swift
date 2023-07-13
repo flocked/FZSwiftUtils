@@ -1,5 +1,5 @@
 //
-//  NSPredicate+.swift
+//  NSPredicate+Operator+.swift
 //
 //
 //  Created by Florian Zand on 16.03.23.

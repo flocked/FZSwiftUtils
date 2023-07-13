@@ -1,6 +1,6 @@
 //
 //  DataSize.swift
-//  DataSize
+//
 //
 //  Created by Florian Zand on 19.01.23.
 //

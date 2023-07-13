@@ -1,9 +1,11 @@
 //
 //  SynchronizedArray.swift
-//  DMSwift
 //
+//  Parts taken from:
 //  Created by Sherzod Khashimov on 10/4/19.
 //  Copyright © 2019 Sherzod Khashimov. All rights reserved.
+//
+//  Created by Florian Zand on 15.10.21.
 //
 
 import Foundation

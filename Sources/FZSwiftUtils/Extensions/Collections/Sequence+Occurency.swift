@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Sequence+Occurency.swift
 //  
 //
 //  Created by Florian Zand on 01.06.23.

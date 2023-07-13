@@ -1,5 +1,5 @@
 //
-//  Set+Remove.swift
+//  Set+.swift
 //  NewImageViewer
 //
 //  Created by Florian Zand on 15.09.22.

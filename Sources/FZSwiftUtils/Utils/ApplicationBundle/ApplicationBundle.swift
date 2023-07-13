@@ -1,6 +1,6 @@
 //
 //  ApplicationBundle.swift
-//  ATest
+//  
 //
 //  Created by Florian Zand on 15.01.22.
 //

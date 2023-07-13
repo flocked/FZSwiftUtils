@@ -1,6 +1,6 @@
 //
 //  OSHash.swift
-//  OSHash
+//
 //
 //  Created by Florian Zand on 04.04.2023
 //

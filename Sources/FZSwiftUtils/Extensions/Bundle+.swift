@@ -1,6 +1,6 @@
 //
-//  Bundle+Extension.swift
-//  ATest
+//  Bundle+.swift
+//  
 //
 //  Created by Florian Zand on 21.01.22.
 //

@@ -2,8 +2,9 @@
 //  NSRange+.swift
 //
 //
-//  Created by 1024jp on 2023-02-15.
-//  © 2023 1024jp
+//  Created by Florian Zand on 06.06.22.
+//
+
 
 import Foundation
 

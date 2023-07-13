@@ -1,6 +1,6 @@
 //
 //  ArrayBase.swift
-//  Selectable
+//  
 //
 //  Created by Florian Zand on 15.10.21.
 //

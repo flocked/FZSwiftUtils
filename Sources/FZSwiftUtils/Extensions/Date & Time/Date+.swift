@@ -1,6 +1,6 @@
 //
-//  Date.swift
-//  FZExtensions
+//  Date+.swift
+//  
 //
 //  Created by Florian Zand on 07.06.22.
 //

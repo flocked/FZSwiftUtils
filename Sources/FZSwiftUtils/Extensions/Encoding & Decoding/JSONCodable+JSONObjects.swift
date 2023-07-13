@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  JSONCodable+JSONObjects.swift
 //
 //
 //  Created by Florian Zand on 05.02.23.

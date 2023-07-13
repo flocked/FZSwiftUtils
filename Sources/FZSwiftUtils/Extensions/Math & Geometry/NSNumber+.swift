@@ -1,6 +1,6 @@
 //
 //  NSNumber+.swift
-//  FZExtensions
+//  
 //
 //  Created by Florian Zand on 06.06.22.
 //

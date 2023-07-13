@@ -1,9 +1,10 @@
 //
-//  String+NSRange.swift
+//  NSString+.swift
 //
 //
+//  Parts dopted from:
 //  Created by 1024jp on 2016-06-25.
-//  © 2016-2023 1024jp
+//  Created by Florian Zand on 03.09.22.
 
 import Foundation.NSString
 

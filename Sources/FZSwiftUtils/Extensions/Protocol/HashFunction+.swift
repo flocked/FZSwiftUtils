@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  HashFunction+.swift
 //
 //
 //  Created by Florian Zand on 22.09.22.

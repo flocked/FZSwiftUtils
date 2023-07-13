@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Sequence+KeyPath.swift
 //
 //
 //  Created by Florian Zand on 19.05.23.

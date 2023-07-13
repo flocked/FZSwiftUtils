@@ -1,6 +1,6 @@
 //
 //  OutlineItem.swift
-//  OutlineItem
+//  
 //
 //  Created by Florian Zand on 06.11.21.
 //

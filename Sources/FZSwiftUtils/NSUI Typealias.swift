@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Progress+.swift
 //
 //
 //  Created by Florian Zand on 23.08.22.
