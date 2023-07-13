@@ -12,7 +12,7 @@ dataSize.countStyle = .file // Specifies display of file or storage byte counts
 dataSize.megabyte // 1500 megabytes
 dataSize.terabyte += 1
 dataSize.string(includesUnit: true) // 1tb, 500mb
-dataSize.string(for: .terabyte, includesUnit: false) // 1500
+dataSize.string(for: .terabyte, includesUnit: false) // 1,5
 ```
 
 ### TimeDuration
@@ -23,7 +23,3 @@ duration.minutes += 2
 duration.string(style: .full) // 2 minutes, 1 seconds
 duration.string(for: .seconds) =  121 seconds
 ```
-
-
-
-     See ``ViewAnimator`` for a list of supported animatable properties on `UIView`.
