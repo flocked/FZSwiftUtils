@@ -22,14 +22,14 @@ public extension DateFormatter {
     
     /// /// The date formatter used for parsing ISO8601 dates, i.e. "2021-02-25T05:34:47+00:00".
     static var iso8601: DateFormatter {
-        var formatter = DateFormatter("yyyy-MM-dd'T'HH:mm:ssZ")
+        let formatter = DateFormatter("yyyy-MM-dd'T'HH:mm:ssZ")
         formatter.calendar = Calendar(identifier: .iso8601)
         return formatter
     }
     
     /// The date formatter used for parsing Zulu dates, i.e. "2021-02-03T20:19:55.317Z".
     static var zulu: DateFormatter {
-        var formatter = DateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ")
+        let formatter = DateFormatter("yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ")
         formatter.calendar = Calendar(identifier: .iso8601)
         return formatter
     }
