@@ -21,6 +21,8 @@ public extension URL {
 
     /// An object for reading and writing extended attributes of a file system resource.
     class ExtendedAttributes {
+        public typealias Key = String
+
         /// The url of the file system resource.
         public private(set) var url: URL
         
@@ -33,7 +35,7 @@ public extension URL {
             self.url = url
         }
 
-        public subscript<T>(key: String, initalValue: T? = nil) -> T? {
+        public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
                 if let value: T = extendedAttribute(for: key) {
                     return value
@@ -49,7 +51,7 @@ public extension URL {
             }
             set { try? setExtendedAttribute(newValue, for: key) }
         }
-        
+
         /**
          Sets an attribute to a value.
          
@@ -57,7 +59,7 @@ public extension URL {
          - Parameters key: The name of the attribute.
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
-        public func setExtendedAttribute<T>(_ value: T?, for key: String) throws {
+        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
             if let value = value {
                 let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
                 try setExtendedAttributeData(data, for: key)
@@ -65,7 +67,7 @@ public extension URL {
                 try removeExtendedAttribute(key)
             }
         }
-        
+
         /**
          The value of an key.
          
@@ -73,7 +75,7 @@ public extension URL {
          
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
-        public func extendedAttribute<T>(for key: String) -> T? {
+        public func extendedAttribute<T>(for key: Key) -> T? {
             if let data = extendedAttributeData(for: key),
                let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
                let value = any as? T
@@ -91,7 +93,7 @@ public extension URL {
          
          - Throws: Throws if the value couldn't be removed.
          */
-        public func removeExtendedAttribute(_ key: String) throws {
+        public func removeExtendedAttribute(_ key: Key) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = removexattr(fileSystemPath, key, 0)
                 guard result >= 0 else { throw NSError.posix(errno) }
@@ -105,7 +107,7 @@ public extension URL {
          
          - Returns: True if the attribute exists, or false if it isn't.
          */
-        public func hasExtendedAttribute(_ key: String) -> Bool {
+        public func hasExtendedAttribute(_ key: Key) -> Bool {
             let result = url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Bool in
                 let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
@@ -116,7 +118,7 @@ public extension URL {
         }
 
         /// A dictionary of all attributes.
-        public func allExtendedAttributes() throws -> [String: Any] {
+        public func allExtendedAttributes() throws -> [Key: Any] {
             let keys = try listExtendedAttributes()
             var values: [String: Any] = [:]
             for key in keys {
@@ -130,7 +132,7 @@ public extension URL {
         }
 
         /// An array of all attribute names.
-        public func listExtendedAttributes() throws -> [String] {
+        public func listExtendedAttributes() throws -> [Key] {
             let list = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> [String] in
 
@@ -160,7 +162,7 @@ public extension URL {
             return list
         }
         
-        private func extendedAttributeData(for key: String) -> Data? {
+        private func extendedAttributeData(for key: Key) -> Data? {
             let data = try? url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in
 
@@ -187,7 +189,7 @@ public extension URL {
             return data
         }
 
-        private func setExtendedAttributeData(_ data: Data, for key: String) throws {
+        private func setExtendedAttributeData(_ data: Data, for key: Key) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = data.withUnsafeBytes {
                     setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
