@@ -63,11 +63,13 @@ public extension URL {
             if let value = value {
                 let data: Data
                 if let value = value as? Codable {
+                    Swift.print("setExtendedAttribute isCodable")
                     data = try JSONEncoder().encode(value)
                 } else {
                     data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
                 }
                 try setExtendedAttributeData(data, for: key)
+                Swift.print("setExtendedAttribute data", self.extendedAttributeData(for: key) ?? "nil")
             } else {
                 try removeExtendedAttribute(key)
             }
