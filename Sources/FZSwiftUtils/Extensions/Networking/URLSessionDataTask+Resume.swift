@@ -407,6 +407,11 @@ public class URLSessionResumableDataTask: NSObject {
         dataTask.delegate = self
     }
     
+    deinit {
+        self.resumeData = nil
+        self.data = Data()
+    }
+    
     internal var startDate = Date()
         
     internal var dataDelegate: URLSessionDataDelegate? {
