@@ -7,13 +7,7 @@
 
 import Foundation
 
-public extension Progress {
-    /// A value that indicates the speed of data processing, in bytes per second.
-    fileprivate(set) var throughput: Int? {
-        get { userInfo[.throughputKey] as? Int }
-        set { setUserInfoObject(newValue, forKey: .throughputKey) }
-    }
-    
+public extension Progress {    
     /**
      Updates the estimate time remaining by providing the start date of the progress.
      
