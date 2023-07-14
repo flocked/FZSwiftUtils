@@ -59,6 +59,7 @@ public extension Progress {
         }
     }
     
+    /*
     /// A handler that gets called whenever the completed unit count changes.
     var completedUnitHandler: ((Int64)->())? {
         get { getAssociatedValue(key: "Progress_completedUnitHandler", object: self, initialValue: nil) }
@@ -76,6 +77,7 @@ public extension Progress {
             self.setupProgressObserver()
         }
     }
+    */
     
     internal var progressObserver: KeyValueObserver<Progress>? {
         get { getAssociatedValue(key: "Progress_progressObserver", object: self, initialValue: nil) }
@@ -87,25 +89,27 @@ public extension Progress {
         set { set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
     }
     
+    /*
     internal var needsProgressObserver: Bool {
         (self.autoUpdateEstimatedTimeRemaining || totalUnitHandler != nil || completedUnitHandler != nil)
     }
+     */
     
     internal func setupProgressObserver() {
-        if needsProgressObserver {
+        if autoUpdateEstimatedTimeRemaining {
             guard progressObserver == nil else { return }
             estimatedTimeStartDate = Date()
             progressObserver = KeyValueObserver(self)
             progressObserver?.add(\.completedUnitCount, sendInitalValue: true) { old, new in
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
-                self.completedUnitHandler?(new)
+               // self.completedUnitHandler?(new)
             }
             
             progressObserver?.add(\.totalUnitCount, sendInitalValue: true) { old, new in
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
-                self.totalUnitHandler?(new)
+              //  self.totalUnitHandler?(new)
             }
             
             progressObserver?.add(\.isPaused) { old, new in
