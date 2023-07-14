@@ -34,6 +34,23 @@ public extension URL {
         public init(_ url: URL) {
             self.url = url
         }
+        
+        public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
+            get {
+                if let value: T = extendedAttribute(for: key) {
+                    return value
+                } else if let initalValue = initalValue {
+                    do {
+                        try setExtendedAttribute(initalValue, for: key)
+                        return initalValue
+                    } catch {
+                        return nil
+                    }
+                }
+                return nil
+            }
+            set { try? setExtendedAttribute(newValue, for: key) }
+        }
 
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
@@ -51,6 +68,23 @@ public extension URL {
             }
             set { try? setExtendedAttribute(newValue, for: key) }
         }
+        
+        /**
+         Sets an attribute to a value.
+         
+         - Parameters value: The value, or nil if the attribute should be removed.
+         - Parameters key: The name of the attribute.
+         - Throws: Throws if the file doesn't exist or the attribute couldn't written.
+         */
+        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws where T: Codable {
+            Swift.print("setExtendedAttribute codable")
+            if let value = value {
+                let data = try JSONEncoder().encode(value)
+                try setExtendedAttributeData(data, for: key)
+            } else {
+                try removeExtendedAttribute(key)
+            }
+        }
 
         /**
          Sets an attribute to a value.
@@ -60,6 +94,7 @@ public extension URL {
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
+            Swift.print("setExtendedAttribute key")
             if let value = value {
                 let data: Data
                 if let value = value as? Codable {
