@@ -496,13 +496,13 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
             } else {
                 self.retryCount = self.retryAmount
                 completionHandler?(nil, resumableData, response, error)
+                stateHandler?(self.state)
                 delegate?.urlSession?(session, task: task, didCompleteWithError: error)
-                self.stateHandler?(self.state)
             }
         } else {
-            completionHandler?(data.isEmpty ? nil : data, nil, response, error)
+            completionHandler?((data.isEmpty || error != nil) ? nil : data, nil, response, error)
+            stateHandler?(self.state)
             delegate?.urlSession?(session, task: task, didCompleteWithError: error)
-            self.stateHandler?(self.state)
         }
     }
 }
