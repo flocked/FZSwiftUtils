@@ -19,8 +19,8 @@ public struct DataSize: Hashable, Sendable {
         - bytes: The number of bytes.
         - countStyle: The count style for formatting the data size. Default is `.file`.
       */
-    public init(_ bytes: Int, countStyle: CountStyle = .file) {
-        self.bytes = bytes
+    public init<I: BinaryInteger>(_ bytes: I, countStyle: CountStyle = .file) {
+        self.bytes = Int(bytes)
         self.countStyle = countStyle
     }
 
