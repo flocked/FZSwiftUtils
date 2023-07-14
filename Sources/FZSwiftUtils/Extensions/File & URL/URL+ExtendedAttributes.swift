@@ -94,13 +94,13 @@ public extension URL {
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
         public func extendedAttribute<T>(for key: Key) -> T? {
+            guard let data = extendedAttributeData(for: key) else { return nil }
             Swift.print("extendedAttribute key", key)
             if let _ = T.self as? Codable.Type {
-                //  T conform MyProtocol
-            }
-
-            if let data = extendedAttributeData(for: key),
-                let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
+                let value = try? JSONDecoder().decode((T.self as! Codable.Type), from: data)
+                Swift.print("extendedAttribute isCodable", value ?? "nil")
+                return value as? T
+            } else if let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
                 let value = any as? T {
                     return value
             }
