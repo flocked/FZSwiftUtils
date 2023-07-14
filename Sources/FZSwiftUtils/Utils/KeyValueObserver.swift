@@ -8,7 +8,7 @@
 import Foundation
 
 /**
- Observes multiple keypaths of an object.
+ Observes multiple properties of an object.
  
  When the instances are deallocated, the KVO is automatically unregistered.
  */

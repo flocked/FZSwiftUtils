@@ -55,13 +55,31 @@ public extension Progress {
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
             set(associatedValue: newValue, key: "Progress_autoUpdateEstimatedTimeRemaining", object: self)
-            self.setupAutoUpdateEstimatedTimeRemaining()
+            self.setupProgressObserver()
         }
     }
     
-    internal var estimatedTimeObserver: KeyValueObserver<Progress>? {
-        get { getAssociatedValue(key: "Progress_estimatedTimeObserver", object: self, initialValue: nil) }
-        set { set(associatedValue: newValue, key: "Progress_estimatedTimeObserver", object: self) }
+    /// A handler that gets called whenever the completed unit count changes.
+    var completedUnitHandler: ((Int64)->())? {
+        get { getAssociatedValue(key: "Progress_completedUnitHandler", object: self, initialValue: nil) }
+        set {
+            set(associatedValue: newValue, key: "Progress_completedUnitHandler", object: self)
+            self.setupProgressObserver()
+        }
+    }
+    
+    /// A handler that gets called whenever the total unit count changes.
+    var totalUnitHandler: ((Int64)->())? {
+        get { getAssociatedValue(key: "Progress_totalUnitHandler", object: self, initialValue: nil) }
+        set {
+            set(associatedValue: newValue, key: "Progress_totalUnitHandler", object: self)
+            self.setupProgressObserver()
+        }
+    }
+    
+    internal var progressObserver: KeyValueObserver<Progress>? {
+        get { getAssociatedValue(key: "Progress_progressObserver", object: self, initialValue: nil) }
+        set { set(associatedValue: newValue, key: "Progress_progressObserver", object: self) }
     }
     
     internal var estimatedTimeStartDate: Date {
@@ -69,22 +87,28 @@ public extension Progress {
         set { set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
     }
     
-    internal func setupAutoUpdateEstimatedTimeRemaining() {
-        if autoUpdateEstimatedTimeRemaining {
-            self.estimatedTimeStartDate = Date()
-            guard estimatedTimeObserver == nil else { return }
-            estimatedTimeObserver = KeyValueObserver(self)
-            estimatedTimeObserver?.add(\.completedUnitCount, sendInitalValue: true) { old, new in
+    internal var needsProgressObserver: Bool {
+        (self.autoUpdateEstimatedTimeRemaining || totalUnitHandler != nil || completedUnitHandler != nil)
+    }
+    
+    internal func setupProgressObserver() {
+        if needsProgressObserver {
+            guard progressObserver == nil else { return }
+            estimatedTimeStartDate = Date()
+            progressObserver = KeyValueObserver(self)
+            progressObserver?.add(\.completedUnitCount, sendInitalValue: true) { old, new in
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
+                self.completedUnitHandler?(new)
             }
             
-            estimatedTimeObserver?.add(\.totalUnitCount, sendInitalValue: true) { old, new in
+            progressObserver?.add(\.totalUnitCount, sendInitalValue: true) { old, new in
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
+                self.totalUnitHandler?(new)
             }
             
-            estimatedTimeObserver?.add(\.isPaused) { old, new in
+            progressObserver?.add(\.isPaused) { old, new in
                 guard old != new else { return }
                 self.estimatedTimeStartDate = Date()
                 self.updateEstimatedTimeRemaining()
@@ -93,14 +117,14 @@ public extension Progress {
             self.updateEstimatedTimeRemaining()
             
         } else {
-            estimatedTimeObserver = nil
+            progressObserver = nil
         }
     }
     
     internal func updateEstimatedTimeRemaining() {
-        guard self.isCancelled == false && self.isPaused == false else {
-            setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
-            setUserInfoObject(0, forKey: .throughputKey)
+        guard self.autoUpdateEstimatedTimeRemaining, self.isCancelled == false && self.isPaused == false else {
+            self.estimatedTimeRemaining = TimeInterval.infinity
+            self.throughput = 0
             return
         }
         self.updateEstimatedTimeRemaining(dateStarted: self.estimatedTimeStartDate)
