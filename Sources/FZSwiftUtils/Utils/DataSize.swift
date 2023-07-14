@@ -233,7 +233,7 @@ public extension Collection where Element == DataSize {
       
       - Returns: A `DataSize` instance representing the average size. If the collection is empty, returns a `DataSize` instance with 0 bytes.
       */
-    func averageSize() -> DataSize {
+    func average() -> DataSize {
         guard !isEmpty else { return .zero }
         let average = Int(compactMap { $0.bytes }.average().rounded(.down))
         return DataSize(average)
@@ -244,11 +244,10 @@ public extension Collection where Element == DataSize {
      
      - Returns: A `DataSize` instance representing the total size. If the collection is empty, returns a `DataSize` instance with 0 bytes.
      */
-    func totalSize() -> DataSize {
+    func sum() -> DataSize {
         guard !isEmpty else { return .zero }
-        var total = 0
-        forEach { total += $0.bytes }
-        return DataSize(total)
+        let sum = compactMap { $0.bytes }.sum()
+        return DataSize(sum)
     }
 }
 
