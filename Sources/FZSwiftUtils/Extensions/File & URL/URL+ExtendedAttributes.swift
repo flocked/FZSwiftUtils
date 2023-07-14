@@ -55,22 +55,6 @@ public extension URL {
          
          - Parameters value: The value, or nil if the attribute should be removed.
          - Parameters key: The name of the attribute.
-         - Parameters key: The name of the attribute.
-         */
-        public func setExtendedAttribute<T>(_ value: T?, for key: String) throws where T: Codable {
-            if let value = value {
-                let data = try JSONEncoder().encode(value)
-                try setExtendedAttributeData(data, for: key)
-            } else {
-                try removeExtendedAttribute(key)
-            }
-        }
-
-        /**
-         Sets an attribute to a value.
-         
-         - Parameters value: The value, or nil if the attribute should be removed.
-         - Parameters key: The name of the attribute.
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: String) throws {
@@ -82,21 +66,6 @@ public extension URL {
             }
         }
         
-        /**
-         The value of an key.
-         
-         - Parameters key: The name of the attribute.
-         - Returns: The value of the key, or nil if there isn't an attribute with the key.
-         */
-        public func extendedAttribute<T>(for key: String) -> T? where T: Codable {
-            if let data = extendedAttributeData(for: key),
-               let value = try? JSONDecoder().decode(T.self, from: data) {
-                return value
-            }
-
-            return nil
-        }
-
         /**
          The value of an key.
          
