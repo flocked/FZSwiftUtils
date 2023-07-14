@@ -27,7 +27,7 @@ public final class MutableProgress: Progress {
     /// Adds a new child. Will always use a pending unit count of 1.
     ///
     /// - Parameter child: The child to add.
-    func addChild(_ child: Progress) {
+    public func addChild(_ child: Progress) {
         willChangeValue(for: \.totalUnitCount)
         let observer = KeyValueObserver(child)
         observedChildren[child] = observer
@@ -55,7 +55,7 @@ public final class MutableProgress: Progress {
     /// Removes the given child from the progress reporting.
     ///
     /// - Parameter child: The child to remove.
-    func removeChild(_ child: Progress) {
+    public func removeChild(_ child: Progress) {
         willChangeValue(for: \.fractionCompleted)
         willChangeValue(for: \.completedUnitCount)
         willChangeValue(for: \.totalUnitCount)
@@ -94,7 +94,7 @@ public final class MutableProgress: Progress {
     }
 }
 
-private extension Progress {
+public extension Progress {
     var isCompleted: Bool {
         guard totalUnitCount > 0 else { return true }
         return completedUnitCount >= totalUnitCount
