@@ -61,11 +61,28 @@ public extension URL {
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
             if let value = value {
-                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
+                let data: Data
+                if let value = value as? Codable {
+                    data = try JSONEncoder().encode(value)
+                } else {
+                    data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
+                }
                 try setExtendedAttributeData(data, for: key)
             } else {
                 try removeExtendedAttribute(key)
             }
+        }
+        
+        /**
+         The value of an key.
+         
+         - Parameters key: The name of the attribute.
+         
+         - Returns: The value of the key, or nil if there isn't an attribute with the key.
+         */
+        public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
+            guard let data = extendedAttributeData(for: key) else { return nil }
+            return try? JSONDecoder().decode(T.self, from: data)
         }
 
         /**
@@ -77,10 +94,9 @@ public extension URL {
          */
         public func extendedAttribute<T>(for key: Key) -> T? {
             if let data = extendedAttributeData(for: key),
-               let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
-               let value = any as? T
-            {
-                return value
+                let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
+                let value = any as? T {
+                    return value
             }
 
             return nil
