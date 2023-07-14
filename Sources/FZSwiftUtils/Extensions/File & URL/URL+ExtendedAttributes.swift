@@ -77,7 +77,6 @@ public extension URL {
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws where T: Codable {
-            Swift.print("setExtendedAttribute codable")
             if let value = value {
                 let data = try JSONEncoder().encode(value)
                 try setExtendedAttributeData(data, for: key)
@@ -94,14 +93,8 @@ public extension URL {
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
-            Swift.print("setExtendedAttribute key")
             if let value = value {
-                let data: Data
-                if let value = value as? Codable {
-                    data = try JSONEncoder().encode(value)
-                } else {
-                    data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
-                }
+                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
                 try setExtendedAttributeData(data, for: key)
             } else {
                 try removeExtendedAttribute(key)
@@ -117,7 +110,6 @@ public extension URL {
          */
         public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
             guard let data = extendedAttributeData(for: key) else { return nil }
-            Swift.print("extendedAttribute codable", data, (try? JSONDecoder().decode(T.self, from: data)))
             return try? JSONDecoder().decode(T.self, from: data)
         }
 
@@ -129,18 +121,9 @@ public extension URL {
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
         public func extendedAttribute<T>(for key: Key) -> T? {
-            guard let data = extendedAttributeData(for: key) else { return nil }
-            Swift.print("extendedAttribute key", key)
-            if let _ = T.self as? Codable.Type {
-                let value = try? JSONDecoder().decode((T.self as! Codable.Type), from: data)
-                Swift.print("extendedAttribute isCodable", value ?? "nil")
-                return value as? T
-            } else if let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
-                let value = any as? T {
-                    return value
-            }
-
-            return nil
+            guard let data = extendedAttributeData(for: key), let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
+                  let value = any as? T else { return nil }
+            return value
         }
 
         /**
