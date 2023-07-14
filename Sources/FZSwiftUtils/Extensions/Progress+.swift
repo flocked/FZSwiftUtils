@@ -8,6 +8,11 @@
 import Foundation
 
 public extension Progress {
+    /// A value that indicates the speed of data processing, in bytes per second.
+    fileprivate(set) var throughput: Int? {
+        get { userInfo[.throughputKey] as? Int }
+        set { setUserInfoObject(newValue, forKey: .throughputKey) }
+    }
     
     /**
      Updates the estimate time remaining by providing the start date of the progress.
@@ -19,7 +24,7 @@ public extension Progress {
         let elapsedTime = Date().timeIntervalSince(date)
         updateEstimatedTimeRemaining(timeElapsed: elapsedTime)
     }
-    
+        
     /**
      Updates the estimate time remaining by providing the time elapsed since the start of the progress.
      
@@ -28,8 +33,8 @@ public extension Progress {
      */
     func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval) {
         guard Int64(elapsedTime) > 1 else {
-            setUserInfoObject(0, forKey: .throughputKey)
-            setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
+            self.throughput = 0
+            self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
         
@@ -38,15 +43,14 @@ public extension Progress {
         let unitsRemaining = totalUnitCount - completedUnitCount
         
         guard throughput > 0 else {
-            setUserInfoObject(TimeInterval.infinity, forKey: .estimatedTimeRemainingKey)
+            self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
         
         let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
         
-        setUserInfoObject(throughput, forKey: .throughputKey)
-        setUserInfoObject(TimeInterval(secondsRemaining), forKey: .estimatedTimeRemainingKey)
-        estimatedTimeRemaining = TimeInterval(secondsRemaining)
+        self.throughput = throughput
+        self.estimatedTimeRemaining = TimeInterval(secondsRemaining)
     }
     
     /**
