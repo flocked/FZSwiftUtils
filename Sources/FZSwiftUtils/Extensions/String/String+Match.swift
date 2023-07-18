@@ -157,3 +157,12 @@ public extension String {
         return matches
     }
 }
+
+public extension StringProtocol {
+    /// Returns a new string made by removing all emoji characters.
+    func trimmingEmojis() -> String {
+        return self.unicodeScalars
+             .filter { (!$0.properties.isEmojiPresentation && !$0.properties.isEmoji) }
+             .reduce(into: "") { $0 += String($1) }
+    }
+}
