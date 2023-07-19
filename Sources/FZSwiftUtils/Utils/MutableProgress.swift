@@ -74,12 +74,10 @@ public final class MutableProgress: Progress {
         willChangeValue(for: \.fractionCompleted)
         willChangeValue(for: \.completedUnitCount)
         willChangeValue(for: \.totalUnitCount)
-        willChangeValue(for: \.throughput)
         observedChildren[child] = nil
         didChangeValue(for: \.totalUnitCount)
         didChangeValue(for: \.completedUnitCount)
         didChangeValue(for: \.fractionCompleted)
-        didChangeValue(for: \.throughput)
     }
     
     public override var totalUnitCount: Int64 {
