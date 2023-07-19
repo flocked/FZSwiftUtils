@@ -15,9 +15,9 @@ public final class MutableProgress: Progress {
     public var children: [Progress] {
         get { Array(self.observedChildren.keys) }
         set {
-            let currentChilds = self.children
-            currentChilds.filter({ newValue.contains($0) == false }).forEach({ self.removeChild($0) })
-            newValue.filter({ currentChilds.contains($0) == false }).forEach({ self.addChild($0) })
+            let diff = self.children.difference(to: newValue)
+            diff.removed.forEach({ self.removeChild($0) })
+            diff.added.forEach({ self.addChild($0) })
         }
     }
 
@@ -48,7 +48,22 @@ public final class MutableProgress: Progress {
                 self?.removeChild(child)
             }
         }
-
+        
+        observer.add(\.throughput) {  [weak self] old, new in
+            guard let self = self, old != new else { return }
+            self.throughput = self.children.compactMap({$0.throughput}).sum()
+        }
+                
+        observer.add(\.estimatedTimeRemaining) {  [weak self] old, new in
+            guard let self = self, old != new else { return }
+            let timeRemainings = self.children.compactMap({$0.estimatedTimeRemaining})
+            if timeRemainings.isEmpty == false {
+                self.estimatedTimeRemaining = timeRemainings.average()
+            } else {
+                self.estimatedTimeRemaining = nil
+            }
+        }
+        
         didChangeValue(for: \.totalUnitCount)
     }
 
@@ -59,10 +74,12 @@ public final class MutableProgress: Progress {
         willChangeValue(for: \.fractionCompleted)
         willChangeValue(for: \.completedUnitCount)
         willChangeValue(for: \.totalUnitCount)
+        willChangeValue(for: \.throughput)
         observedChildren[child] = nil
         didChangeValue(for: \.totalUnitCount)
         didChangeValue(for: \.completedUnitCount)
         didChangeValue(for: \.fractionCompleted)
+        didChangeValue(for: \.throughput)
     }
     
     public override var totalUnitCount: Int64 {
@@ -94,7 +111,7 @@ public final class MutableProgress: Progress {
     }
 }
 
-public extension Progress {
+internal extension Progress {
     var isCompleted: Bool {
         guard totalUnitCount > 0 else { return true }
         return completedUnitCount >= totalUnitCount
