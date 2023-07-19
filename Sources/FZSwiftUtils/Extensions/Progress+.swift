@@ -55,33 +55,69 @@ public extension Progress {
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
             set(associatedValue: newValue, key: "Progress_autoUpdateEstimatedTimeRemaining", object: self)
-            self.setupProgressObserver()
+            self.setupEstimatedTimeProgressObserver()
         }
     }
     
-    /*
-    /// A handler that gets called whenever the completed unit count changes.
-    var completedUnitHandler: ((Int64)->())? {
-        get { getAssociatedValue(key: "Progress_completedUnitHandler", object: self, initialValue: nil) }
-        set {
-            set(associatedValue: newValue, key: "Progress_completedUnitHandler", object: self)
-            self.setupProgressObserver()
-        }
+    /**
+     The progress will be shown as a progress bar in the Finder for the given url.
+     
+     - Parameters:
+     - url: The URL of the file.
+     - kind: The kind of the file operation.
+     */
+    func addFileProgress(url: URL, kind: FileOperationKind) {
+        guard self.fileProgress?.userInfo[.fileURLKey] as? URL != url else { return }
+        self.fileProgress = .file(url: url, kind: kind)
+        self.fileProgress?.observeValues(of: self)
     }
     
-    /// A handler that gets called whenever the total unit count changes.
-    var totalUnitHandler: ((Int64)->())? {
-        get { getAssociatedValue(key: "Progress_totalUnitHandler", object: self, initialValue: nil) }
-        set {
-            set(associatedValue: newValue, key: "Progress_totalUnitHandler", object: self)
-            self.setupProgressObserver()
-        }
+    /// Removes reflecting the file progress.
+    func removeFileProgress() {
+        self.fileProgress?.cancel()
+        self.fileProgress = nil
     }
-    */
+    
+    internal var fileProgress: Progress? {
+        get { getAssociatedValue(key: "Progress_fileProgress", object: self, initialValue: nil) }
+        set { set(associatedValue: newValue, key: "Progress_fileProgress", object: self) }
+    }
     
     internal var progressObserver: KeyValueObserver<Progress>? {
         get { getAssociatedValue(key: "Progress_progressObserver", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_progressObserver", object: self) }
+    }
+        
+    internal func observeValues(of progress: Progress?) {
+        if let progress = progress {
+            progressObserver = KeyValueObserver(progress)
+            progressObserver?.add(\.fractionCompleted, sendInitalValue: true) { [weak self] old, new in
+                guard let self = self, old != new else { return }
+                self.totalUnitCount = progress.totalUnitCount
+                self.completedUnitCount = progress.completedUnitCount
+                self.throughput = progress.throughput
+                self.estimatedTimeRemaining = progress.estimatedTimeRemaining
+            }
+            progressObserver?.add(\.isPaused, sendInitalValue: true) { [weak self] old, isPaused in
+                guard let self = self, old != isPaused else { return }
+                if isPaused, self.isPaused == false {
+                    self.pause()
+                } else if isPaused == false, self.isPaused {
+                    self.resume()
+                }
+            }
+            progressObserver?.add(\.isCancelled, sendInitalValue: true) { [weak self] _, isCancelled in
+                guard let self = self, isCancelled == true, self.isCancelled == false else { return }
+                self.cancel()
+            }
+        } else {
+            progressObserver = nil
+        }
+    }
+        
+    internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
+        get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
+        set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
     }
     
     internal var estimatedTimeStartDate: Date {
@@ -89,39 +125,31 @@ public extension Progress {
         set { set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
     }
     
-    /*
-    internal var needsProgressObserver: Bool {
-        (self.autoUpdateEstimatedTimeRemaining || totalUnitHandler != nil || completedUnitHandler != nil)
-    }
-     */
-    
-    internal func setupProgressObserver() {
+    internal func setupEstimatedTimeProgressObserver() {
         if autoUpdateEstimatedTimeRemaining {
-            guard progressObserver == nil else { return }
+            guard estimatedTimeProgressObserver == nil else { return }
             estimatedTimeStartDate = Date()
-            progressObserver = KeyValueObserver(self)
-            progressObserver?.add(\.completedUnitCount, sendInitalValue: true) { old, new in
+            estimatedTimeProgressObserver = KeyValueObserver(self)
+            estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
-               // self.completedUnitHandler?(new)
             }
-            
-            progressObserver?.add(\.totalUnitCount, sendInitalValue: true) { old, new in
-                guard old != new else { return }
-                self.updateEstimatedTimeRemaining()
-              //  self.totalUnitHandler?(new)
-            }
-            
-            progressObserver?.add(\.isPaused) { old, new in
+  
+            estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
                 guard old != new else { return }
                 self.estimatedTimeStartDate = Date()
+                self.updateEstimatedTimeRemaining()
+            }
+            
+            estimatedTimeProgressObserver?.add(\.isCancelled) { old, new in
+                guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
             }
             
             self.updateEstimatedTimeRemaining()
             
         } else {
-            progressObserver = nil
+            estimatedTimeProgressObserver = nil
         }
     }
     
