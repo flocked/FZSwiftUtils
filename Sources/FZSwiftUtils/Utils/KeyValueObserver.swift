@@ -167,7 +167,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             let change = change,
             let oldValue = change[NSKeyValueChangeKey.oldKey],
             let newValue = change[NSKeyValueChangeKey.newKey] else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+           // super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
         handler(oldValue, newValue)
