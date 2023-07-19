@@ -159,7 +159,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     override public func observeValue(forKeyPath keyPath:String?, of object:Any?, change:[NSKeyValueChangeKey:Any]?, context:UnsafeMutableRawPointer?) {
-        Swift.print("observeValue", keyPath, change, object)
+        Swift.print("observer observeValue forKeyPath", keyPath, change, object)
         guard
             self.observedObject != nil,
             let keyPath = keyPath,

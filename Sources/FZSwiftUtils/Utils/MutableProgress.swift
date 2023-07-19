@@ -31,7 +31,11 @@ public final class MutableProgress: Progress {
         willChangeValue(for: \.totalUnitCount)
         let observer = KeyValueObserver(child)
         observedChildren[child] = observer
+        Swift.print("addChild observer add fractionCompleted")
         observer.add(\.fractionCompleted, sendInitalValue: true) {  [weak self] old, new in
+            
+            Swift.print("observer receive fractionCompleted")
+
         //    self?.willChangeValue(for: \.fractionCompleted)
         //    self?.didChangeValue(for: \.fractionCompleted)
             
