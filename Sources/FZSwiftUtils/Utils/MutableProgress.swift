@@ -34,7 +34,7 @@ public final class MutableProgress: Progress {
         observer.add(\.fractionCompleted, sendInitalValue: true) {  [weak self] old, new in
             self?.willChangeValue(for: \.fractionCompleted)
             self?.didChangeValue(for: \.fractionCompleted)
-
+            
             if child.isCompleted {
                 self?.willChangeValue(for: \.completedUnitCount)
                 self?.didChangeValue(for: \.completedUnitCount)
@@ -47,11 +47,6 @@ public final class MutableProgress: Progress {
             if new == true {
                 self?.removeChild(child)
             }
-        }
-        
-        observer.add(\.throughput) {  [weak self] old, new in
-            guard let self = self, old != new else { return }
-            self.throughput = self.children.compactMap({$0.throughput}).sum()
         }
                 
         observer.add(\.estimatedTimeRemaining) {  [weak self] old, new in
@@ -95,6 +90,14 @@ public final class MutableProgress: Progress {
         }
         set {
             fatalError("Setting the completed unit count is not supported for MutableProgress")
+        }
+    }
+    
+    public override var userInfo: [ProgressUserInfoKey : Any] {
+        get {
+            var userinfo = super.userInfo
+            userinfo[.throughputKey] = self.children.compactMap({$0.throughput}).sum()
+            return userinfo
         }
     }
 
