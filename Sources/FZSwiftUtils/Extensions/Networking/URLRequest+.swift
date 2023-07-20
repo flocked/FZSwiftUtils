@@ -9,6 +9,21 @@ import Foundation
 
 public extension URLRequest {
     /**
+     Adds a range HTTP header for the specified data. This e.g. allows to resume a data download.
+
+     - Parameter data: The data used for the HTTP header.
+     - Parameter validator: A validator to ensure the requested data hasn't changed on the server since the last request. You can obtain the validator on previous url responses via `URLResponse` `validator`.
+     */
+    mutating func addRangeHeader(for data: Data, validator: String? = nil) {
+        var headers = self.allHTTPHeaderFields ?? [:]
+        headers["Range"] = "bytes=\(data.count)-"
+        if let validator = validator {
+            headers["If-Range"] = validator
+        }
+        self.allHTTPHeaderFields = headers
+    }
+    
+    /**
      Adds multiple HTTP headers to the URLRequest.
 
      - Parameter headerValues: A dictionary of header field-value pairs to add to the URLRequest.
