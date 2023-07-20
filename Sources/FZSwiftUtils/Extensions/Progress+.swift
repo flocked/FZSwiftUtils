@@ -185,7 +185,6 @@ public extension Progress {
         progress.isPausable = (pauseHandler != nil)
         progress.isCancellable = (cancellationHandler != nil)
         progress.pausingHandler = pauseHandler
-        progress.setUserInfoObject(nil, forKey: .fileURLKey)
         progress.cancellationHandler = cancellationHandler
         progress.totalUnitCount = Int64(size?.bytes ?? 0)
         progress.publish()
