@@ -24,6 +24,22 @@ public extension URLRequest {
     }
     
     /**
+     Adds a range HTTP header for the specified file. This e.g. allows to resume downloading the file.
+
+     - Parameter file: A local file used for the HTTP header.
+     - Parameter validator: A validator to ensure the requested data hasn't changed on the server since the last request. You can obtain the validator on previous url responses via `URLResponse` `validator`.
+     */
+    mutating func addRangeHeader(for file: URL, validator: String? = nil) {
+        guard let fileSize = file.resources.fileSize, fileSize != .zero else { return }
+        var headers = self.allHTTPHeaderFields ?? [:]
+        headers["Range"] = "bytes=\(fileSize.bytes)-"
+        if let validator = validator {
+            headers["If-Range"] = validator
+        }
+        self.allHTTPHeaderFields = headers
+    }
+    
+    /**
      Adds multiple HTTP headers to the URLRequest.
 
      - Parameter headerValues: A dictionary of header field-value pairs to add to the URLRequest.
