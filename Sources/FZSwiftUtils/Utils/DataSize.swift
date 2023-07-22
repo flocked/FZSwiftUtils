@@ -361,6 +361,7 @@ public extension Timer {
         self.init(timeInterval: timeInterval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
     
+    @discardableResult
     static func scheduledTimer(withTimeInterval timeInterval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) -> Timer {
         return self.scheduledTimer(withTimeInterval: timeInterval.seconds, repeats: repeats, block: block)
     }
