@@ -269,3 +269,10 @@ public extension String {
         }
     }
 }
+
+public extension Sequence where Element: OptionalProtocol {
+    /// Returns an array of non optional elemenets.
+    var nonNil: [Element.Wrapped] {
+        self.compactMap({$0.optional})
+    }
+}
