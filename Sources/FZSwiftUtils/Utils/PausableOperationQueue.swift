@@ -74,6 +74,7 @@ open class PausableOperationQueue: OperationQueue {
     open func pause() {
         isSuspended = true
         self.sequentialOperationsQueue.addOperation {
+            Swift.print("PausableOperationQueue pause", self.pausableOperations.count, self.pausableOperations.filter({$0.isPaused}).count)
             self.pausableOperations.forEach { $0.pause() }
         }
     }
@@ -82,6 +83,7 @@ open class PausableOperationQueue: OperationQueue {
     open func resume() {
         isSuspended = false
         self.sequentialOperationsQueue.addOperation {
+            Swift.print("PausableOperationQueue resume", self.pausableOperations.count, self.pausableOperations.filter({$0.isPaused}).count)
             self.pausableOperations.forEach { $0.resume() }
         }
     }
