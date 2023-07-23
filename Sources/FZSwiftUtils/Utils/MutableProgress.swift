@@ -13,7 +13,7 @@ public final class MutableProgress: Progress {
     
     /// All the current tracked children.
     public var children: [Progress] {
-        get { Array(self.observedChildren.keys) }
+        get { self.observedChildren.keys }
         set {
             let diff = self.children.difference(to: newValue)
             diff.removed.forEach({ self.removeChild($0) })
@@ -22,7 +22,7 @@ public final class MutableProgress: Progress {
     }
 
     /// All the current tracked children and their observers.
-    private var observedChildren: [Progress: KeyValueObserver<Progress>] = [:]
+    private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
 
     /// Adds a new child. Will always use a pending unit count of 1.
     ///
