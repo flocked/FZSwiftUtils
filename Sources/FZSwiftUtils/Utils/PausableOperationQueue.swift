@@ -17,14 +17,11 @@ public protocol Pausable {
     var isPaused: Bool { get }
 }
 
-/// A protocol that represents a pausable operation.
-public protocol PausableOperation: Pausable, Operation { }
-
 /// A pausable queue that regulates the execution of operations.
 open class PausableOperationQueue: OperationQueue {
     
     /// The operations currently in the queue.
-    open private(set)var pausableOperations: [ (Pausable & Operation) ] = []
+    open private(set)var pausableOperations: [(Pausable & Operation)] = []
     
     internal lazy var sequentialOperationsQueue = {
         var queue = OperationQueue()
@@ -33,9 +30,8 @@ open class PausableOperationQueue: OperationQueue {
     }()
     
     override open func addOperation(_ op: Operation) {
-        Swift.print("addOperation",  op as? (Pausable & Operation) ?? "nil")
         let completionBlock = op.completionBlock
-        if let pausableOperation = op as? PausableOperation {
+        if let pausableOperation = op as? (Pausable & Operation) {
             op.completionBlock = {
                 self.sequentialOperationsQueue.addOperation {
                     if let index = self.pausableOperations.firstIndex(where: {$0 == op}) {
@@ -52,9 +48,7 @@ open class PausableOperationQueue: OperationQueue {
     }
 
     override open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
-        let pausableOperations = ops.compactMap { $0 as?  (Pausable & Operation)  }
-        Swift.print("addOperations",  pausableOperations.count)
-
+        let pausableOperations = ops.compactMap { $0 as?  (Pausable & Operation) }
         pausableOperations.forEach({ operation in
             let completionBlock = operation.completionBlock
             operation.completionBlock = {
@@ -77,7 +71,6 @@ open class PausableOperationQueue: OperationQueue {
     open func pause() {
         isSuspended = true
         self.sequentialOperationsQueue.addOperation {
-            Swift.print("PausableOperationQueue pause", self.pausableOperations.count, self.pausableOperations.filter({$0.isPaused}).count)
             self.pausableOperations.forEach { $0.pause() }
         }
     }
@@ -86,7 +79,6 @@ open class PausableOperationQueue: OperationQueue {
     open func resume() {
         isSuspended = false
         self.sequentialOperationsQueue.addOperation {
-            Swift.print("PausableOperationQueue resume", self.pausableOperations.count, self.pausableOperations.filter({$0.isPaused}).count)
             self.pausableOperations.forEach { $0.resume() }
         }
     }
