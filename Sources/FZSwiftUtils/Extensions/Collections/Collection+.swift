@@ -237,10 +237,9 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      - Parameters another: The replacing element.
      */
     mutating func replace(_ element: Element, with: Element) {
-        replace(first: element, with: with)
-        if contains(element) {
-            replace(element, with: with)
-        }
+        guard let index = self.firstIndex(of: element) else { return }
+        self.remove(element)
+        self.insert(element, at: index)
     }
 
     /**
