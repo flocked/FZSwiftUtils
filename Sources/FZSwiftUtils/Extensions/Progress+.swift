@@ -98,9 +98,9 @@ public extension Progress {
      - url: The URL of the file.
      - kind: The kind of the file operation.
      */
-    func addFileProgress(url: URL, kind: FileOperationKind = .downloading, pauseHandler: (()->())? = nil, cancellationHandler: (()->())? = nil) {
+    func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
         guard self.fileProgress?.userInfo[.fileURLKey] as? URL != url else { return }
-        self.fileProgress = .file(url: url, kind: kind, pauseHandler: pauseHandler, cancellationHandler: cancellationHandler)
+        self.fileProgress = .file(url: url, kind: kind)
         self.fileProgress?.observeValues(of: self)
     }
     
