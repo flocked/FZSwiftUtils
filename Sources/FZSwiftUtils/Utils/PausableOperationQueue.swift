@@ -33,6 +33,7 @@ open class PausableOperationQueue: OperationQueue {
     }()
 
     override open func addOperation(_ op: Operation) {
+        Swift.print("addOperation",  op as? PausableOperation ?? "nil")
         let completionBlock = op.completionBlock
         if let pausableOperation = op as? PausableOperation {
             op.completionBlock = {
@@ -52,6 +53,8 @@ open class PausableOperationQueue: OperationQueue {
 
     override open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
         let pausableOperations = ops.compactMap { $0 as? PausableOperation }
+        Swift.print("addOperations",  pausableOperations.count)
+
         pausableOperations.forEach({ operation in
             let completionBlock = operation.completionBlock
             operation.completionBlock = {
