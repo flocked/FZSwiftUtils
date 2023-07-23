@@ -33,6 +33,13 @@ public extension Progress {
             self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
+        
+        guard self.completedUnitCount != self.totalUnitCount else {
+            self.throughput = 0
+            self.estimatedTimeRemaining = 0.0
+            return
+        }
+        
         var completedUnitCount = completedUnitCount - (completedUnits ?? 0)
         var totalUnitCount = totalUnitCount - (completedUnits ?? 0)
         
