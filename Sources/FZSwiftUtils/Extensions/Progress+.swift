@@ -32,7 +32,7 @@ public extension Progress {
             return
         }
         
-        let unitsPerSecond = completedUnitCount.quotientAndRemainder(dividingBy: Int64(elapsedTime)).quotient
+        let unitsPerSecond = Double(completedUnitCount) / elapsedTime
         let throughput = Int(unitsPerSecond)
         let unitsRemaining = totalUnitCount - completedUnitCount
         
@@ -41,10 +41,10 @@ public extension Progress {
             return
         }
         
-        let secondsRemaining = unitsRemaining.quotientAndRemainder(dividingBy: Int64(throughput)).quotient
+        let secondsRemaining = Double(unitsRemaining) / Double(throughput)
         
         self.throughput = throughput
-        self.estimatedTimeRemaining = TimeInterval(secondsRemaining)
+        self.estimatedTimeRemaining = secondsRemaining
     }
     
     /**
