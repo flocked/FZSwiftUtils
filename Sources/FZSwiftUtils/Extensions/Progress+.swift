@@ -12,6 +12,14 @@ public extension Progress {
      Updates the estimate time remaining.
      */
     func updateEstimatedTimeRemaining() {
+        if isPausedObserver == nil {
+            isPausedObserver = self.observeChanges(for: \.isPaused) { wasPaused, isPaused in
+                if wasPaused == true, isPaused == false {
+                    self.estimatedTimeStartDate = Date()
+                    self.estimatedTimeCompletedUnits = self.completedUnitCount
+                }
+            }
+        }
         self.updateEstimatedTimeRemaining(dateStarted: estimatedTimeStartDate)
     }
     
@@ -116,6 +124,11 @@ public extension Progress {
             set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self) }
     }
     
+    internal var isPausedObserver: NSKeyValueObservation? {
+        get { getAssociatedValue(key: "Progress_isPausedObserver", object: self, initialValue: nil) }
+        set { set(associatedValue: newValue, key: "Progress_isPausedObserver", object: self) }
+    }
+    
     internal var fileProgress: Progress? {
         get { getAssociatedValue(key: "Progress_fileProgress", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_fileProgress", object: self) }
@@ -170,6 +183,7 @@ public extension Progress {
             estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
                 guard old != new else { return }
                 self.estimatedTimeStartDate = Date()
+                self.estimatedTimeCompletedUnits = self.completedUnitCount
                 self.updateEstimatedTimeRemaining()
             }
             
