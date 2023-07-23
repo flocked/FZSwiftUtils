@@ -8,6 +8,7 @@
 import Foundation
 
 public extension Progress {
+    
     /// The identifier of the progress.
     var identifier: Any? {
         get { getAssociatedValue(key: "Progress_identifier", object: self, initialValue: nil) }
@@ -15,18 +16,10 @@ public extension Progress {
             set(associatedValue: newValue, key: "Progress_identifier", object: self)
         }
     }
-    /**
-     Updates the estimate time remaining.
-     */
+    
+    /// Updates the estimate time remaining.
     func updateEstimatedTimeRemaining() {
-        if isPausedObserver == nil {
-            isPausedObserver = self.observeChanges(for: \.isPaused) { wasPaused, isPaused in
-                if wasPaused == true, isPaused == false {
-                    self.estimatedTimeStartDate = Date()
-                    self.estimatedTimeCompletedUnits = self.completedUnitCount
-                }
-            }
-        }
+        self.setupEstimatedTimeProgressObserver()
         self.updateEstimatedTimeRemaining(dateStarted: estimatedTimeStartDate)
     }
     
@@ -88,15 +81,13 @@ public extension Progress {
         self.estimatedTimeRemaining = secondsRemaining
     }
     
-    /**
-     A boolean value indicating whether the progress should auomatically update the estimated time remaining.
-     */
+    /// A boolean value indicating whether the progress should auomatically update the estimated time remaining.
     var autoUpdateEstimatedTimeRemaining: Bool {
         get { getAssociatedValue(key: "Progress_autoUpdateEstimatedTimeRemaining", object: self, initialValue: false) }
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
             set(associatedValue: newValue, key: "Progress_autoUpdateEstimatedTimeRemaining", object: self)
-            self.setupEstimatedTimeProgressObserver()
+            self.setupEstimatedTimeProgressObserver(includingFraction: newValue)
         }
     }
     
@@ -107,9 +98,9 @@ public extension Progress {
      - url: The URL of the file.
      - kind: The kind of the file operation.
      */
-    func addFileProgress(url: URL, kind: FileOperationKind) {
+    func addFileProgress(url: URL, kind: FileOperationKind = .downloading, pauseHandler: (()->())? = nil, cancellationHandler: (()->())? = nil) {
         guard self.fileProgress?.userInfo[.fileURLKey] as? URL != url else { return }
-        self.fileProgress = .file(url: url, kind: kind)
+        self.fileProgress = .file(url: url, kind: kind, pauseHandler: pauseHandler, cancellationHandler: cancellationHandler)
         self.fileProgress?.observeValues(of: self)
     }
     
@@ -117,6 +108,40 @@ public extension Progress {
     func removeFileProgress() {
         self.fileProgress?.cancel()
         self.fileProgress = nil
+    }
+    
+    /**
+     Creates a file progress.
+     
+     A file progress will show a progress bar in the Finder. If `cancellationHandler` is provided, the user will be able to cancel the progress. If `pauseHandler` is provided, the user will be able to pause the progress.
+     
+     - Parameters:
+     - url: The URL of the file.
+     - kind: The kind of the file operation.
+     - size: The size of the file in `DataSize` format.
+     - pauseHandler: The block to invoke when pausing progress. If a handler is provided, the progress will be pausable.
+     - cancellationHandler: he block to invoke when canceling progress. If a handler is provided, the progress will be cancellable.
+     
+     - Returns: A `Progress` object representing the file progress.
+     */
+    static func file(url: URL, kind: Progress.FileOperationKind, size: DataSize? = nil, pauseHandler: (()->())? = nil, cancellationHandler: (()->())? = nil) -> Progress {
+        let progress = Progress(parent: nil, userInfo: [
+            .fileOperationKindKey: kind,
+            .fileURLKey: url,
+        ])
+        progress.kind = .file
+        progress.isPausable = (pauseHandler != nil)
+        progress.isCancellable = (cancellationHandler != nil)
+        progress.pausingHandler = pauseHandler
+        progress.cancellationHandler = cancellationHandler
+        progress.totalUnitCount = Int64(size?.bytes ?? 0)
+        progress.publish()
+        return progress
+    }
+    
+    internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
+        get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
+        set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
     }
     
     internal var estimatedTimeStartDate: Date {
@@ -130,12 +155,7 @@ public extension Progress {
             guard estimatedTimeCompletedUnits != newValue else { return }
             set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self) }
     }
-    
-    internal var isPausedObserver: NSKeyValueObservation? {
-        get { getAssociatedValue(key: "Progress_isPausedObserver", object: self, initialValue: nil) }
-        set { set(associatedValue: newValue, key: "Progress_isPausedObserver", object: self) }
-    }
-    
+
     internal var fileProgress: Progress? {
         get { getAssociatedValue(key: "Progress_fileProgress", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_fileProgress", object: self) }
@@ -173,19 +193,9 @@ public extension Progress {
         }
     }
     
-    internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
-        get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
-        set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
-    }
-    
-    internal func setupEstimatedTimeProgressObserver() {
-        if autoUpdateEstimatedTimeRemaining {
-            guard estimatedTimeProgressObserver == nil else { return }
+    internal func setupEstimatedTimeProgressObserver(includingFraction: Bool = false) {
+        if estimatedTimeProgressObserver == nil {
             estimatedTimeProgressObserver = KeyValueObserver(self)
-            estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
-                guard old != new else { return }
-                self.updateEstimatedTimeRemaining()
-            }
             
             estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
                 guard old != new else { return }
@@ -198,39 +208,16 @@ public extension Progress {
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
             }
-            self.updateEstimatedTimeRemaining()
-        } else {
-            estimatedTimeProgressObserver = nil
         }
-    }
-    
-    /**
-     Creates a file progress.
-     
-     A file progress will show a progress bar in the Finder. If `cancellationHandler` is provided, the user will be able to cancel the progress. If `pauseHandler` is provided, the user will be able to pause the progress.
-     
-     - Parameters:
-     - url: The URL of the file.
-     - kind: The kind of the file operation.
-     - size: The size of the file in `DataSize` format.
-     - pauseHandler: The block to invoke when pausing progress. If a handler is provided, the progress will be pausable.
-     - cancellationHandler: he block to invoke when canceling progress. If a handler is provided, the progress will be cancellable.
-     
-     - Returns: A `Progress` object representing the file progress.
-     */
-    static func file(url: URL, kind: Progress.FileOperationKind, size: DataSize? = nil, pauseHandler: (()->())? = nil, cancellationHandler: (()->())? = nil) -> Progress {
-        let progress = Progress(parent: nil, userInfo: [
-            .fileOperationKindKey: kind,
-            .fileURLKey: url,
-        ])
-        progress.kind = .file
-        progress.isPausable = (pauseHandler != nil)
-        progress.isCancellable = (cancellationHandler != nil)
-        progress.pausingHandler = pauseHandler
-        progress.cancellationHandler = cancellationHandler
-        progress.totalUnitCount = Int64(size?.bytes ?? 0)
-        progress.publish()
-        return progress
+        
+        if includingFraction {
+            estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
+                guard old != new else { return }
+                self.updateEstimatedTimeRemaining()
+            }
+        } else {
+            estimatedTimeProgressObserver?.remove(\.fractionCompleted)
+        }
     }
 }
 
