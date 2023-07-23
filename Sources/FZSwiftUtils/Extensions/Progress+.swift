@@ -89,7 +89,7 @@ public extension Progress {
             self.setupEstimatedTimeProgressObserver(includingFraction: newValue)
         }
     }
-    
+#if os(macOS)
     /**
      The progress will be shown as a progress bar in the Finder for the given url.
      
@@ -137,6 +137,7 @@ public extension Progress {
         progress.publish()
         return progress
     }
+#endif
     
     internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
         get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
