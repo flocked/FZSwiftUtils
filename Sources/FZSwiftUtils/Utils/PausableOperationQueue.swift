@@ -26,7 +26,7 @@ open class PausableOperationQueue: OperationQueue {
     /// The operations currently in the queue.
     open private(set)var pausableOperations: [PausableOperation] = []
     
-    internal lazy var editOperationsQueue = {
+    internal lazy var sequentialOperationsQueue = {
         var queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         return queue
@@ -36,14 +36,14 @@ open class PausableOperationQueue: OperationQueue {
         let completionBlock = op.completionBlock
         if let pausableOperation = op as? PausableOperation {
             op.completionBlock = {
-                self.editOperationsQueue.addOperation {
+                self.sequentialOperationsQueue.addOperation {
                     if let index = self.pausableOperations.firstIndex(where: {$0 == op}) {
                         self.pausableOperations.remove(at: index)
                     }
                 }
                 completionBlock?()
             }
-            self.editOperationsQueue.addOperation {
+            self.sequentialOperationsQueue.addOperation {
                 self.pausableOperations.append(pausableOperation)
             }
         }
@@ -55,7 +55,7 @@ open class PausableOperationQueue: OperationQueue {
         pausableOperations.forEach({ operation in
             let completionBlock = operation.completionBlock
             operation.completionBlock = {
-                self.editOperationsQueue.addOperation {
+                self.sequentialOperationsQueue.addOperation {
                     if let index = self.pausableOperations.firstIndex(where: {$0 == operation}) {
                         self.pausableOperations.remove(at: index)
                     }
@@ -64,7 +64,7 @@ open class PausableOperationQueue: OperationQueue {
             }
 
         })
-        self.editOperationsQueue.addOperation {
+        self.sequentialOperationsQueue.addOperation {
             self.pausableOperations.append(contentsOf: pausableOperations)
         }
         super.addOperations(ops, waitUntilFinished: wait)
@@ -73,18 +73,22 @@ open class PausableOperationQueue: OperationQueue {
     /// Pauses the queue.
     open func pause() {
         isSuspended = true
-        pausableOperations.forEach { $0.pause() }
+        self.sequentialOperationsQueue.addOperation {
+            self.pausableOperations.forEach { $0.pause() }
+        }
     }
 
     /// Resznes the queue.
     open func resume() {
         isSuspended = false
-        pausableOperations.forEach { $0.resume() }
+        self.sequentialOperationsQueue.addOperation {
+            self.pausableOperations.forEach { $0.resume() }
+        }
     }
 
     override open func cancelAllOperations() {
         super.cancelAllOperations()
-        self.editOperationsQueue.addOperation {
+        self.sequentialOperationsQueue.addOperation {
             self.pausableOperations.removeAll()
         }
     }
