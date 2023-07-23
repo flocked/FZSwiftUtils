@@ -24,16 +24,16 @@ public protocol PausableOperation: Pausable, Operation { }
 open class PausableOperationQueue: OperationQueue {
     
     /// The operations currently in the queue.
-    open private(set)var pausableOperations: [PausableOperation] = []
+    open private(set)var pausableOperations: [ (Pausable & Operation) ] = []
     
     internal lazy var sequentialOperationsQueue = {
         var queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
-
+    
     override open func addOperation(_ op: Operation) {
-        Swift.print("addOperation",  op as? PausableOperation ?? "nil")
+        Swift.print("addOperation",  op as? (Pausable & Operation) ?? "nil")
         let completionBlock = op.completionBlock
         if let pausableOperation = op as? PausableOperation {
             op.completionBlock = {
@@ -52,7 +52,7 @@ open class PausableOperationQueue: OperationQueue {
     }
 
     override open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
-        let pausableOperations = ops.compactMap { $0 as? PausableOperation }
+        let pausableOperations = ops.compactMap { $0 as?  (Pausable & Operation)  }
         Swift.print("addOperations",  pausableOperations.count)
 
         pausableOperations.forEach({ operation in
