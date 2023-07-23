@@ -7,7 +7,14 @@
 
 import Foundation
 
-public extension Progress {    
+public extension Progress {
+    /**
+     Updates the estimate time remaining.
+     */
+    func updateEstimatedTimeRemaining() {
+        self.updateEstimatedTimeRemaining(dateStarted: estimatedTimeStartDate)
+    }
+    
     /**
      Updates the estimate time remaining by providing the start date of the progress.
      
@@ -39,8 +46,8 @@ public extension Progress {
             self.estimatedTimeRemaining = 0.0
             return
         }
-        
-        var completedUnitCount = completedUnitCount - (completedUnits ?? 0)
+        self.estimatedTimeCompletedUnits = completedUnits ?? self.estimatedTimeCompletedUnits
+        var completedUnitCount = completedUnitCount - self.estimatedTimeCompletedUnits
         var totalUnitCount = totalUnitCount - (completedUnits ?? 0)
         
         if completedUnitCount < 0 {
@@ -97,6 +104,18 @@ public extension Progress {
         self.fileProgress = nil
     }
     
+    internal var estimatedTimeStartDate: Date {
+        get { getAssociatedValue(key: "Progress_estimatedTimeStartDate", object: self, initialValue: Date()) }
+        set {  set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
+    }
+    
+    internal var estimatedTimeCompletedUnits: Int64 {
+        get { getAssociatedValue(key: "Progress_estimatedTimeCompletedUnits", object: self, initialValue: self.completedUnitCount) }
+        set {
+            guard estimatedTimeCompletedUnits != newValue else { return }
+            set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self) }
+    }
+    
     internal var fileProgress: Progress? {
         get { getAssociatedValue(key: "Progress_fileProgress", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_fileProgress", object: self) }
@@ -139,15 +158,9 @@ public extension Progress {
         set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
     }
     
-    internal var estimatedTimeStartDate: Date {
-        get { getAssociatedValue(key: "Progress_estimatedTimeStartDate", object: self, initialValue: Date()) }
-        set { set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
-    }
-    
     internal func setupEstimatedTimeProgressObserver() {
         if autoUpdateEstimatedTimeRemaining {
             guard estimatedTimeProgressObserver == nil else { return }
-            estimatedTimeStartDate = Date()
             estimatedTimeProgressObserver = KeyValueObserver(self)
             estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
                 guard old != new else { return }
@@ -164,21 +177,10 @@ public extension Progress {
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
             }
-            
             self.updateEstimatedTimeRemaining()
-            
         } else {
             estimatedTimeProgressObserver = nil
         }
-    }
-    
-    internal func updateEstimatedTimeRemaining() {
-        guard self.autoUpdateEstimatedTimeRemaining, self.isCancelled == false && self.isPaused == false else {
-            self.estimatedTimeRemaining = TimeInterval.infinity
-            self.throughput = 0
-            return
-        }
-        self.updateEstimatedTimeRemaining(dateStarted: self.estimatedTimeStartDate)
     }
     
     /**
