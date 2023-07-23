@@ -56,11 +56,21 @@ public extension SynchronizedDictionary {
         }
     }
 
-    // this is because it is an apple protocol method
-    // swiftlint:disable identifier_name
     func index(after i: Dictionary<V, T>.Index) -> Dictionary<V, T>.Index {
         queue.sync {
             return self.dictionary.index(after: i)
+        }
+    }
+    
+    func filter(_ isIncluded: ((_ key: V, _ value: T) throws -> Bool)) rethrows -> [V: T] {
+        try queue.sync {
+            return try self.dictionary.filter(isIncluded)
+        }
+    }
+    
+    func map(_ transform: ((_ key: V, _ value: T) throws -> T)) rethrows -> [T] {
+        try queue.sync {
+            return try self.dictionary.map(transform)
         }
     }
     
