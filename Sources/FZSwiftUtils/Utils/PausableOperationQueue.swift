@@ -71,7 +71,7 @@ open class PausableOperationQueue: OperationQueue {
     open func pause() {
         isSuspended = true
         self.sequentialOperationsQueue.addOperation {
-            self.pausableOperations.forEach { $0.pause() }
+            self.pausableOperations.filter({$0.isExecuting}).forEach { $0.pause() }
         }
     }
 
@@ -79,7 +79,7 @@ open class PausableOperationQueue: OperationQueue {
     open func resume() {
         isSuspended = false
         self.sequentialOperationsQueue.addOperation {
-            self.pausableOperations.forEach { $0.resume() }
+            self.pausableOperations.filter({$0.isExecuting}).forEach { $0.resume() }
         }
     }
 
