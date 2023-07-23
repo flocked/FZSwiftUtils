@@ -13,11 +13,11 @@ public extension Progress {
      
      - Parameters:
      - date: The start date of the progress.
-     - completedUnitsSinceStart: The units completed since start.
+     - completedUnits: The units completed since start.
      */
-    func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnitsSinceStart: Int64? = nil) {
+    func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnits: Int64? = nil) {
         let elapsedTime = Date().timeIntervalSince(date)
-        updateEstimatedTimeRemaining(timeElapsed: elapsedTime, completedUnitsSinceStart: completedUnitsSinceStart)
+        updateEstimatedTimeRemaining(timeElapsed: elapsedTime, completedUnits: completedUnits)
     }
     
     /**
@@ -25,16 +25,16 @@ public extension Progress {
      
      - Parameters:
      - elapsedTime: The time elapsed since the start of the progress.
-     - completedUnitsSinceStart: The units completed since start.
+     - completedUnits: The units completed since start.
      */
-    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnitsSinceStart: Int64? = nil) {
+    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64? = nil) {
         guard Int64(elapsedTime) > 1 else {
             self.throughput = 0
             self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
-        var completedUnitCount = completedUnitCount - (completedUnitsSinceStart ?? 0)
-        var totalUnitCount = totalUnitCount - (completedUnitsSinceStart ?? 0)
+        var completedUnitCount = completedUnitCount - (completedUnits ?? 0)
+        var totalUnitCount = totalUnitCount - (completedUnits ?? 0)
         
         if completedUnitCount < 0 {
             completedUnitCount = 0
