@@ -86,7 +86,7 @@ public final class MutableProgress: Progress {
 
     public override var completedUnitCount: Int64 {
         get {
-            return Int64(observedChildren.filter { $0.key.isCompleted }.count)
+            return Int64(self.children.filter { $0.isCompleted }.count)
         }
         set {
             fatalError("Setting the completed unit count is not supported for MutableProgress")
@@ -102,7 +102,7 @@ public final class MutableProgress: Progress {
     }
 
     public override var fractionCompleted: Double {
-        return observedChildren.map { $0.key.fractionCompleted }.reduce(0, +) / Double(totalUnitCount)
+        return self.children.map { $0.fractionCompleted }.reduce(0, +) / Double(totalUnitCount)
     }
 
     // MARK: Overriding methods to make sure this class is used correctly.
