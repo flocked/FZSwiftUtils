@@ -13,62 +13,36 @@ public extension Progress {
      
      - Parameters:
      - date: The start date of the progress.
+     - completedUnitsSinceStart: The units completed since start.
      */
-    func updateEstimatedTimeRemaining(dateStarted date: Date) {
+    func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnitsSinceStart: Int64? = nil) {
         let elapsedTime = Date().timeIntervalSince(date)
-        updateEstimatedTimeRemaining(timeElapsed: elapsedTime)
+        updateEstimatedTimeRemaining(timeElapsed: elapsedTime, completedUnitsSinceStart: completedUnitsSinceStart)
     }
-        
+    
     /**
      Updates the estimate time remaining by providing the time elapsed since the start of the progress.
      
      - Parameters:
      - elapsedTime: The time elapsed since the start of the progress.
+     - completedUnitsSinceStart: The units completed since start.
      */
-    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval) {
+    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnitsSinceStart: Int64? = nil) {
         guard Int64(elapsedTime) > 1 else {
             self.throughput = 0
             self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
+        var completedUnitCount = completedUnitCount - (completedUnitsSinceStart ?? 0)
+        var totalUnitCount = totalUnitCount - (completedUnitsSinceStart ?? 0)
         
-        let unitsPerSecond = Double(completedUnitCount) / elapsedTime
-        let throughput = Int(unitsPerSecond)
-        let unitsRemaining = totalUnitCount - completedUnitCount
-        
-        guard unitsPerSecond > 0 else {
-            self.throughput = throughput
-            self.estimatedTimeRemaining = TimeInterval.infinity
-            return
-        }
-        
-        let secondsRemaining = Double(unitsRemaining) / unitsPerSecond
-        
-        self.throughput = throughput
-        self.estimatedTimeRemaining = secondsRemaining
-    }
-    
-    func updateEstimatedTimeRemaining(dateStarted date: Date, startUnit: Int64) {
-        let elapsedTime = Date().timeIntervalSince(date)
-        updateEstimatedTimeRemaining(timeElapsed: elapsedTime, startUnit: startUnit)
-    }
-    
-    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, startUnit: Int64) {
-        guard Int64(elapsedTime) > 1 else {
-            self.throughput = 0
-            self.estimatedTimeRemaining = TimeInterval.infinity
-            return
-        }
-        
-        var completedUnitCount = completedUnitCount-startUnit
-        var totalUnitCount = totalUnitCount-startUnit
         if completedUnitCount < 0 {
             completedUnitCount = 0
         }
         if totalUnitCount < 0 {
             totalUnitCount = 0
         }
-
+        
         let unitsPerSecond = Double(completedUnitCount) / elapsedTime
         let throughput = Int(unitsPerSecond)
         let unitsRemaining = totalUnitCount - completedUnitCount
@@ -125,7 +99,7 @@ public extension Progress {
         get { getAssociatedValue(key: "Progress_progressObserver", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_progressObserver", object: self) }
     }
-        
+    
     internal func observeValues(of progress: Progress?) {
         if let progress = progress {
             progressObserver = KeyValueObserver(progress)
@@ -152,7 +126,7 @@ public extension Progress {
             progressObserver = nil
         }
     }
-        
+    
     internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
         get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
@@ -172,7 +146,7 @@ public extension Progress {
                 guard old != new else { return }
                 self.updateEstimatedTimeRemaining()
             }
-  
+            
             estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
                 guard old != new else { return }
                 self.estimatedTimeStartDate = Date()
