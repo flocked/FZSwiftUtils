@@ -253,6 +253,60 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     }
 }
 
+public extension RangeReplaceableCollection where Element: Equatable  {
+    /**
+     Inserts a new element before the specified element.
+     
+     The new element is inserted before the specified element. If the element doesn't exist in the array, the new element won't be inserted.
+
+     - Parameters newElement: The new element to insert into the array.
+     - Parameters before: The element before which to insert the new element.
+     */
+    mutating func insert(_ newElement: Element, before: Element) {
+        guard let index = self.firstIndex(of: before) else { return }
+        self.insert(newElement, at: index)
+    }
+    
+    /**
+     Inserts a new element after the specified element.
+     
+     The new element is inserted after the specified element. If the element doesn't exist in the array, the new element won't be inserted.
+
+     - Parameters newElement: The new element to insert into the array.
+     - Parameters after: The element after which to insert the new element.
+     */
+    mutating func insert(_ newElement: Element, after: Element) {
+        guard let index = self.firstIndex(of: after) else { return }
+        self.insert(newElement, at: self.index(after: index))
+    }
+    
+    /**
+     Inserts the new elements before the specified element.
+     
+     The new elements are inserted before the specified element. If the element doesn't exist in the array, the new elements won't be inserted.
+
+     - Parameters newElements: The new elements to insert into the array.
+     - Parameters before: The element before which to insert the new elements.
+     */
+    mutating func insert<C>(_ newElements: C, before: Element) where C: Collection<Element> {
+        guard let index = self.firstIndex(of: before) else { return }
+        self.insert(contentsOf: newElements, at: index)
+    }
+    
+    /**
+     Inserts the new elements after the specified element.
+     
+     The new elements are inserted after the specified element. If the element doesn't exist in the array, the new elements won't be inserted.
+
+     - Parameters newElements: The new elements to insert into the array.
+     - Parameters after: The element after which to insert the new elements.
+     */
+    mutating func insert<C>(_ newElements: C, after: Element) where C: Collection<Element> {
+        guard let index = self.firstIndex(of: after) else { return }
+        self.insert(contentsOf: newElements, at: self.index(after: index))
+    }
+}
+
 public extension Collection where Element: BinaryInteger {
     /// The average value of all values in the collection. If the collection is empty, it returns 0.
     func average() -> Double {
