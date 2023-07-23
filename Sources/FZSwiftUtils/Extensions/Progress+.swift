@@ -8,6 +8,13 @@
 import Foundation
 
 public extension Progress {
+    /// The identifier of the progress.
+    var identifier: Any? {
+        get { getAssociatedValue(key: "Progress_identifier", object: self, initialValue: nil) }
+        set {
+            set(associatedValue: newValue, key: "Progress_identifier", object: self)
+        }
+    }
     /**
      Updates the estimate time remaining.
      */
@@ -232,4 +239,9 @@ public extension ProgressUserInfoKey {
      A key with a corresponding value that represents the start date of the progress.
      */
     static let startedDateKey = ProgressUserInfoKey("startedDate")
+    
+    /**
+     A key with a corresponding value that represents the completed units at the start of the progress.
+     */
+    static let completedUnitsAtStartKey = ProgressUserInfoKey("completedUnitsAtStartKey")
 }
