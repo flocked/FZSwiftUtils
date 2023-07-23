@@ -48,6 +48,43 @@ public extension Progress {
         self.estimatedTimeRemaining = secondsRemaining
     }
     
+    func updateEstimatedTimeRemaining(dateStarted date: Date, startUnit: Int64) {
+        let elapsedTime = Date().timeIntervalSince(date)
+        updateEstimatedTimeRemaining(timeElapsed: elapsedTime, startUnit: startUnit)
+    }
+    
+    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, startUnit: Int64) {
+        guard Int64(elapsedTime) > 1 else {
+            self.throughput = 0
+            self.estimatedTimeRemaining = TimeInterval.infinity
+            return
+        }
+        
+        var completedUnitCount = completedUnitCount-startUnit
+        var totalUnitCount = totalUnitCount-startUnit
+        if completedUnitCount < 0 {
+            completedUnitCount = 0
+        }
+        if totalUnitCount < 0 {
+            totalUnitCount = 0
+        }
+
+        let unitsPerSecond = Double(completedUnitCount) / elapsedTime
+        let throughput = Int(unitsPerSecond)
+        let unitsRemaining = totalUnitCount - completedUnitCount
+        
+        guard unitsPerSecond > 0 else {
+            self.throughput = throughput
+            self.estimatedTimeRemaining = TimeInterval.infinity
+            return
+        }
+        
+        let secondsRemaining = Double(unitsRemaining) / unitsPerSecond
+        
+        self.throughput = throughput
+        self.estimatedTimeRemaining = secondsRemaining
+    }
+    
     /**
      A boolean value indicating whether the progress should auomatically update the estimated time remaining.
      */
