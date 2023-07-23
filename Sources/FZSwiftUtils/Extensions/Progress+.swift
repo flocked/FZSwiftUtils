@@ -36,12 +36,12 @@ public extension Progress {
         let throughput = Int(unitsPerSecond)
         let unitsRemaining = totalUnitCount - completedUnitCount
         
-        guard throughput > 0 else {
+        guard unitsPerSecond > 0 else {
             self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
         
-        let secondsRemaining = Double(unitsRemaining) / Double(throughput)
+        let secondsRemaining = Double(unitsRemaining) / unitsPerSecond
         
         self.throughput = throughput
         self.estimatedTimeRemaining = secondsRemaining
