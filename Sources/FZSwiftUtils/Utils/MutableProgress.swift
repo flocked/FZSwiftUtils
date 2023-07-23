@@ -10,8 +10,7 @@ import Foundation
 
 /// A progress that allows to add and remove children progresses.
 public final class MutableProgress: Progress {
-    
-    /// All the current tracked children.
+    /// All the current children progresses.
     public var children: [Progress] {
         get { self.observedChildren.keys }
         set {
@@ -21,7 +20,7 @@ public final class MutableProgress: Progress {
         }
     }
 
-    /// All the current tracked children and their observers.
+    /// All the current tracked children progresses and their observers.
     private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
 
     /// Adds a new child. Will always use a pending unit count of 1.
