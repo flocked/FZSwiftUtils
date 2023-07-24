@@ -14,8 +14,9 @@ public protocol KeyValueCodable {
     /// Sets the property of the receiver specified by a given key to a given value.
     func setValue(_ value: Any?, for key: String)
     
-    /// Calls the selector with the name and values.
-    func call(_ name: String, values: [Any?])
+    /// Calls the selector with the specified name and values and returns its result.
+    @discardableResult
+    func call(_ name: String, values: [Any?]) -> Any?
     
 }
 
@@ -24,11 +25,20 @@ public extension KeyValueCodable {
         return nil
     }
     
+    func value<V>(for key: String) -> V? {
+        return self.value(for: key) as? V
+    }
+    
     func setValue(_ value: Any?, for key: String) {
         
     }
     
-    func call(_ name: String, values: [Any?]) {
-        
+    @discardableResult
+    func call(_ name: String, values: [Any?]) -> Any? {
+        return nil
+    }
+    
+    func call<V>(_ name: String, values: [Any?]) -> V? {
+        return self.call(name, values: values) as? V
     }
 }
