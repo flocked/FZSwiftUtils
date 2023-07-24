@@ -33,6 +33,22 @@ public extension Equatable {
         }
         return self == other
     }
+    
+    /**
+     Returns a Boolean value indicating whether the values for the specified key paths are equatable to the values of another object..
+     
+     - Parameters other: Another object of the same type.
+     - Returns: Returns true if the values for the key paths are equal to the values of the other object; or false if they aren't equal.
+     */
+    func isEqual(_ other: Self, for  keyPaths: [PartialKeyPath<Self>]) -> Bool {
+        for keyPath in keyPaths {
+            if let value = self[keyPath: keyPath] as? (any Equatable),
+               let compareValue = other[keyPath: keyPath] as? (any Equatable), !value.isEqual(compareValue) {
+                return false
+            }
+        }
+        return true
+    }
 }
 
 public extension PartialKeyPath {
