@@ -116,7 +116,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      - Parameters destinationIndex: The index of the destionation.
      - Returns: `true` if moving succeeded, or `false` if not.
      */
-    mutating func move(_ element: Element, to destinationIndex: Index) -> Bool {
+    mutating func move(_ element: Element, to destinationIndex: Self.Indices.Element) -> Bool {
         let indexes = self.indexes(for: [element])
         return move(from: indexes, to: destinationIndex)
     }
@@ -128,7 +128,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      - Parameters destinationIndex: The index of the destionation.
      - Returns: `true` if moving succeeded, or `false` if not.
      */
-    mutating func move<S: Sequence<Element>>(_ elements: S, to destinationIndex: Index) -> Bool {
+    mutating func move<S: Sequence<Element>>(_ elements: S, to destinationIndex: Self.Indices.Element) -> Bool {
         let indexes = self.indexes(for: elements)
         return move(from: indexes, to: destinationIndex)
     }
