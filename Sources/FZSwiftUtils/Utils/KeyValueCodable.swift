@@ -17,7 +17,6 @@ public protocol KeyValueCodable {
     /// Calls the selector with the specified name and values and returns its result.
     @discardableResult
     func call(_ name: String, values: [Any?]) -> Any?
-    
 }
 
 public extension KeyValueCodable {
@@ -40,5 +39,15 @@ public extension KeyValueCodable {
     
     func call<V>(_ name: String, values: [Any?]) -> V? {
         return self.call(name, values: values) as? V
+    }
+    
+    subscript(key key: String) -> Any? {
+        get { value(for: key) }
+        set { setValue(newValue, for: key) }
+    }
+    
+    subscript<V>(key key: String) -> V? {
+        get { value(for: key) }
+        set { setValue(newValue, for: key) }
     }
 }
