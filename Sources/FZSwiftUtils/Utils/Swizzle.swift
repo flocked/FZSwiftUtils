@@ -19,6 +19,19 @@ public struct SwizzlaePair: CustomStringConvertible {
         self.new = new
         self.static = `static`
     }
+    
+    public init<V>(get old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
+        self.old = NSSelectorFromString(old._kvcKeyPathString!)
+        self.new = NSSelectorFromString(new._kvcKeyPathString!)
+        self.static = `static`
+    }
+    
+    public init<V>(set old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
+        self.old = NSSelectorFromString("set" + old._kvcKeyPathString!.capitalized)
+        self.new = NSSelectorFromString("set" + new._kvcKeyPathString!.capitalized)
+        self.static = `static`
+    }
+    
     internal var `operator`: String {
         `static` ? "<~>" : "<->"
     }
