@@ -181,7 +181,7 @@ public struct Swizzle {
             } else {
                 method_exchangeImplementations(lhs, rhs)
             }
-            debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
+         //   debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
         }
     }
 }
