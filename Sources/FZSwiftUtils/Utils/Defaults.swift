@@ -82,19 +82,6 @@ public final class Defaults {
         }
     }
 
-    /*
-     public func get<ValueType: Codable>(for key: String) -> ValueType? {
-         let key: Key<ValueType> = Key<ValueType>(key)
-         return self.get(for: key)
-     }
-
-     public func set<ValueType: Codable>(_ value: ValueType, for key: String) {
-         let key: Key<ValueType> = Key<ValueType>(key)
-         self.set(value, for: key)
-     }
-
-     */
-
     /// Returns the value associated with the specified key.
     ///
     /// - Parameter key: The key.
@@ -144,11 +131,21 @@ public final class Defaults {
         }
     }
 
+    
+    /// Returns the value associated with the specified key.
+    ///
+    /// - Parameter key: The key.
+    /// - Returns: A `ValueType` or nil if the key was not found.
     public func get<ValueType: Codable>(for key: String) -> ValueType? {
         let key = Key<ValueType>(key)
         return get(for: key)
     }
 
+    /// Sets a value associated with the specified key.
+    ///
+    /// - Parameters:
+    ///   - value: The value to set.
+    ///   - key: The associated key.
     public func set<ValueType: Codable>(_ value: ValueType?, for key: String) {
         let key = Key<ValueType>(key)
         if let value = value {
