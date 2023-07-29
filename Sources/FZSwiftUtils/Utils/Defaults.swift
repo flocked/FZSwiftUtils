@@ -8,14 +8,12 @@
 
 import Foundation
 
-public class DefaultsKey {}
-
 public extension Defaults {
     /// Represents a `Key` with an associated generic value type conforming to the
     /// `Codable` protocol.
     ///
     ///     static let someKey = Key<ValueType>("someKey")
-    final class Key<ValueType: Codable>: DefaultsKey {
+    final class Key<ValueType: Codable> {
         fileprivate let _key: String
         public init(_ key: String) {
             _key = key
