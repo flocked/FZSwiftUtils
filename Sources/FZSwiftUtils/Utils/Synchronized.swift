@@ -1,10 +1,10 @@
 //
 //  Synchronized.swift
 //
-//  Created by Florian Zand on 01.06.23.
-//
 //  Adopted from:
 //  Copyright ©2016-2018 Peter Baumgartner. All rights reserved.
+//  Created by Florian Zand on 01.06.23.
+//
 
 import Foundation
 
