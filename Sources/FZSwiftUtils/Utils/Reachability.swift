@@ -1,6 +1,6 @@
 //
-//  Reacha.swift
-//  TTT
+//  Reachability.swift
+//  
 //
 //  Created by Florian Zand on 29.07.23.
 //
@@ -29,14 +29,6 @@ public class Reachability {
             return false
         }
 
-        /* Only Working for WIFI
-        let isReachable = flags == .reachable
-        let needsConnection = flags == .connectionRequired
-
-        return isReachable && !needsConnection
-        */
-
-        // Working for Cellular and WIFI
         let isReachable = (flags.rawValue & UInt32(kSCNetworkFlagsReachable)) != 0
         let needsConnection = (flags.rawValue & UInt32(kSCNetworkFlagsConnectionRequired)) != 0
         let ret = (isReachable && !needsConnection)
