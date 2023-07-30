@@ -7,9 +7,7 @@
 
 import Foundation
 
-/**
- A asynchronous, pausable operation.
- */
+/// A asynchronous, pausable operation.
 open class AsyncOperation: Operation, Pausable {
     /// The state of the operation.
     public enum State: String {
