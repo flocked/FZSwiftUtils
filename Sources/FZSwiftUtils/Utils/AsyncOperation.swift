@@ -29,7 +29,7 @@ open class AsyncOperation: Operation, Pausable {
     open var onStateChange: ((State) -> Void)? = nil
     
     /// The error, if the operation failed.
-    open fileprivate(set) var error: Error? = nil
+    open var error: Error? = nil
 
     /// The state of the operation.
     open var state: State = .waiting {
