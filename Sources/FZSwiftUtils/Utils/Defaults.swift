@@ -162,6 +162,32 @@ public final class Defaults {
         guard let name = bundle.bundleIdentifier else { return }
         userDefaults.removePersistentDomain(forName: name)
     }
+    
+    internal lazy var observer = KeyValueObserver(self.userDefaults)
+    
+    /**
+     Adds an observer for the specified key which calls the specified handler.
+     
+     - Parameters key: The key to the value to observe.
+     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters handler: The handler to be called whenever the key value changes.
+     */
+    public func observeChanges<ValueType>(for key: Key<ValueType>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: ValueType, _ newValue: ValueType)->())) {
+        self.observer.add(key._key, sendInitalValue: sendInitalValue) { old, new in
+            let old = old as! ValueType
+            let new = new as! ValueType
+            handler(old, new)
+        }
+    }
+    
+    /**
+     Stops  observing for the specified key.
+     
+     - Parameters key: The key to stop observing.
+     */
+    public func stopObserving<ValueType>(for  key: Key<ValueType>) {
+        self.observer.remove(key._key)
+    }
 
     /// Checks if the specified type is a Codable from the Swift standard library.
     ///
