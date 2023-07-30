@@ -29,6 +29,12 @@ open class PausableOperationQueue: OperationQueue {
         return queue
     }()
     
+    internal let _progress = MutableProgress()
+    
+    open override var progress: Progress {
+        get { _progress }
+    }
+    
     override open func addOperation(_ op: Operation) {
         let completionBlock = op.completionBlock
         if let pausableOperation = op as? (Pausable & Operation) {
