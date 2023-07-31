@@ -23,7 +23,7 @@ private extension String {
  - Returns: The associated value for the object and key, or nil if the value couldn't be found for the key..
  */
 public func getAssociatedValue<T>(key: String, object: AnyObject) -> T? {
-    return (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value as? T
+    return (objc_getAssociatedObject(object, key.address) as? _AssociatedValue)?.value as? T
 }
 
 /**
@@ -60,7 +60,7 @@ private func setAndReturn<T>(initialValue: T, key: String, object: AnyObject) ->
  - Parameters object: The object of the associated value.
  */
 public func set<T>(associatedValue: T?, key: String, object: AnyObject) {
-    set(associatedValue: AssociatedValue(associatedValue), key: key, object: object)
+    set(associatedValue: _AssociatedValue(associatedValue), key: key, object: object)
 }
 
 /**
@@ -70,14 +70,14 @@ public func set<T>(associatedValue: T?, key: String, object: AnyObject) {
  - Parameters object: The object of the associated value.
  */
 public func set<T: AnyObject>(weakAssociatedValue: T?, key: String, object: AnyObject) {
-    set(associatedValue: AssociatedValue(weak: weakAssociatedValue), key: key, object: object)
+    set(associatedValue: _AssociatedValue(weak: weakAssociatedValue), key: key, object: object)
 }
 
-private func set(associatedValue: AssociatedValue, key: String, object: AnyObject) {
+private func set(associatedValue: _AssociatedValue, key: String, object: AnyObject) {
     objc_setAssociatedObject(object, key.address, associatedValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 }
 
-private class AssociatedValue {
+private class _AssociatedValue {
     weak var _weakValue: AnyObject?
     var _value: Any?
 
@@ -95,13 +95,13 @@ private class AssociatedValue {
 }
 
 public extension NSObject {
-    var associatedValue: AssociatedObject {
-        return AssociatedObject(self)
+    var associatedValue: AssociatedValue {
+        return AssociatedValue(self)
     }
 }
 
 /// An object for getting and setting associated values of a specified object.
-public class AssociatedObject {
+public class AssociatedValue {
     internal weak var object: AnyObject!
     internal init(_ object: AnyObject) {
         self.object = object
@@ -116,6 +116,17 @@ public class AssociatedObject {
         guard let object = object else { return nil }
         return getAssociatedValue(key: key, object: object)
     }
+    
+    /*
+    /**
+     Returns the associated value for the specified key.
+     - Parameters key: The key of the associated value.
+     - Returns: The associated value for the key.
+     */
+    public func callAsFunction<T>(_ key: String) -> T? {
+        return get(key)
+    }
+     */
 
     /**
      Returns the associated value for the specified key and inital value.
@@ -127,6 +138,18 @@ public class AssociatedObject {
         guard let object = object else { return initialValue() }
         return getAssociatedValue(key: key, object: object, initialValue: initialValue)
     }
+    
+    /*
+    /**
+     Returns the associated value for the specified key and inital value.
+     - Parameters key: The key of the associated value.
+     - Parameters initialValue: The inital value of the associated value.
+     - Returns: The associated value for the key.
+     */
+    public func callAsFunction<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
+        return get(key, initialValue: initialValue)
+    }
+     */
 
     /**
      Returns the associated value for the specified key and inital value.
@@ -138,6 +161,18 @@ public class AssociatedObject {
         guard let object = object else { return initialValue() }
         return getAssociatedValue(key: key, object: object, initialValue: initialValue)
     }
+    
+    /*
+    /**
+     Returns the associated value for the specified key and inital value.
+     - Parameters key: The key of the associated value.
+     - Parameters initialValue: The inital value of the associated value.
+     - Returns: The associated value for the key.
+     */
+    public func callAsFunction<T>(_ key: String, initialValue: () -> T) -> T {
+        return get(key, initialValue: initialValue)
+    }
+    */
 
     /**
      Sets a value for the specified key.
@@ -159,7 +194,7 @@ public class AssociatedObject {
         FZSwiftUtils.set(weakAssociatedValue: value, key: key, object: object)
     }
 
-    public subscript<T>(key: String, initialValue: T? = nil) -> T? {
+    public subscript<T>(key: String, initial initialValue: T? = nil) -> T? {
         get {
             if let initialValue = initialValue {
                 return get(key, initialValue: initialValue)
@@ -170,7 +205,7 @@ public class AssociatedObject {
         set { set(newValue, key: key) }
     }
     
-    public subscript<T: AnyObject>(weak key: String, initialValue: T? = nil) -> T? {
+    public subscript<T: AnyObject>(weak key: String, initial initialValue: T? = nil) -> T? {
         get {
             if let initialValue = initialValue {
                 return get(key, initialValue: initialValue)
