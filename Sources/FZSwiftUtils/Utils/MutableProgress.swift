@@ -34,9 +34,7 @@ open class MutableProgress: Progress {
             guard let self = self else { return }
             self.willChangeValue(for: \.fractionCompleted)
             self.didChangeValue(for: \.fractionCompleted)
-            
             self.updateChildrenInfo()
-
             if child.isCompleted {
                 self.willChangeValue(for: \.completedUnitCount)
                 self.didChangeValue(for: \.completedUnitCount)
