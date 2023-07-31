@@ -64,10 +64,12 @@ open class MutableProgress: Progress {
         self.willChangeValue(for: \.progressState.unfinished)
         let unfinished = self.children.filter({$0.isFinished == false})
 
-        self.progressState.completedUnitCount = self.children.compactMap({$0.completedUnitCount}).sum()
-        self.progressState.totalUnitCount = self.children.compactMap({$0.totalUnitCount}).sum()
-        self.progressState.unfinished.completedUnitCount = unfinished.compactMap({$0.completedUnitCount}).sum()
-        self.progressState.unfinished.totalUnitCount = unfinished.compactMap({$0.totalUnitCount}).sum()
+        self.progressState._completedUnitCount = self.children.compactMap({$0.completedUnitCount}).sum()
+        self.progressState._totalUnitCount = self.children.compactMap({$0.totalUnitCount}).sum()
+        self.progressState._fractionCompleted = self.fractionCompleted
+        self.progressState.unfinished._completedUnitCount = unfinished.compactMap({$0.completedUnitCount}).sum()
+        self.progressState.unfinished._totalUnitCount = unfinished.compactMap({$0.totalUnitCount}).sum()
+        self.progressState.unfinished._fractionCompleted = Double(self.progressState.unfinished.completedUnitCount) / Double(self.progressState.unfinished.totalUnitCount)
         
         let timeRemainings = unfinished.compactMap({$0.estimatedTimeRemaining})
         let timeRemaining = timeRemainings.sum()
@@ -141,22 +143,71 @@ open class MutableProgress: Progress {
 
 public extension MutableProgress {
     class ProgressState: NSObject {
-        @objc public dynamic var completedUnitCount: Int64 = 0
+        internal var _completedUnitCount: Int64 = 0 {
+            didSet {
+                guard oldValue != _completedUnitCount else { return }
+                self.completedUnitCount = _completedUnitCount}
+        }
         
-        @objc public dynamic var totalUnitCount: Int64 = 0
+        internal var _totalUnitCount: Int64 = 0 {
+            didSet {
+                guard oldValue != _totalUnitCount else { return }
+                self.totalUnitCount = _totalUnitCount}
+        }
         
-        @objc public dynamic var fractionCompleted: Double = 0
+        internal var _fractionCompleted: Double = 0 {
+            didSet {
+                guard oldValue != _fractionCompleted else { return }
+                self.fractionCompleted = _fractionCompleted}
+        }
         
-        @objc public dynamic var throughput: Int = 0
+        internal var _throughput: Int = 0 {
+            didSet {
+                guard oldValue != _throughput else { return }
+                self.throughput = _throughput}
+        }
         
-        @objc public dynamic var estimatedTimeRemaining: Double = 0
+        internal var _estimatedTimeRemaining: Double = 0 {
+            didSet {
+                guard oldValue != _estimatedTimeRemaining else { return }
+                self.estimatedTimeRemaining = _estimatedTimeRemaining }
+        }
+
+        @objc public dynamic fileprivate(set) var completedUnitCount: Int64 = 0
         
-        @objc public dynamic var unfinished = UnfinishedProgressState()
+        
+        @objc public dynamic fileprivate(set) var totalUnitCount: Int64 = 0
+        
+        @objc public dynamic fileprivate(set) var fractionCompleted: Double = 0
+        
+        @objc public dynamic fileprivate(set) var throughput: Int = 0
+        
+        @objc public dynamic fileprivate(set) var estimatedTimeRemaining: Double = 0
+        
+        @objc public dynamic fileprivate(set) var unfinished = UnfinishedProgressState()
 
         public class UnfinishedProgressState: NSObject {
-            @objc public dynamic var fractionCompleted: Double = 0
-            @objc public dynamic var totalUnitCount: Int64 = 0
-            @objc public dynamic var completedUnitCount: Int64 = 0
+            internal var _completedUnitCount: Int64 = 0 {
+                didSet {
+                    guard oldValue != _completedUnitCount else { return }
+                    self.completedUnitCount = _completedUnitCount}
+            }
+            
+            internal var _totalUnitCount: Int64 = 0 {
+                didSet {
+                    guard oldValue != _totalUnitCount else { return }
+                    self.totalUnitCount = _totalUnitCount}
+            }
+            
+            internal var _fractionCompleted: Double = 0 {
+                didSet {
+                    guard oldValue != _fractionCompleted else { return }
+                    self.fractionCompleted = _fractionCompleted}
+            }
+            
+            @objc public dynamic fileprivate(set) var fractionCompleted: Double = 0
+            @objc public dynamic fileprivate(set) var totalUnitCount: Int64 = 0
+            @objc public dynamic fileprivate(set) var completedUnitCount: Int64 = 0
         }
     }
 }
