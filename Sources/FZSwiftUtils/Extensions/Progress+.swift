@@ -98,15 +98,20 @@ public extension Progress {
      - kind: The kind of the file operation.
      */
     func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
-        guard self.fileProgress?.userInfo[.fileURLKey] as? URL != url else { return }
-        self.fileProgress = .file(url: url, kind: kind)
-        self.fileProgress?.observeValues(of: self)
+        guard self.fileURL != url else { return }
+        self.fileURL = url
+        self.fileOperationKind = kind
+        self.kind = .file
+        self.publish()
     }
     
     /// Removes reflecting the file progress.
     func removeFileProgress() {
-        self.fileProgress?.cancel()
-        self.fileProgress = nil
+        guard self.fileURL != nil else { return }
+        self.unpublish()
+        self.fileURL = nil
+        self.fileOperationKind = nil
+        self.kind = nil
     }
     
     /**
@@ -154,43 +159,6 @@ public extension Progress {
         set {
             guard estimatedTimeCompletedUnits != newValue else { return }
             set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self) }
-    }
-
-    internal var fileProgress: Progress? {
-        get { getAssociatedValue(key: "Progress_fileProgress", object: self, initialValue: nil) }
-        set { set(associatedValue: newValue, key: "Progress_fileProgress", object: self) }
-    }
-    
-    internal var progressObserver: KeyValueObserver<Progress>? {
-        get { getAssociatedValue(key: "Progress_progressObserver", object: self, initialValue: nil) }
-        set { set(associatedValue: newValue, key: "Progress_progressObserver", object: self) }
-    }
-    
-    internal func observeValues(of progress: Progress?) {
-        if let progress = progress {
-            progressObserver = KeyValueObserver(progress)
-            progressObserver?.add(\.fractionCompleted, sendInitalValue: true) { [weak self] old, new in
-                guard let self = self, old != new else { return }
-                self.totalUnitCount = progress.totalUnitCount
-                self.completedUnitCount = progress.completedUnitCount
-                self.throughput = progress.throughput
-                self.estimatedTimeRemaining = progress.estimatedTimeRemaining
-            }
-            progressObserver?.add(\.isPaused, sendInitalValue: true) { [weak self] old, isPaused in
-                guard let self = self, old != isPaused else { return }
-                if isPaused, self.isPaused == false {
-                    self.pause()
-                } else if isPaused == false, self.isPaused {
-                    self.resume()
-                }
-            }
-            progressObserver?.add(\.isCancelled, sendInitalValue: true) { [weak self] _, isCancelled in
-                guard let self = self, isCancelled == true, self.isCancelled == false else { return }
-                self.cancel()
-            }
-        } else {
-            progressObserver = nil
-        }
     }
     
     internal func setupEstimatedTimeProgressObserver(includingFraction: Bool = false) {
