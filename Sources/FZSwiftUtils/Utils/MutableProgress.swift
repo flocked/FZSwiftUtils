@@ -26,19 +26,22 @@ open class MutableProgress: Progress {
     /// Adds a new child. Will always use a pending unit count of 1.
     ///
     /// - Parameter child: The child to add.
-    public func addChild(_ child: Progress) {
+    open func addChild(_ child: Progress) {
         willChangeValue(for: \.totalUnitCount)
         let observer = KeyValueObserver(child)
         observedChildren[child] = observer
         observer.add(\.fractionCompleted, sendInitalValue: true) {  [weak self] old, new in
-            self?.willChangeValue(for: \.fractionCompleted)
-            self?.didChangeValue(for: \.fractionCompleted)
+            guard let self = self else { return }
+            self.willChangeValue(for: \.fractionCompleted)
+            self.didChangeValue(for: \.fractionCompleted)
             
+            self.updateChildrenInfo()
+
             if child.isCompleted {
-                self?.willChangeValue(for: \.completedUnitCount)
-                self?.didChangeValue(for: \.completedUnitCount)
+                self.willChangeValue(for: \.completedUnitCount)
+                self.didChangeValue(for: \.completedUnitCount)
             } else if child.isCancelled {
-                self?.removeChild(child)
+                self.removeChild(child)
             }
         }
         
@@ -47,18 +50,25 @@ open class MutableProgress: Progress {
                 self?.removeChild(child)
             }
         }
-                
-        observer.add(\.estimatedTimeRemaining) {  [weak self] old, new in
-            guard let self = self, old != new else { return }
-            let timeRemainings = self.children.compactMap({$0.estimatedTimeRemaining})
-            if timeRemainings.isEmpty == false {
-                self.estimatedTimeRemaining = timeRemainings.average()
-            } else {
-                self.estimatedTimeRemaining = nil
-            }
-        }
         
         didChangeValue(for: \.totalUnitCount)
+    }
+    
+    internal func updateChildrenInfo() {
+        let unfinished = self.children.filter({$0.isFinished == false})
+        let timeRemainings = unfinished.compactMap({$0.estimatedTimeRemaining})
+        if timeRemainings.isEmpty == false {
+            self.estimatedTimeRemaining = timeRemainings.sum()
+        } else {
+            self.estimatedTimeRemaining = nil
+        }
+        
+        let throughputs = unfinished.compactMap({$0.throughput})
+        if throughputs.isEmpty == false {
+            self.throughput = throughputs.sum()
+        } else {
+            self.throughput = nil
+        }
     }
 
     /// Removes the given child from the progress reporting.
@@ -69,6 +79,7 @@ open class MutableProgress: Progress {
         willChangeValue(for: \.completedUnitCount)
         willChangeValue(for: \.totalUnitCount)
         observedChildren[child] = nil
+        updateChildrenInfo()
         didChangeValue(for: \.totalUnitCount)
         didChangeValue(for: \.completedUnitCount)
         didChangeValue(for: \.fractionCompleted)
