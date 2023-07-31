@@ -23,12 +23,18 @@ public class SynchronizedArray<Element>: BidirectionalCollection {
 }
 
 public extension SynchronizedArray {
-    var sync: [Element] {
+    var synchronized: [Element] {
         var array: [Element] = []
         queue.sync {
             array = self.array
         }
         return array
+    }
+    
+    func edit(_ edit: @escaping (inout [Element])->()) {
+        queue.async(flags: .barrier) {
+            edit(&self.array)
+        }
     }
     
     func index(_ i: Int, offsetBy distance: Int) -> Int {

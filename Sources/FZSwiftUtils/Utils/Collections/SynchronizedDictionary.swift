@@ -25,12 +25,18 @@ public class SynchronizedDictionary< Key: Hashable, Value>: Collection, Expressi
 }
 
 public extension SynchronizedDictionary {
-    var sync: [Key:Value] {
+    var synchronized: [Key:Value] {
         var dictionary: [Key:Value] = [:]
         queue.sync {
             dictionary = self.dictionary
         }
         return dictionary
+    }
+    
+    func edit(_ edit: @escaping (inout [Key:Value])->()) {
+        queue.async(flags: .barrier) {
+            edit(&self.dictionary)
+        }
     }
     
     var startIndex: Dictionary<Key, Value>.Index {
