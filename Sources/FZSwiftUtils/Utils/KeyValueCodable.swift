@@ -37,6 +37,8 @@ public extension KeyValueCodable {
         return nil
     }
     
+    /// Calls the selector with the specified name and values and returns its result.
+    @discardableResult
     func call<V>(_ name: String, values: [Any?]) -> V? {
         return self.call(name, values: values) as? V
     }
@@ -49,5 +51,15 @@ public extension KeyValueCodable {
     subscript<V>(key key: String) -> V? {
         get { value(for: key) }
         set { setValue(newValue, for: key) }
+    }
+}
+
+extension KeyValueCodable where Self: NSObject {
+    func value(for key: String) -> Any? {
+        self.value(forKeyPath: key)
+    }
+    
+    func setValue(_ value: Any?, for key: String) {
+        self.setValue(value, forKeyPath: key)
     }
 }
