@@ -98,20 +98,25 @@ public extension Progress {
      - kind: The kind of the file operation.
      */
     func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
+        Swift.print("addFileProgress", url, isPublished)
         guard self.fileURL != url else { return }
         if isPublished {
+            Swift.print("addFileProgress unpublish", url)
             self.unpublish()
         }
         self.fileURL = url
         self.fileOperationKind = kind
         self.kind = .file
+        Swift.print("addFileProgress publish", url)
         self.publish()
         self.isPublished = true
     }
     
     /// Removes reflecting the file progress.
     func removeFileProgress() {
+        Swift.print("removeFileProgress", self.fileURL ?? "nil")
         guard isPublished, self.fileURL != nil else { return }
+        Swift.print("removeFileProgress unpublish", self.fileURL ?? "nil")
         self.unpublish()
         self.isPublished = false
         self.fileURL = nil
