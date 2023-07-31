@@ -99,16 +99,21 @@ public extension Progress {
      */
     func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
         guard self.fileURL != url else { return }
+        if isPublished {
+            self.unpublish()
+        }
         self.fileURL = url
         self.fileOperationKind = kind
         self.kind = .file
         self.publish()
+        self.isPublished = true
     }
     
     /// Removes reflecting the file progress.
     func removeFileProgress() {
-        guard self.fileURL != nil else { return }
+        guard isPublished, self.fileURL != nil else { return }
         self.unpublish()
+        self.isPublished = false
         self.fileURL = nil
         self.fileOperationKind = nil
         self.kind = nil
@@ -155,6 +160,12 @@ public extension Progress {
         set {
             guard estimatedTimeCompletedUnits != newValue else { return }
             set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self) }
+    }
+    
+    internal var isPublished: Bool {
+        get { getAssociatedValue(key: "isPublished", object: self, initialValue: false) }
+        set {
+            set(associatedValue: newValue, key: "isPublished", object: self) }
     }
     
     internal func setupEstimatedTimeProgressObserver(includingFraction: Bool = false) {
