@@ -13,8 +13,8 @@ let dataSize = DataSize(gigabytes: 1.5)
 dataSize.countStyle = .file // Specifies display of file or storage byte counts
 dataSize.megabyte // 1500 megabytes
 dataSize.terabyte += 1
-dataSize.string(includesUnit: true) // 1tb, 500mb
-dataSize.string(for: .terabyte, includesUnit: false) // 1,5
+dataSize.string(includesUnit: true) // 1tb, 1gb, 500mb
+dataSize.string(for: .terabyte, includesUnit: false) // 1,15
 ```
 
 ### TimeDuration
