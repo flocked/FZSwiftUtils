@@ -19,6 +19,11 @@ open class MutableProgress: Progress {
             diff.added.forEach({ self.addChild($0) })
         }
     }
+    
+    /// All the current unfinished children progresses.
+    public var unfinished: [Progress] {
+        self.children.filter({$0.isFinished == false})
+    }
 
     /// All the current tracked children progresses and their observers.
     private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
@@ -55,7 +60,7 @@ open class MutableProgress: Progress {
     }
     
     internal func updateChildrenInfo() {
-        let unfinished = self.children.filter({$0.isFinished == false})
+        let unfinished = self.unfinished
         let timeRemainings = unfinished.compactMap({$0.estimatedTimeRemaining})
         if timeRemainings.isEmpty == false {
             self.estimatedTimeRemaining = timeRemainings.sum()
