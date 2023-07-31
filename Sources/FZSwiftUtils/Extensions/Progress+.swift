@@ -129,11 +129,10 @@ public extension Progress {
      - Returns: A `Progress` object representing the file progress.
      */
     static func file(url: URL, kind: Progress.FileOperationKind, size: DataSize? = nil, pauseHandler: (()->())? = nil, cancellationHandler: (()->())? = nil) -> Progress {
-        let progress = Progress(parent: nil, userInfo: [
-            .fileOperationKindKey: kind,
-            .fileURLKey: url,
-        ])
+        let progress = Progress()
         progress.kind = .file
+        progress.fileURL = url
+        progress.fileOperationKind = kind
         progress.isPausable = (pauseHandler != nil)
         progress.isCancellable = (cancellationHandler != nil)
         progress.pausingHandler = pauseHandler
