@@ -24,3 +24,13 @@ public extension CGFloat {
         String(Float(self))
     }
 }
+
+public extension NSNumber {
+    var intString: String {
+        String(Int(truncating: self))
+    }
+    
+    var string: String {
+        String(Float(truncating: self))
+    }
+}
