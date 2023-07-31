@@ -9,7 +9,7 @@
 import Foundation
 
 /// A progress that allows to add and remove children progresses.
-public final class MutableProgress: Progress {
+public class MutableProgress: Progress {
     /// All the current children progresses.
     public var children: [Progress] {
         get { self.observedChildren.keys }
