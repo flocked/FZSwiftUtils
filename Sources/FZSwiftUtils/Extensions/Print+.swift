@@ -8,11 +8,11 @@
 import Foundation
 
 public func printNewLine() {
-    Swift.print("\n")
+    Swift.debugPrint("\n")
 }
 
 public func print<S: StringProtocol>(level: Int, _ value: S) {
     var string = ""
     (0..<level).forEach({ _ in string += "\t" })
-    Swift.print(string + value)
+    Swift.debugPrint(string + value)
 }

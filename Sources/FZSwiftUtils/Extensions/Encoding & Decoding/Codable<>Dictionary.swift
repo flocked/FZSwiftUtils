@@ -70,7 +70,7 @@ public extension CFDictionary {
             let obj = try decoder.decode(type, from: data)
             return obj
         } catch {
-            Swift.print(error)
+            Swift.debugPrint(error)
             return nil
         }
     }
@@ -101,7 +101,7 @@ public extension Dictionary {
             let obj = try decoder.decode(type, from: data)
             return obj
         } catch {
-            Swift.print(error)
+            Swift.debugPrint(error)
             return nil
         }
     }

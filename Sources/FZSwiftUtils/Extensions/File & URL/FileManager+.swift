@@ -73,7 +73,7 @@ public extension FileManager {
                     try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
                     return directoryURL
                 } catch {
-                    Swift.print(error)
+                    Swift.debugPrint(error)
                 }
             }
         }
