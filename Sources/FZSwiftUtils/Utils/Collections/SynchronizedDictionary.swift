@@ -7,28 +7,41 @@
 
 import Foundation
 
-public class SynchronizedDictionary<V: Hashable,T>: Collection, ExpressibleByDictionaryLiteral {
-    public required init(dictionaryLiteral elements: (T, V)...) {
+public class SynchronizedDictionary< Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
+    public required init(dictionaryLiteral elements: (Value, Key)...) {
         self.dictionary = [:]
         for element in elements {
             self.dictionary[element.1] = element.0
         }
     }
     
-    public init(dict: [V: T] = [V:T]()) {
+    public init(dict: [Key: Value] = [Key:Value]()) {
         self.dictionary = dict
     }
     
-    private var dictionary: [V: T]
+    private var dictionary: [Key:Value]
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedDictionary",
                                                 attributes: .concurrent)
-   
 }
 
 public extension SynchronizedDictionary {
-    var startIndex: Dictionary<V, T>.Index {
+    var sync: [Key:Value] {
+        var dictionary: [Key:Value] = [:]
+        queue.sync {
+            dictionary = self.dictionary
+        }
+        return dictionary
+    }
+    
+    var startIndex: Dictionary<Key, Value>.Index {
         queue.sync {
             return self.dictionary.startIndex
+        }
+    }
+    
+    var endIndex: Dictionary<Key, Value>.Index {
+        queue.sync {
+            return self.dictionary.endIndex
         }
     }
     
@@ -44,41 +57,35 @@ public extension SynchronizedDictionary {
         }
     }
     
-    func forEach(_ body: ((key: V, value: T)) throws -> Void) rethrows {
+    func forEach(_ body: ((key: Key, value: Value)) throws -> Void) rethrows {
         try queue.sync {
             try self.dictionary.forEach(body)
         }
     }
     
-    var endIndex: Dictionary<V, T>.Index {
-        queue.sync {
-            return self.dictionary.endIndex
-        }
-    }
-
-    func index(after i: Dictionary<V, T>.Index) -> Dictionary<V, T>.Index {
+    func index(after i: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Index {
         queue.sync {
             return self.dictionary.index(after: i)
         }
     }
     
-    func filter(_ isIncluded: ((_ key: V, _ value: T) throws -> Bool)) rethrows -> [V: T] {
+    func filter(_ isIncluded: ((_ key: Key, _ value: Value) throws -> Bool)) rethrows -> [Key: Value] {
         try queue.sync {
             return try self.dictionary.filter(isIncluded)
         }
     }
     
-    func map(_ transform: ((_ key: V, _ value: T) throws -> T)) rethrows -> [T] {
+    func map(_ transform: ((_ key: Key, _ value: Value) throws -> Value)) rethrows -> [Value] {
         try queue.sync {
             return try self.dictionary.map(transform)
         }
     }
     
-    var keys: [V] {
+    var keys: [Key] {
         queue.sync { return Array(self.dictionary.keys) }
     }
     
-    var values: [T] {
+    var values: [Value] {
         queue.sync {
             return Array(self.dictionary.values)
         }
@@ -88,7 +95,7 @@ public extension SynchronizedDictionary {
         queue.sync { return self.dictionary.description }
     }
 
-    subscript(key: V) -> T? {
+    subscript(key: Key) -> Value? {
         set(newValue) {
             queue.async(flags: .barrier) {[weak self] in
                 self?.dictionary[key] = newValue
@@ -101,13 +108,13 @@ public extension SynchronizedDictionary {
         }
     }
 
-    subscript(index: Dictionary<V, T>.Index) -> Dictionary<V, T>.Element {
+    subscript(index: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
         queue.sync {
             return self.dictionary[index]
         }
     }
     
-    func removeValue(forKey key: V) {
+    func removeValue(forKey key: Key) {
         queue.async(flags: .barrier) {[weak self] in
             self?.dictionary.removeValue(forKey: key)
         }

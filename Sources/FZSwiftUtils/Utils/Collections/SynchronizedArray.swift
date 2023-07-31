@@ -23,7 +23,7 @@ public class SynchronizedArray<Element>: BidirectionalCollection {
 }
 
 public extension SynchronizedArray {
-    var synchronizedArray: [Element] {
+    var sync: [Element] {
         var array: [Element] = []
         queue.sync {
             array = self.array
