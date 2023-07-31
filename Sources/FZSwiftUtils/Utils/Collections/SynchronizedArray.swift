@@ -97,7 +97,7 @@ public extension SynchronizedArray {
         }
     }
     
-    func append(_ elements: [Element]) {
+    func append(contentsOf elements: [Element]) {
         queue.async(flags: .barrier) {
             self.array += elements
         }
@@ -182,7 +182,7 @@ public extension SynchronizedArray {
     ///   - left: The collection to append to.
     ///   - right: The elements to append to the array.
     static func +=(left: inout SynchronizedArray, right: [Element]) {
-        left.append(right)
+        left.append(contentsOf: right)
     }
 }
 
