@@ -46,8 +46,9 @@ open class MutableProgress: Progress {
         }
         
         observer.add(\.isCancelled) {  [weak self] old, new in
+            guard let self = self else { return }
             if new == true {
-                self?.removeChild(child)
+                self.removeChild(child)
             }
         }
         
