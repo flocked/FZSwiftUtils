@@ -486,7 +486,7 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
             
             if (retryCount ?? 1000) >= 0 {
                 if let retryInterval = retryInterval {
-                    retryTimer = Timer(timeInterval: retryInterval, repeats: false, block: { [weak self] timer in
+                    retryTimer = Timer(timeDuration: retryInterval, repeats: false, block: { [weak self] timer in
                         guard let self = self else { return }
                         self.resume()
                     })
