@@ -63,6 +63,7 @@ public extension HTTPURLResponse {
         case retryAfter
         case server
         case setCookie
+        case tk
         case trailer
         case transferEncoding
         case vary
@@ -119,6 +120,7 @@ public extension HTTPURLResponse {
             case .retryAfter: return "Retry-After"
             case .server: return "Server"
             case .setCookie: return "Set-Cookie"
+            case .tk: return "TK"
             case .trailer: return "Trailer"
             case .transferEncoding: return "Transfer-Encoding"
             case .vary: return "Vary"
