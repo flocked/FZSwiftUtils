@@ -19,13 +19,18 @@ public extension HTTPURLResponse {
         }
     }
     
-    /// A dictionary containing all of the HTTP header fields for a response.
-    var allHTTPHeaderFields: [HTTPHeaderFieldKey: String] {
-        var allHTTPHeaderFields: [HTTPHeaderFieldKey: String] = [:]
-        for key in HTTPHeaderFieldKey.allCases {
-            allHTTPHeaderFields[key] = value(forHTTPHeaderField: key.rawValue)
+    /// All HTTP header fields of the response.
+    var allHeaderFieldsMapped: [HTTPHeaderFieldKey: String]? {
+        get {
+            var dic: [HTTPHeaderFieldKey: String] = [:]
+            for value in allHeaderFields {
+                if let rawValue = value.key as? String  {
+                    let key = HTTPHeaderFieldKey(rawValue: rawValue)
+                    dic[key] = allHeaderFields[value.key] as? String
+                }
+            }
+            return dic
         }
-        return allHTTPHeaderFields
     }
     
     /// Enumeration of all HTTP response header field keys.
