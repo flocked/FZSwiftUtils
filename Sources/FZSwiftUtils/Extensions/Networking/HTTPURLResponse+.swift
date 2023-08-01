@@ -18,4 +18,50 @@ public extension HTTPURLResponse {
             return false
         }
     }
+    
+    /// A dictionary containing all of the HTTP header fields for a response.
+    var allHTTPHeaderFields: [HTTPResponseHeaderFieldKey: String] {
+        var allHTTPHeaderFields: [HTTPResponseHeaderFieldKey: String] = [:]
+        for key in HTTPResponseHeaderFieldKey.allCases {
+            allHTTPHeaderFields[key] = value(forHTTPHeaderField: key.rawValue)
+        }
+        return allHTTPHeaderFields
+    }
+    
+}
+
+/// Enumeration of all HTTP response header field keys.
+public enum HTTPResponseHeaderFieldKey: String, CaseIterable {
+    case acceptRanges = "Accept-Ranges"
+    case age = "Age"
+    case allow = "Allow"
+    case cacheControl = "Cache-Control"
+    case connection = "Connection"
+    case contentEncoding = "Content-Encoding"
+    case contentLanguage = "Content-Language"
+    case contentLength = "Content-Length"
+    case contentLocation = "Content-Location"
+    case contentMD5 = "Content-MD5"
+    case contentDisposition = "Content-Disposition"
+    case contentRange = "Content-Range"
+    case contentSecurityPolicy = "Content-Security-Policy"
+    case contentType = "Content-Type"
+    case eTag = "ETag"
+    case expires = "Expires"
+    case LastModified = "Last-Modified"
+    case link = "Link"
+    case location = "Location"
+    case P3P = "P3P"
+    case pragma = "Pragma"
+    case proxyAuthorization = "Proxy-Authorization"
+    case refresh = "Refresh"
+    case retryAfter = "Retry-After"
+    case server = "Server"
+    case setCookie = "Set-Cookie"
+    case trailer = "Trailer"
+    case transferEncoding = "Transfer-Encoding"
+    case vary = "Vary"
+    case via = "Via"
+    case warning = "Warning"
+    case wwwAuthenticate = "WWW-Authenticate"
 }
