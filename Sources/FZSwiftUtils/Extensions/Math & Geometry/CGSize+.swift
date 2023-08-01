@@ -93,19 +93,19 @@ public extension CGSize {
     }
 
     /**
-     Scales the size to fit within the specified rect while maintaining the aspect ratio.
+     Scales the size to fit within the specified size while maintaining the aspect ratio.
      
      - Parameters:
-        - innerRect: The target rect to fit the size within.
+        - size: The target size to fit the size within.
      
-     - Returns: The scaled size that fits within the innerRect while maintaining the aspect ratio.
+     - Returns: The scaled size that fits within the size while maintaining the aspect ratio.
      */
-    func scaled(toFit innerRect: CGSize) -> CGSize {
+    func scaled(toFit size: CGSize) -> CGSize {
         let outerRect = self
 
         // the width and height ratios of the rects
-        let wRatio = outerRect.width / innerRect.width
-        let hRatio = outerRect.height / innerRect.height
+        let wRatio = size.width / size.width
+        let hRatio = size.height / size.height
 
         // calculate scaling ratio based on the smallest ratio.
         let ratio = (wRatio > hRatio) ? wRatio : hRatio
