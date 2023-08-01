@@ -29,11 +29,11 @@ public extension Collection {
 }
 
 public extension Collection where Index == Int {
-    subscript(safe range: ClosedRange<Int>) -> [Element] {
+    subscript(safe range: Range<Index>) -> [Element] {
         return range.compactMap({ self[safe: $0] })
     }
     
-    subscript(safe range: Range<Int>) -> [Element] {
+    subscript(safe range: ClosedRange<Int>) -> [Element] {
         return range.compactMap({ self[safe: $0] })
     }
 
