@@ -30,4 +30,30 @@ public extension URLResponse {
         }
         return nil
     }
+    
+    /// A suggested filename for the response data.
+    var extendedSuggestedFilename: String? {
+        if var fileName = self.suggestedFilename {
+            var fileExtension: String? = nil
+            let nameWithExtension = fileName.split(separator: ".")
+            if nameWithExtension.count > 1, let _extension = nameWithExtension.last {
+                fileExtension = String(_extension)
+            }
+            if fileExtension == nil {
+                if let httpResponse = self as? HTTPURLResponse {
+                    let contentType = httpResponse.allHeaderFields["Content-Type"] as? String
+                    if let range = contentType?.range(of: "/.+;", options: .regularExpression),
+                       let _extension = contentType?[range].dropFirst().dropLast() {
+                        fileExtension = String(_extension)
+                    } else if let range = contentType?.range(of: "/.+", options: .regularExpression),
+                              let _extension = contentType?[range].dropFirst() {
+                        fileExtension = String(_extension)
+                        fileName = fileName + ".\(String(_extension))"
+                    }
+                }
+            }
+            return fileName
+        }
+        return nil
+    }
 }
