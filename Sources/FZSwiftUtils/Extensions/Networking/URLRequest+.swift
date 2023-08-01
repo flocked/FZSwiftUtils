@@ -114,11 +114,11 @@ public extension URLRequest {
     }
     
     /// A dictionary containing all of the HTTP header fields for a request.
-    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String]? {
+    var allHTTPHeaderFieldsMapped: [HTTPHeaderFieldKey: String]? {
         get {
             guard let allHTTPHeaderFields = self.allHTTPHeaderFields else { return nil }
-            var dic: [HTTPRequestHeaderFieldKey: String] = [:]
-            for key in allHTTPHeaderFields.keys.compactMap({HTTPRequestHeaderFieldKey(rawValue: $0)}) {
+            var dic: [HTTPHeaderFieldKey: String] = [:]
+            for key in allHTTPHeaderFields.keys.compactMap({HTTPHeaderFieldKey(rawValue: $0)}) {
                 dic[key] = allHTTPHeaderFields[key.rawValue]
             }
             return dic
@@ -134,40 +134,40 @@ public extension URLRequest {
             }
         }
     }
-}
-
-/// Enumeration of all HTTP request header field keys.
-public enum HTTPRequestHeaderFieldKey: String {
-    case accept = "Accept"
-    case acceptCharset = "Accept-Charset"
-    case acceptEncoding = "Accept-Encoding"
-    case acceptLanguage = "Accept-Language"
-    case authorization = "Authorization"
-    case cacheControl = "Cache-Control"
-    case connection = "Connection"
-    case cookie = "Cookie"
-    case contentLength = "Content-Length"
-    case contentMD5 = "Content-MD5"
-    case contentType = "Content-Type"
-    case date = "Date"
-    case expect = "Expect"
-    case forwarded = "Forwarded"
-    case from = "From"
-    case host = "Host"
-    case ifMatch = "If-Match"
-    case ifModifiedSince = "If-Modified-Since"
-    case ifNoneMatch = "If-None-Match"
-    case ifRange = "If-Range"
-    case ifUnmodifiedSince = "If-Unmodified-Since"
-    case maxForwards = "Max-Forwards"
-    case pragma = "Pragma"
-    case proxyAuthorization = "Proxy-Authorization"
-    case range = "Range"
-    case referer = "Referer"
-    case TE = "TE"
-    case transferEncoding = "Transfer-Encoding"
-    case upgrade = "Upgrade"
-    case userAgent = "User-Agent"
-    case via = "Via"
-    case warning = "Warning"
+    
+    /// Enumeration of all HTTP request header field keys.
+    enum HTTPHeaderFieldKey: String, CaseIterable {
+        case accept = "Accept"
+        case acceptCharset = "Accept-Charset"
+        case acceptEncoding = "Accept-Encoding"
+        case acceptLanguage = "Accept-Language"
+        case authorization = "Authorization"
+        case cacheControl = "Cache-Control"
+        case connection = "Connection"
+        case cookie = "Cookie"
+        case contentLength = "Content-Length"
+        case contentMD5 = "Content-MD5"
+        case contentType = "Content-Type"
+        case date = "Date"
+        case expect = "Expect"
+        case forwarded = "Forwarded"
+        case from = "From"
+        case host = "Host"
+        case ifMatch = "If-Match"
+        case ifModifiedSince = "If-Modified-Since"
+        case ifNoneMatch = "If-None-Match"
+        case ifRange = "If-Range"
+        case ifUnmodifiedSince = "If-Unmodified-Since"
+        case maxForwards = "Max-Forwards"
+        case pragma = "Pragma"
+        case proxyAuthorization = "Proxy-Authorization"
+        case range = "Range"
+        case referer = "Referer"
+        case TE = "TE"
+        case transferEncoding = "Transfer-Encoding"
+        case upgrade = "Upgrade"
+        case userAgent = "User-Agent"
+        case via = "Via"
+        case warning = "Warning"
+    }
 }
