@@ -24,16 +24,3 @@ public extension URLSession {
         return downloadTask
     }
 }
-
-public extension URLSessionTask {
-    /**
-     Sets a custom URL request for the URLSessionTask.
-
-     - Parameter request: The custom URL request to set.
-     */
-    func setRequest(_ request: URLRequest) {
-        guard state == .suspended else { return }
-        setValue(request, forKeyPath: "originalRequest")
-        setValue(request, forKeyPath: "currentRequest")
-    }
-}
