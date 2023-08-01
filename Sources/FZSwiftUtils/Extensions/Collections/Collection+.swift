@@ -15,19 +15,29 @@ public extension MutableCollection {
     }
 }
 
-public extension Collection where Index == Int {
+public extension Collection {
     subscript(safe safeIndex: Index) -> Element? {
         if isEmpty == false, safeIndex < count - 1 {
             return self[safeIndex]
         }
         return nil
     }
-
-    subscript(indexes: IndexSet) -> [Element] {
-        return indexes.compactMap { self[safe: $0] }
-    }
     
     subscript(indexes: [Index]) -> [Element] {
+        return indexes.compactMap { self[safe: $0] }
+    }
+}
+
+public extension Collection where Index == Int {
+    subscript(safe range: ClosedRange<Int>) -> [Element] {
+        return range.compactMap({ self[safe: $0] })
+    }
+    
+    subscript(safe range: Range<Int>) -> [Element] {
+        return range.compactMap({ self[safe: $0] })
+    }
+
+    subscript(indexes: IndexSet) -> [Element] {
         return indexes.compactMap { self[safe: $0] }
     }
 }
