@@ -29,38 +29,99 @@ public extension HTTPURLResponse {
     }
     
     /// Enumeration of all HTTP response header field keys.
-    enum HTTPHeaderFieldKey: String, CaseIterable {
-        case acceptRanges = "Accept-Ranges"
-        case age = "Age"
-        case allow = "Allow"
-        case cacheControl = "Cache-Control"
-        case connection = "Connection"
-        case contentEncoding = "Content-Encoding"
-        case contentLanguage = "Content-Language"
-        case contentLength = "Content-Length"
-        case contentLocation = "Content-Location"
-        case contentMD5 = "Content-MD5"
-        case contentDisposition = "Content-Disposition"
-        case contentRange = "Content-Range"
-        case contentSecurityPolicy = "Content-Security-Policy"
-        case contentType = "Content-Type"
-        case eTag = "ETag"
-        case expires = "Expires"
-        case LastModified = "Last-Modified"
-        case link = "Link"
-        case location = "Location"
-        case P3P = "P3P"
-        case pragma = "Pragma"
-        case proxyAuthorization = "Proxy-Authorization"
-        case refresh = "Refresh"
-        case retryAfter = "Retry-After"
-        case server = "Server"
-        case setCookie = "Set-Cookie"
-        case trailer = "Trailer"
-        case transferEncoding = "Transfer-Encoding"
-        case vary = "Vary"
-        case via = "Via"
-        case warning = "Warning"
-        case wwwAuthenticate = "WWW-Authenticate"
+    enum HTTPHeaderFieldKey: CaseIterable, Hashable, RawRepresentable, ExpressibleByStringLiteral {
+        case acceptRanges
+        case age
+        case allow
+        case cacheControl
+        case connection
+        case contentEncoding
+        case contentLanguage
+        case contentLength
+        case contentLocation
+        case contentMD5
+        case contentDisposition
+        case contentRange
+        case contentSecurityPolicy
+        case contentType
+        case eTag
+        case expires
+        case keepAlive
+        case LastModified
+        case link
+        case location
+        case P3P
+        case pragma
+        case proxyAuthorization
+        case proxyAuthenticate
+        case refresh
+        case retryAfter
+        case server
+        case setCookie
+        case trailer
+        case transferEncoding
+        case vary
+        case via
+        case warning
+        case wwwAuthenticate
+        case custom(String)
+        
+        public init(stringLiteral value: String) {
+            if let first = Self.allCases.first(where: {$0.rawValue == value}) {
+                self = first
+            } else {
+                self = .custom(value)
+            }
+        }
+        
+        public init(rawValue: String) {
+            if let first = Self.allCases.first(where: {$0.rawValue == rawValue}) {
+                self = first
+            } else {
+                self = .custom(rawValue)
+            }
+        }
+        
+        public static var allCases: [HTTPURLResponse.HTTPHeaderFieldKey] = [.acceptRanges, .age, .allow, .cacheControl, .connection, .contentEncoding, .contentLanguage, .contentLength, .contentLocation, .contentMD5, .contentDisposition, .contentRange, .contentSecurityPolicy, .contentType, .eTag, .expires, .keepAlive, .LastModified, .link, .location, .P3P, .pragma, .proxyAuthorization, .proxyAuthenticate, .refresh, .retryAfter, .server, .setCookie, .trailer, .transferEncoding, .vary, .via, .warning, .wwwAuthenticate]
+
+        public var rawValue: String {
+            switch self {
+            case .acceptRanges: return "Accept-Ranges"
+            case .age: return "Age"
+            case .allow: return "Allow"
+            case .cacheControl: return "Cache-Control"
+            case .connection: return "Connection"
+            case .contentEncoding: return "Content-Encoding"
+            case .contentLanguage: return "Content-Language"
+            case .contentLength: return "Content-Length"
+            case .contentLocation: return "Content-Location"
+            case .contentMD5: return "Content-MD5"
+            case .contentDisposition: return "Content-Disposition"
+            case .contentRange: return "Content-Range"
+            case .contentSecurityPolicy: return "Content-Security-Policy"
+            case .contentType: return "Content-Type"
+            case .eTag: return "ETag"
+            case .expires: return "Expires"
+            case .keepAlive: return "Keep-Alive"
+            case .LastModified: return "Last-Modified"
+            case .link: return "Link"
+            case .location: return "Location"
+            case .P3P: return "P3P"
+            case .pragma: return "Pragma"
+            case .proxyAuthorization: return "Proxy-Authorization"
+            case .proxyAuthenticate: return "Proxy-Authenticate"
+            case .refresh: return "Refresh"
+            case .retryAfter: return "Retry-After"
+            case .server: return "Server"
+            case .setCookie: return "Set-Cookie"
+            case .trailer: return "Trailer"
+            case .transferEncoding: return "Transfer-Encoding"
+            case .vary: return "Vary"
+            case .via: return "Via"
+            case .warning: return "Warning"
+            case .wwwAuthenticate: return "WWW-Authenticate"
+            case .custom(let string): return string
+            }
+        }
     }
 }

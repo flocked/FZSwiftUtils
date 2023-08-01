@@ -136,38 +136,95 @@ public extension URLRequest {
     }
     
     /// Enumeration of all HTTP request header field keys.
-    enum HTTPHeaderFieldKey: String, CaseIterable {
-        case accept = "Accept"
-        case acceptCharset = "Accept-Charset"
-        case acceptEncoding = "Accept-Encoding"
-        case acceptLanguage = "Accept-Language"
-        case authorization = "Authorization"
-        case cacheControl = "Cache-Control"
-        case connection = "Connection"
-        case cookie = "Cookie"
-        case contentLength = "Content-Length"
-        case contentMD5 = "Content-MD5"
-        case contentType = "Content-Type"
-        case date = "Date"
-        case expect = "Expect"
-        case forwarded = "Forwarded"
-        case from = "From"
-        case host = "Host"
-        case ifMatch = "If-Match"
-        case ifModifiedSince = "If-Modified-Since"
-        case ifNoneMatch = "If-None-Match"
-        case ifRange = "If-Range"
-        case ifUnmodifiedSince = "If-Unmodified-Since"
-        case maxForwards = "Max-Forwards"
-        case pragma = "Pragma"
-        case proxyAuthorization = "Proxy-Authorization"
-        case range = "Range"
-        case referer = "Referer"
-        case TE = "TE"
-        case transferEncoding = "Transfer-Encoding"
-        case upgrade = "Upgrade"
-        case userAgent = "User-Agent"
-        case via = "Via"
-        case warning = "Warning"
+    enum HTTPHeaderFieldKey: Hashable, CaseIterable, RawRepresentable, ExpressibleByStringLiteral {
+        case accept
+        case acceptCharset
+        case acceptEncoding
+        case acceptLanguage
+        case authorization
+        case cacheControl
+        case connection
+        case cookie
+        case contentLength
+        case contentMD5
+        case contentType
+        case date
+        case expect
+        case forwarded
+        case from
+        case host
+        case ifMatch
+        case ifModifiedSince
+        case ifNoneMatch
+        case ifRange
+        case ifUnmodifiedSince
+        case maxForwards
+        case pragma
+        case proxyAuthorization
+        case range
+        case referer
+        case TE
+        case transferEncoding
+        case upgrade
+        case userAgent
+        case via
+        case warning
+        case custom(String)
+        
+        public init(stringLiteral value: String) {
+            if let first = Self.allCases.first(where: {$0.rawValue == value}) {
+                self = first
+            } else {
+                self = .custom(value)
+            }
+        }
+        
+        public init(rawValue: String) {
+            if let first = Self.allCases.first(where: {$0.rawValue == rawValue}) {
+                self = first
+            } else {
+                self = .custom(rawValue)
+            }
+        }
+        
+        public static var allCases: [URLRequest.HTTPHeaderFieldKey] = [.accept, .acceptCharset, .acceptEncoding, .acceptLanguage, .authorization, .cacheControl, .connection, .cookie, .contentLength, .contentMD5, .contentType, .date, .expect, .forwarded, .from, .host, .ifMatch, .ifModifiedSince, .ifNoneMatch, .ifRange, .ifUnmodifiedSince, .maxForwards, .pragma, .proxyAuthorization, .range, .referer, .TE, .transferEncoding, .upgrade, .userAgent, .via, .warning]
+        
+        public var rawValue: String {
+            switch self {
+            case .accept: return "Accept"
+            case .acceptCharset: return "Accept-Charset"
+            case .acceptEncoding: return "Accept-Encoding"
+            case .acceptLanguage: return "Accept-Language"
+            case .authorization: return "Authorization"
+            case .cacheControl: return "Cache-Control"
+            case .connection: return "Connection"
+            case .cookie: return "Cookie"
+            case .contentLength: return "Content-Length"
+            case .contentMD5: return "Content-MD5"
+            case .contentType: return "Content-Type"
+            case .date: return "Date"
+            case .expect: return "Expect"
+            case .forwarded: return "Forwarded"
+            case .from: return "From"
+            case .host: return "Host"
+            case .ifMatch: return "If-Match"
+            case .ifModifiedSince: return "If-Modified-Since"
+            case .ifNoneMatch: return "If-None-Match"
+            case .ifRange: return "If-Range"
+            case .ifUnmodifiedSince: return "If-Unmodified-Since"
+            case .maxForwards: return "Max-Forwards"
+            case .pragma: return "Pragma"
+            case .proxyAuthorization: return "Proxy-Authorization"
+            case .range: return "Range"
+            case .referer: return "Referer"
+            case .TE: return "TE"
+            case .transferEncoding: return "Transfer-Encoding"
+            case .upgrade: return "Upgrade"
+            case .userAgent: return "User-Agent"
+            case .via: return "Via"
+            case .warning: return "Warning"
+            case .custom(let string): return string
+            }
+        }
     }
 }
