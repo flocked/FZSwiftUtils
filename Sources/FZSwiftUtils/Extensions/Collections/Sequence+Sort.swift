@@ -95,7 +95,7 @@ public extension Sequence {
      Returns the elements of the sequence, sorted using given keypaths as comparison between elements.
      
      Each keypath defines its own sorting order by `ascending(_ keypath)` / `descending(_ keypath)` or by prependding `>>`(ascending) or `<<` (descending) to a keypath.
-     ```
+     ```swift
      images.sorted(by: [<<\.pixelSize, >>\.creationDate]
      images.sorted(by: [ascending(\.pixelSize), descending(\.creationDate)]
      ```
@@ -127,7 +127,7 @@ public extension Sequence {
      Returns the elements of the sequence, sorted using given keypaths as comparison between elements.
      
      Each keypath defines its own sorting order by `ascending(_ keypath)` / `descending(_ keypath)` or by prependding `>>`(ascending) or `<<` (descending) to a keypath.
-     ```
+     ```swift
      images.sorted(by: [<<\.pixelSize, >>\.creationDate]
      images.sorted(by: [ascending(\.pixelSize), descending(\.creationDate)]
      ```

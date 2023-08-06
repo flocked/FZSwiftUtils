@@ -48,7 +48,7 @@ public extension UTType {
      The filename extensions for the type.
 
      The value of this property is equivalent to, but more efficient than:
-     ```
+     ```swift
      type.tags[.filenameExtension]
      ```
      */
