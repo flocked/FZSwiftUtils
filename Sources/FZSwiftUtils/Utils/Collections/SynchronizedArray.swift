@@ -10,6 +10,7 @@
 
 import Foundation
 
+/// A synchronized array.
 public class SynchronizedArray<Element>: BidirectionalCollection {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
     private var array = [Element]()

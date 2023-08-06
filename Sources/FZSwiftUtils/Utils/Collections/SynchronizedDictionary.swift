@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// A synchronized dictionary.
 public class SynchronizedDictionary< Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
     public required init(dictionaryLiteral elements: (Value, Key)...) {
         self.dictionary = [:]
