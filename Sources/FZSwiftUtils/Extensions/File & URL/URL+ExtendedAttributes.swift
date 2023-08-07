@@ -34,7 +34,7 @@ public extension URL {
         public init(_ url: URL) {
             self.url = url
         }
-        
+        /*
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
             get {
                 if let value: T = getExtendedAttribute(for: key) {
@@ -49,8 +49,9 @@ public extension URL {
                 }
                 return nil
             }
-            set { try? setExtendedAttribute(newValue, for: key) }
+            set { try? setExtendedAttributeExplicit(newValue, for: key) }
         }
+        */
 
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
@@ -58,7 +59,7 @@ public extension URL {
                     return value
                 } else if let initalValue = initalValue {
                     do {
-                        try setExtendedAttribute(initalValue, for: key)
+                        try setExtendedAttributeExplicit(initalValue, for: key)
                         return initalValue
                     } catch {
                         return nil
@@ -66,7 +67,7 @@ public extension URL {
                 }
                 return nil
             }
-            set { try? setExtendedAttribute(newValue, for: key) }
+            set { try? setExtendedAttributeExplicit(newValue, for: key) }
         }
         
         /**
@@ -137,6 +138,46 @@ public extension URL {
             if let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
                let value = any as? T {
                 return value
+            }
+            return nil
+        }
+        
+        internal func setExtendedAttributeExplicit<T>(_ value: T?, for key: Key) throws {
+            if isCodable(for: value, key: key) == true {
+                if let codable = value as? Codable {
+                   try self.setExtendedAttribute(codable, for: key)
+                }
+            } else if isNonCodable(for: value, key: key) == true {
+                try self.setExtendedAttribute(value, for: key)
+            } else {
+                if let codable = value as? Codable {
+                    try self.setExtendedAttribute(codable, for: key)
+                } else {
+                    try self.setExtendedAttribute(value, for: key)
+                }
+            }
+        }
+        
+   
+        internal func isNonCodable<T>(for value: T, key: Key) -> Bool? {
+            if let data = extendedAttributeData(for: key) {
+                if let any = try? PropertyListSerialization.propertyList(from: data, format: nil), any is T {
+                    return true
+                }
+            }
+            return nil
+        }
+        
+        internal func isCodable<T>(for value: T, key: Key) -> Bool? {
+            if let data = extendedAttributeData(for: key) {
+                if let codableType = T.self as? Codable.Type {
+                    if let value = try? JSONDecoder().decode(codableType.self, from: data) {
+                        return true
+                    }
+                }
+                if let any = try? PropertyListSerialization.propertyList(from: data, format: nil), any is T {
+                    return false
+                }
             }
             return nil
         }
