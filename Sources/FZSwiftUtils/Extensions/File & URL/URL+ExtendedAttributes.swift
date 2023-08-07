@@ -37,7 +37,7 @@ public extension URL {
         
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
             get {
-                if let value: T = extendedAttribute(for: key) {
+                if let value: T = getExtendedAttribute(for: key) {
                     return value
                 } else if let initalValue = initalValue {
                     do {
@@ -54,7 +54,7 @@ public extension URL {
 
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
-                if let value: T = extendedAttribute(for: key) {
+                if let value: T = getExtendedAttribute(for: key) {
                     return value
                 } else if let initalValue = initalValue {
                     do {
@@ -124,6 +124,21 @@ public extension URL {
             guard let data = extendedAttributeData(for: key), let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
                   let value = any as? T else { return nil }
             return value
+        }
+        
+        internal func getExtendedAttribute<T>(for key: Key) -> T? {
+            guard let data = extendedAttributeData(for: key) else { return nil }
+
+            if let codableType = T.self as? Codable.Type {
+                if let value = try? JSONDecoder().decode(codableType.self, from: data) {
+                    return value as? T
+                }
+            }
+            if let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
+               let value = any as? T {
+                return value
+            }
+            return nil
         }
 
         /**
