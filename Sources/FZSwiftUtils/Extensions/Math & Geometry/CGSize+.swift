@@ -124,28 +124,15 @@ public extension CGSize {
     }
 
     /**
-     Scales the size to fill the specified rect while maintaining the aspect ratio.
+     Scales the size to fill the specified size while maintaining the aspect ratio.
      
      - Parameters:
-        - innerRect: The target rect to fit the size within.
+        - size: The target size to fill the size within.
      
-     - Returns: The scaled size that fits within the innerRect while maintaining the aspect ratio.
+     - Returns: The scaled size that fills the specified size while maintaining the aspect ratio.
      */
-    func scaled(toFill innerRect: CGSize) -> CGSize {
-        let outerRect = self
-
-        // the width and height ratios of the rects
-        let wRatio = outerRect.width / innerRect.width
-        let hRatio = outerRect.height / innerRect.height
-
-        // calculate scaling ratio based on the smallest ratio.
-        let ratio = (wRatio < hRatio) ? wRatio : hRatio
-
-        // aspect fitted origin and size
-        return CGSize(
-            width: outerRect.width / ratio,
-            height: outerRect.height / ratio
-        )
+    func scaled(toFill size: CGSize) -> CGSize {
+        return self.scaled(toHeight: size.height)
     }
 }
 
