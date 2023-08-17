@@ -76,6 +76,29 @@ public extension Comparable {
     }
 }
 
+public extension Comparable {
+    /// Returns `true` if value is in the provided closed range.
+    ///
+    ///     1.isBetween(5...7) // false
+    ///     7.isBetween(6...12) // true
+    ///     "c".isBetween("a"..."d") // true
+    ///     0.32.isBetween(0.31...0.33) // true
+    ///
+    /// - Parameter range: Closed range against which the value is checked to be included.
+    func isBetween(_ range: ClosedRange<Self>) -> Bool { range ~= self }
+    
+    /// Returns `true` if value is in the provided range.
+    ///
+    ///     1.isBetween(5..<7) // false
+    ///     7.isBetween(6..<12) // true
+    ///     "c".isBetween("a"..<"d") // true
+    ///     0.32.isBetween(0.31..<0.33) // true
+    ///
+    /// - Parameter range: Closed range against which the value is checked to be included.
+    func isBetween(_ range: Range<Self>) -> Bool { range ~= self }
+}
+
+
 public extension PartialKeyPath {
     /**
      Returns a Boolean value indicating whether the keypath's value is less than another keypath's value.

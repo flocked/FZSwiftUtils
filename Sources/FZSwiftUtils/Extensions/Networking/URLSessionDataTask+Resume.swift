@@ -7,6 +7,7 @@
 
 import Foundation
 
+/*
 @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public extension URLSession {
     /**
@@ -49,8 +50,9 @@ public extension URLSession {
 
      After you create the task, you must start it by calling its resume() method.
      
-     - Parameters request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
-     - Parameters completionHandler: The completion handler to call when the load request is complete. This handler is executed on the delegate queue.
+     - Parameters:
+        - request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
+        - completionHandler: The completion handler to call when the load request is complete. This handler is executed on the delegate queue.
      If you pass nil, only the session delegate methods are called when the task completes, making this method equivalent to the dataTask(with:) method.
      This completion handler takes the following parameters:
      - data: The data returned by the server.
@@ -94,9 +96,11 @@ public extension URLSession {
     /**
      Downloads data from the request with the specified amount of retries if the download fails.
      
-     - Parameter request: A URL request object that provides the URL, cache policy, request type, body data or body stream, and so on.
-     - Parameter retryAmount: The amount of retries downloading data when the task fails.
-     - Parameter retryInterval: The duration waited until a failed task retries downloading data.
+     - Parameters:
+        - request: A URL request object that provides the URL, cache policy, request type, body data or body stream, and so on.
+        - retryAmount: The amount of retries downloading data when the task fails.
+        - retryInterval: The duration waited until a failed task retries downloading data.
+     
      - Throws: Throws when the data couln't be downloaded.
      - Returns: Returns the downloaded data  and the response metadata.
      */
@@ -486,7 +490,7 @@ extension URLSessionResumableDataTask: URLSessionTaskDelegate {
             
             if (retryCount ?? 1000) >= 0 {
                 if let retryInterval = retryInterval {
-                    retryTimer = Timer(timeDuration: retryInterval, repeats: false, block: { [weak self] timer in
+                    retryTimer = Timer(timeInterval: retryInterval, repeats: false, block: { [weak self] timer in
                         guard let self = self else { return }
                         self.resume()
                     })
@@ -616,3 +620,4 @@ fileprivate extension URLSessionDataTask {
         return fileSize
     }
 }
+*/

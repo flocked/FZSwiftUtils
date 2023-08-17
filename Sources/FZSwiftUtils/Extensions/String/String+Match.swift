@@ -88,9 +88,9 @@ public extension String {
      Finds all matches of substrings between the two specified strings.
      
      - Parameters:
-     - fromString: The starting string to search for.
-     - toString: The ending string to search for.
-     - includingFromTo: A flag indicating whether to include the starting and ending strings in the results.
+        - fromString: The starting string to search for.
+        - toString: The ending string to search for.
+        - includingFromTo: A flag indicating whether to include the starting and ending strings in the results.
      
      - Returns: An array of `StringMatch` objects representing the matches found.
      */

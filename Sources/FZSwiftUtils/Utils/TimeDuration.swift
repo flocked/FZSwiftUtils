@@ -27,6 +27,18 @@ public struct TimeDuration: Hashable, Sendable {
     public init(_ time: CMTime) {
         seconds = time.seconds
     }
+    
+    /**
+     Initializes a new time duration with the interval between the two specified dates.
+     
+     - Parameters:
+     - date: The first date.
+     - another: The second date.
+     */
+    public init(from date: Date, to another: Date) {
+        let interval = date.timeIntervalSince(another)
+        seconds = (interval >= 0.0) ? interval : 0
+    }
 
     /**
      Initializes a new `TimeDuration` instance with the specified duration in various units of time.
@@ -223,9 +235,27 @@ public extension TimeDuration {
 }
 
 public extension DateInterval {
-    /// The time duration.
+    /// The duration.
     var timeDuration: TimeDuration {
         TimeDuration(duration)
+    }
+    
+    /// Initializes an interval with the specified start date and duration.
+    init(start: Date, duration: TimeDuration) {
+        self.init(start: start, duration: duration.seconds)
+    }
+}
+
+public extension Date {
+    /**
+     Returns the interval between this date and another given date.
+     
+     - Parameters another: The date with which to compare this one.
+     - Returns: The interval between this date and the another date. If this date is earlier than the other date, the return value is a time duration with 0 seconds.
+     
+     */
+    func timeDurationSince(_ another: Date) -> TimeDuration {
+      TimeDuration(self.timeIntervalSince(another))
     }
 }
 
@@ -245,6 +275,7 @@ extension TimeDuration: Codable {
     }
 }
 
+/*
 extension TimeDuration: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
         seconds = Double(value)
@@ -256,6 +287,7 @@ extension TimeDuration: ExpressibleByFloatLiteral {
         seconds = value
     }
 }
+*/
 
 public extension TimeDuration {
     ///  Enumeration representing different duration time units.
@@ -501,5 +533,101 @@ extension TimeDuration: Comparable {
 
     public static func / (lhs: TimeDuration, rhs: TimeDuration) -> Double {
         lhs.seconds / rhs.seconds
+    }
+}
+
+public extension Timer {
+    /**
+     Initializes a timer for the specified date and time interval with the specified block.
+
+     - Parameters:
+        - fire: The time at which the timer should first fire.
+        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+        - block: A block to be executed when the timer fires. The block takes a single Timer parameter and has no return value.
+     
+     - Returns:A new Timer object, configured according to the specified parameters.
+     */
+    convenience init(fire: Date, interval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) {
+        self.init(fire: fire, interval: interval.seconds, repeats: repeats, block: block)
+    }
+    
+    /**
+     Initializes a timer using the specified object and selector.
+
+     - Parameters:
+        - fire: The time at which the timer should first fire.
+        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        -  target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to this object until it (the timer) is invalidated.
+        - selector: The message to send to target when the timer fires.
+    The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument). The timer passes itself as the argument, thus the method would adopt the following pattern:
+        - userInfo: Custom user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+     
+     - Returns:A new Timer object, configured according to the specified parameters.
+     */
+    convenience init(fireAt date: Date, interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
+        self.init(fireAt: date, interval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
+    }
+    
+    /**
+     Initializes a timer object with the specified time interval and block.
+
+     - Parameters:
+        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+        - block: A block to be executed when the timer fires. The block takes a single Timer parameter and has no return value.
+     
+     - Returns:A new Timer object, configured according to the specified parameters.
+     */
+    convenience init(timeInterval interval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) {
+        self.init(timeInterval: interval.seconds, repeats: repeats, block: block)
+    }
+    
+    /**
+     Creates a timer and schedules it on the current run loop in the default mode.
+
+     - Parameters:
+        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        - target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to target until it (the timer) is invalidated.
+        - selector: The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument).
+        - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+     
+     - Returns:A new Timer object, configured according to the specified parameters.
+     */
+    convenience init(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
+        self.init(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
+    }
+    
+    /**
+     Creates a timer and schedules it on the current run loop in the default mode.
+
+     - Parameters:
+        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+        - block: A block to be executed when the timer fires. The block takes a single Timer parameter and has no return value.
+     
+     - Returns:A new Timer object, configured according to the specified parameters.
+     */
+    @discardableResult
+    static func scheduledTimer(withTimeInterval interval: TimeDuration, repeats: Bool, block: @escaping ((Timer)-> Void)) -> Timer {
+        return self.scheduledTimer(withTimeInterval: interval.seconds, repeats: repeats, block: block)
+    }
+    
+    /**
+     Creates a timer and schedules it on the current run loop in the default mode.
+
+     - Parameters:
+        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        - target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to target until it (the timer) is invalidated.
+        - selector: The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument).
+        - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+     
+     - Returns:A new Timer object, configured according to the specified parameters.
+     */
+    static func scheduledTimer(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) -> Timer {
+        return self.scheduledTimer(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
 }

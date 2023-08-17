@@ -16,18 +16,18 @@ public extension Progress {
         }
     }
     
-    /// Updates the estimate time remaining.
+    /// Updates the estimate time remaining and throughput.
     func updateEstimatedTimeRemaining() {
         self.setupEstimatedTimeProgressObserver()
         self.updateEstimatedTimeRemaining(dateStarted: estimatedTimeStartDate)
     }
     
     /**
-     Updates the estimate time remaining by providing the start date of the progress.
+     Updates the estimate time remaining and throughput by providing the start date of the progress.
      
      - Parameters:
-     - date: The start date of the progress.
-     - completedUnits: The units completed since start.
+        - date: The start date of the progress.
+        - completedUnits: The units completed since start.
      */
     func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnits: Int64? = nil) {
         let elapsedTime = Date().timeIntervalSince(date)
@@ -35,11 +35,11 @@ public extension Progress {
     }
     
     /**
-     Updates the estimate time remaining by providing the time elapsed since the start of the progress.
+     Updates the estimate time remaining and throughput by providing the time elapsed since the start of the progress.
      
      - Parameters:
-     - elapsedTime: The time elapsed since the start of the progress.
-     - completedUnits: The units completed since start.
+        - elapsedTime: The time elapsed since the start of the progress.
+        - completedUnits: The units completed since start.
      */
     func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64? = nil) {
         guard Int64(elapsedTime) > 1 else {
@@ -80,13 +80,13 @@ public extension Progress {
         self.estimatedTimeRemaining = secondsRemaining
     }
     
-    /// A boolean value indicating whether the progress should auomatically update the estimated time remaining.
+    /// A boolean value indicating whether the progress should auomatically update the estimated time and throughput remaining.
     var autoUpdateEstimatedTimeRemaining: Bool {
         get { getAssociatedValue(key: "Progress_autoUpdateEstimatedTimeRemaining", object: self, initialValue: false) }
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
             set(associatedValue: newValue, key: "Progress_autoUpdateEstimatedTimeRemaining", object: self)
-            self.setupEstimatedTimeProgressObserver(includingFraction: newValue)
+            self.setupEstimatedTimeProgressObserver(newValue)
         }
     }
 #if os(macOS)
@@ -94,8 +94,8 @@ public extension Progress {
      The progress will be shown as a progress bar in the Finder for the given url.
      
      - Parameters:
-     - url: The URL of the file.
-     - kind: The kind of the file operation.
+        -   url: The URL of the file.
+        - kind: The kind of the file operation.
      
      - Warning: Don't call this method if the progress is already published.
      */
@@ -116,11 +116,11 @@ public extension Progress {
      A file progress will show a progress bar in the Finder. If `cancellationHandler` is provided, the user will be able to cancel the progress. If `pauseHandler` is provided, the user will be able to pause the progress.
      
      - Parameters:
-     - url: The URL of the file.
-     - kind: The kind of the file operation.
-     - size: The size of the file in `DataSize` format.
-     - pauseHandler: The block to invoke when pausing progress. If a handler is provided, the progress will be pausable.
-     - cancellationHandler: he block to invoke when canceling progress. If a handler is provided, the progress will be cancellable.
+        - url: The URL of the file.
+        - kind: The kind of the file operation.
+        - size: The size of the file in `DataSize` format.
+        - pauseHandler: The block to invoke when pausing progress. If a handler is provided, the progress will be pausable.
+        - cancellationHandler: he block to invoke when canceling progress. If a handler is provided, the progress will be cancellable.
      
      - Returns: A `Progress` object representing the file progress.
      */
@@ -159,30 +159,30 @@ public extension Progress {
             set(associatedValue: newValue, key: "isPublished", object: self) }
     }
     
-    internal func setupEstimatedTimeProgressObserver(includingFraction: Bool = false) {
-        if estimatedTimeProgressObserver == nil {
-            estimatedTimeProgressObserver = KeyValueObserver(self)
-            
-            estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
-                guard old != new else { return }
-                self.estimatedTimeStartDate = Date()
-                self.estimatedTimeCompletedUnits = self.completedUnitCount
-                self.updateEstimatedTimeRemaining()
-            }
-            
-            estimatedTimeProgressObserver?.add(\.isCancelled) { old, new in
-                guard old != new else { return }
-                self.updateEstimatedTimeRemaining()
-            }
-        }
-        
-        if includingFraction {
-            estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
-                guard old != new else { return }
-                self.updateEstimatedTimeRemaining()
+    internal func setupEstimatedTimeProgressObserver(_ shouldObserve: Bool = false) {
+        if shouldObserve {
+            if estimatedTimeProgressObserver == nil {
+                estimatedTimeProgressObserver = KeyValueObserver(self)
+                
+                estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
+                    guard old != new else { return }
+                    self.estimatedTimeStartDate = Date()
+                    self.estimatedTimeCompletedUnits = self.completedUnitCount
+                    self.updateEstimatedTimeRemaining()
+                }
+                
+                estimatedTimeProgressObserver?.add(\.isCancelled) { old, new in
+                    guard old != new else { return }
+                    self.updateEstimatedTimeRemaining()
+                }
+                
+                estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
+                    guard old != new else { return }
+                    self.updateEstimatedTimeRemaining()
+                }
             }
         } else {
-            estimatedTimeProgressObserver?.remove(\.fractionCompleted)
+            estimatedTimeProgressObserver = nil
         }
     }
 }
