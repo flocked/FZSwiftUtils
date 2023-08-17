@@ -340,3 +340,14 @@ extension CGRect: Hashable {
         hasher.combine(origin)
     }
 }
+
+extension Collection where Element == CGRect {
+    /// The union of all rectangles in the collection.
+    public func union() -> CGRect {
+        var unionRect = CGRect.zero
+        for rect in self {
+            unionRect = NSUnionRect(unionRect, rect)
+        }
+        return unionRect
+    }
+}

@@ -241,3 +241,16 @@ extension CGSize: Hashable {
         hasher.combine(height)
     }
 }
+
+extension Collection where Element == CGSize {
+    /// The size to fit all sizes of the collection.
+    public func totalSize() -> CGSize {
+        var totalSize: CGSize = .zero
+        for size in self {
+            totalSize.width = Swift.max(totalSize.width, size.width)
+            totalSize.height = Swift.max(totalSize.height, size.height)
+        }
+        return totalSize
+    }
+}
+
