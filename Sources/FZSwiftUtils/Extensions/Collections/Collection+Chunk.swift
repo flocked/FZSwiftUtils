@@ -9,25 +9,47 @@ import Foundation
 
 public extension Collection where Index == Int {
     
-    /** Splits the collection into arrays with the specified size.
+    /**
+     Splits the collection into arrays with the specified size.
+     
+     Any remaining elements will be added to a seperate chunk.
+     
+     ```swift
+     let array = [1,2,3,4,5,6,7,8,9]
+     array.chunked(size: 3) // [[1,2,3], [4,5,6], [7,8,9]]
+     array.chunked(size: 2) // [[1,2], [3,4], [5,6], [7,8], [9]]
+     ```
+     
      - Parameters size: The size of the chunk.
      - Returns: Returns an array of chunks.
      */
-    func chunked(into size: Int) -> [[Element]] {
+    func chunked(size: Int) -> [[Element]] {
         let size = (size > 0) ? size : 1
         return stride(from: 0, to: count, by: size).map {
             Array(self[$0 ..< Swift.min($0 + size, count)])
         }
     }
 
-    /** Splits the collection into arrays by the specified amount.
-     - Parameters amount: The amount of the chunks.
+    /**
+     Splits the collection into arrays by the specified amount.
+     
+     Example:
+     ```swift
+     let array = [1,2,3,4,5,6,7,8,9]
+     array.chunked(amount: 3) // [[1,2,3], [4,5,6], [7,8,9]]
+     array.chunked(amount: 2) // [[1,2,3,4], [5,6,7,8,9]]
+     ```
+     
+     - Parameters amount: The amount of chunks.
      - Returns: Returns an array of chunks.
      */
-    func chunked(toPieces pieces: Int) -> [[Element]] {
-        let pieces = pieces.clamped(max: count)
-        let chunksize = (Float(count) / Float(pieces)).rounded(.up)
-        return chunked(into: Int(chunksize))
+    func chunked(amount: Int) -> [[Element]] {
+        let pieces = amount.clamped(max: count)
+        
+        let remaining = Int(Double(self.count).remainder(dividingBy: Double(amount)))
+        let chunksize = (Float(count) / Float(pieces)).rounded(.towardZero)
+        
+        return chunked(size: Int(chunksize))
     }
 
     /** Splits the collection into arrays for each specified unique keypath value.

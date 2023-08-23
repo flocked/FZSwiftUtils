@@ -22,30 +22,36 @@ public extension Sequence {
 
     /**
      Returns an array of all elements to the specified completion handler
-     - Parameters completionHandler: The handler which gets called when all elements got collected.
+     - Parameters completion: The handler which gets called when all elements got collected.
      */
-    func collect(completionHandler: @escaping ([Element]) -> ()) {
+    func collect(completion: @escaping ([Element]) -> ()) {
         DispatchQueue.global(qos: .userInitiated).async {
             let elements = reduce(into: [Element]()) { $0.append($1) }
             DispatchQueue.main.async {
-                completionHandler(elements)
+                completion(elements)
             }
         }
     }
 }
 
 public extension AsyncSequence {
+    /// Returns an array of all elements.
     func collect() async rethrows -> [Element] {
         try await reduce(into: [Element]()) { $0.append($1) }
     }
 
-    func collect(completionHandler: @escaping ([Element]) -> Void) throws {
+    /**
+     Returns an array of all elements to the specified completion handler
+     - Parameters completion: The handler which gets called when all elements got collected.
+     */
+    func collect(completion: @escaping ([Element]) -> Void) throws {
         Task {
             let elements = try await collect()
-            completionHandler(elements)
+            completion(elements)
         }
     }
 
+    /// Returns an array of all elements.
     func collect() throws -> [Element] {
         let semaphore = DispatchSemaphore(value: 0)
         Task {
