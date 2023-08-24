@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Collection {
+public extension Collection {
     /**
      Returns an array of random elements of the collection.
      
@@ -26,7 +26,7 @@ extension Collection {
     }
 }
 
-extension Collection where Element: Equatable {
+public extension Collection where Element: Equatable {
     
     /**
      Returns an array of random elements of the collection.
@@ -43,6 +43,18 @@ extension Collection where Element: Equatable {
             randomElements.append(elements.remove(at: index ))
         }
         return randomElements
+    }
+    
+    /**
+     Returns a random element of the collection.
+     
+     - Parameters:
+        - excluding: The elements of the collection to be excluded from random.
+     */
+    func randomElement(excluding: [Element]) -> Element? {
+        let elements: [Element] =  self.filter({ excluding.contains($0) == false })
+        guard elements.isEmpty == false else { return nil }
+        return elements.randomElement()
     }
     
     /**
