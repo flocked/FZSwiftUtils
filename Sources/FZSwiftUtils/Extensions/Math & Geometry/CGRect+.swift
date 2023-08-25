@@ -127,7 +127,6 @@ public extension CGRect {
         get {return CGPoint(x: centerX, y: top)}
         set {centerX = newValue.x; top = newValue.y}
     }
-    
 
     /// The top-right point of the rectangle.
     var topRight: CGPoint {
