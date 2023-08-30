@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension CaseIterable where Self: Hashable {
+public extension CaseIterable where Self: Hashable {
     /// Returns the next case from `Self.allCases` or `nil` if there isn´t a next case.
     var nextCase: Self? {
         let allCases = Self.allCases
