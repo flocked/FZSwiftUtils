@@ -24,6 +24,12 @@ public extension AttributedString {
         self.init(string, attributes: attributes)
     }
     
+    /// The character contents of the attributed string as a string.
+    var string: String {
+        String(self.characters)
+    }
+    
+    /// A `NSAttributedString` representation of the attributed string.
     var nsAttributedString: NSAttributedString {
         NSAttributedString(self)
     }
@@ -53,6 +59,50 @@ public extension AttributedString {
      */
     func capitalized() -> AttributedString {
         return AttributedString(NSAttributedString(self).capitalized())
+    }
+}
+
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+public extension AttributedString {
+    subscript(substring: StringLiteralType) -> AttributedString? {
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
+    }
+    
+    subscript(range: ClosedRange<Int>) -> AttributedString {
+        let string = String(self.string[range])
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
+    }
+    
+    subscript(offset: Int) -> AttributedString {
+        let string = String(self.string[offset])
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
+    }
+    
+    subscript(range: Range<Int>) -> AttributedString {
+        let string = String(self.string[range])
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
+    }
+    
+    subscript(range: PartialRangeFrom<Int>) -> AttributedString {
+        let string = String(self.string[range])
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
+    }
+    
+    subscript(range: PartialRangeThrough<Int>) -> AttributedString {
+        let string = String(self.string[range])
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
+    }
+    
+    subscript(range: PartialRangeUpTo<Int>) -> AttributedString {
+        let string = String(self.string[range])
+        guard let range = self.range(of: string) else { return self }
+        return AttributedString(self[range])
     }
 }
 

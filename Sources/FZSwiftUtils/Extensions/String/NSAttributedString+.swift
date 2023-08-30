@@ -119,6 +119,50 @@ public extension NSAttributedString {
     }
 }
 
+public extension NSAttributedString {
+    subscript(substring: StringLiteralType) -> NSAttributedString? {
+        guard self.string.contains(substring) else { return nil }
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(range: ClosedRange<Int>) -> NSAttributedString {
+        let string = String(self.string[range])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(offset: Int) -> NSAttributedString {
+        let string = String(self.string[offset])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(range: Range<Int>) -> NSAttributedString {
+        let string = String(self.string[range])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(range: PartialRangeFrom<Int>) -> NSAttributedString {
+        let string = String(self.string[range])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(range: PartialRangeThrough<Int>) -> NSAttributedString {
+        let string = String(self.string[range])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(range: PartialRangeUpTo<Int>) -> NSAttributedString {
+        let string = String(self.string[range])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+}
+
 public extension Array where Element: NSAttributedString {
     /**
      Returns a new attributed string by concatenating the elements of the sequence, adding the given separator between each element.

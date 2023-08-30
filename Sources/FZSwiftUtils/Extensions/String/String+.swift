@@ -82,11 +82,13 @@ public extension StringProtocol {
 public extension StringProtocol {
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
     subscript(range: Range<Int>) -> SubSequence {
+        let range = range.clamped(to: 0..<self.count)
         let startIndex = index(self.startIndex, offsetBy: range.lowerBound)
         return self[startIndex ..< index(startIndex, offsetBy: range.count)]
     }
 
     subscript(range: ClosedRange<Int>) -> SubSequence {
+        let range = range.clamped(to: 0...self.count-1)
         let startIndex = index(self.startIndex, offsetBy: range.lowerBound)
         return self[startIndex ..< index(startIndex, offsetBy: range.count)]
     }
