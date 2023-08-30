@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension String {
+public extension String {
     /**
      Calculates the height of the string with the given constrained width and font.
 
@@ -41,7 +41,7 @@ extension String {
     }
 }
 
-extension NSAttributedString {
+public extension NSAttributedString {
     /**
      Calculates the height of the attributed string with the given constrained width.
 
@@ -74,7 +74,7 @@ extension NSAttributedString {
 }
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
-extension AttributedString {
+public extension AttributedString {
     /**
      Calculates the height of the attributed string with the given constrained width.
 
