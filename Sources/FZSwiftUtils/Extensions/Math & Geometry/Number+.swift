@@ -30,6 +30,16 @@ public extension BinaryFloatingPoint {
 }
 
 public extension CGFloat {
+    init?(_ value: StringLiteralType) {
+        if let doubleValue = Double(value) {
+            self = CGFloat(doubleValue)
+        } else {
+            return nil
+        }
+    }
+}
+
+public extension CGFloat {
     /**
      Returns the scaled integral value of the CGFloat.
      The value is scaled based on the current device's screen scale.
