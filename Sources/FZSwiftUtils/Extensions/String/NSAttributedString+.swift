@@ -122,7 +122,7 @@ public extension NSAttributedString {
 public extension NSAttributedString {
     subscript(substring: StringLiteralType) -> NSAttributedString? {
         guard self.string.contains(substring) else { return nil }
-        let range = (self.string as NSString).range(of: string)
+        let range = (self.string as NSString).range(of: substring)
         return self.attributedSubstring(from: range)
     }
     

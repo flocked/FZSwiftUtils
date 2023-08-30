@@ -65,7 +65,7 @@ public extension AttributedString {
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 public extension AttributedString {
     subscript(substring: StringLiteralType) -> AttributedString? {
-        guard let range = self.range(of: string) else { return self }
+        guard let range = self.range(of: substring) else { return self }
         return AttributedString(self[range])
     }
     
