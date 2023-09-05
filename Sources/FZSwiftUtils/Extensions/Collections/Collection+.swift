@@ -28,6 +28,37 @@ public extension Collection {
     }
 }
 
+public extension Collection where Element: Equatable {
+    /**
+     A boolean value indicating whether the option set contains any of the specified elements.
+     - Parameters elements: The elements.
+     - Returns: `true` if any of the elements exists in the option set, or` false` if non exist in the option set.
+     */
+    func contains<S>(any elements: S) -> Bool where S : Sequence, Element == S.Element {
+        var aa = [""]
+        for element in elements {
+            if self.contains(element) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    /**
+     A boolean value indicating whether the option set contains all specified elements.
+     - Parameters elements: The elements.
+     - Returns: `true` if all elements exist in the option set, or` false` if not.
+     */
+    func contains<S>(all elements: S) -> Bool where S : Sequence, Element == S.Element {
+        for element in elements {
+            if self.contains(element) == false {
+                return false
+            }
+        }
+        return true
+    }
+}
+
 public extension Collection where Index == Int {
     subscript(safe range: Range<Index>) -> [Element] {
         return range.compactMap({ self[safe: $0] })
