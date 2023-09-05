@@ -8,7 +8,7 @@
 import Foundation
 
 /// The order of sorting for a sequence
-public enum SequenceSortingOrder {
+public enum SequenceSortOrder {
     /// An ascending sorting order.
     case ascending
     /// A descending sorting order.
@@ -22,7 +22,7 @@ public extension Sequence {
      - Parameters compare: The closure to compare the elements.
      - Parameters order: The order of the sorting.
      */
-    func sorted<Value>(by compare: ((Element) -> Value), _ order : SequenceSortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by compare: ((Element) -> Value), _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
             return sorted { compare($0) < compare($1) }
         } else {
@@ -36,7 +36,7 @@ public extension Sequence {
      - Parameters compare: The closure to compare the elements.
      - Parameters order: The order of the sorting.
      */
-    func sorted<Value>(by compare: ((Element) -> Value?), _ order : SequenceSortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by compare: ((Element) -> Value?), _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
             return self.sorted(by: compare, using: <)
         } else {
@@ -50,7 +50,7 @@ public extension Sequence {
      - Parameters keyPath: The keypath to compare the elements.
      - Parameters order: The order of the sorting.
      */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order : SequenceSortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
             return self.sorted(by: keyPath, using: <)
         } else {
@@ -64,7 +64,7 @@ public extension Sequence {
      - Parameters compare: The keypath to compare the elements.
      - Parameters order: The order of the sorting.
      */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order : SequenceSortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
             return self.sorted(by: keyPath, using: <)
         } else {
@@ -105,7 +105,7 @@ public extension Sequence {
         - keyPaths: The keypaths used for sorting the elements.
         - ascending: If true, the sequence will be sorted in a ascending order, otherwise, descending.
      */
-    func sorted(by keyPaths: [PartialKeyPath<Element>], order: SequenceSortingOrder = .ascending) -> [Element] {
+    func sorted(by keyPaths: [PartialKeyPath<Element>], order: SequenceSortOrder = .ascending) -> [Element] {
         return sorted(by: keyPaths.compactMap { PartialSortingKeyPath($0, order: order) })
     }
 
@@ -176,14 +176,14 @@ public prefix func >> <Root>(keyPaths: [PartialKeyPath<Root>]) -> PartialSorting
 
 public struct PartialSortingKeyPath<Root> {
     let keyPaths: [PartialKeyPath<Root>]
-    let order: SequenceSortingOrder
+    let order: SequenceSortOrder
 
-    internal init(_ keyPath: PartialKeyPath<Root>, order: SequenceSortingOrder = .ascending) {
+    internal init(_ keyPath: PartialKeyPath<Root>, order: SequenceSortOrder = .ascending) {
         self.keyPaths = [keyPath]
         self.order = order
     }
 
-    internal init(_ keyPaths: [PartialKeyPath<Root>], order: SequenceSortingOrder = .ascending) {
+    internal init(_ keyPaths: [PartialKeyPath<Root>], order: SequenceSortOrder = .ascending) {
         self.keyPaths = keyPaths
         self.order = order
     }

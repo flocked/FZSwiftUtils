@@ -34,7 +34,7 @@ public extension Sequence where Element: Comparable & Hashable {
      
      - Parameters order: The order of the sorting.
      */
-    func sortedByOccurences(order: SequenceSortingOrder = .ascending) -> [Element] {
+    func sortedByOccurences(order: SequenceSortOrder = .ascending) -> [Element] {
         let numberOfOccurences = self.numberOfOccurencesByElement()
         let values = sorted(by: { current, next in numberOfOccurences[current]! < numberOfOccurences[next]! })
         if (order == .ascending) {

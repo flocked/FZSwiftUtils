@@ -64,6 +64,11 @@ public extension Collection {
         try Dictionary(grouping: self, by: keyForValue)
     }
     
+    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+    func grouped<Key>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
+        Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
+    }
+    
     /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
     func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, value: [Element])] where Key: Hashable {
         let dic = try Dictionary(grouping: self, by: keyForValue)
