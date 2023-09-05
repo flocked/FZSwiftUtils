@@ -13,7 +13,6 @@ public extension URL {
      Retrieves the redirected URL for the current URL.
      
      - Throws: An error if the redirection process fails.
-     
      - Returns: The redirected URL if available, `nil` otherwise.
      */
     func redirectedURL() throws -> URL? {
@@ -29,22 +28,34 @@ public extension URL {
     func redirectedURL(complectionHandler: @escaping ((URL?, Error?) -> ())) {
         URLRedirection.redirectedURL(for: self, completionHandler: complectionHandler)
     }
+    
+    /**
+     Retrieves the redirected URL for the current URL asynchronously.
+     
+     - Throws: An error if the redirection process fails.
+     - Returns: The redirected URL if available, `nil` otherwise.
+     */
+    func redirectedURL() async throws -> URL? {
+        do {
+            return try await withCheckedThrowingContinuation { continuation in
+                redirectedURL { url, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: url)
+                    }
+                }
+            }
+        } catch {
+            return nil
+        }
+    }
 }
 
 /**
  A class for receiving URL redirections.
  */
 public class URLRedirection: NSObject, URLSessionTaskDelegate {
-    
-    /// The shared instance of `URLRedirection`.
-    public static let shared: URLRedirection = {
-        let instance = URLRedirection()
-        return instance
-    }()
-    
-    /// The URL session used for handling the redirection.
-    internal lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-    
     /**
      Retrieves the redirected URL for the specified URL asynchronously.
      
@@ -95,4 +106,35 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
 
         return redirectedURL
     }
+    
+    /**
+     Retrieves the redirected URL for the current URL.
+     
+     - Throws: An error if the redirection process fails.
+     - Returns: The redirected URL if available, `nil` otherwise.
+     */
+    public static func redirectedURL(for url: URL) async throws -> URL? {
+        do {
+            return try await withCheckedThrowingContinuation { continuation in
+                redirectedURL(for: url) { url, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: url)
+                    }
+                }
+            }
+        } catch {
+            return nil
+        }
+    }
+    
+    /// The shared instance of `URLRedirection`.
+    private static let shared: URLRedirection = {
+        let instance = URLRedirection()
+        return instance
+    }()
+    
+    /// The URL session used for handling the redirection.
+    internal lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
 }
