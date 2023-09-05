@@ -58,6 +58,25 @@ public extension Collection where Element: Equatable {
     }
 }
 
+public extension Collection {
+    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+    func grouped<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: [Element]] {
+        try Dictionary(grouping: self, by: keyForValue)
+    }
+    
+    /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
+    func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, value: [Element])] where Key: Hashable {
+        let dic = try Dictionary(grouping: self, by: keyForValue)
+        var values: [(key: Key, value: [Element])] = []
+        for key in dic.keys {
+            if let elements = dic[key] {
+                values.append((key, elements))
+            }
+        }
+       return values
+    }
+}
+
 public extension Collection where Index == Int {
     subscript(safe range: Range<Index>) -> [Element] {
         return range.compactMap({ self[safe: $0] })

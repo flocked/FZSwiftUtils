@@ -196,4 +196,3 @@ public extension StringProtocol {
         return true
     }
 }
-
