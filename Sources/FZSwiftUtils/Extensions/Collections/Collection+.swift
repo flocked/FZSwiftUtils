@@ -30,9 +30,9 @@ public extension Collection {
 
 public extension Collection where Element: Equatable {
     /**
-     A boolean value indicating whether the option set contains any of the specified elements.
+     A boolean value indicating whether the collection contains any of the specified elements.
      - Parameters elements: The elements.
-     - Returns: `true` if any of the elements exists in the option set, or` false` if non exist in the option set.
+     - Returns: `true` if any of the elements exists in the collection, or` false` if non exist in the option set.
      */
     func contains<S>(any elements: S) -> Bool where S : Sequence, Element == S.Element {
         for element in elements {
@@ -44,9 +44,9 @@ public extension Collection where Element: Equatable {
     }
     
     /**
-     A boolean value indicating whether the option set contains all specified elements.
+     A boolean value indicating whether the collection contains all specified elements.
      - Parameters elements: The elements.
-     - Returns: `true` if all elements exist in the option set, or` false` if not.
+     - Returns: `true` if all elements exist in the collection, or` false` if not.
      */
     func contains<S>(all elements: S) -> Bool where S : Sequence, Element == S.Element {
         for element in elements {
