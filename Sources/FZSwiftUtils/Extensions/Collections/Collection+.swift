@@ -35,7 +35,6 @@ public extension Collection where Element: Equatable {
      - Returns: `true` if any of the elements exists in the option set, or` false` if non exist in the option set.
      */
     func contains<S>(any elements: S) -> Bool where S : Sequence, Element == S.Element {
-        var aa = [""]
         for element in elements {
             if self.contains(element) {
                 return true
