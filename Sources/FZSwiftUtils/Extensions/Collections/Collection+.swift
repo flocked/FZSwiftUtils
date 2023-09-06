@@ -69,16 +69,23 @@ public extension Collection {
         Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
     }
     
+    /// Splits the collection by the specified keypath and values that are returned for each keypath.
+    func split<Key>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] where Key: Equatable {
+        self.split(by: { $0[keyPath: keyPath] })
+    }
+    
     /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
-    func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, value: [Element])] where Key: Hashable {
-        let dic = try Dictionary(grouping: self, by: keyForValue)
-        var values: [(key: Key, value: [Element])] = []
-        for key in dic.keys {
-            if let elements = dic[key] {
-                values.append((key, elements))
+    func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
+        var output: [(key: Key, values: [Element])] = []
+        for value in self {
+            let key = try keyForValue(value)
+            if let index = output.firstIndex(where: {$0.key == key}) {
+                output[index].values.append(value)
+            } else {
+                output.append((key, [value]))
             }
         }
-       return values
+        return output
     }
 }
 

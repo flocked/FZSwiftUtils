@@ -44,12 +44,27 @@ public extension Collection where Index == Int {
      - Returns: Returns an array of chunks.
      */
     func chunked(amount: Int) -> [[Element]] {
-        let pieces = amount.clamped(max: count)
+        let amount = amount.clamped(max: count)
         
+        let chunksize = Int((Float(count) / Float(amount)).rounded(.towardZero))
+        
+        /*
         let remaining = Int(Double(self.count).remainder(dividingBy: Double(amount)))
-        let chunksize = (Float(count) / Float(pieces)).rounded(.towardZero)
+        var count = 0
+        var array: [Element] = []
+        var output: [[Element]] = []
+        for value in self {
+            array.append(value)
+            count += 1
+            if count == chunksize {
+                output.append(array)
+                array = []
+                count = 0
+            }
+        }
+         */
         
-        return chunked(size: Int(chunksize))
+        return chunked(size: chunksize)
     }
 
     /** Splits the collection into arrays for each specified unique keypath value.
