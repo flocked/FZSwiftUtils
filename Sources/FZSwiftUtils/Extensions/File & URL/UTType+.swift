@@ -9,7 +9,7 @@
 import Foundation
 import UniformTypeIdentifiers
 
-@available(macOS 11.0, iOS 14.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 public extension UTType {
     /// A type that represents a AC3 audio.
     static var ac3: UTType { return UTType("public.ac3-audio")! }

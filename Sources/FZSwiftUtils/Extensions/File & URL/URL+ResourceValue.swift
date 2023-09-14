@@ -148,7 +148,7 @@ internal extension PartialKeyPath where Root == URLResourceValues {
         return nil
     }
 }
-#elseif os(tvOS)
+#elseif os(tvOS)  || os(watchOS)
 internal extension PartialKeyPath where Root == URLResourceValues {
     var resourceKey: URLResourceKey? {
         switch self {
@@ -245,14 +245,19 @@ internal extension PartialKeyPath where Root == URLResourceValues {
         case \Root.path: return .pathKey
         case \Root.preferredIOBlockSize: return .preferredIOBlockSizeKey
         case \Root.typeIdentifier: return .typeIdentifierKey
-        case \Root.mayShareFileContent: return .mayShareFileContentKey
-        case \Root.mayHaveExtendedAttributes: return .mayHaveExtendedAttributesKey
-        case \Root.isPurgeable: return .isPurgeableKey
-        case \Root.isSparse: return .isSparseKey
-        case \Root.fileContentIdentifier: return .fileContentIdentifierKey
         case \Root.fileProtection: return .fileProtectionKey
-        case \Root.contentType: return .contentTypeKey
         default: break
+        }
+        if #available(watchOS 7.0, *) {
+            switch self {
+            case \Root.mayShareFileContent: return .mayShareFileContentKey
+            case \Root.mayHaveExtendedAttributes: return .mayHaveExtendedAttributesKey
+            case \Root.isPurgeable: return .isPurgeableKey
+            case \Root.isSparse: return .isSparseKey
+            case \Root.fileContentIdentifier: return .fileContentIdentifierKey
+            case \Root.contentType: return .contentTypeKey
+            default: break
+            }
         }
         return nil
     }

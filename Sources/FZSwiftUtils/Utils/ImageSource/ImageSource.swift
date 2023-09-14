@@ -18,7 +18,7 @@ public class ImageSource {
         return CGImageSourceGetType(cgImageSource) as String?
     }
 
-    @available(macOS 11.0, iOS 14.0, *)
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// The UTType of the image source.
     public var utType: UTType? {
         guard let typeIdentifier = typeIdentifier else { return nil }

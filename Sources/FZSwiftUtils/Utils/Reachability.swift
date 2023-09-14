@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 29.07.23.
 //
 
+#if os(macOS) || os(iOS) || os(tvOS)
 import Foundation
 import SystemConfiguration
 
@@ -37,3 +38,4 @@ public class Reachability {
 
     }
 }
+#endif

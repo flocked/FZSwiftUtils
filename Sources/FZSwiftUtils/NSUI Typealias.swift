@@ -40,18 +40,25 @@ public typealias NSUICollectionViewItem = NSCollectionViewItem
 #elseif canImport(UIKit)
 import UIKit
 public typealias NSUIBezierPath = UIBezierPath
-public typealias NSUICollectionView = UICollectionView
-public typealias NSUICollectionViewCompositionalLayout = UICollectionViewCompositionalLayout
-public typealias NSUICollectionViewCompositionalLayoutConfiguration = UICollectionViewCompositionalLayoutConfiguration
-public typealias NSUICollectionViewDelegate = UICollectionViewDelegate
-public typealias NSUICollectionViewLayout = UICollectionViewLayout
-public typealias NSUICollectionViewLayoutAttributes = UICollectionViewLayoutAttributes
 public typealias NSUIColor = UIColor
 public typealias NSUIEdgeInsets = UIEdgeInsets
 public typealias NSUIFont = UIFont
 public typealias NSUIFontDescriptor = UIFontDescriptor
 public typealias NSUIFontTextStyle = UIFont.TextStyle
 public typealias NSUIImage = UIImage
+public typealias NSUIRectCorner = UIRectCorner
+public typealias NSUIImageSymbolConfiguration = UIImage.SymbolConfiguration
+public typealias NSUIImageSymbolScale = UIImage.SymbolScale
+public typealias NSUIImageSymbolWeight = UIImage.SymbolWeight
+#endif
+
+#if os(iOS) || os(tvOS)
+public typealias NSUICollectionView = UICollectionView
+public typealias NSUICollectionViewCompositionalLayout = UICollectionViewCompositionalLayout
+public typealias NSUICollectionViewCompositionalLayoutConfiguration = UICollectionViewCompositionalLayoutConfiguration
+public typealias NSUICollectionViewDelegate = UICollectionViewDelegate
+public typealias NSUICollectionViewLayout = UICollectionViewLayout
+public typealias NSUICollectionViewLayoutAttributes = UICollectionViewLayoutAttributes
 public typealias NSUIView = UIView
 public typealias NSUISegmentedControl = UISegmentedControl
 public typealias NSUIStoryboard = UIStoryboard
@@ -59,10 +66,6 @@ public typealias NSUINib = UINib
 public typealias NSUIViewController = UIViewController
 public typealias NSUIStackView = UIStackView
 public typealias NSUIHostingController = UIHostingController
-public typealias NSUIRectCorner = UIRectCorner
-public typealias NSUIImageSymbolConfiguration = UIImage.SymbolConfiguration
-public typealias NSUIImageSymbolScale = UIImage.SymbolScale
-public typealias NSUIImageSymbolWeight = UIImage.SymbolWeight
 public typealias NSUILayoutGuide = UILayoutGuide
 public typealias NSUICollectionViewItem = UICollectionViewCell
 #endif

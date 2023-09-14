@@ -19,6 +19,7 @@ public struct TimeDuration: Hashable, Sendable {
         self.seconds = seconds
     }
 
+    #if os(macOS) || os(iOS) || os(tvOS)
     /**
      Initializes a new `TimeDuration` instance with the specified `CMTime`.
      
@@ -27,6 +28,7 @@ public struct TimeDuration: Hashable, Sendable {
     public init(_ time: CMTime) {
         seconds = time.seconds
     }
+    #endif
     
     /**
      Initializes a new time duration with the interval between the two specified dates.

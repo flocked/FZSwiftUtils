@@ -236,7 +236,7 @@ public extension URL {
             return self.types(types)
         }
 
-        @available(macOS 11.0, iOS 14.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func uttypes(_ types: [UTType]) -> Self {
             return Self {
                 if types.isEmpty { return $0.isFile }
@@ -244,12 +244,12 @@ public extension URL {
             }
         }
 
-        @available(macOS 11.0, iOS 14.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func uttypes(_ types: UTType...) -> Self {
             return uttypes(types)
         }
 
-        @available(macOS 11.0, iOS 14.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func conforming(to types: [UTType]) -> Self {
             return Self {
                 if types.isEmpty { return $0.isFile }
@@ -257,7 +257,7 @@ public extension URL {
             }
         }
 
-        @available(macOS 11.0, iOS 14.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func conforming(to types: UTType...) -> Self {
             return conforming(to: types)
         }

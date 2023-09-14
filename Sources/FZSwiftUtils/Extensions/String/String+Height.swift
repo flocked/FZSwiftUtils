@@ -162,7 +162,7 @@ fileprivate extension NSTextField {
     }
 }
 
-#elseif canImport(UIKit)
+#elseif os(iOS) || os(tvOS)
 import UIKit
 
 public extension String {
