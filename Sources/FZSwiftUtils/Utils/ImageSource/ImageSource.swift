@@ -262,6 +262,16 @@ public extension ImageSource {
         let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? 0.0) }
         return (totalDuration != 0.0) ? totalDuration : nil
     }
+    
+    /**
+     The number of times that an animated image should play through its frames before stopping.
+     
+     A value of 0 means the animated image repeats forever.
+     */
+    var animationLoopCount: Int? {
+        guard self.count > 1 else { return nil }
+        return self.properties()?.loopCount ?? self.properties(at: 0)?.loopCount
+    }
 }
 
 extension ImageSource {
