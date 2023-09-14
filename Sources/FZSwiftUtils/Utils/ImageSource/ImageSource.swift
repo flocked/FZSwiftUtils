@@ -253,7 +253,7 @@ public extension ImageSource {
     static let defaultFrameDuration: Double = 1 / defaultFrameRate
 
     /**
-     The total animation duration of an image source that is animated.
+     The total animation duration of an image source that is animated.,
      
      Returns nil if the image isn't animated.
      */

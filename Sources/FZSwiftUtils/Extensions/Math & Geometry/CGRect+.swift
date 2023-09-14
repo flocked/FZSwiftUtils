@@ -92,7 +92,7 @@ public extension CGRect {
         set {x = newValue - width}
     }
 
-    #if os(iOS)
+    #if canImport(UIKit)
     /// The top edge of the rectangle.
     var top: CGFloat {
         get {return y}

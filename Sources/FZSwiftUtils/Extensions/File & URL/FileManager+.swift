@@ -13,23 +13,6 @@ public extension FileManager {
         /// An error that occures if a file coudln't be moved to trash.
         case moveToTrashError
     }
-    /**
-     Moves an item to the trash.
-     
-     The actual name of the item may be changed when moving it to the trash.
-     
-     - Parameters url: The item to move to the trash.
-     - Returns: Returns the url of the trashed item if itl was successfully moved to the trash, or `nil` if the item was not moved to the trash.
-     */
-    @discardableResult
-    func trashItem(at url: URL) throws -> URL {
-        var trashedFileURL: NSURL? = nil
-        try self.trashItem(at: url, resultingItemURL: &trashedFileURL)
-        guard let fileURL = trashedFileURL as? URL else {
-            throw Errors.moveToTrashError
-        }
-        return fileURL
-    }
     
     /**
      Creates a temporary directory inside the file system's default temporary directory.
@@ -47,6 +30,26 @@ public extension FileManager {
         try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
         return folderURL
     }
+    
+    #if os(macOS) || os(iOS)
+    /**
+     Moves an item to the trash.
+     
+     The actual name of the item may be changed when moving it to the trash.
+     
+     - Parameters url: The item to move to the trash.
+     - Returns: Returns the url of the trashed item if itl was successfully moved to the trash, or `nil` if the item was not moved to the trash.
+     */
+    @discardableResult
+    func trashItem(at url: URL) throws -> URL {
+        var trashedFileURL: NSURL? = nil
+        try self.trashItem(at: url, resultingItemURL: &trashedFileURL)
+        guard let fileURL = trashedFileURL as? URL else {
+            throw Errors.moveToTrashError
+        }
+        return fileURL
+    }
+    #endif
     
 #if os(macOS)
     /// The type of appliction support directory.

@@ -9,7 +9,7 @@ import Foundation
 
 #if os(macOS)
 import AppKit
-#elseif os(iOS)
+#elseif canImport(UIKit)
 import UIKit
 #endif
 
@@ -49,7 +49,7 @@ public extension CGFloat {
     var scaledIntegral: Self {
         #if os(macOS)
         let scale = NSScreen.main?.backingScaleFactor ?? 1.0
-        #elseif os(iOS)
+        #elseif canImport(UIKit)
         let scale = UIScreen.main.scale
         #endif
         return floor(self * scale) / scale
