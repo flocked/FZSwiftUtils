@@ -53,51 +53,50 @@ public extension URL {
         
         /// Returns the type for the file at the specified url.
         public init?(url: URL) {
-        /*    if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
-                if let uttype = UTType(url: url), let fileType = FileType(uttype: uttype) {
-                    self = fileType
-                    return
-                }
-            } else { */
-                if let contentTypeIdentifier = url.contentTypeIdentifier, let fileType = FileType(contentTypeIdentifier: contentTypeIdentifier) {
-                    self = fileType
-                    return
-                } else if let fileType = FileType(contentTypeTree: url.contentTypeIdentifierTree) {
-                    self = fileType
-                    return
-                }
-           // }
+            /*    if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
+             if let uttype = UTType(url: url), let fileType = FileType(uttype: uttype) {
+             self = fileType
+             return
+             }
+             } else { */
             if let fileType = FileType(fileExtension: url.pathExtension) {
+                self = fileType
+                return
+            } else if let contentTypeIdentifier = url.contentTypeIdentifier, let fileType = FileType(contentTypeIdentifier: contentTypeIdentifier) {
+                self = fileType
+                return
+            } else if let fileType = FileType(contentTypeTree: url.contentTypeIdentifierTree) {
                 self = fileType
                 return
             } else {
                 return nil
             }
         }
-
+        
         /// Returns the type for the specified file extension.
         public init?(fileExtension: String) {
-            guard fileExtension != "" else {
+            if fileExtension == "" {
                 self = .folder
                 return
             }
-
+            
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
                 if let contentType = UTType(filenameExtension: fileExtension), let fileType = FileType(contentType: contentType) {
                     self = fileType
                     return
                 }
             }
-
-            if let fileType = FileType.allCases.first(where: { $0.commonExtensions.contains(fileExtension.lowercased()) }) {
+            
+            let fileExtension = fileExtension.lowercased()
+            if let fileType = FileType.allCases.first(where: { $0.commonExtensions.contains(fileExtension) }) {
                 self = fileType
                 return
             } else {
                 return nil
             }
         }
-
-        #if canImport(UniformTypeIdentifiers)
+        
+#if canImport(UniformTypeIdentifiers)
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         /// Returns the type for the specified content type.
         public init?(contentType: UTType) {
@@ -115,26 +114,26 @@ public extension URL {
                 return nil
             }
         }
-        #endif
+#endif
     }
-
+    
     /// The file type of the url.
     var fileType: FileType? {
         return FileType(url: self)
     }
-
+    
     var isVideo: Bool {
         fileType == .video
     }
-
+    
     var isImage: Bool {
         fileType == .image
     }
-
+    
     var isGIF: Bool {
         fileType == .gif
     }
-
+    
     var isMultimedia: Bool {
         fileType?.isMultimedia ?? false
     }
@@ -153,7 +152,7 @@ public extension URL.FileType {
         }
         self = fileType
     }
-
+    
     /// Returns the type for the specified content type tree.
     init?(contentTypeTree: [String]) {
         let allIdentifiers = URL.FileType.allCases.compactMap { $0.identifier }
@@ -200,7 +199,7 @@ public extension URL.FileType {
             return nil
         }
     }
-
+    
     /// The most common file extensions of the file type.
     var commonExtensions: [String] {
         switch self {
@@ -227,7 +226,7 @@ public extension URL.FileType {
             return []
         }
     }
-
+    
     /// The description of the file type.
     var description: String {
         switch self {
@@ -249,12 +248,12 @@ public extension URL.FileType {
         case .video: return "Movie"
         }
     }
-
+    
     /// A boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
     var isMultimedia: Bool {
         self == .video || self == .audio || self == .gif || self == .image
     }
-
+    
     /// An array of all file types.
     static let allCases: [URL.FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio,  .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
     
@@ -263,8 +262,8 @@ public extension URL.FileType {
     
     /// An array of all image file types (`image` and `gif`).
     static var imageTypes: [URL.FileType] = [.gif, .image]
-
-    #if canImport(UniformTypeIdentifiers)
+    
+#if canImport(UniformTypeIdentifiers)
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// The content type of the file type.
     var contentType: UTType? {
@@ -273,8 +272,8 @@ public extension URL.FileType {
         }
         return nil
     }
-    #endif
-
+#endif
+    
     internal var predicate: NSPredicate {
         let key: NSExpression
         let type: NSComparisonPredicate.Operator
@@ -305,7 +304,7 @@ public extension URL.FileType {
         case .symbolicLink: value = NSExpression(format: "%@", "public.symlink")
         case let .other(oValue): value = NSExpression(format: "%@", oValue)
         }
-
+        
         let modifier: NSComparisonPredicate.Modifier
         switch self {
         case .application, .archive, .text, .document, .other:
@@ -319,23 +318,23 @@ public extension URL.FileType {
 
 /*
  if let groupID = item.item.value(forAttribute: "_kMDItemGroupId") as? Int {
-     switch groupID {
-     case 8:
-         fileType =  .executable
-     case 9:
-         fileType = .folder
-     case 13:
-         fileType =  .image
-     case 7:
-         fileType = .video
-     case 10:
-         fileType = .audio
-     case 11:
-         fileType = .pdf
-     case 12:
-         fileType = .presentation
-     default:
-         break
-     }
+ switch groupID {
+ case 8:
+ fileType =  .executable
+ case 9:
+ fileType = .folder
+ case 13:
+ fileType =  .image
+ case 7:
+ fileType = .video
+ case 10:
+ fileType = .audio
+ case 11:
+ fileType = .pdf
+ case 12:
+ fileType = .presentation
+ default:
+ break
+ }
  }
  */
