@@ -8,7 +8,7 @@
 import Foundation
 
 /// The order of sorting for a sequence
-public enum SequenceSortOrder {
+public enum SequenceSortOrder: Int, Hashable {
     /// An ascending sorting order.
     case ascending
     /// A descending sorting order.
