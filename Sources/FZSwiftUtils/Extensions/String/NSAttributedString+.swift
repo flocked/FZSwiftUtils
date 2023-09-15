@@ -111,11 +111,21 @@ public extension NSAttributedString {
     }
 
     static func += (lhs: inout NSAttributedString, rhs: String) {
-        lhs += NSAttributedString(string: rhs)
+        let index = (lhs.string as NSString).length - 1
+        if index >= 0, let font = lhs.attribute(.font, at: index, effectiveRange: nil) {
+            lhs += NSAttributedString(string: rhs, attributes: [.font : font])
+        } else {
+            lhs += NSAttributedString(string: rhs)
+        }
     }
 
     static func + (lhs: NSAttributedString, rhs: String) -> NSAttributedString {
-        return lhs + NSAttributedString(string: rhs)
+        let index = (lhs.string as NSString).length - 1
+        if index >= 0, let font = lhs.attribute(.font, at: index, effectiveRange: nil) {
+            return lhs + NSAttributedString(string: rhs, attributes: [.font : font])
+        } else {
+            return lhs + NSAttributedString(string: rhs)
+        }
     }
     
     /**
