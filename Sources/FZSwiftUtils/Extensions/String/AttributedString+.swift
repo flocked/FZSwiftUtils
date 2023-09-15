@@ -153,6 +153,14 @@ public extension AttributedStringProtocol {
   }
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+public extension AttributedSubstring {
+    /// The substring as `AttributedString`.
+    var full: AttributedString {
+        AttributedString(self)
+    }
+}
+
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 public extension Collection where Element == AttributedString {
     /**
      Returns a new attributed string by concatenating the elements of the sequence, adding the given separator between each element.

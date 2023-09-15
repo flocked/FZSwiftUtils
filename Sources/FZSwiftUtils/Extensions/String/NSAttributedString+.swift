@@ -117,6 +117,16 @@ public extension NSAttributedString {
     static func + (lhs: NSAttributedString, rhs: String) -> NSAttributedString {
         return lhs + NSAttributedString(string: rhs)
     }
+    
+    /**
+     Finds and returns the range of the first occurrence of a given string within the string.
+
+     - Parameters string: The string to search for.
+     - Returns: An NSRange structure giving the location and length in the receiver of the first occurrence of searchString. Returns `{NSNotFound, 0}` if searchString is not found or is empty ("").
+     */
+    func range(of string: String) -> NSRange {
+        (self.string as NSString).range(of: string)
+    }
 }
 
 public extension NSAttributedString {
@@ -158,6 +168,12 @@ public extension NSAttributedString {
     
     subscript(range: PartialRangeUpTo<Int>) -> NSAttributedString {
         let string = String(self.string[range])
+        let range = (self.string as NSString).range(of: string)
+        return self.attributedSubstring(from: range)
+    }
+    
+    subscript(range: NSRange) -> NSAttributedString {
+        let string = String(self.string[range.closedRange()])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
