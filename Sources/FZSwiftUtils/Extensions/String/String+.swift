@@ -97,3 +97,19 @@ public extension StringProtocol {
     subscript(range: PartialRangeThrough<Int>) -> SubSequence { self[...index(startIndex, offsetBy: range.upperBound)] }
     subscript(range: PartialRangeUpTo<Int>) -> SubSequence { self[..<index(startIndex, offsetBy: range.upperBound)] }
 }
+
+public extension String {
+    static func += (lhs: inout Self, rhs: Character) {
+        lhs += String(rhs)
+    }
+    
+    static func + (lhs: String, rhs: Character) -> String {
+        return lhs + String(rhs)
+    }
+}
+
+public extension Character {
+    static func + (lhs: Character, rhs: String) -> String {
+        return String(lhs) + rhs
+    }
+}
