@@ -49,10 +49,12 @@ public struct loremIpsum {
         return allWords.randomElement()!
     }
     
-    /// Generates multiple words whose count is defined by the given value.
-    ///
-    /// - Parameter count: The number of words to generate.
-    /// - Returns: The generated words joined by a space character.
+    /**
+     Generates multiple words whose count is defined by the given value.
+     
+     - Parameter count: The number of words to generate.
+     - Returns: The generated words joined by a space character.
+     */
     public static func words(_ count: Int) -> String {
         return _compose(
             word,
@@ -61,18 +63,22 @@ public struct loremIpsum {
         )
     }
     
-    /// Generates multiple words whose count is randomly selected from within the given range.
-    ///
-    /// - Parameter range: The range of number of words to generate.
-    /// - Returns: The generated words joined by a space character.
+    /**
+     Generates multiple words whose count is randomly selected from within the given range.
+     
+     - Parameter range: The range of number of words to generate.
+     - Returns: The generated words joined by a space character.
+     */
     public static func words(_ range: Range<Int>) -> String {
         return _compose(word, count: Int.random(in: range), joinBy: .space)
     }
     
-    /// Generates multiple words whose count is randomly selected from within the given closed range.
-    ///
-    /// - Parameter range: The range of number of words to generate.
-    /// - Returns: The generated words joined by a space character.
+    /**
+     Generates multiple words whose count is randomly selected from within the given closed range.
+     
+     - Parameter range: The range of number of words to generate.
+     - Returns: The generated words joined by a space character.
+     */
     public static func words(_ range: ClosedRange<Int>) -> String {
         return _compose(word, count: Int.random(in: range), joinBy: .space)
     }
@@ -92,10 +98,12 @@ public struct loremIpsum {
         )
     }
     
-    /// Generates multiple sentences whose count is defined by the given value.
-    ///
-    /// - Parameter count: The number of sentences to generate.
-    /// - Returns: The generated sentences joined by a space character.
+    /**
+     Generates multiple sentences whose count is defined by the given value.
+     
+     - Parameter count: The number of sentences to generate.
+     - Returns: The generated sentences joined by a space character.
+     */
     public static func sentences(_ count: Int) -> String {
         return _compose(
             sentence,
@@ -103,19 +111,23 @@ public struct loremIpsum {
             joinBy: .space
         )
     }
-    
-    /// Generates multiple sentences whose count is selected from within the given range.
-    ///
-    /// - Parameter count: The number of sentences to generate.
-    /// - Returns: The generated sentences joined by a space character.
+
+    /**
+     Generates multiple sentences whose count is selected from within the given range.
+     
+     - Parameter count: The number of sentences to generate.
+     - Returns: The generated sentences joined by a space character.
+     */
     public static func sentences(_ range: Range<Int>) -> String {
         return _compose(sentence, count: Int.random(in: range), joinBy: .space)
     }
     
-    /// Generates multiple sentences whose count is selected from within the given closed range.
-    ///
-    /// - Parameter count: The number of sentences to generate.
-    /// - Returns: The generated sentences joined by a space character.
+    /**
+     Generates multiple sentences whose count is selected from within the given closed range.
+     
+     - Parameter count: The number of sentences to generate.
+     - Returns: The generated sentences joined by a space character.
+     */
     public static func sentences(_ range: ClosedRange<Int>) -> String {
         return _compose(sentence, count: Int.random(in: range), joinBy: .space)
     }

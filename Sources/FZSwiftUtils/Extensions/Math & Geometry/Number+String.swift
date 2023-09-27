@@ -15,26 +15,26 @@ public extension IntegerLiteralType {
 }
 
 public extension FloatLiteralType {
-    /// The string value.
+    /// The value as `String`.
     var string: String {
         String(self)
     }
 }
 
 public extension CGFloat {
-    /// The string value.
+    /// The value as `String`.
     var string: String {
         String(Float(self))
     }
 }
 
 public extension NSNumber {
-    /// The integer string value.
+    /// The value as Integer `String`.
     var intString: String {
         String(Int(truncating: self))
     }
     
-    /// The string value.
+    /// The value as Float `String`.
     var string: String {
         String(Float(truncating: self))
     }

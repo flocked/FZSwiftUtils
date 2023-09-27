@@ -10,8 +10,8 @@ import Foundation
 public extension FileManager {
     /// An enumeration of file manager errors.
     enum Errors: Error {
-        /// An error that occures if a file coudln't be moved to trash.
-        case moveToTrashError
+        /// An error that occures if a file coudnl't be moved to trash.
+        case failedToMoveToTrash
     }
     
     /**
@@ -38,14 +38,15 @@ public extension FileManager {
      The actual name of the item may be changed when moving it to the trash.
      
      - Parameters url: The item to move to the trash.
-     - Returns: Returns the url of the trashed item if itl was successfully moved to the trash, or `nil` if the item was not moved to the trash.
+     - Throws: Throws an error if the item couldn't be moved to the trash.
+     - Returns: Returns the url of the trashed item.
      */
     @discardableResult
     func trashItem(at url: URL) throws -> URL {
         var trashedFileURL: NSURL? = nil
         try self.trashItem(at: url, resultingItemURL: &trashedFileURL)
         guard let fileURL = trashedFileURL as? URL else {
-            throw Errors.moveToTrashError
+            throw Errors.failedToMoveToTrash
         }
         return fileURL
     }
@@ -63,8 +64,9 @@ public extension FileManager {
     /**
      Returns the application support directory for the specified type.
      
-     - Parameters type: The type of application support directory (either identifier or name).
-     - Parameters createIfNeeded: A bool indicating whether the directory should be created if it doesn't exist.
+     - Parameters:
+        - type: The type of application support directory (either identifier or name).
+        - createIfNeeded: A bool indicating whether the directory should be created if it doesn't exist. The default value is `false`.
      */
     func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
         if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
@@ -86,8 +88,8 @@ public extension FileManager {
     /**
      Returns a Boolean value that indicates whether a file or directory exists at a specified url.
      
-     - Parameters url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with expandingTildeInPath, or this method will return false.
-     - Returns:true if a file or directory at the specified url exists, or false if the file or directory does not exist or its existence could not be determined.
+     - Parameters url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return `false`.
+     - Returns: `true` if a file or directory at the specified url exists, or `false` if the file or directory does not exist or its existence could not be determined.
      */
     func fileExists(at url: URL) -> Bool {
         return fileExists(atPath: url.path)
@@ -96,8 +98,8 @@ public extension FileManager {
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified path.
      
-     - Parameters path: The path of  directory. If path begins with a tilde (~), it must first be expanded with expandingTildeInPath, or this method will return false.
-     - Returns:true if a directory at the specified path exists, or false if the directory does not exist or its existence could not be determined.
+     - Parameters path: The path of  directory. If path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
+     - Returns:`true` if a directory at the specified path exists, or `false` if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(atPath path: String) -> Bool {
         var isDir: ObjCBool = true
@@ -108,8 +110,8 @@ public extension FileManager {
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified url.
      
-     - Parameters url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with expandingTildeInPath, or this method will return false.
-     - Returns:true if a directory at the specified url exists, or false if the directory does not exist or its existence could not be determined.
+     - Parameters url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
+     - Returns: `true` if a directory at the specified url exists, or `false if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(at url: URL) -> Bool {
         return directoryExists(atPath: url.path)

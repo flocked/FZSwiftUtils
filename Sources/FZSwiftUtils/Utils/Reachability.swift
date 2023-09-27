@@ -12,7 +12,7 @@ import SystemConfiguration
 
 /// An object for checking if the device is connected to the network.
 public class Reachability {
-    /// A boolean value indicating whether the device is connected to the network.
+    /// A Boolean value indicating whether the device is connected to the network.
     public static func isConnectedToNetwork() -> Bool {
 
         var zeroAddress = sockaddr_in(sin_len: 0, sin_family: 0, sin_port: 0, sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))

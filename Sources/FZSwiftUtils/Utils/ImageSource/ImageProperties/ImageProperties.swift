@@ -72,7 +72,7 @@ public struct ImageProperties: Codable {
         return _orientation ?? tiff?.orientation ?? iptc?.orientation ?? .up
     }
 
-    /// A boolean value indicating whether the image is a screenshot.
+    /// A Boolean value indicating whether the image is a screenshot.
     public var isScreenshot: Bool {
         return exif?.isScreenshot ?? false
     }

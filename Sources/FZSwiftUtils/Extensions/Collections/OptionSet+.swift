@@ -9,7 +9,7 @@ import Foundation
 
 public extension OptionSet {
     /**
-     A boolean value indicating whether the option set contains all specified elements.
+     A Boolean value indicating whether the option set contains all specified elements.
      - Parameters elements: The elements.
      - Returns: `true` if all elements exist in the option set, or` false` if not.
      */
@@ -23,7 +23,7 @@ public extension OptionSet {
     }
 
     /**
-     A boolean value indicating whether the option set contains any of the specified elements.
+     A Boolean value indicating whether the option set contains any of the specified elements.
      - Parameters elements: The elements.
      - Returns: `true` if any of the elements exists in the option set, or` false` if non exist in the option set.
      */

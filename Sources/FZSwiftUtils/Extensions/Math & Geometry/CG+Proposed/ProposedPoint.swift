@@ -1,11 +1,13 @@
 //
-//  File.swift
+//  ProposedPoint.swift
 //  
 //
 //  Created by Florian Zand on 01.08.23.
 //
 
+/*
 import Foundation
+
 
 /**
  A proposal for the point.
@@ -79,3 +81,4 @@ public struct ProposedPoint: Equatable, Hashable, Sendable {
         y = point?.y
     }
 }
+*/

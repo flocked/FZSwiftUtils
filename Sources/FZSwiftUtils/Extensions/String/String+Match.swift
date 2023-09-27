@@ -9,7 +9,7 @@ import Foundation
 import NaturalLanguage
 
 
-///  A structure representing a match found in a string based on a regular expression pattern.
+///  A structure representing a match found in a string.
 public struct StringMatch: Hashable {
     /// The matched string.
     public let string: String
@@ -17,26 +17,36 @@ public struct StringMatch: Hashable {
     public let range: Range<String.Index>
     /// The score or importance of the match.
     public let score: Int
-}
-
-internal extension StringMatch {
-    init(_ result: NSTextCheckingResult, source: String) {
+    
+    internal init(string: String, range: Range<String.Index>, score: Int) {
+        self.string = string
+        self.range = range
+        self.score = score
+    }
+    
+    internal init(_ result: NSTextCheckingResult, source: String) {
         range = Range(result.range, in: source)!
         string = String(source[range])
         score = source.distance(from: range.lowerBound, to: range.upperBound)
     }
 }
 
-public enum StringMatchOption {
-    case lines
-    case composedCharacterSequences
-    case paragraphs
+/// Options for matching strings.
+public enum StringMatchOption: Int, Hashable {
+    /// Characters.
+    case characters
+    /// Words.
     case words
+    /// Sentences.
     case sentences
+    /// Paragraphs.
+    case paragraphs
+    /// Lines.
+    case lines
     internal var enumerationOptions: NSString.EnumerationOptions {
         switch self {
         case .lines: return .byLines
-        case .composedCharacterSequences: return .byComposedCharacterSequences
+        case .characters: return .byComposedCharacterSequences
         case .paragraphs: return .byParagraphs
         case .words: return .byWords
         case .sentences: return .bySentences
@@ -129,6 +139,7 @@ public extension String {
     
     /**
      Finds all matches for the given option using natural language processing.
+     
      - Parameter option: The option for finding matches (e.g. for findinge person names, places, nouns, verbs, etc.)
      - Returns: An array of `StringMatch` objects representing the matches found.
       */
@@ -169,7 +180,7 @@ public extension StringProtocol {
 
 public extension StringProtocol {
     /**
-     A boolean value indicating whether the string contains any of the specified strings.
+     A Boolean value indicating whether the string contains any of the specified strings.
      - Parameters strings: The strings.
      - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
      */
@@ -183,7 +194,7 @@ public extension StringProtocol {
     }
     
     /**
-     A boolean value indicating whether the string contains all specified strings.
+     A Boolean value indicating whether the string contains all specified strings.
      - Parameters strings: The strings.
      - Returns: `true` if all strings exist in the string, or` false` if not.
      */

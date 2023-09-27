@@ -5,8 +5,8 @@
 //  Created by Florian Zand on 16.03.23.
 //
 
-import CoreGraphics
 import Foundation
+import CoreGraphics
 
 public extension CGPoint {
     

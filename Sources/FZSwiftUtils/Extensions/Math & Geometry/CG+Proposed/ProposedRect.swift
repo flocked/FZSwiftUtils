@@ -1,12 +1,12 @@
 //
-//  File.swift
+//  ProposedRect.swift
 //  
 //
 //  Created by Florian Zand on 01.08.23.
 //
 
+/*
 import Foundation
-import CoreGraphics
 
 /**
  A proposal for the rect.
@@ -95,3 +95,4 @@ public extension CGRect {
         return newRect
     }
 }
+*/

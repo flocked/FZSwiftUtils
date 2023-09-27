@@ -9,27 +9,36 @@
 import Foundation
 
 public extension NSRange {
-    func closedRange() -> ClosedRange<Int> {
-        return lowerBound ... upperBound
+    /// The range as `ClosedRange`.
+    var closedRange: ClosedRange<Int> {
+        return lowerBound...upperBound
+    }
+    
+    /// The range as `Range`.
+    var range: Range<Int> {
+        return lowerBound..<upperBound+1
     }
 
     static let notFound = NSRange(location: NSNotFound, length: 0)
 
-    /// A boolean value indicating whether the range contains no elements.
+    /// A Boolean value indicating whether the range contains no elements.
     var isEmpty: Bool {
         length == 0
     }
 
-    /// A boolean value indicating whether the range is not found.
+    /// A Boolean value indicating whether the range is not found.
     var isNotFound: Bool {
         location == NSNotFound
     }
 
-    /// Check if the given index is in the receiver or touchs to one of the receiver's bounds.
-    ///
-    /// - Parameter index: The index to test.
-    func touches(_ index: Int) -> Bool {
-        lowerBound <= index && index <= upperBound
+
+    /**
+     A Boolean value indicating whether range constains the specified index.
+     - Parameter index: The index to test.
+     - Returns: `true` if the range contains the index, or `false` if not.
+     */
+    func contains(_ index: Int) -> Bool {
+        index >= lowerBound && index <= upperBound
     }
 
     /// Return a boolean indicating whether the specified range intersects the receiver’s range.
@@ -39,17 +48,16 @@ public extension NSRange {
         intersection(other) != nil
     }
 
-    /// Check if the two ranges overlap or touch each other.
-    ///
-    /// - Parameter range: The range to test.
-    /// - Note: Unlike Swift.Range's `overlaps(_:)`, this method returns `true` when a range length is 0.
-    func touches(_ range: NSRange) -> Bool {
+    /**
+     Returns a Boolean value indicating whether the given range is contained within the range.
+     
+     - Parameters range: The range to check for containment.
+     - Returns: `true` if range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: NSRange) -> Bool {
         if location == NSNotFound { return false }
         if range.location == NSNotFound { return false }
-        if upperBound < range.lowerBound { return false }
-        if range.upperBound < lowerBound { return false }
-
-        return true
+        return range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
 
     /// Return a copied NSRange but whose location is shifted toward the given `offset`.

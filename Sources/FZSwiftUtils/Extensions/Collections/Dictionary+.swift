@@ -8,19 +8,19 @@
 import Foundation
 
 public extension Dictionary {
-    /// The dictionary as CFDictionary.
-    func toCFDictionary() -> CFDictionary {
+    /// The dictionary as `CFDictionary`.
+    var cfDictionary: CFDictionary {
         self as CFDictionary
     }
     
-    /// The dictionary as NSDictionary.
-    func toNSDictionary() -> NSDictionary {
+    /// The dictionary as `NSDictionary`.
+    var nsDictionary: NSDictionary {
         self as NSDictionary
     }
 }
 
 public extension NSDictionary {
-    /// The dictionary as Dictionary.
+    /// The dictionary as `Dictionary`.
     func toDictionary() -> [String: Any] {
         var swiftDictionary = Dictionary<String, Any>()
           for key : Any in self.allKeys {
@@ -32,8 +32,8 @@ public extension NSDictionary {
           return swiftDictionary
     }
     
-    /// The dictionary as CFDictionary.
-    func toCFDictionary() -> CFDictionary {
+    /// The dictionary as `CFDictionary`.
+    var cfDictionary: CFDictionary {
         self as CFDictionary
     }
 }

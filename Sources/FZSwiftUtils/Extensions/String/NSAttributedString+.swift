@@ -183,7 +183,7 @@ public extension NSAttributedString {
     }
     
     subscript(range: NSRange) -> NSAttributedString {
-        let string = String(self.string[range.closedRange()])
+        let string = String(self.string[range.closedRange])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }

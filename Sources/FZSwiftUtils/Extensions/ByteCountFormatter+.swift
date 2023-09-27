@@ -8,7 +8,6 @@
 import Foundation
 
 public extension ByteCountFormatter {
-    
     /**
      Initializes a `ByteCountFormatter` instance with the specified allowed units and count style.
      

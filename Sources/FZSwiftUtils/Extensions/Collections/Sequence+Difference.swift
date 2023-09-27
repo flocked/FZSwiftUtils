@@ -8,9 +8,15 @@
 import Foundation
 
 public extension Sequence where Element: Equatable {
-    func difference<S: Sequence<Element>>(to sequence: S) -> (removed: [Element], added: [Element]) {
-        let removed = self.filter({ sequence.contains($0) == false })
-        let added = sequence.filter({ self.contains($0) == false })
+    /**
+     Returns the difference needed to produce this collection’s ordered elements from the given collection.
+     
+     - Parameters other: The other collection to compare.
+     - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
+     */
+    func difference<S: Sequence<Element>>(to other: S) -> (removed: [Element], added: [Element]) {
+        let removed = self.filter({ other.contains($0) == false })
+        let added = other.filter({ self.contains($0) == false })
         return (removed, added)
     }
 }

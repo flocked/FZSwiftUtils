@@ -1,0 +1,118 @@
+//
+//  Range+.swift
+//  
+//
+//  Created by Florian Zand on 27.09.23.
+//
+
+import Foundation
+
+public extension ClosedRange where Bound == Int {
+    /**
+     Shifts the range by the specified offset value.
+     
+     - Parameter offset: The offset to shift.
+     - Returns: The new range.
+     */
+    func shfted(by offset: Int) -> Self {
+        lowerBound+offset...upperBound+offset
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given range is contained within the range.
+     
+     - Parameters range: The range to check for containment.
+     - Returns: `true` if range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: ClosedRange<Int>) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given range is contained within the range.
+     
+     - Parameters range: The range to check for containment.
+     - Returns: `true` if range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: Range<Int>) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given values are contained within the range.
+     
+     - Parameters values: The values to check for containment.
+     - Returns: `true` if values are contained in the range; otherwise, `false`.
+     */
+    func contains<S>(_ values: S) -> Bool where S: Sequence<Int> {
+        for value in values.uniqued() {
+            if self.contains(value) == false {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+public extension Range where Bound == Int {
+    /**
+     Shifts the range by the specified offset value.
+     
+     - Parameter offset: The offset to shift.
+     - Returns: The new range.
+     */
+    func shfted(by offset: Int) -> Self {
+        lowerBound+offset..<upperBound+offset
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given range is contained within the range.
+     
+     - Parameters range: The range to check for containment.
+     - Returns: `true` if range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: ClosedRange<Int>) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given range is contained within the range.
+     
+     - Parameters range: The range to check for containment.
+     - Returns: `true` if range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: Range<Int>) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given values are contained within the range.
+     
+     - Parameters values: The values to check for containment.
+     - Returns: `true` if values are contained in the range; otherwise, `false`.
+     */
+    func contains<S>(_ values: S) -> Bool where S: Sequence<Int> {
+        for value in values.uniqued() {
+            if self.contains(value) == false {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+public extension ClosedRange where Bound == IntegerLiteralType {
+    /// The closed range as `NSRange`.
+    var nsRange: NSRange {
+        let length = self.upperBound-self.lowerBound
+        return NSRange(location: self.lowerBound, length: length)
+    }
+}
+
+public extension Range where Bound == IntegerLiteralType {
+    /// The range as `NSRange`.
+    var nsRange: NSRange {
+        let length = self.upperBound-self.lowerBound
+        return NSRange(location: self.lowerBound, length: length)
+    }
+}

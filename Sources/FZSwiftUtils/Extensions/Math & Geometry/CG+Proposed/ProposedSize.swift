@@ -1,12 +1,12 @@
 
 //
-//  ContentConfiguration+ProposedSize.swift
+//  ProposedSize.swift
 //
 //
 //  Created by Florian Zand on 20.09.22.
 //
 
-import CoreGraphics
+/*
 import Foundation
 
 /**
@@ -103,3 +103,4 @@ public extension CGSize {
         }
     }
 }
+*/

@@ -249,7 +249,7 @@ public extension URL.FileType {
         }
     }
     
-    /// A boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
+    /// A Boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
     var isMultimedia: Bool {
         self == .video || self == .audio || self == .gif || self == .image
     }
@@ -315,26 +315,3 @@ public extension URL.FileType {
         return NSComparisonPredicate(leftExpression: key, rightExpression: value, modifier: modifier, type: type)
     }
 }
-
-/*
- if let groupID = item.item.value(forAttribute: "_kMDItemGroupId") as? Int {
- switch groupID {
- case 8:
- fileType =  .executable
- case 9:
- fileType = .folder
- case 13:
- fileType =  .image
- case 7:
- fileType = .video
- case 10:
- fileType = .audio
- case 11:
- fileType = .pdf
- case 12:
- fileType = .presentation
- default:
- break
- }
- }
- */

@@ -21,7 +21,7 @@ public extension Dictionary {
      
      - Parameters dictionary: The dictionary for merging.
      */
-    mutating func merging(_ dictionary: Self) {
+    mutating func merge(_ dictionary: Self) {
         self += dictionary
     }
 }
@@ -43,6 +43,5 @@ public func +<Key, Value> (lhs: [Key: Value], rhs: [Key: Value]) -> [Key: Value]
 }
 
 public func +=<Key, Value> (lhs: inout [Key: Value], rhs: [Key: Value]) {
-  // swiftlint:disable:next shorthand_operator
   lhs = lhs + rhs
 }

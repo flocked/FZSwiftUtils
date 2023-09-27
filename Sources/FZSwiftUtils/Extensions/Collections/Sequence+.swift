@@ -26,6 +26,30 @@ public extension Sequence {
     }
 }
 
+public extension Sequence where Element: Equatable {
+    /**
+     Returns indexes of the specified element.
+
+     - Parameters element: The element to return it's indexes.
+     
+     - Returns: The indexes of the element.
+     */
+    func indexes(of element: Element) -> IndexSet {
+        indexes(where: { $0 == element })
+    }
+
+    /**
+     Returns indexes of the specified elements.
+
+     - Parameters elements: The elements to return their indexes.
+     
+     - Returns: The indexes of the elements.
+     */
+    func indexes<S: Sequence<Element>>(for elements: S) -> IndexSet {
+        indexes(where: { elements.contains($0) })
+    }
+}
+
 public extension Sequence where Element: RawRepresentable {
     /// An array of corresponding values of the raw type.
     func rawValues() -> [Element.RawValue] {
@@ -44,11 +68,19 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
     func first(rawValue: Element.RawValue) -> Element? {
         return first(where: { $0.rawValue == rawValue })
     }
+    
+    subscript(rawValue rawValue: Element.RawValue) -> [Element] {
+        self.filter({$0.rawValue == rawValue})
+    }
+    
+    subscript(firstRawValue rawValue: Element.RawValue) -> Element? {
+        first(where: { $0.rawValue == rawValue })
+    }
 }
 
 public extension Sequence where Element: Equatable {
     /**
-     A boolean value indicating whether the sequence contains any of the specified elements.
+     A Boolean value indicating whether the sequence contains any of the specified elements.
      - Parameters elements: The elements.
      - Returns: `true` if any of the elements exists in the sequence, or` false` if non exist in the sequence.
      */
@@ -62,7 +94,7 @@ public extension Sequence where Element: Equatable {
     }
 
     /**
-     A boolean value indicating whether the sequence contains all specified elements.
+     A Boolean value indicating whether the sequence contains all specified elements.
      - Parameters elements: The elements.
      - Returns: `true` if all elements exist in the sequence, or` false` if not.
      */
@@ -80,5 +112,12 @@ public extension Sequence where Element: OptionalProtocol {
     /// Returns an array of non optional elemenets.
     var nonNil: [Element.Wrapped] {
         self.compactMap({$0.optional})
+    }
+}
+
+public extension Sequence where Element: Hashable {
+    /// The collection as `Set`.
+    var asSet: Set<Element> {
+        Set(self)
     }
 }

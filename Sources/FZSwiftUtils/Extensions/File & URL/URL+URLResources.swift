@@ -17,7 +17,6 @@ import MobileCoreServices
 #endif
 
 public extension URL {
-    
     ///  The properties of a file system resource.
     var resources: URLResources {
         return URLResources(url: self)

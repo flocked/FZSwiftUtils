@@ -9,11 +9,9 @@ import Foundation
 
 public extension NumberFormatter {
     /**
-     Returns a value of a specified number type  extracted from the given string.
+     Returns a value of a specified number type extracted from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the value.
-     
+     - Parameters string: The string from which to extract the value.
      - Returns: The extracted value of the specified type, or `nil` if the extraction fails.
      */
     func value<C: LosslessStringConvertible>(from string: String) -> C? {
@@ -37,9 +35,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Int` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Int` value.
-     
+     - Parameters string: The string from which to extract the `Int` value.
      - Returns: The extracted `Int` value, or `nil` if the extraction fails.
      */
     func intValue(from string: String) -> Int? {
@@ -51,9 +47,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Int8` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Int8` value.
-     
+     - Parameters string: The string from which to extract the `Int8` value.
      - Returns: The extracted `Int8` value, or `nil` if the extraction fails.
      */
     func int8Value(from string: String) -> Int8? {
@@ -65,9 +59,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Int16` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Int16` value.
-     
+     - Parameters string: The string from which to extract the `Int16` value.
      - Returns: The extracted `Int16` value, or `nil` if the extraction fails.
      */
     func int16Value(from string: String) -> Int16? {
@@ -79,9 +71,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Int32` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Int32` value.
-     
+     - Parameters string: The string from which to extract the `Int32` value.
      - Returns: The extracted `Int32` value, or `nil` if the extraction fails.
      */
     func int32Value(from string: String) -> Int32? {
@@ -93,9 +83,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Int64` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Int64` value.
-     
+     - Parameters string: The string from which to extract the `Int64` value.
      - Returns: The extracted `Int64` value, or `nil` if the extraction fails.
      */
     func int64Value(from string: String) -> Int64? {
@@ -107,9 +95,7 @@ public extension NumberFormatter {
     /**
      Extracts an `UInt` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `UInt` value.
-     
+     - Parameters string: The string from which to extract the `UInt` value.
      - Returns: The extracted `UInt` value, or `nil` if the extraction fails.
      */
     func uintValue(from string: String) -> UInt? {
@@ -121,9 +107,7 @@ public extension NumberFormatter {
     /**
      Extracts an `UInt8` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `UInt8` value.
-     
+     - Parameters string: The string from which to extract the `UInt8` value.
      - Returns: The extracted `UInt8` value, or `nil` if the extraction fails.
      */
     func uint8Value(from string: String) -> UInt8? {
@@ -135,9 +119,7 @@ public extension NumberFormatter {
     /**
      Extracts an `UInt16` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `UInt16` value.
-     
+     - Parameters string: The string from which to extract the `UInt16` value.
      - Returns: The extracted `UInt16` value, or `nil` if the extraction fails.
      */
     func uint16Value(from string: String) -> UInt16? {
@@ -149,9 +131,7 @@ public extension NumberFormatter {
     /**
      Extracts an `UInt32` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `UInt32` value.
-     
+     - Parameters string: The string from which to extract the `UInt32` value.
      - Returns: The extracted `UInt32` value, or `nil` if the extraction fails.
      */
     func uint32Value(from string: String) -> UInt32? {
@@ -163,9 +143,7 @@ public extension NumberFormatter {
     /**
      Extracts an `UInt64` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `UInt64` value.
-     
+     - Parameters string: The string from which to extract the `UInt64` value.
      - Returns: The extracted `UInt64` value, or `nil` if the extraction fails.
      */
     func uint64Value(from string: String) -> UInt64? {
@@ -177,9 +155,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Float` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Float` value.
-     
+     - Parameters string: The string from which to extract the `Float` value.
      - Returns: The extracted `Float` value, or `nil` if the extraction fails.
      */
     func floatValue(from string: String) -> Float? {
@@ -190,9 +166,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Double` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Double` value.
-     
+     - Parameters string: The string from which to extract the `Double` value.
      - Returns: The extracted `Double` value, or `nil` if the extraction fails.
      */
     func doubleValue(from string: String) -> Double? {
@@ -203,9 +177,7 @@ public extension NumberFormatter {
     /**
      Extracts an `Bool` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `Bool` value.
-     
+     - Parameters string: The string from which to extract the `Bool` value.
      - Returns: The extracted `Bool` value, or `nil` if the extraction fails.
      */
     func boolValue(from string: String) -> Bool? {
@@ -222,9 +194,7 @@ public extension NumberFormatter {
     /**
      Extracts an `TimeInterval` value from the given string.
      
-     - Parameters:
-        - string: The string from which to extract the `TimeInterval` value.
-     
+     - Parameters string: The string from which to extract the `TimeInterval` value.
      - Returns: The extracted `TimeInterval` value, or `nil` if the extraction fails.
      */
     func timeInterval(from string: String) -> TimeInterval? {

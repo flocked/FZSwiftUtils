@@ -72,6 +72,14 @@ public extension NumberFormatter {
         maximumFractionDigits = maxFractionDigits
     }
     
+    /**
+     Creates a number formatter for an integer value with the specified format, number of digits and locale.
+     
+     - Parameters:
+        - format: The format string used to format the number. The default value is `"#,###"`.
+        - numberOfDigits: The number of digits to display. The default value is `0`.
+        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
+     */
     static func forInteger(with format: String = "#,###", numberOfDigits: Int = 0, locale: Locale? = nil) -> NumberFormatter {
         let formatter = NumberFormatter()
         formatter.locale = locale ?? Locale.current
@@ -82,6 +90,14 @@ public extension NumberFormatter {
         return formatter
     }
 
+    /**
+     Creates a number formatter for a floating point value with the specified format, number of digits and locale.
+     
+     - Parameters:
+        - format: The format string used to format the number. The default value is `"#,###"`.
+        - numberOfDigits: The number of digits to display. The default value is `1`.
+        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
+     */
     static func forFloatingPoint(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> NumberFormatter {
         let formatter = NumberFormatter()
         formatter.locale = locale ?? Locale.current
@@ -92,33 +108,40 @@ public extension NumberFormatter {
         return formatter
     }
 
-    /// Returns a string representation of the specified value value.
-    func string(from value: Double) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: Float) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
+    /**
+     Returns a string representation of the specified value value.
+     
+     - Parameters value: The value for the string representation.
+     - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
+     */
     func string(from value: CChar) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
+    
+    /**
+     Returns a string representation of the specified value value.
+     
+     - Parameters value: The value for the string representation.
+     - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
+     */
     func string(from value: Bool) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: Int) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: Int16) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: Int32) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: Int64) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: UInt) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: UInt16) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: UInt32) -> String? { string(from: NSNumber(value: value)) }
-    /// Returns a string representation of the specified value value.
-    func string(from value: UInt64) -> String? { string(from: NSNumber(value: value)) }
+    
+    /**
+     Returns a string representation of the specified value value.
+     
+     - Parameters value: The value for the string representation.
+     - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
+     */
+    func string<Value>(from value: Value) -> String? where Value: BinaryInteger { string(from: NSNumber(value)) }
+    
+    /**
+     Returns a string representation of the specified value value.
+     
+     - Parameters value: The value for the string representation.
+     - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
+     */
+    func string<Value>(from value: Value) -> String? where Value: BinaryFloatingPoint { string(from: NSNumber(value)) }
 }
 
-public extension Int {
+public extension BinaryInteger {
     /**
      Returns a localized string representation of the integer value using the specified format, number of digits, and locale.
      
@@ -131,28 +154,11 @@ public extension Int {
      */
     func localizedString(with format: String = "#,###", numberOfDigits: Int = 0, locale: Locale? = nil) -> String {
         let formatter = NumberFormatter.forInteger(with: format, numberOfDigits: numberOfDigits, locale: locale)
-        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+        return formatter.string(from: NSNumber(self)) ?? "\(self)"
     }
 }
 
-public extension Double {
-    /**
-     Returns a localized string representation of the double value using the specified format, number of digits, and locale.
-     
-     - Parameters:
-        - format: The format string used to format the number. The default value is `"#.#"`.
-        - numberOfDigits: The number of digits to display. The default value is `1`.
-        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-     
-     - Returns: A localized string representation of the double value.
-     */
-    func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {
-        let formatter = NumberFormatter.forFloatingPoint(with: format, numberOfDigits: numberOfDigits, locale: locale)
-        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
-    }
-}
-
-public extension Float {
+public extension BinaryFloatingPoint {
     /**
      Returns a localized string representation of the float value using the specified format, number of digits, and locale.
      
@@ -165,7 +171,7 @@ public extension Float {
      */
     func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {
         let formatter = NumberFormatter.forFloatingPoint(with: format, numberOfDigits: numberOfDigits, locale: locale)
-        return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+        return formatter.string(from: NSNumber(self)) ?? "\(self)"
     }
 }
 
@@ -181,6 +187,7 @@ public extension CGFloat {
      - Returns: A localized string representation of the CGFloat value.
      */
     func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {
-        return Double(self).localizedString(with: format, numberOfDigits: numberOfDigits, locale: locale)
+        let formatter = NumberFormatter.forFloatingPoint(with: format, numberOfDigits: numberOfDigits, locale: locale)
+        return formatter.string(from: NSNumber(self)) ?? "\(self)"
     }
 }

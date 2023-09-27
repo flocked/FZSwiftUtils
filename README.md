@@ -1,6 +1,6 @@
 # FZSwiftUtils
 
-Swift Foundation extensions and useful Classes & utilities.
+Swift Foundation extensions and useful classes & utilities.
 
 **For a full documentation take a look at the included documentation accessible via Xcode's documentation browser.**
 

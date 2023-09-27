@@ -80,7 +80,7 @@ public extension Progress {
         self.estimatedTimeRemaining = secondsRemaining
     }
     
-    /// A boolean value indicating whether the progress should auomatically update the estimated time and throughput remaining.
+    /// A Boolean value indicating whether the progress should auomatically update the estimated time and throughput remaining.
     var autoUpdateEstimatedTimeRemaining: Bool {
         get { getAssociatedValue(key: "Progress_autoUpdateEstimatedTimeRemaining", object: self, initialValue: false) }
         set {

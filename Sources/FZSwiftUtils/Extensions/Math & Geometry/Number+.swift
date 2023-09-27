@@ -30,8 +30,14 @@ public extension BinaryFloatingPoint {
 }
 
 public extension CGFloat {
-    init?(_ value: StringLiteralType) {
-        if let doubleValue = Double(value) {
+    /**
+     Creates a new instance from the given string.
+     
+     - Parameters description: An input string to convert to a `CGFloat` instance.
+     - Returns: The value of the text, or `nil` if the string doesn't contain a numeric value.
+     */
+    init?<S>(_ text: S) where S : StringProtocol {
+        if let doubleValue = Double(text) {
             self = CGFloat(doubleValue)
         } else {
             return nil
@@ -41,10 +47,11 @@ public extension CGFloat {
 
 public extension CGFloat {
     /**
-     Returns the scaled integral value of the CGFloat.
+     Returns the scaled integral value of the `CGFloat`.
+     
      The value is scaled based on the current device's screen scale.
      
-     - Returns: The scaled integral value of the CGFloat.
+     - Returns: The scaled integral value of the `CGFloat`.
      */
     var scaledIntegral: Self {
         #if os(macOS)
@@ -80,67 +87,6 @@ public extension BinaryFloatingPoint {
     }
 }
 
-public extension Int {
-    enum NextValueType {
-        case next
-        case previous
-        case nextLooping
-        case previousLooping
-        case random
-        case first
-        case last
-    }
-
-    func next(in range: ClosedRange<Self>) -> Self {
-        return advanced(by: .next, in: range)
-    }
-
-    func nextLooped(in range: ClosedRange<Self>) -> Self {
-        return advanced(by: .nextLooping, in: range)
-    }
-
-    func previous(in range: ClosedRange<Self>) -> Self {
-        return advanced(by: .previous, in: range)
-    }
-
-    func previousLooped(in range: ClosedRange<Self>) -> Self {
-        return advanced(by: .previousLooping, in: range)
-    }
-
-    func advanced(by type: NextValueType, in range: ClosedRange<Self>) -> Self {
-        var index = self
-        switch type {
-        case .next:
-            index = index + 1
-            if index > range.upperBound {
-                index = range.upperBound
-            }
-        case .previous:
-            index = index - 1
-            if index < range.lowerBound {
-                index = range.lowerBound
-            }
-        case .nextLooping:
-            index = index + 1
-            if index > range.upperBound {
-                index = range.lowerBound
-            }
-        case .previousLooping:
-            index = index - 1
-            if index < range.lowerBound {
-                index = range.upperBound
-            }
-        case .random:
-            index = Int.random(in: range)
-        case .first:
-            index = range.lowerBound
-        case .last:
-            index = range.upperBound
-        }
-        return index
-    }
-}
-
 /// Floating point rounding rules for decimal places.
 public enum FloatingPointPlacesRoundingRule {
     /// Rounds the value to the specified number of decimal places.
@@ -172,9 +118,7 @@ public extension BinaryFloatingPoint {
     /**
      Rounds the value using the specified rounding rule.
      
-     - Parameters:
-        - rule: The rounding rule to apply.
-     
+     - Parameters rule: The rounding rule to apply.
      - Returns: The rounded value.
      */
     func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
@@ -185,9 +129,7 @@ public extension BinaryFloatingPoint {
     /**
      Rounds the value using the specified rounding rule.
      
-     - Parameters:
-        - rule: The rounding rule to apply.
-     
+     - Parameters rule: The rounding rule to apply.
      - Returns: The rounded value.
      */
     mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
@@ -195,13 +137,27 @@ public extension BinaryFloatingPoint {
         self = (self * divisor).rounded(rule.rounding) / divisor
     }
 
-    /**
-     Returns the number of decimal places in the value.
-     
-     - Returns: The count of decimal places.
-     */
+    /// Returns the number of decimal places in the value.
     var placesCount: Int {
         let decimal = Decimal(Double(self))
         return max(-decimal.exponent, 0)
+    }
+}
+
+extension IntegerLiteralType {
+    /// Returns the number of digits
+    public var digitCount: Int {
+        get {
+            return numberOfDigits(in: self)
+        }
+    }
+    
+    // private recursive method for counting digits
+    private func numberOfDigits(in number: Int) -> Int {
+        if number < 10 && number >= 0 || number > -10 && number < 0 {
+            return 1
+        } else {
+            return 1 + numberOfDigits(in: number/10)
+        }
     }
 }

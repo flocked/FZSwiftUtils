@@ -87,7 +87,7 @@ public extension FileManager {
         /// The filesystem file number.
         public var fileSystemFileNumber: Int { _attributes.fileSystemFileNumber() }
 
-        /// A boolean value indicating whether the file’s extension is hidden.
+        /// A Boolean value indicating whether the file’s extension is hidden.
         public var fileExtensionIsHidden: Bool {
             get { _attributes.fileExtensionHidden() }
             set { self[.extensionHidden] = newValue }
@@ -105,13 +105,13 @@ public extension FileManager {
             set { self[.hfsTypeCode] = newValue }
         }
 
-        /// A boolean value indicating whether the file is immutable.
+        /// A Boolean value indicating whether the file is immutable.
         public var isImmutable: Bool {
             get { _attributes.fileIsImmutable() }
             set { self[.immutable] = newValue }
         }
 
-        /// A boolean value indicating whether the file is readonly.
+        /// A Boolean value indicating whether the file is readonly.
         public var isReadOnly: Bool? { _attributes.fileIsAppendOnly() }
 
         /// The file’s owner's account ID.
@@ -126,7 +126,7 @@ public extension FileManager {
             set { self[.groupOwnerAccountID] = newValue }
         }
 
-        /// A boolean value indicating whether the file is busy.
+        /// A Boolean value indicating whether the file is busy.
         public var isBusy: Bool? {
             get { self[.busy] }
             set { self[.busy] = newValue }

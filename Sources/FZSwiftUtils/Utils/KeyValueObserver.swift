@@ -31,7 +31,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      Adds an observer for the specified keypath which calls the specified handler.
      
      - Parameters keyPath: The keypath to the value to observe.
-     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
      - Parameters handler: The handler to be called whenever the keypath value changes.
      */
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
@@ -46,7 +46,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      Adds an observer for the specified keypath which calls the specified handler.
      
      - Parameters keyPath: The keypath to the value to observe.
-     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
      - Parameters handler: The handler to be called whenever the keypath value changes.
      */
     public func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
@@ -62,7 +62,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      Adds an observer for the specified keypath which calls the specified handler.
      
      - Parameters keyPath: The keypath to the value to observe.
-     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
      - Parameters handler: The handler to be called whenever the keypath value changes.
      */
     public func add(_ keypath: String, sendInitalValue: Bool = false, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {

@@ -51,7 +51,7 @@ public final class Defaults {
     /// Checks if there is a value associated with the specified key.
     ///
     /// - Parameter key: The key to look for.
-    /// - Returns: A boolean value indicating if a value exists for the specified key.
+    /// - Returns: A Boolean value indicating if a value exists for the specified key.
     public func has<ValueType>(_ key: Key<ValueType>) -> Bool {
         return userDefaults.value(forKey: key._key) != nil
     }
@@ -169,7 +169,7 @@ public final class Defaults {
      Adds an observer for the specified key which calls the specified handler.
      
      - Parameters key: The key to the value to observe.
-     - Parameters sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameters sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
      - Parameters handler: The handler to be called whenever the key value changes.
      */
     public func observeChanges<ValueType>(for key: Key<ValueType>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: ValueType, _ newValue: ValueType)->())) {
@@ -192,7 +192,7 @@ public final class Defaults {
     /// Checks if the specified type is a Codable from the Swift standard library.
     ///
     /// - Parameter type: The type.
-    /// - Returns: A boolean value.
+    /// - Returns: A Boolean value.
     private func isSwiftCodableType<ValueType>(_ type: ValueType.Type) -> Bool {
         switch type {
         case is String.Type, is Bool.Type, is Int.Type, is Float.Type, is Double.Type:
@@ -206,7 +206,7 @@ public final class Defaults {
     /// Foundation framework.
     ///
     /// - Parameter type: The type.
-    /// - Returns: A boolean value.
+    /// - Returns: A Boolean value.
     private func isFoundationCodableType<ValueType>(_ type: ValueType.Type) -> Bool {
         switch type {
         case is Date.Type:

@@ -8,6 +8,7 @@
 import Foundation
 
 public extension MutableCollection {
+    /// Edits the elements.
     mutating func editEach(_ body: (inout Element) throws -> Void) rethrows {
         for index in self.indices {
             try body(&self[index])
@@ -30,7 +31,8 @@ public extension Collection {
 
 public extension Collection where Element: Equatable {
     /**
-     A boolean value indicating whether the collection contains any of the specified elements.
+     A Boolean value indicating whether the collection contains any of the specified elements.
+     
      - Parameters elements: The elements.
      - Returns: `true` if any of the elements exists in the collection, or` false` if non exist in the option set.
      */
@@ -44,7 +46,7 @@ public extension Collection where Element: Equatable {
     }
     
     /**
-     A boolean value indicating whether the collection contains all specified elements.
+     A Boolean value indicating whether the collection contains all specified elements.
      - Parameters elements: The elements.
      - Returns: `true` if all elements exist in the collection, or` false` if not.
      */
@@ -104,6 +106,12 @@ public extension Collection where Index == Int {
 }
 
 public extension RangeReplaceableCollection where Element: Equatable {
+    @discardableResult
+    /**
+     Removes the specificed elements and returns them.
+     - Parameters elements: The elements to remove.
+     - Returns: Returns the removed elements.
+     */
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         var removedElements: [Element] = []
         for element in elements {
@@ -172,14 +180,6 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
 }
 
 public extension RangeReplaceableCollection where Self.Indices.Element == Int, Element: Equatable {
-    func indexes(of element: Element) -> IndexSet {
-        indexes(where: { $0 == element })
-    }
-
-    mutating func indexes<S: Sequence<Element>>(for elements: S) -> IndexSet {
-        indexes(where: { elements.contains($0) })
-    }
-
     @discardableResult
     /**
      Moves the specified element to the specified position.

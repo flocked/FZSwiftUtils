@@ -75,8 +75,20 @@ public extension Date {
         }
         return DateInterval(start:  (date1 < date2) ? date1 : date2, end:  (date1 < date2) ? date2 : date1).contains(self)
     }
+    
+    /**
+     Checks if the date is between the specified date interval.
 
-    /// The year of this date..
+     - Parameters:
+        - interval: The date interval.
+     
+     - Returns: `true` if the date is between the date interval, otherwise, `false`.
+     */
+    func isBetween(_ interval: DateInterval) -> Bool {
+        interval.contains(self)
+    }
+
+    /// The year of this date.
     var year: Int {
         get { value(for: .year) }
         set { setValue(newValue, for: .year) }

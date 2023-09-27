@@ -8,7 +8,7 @@
 import Foundation
 
 public extension HTTPURLResponse {
-    /// A boolean value indicating whether the response’s HTTP status code is sucessful (200-299).
+    /// A Boolean value indicating whether the response’s HTTP status code is sucessful (200-299).
     var statusIsSucess: Bool {
         let code = self.statusCode
         switch code {

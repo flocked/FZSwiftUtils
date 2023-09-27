@@ -60,4 +60,19 @@ public extension CaseIterable where Self: Hashable {
         }
         return nil
     }
+    
+    /// Returns a random case from `Self.allCases`.
+    var randomCase: Self? {
+        return Self.allCases.randomElement()
+    }
+    
+    /// Returns a random new case from `Self.allCases` excluding self or `nil` if there isn´t a new random case.
+    var randomNewCase: Self? {
+        guard Self.allCases.count > 1 else { return nil}
+        var random = Self.allCases.randomElement()
+        while random != self {
+            random = Self.allCases.randomElement()
+        }
+        return random
+    }
 }

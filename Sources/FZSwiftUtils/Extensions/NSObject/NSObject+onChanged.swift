@@ -15,7 +15,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
@@ -36,7 +36,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: An `NSKeyValueObservation` object representing the observation.

@@ -8,8 +8,7 @@
 import Foundation
 
 public extension URLResponse {
-    
-    /// The validator which identifies the current state of the resource on the server.
+        /// The validator which identifies the current state of the resource on the server.
     var validator: String? {
         guard let response = self as? HTTPURLResponse,
               response.statusCode == 200 /* OK */ || response.statusCode == 206, /* Partial Content */

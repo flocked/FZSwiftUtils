@@ -161,8 +161,14 @@ public extension URL {
    
         internal func isNonCodable<T>(for value: T, key: Key) -> Bool? {
             if let data = extendedAttributeData(for: key) {
-                if let any = try? PropertyListSerialization.propertyList(from: data, format: nil), any is T {
+                if ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true {
                     return true
+                }
+                
+                if let codableType = T.self as? Codable.Type {
+                    if (try? JSONDecoder().decode(codableType.self, from: data)) != nil {
+                        return false
+                    }
                 }
             }
             return nil
@@ -171,11 +177,11 @@ public extension URL {
         internal func isCodable<T>(for value: T, key: Key) -> Bool? {
             if let data = extendedAttributeData(for: key) {
                 if let codableType = T.self as? Codable.Type {
-                    if let value = try? JSONDecoder().decode(codableType.self, from: data) {
+                    if (try? JSONDecoder().decode(codableType.self, from: data)) != nil {
                         return true
                     }
                 }
-                if let any = try? PropertyListSerialization.propertyList(from: data, format: nil), any is T {
+                if ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true {
                     return false
                 }
             }
