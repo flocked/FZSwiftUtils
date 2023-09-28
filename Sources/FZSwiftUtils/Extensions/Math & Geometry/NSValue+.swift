@@ -44,13 +44,13 @@ public extension NSRange {
     }
 }
 
-public extension ClosedRange where Bound == IntegerLiteralType {
+public extension ClosedRange where Bound: BinaryInteger {
     var nsValue: NSValue {
         return NSValue(range: self.nsRange)
     }
 }
 
-public extension Range where Bound == IntegerLiteralType {
+public extension Range where Bound: BinaryInteger {
     var nsValue: NSValue {
         return NSValue(range: self.nsRange)
     }

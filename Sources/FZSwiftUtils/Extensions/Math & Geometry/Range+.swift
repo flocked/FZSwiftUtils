@@ -101,18 +101,32 @@ public extension Range where Bound == Int {
     }
 }
 
-public extension ClosedRange where Bound == IntegerLiteralType {
+public extension ClosedRange where Bound: BinaryInteger {
     /// The closed range as `NSRange`.
     var nsRange: NSRange {
-        let length = self.upperBound-self.lowerBound
-        return NSRange(location: self.lowerBound, length: length)
+        let length = self.upperBound-self.lowerBound-1
+        return NSRange(location: Int(self.lowerBound), length: Int(length))
     }
 }
 
-public extension Range where Bound == IntegerLiteralType {
+public extension Range where Bound: BinaryInteger {
     /// The range as `NSRange`.
     var nsRange: NSRange {
         let length = self.upperBound-self.lowerBound
-        return NSRange(location: self.lowerBound, length: length)
+        return NSRange(location: Int(self.lowerBound), length: Int(length))
+    }
+}
+
+public extension ClosedRange where Bound: BinaryInteger {
+    /// The range as floating range.
+    func toFloating() -> ClosedRange<Float> {
+        Float(self.lowerBound)...Float(self.upperBound)
+    }
+}
+
+public extension Range where Bound: BinaryInteger {
+    /// The range as floating range.
+    func toFloating() -> Range<Float> {
+        Float(self.lowerBound)..<Float(self.upperBound)
     }
 }

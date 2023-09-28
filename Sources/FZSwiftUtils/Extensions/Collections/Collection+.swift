@@ -29,6 +29,22 @@ public extension Collection {
     }
 }
 
+public extension MutableCollection {
+    subscript(safe safeIndex: Index) -> Element? {
+        get {
+            if isEmpty == false, safeIndex < count - 1 {
+                return self[safeIndex]
+            }
+            return nil
+        }
+        set {
+            if isEmpty == false, safeIndex < count - 1, let newValue = newValue {
+                self[safeIndex] = newValue
+            }
+        }
+    }
+}
+
 public extension Collection where Element: Equatable {
     /**
      A Boolean value indicating whether the collection contains any of the specified elements.

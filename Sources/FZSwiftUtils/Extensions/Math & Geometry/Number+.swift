@@ -13,22 +13,6 @@ import AppKit
 import UIKit
 #endif
 
-public extension BinaryFloatingPoint {
-    /**
-     Interpolates a value from one range to another range.
-     
-     - Parameters:
-        - from: The source range.
-        - to: The target range.
-     
-     - Returns: The interpolated value within the target range.
-     */
-    func interpolated(from: ClosedRange<Self>, to: ClosedRange<Self>) -> Self {
-        let positionInRange = (self - from.lowerBound) / (from.upperBound - from.lowerBound)
-        return (positionInRange * (to.upperBound - to.lowerBound)) + to.lowerBound
-    }
-}
-
 public extension CGFloat {
     /**
      Creates a new instance from the given string.
