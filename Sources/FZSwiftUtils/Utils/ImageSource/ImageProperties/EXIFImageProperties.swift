@@ -8,7 +8,7 @@
 import CoreGraphics
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct EXIF: Codable {
         public var xDimension: Double?
         public var yDimension: Double?
@@ -63,7 +63,7 @@ public extension ImageProperties {
     }
 }
 
-public extension ImageProperties.EXIF {
+public extension ImageSource.ImageProperties.EXIF {
     enum FocalPlaneResolutionUnit: Int, Codable {
         case noAbsoluteUnitOfMeasurement = 1
         case inch = 2

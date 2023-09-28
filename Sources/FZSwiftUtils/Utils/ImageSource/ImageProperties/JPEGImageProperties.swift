@@ -8,7 +8,7 @@
 import CoreGraphics
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct JPEG: Codable {
         public var xDensity: CGFloat?
         public var yDensity: CGFloat?

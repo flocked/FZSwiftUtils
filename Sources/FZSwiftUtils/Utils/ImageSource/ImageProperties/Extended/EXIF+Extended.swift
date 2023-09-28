@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ImageProperties.EXIF {
+public extension ImageSource.ImageProperties.EXIF {
     struct Extended {
         public var exposureTime: Double?
         public var exposureProgram: ExposureProgram?

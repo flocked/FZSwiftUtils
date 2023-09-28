@@ -14,7 +14,7 @@ public extension Sequence where Element == String {
      - Parameters option: The option for joining the strings.
      - Returns: A single, concatenated string.
      */
-    func joined(by option: String.JoinOptions) -> String {
+    func joined(by option: String.JoinOption) -> String {
         var strings = Array(self)
         if let prefix = option.prefix {
             strings = strings.compactMap({ prefix + $0 })
@@ -34,7 +34,7 @@ public extension Sequence where Element == String {
 
 public extension String {
     /// The option for joining string sequences.
-    enum JoinOptions: Int {
+    enum JoinOption: Int {
         /**
          Joined by adding lines.
          

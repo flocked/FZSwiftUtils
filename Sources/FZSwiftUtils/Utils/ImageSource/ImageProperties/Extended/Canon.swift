@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct Canon: Codable {
         public var ownerName: String?
         public var cameraSerialNumber: Int?
@@ -21,7 +21,7 @@ public extension ImageProperties {
         public var minAperture: Double?
         public var maxAperture: Double?
         public var uniqueModelID: Int?
-        public var whiteBalance: ImageProperties.EXIF.WhiteBalance?
+        public var whiteBalance: ImageSource.ImageProperties.EXIF.WhiteBalance?
 
         enum CodingKeys: String, CodingKey {
             case ownerName = "OwnerName"

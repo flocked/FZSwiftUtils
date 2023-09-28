@@ -1,5 +1,5 @@
 //
-//  String+Match.swift
+//  String+StringMatch.swift
 //
 //
 //  Created by Florian Zand on 04.05.23.
@@ -9,52 +9,51 @@ import Foundation
 import NaturalLanguage
 
 
-///  A structure representing a match found in a string.
-public struct StringMatch: Hashable {
-    /// The matched string.
-    public let string: String
-    /// The range of the matched string within the source string.
-    public let range: Range<String.Index>
-    /// The score or importance of the match.
-    public let score: Int
-    
-    internal init(string: String, range: Range<String.Index>, score: Int) {
-        self.string = string
-        self.range = range
-        self.score = score
-    }
-    
-    internal init(_ result: NSTextCheckingResult, source: String) {
-        range = Range(result.range, in: source)!
-        string = String(source[range])
-        score = source.distance(from: range.lowerBound, to: range.upperBound)
-    }
-}
-
-/// Options for matching strings.
-public enum StringMatchOption: Int, Hashable {
-    /// Characters.
-    case characters
-    /// Words.
-    case words
-    /// Sentences.
-    case sentences
-    /// Paragraphs.
-    case paragraphs
-    /// Lines.
-    case lines
-    internal var enumerationOptions: NSString.EnumerationOptions {
-        switch self {
-        case .lines: return .byLines
-        case .characters: return .byComposedCharacterSequences
-        case .paragraphs: return .byParagraphs
-        case .words: return .byWords
-        case .sentences: return .bySentences
+public extension String {
+    ///  A structure representing a match found in a string.
+    struct StringMatch: Hashable {
+        /// The matched string.
+        public let string: String
+        /// The range of the matched string within the source string.
+        public let range: Range<String.Index>
+        /// The score or importance of the match.
+        public let score: Int
+        
+        internal init(string: String, range: Range<String.Index>, score: Int) {
+            self.string = string
+            self.range = range
+            self.score = score
+        }
+        
+        internal init(_ result: NSTextCheckingResult, source: String) {
+            range = Range(result.range, in: source)!
+            string = String(source[range])
+            score = source.distance(from: range.lowerBound, to: range.upperBound)
         }
     }
-}
 
-public extension String {
+    /// Options for matching strings.
+    enum StringMatchOption: Int, Hashable {
+        /// Characters.
+        case characters
+        /// Words.
+        case words
+        /// Sentences.
+        case sentences
+        /// Paragraphs.
+        case paragraphs
+        /// Lines.
+        case lines
+        internal var enumerationOptions: NSString.EnumerationOptions {
+            switch self {
+            case .lines: return .byLines
+            case .characters: return .byComposedCharacterSequences
+            case .paragraphs: return .byParagraphs
+            case .words: return .byWords
+            case .sentences: return .bySentences
+            }
+        }
+    }
     /**
      Returns an array of individual words in the string.
      

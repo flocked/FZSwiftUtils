@@ -8,7 +8,7 @@
 import CoreLocation
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct GPS: Codable { // "{GPS}"
         public var version: [Double]?
         public var latitudeRef: LatitudeRef?

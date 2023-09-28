@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct GIF: Codable {
         /**
          The number of times that an animated image should play through its frames before stopping.

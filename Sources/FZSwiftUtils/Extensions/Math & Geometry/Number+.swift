@@ -144,7 +144,7 @@ public extension BinaryFloatingPoint {
     }
 }
 
-extension IntegerLiteralType {
+extension BinaryInteger {
     /// Returns the number of digits
     public var digitCount: Int {
         get {
@@ -153,7 +153,7 @@ extension IntegerLiteralType {
     }
     
     // private recursive method for counting digits
-    private func numberOfDigits(in number: Int) -> Int {
+    private func numberOfDigits(in number: Self) -> Int {
         if number < 10 && number >= 0 || number > -10 && number < 0 {
             return 1
         } else {

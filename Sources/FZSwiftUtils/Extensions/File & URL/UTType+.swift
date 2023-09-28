@@ -40,8 +40,8 @@ public extension UTType {
         }
     }
 
-    var fileType: URL.FileType? {
-        return URL.FileType(contentType: self)
+    var fileType: FileType? {
+        return FileType(contentType: self)
     }
 
     /**

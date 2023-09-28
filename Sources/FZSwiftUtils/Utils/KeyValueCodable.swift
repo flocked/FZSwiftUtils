@@ -1,12 +1,13 @@
 //
-//  File.swift
-//  
+//  KeyValueCodable.swift
+//
 //
 //  Created by Florian Zand on 24.07.23.
 //
 
 import Foundation
 
+/// A protocol for getting and setting values of an object by key.
 public protocol KeyValueCodable {
     /// Returns the value for the property identified by a given key.
     func value(for key: String) -> Any?

@@ -8,7 +8,7 @@
 
 import Foundation.NSString
 
-extension StringProtocol {
+public extension StringProtocol {
     /// Whole range in NSRange.
     var nsRange: NSRange {
         NSRange(location: 0, length: length)
@@ -20,7 +20,7 @@ extension StringProtocol {
     }
 }
 
-extension NSString {
+public extension NSString {
     /// Whole range in NSRange.
     var range: NSRange {
         NSRange(location: 0, length: length)
@@ -140,7 +140,7 @@ extension NSString {
 
         if includingLastEmptyLine,
            ranges == [NSRange(location: length, length: 0)],
-           length == 0 || character(at: length - 1).isNewline
+           length == 0 || character(at: length - 1).isNewLine
         {
             return ranges
         }
@@ -179,7 +179,7 @@ extension NSString {
             count += 1
         }
 
-        if character(at: location - 1).isNewline {
+        if character(at: location - 1).isNewLine {
             count += 1
         }
 
@@ -238,9 +238,9 @@ extension NSString {
     }
 }
 
-extension unichar {
+internal extension unichar {
     /// A Boolean value indicating whether this character represents a newline.
-    var isNewline: Bool {
+    var isNewLine: Bool {
         switch self {
         case 0x000A, 0x000B, 0x000C, 0x000D, 0x0085, 0x2028, 0x2029:
             return true

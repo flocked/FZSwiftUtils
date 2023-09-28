@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension ImageProperties.EXIF {
+extension ImageSource.ImageProperties.EXIF {
     var humanReadable: HumanReadable {
         return HumanReadable(self)
     }
@@ -70,14 +70,14 @@ extension ImageProperties.EXIF {
             return "\(oneTenthPrecisionSeconds)s"
         }
 
-        let exif: ImageProperties.EXIF
-        init(_ exif: ImageProperties.EXIF) {
+        let exif: ImageSource.ImageProperties.EXIF
+        init(_ exif: ImageSource.ImageProperties.EXIF) {
             self.exif = exif
         }
     }
 }
 
-extension ImageProperties.EXIF.FlashMode {
+extension ImageSource.ImageProperties.EXIF.FlashMode {
     var humanReadable: String {
         switch self {
         case .unknown:

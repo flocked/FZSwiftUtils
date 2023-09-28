@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ImageProperties.TIFF {
+public extension ImageSource.ImageProperties.TIFF {
     struct Extended: Codable {
         public var compression: Double?
         public var photometricInterpretation: Double?

@@ -307,50 +307,52 @@ public extension ImageSource {
 }
 #endif
 
-// The set of status values for images and image sources.
-public enum Status: CustomStringConvertible {
-    /// The end of the file occurred unexpectedly.
-    case unexpectedEOF
-    /// The data is not valid.
-    case invalidData
-    /// The image is an unknown type.
-    case unknownType
-    ///  The image source is reading the header.
-    case readingHeader
-    /// The operation is not complete
-    case incomplete
-    /// The operation is complete.
-    case complete
-    /// Some other status.
-    case other(CGImageSourceStatus)
-    init(_ status: CGImageSourceStatus) {
-        switch status {
-        case .statusUnexpectedEOF:
-            self = .unexpectedEOF
-        case .statusInvalidData:
-            self = .invalidData
-        case .statusUnknownType:
-            self = .unknownType
-        case .statusReadingHeader:
-            self = .readingHeader
-        case .statusIncomplete:
-            self = .incomplete
-        case .statusComplete:
-            self = .complete
-        @unknown default:
-            self = .other(status)
+public extension ImageSource {
+    // The set of status values for images and image sources.
+    public enum Status: CustomStringConvertible {
+        /// The end of the file occurred unexpectedly.
+        case unexpectedEOF
+        /// The data is not valid.
+        case invalidData
+        /// The image is an unknown type.
+        case unknownType
+        ///  The image source is reading the header.
+        case readingHeader
+        /// The operation is not complete
+        case incomplete
+        /// The operation is complete.
+        case complete
+        /// Some other status.
+        case other(CGImageSourceStatus)
+        init(_ status: CGImageSourceStatus) {
+            switch status {
+            case .statusUnexpectedEOF:
+                self = .unexpectedEOF
+            case .statusInvalidData:
+                self = .invalidData
+            case .statusUnknownType:
+                self = .unknownType
+            case .statusReadingHeader:
+                self = .readingHeader
+            case .statusIncomplete:
+                self = .incomplete
+            case .statusComplete:
+                self = .complete
+            @unknown default:
+                self = .other(status)
+            }
         }
-    }
-
-    public var description: String {
-        switch self {
-        case .unexpectedEOF: return "Unexpected EOF"
-        case .invalidData: return "Invalid Data"
-        case .unknownType: return "Unknown Type"
-        case .readingHeader: return "Reading Header"
-        case .incomplete: return "Incomplete"
-        case .complete: return "Complete"
-        case let .other(status): return "CGImageSourceStatus: \(status.rawValue)"
+        
+        public var description: String {
+            switch self {
+            case .unexpectedEOF: return "Unexpected EOF"
+            case .invalidData: return "Invalid Data"
+            case .unknownType: return "Unknown Type"
+            case .readingHeader: return "Reading Header"
+            case .incomplete: return "Incomplete"
+            case .complete: return "Complete"
+            case let .other(status): return "CGImageSourceStatus: \(status.rawValue)"
+            }
         }
     }
 }

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct IPTC: Codable {
         public var orientation: Orientation?
 

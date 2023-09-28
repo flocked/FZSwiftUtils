@@ -6,74 +6,53 @@
 //
 
 import Foundation
+import AppKit
 
 infix operator <->
 infix operator <~>
 
-public struct SwizzlaePair: CustomStringConvertible {
-    public let old: Selector
-    public let new: Selector
-    public let `static`: Bool
-    public init(old: Selector, new: Selector, `static`: Bool = false) {
-        self.old = old
-        self.new = new
-        self.static = `static`
-    }
-    
-    public init<V>(get old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
-        self.old = NSSelectorFromString(old._kvcKeyPathString!)
-        self.new = NSSelectorFromString(new._kvcKeyPathString!)
-        self.static = `static`
-    }
-    
-    public init<V>(set old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
-        self.old = NSSelectorFromString("set" + old._kvcKeyPathString!.capitalized)
-        self.new = NSSelectorFromString("set" + new._kvcKeyPathString!.capitalized)
-        self.static = `static`
-    }
-    
-    internal var `operator`: String {
-        `static` ? "<~>" : "<->"
-    }
-
-    public var description: String {
-        "\(old) \(self.operator) \(new)"
-    }
-}
-
 public extension Selector {
-    static func <-> (lhs: Selector, rhs: Selector) -> SwizzlaePair {
-        SwizzlaePair(old: lhs, new: rhs)
+    static func <-> (lhs: Selector, rhs: Selector) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: lhs, new: rhs)
     }
 
-    static func <-> (lhs: Selector, rhs: String) -> SwizzlaePair {
-        SwizzlaePair(old: lhs, new: Selector(rhs))
+    static func <-> (lhs: Selector, rhs: String) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: lhs, new: Selector(rhs))
     }
 
-    static func <~> (lhs: Selector, rhs: Selector) -> SwizzlaePair {
-        SwizzlaePair(old: lhs, new: rhs, static: true)
+    static func <~> (lhs: Selector, rhs: Selector) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: lhs, new: rhs, static: true)
     }
 
-    static func <~> (lhs: Selector, rhs: String) -> SwizzlaePair {
-        SwizzlaePair(old: lhs, new: Selector(rhs), static: true)
+    static func <~> (lhs: Selector, rhs: String) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: lhs, new: Selector(rhs), static: true)
     }
 }
 
 public extension String {
-    static func <-> (lhs: String, rhs: Selector) -> SwizzlaePair {
-        SwizzlaePair(old: Selector(lhs), new: rhs)
+    static func <-> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: Selector(lhs), new: rhs)
     }
 
-    static func <~> (lhs: String, rhs: Selector) -> SwizzlaePair {
-        SwizzlaePair(old: Selector(lhs), new: rhs, static: true)
+    static func <~> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: Selector(lhs), new: rhs, static: true)
     }
 }
 
-/// Swizzling of class selectors.
+/**
+ Swizzling of class selectors.
+ 
+ Example:
+ ```swift
+ try? Swizzle(NSView.self) {
+     #selector(viewDidMoveToSuperview) <-> #selector(swizzledViewDidMoveToSuperview)
+ }
+ ```
+ */
 public struct Swizzle {
     @resultBuilder
     public enum Builder {
-        public static func buildBlock(_ swizzlePairs: SwizzlaePair...) -> [SwizzlaePair] {
+        public static func buildBlock(_ swizzlePairs: SelectorPair...) -> [SelectorPair] {
             Array(swizzlePairs)
         }
     }
@@ -82,52 +61,52 @@ public struct Swizzle {
     /**
      Swizzles selectors of the specified class.
      - Parameters class_:  The class to swizzle.
-     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Parameters makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
-    public init(_ class_: AnyClass, @Builder _ makeSwizzlePairs: () -> [SwizzlaePair]) throws {
-        try self.init(class_, swizzlePairs: makeSwizzlePairs())
+    public init(_ class_: AnyClass, @Builder _ makeSelectorPairs: () -> [SelectorPair]) throws {
+        try self.init(class_, swizzlePairs: makeSelectorPairs())
     }
 
     @discardableResult
     /**
      Swizzles selectors of the specified class.
      - Parameters class_:  The class to swizzle.
-     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Parameters makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
-    public init(_ class_: AnyClass, @Builder _ makeSwizzlePairs: () -> SwizzlaePair) throws {
-        try self.init(class_, swizzlePairs: [makeSwizzlePairs()])
+    public init(_ class_: AnyClass, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
+        try self.init(class_, swizzlePairs: [makeSelectorPairs()])
     }
 
     @discardableResult
     /**
      Swizzles selectors of the class with the specified name.
      - Parameters className:  The name of the class.
-     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Parameters makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
-    public init(_ className: String, @Builder _ makeSwizzlePairs: () -> [SwizzlaePair]) throws {
-        try self.init(className, swizzlePairs: makeSwizzlePairs())
+    public init(_ className: String, @Builder _ makeSelectorPairs: () -> [SelectorPair]) throws {
+        try self.init(className, swizzlePairs: makeSelectorPairs())
     }
 
     @discardableResult
     /**
      Swizzles selectors of the class with the specified name.
      - Parameters className:  The name of the class.
-     - Parameters makeSwizzlePairs: The swizzle selector pairs.
+     - Parameters makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
-    public init(_ className: String, @Builder _ makeSwizzlePairs: () -> SwizzlaePair) throws {
-        try self.init(className, swizzlePairs: [makeSwizzlePairs()])
+    public init(_ className: String, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
+        try self.init(className, swizzlePairs: [makeSelectorPairs()])
     }
     
     @discardableResult
-    internal init(_ class_: AnyClass, swizzlePairs: [SwizzlaePair]) throws {
+    internal init(_ class_: AnyClass, swizzlePairs: [SelectorPair]) throws {
         guard object_isClass(class_) else {
             throw Error.missingClass(String(describing: class_))
         }
@@ -135,7 +114,7 @@ public struct Swizzle {
     }
 
     @discardableResult
-    internal init(_ className: String, swizzlePairs: [SwizzlaePair], reset: Bool = false) throws {
+    internal init(_ className: String, swizzlePairs: [SelectorPair], reset: Bool = false) throws {
         guard let class_ = NSClassFromString(className) else {
             throw Error.missingClass(className)
         }
@@ -144,7 +123,7 @@ public struct Swizzle {
 
     private func swizzle(
         type: AnyObject.Type,
-        pairs: [SwizzlaePair]
+        pairs: [SelectorPair]
     ) throws {
         try pairs.forEach { pair in
             guard let `class` =
@@ -191,7 +170,7 @@ extension Swizzle {
         static let prefix: String = "Swizzle.Error: "
         case missingClass(_ name: String),
              missingMethod(
-                 _ type: AnyObject.Type, _ static: Bool, _ old: Bool, SwizzlaePair
+                 _ type: AnyObject.Type, _ static: Bool, _ old: Bool, SelectorPair
              )
         var failureReason: String? {
             switch self {
@@ -226,6 +205,39 @@ extension Swizzle {
             case .missingMethod:
                 return Self.prefix.appending(failureReason!)
             }
+        }
+    }
+}
+
+public extension Swizzle {
+    struct SelectorPair: CustomStringConvertible {
+        public let old: Selector
+        public let new: Selector
+        public let `static`: Bool
+        public init(old: Selector, new: Selector, `static`: Bool = false) {
+            self.old = old
+            self.new = new
+            self.static = `static`
+        }
+        
+        public init<V>(get old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
+            self.old = NSSelectorFromString(old._kvcKeyPathString!)
+            self.new = NSSelectorFromString(new._kvcKeyPathString!)
+            self.static = `static`
+        }
+        
+        public init<V>(set old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
+            self.old = NSSelectorFromString("set" + old._kvcKeyPathString!.capitalized)
+            self.new = NSSelectorFromString("set" + new._kvcKeyPathString!.capitalized)
+            self.static = `static`
+        }
+        
+        internal var `operator`: String {
+            `static` ? "<~>" : "<->"
+        }
+
+        public var description: String {
+            "\(old) \(self.operator) \(new)"
         }
     }
 }

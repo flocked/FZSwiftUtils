@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct TIFF: Codable {
         public var xResolution: Int?
         public var yResolution: Int?

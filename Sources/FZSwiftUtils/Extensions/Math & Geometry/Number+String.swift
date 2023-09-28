@@ -7,17 +7,17 @@
 
 import Foundation
 
-public extension IntegerLiteralType {
+public extension BinaryInteger {
     /// The string value.
     var string: String {
         String(self)
     }
 }
 
-public extension FloatLiteralType {
+public extension BinaryFloatingPoint {
     /// The value as `String`.
     var string: String {
-        String(self)
+        String(Double(self))
     }
 }
 

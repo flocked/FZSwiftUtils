@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageProperties.PNG {
+public extension ImageSource.ImageProperties.PNG {
     struct Extended: Codable {
         public var author: String?
         public var chromaticities: Double?

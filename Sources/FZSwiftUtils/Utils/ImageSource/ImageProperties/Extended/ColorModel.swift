@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension ImageProperties {
+extension ImageSource.ImageProperties {
     struct ColorModel {
         var RGB: String?
         var Gray: String?

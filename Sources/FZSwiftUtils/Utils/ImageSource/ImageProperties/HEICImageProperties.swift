@@ -8,7 +8,7 @@
 import CoreGraphics
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct HEIC: Codable {
         /**
          The number of times that an animated image should play through its frames before stopping.

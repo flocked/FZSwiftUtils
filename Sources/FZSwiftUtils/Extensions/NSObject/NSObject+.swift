@@ -7,11 +7,10 @@
 
 import Foundation
 
-public extension NSKeyedUnarchiver {
-    enum Errors: Error {
-        /// Unpacking failed.
-        case unpackingError
-    }
+/// `NSCoding` errors.
+public enum NSCodingErrors: Error {
+    /// Unpacking failed.
+    case unpackingError
 }
 
 public extension NSCoding where Self: NSObject {
@@ -26,7 +25,7 @@ public extension NSCoding where Self: NSObject {
     func archiveBasedCopy() throws -> Self {
         let archivedData = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
         guard let object = try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: archivedData) else {
-            throw NSKeyedUnarchiver.Errors.unpackingError
+            throw NSCodingErrors.unpackingError
         }
         return object
     }

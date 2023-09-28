@@ -8,7 +8,7 @@
 
 import Foundation
 
-public extension ImageProperties {
+public extension ImageSource.ImageProperties {
     struct Nikon: Codable {
         public var iSOSetting: [Int]?
         public var colorMode: String?

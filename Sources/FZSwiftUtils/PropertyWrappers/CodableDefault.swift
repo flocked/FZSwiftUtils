@@ -49,8 +49,6 @@ extension DefaultCodable: Hashable where Default.DefaultValue: Hashable {}
 
 // MARK: - KeyedDecodingContainer
 
-public protocol BoolCodableStrategy: DefaultCodableStrategy where DefaultValue == Bool {}
-
 public extension KeyedDecodingContainer {
     /// Default implementation of decoding a DefaultCodable
     ///
@@ -69,7 +67,7 @@ public extension KeyedDecodingContainer {
     /// when there is a `typeMismatch` decoding error. This preserves the actual value of the `Bool` in which
     /// the data provider might be sending the value as different types. If everything fails defaults to
     /// the `defaultValue` provided by the strategy.
-    func decode<P: BoolCodableStrategy>(_: DefaultCodable<P>.Type, forKey key: Key) throws -> DefaultCodable<P> {
+    func decode<P: DefaultCodableStrategy>(_: DefaultCodable<P>.Type, forKey key: Key) throws -> DefaultCodable<P> where P.DefaultValue == Bool {
         do {
             let value = try decode(Bool.self, forKey: key)
             return DefaultCodable(wrappedValue: value)
