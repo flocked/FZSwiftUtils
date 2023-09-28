@@ -161,3 +161,46 @@ extension BinaryInteger {
         }
     }
 }
+
+public extension BinaryInteger {
+    /**
+     Returns the advanced value for the specified option and range.
+     - Parameters:
+        - type: The advance type.
+        - range: The range of values.
+     
+     - The advanced value.
+     */
+    func advanced(by type: AdvanceOption, in range: ClosedRange<Self>) -> Self {
+            var index = self
+            switch type {
+            case .next:
+                index = index + 1
+                if index > range.upperBound {
+                    index = range.upperBound
+                }
+            case .previous:
+                index = index - 1
+                if index < range.lowerBound {
+                    index = range.lowerBound
+                }
+            case .nextLooping:
+                index = index + 1
+                if index > range.upperBound {
+                    index = range.lowerBound
+                }
+            case .previousLooping:
+                index = index - 1
+                if index < range.lowerBound {
+                    index = range.upperBound
+                }
+            case .random:
+                index = Self(Int.random(in: Int(range.lowerBound)...Int(range.upperBound)))
+            case .first:
+                index = range.lowerBound
+            case .last:
+                index = range.upperBound
+            }
+            return index
+        }
+}
