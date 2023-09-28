@@ -41,6 +41,7 @@ Swift Foundation extensions and useful classes & utilities.
 - ``Swift/Encodable``
 - ``Foundation/JSONDecoder``
 - ``Foundation/JSONEncoder``
+- ``Swift/UnkeyedDecodingContainer``
 - ``Swift/KeyedDecodingContainer``
 
 ### Date & Time
@@ -187,7 +188,6 @@ Swift Foundation extensions and useful classes & utilities.
 
 - ``Swift/Comparable``
 - ``Swift/Equatable``
-- ``Swift/UnkeyedDecodingContainer``
 - ``Swift/PartialKeyPath``
 - ``Swift/Optional``
 - ``KeyValueCodable``
