@@ -403,3 +403,42 @@ public extension Collection where Element: FloatingPoint {
         reduce(0, +)
     }
 }
+
+extension RangeReplaceableCollection {
+    /**
+     Returns the collection rotated by the specified amount of positions.
+          
+     - Parameter positions: The amount of positions to rotate. A value larger than 0 rotates the collection to the right, a value smaller than 0 left.
+     - Returns: The rotated collection.
+     */
+    func rotated(positions: Int) -> Self {
+        guard positions != 0 else { return self }
+        let index: Index
+        let positions = -positions
+        if positions > 0 {
+            index = self.index(endIndex, offsetBy: -positions, limitedBy: startIndex) ?? startIndex
+        } else {
+            index = self.index(startIndex, offsetBy: -positions, limitedBy: endIndex) ?? endIndex
+        }
+        return Self(self[index...] + self[..<index])
+    }
+    
+    /**
+     Rotates the collection by the specified amount of positions.
+          
+     - Parameter positions: The amount of positions to rotate. A value larger than 0 rotates the collection to the right, a value smaller than 0 left.
+     */
+    mutating func rotate(positions: Int)  {
+        guard positions != 0 else { return }
+        let positions = -positions
+        if positions > 0 {
+           let index = self.index(endIndex, offsetBy: -positions, limitedBy: startIndex) ?? startIndex
+            removeSubrange(index...)
+            insert(contentsOf: self[index...], at: startIndex)
+        } else {
+           let index = self.index(startIndex, offsetBy: -positions, limitedBy: endIndex) ?? endIndex
+            removeSubrange(..<index)
+            insert(contentsOf: self[..<index], at: endIndex)
+        }
+    }
+}
