@@ -404,7 +404,7 @@ public extension Collection where Element: FloatingPoint {
     }
 }
 
-extension RangeReplaceableCollection {
+public extension RangeReplaceableCollection {
     /**
      Returns the collection rotated by the specified amount of positions.
           
