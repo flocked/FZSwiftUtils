@@ -8,6 +8,17 @@
 import Foundation
 
 public extension Dictionary {
+    /// Edits all values.
+    mutating func editEach(_ body: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
+        for keyVal in self {
+            var value = keyVal.value
+            try body(keyVal.key, &value)
+            self[keyVal.key] = value
+        }
+    }
+}
+
+public extension Dictionary {
     /// The dictionary as `CFDictionary`.
     var cfDictionary: CFDictionary {
         self as CFDictionary
