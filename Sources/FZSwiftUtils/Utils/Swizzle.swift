@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AppKit
 
 infix operator <->
 infix operator <~>
