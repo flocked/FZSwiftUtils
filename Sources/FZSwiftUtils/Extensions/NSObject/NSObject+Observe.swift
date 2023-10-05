@@ -20,13 +20,11 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
+    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return self.observe(keyPath, options: options) { object, change in
             if let newValue = change.newValue, let oldValue = change.oldValue {
-                if  change.newValue != change.oldValue {
-                    handler(oldValue, newValue)
-                }
+                handler(oldValue, newValue)
             }
         }
     }
@@ -37,15 +35,20 @@ public extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path of the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
+    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return self.observe(keyPath, options: options) { object, change in
             if let newValue = change.newValue, let oldValue = change.oldValue {
-                handler(oldValue, newValue)
+                if uniqueValues == false {
+                    handler(oldValue, newValue)
+                } else if change.newValue != change.oldValue {
+                    handler(oldValue, newValue)
+                }
             }
         }
     }

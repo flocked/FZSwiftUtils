@@ -16,10 +16,29 @@ public extension NSAttributedString {
 
      - Returns: A new attributed string with the specified attributes applied.
      */
-    func applying(attributes: [Key: Any]) -> NSAttributedString {
+    func applyingAttributes(_ attributes: [Key: Any]) -> NSAttributedString {
         guard !string.isEmpty else { return self }
         let copy = NSMutableAttributedString(attributedString: self)
         copy.addAttributes(attributes, range: NSRange(0 ..< length))
+        return copy
+    }
+    
+    /**
+     Removes the specified attributes.
+
+     - Parameters:
+        - attributes: The attributes to remove.
+
+     - Returns: A new attributed string with the attributes removed.
+     */
+    func removingAttributes(_ attributes: [Key]) -> NSAttributedString {
+        guard !string.isEmpty else { return self }
+        let range = NSRange(0 ..< length)
+        guard self.fontAttributes(in: range).keys.contains(any: attributes) else { return self }
+        let copy = NSMutableAttributedString(attributedString: self)
+        for attribute in attributes {
+            copy.removeAttribute(attribute, range: range)
+        }
         return copy
     }
     
@@ -32,9 +51,9 @@ public extension NSAttributedString {
      - Returns: A new sttributed string with the specified color applied.
      */
     func color(_ color: NSUIColor) -> NSAttributedString {
-        return applying(attributes: [.foregroundColor: color])
+        return applyingAttributes([.foregroundColor: color])
     }
-
+    
     /**
      Applies the specified link to the sttributed string.
 
@@ -44,7 +63,7 @@ public extension NSAttributedString {
      - Returns: A new sttributed string with the specified link applied.
      */
     func link(_ url: URL) -> NSAttributedString {
-        return applying(attributes: [.link: url])
+        return applyingAttributes([.link: url])
     }
 
     /**
@@ -56,7 +75,7 @@ public extension NSAttributedString {
      - Returns: A new sttributed string with the specified font applied.
      */
     func font(_ font: NSUIFont) -> NSAttributedString {
-        return applying(attributes: [.font: font])
+        return applyingAttributes( [.font: font])
     }
 
     /**
