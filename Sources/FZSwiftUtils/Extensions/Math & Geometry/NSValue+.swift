@@ -63,6 +63,7 @@ public extension NSEdgeInsets {
     }
 }
 #elseif canImport(UIKit)
+import UIKit
 public extension UIEdgeInsets {
     var nsValue: NSValue {
         return NSValue(uiEdgeInsets: self)

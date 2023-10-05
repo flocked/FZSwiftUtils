@@ -34,7 +34,6 @@ public extension NSAttributedString {
     func removingAttributes(_ attributes: [Key]) -> NSAttributedString {
         guard !string.isEmpty else { return self }
         let range = NSRange(0 ..< length)
-        guard self.fontAttributes(in: range).keys.contains(any: attributes) else { return self }
         let copy = NSMutableAttributedString(attributedString: self)
         for attribute in attributes {
             copy.removeAttribute(attribute, range: range)
