@@ -81,6 +81,16 @@ public extension CGRect {
         }
     }
     
+    /// A size centered that specifies the height and width of the rectangle. Changing this value keeps the rectangle centered.
+    var sizeCentered: CGSize {
+        get { size }
+        set { 
+            let old = self
+            size = newValue
+            self.center = old.center
+        }
+    }
+    
     /// The left edge of the rectangle.
     var left: CGFloat {
         get {return origin.x}
