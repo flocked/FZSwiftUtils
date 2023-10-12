@@ -21,20 +21,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  
 AssociatedValues
-- Copyright Skyvive
+- Copyright (c) 2014 Skyvive <brad.hilton.nw@gmail.com>
 - http://github.com/bradhilton/AssociatedValues
 
-DisplayableEnum
-- Copyright: Boinx
-- https://github.com/boinx/BXSwiftUtils
-
 Defaults
-- Copyright: 2018 Nuno Manuel Dias
+- Copyright (c) 2017 Nuno Manuel Dias
 - https://github.com/nmdias/DefaultsKit
 
+DisplayableEnum/NSObject+onChanged
+- Copyright (c) 2018-2022 Boinx Software Ltd. & Imagine GbR
+- https://github.com/boinx/BXSwiftUtils
+
 Sequence+Concurrency
-- Copyright: John Sundell 2021
+- Copyright (c) 2021 John Sundell
 - https://github.com/JohnSundell/CollectionConcurrencyKit
 
-NSObject Reflection
-- Copyright: Cyon Alexander 2016
+Swizzle
+- Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
+- https://github.com/MarioIannotta/SwizzleSwift
+
+NSObject+Reflection
+- Copyright (c) 2016 Cyon Alexander, com.cyon
+- https://github.com/Sajjon
