@@ -6,7 +6,9 @@
 //
 
 import Foundation
+#if os(macOS) || canImport(UIKit)
 import QuartzCore
+#endif
 
 public extension CGPoint {
     var nsValue: NSValue {
