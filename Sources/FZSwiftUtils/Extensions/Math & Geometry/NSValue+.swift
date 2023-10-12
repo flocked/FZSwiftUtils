@@ -6,7 +6,7 @@
 //
 
 import Foundation
-#if os(macOS) || canImport(UIKit)
+#if canImport(QuartzCore)
 import QuartzCore
 #endif
 
