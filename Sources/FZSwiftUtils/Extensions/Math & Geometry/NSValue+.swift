@@ -10,7 +10,7 @@ import QuartzCore
 
 public extension CGPoint {
     var nsValue: NSValue {
-        #if os(iOS)
+        #if canImport(UIKit) || os(watchOS)
         return NSValue(cgPoint: self)
         #else
         return NSValue(point: NSPointFromCGPoint(self))
@@ -20,7 +20,7 @@ public extension CGPoint {
 
 public extension CGRect {
     var nsValue: NSValue {
-        #if os(iOS)
+        #if canImport(UIKit) || os(watchOS)
         return NSValue(cgRect: self)
         #else
         return NSValue(rect: NSRectFromCGRect(self))
@@ -30,7 +30,7 @@ public extension CGRect {
 
 public extension CGSize {
     var nsValue: NSValue {
-        #if os(iOS)
+        #if canImport(UIKit) || os(watchOS)
         return NSValue(cgSize: self)
         #else
         return NSValue(size: NSSizeFromCGSize(self))
@@ -62,7 +62,7 @@ public extension NSEdgeInsets {
         return NSValue(edgeInsets: self)
     }
 }
-#elseif canImport(UIKit)
+#elseif canImport(UIKit) || os(watchOS)
 import UIKit
 public extension UIEdgeInsets {
     var nsValue: NSValue {
