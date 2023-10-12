@@ -73,9 +73,11 @@ public extension UIEdgeInsets {
 }
 #endif
 
+#if canImport(QuartzCore)
 public extension CATransform3D {
     var nsValue: NSValue {
         return NSValue(caTransform3D: self)
     }
 }
+#endif
 
