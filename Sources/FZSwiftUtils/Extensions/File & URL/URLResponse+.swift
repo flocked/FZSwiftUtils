@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  URLResponse+.swift
 //  
 //
 //  Created by Florian Zand on 20.07.23.

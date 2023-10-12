@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Sequence+String.swift
 //  
 //
 //  Created by Florian Zand on 06.09.23.
