@@ -49,25 +49,27 @@ public extension CGFloat {
     }
 }
 
-public extension CGFloat {
-    /**
-     Converts the value from degrees to radians.
-     
-     - Returns: The value converted to radians.
-     */
-    func degreesToRadians() -> CGFloat {
-        return CGFloat(CGFloat.pi) * self / 180.0
+public extension BinaryFloatingPoint {
+    /// Converts the value from degrees to radians.
+    var degreesToRadians: Self {
+        return Self.pi * self / 180.0
+    }
+    
+    /// Converts the value from radians to degress.
+    var radiansToDegrees: Self {
+        return self * 180 / Self.pi
     }
 }
 
-public extension BinaryFloatingPoint {
-    /**
-     Converts the value from degrees to radians.
-     
-     - Returns: The value converted to radians.
-     */
-    func degreesToRadians() -> Self {
+public extension CGFloat {
+    /// Converts the value from degrees to radians.
+    var degreesToRadians: CGFloat {
         return Self.pi * self / 180.0
+    }
+    
+    /// Converts the value from radians to degress.
+    var radiansToDegrees: CGFloat {
+        return self * 180 / Self.pi
     }
 }
 
@@ -125,6 +127,36 @@ public extension BinaryFloatingPoint {
     var placesCount: Int {
         let decimal = Decimal(Double(self))
         return max(-decimal.exponent, 0)
+    }
+}
+
+public extension CGFloat {
+    /**
+     Rounds the value using the specified rounding rule.
+     
+     - Parameters rule: The rounding rule to apply.
+     - Returns: The rounded value.
+     */
+    func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
+        let divisor = Self(rule.divisor)
+        return (self * divisor).rounded(rule.rounding) / divisor
+    }
+
+    /**
+     Rounds the value using the specified rounding rule.
+     
+     - Parameters rule: The rounding rule to apply.
+     - Returns: The rounded value.
+     */
+    mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
+        let divisor = Self(rule.divisor)
+        self = (self * divisor).rounded(rule.rounding) / divisor
+    }
+
+    /// Returns the number of decimal places in the value.
+    var placesCount: Int {
+        let decimal = Decimal(Double(self))
+        return Swift.max(-decimal.exponent, 0)
     }
 }
 
