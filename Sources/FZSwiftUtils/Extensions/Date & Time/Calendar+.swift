@@ -57,7 +57,6 @@ public extension Calendar.Component {
         case .nanosecond: return .nanosecond
         case .calendar: return .calendar
         case .timeZone: return .timeZone
-        case .isLeapMonth: return nil
         @unknown default: return nil
         }
     }
