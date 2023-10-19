@@ -32,6 +32,14 @@ DisplayableEnum/NSObject+onChanged
 - Copyright (c) 2018-2022 Boinx Software Ltd. & Imagine GbR
 - https://github.com/boinx/BXSwiftUtils
 
+NSObject+Reflection
+- Copyright (c) 2016 Cyon Alexander, com.cyon
+- https://github.com/Sajjon
+
+NSObject+Swizzle
+- Copyright (c) 2020 Peter Steinberger
+- https://github.com/steipete/InterposeKit
+
 Sequence+Concurrency
 - Copyright (c) 2021 John Sundell
 - https://github.com/JohnSundell/CollectionConcurrencyKit
@@ -39,7 +47,3 @@ Sequence+Concurrency
 Swizzle
 - Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
 - https://github.com/MarioIannotta/SwizzleSwift
-
-NSObject+Reflection
-- Copyright (c) 2016 Cyon Alexander, com.cyon
-- https://github.com/Sajjon
