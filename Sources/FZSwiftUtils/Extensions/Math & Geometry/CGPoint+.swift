@@ -92,6 +92,11 @@ public extension CGPoint {
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGPoint {
         return CGPoint(x: x.rounded(rule), y: y.rounded(rule))
     }
+    
+    /// The point as `CGSize`, using the x-coordinate as width and y-coordinate as height.
+    var size: CGSize {
+        CGSize(x, y)
+    }
 }
 
 

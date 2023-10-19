@@ -134,6 +134,11 @@ public extension CGSize {
     func scaled(toFill size: CGSize) -> CGSize {
         return self.scaled(toHeight: size.height)
     }
+    
+    /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.
+    var point: CGPoint {
+        CGPoint(width, height)
+    }
 }
 
 public extension CGSize {
