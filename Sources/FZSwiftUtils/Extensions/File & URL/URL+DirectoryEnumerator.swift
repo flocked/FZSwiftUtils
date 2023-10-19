@@ -254,7 +254,7 @@ public extension URL {
      - Parameters options: Options for enumerating the contents of directories.
      */
     func iterateDirectories(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        return iterate(predicate: { $0.pathExtension == "" }, options: options)
+        return iterate(predicate: { $0.isDirectory == true }, options: options)
     }
 
     /**
