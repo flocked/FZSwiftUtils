@@ -145,12 +145,18 @@ open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection
     }
 
     public subscript(index: Int) -> ElementType {
-        get {
-            return elements[index]
-        }
-        set {
-            elements[index] = newValue
-        }
+        get {  return elements[index] }
+        set {  elements[index] = newValue }
+    }
+    
+    public subscript(range: ClosedRange<Int>) -> ArraySlice<ElementType> {
+        get { return elements[range] }
+        set { elements[range] = newValue }
+    }
+    
+    public subscript(range: Range<Int>) -> ArraySlice<ElementType> {
+        get { return elements[range] }
+        set { elements[range] = newValue }
     }
 
     public func index(after i: Int) -> Int {
