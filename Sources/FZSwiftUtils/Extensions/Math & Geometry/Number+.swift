@@ -47,20 +47,9 @@ public extension CGFloat {
     }
 }
 
-public extension BinaryFloatingPoint {
-    /// Converts the value from degrees to radians.
-    var degreesToRadians: Self {
-        return Self.pi * self / 180.0
-    }
-    
-    /// Converts the value from radians to degress.
-    var radiansToDegrees: Self {
-        return self * 180 / Self.pi
-    }
-    
-    /*
+public extension Float {
     /**
-     Returns the scaled integral value of the value.
+     Returns the scaled integral value of the `Float`.
      
      The value is scaled based on the current device's screen scale.
      */
@@ -74,10 +63,14 @@ public extension BinaryFloatingPoint {
         #endif
         return floor(self * scale) / scale
     }
-    */
 }
 
-public extension Float {
+public extension Double {
+    /**
+     Returns the scaled integral value of the `Double`.
+     
+     The value is scaled based on the current device's screen scale.
+     */
     var scaledIntegral: Self {
         #if os(macOS)
         let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
@@ -90,16 +83,15 @@ public extension Float {
     }
 }
 
-public extension Double {
-    var scaledIntegral: Self {
-        #if os(macOS)
-        let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
-        #elseif os(iOS) || os(tvOS)
-        let scale = UIScreen.main.scale
-        #else
-        let scale = 1.0
-        #endif
-        return floor(self * scale) / scale
+public extension BinaryFloatingPoint {
+    /// Converts the value from degrees to radians.
+    var degreesToRadians: Self {
+        return Self.pi * self / 180.0
+    }
+    
+    /// Converts the value from radians to degress.
+    var radiansToDegrees: Self {
+        return self * 180 / Self.pi
     }
 }
 
