@@ -58,6 +58,7 @@ public extension BinaryFloatingPoint {
         return self * 180 / Self.pi
     }
     
+    /*
     /**
      Returns the scaled integral value of the value.
      
@@ -73,6 +74,7 @@ public extension BinaryFloatingPoint {
         #endif
         return floor(self * scale) / scale
     }
+    */
 }
 
 public extension CGFloat {
