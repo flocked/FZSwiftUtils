@@ -77,6 +77,32 @@ public extension BinaryFloatingPoint {
     */
 }
 
+public extension Float {
+    var scaledIntegral: Self {
+        #if os(macOS)
+        let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
+        #elseif os(iOS) || os(tvOS)
+        let scale = UIScreen.main.scale
+        #else
+        let scale = 1.0
+        #endif
+        return floor(self * scale) / scale
+    }
+}
+
+public extension Double {
+    var scaledIntegral: Self {
+        #if os(macOS)
+        let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
+        #elseif os(iOS) || os(tvOS)
+        let scale = UIScreen.main.scale
+        #else
+        let scale = 1.0
+        #endif
+        return floor(self * scale) / scale
+    }
+}
+
 public extension CGFloat {
     /// Converts the value from degrees to radians.
     var degreesToRadians: CGFloat {
