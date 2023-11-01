@@ -52,3 +52,19 @@ extension Set {
         Array(self)
     }
 }
+
+extension Set where Element : Hashable
+{
+    public static func +=(lhs:inout Set<Element>, rhs:Element)
+    {
+        lhs.insert(rhs)
+    }
+
+    public static func +=(lhs:inout Set<Element>, rhs:Set<Element>)
+    {
+        for element in rhs
+        {
+            lhs.insert(element)
+        }
+     }
+}
