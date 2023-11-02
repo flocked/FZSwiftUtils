@@ -182,9 +182,11 @@ public struct BaseArray<ElementType>: MutableCollection, RangeReplaceableCollect
     }
 }
 
-// extension BaseArray: Sendable where Element: Sendable { }
+extension BaseArray: Sendable where Element: Sendable { }
 
 extension BaseArray: Encodable where Element: Encodable {}
+
+extension BaseArray: Decodable where Element: Decodable {}
 
 extension BaseArray: CVarArg {
     public var _cVarArgEncoding: [Int] {

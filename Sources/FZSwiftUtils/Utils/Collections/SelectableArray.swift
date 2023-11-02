@@ -6,6 +6,8 @@
 //
 
 import Foundation
+public protocol ABC {}
+public typealias Vecttt = SelectableArray<ABC>
 
 public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
     internal var elements: [ElementType] = []
@@ -386,9 +388,11 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
     }
 }
 
-// extension BaseArray: Sendable where Element: Sendable { }
+extension SelectableArray: Sendable where Element: Sendable { }
 
 extension SelectableArray: Encodable where Element: Encodable {}
+
+extension SelectableArray: Decodable where Element: Decodable {}
 
 extension SelectableArray: CVarArg {
     public var _cVarArgEncoding: [Int] {

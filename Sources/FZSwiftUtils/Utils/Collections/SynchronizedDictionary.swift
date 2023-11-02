@@ -97,10 +97,6 @@ public extension SynchronizedDictionary {
             return Array(self.dictionary.values)
         }
     }
-    
-    var description: String {
-        queue.sync { return self.dictionary.description }
-    }
 
     subscript(key: Key) -> Value? {
         set(newValue) {
@@ -131,5 +127,22 @@ public extension SynchronizedDictionary {
         queue.async(flags: .barrier) {[weak self] in
             self?.dictionary.removeAll(keepingCapacity: keepingCapacity)
         }
+    }
+}
+
+extension SynchronizedDictionary: @unchecked Sendable where Element: Sendable { }
+
+
+extension SynchronizedDictionary: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var customMirror: Mirror {
+        return synchronized.customMirror
+    }
+
+    public var debugDescription: String {
+        return synchronized.debugDescription
+    }
+    
+    public var description: String {
+        return synchronized.description
     }
 }

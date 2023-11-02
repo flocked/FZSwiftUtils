@@ -11,11 +11,21 @@
 import Foundation
 
 /// A synchronized array.
-public class SynchronizedArray<Element>: BidirectionalCollection {
+public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
     private var array = [Element]()
+    
+    
+    required public init(from decoder: Decoder) throws where Element: Decodable {
+        var container = try decoder.unkeyedContainer()
+        self.array = try container.decode([Element].self)
+    }
 
-    public init() {}
+    required public init() {}
+    
+    public required init(arrayLiteral elements: Element...) {
+        self.array = elements
+    }
     
     public convenience init(_ array: [Element]) {
         self.init()
@@ -160,14 +170,43 @@ public extension SynchronizedArray {
     var isEmpty: Bool {
         queue.sync { return self.array.isEmpty }
     }
-    
-    var description: String {
-        queue.sync { return self.array.description }
-    }
 
     subscript(index: Int) -> Element {
-        queue.sync {
-            self.array[index]
+        get {
+            queue.sync {
+                self.array[index]
+            }
+        }
+        set {
+            queue.async(flags: .barrier) {
+                self.array[index] = newValue
+            }
+        }
+    }
+    
+    subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
+        get {
+            queue.sync {
+                self.array[range]
+            }
+        }
+        set {
+            queue.async(flags: .barrier) {
+                self.array[range] = newValue
+            }
+        }
+    }
+    
+    subscript(range: Range<Int>) -> ArraySlice<Element> {
+        get {
+            queue.sync {
+                self.array[range]
+            }
+        }
+        set {
+            queue.async(flags: .barrier) {
+                self.array[range] = newValue
+            }
         }
     }
 }
@@ -316,6 +355,13 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.allSatisfy(predicate) }
         return result
     }
+    
+    func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
+        queue.async(flags: .barrier) {
+            self.array.replaceSubrange(subrange, with: newElements)
+        }
+    }
 }
 
 public extension SynchronizedArray where Element: Equatable {
@@ -331,5 +377,50 @@ public extension SynchronizedArray where Element: Comparable {
         queue.sync {
             self.array.firstIndex(where: { $0 == element })
         }
+    }
+}
+
+extension SynchronizedArray: Equatable where Element: Equatable {
+    public static func == (lhs: SynchronizedArray<Element>, rhs: SynchronizedArray<Element>) -> Bool {
+        return lhs.synchronized == rhs.synchronized
+    }
+}
+
+extension SynchronizedArray: Hashable where Element: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(synchronized)
+    }
+}
+
+extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+    public var customMirror: Mirror {
+        return synchronized.customMirror
+    }
+
+    public var debugDescription: String {
+        return synchronized.debugDescription
+    }
+    
+    public var description: String {
+        return synchronized.description
+    }
+}
+
+extension SynchronizedArray: ExpressibleByArrayLiteral { }
+
+extension SynchronizedArray: @unchecked Sendable where Element: Sendable { }
+
+extension SynchronizedArray: Encodable where Element: Encodable {
+    public func encode(to encoder: Encoder) throws {
+       var container =  encoder.unkeyedContainer()
+        try container.encode(contentsOf: synchronized)
+    }
+}
+
+extension SynchronizedArray: Decodable where Element: Decodable { }
+
+extension SynchronizedArray: CVarArg {
+    public var _cVarArgEncoding: [Int] {
+        return synchronized._cVarArgEncoding
     }
 }
