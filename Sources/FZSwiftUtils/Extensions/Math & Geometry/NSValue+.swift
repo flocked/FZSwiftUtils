@@ -10,6 +10,38 @@ import Foundation
 import QuartzCore
 #endif
 
+#if os(macOS)
+import AppKit
+
+extension NSValue {
+    /// Creates a new value object containing the specified CoreGraphics affine transform structure.
+    public convenience init(cgAffineTransform: CGAffineTransform) {
+        var transform = cgAffineTransform
+        self.init(bytes: &transform, objCType: _getObjCTypeEncoding(CGAffineTransform.self))
+    }
+    
+    /// Returns the CoreGraphics affine transform representation of the value.
+    public var cgAffineTransformValue: CGAffineTransform {
+        var transform = CGAffineTransform.identity
+        self.getValue(&transform)
+        return transform
+    }
+    
+    /// Creates a new value object containing the specified AppKit edge insets structure.
+    public convenience init(nsEdgeInsets: NSEdgeInsets) {
+        var nsEdgeInsets = nsEdgeInsets
+        self.init(bytes: &nsEdgeInsets, objCType: _getObjCTypeEncoding(NSEdgeInsets.self))
+    }
+    
+    /// Returns the AppKit edge insets structure representation of the value.
+    public var nsEdgeInsetsValue: NSEdgeInsets {
+        var edgeInsets = NSEdgeInsets()
+        self.getValue(&edgeInsets)
+        return edgeInsets
+    }
+}
+#endif
+
 public extension CGPoint {
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
