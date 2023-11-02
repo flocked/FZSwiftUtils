@@ -104,137 +104,75 @@ private class _AssociatedValue {
     }
 }
 
-public extension NSObject {
-    /**
-     The associated values of the object.
-     */
-    var associatedValues: AssociatedValues {
-        return AssociatedValues(self)
+/// A type that provides associated values.
+public protocol AssociatedValuesProvider: AnyObject { }
+public extension AssociatedValuesProvider {
+    /// The associated values of the object.
+    var associatedValue: AssociatedValue<Self> {
+        AssociatedValue(self)
     }
 }
+extension NSObject: AssociatedValuesProvider { }
 
-/// An object for reading and writing associated values.
-public class AssociatedValues {
-    internal weak var object: AnyObject!
-    internal init(_ object: AnyObject) {
+/// An object for getting and setting associated values of an object.
+public class AssociatedValue<Object: AssociatedValuesProvider> {
+    internal weak var object: Object!
+    internal init(_ object: Object) {
         self.object = object
     }
-
-    /**
-     Returns the associated value for the specified key.
-     
-     - Parameters key: The key of the associated value.
-     - Returns: The associated value for the key.
-     */
-    public func get<T>(_ key: String) -> T? {
-        guard let object = object else { return nil }
-        return getAssociatedValue(key: key, object: object)
+    
+    subscript<Value>(associated: String) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated, object: object) }
+        set { set(associatedValue: newValue, key: associated, object: object) }
     }
     
-    /*
-    /**
-     Returns the associated value for the specified key.
-     - Parameters key: The key of the associated value.
-     - Returns: The associated value for the key.
-     */
-    public func callAsFunction<T>(_ key: String) -> T? {
-        return get(key)
-    }
-     */
-
-    /**
-     Returns the associated value for the specified key and inital value.
-     
-     - Parameters:
-        - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
-     - Returns: The associated value for the key.
-     */
-    public func get<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
-        guard let object = object else { return initialValue() }
-        return getAssociatedValue(key: key, object: object, initialValue: initialValue)
+    subscript<Value>(associated: String, initialValue initialValue: () -> Value) -> Value {
+        get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated, object: object) }
     }
     
-    /*
-    /**
-     Returns the associated value for the specified key and inital value.
-     - Parameters key: The key of the associated value.
-     - Parameters initialValue: The inital value of the associated value.
-     - Returns: The associated value for the key.
-     */
-    public func callAsFunction<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
-        return get(key, initialValue: initialValue)
-    }
-     */
-
-    /**
-     Returns the associated value for the specified key and inital value.
-     
-     - Parameters:
-        - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
-     - Returns: The associated value for the key.
-     */
-    public func get<T>(_ key: String, initialValue: () -> T) -> T {
-        guard let object = object else { return initialValue() }
-        return getAssociatedValue(key: key, object: object, initialValue: initialValue)
+    subscript<Value>(associated: String, initialValue initialValue: @autoclosure () -> Value) -> Value {
+        get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated, object: object) }
     }
     
-    /*
-    /**
-     Returns the associated value for the specified key and inital value.
-     - Parameters key: The key of the associated value.
-     - Parameters initialValue: The inital value of the associated value.
-     - Returns: The associated value for the key.
-     */
-    public func callAsFunction<T>(_ key: String, initialValue: () -> T) -> T {
-        return get(key, initialValue: initialValue)
-    }
-    */
-
-    /**
-     Sets a value for the specified key.
-     
-     - Parameters:
-        - value: The value of the associated value.
-        - key: The key of the associated value.
-     */
-    public func set<T>(_ value: T, key: String) {
-        guard let object = object else { return }
-        FZSwiftUtils.set(associatedValue: value, key: key, object: object)
-    }
-
-    /**
-     Sets a weak value for the specified key.
-
-     - Parameters:
-        - value: The weak value of the associated value.
-        - key: The key of the associated value.
-     */
-    public func set<T: AnyObject>(weak value: T?, key: String) {
-        guard let object = object else { return }
-        FZSwiftUtils.set(weakAssociatedValue: value, key: key, object: object)
-    }
-
-    public subscript<T>(key: String, initial initialValue: T? = nil) -> T? {
-        get {
-            if let initialValue = initialValue {
-                return get(key, initialValue: initialValue)
-            } else {
-                return get(key)
-            }
-        }
-        set { set(newValue, key: key) }
+    subscript<Value>(associated: String, initialValue initialValue: () -> Value?) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated, object: object) }
     }
     
-    public subscript<T: AnyObject>(weak key: String, initial initialValue: T? = nil) -> T? {
-        get {
-            if let initialValue = initialValue {
-                return get(key, initialValue: initialValue)
-            } else {
-                return get(key)
-            }
-        }
-        set { set(weak: newValue, key: key) }
+    subscript<Value>(associated: String, initialValue initialValue: @autoclosure () -> Value?) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated, object: object) }
+    }
+    
+    subscript<Value>(associated: KeyPath<Object, Value>) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object) }
+        set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
+    }
+    
+    subscript<Value>(associated: KeyPath<Object, Value>, initialValue initialValue: () -> Value) -> Value {
+        get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
+    }
+    
+    subscript<Value>(associated: KeyPath<Object, Value>, initialValue initialValue: @autoclosure () -> Value) -> Value {
+        get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
+    }
+    
+    subscript<Value>(associated: KeyPath<Object, Value?>) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object) }
+        set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
+    }
+    
+    subscript<Value>(associated: KeyPath<Object, Value?>, initialValue initialValue: () -> Value?) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
+    }
+    
+    subscript<Value>(associated: KeyPath<Object, Value?>, initialValue initialValue: @autoclosure () -> Value?) -> Value? {
+        get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
+        set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
     }
 }
