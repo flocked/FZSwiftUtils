@@ -10,6 +10,21 @@ import Foundation
 import QuartzCore
 #endif
 
+extension NSValue {
+    /// Creates a new value object containing the specified directional edge insets structure.
+    public convenience init(nsDirectionalEdgeInsets: NSDirectionalEdgeInsets) {
+        var insets = nsDirectionalEdgeInsets
+        self.init(bytes: &insets, objCType: _getObjCTypeEncoding(NSDirectionalEdgeInsets.self))
+    }
+    
+    /// Returns the directional edge insets structure representation of the value.
+    public var nsDirectionalEdgeInsetsValue: NSDirectionalEdgeInsets {
+        var insets = NSDirectionalEdgeInsets()
+        self.getValue(&insets)
+        return insets
+    }
+}
+
 #if os(macOS)
 import AppKit
 
