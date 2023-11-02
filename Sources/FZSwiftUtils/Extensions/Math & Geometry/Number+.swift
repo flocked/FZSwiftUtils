@@ -57,7 +57,7 @@ public extension Float {
         #if os(macOS)
         let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
         #elseif os(iOS) || os(tvOS)
-        let scale = UIScreen.main.scale
+        let scale = Float(UIScreen.main.scale)
         #else
         let scale = 1.0
         #endif
