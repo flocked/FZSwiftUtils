@@ -141,8 +141,6 @@ public extension ImageFrameSequence {
         }
 
         public mutating func next() async -> CGImageFrame? {
-            Swift.print("-----")
-            Swift.print("next")
             if let source = source {
                 if currentFrame >= frameCount {
                     if loop { currentFrame = 0 }
@@ -159,28 +157,20 @@ public extension ImageFrameSequence {
             }
             #if os(macOS)
             if let representation = representation {
-                Swift.print("representation")
                 if currentFrame >= frameCount {
-                    Swift.print("currentFrame >= frameCount", loop)
                     if loop { currentFrame = 0 } else {
-                        Swift.print("return nil")
                         return nil }
                 }
                 var imageFrame: CGImageFrame? = nil
-                Swift.print("representation.currentFrame =")
                 representation.currentFrame = self.currentFrame
                 if let image = representation.cgImage {
-                    Swift.print("representation.cgImage")
                     let duration = representation.currentFrameDuration
-                    Swift.print("representation.currentFrameDuration")
                     imageFrame = CGImageFrame(image, duration)
                 }
-                Swift.print("currentFrame = currentFrame + 1")
                 currentFrame = currentFrame + 1
                 return imageFrame
             }
             #endif
-            Swift.print("return nil")
             return nil
         }
     }
