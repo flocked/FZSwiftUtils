@@ -7,12 +7,12 @@
 
 import Foundation
 
-open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
+public struct BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
     internal var elements: [ElementType] = []
 
-    public required init() {}
+    public init() {}
 
-    public required init(arrayLiteral elements: ElementType...) {
+    public init(arrayLiteral elements: ElementType...) {
         self.elements = elements
     }
 
@@ -24,53 +24,53 @@ open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection
         return elements.underestimatedCount
     }
 
-    public func set(contents: [ElementType]) {
+    public mutating func set(contents: [ElementType]) {
         elements = contents
     }
 
-    public func removeAll() {
+    public mutating func removeAll() {
         elements.removeAll()
     }
 
     @discardableResult
-    public func remove(at i: Int) -> ElementType {
+    public mutating func remove(at i: Int) -> ElementType {
         elements.remove(at: i)
     }
 
     @discardableResult
-    public func removeFirst() -> ElementType {
+    public mutating func removeFirst() -> ElementType {
         elements.removeFirst()
     }
 
-    public func removeFirst(_ k: Int) {
+    public mutating func removeFirst(_ k: Int) {
         elements.removeFirst(k)
     }
 
-    public func removeSubrange(_ bounds: Range<Int>) {
+    public mutating func removeSubrange(_ bounds: Range<Int>) {
         elements.removeSubrange(bounds)
     }
 
-    public func removeAll(where shouldBeRemoved: (ElementType) throws -> Bool) rethrows {
+    public mutating func removeAll(where shouldBeRemoved: (ElementType) throws -> Bool) rethrows {
         try elements.removeAll(where: shouldBeRemoved)
     }
 
-    public func removeAll(keepingCapacity keepCapacity: Bool) {
+    public mutating func removeAll(keepingCapacity keepCapacity: Bool) {
         elements.removeAll(keepingCapacity: keepCapacity)
     }
 
-    public func removeLast(_ k: Int) {
+    public mutating func removeLast(_ k: Int) {
         elements.removeLast(k)
     }
 
-    public func removeLast() {
+    public mutating func removeLast() {
         elements.removeLast()
     }
 
-    public func append(_ newElement: ElementType) {
+    public mutating func append(_ newElement: ElementType) {
         elements.append(newElement)
     }
 
-    public func append<S>(contentsOf newElements: S) where S: Sequence, ElementType == S.Element {
+    public mutating func append<S>(contentsOf newElements: S) where S: Sequence, ElementType == S.Element {
         elements.append(contentsOf: newElements)
     }
 
@@ -86,27 +86,27 @@ open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection
         return elements.distance(from: start, to: end)
     }
 
-    public func swapAt(_ i: Int, _ j: Int) {
+    public mutating func swapAt(_ i: Int, _ j: Int) {
         elements.swapAt(i, j)
     }
 
-    public func reserveCapacity(_ n: Int) {
+    public mutating func reserveCapacity(_ n: Int) {
         elements.reserveCapacity(n)
     }
 
-    public func insert(_ newElement: ElementType, at i: Int) {
+    public mutating func insert(_ newElement: ElementType, at i: Int) {
         elements.insert(newElement, at: i)
     }
 
-    public func insert<S>(contentsOf newElements: S, at i: Int) where S: Collection, ElementType == S.Element {
+    public mutating func insert<S>(contentsOf newElements: S, at i: Int) where S: Collection, ElementType == S.Element {
         elements.insert(contentsOf: newElements, at: i)
     }
 
-    public required init<S>(_ elements: S) where S: Sequence, ElementType == S.Element {
+    public init<S>(_ elements: S) where S: Sequence, ElementType == S.Element {
         self.elements = .init(elements)
     }
 
-    public required init(repeating repeatedValue: ElementType, count: Int) {
+    public init(repeating repeatedValue: ElementType, count: Int) {
         elements = .init(repeating: repeatedValue, count: count)
     }
 
@@ -118,7 +118,7 @@ open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection
         elements.formIndex(before: &i)
     }
 
-    public func partition(by belongsInSecondPartition: (ElementType) throws -> Bool) rethrows -> Int {
+    public mutating func partition(by belongsInSecondPartition: (ElementType) throws -> Bool) rethrows -> Int {
         try elements.partition(by: belongsInSecondPartition)
     }
 
@@ -126,7 +126,7 @@ open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection
         try elements.withContiguousStorageIfAvailable(body)
     }
 
-    public func withContiguousMutableStorageIfAvailable<R>(_ body: (inout UnsafeMutableBufferPointer<ElementType>) throws -> R) rethrows -> R? {
+    public mutating func withContiguousMutableStorageIfAvailable<R>(_ body: (inout UnsafeMutableBufferPointer<ElementType>) throws -> R) rethrows -> R? {
         try elements.withContiguousMutableStorageIfAvailable(body)
     }
 
@@ -175,7 +175,7 @@ open class BaseArray<ElementType>: MutableCollection, RangeReplaceableCollection
         return elements.index(i, offsetBy: distance, limitedBy: limit)
     }
 
-    public func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
+    public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
         where C: Collection, R: RangeExpression, ElementType == C.Element, Int == R.Bound
     {
         elements.replaceSubrange(subrange, with: newElements)
