@@ -57,7 +57,7 @@ public extension Calendar.Component {
         case .nanosecond: return .nanosecond
         case .calendar: return .calendar
         case .timeZone: return .timeZone
-        @unknown default: return nil
+        default: return nil
         }
     }
 

@@ -9,12 +9,12 @@ import Foundation
 public protocol ABC {}
 public typealias Vecttt = SelectableArray<ABC>
 
-public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
-    internal var elements: [ElementType] = []
+public struct SelectableArray<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
+    internal var elements: [Element] = []
 
     public init() {}
 
-    public init(arrayLiteral elements: ElementType...) {
+    public init(arrayLiteral elements: Element...) {
         self.elements = elements
     }
 
@@ -26,7 +26,7 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
         return elements.underestimatedCount
     }
 
-    public mutating func set(contents: [ElementType]) {
+    public mutating func set(contents: [Element]) {
         elements = contents
     }
 
@@ -36,7 +36,7 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
     }
 
     @discardableResult
-    public mutating func remove(at i: Int) -> ElementType {
+    public mutating func remove(at i: Int) -> Element {
         let element = elements.remove(at: i)
         isSelected.remove(at: i)
         updateSelections()
@@ -44,7 +44,7 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
     }
 
     @discardableResult
-    public mutating func removeFirst() -> ElementType {
+    public mutating func removeFirst() -> Element {
         let element = elements.removeFirst()
         isSelected.removeFirst()
         updateSelections()
@@ -63,7 +63,7 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
         updateSelections()
     }
 
-    public mutating func removeAll(where shouldBeRemoved: (ElementType) throws -> Bool) rethrows {
+    public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
         try elements.removeAll(where: shouldBeRemoved)
         updateSelections()
     }
@@ -86,13 +86,13 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
         updateSelections()
     }
 
-    public mutating func append(_ newElement: ElementType) {
+    public mutating func append(_ newElement: Element) {
         elements.append(newElement)
         isSelected.append(false)
         updateSelections()
     }
 
-    public mutating func append<S>(contentsOf newElements: S) where S: Sequence, ElementType == S.Element {
+    public mutating func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
         let count = elements.count
         elements.append(contentsOf: newElements)
         for _ in 0 ..< (elements.count - count) {
@@ -121,19 +121,19 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
         elements.reserveCapacity(n)
     }
 
-    public mutating func insert(_ newElement: ElementType, at i: Int) {
+    public mutating func insert(_ newElement: Element, at i: Int) {
         elements.insert(newElement, at: i)
     }
 
-    public mutating func insert<S>(contentsOf newElements: S, at i: Int) where S: Collection, ElementType == S.Element {
+    public mutating func insert<S>(contentsOf newElements: S, at i: Int) where S: Collection, Element == S.Element {
         elements.insert(contentsOf: newElements, at: i)
     }
 
-    public init<S>(_ elements: S) where S: Sequence, ElementType == S.Element {
+    public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
         self.elements = .init(elements)
     }
 
-    public init(repeating repeatedValue: ElementType, count: Int) {
+    public init(repeating repeatedValue: Element, count: Int) {
         elements = .init(repeating: repeatedValue, count: count)
     }
 
@@ -145,15 +145,15 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
         elements.formIndex(before: &i)
     }
 
-    public mutating func partition(by belongsInSecondPartition: (ElementType) throws -> Bool) rethrows -> Int {
+    public mutating func partition(by belongsInSecondPartition: (Element) throws -> Bool) rethrows -> Int {
         try elements.partition(by: belongsInSecondPartition)
     }
 
-    public func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<ElementType>) throws -> R) rethrows -> R? {
+    public func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<Element>) throws -> R) rethrows -> R? {
         try elements.withContiguousStorageIfAvailable(body)
     }
 
-    public mutating func withContiguousMutableStorageIfAvailable<R>(_ body: (inout UnsafeMutableBufferPointer<ElementType>) throws -> R) rethrows -> R? {
+    public mutating func withContiguousMutableStorageIfAvailable<R>(_ body: (inout UnsafeMutableBufferPointer<Element>) throws -> R) rethrows -> R? {
         try elements.withContiguousMutableStorageIfAvailable(body)
     }
 
@@ -171,17 +171,17 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
         return elements.endIndex
     }
 
-    public subscript(index: Int) -> ElementType {
+    public subscript(index: Int) -> Element {
         get {  return elements[index] }
         set {  elements[index] = newValue }
     }
     
-    public subscript(range: ClosedRange<Int>) -> ArraySlice<ElementType> {
+    public subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
         get { return elements[range] }
         set { elements[range] = newValue }
     }
     
-    public subscript(range: Range<Int>) -> ArraySlice<ElementType> {
+    public subscript(range: Range<Int>) -> ArraySlice<Element> {
         get { return elements[range] }
         set { elements[range] = newValue }
     }
@@ -203,7 +203,7 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
     }
 
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, ElementType == C.Element, Int == R.Bound
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
     {
         elements.replaceSubrange(subrange, with: newElements)
     }
@@ -228,8 +228,8 @@ public struct SelectableArray<ElementType>: MutableCollection, RangeReplaceableC
 
     private var isSelected: [Bool] = []
 
-    public var selectedElements: [ElementType] {
-        var selectedElements: [ElementType] = []
+    public var selectedElements: [Element] {
+        var selectedElements: [Element] = []
         for (index, i) in isSelected.enumerated() {
             if i == true {
                 selectedElements.append(elements[index])
@@ -427,7 +427,7 @@ extension SelectableArray: ContiguousBytes {
 }
 
 extension SelectableArray: Equatable where Element: Equatable {
-    public static func == (lhs: SelectableArray<ElementType>, rhs: SelectableArray<ElementType>) -> Bool {
+    public static func == (lhs: SelectableArray<Element>, rhs: SelectableArray<Element>) -> Bool {
         return lhs.elements == rhs.elements
     }
 }

@@ -309,7 +309,7 @@ public extension ImageSource {
 
 public extension ImageSource {
     // The set of status values for images and image sources.
-    public enum Status: CustomStringConvertible {
+    enum Status: CustomStringConvertible {
         /// The end of the file occurred unexpectedly.
         case unexpectedEOF
         /// The data is not valid.
