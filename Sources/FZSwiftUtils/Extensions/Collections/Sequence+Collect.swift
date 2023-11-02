@@ -54,11 +54,12 @@ public extension AsyncSequence {
     /// Returns an array of all elements.
     func collect() throws -> [Element] {
         let semaphore = DispatchSemaphore(value: 0)
-        Task {
-            let elements = try await collect()
-            return elements
-        }
+        var elements: [Element] = []
+        try collect(completion: { ele in
+            elements = ele
+            semaphore.signal()
+        })
         semaphore.wait()
-        return []
+        return elements
     }
 }
