@@ -161,9 +161,10 @@ public extension ImageFrameSequence {
             if let representation = representation {
                 Swift.print("representation")
                 if currentFrame >= frameCount {
-                    Swift.print("currentFrame >= frameCount")
-                    if loop { currentFrame = 0 }
-                    else { return nil }
+                    Swift.print("currentFrame >= frameCount", loop)
+                    if loop { currentFrame = 0 } else {
+                        Swift.print("return nil")
+                        return nil }
                 }
                 var imageFrame: CGImageFrame? = nil
                 Swift.print("representation.currentFrame =")
