@@ -18,6 +18,7 @@ public extension PartialKeyPath {
         let removingRootName = me.components(separatedBy: rootName)
         var keyPathValue = removingRootName.last ?? ""
         if keyPathValue.first == "." { keyPathValue.removeFirst() }
+        keyPathValue = keyPathValue.replacingOccurrences(of: "?", with: "")
         return keyPathValue
     }
 }
