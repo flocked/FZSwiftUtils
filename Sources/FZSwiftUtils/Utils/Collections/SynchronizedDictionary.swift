@@ -9,6 +9,8 @@ import Foundation
 
 /// A synchronized dictionary.
 public class SynchronizedDictionary< Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
+    public typealias Element = (key: Key, value: Value)
+    
     public required init(dictionaryLiteral elements: (Value, Key)...) {
         self.dictionary = [:]
         for element in elements {
@@ -18,6 +20,26 @@ public class SynchronizedDictionary< Key: Hashable, Value>: Collection, Expressi
     
     public init(dict: [Key: Value] = [Key:Value]()) {
         self.dictionary = dict
+    }
+    
+    public init() {
+        self.dictionary = [:]
+    }
+    
+    public init(minimumCapacity: Int) {
+        self.dictionary = .init(minimumCapacity: minimumCapacity)
+    }
+    
+    public init<S>(uniqueKeysWithValues keysAndValues: S) where S : Sequence, S.Element == (Key, Value) {
+        self.dictionary = .init(uniqueKeysWithValues: keysAndValues)
+    }
+    
+    public init<S>(_ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows where S : Sequence, S.Element == (Key, Value) {
+        self.dictionary = try .init(keysAndValues, uniquingKeysWith: combine)
+    }
+    
+    public init<S>(grouping values: S, by keyForValue: (S.Element) throws -> Key) rethrows where Value == [S.Element], S : Sequence {
+        self.dictionary = try .init(grouping: values, by: keyForValue)
     }
     
     private var dictionary: [Key:Value]
@@ -99,14 +121,14 @@ public extension SynchronizedDictionary {
     }
 
     subscript(key: Key) -> Value? {
-        set(newValue) {
-            queue.async(flags: .barrier) {[weak self] in
-                self?.dictionary[key] = newValue
-            }
-        }
         get {
             queue.sync {
                 return self.dictionary[key]
+            }
+        }
+        set(newValue) {
+            queue.async(flags: .barrier) {[weak self] in
+                self?.dictionary[key] = newValue
             }
         }
     }
@@ -117,15 +139,58 @@ public extension SynchronizedDictionary {
         }
     }
     
+    subscript(key: Key, default defaultValue: @autoclosure @escaping () -> Value) -> Value {
+        get { 
+            queue.sync {
+                self.dictionary[key, default: defaultValue()]
+            }
+        }
+        set { 
+            queue.async(flags: .barrier) {[weak self] in
+                self?.dictionary[key, default: defaultValue()] = newValue
+            }
+        }
+    }
+    
+    func index(forKey key: Key) -> Dictionary<Key, Value>.Index? {
+        queue.sync {
+            return self.dictionary.index(forKey: key)
+        }
+    }
+    
     func removeValue(forKey key: Key) {
         queue.async(flags: .barrier) {[weak self] in
             self?.dictionary.removeValue(forKey: key)
+        }
+    }
+    
+    var first: SynchronizedDictionary.Element? {
+        queue.sync {
+            self.dictionary.first
         }
     }
 
     func removeAll(keepingCapacity: Bool = false) {
         queue.async(flags: .barrier) {[weak self] in
             self?.dictionary.removeAll(keepingCapacity: keepingCapacity)
+        }
+    }
+    
+    func randomElement() -> SynchronizedDictionary.Element? {
+        queue.sync {
+            self.dictionary.randomElement()
+        }
+    }
+    
+    func randomElement<T>(using generator: inout T) -> SynchronizedDictionary.Element? where T : RandomNumberGenerator {
+        queue.sync {
+            self.dictionary.randomElement(using: &generator)
+        }
+    }
+
+    func reserveCapacity(_ minimumCapacity: Int) {
+        queue.async(flags: .barrier) {[weak self] in
+            self?.dictionary.reserveCapacity(minimumCapacity)
         }
     }
 }
