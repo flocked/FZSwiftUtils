@@ -53,18 +53,27 @@ extension Set {
     }
 }
 
-extension Set where Element : Hashable
-{
-    public static func +=(lhs:inout Set<Element>, rhs:Element)
-    {
+extension Set where Element: Hashable {
+    public static func +=(lhs:inout Set<Element>, rhs:Element) {
         lhs.insert(rhs)
     }
 
-    public static func +=(lhs:inout Set<Element>, rhs:Set<Element>)
-    {
-        for element in rhs
-        {
+    public static func +=(lhs:inout Set<Element>, rhs:Set<Element>) {
+        for element in rhs {
             lhs.insert(element)
         }
      }
+}
+
+extension Set: Comparable where Element: Comparable {
+    public static func < (lhs: Set<Element>, rhs: Set<Element>) -> Bool {
+        for (leftElement, rightElement) in zip(lhs, rhs) {
+            if leftElement < rightElement {
+                return true
+            } else if leftElement > rightElement {
+                return false
+            }
+        }
+        return lhs.count < rhs.count
+    }
 }

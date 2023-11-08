@@ -88,7 +88,6 @@ public extension BaseDictionary {
         self.dictionary[position]
     }
 
-    
     func filter(_ isIncluded: ((_ key: Key, _ value: Value) throws -> Bool)) rethrows -> [Key: Value] {
         return try self.dictionary.filter(isIncluded)
     }
@@ -167,7 +166,6 @@ public extension BaseDictionary {
     mutating func reserveCapacity(_ minimumCapacity: Int) {
         dictionary.reserveCapacity(minimumCapacity)
     }
-
 }
 
 extension BaseDictionary: @unchecked Sendable where Element: Sendable { }
