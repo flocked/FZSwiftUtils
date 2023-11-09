@@ -8,7 +8,7 @@
 import Foundation
 
 /// A weak reference to an object.
-public struct Weak<T: AnyObject>: Equatable, Hashable {
+public struct Weak<T: AnyObject>: Equatable, Hashable, WeakReference {
     public weak var value : T?
     public init (_ value: T) {
         self.value = value
@@ -27,7 +27,12 @@ public struct Weak<T: AnyObject>: Equatable, Hashable {
     }
 }
 
-extension Array where Element == Weak<AnyObject> {
+public protocol WeakReference {
+    associatedtype T
+    var value : T? { get set }
+}
+
+extension Array where Element: WeakReference {
     /// Removes all weak objects that are 'nil'.
     public  mutating func reap () {
         self = self.filter { nil != $0.value }
