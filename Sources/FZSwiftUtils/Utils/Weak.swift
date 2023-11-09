@@ -9,9 +9,9 @@ import Foundation
 
 /// A weak reference to an object.
 public struct Weak<T: AnyObject>: Equatable, Hashable, WeakReference {
-    public weak var value : T?
-    public init (_ value: T) {
-        self.value = value
+    public weak var object : T?
+    public init (_ object: T) {
+        self.object = object
     }
     
     public static func == (lhs: Weak<T>, rhs: Weak<T>) -> Bool {
@@ -19,22 +19,30 @@ public struct Weak<T: AnyObject>: Equatable, Hashable, WeakReference {
     }
     
     public func hash(into hasher: inout Hasher) {
-        if let value = value {
-            hasher.combine(ObjectIdentifier(value))
+        if let object = object {
+            hasher.combine(ObjectIdentifier(object))
         } else {
             hasher.combine(0)
         }
     }
 }
 
+/// A weak reference to an object.
 public protocol WeakReference {
     associatedtype T
-    var value : T? { get set }
+    var object : T? { get set }
 }
 
 extension Array where Element: WeakReference {
     /// Removes all weak objects that are 'nil'.
-    public  mutating func reap () {
-        self = self.filter { nil != $0.value }
+    public mutating func reap () {
+        self = self.filter { nil != $0.object }
+    }
+}
+
+extension Set where Element: WeakReference {
+    /// Removes all weak objects that are 'nil'.
+    public mutating func reap () {
+        self = self.filter { nil != $0.object }
     }
 }
