@@ -8,10 +8,22 @@
 import Foundation
 
 /// A weak reference to an object.
-public struct Weak<T: AnyObject> {
+public struct Weak<T: AnyObject>: Equatable, Hashable {
     public weak var value : T?
     public init (_ value: T) {
         self.value = value
+    }
+    
+    public static func == (lhs: Weak<T>, rhs: Weak<T>) -> Bool {
+        lhs.hashValue == rhs.hashValue
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        if let value = value {
+            hasher.combine(ObjectIdentifier(value))
+        } else {
+            hasher.combine(0)
+        }
     }
 }
 
