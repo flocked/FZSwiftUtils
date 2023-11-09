@@ -29,7 +29,7 @@ public struct Weak<T: AnyObject>: Equatable, Hashable {
 
 extension Array where Element == Weak<AnyObject> {
     /// Removes all weak objects that are 'nil'.
-    mutating func reap () {
+    public  mutating func reap () {
         self = self.filter { nil != $0.value }
     }
 }
