@@ -59,7 +59,7 @@ public extension Float {
         #elseif os(iOS) || os(tvOS)
         let scale = Float(UIScreen.main.scale)
         #else
-        let scale = 1.0
+        let scale: Float = 1.0
         #endif
         return floor(self * scale) / scale
     }
