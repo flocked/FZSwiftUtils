@@ -17,22 +17,22 @@ public class MeasureTime {
      - Parameters title: The title used for printing.
      */
     @discardableResult
-    public class func printTimeElapsed(title: String, running operation: () -> Void) -> Double {
+    public class func printTimeElapsed(title: String, running operation: () -> Void) -> TimeDuration {
         let startTime = CFAbsoluteTimeGetCurrent()
         operation()
         let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
         print("Time elapsed for \(title): \(timeElapsed) s.")
-        return Double(timeElapsed)
+        return TimeDuration(Double(timeElapsed))
     }
 
     /**
      Meassures the time executing a block.
      - Parameters operation: The block to meassure.
      */
-    public class func timeElapsed(running operation: () -> Void) -> Double {
+    public class func timeElapsed(running operation: () -> Void) -> TimeDuration {
         let startTime = CFAbsoluteTimeGetCurrent()
         operation()
         let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-        return Double(timeElapsed)
+        return TimeDuration(Double(timeElapsed))
     }
 }

@@ -486,7 +486,7 @@ extension TimeDuration: CustomStringConvertible {
 @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
 extension TimeDuration: DurationProtocol {}
 
-extension TimeDuration: Comparable {
+extension TimeDuration: Comparable, AdditiveArithmetic {
     public static func + (lhs: Self, rhs: Self) -> Self {
         Self(lhs.seconds + rhs.seconds)
     }
