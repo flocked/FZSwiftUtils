@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 23.08.22.
 //
 
+/*
 import Foundation
 
 public extension RangeReplaceableCollection where Element: Equatable {
@@ -43,3 +44,4 @@ public extension RangeReplaceableCollection {
         lhs.append(rhs)
     }
 }
+*/
