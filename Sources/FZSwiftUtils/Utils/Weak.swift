@@ -46,3 +46,10 @@ extension Set where Element: WeakReference {
         self = self.filter { nil != $0.object }
     }
 }
+
+extension Dictionary where Value: WeakReference {
+    /// Removes all weak objects that are 'nil'.
+    public mutating func reap () {
+        self = self.filter { $0.value.object != nil }
+    }
+}
