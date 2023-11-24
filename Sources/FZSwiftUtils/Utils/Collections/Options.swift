@@ -46,7 +46,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     public typealias Index = Set<Element>.Index
 
     var elements: Set<Element> = []
-
+    
     public init() {
         
     }
@@ -71,7 +71,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
             
     @discardableResult
-    public mutating func insert(_ newMember: __owned Element) -> (inserted: Bool, memberAfterInsert: Element) {
+    public mutating func insert(_ newMember: __owned Element) -> (inserted: Bool, memberAfterInsert: Element) {        
         if let oldMember = elements.first(where: { $0 == newMember }) {
             return (false, oldMember)
         }
