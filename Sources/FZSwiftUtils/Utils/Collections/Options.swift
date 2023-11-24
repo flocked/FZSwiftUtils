@@ -176,3 +176,23 @@ extension Options: CVarArg {
         elements._cVarArgEncoding
     }
 }
+
+public extension Options {
+    static func + (lhs: Options, rhs: Options) -> Options {
+        lhs.union(rhs)
+    }
+    
+    static func += (lhs: inout Options, rhs: Options) {
+        lhs.formUnion(rhs)
+    }
+    
+    static func + (lhs: Options, rhs: Element) -> Options {
+        var options = lhs
+        options.insert(rhs)
+        return options
+    }
+    
+    static func += (lhs: inout Options, rhs: Element) {
+        lhs.insert(rhs)
+    }
+}
