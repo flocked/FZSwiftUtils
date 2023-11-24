@@ -8,24 +8,11 @@
 import Foundation
 
 /// A type that represents an option and that can be with ``Options``.
-public protocol Option: Equatable {
+public protocol Option: Hashable {
     /// The type that represents the option key.
     associatedtype OptionKey: Equatable
     /// The key of the option.
     var optionKey: OptionKey { get }
-}
-
-public extension Set where Element: Option {
-    /// A set of unique options.
-    func uniquedOptions() -> Self {
-        var newValues: Self = []
-        for element in self {
-            if newValues.contains(where: { $0.optionKey == element.optionKey }) == false {
-                newValues.insert(element)
-            }
-        }
-        return newValues
-    }
 }
 
 public extension Array where Element: Option {
@@ -41,9 +28,24 @@ public extension Array where Element: Option {
     }
 }
 
+public extension Set where Element: Option {
+    /// A set of unique options.
+    func uniquedOptions() -> Self {
+        var newValues: Self = []
+        for element in self {
+            if newValues.contains(where: { $0.optionKey == element.optionKey }) == false {
+                newValues.insert(element)
+            }
+        }
+        return newValues
+    }
+}
+
 /// A collection of unique oprions.
-public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, SetAlgebra, Sequence {
-    var elements: [Element] = []
+public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, SetAlgebra, Sequence, Collection {
+    public typealias Index = Set<Element>.Index
+
+    var elements: Set<Element> = []
 
     public init() {
         
@@ -54,55 +56,71 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
     
     public init(arrayLiteral elements: Element...) {
-        self.elements = elements.uniquedOptions()
+        self.elements = Set(elements).uniquedOptions()
+    }
+    
+    public var startIndex: Index { return elements.startIndex }
+    public var endIndex: Index { return elements.endIndex }
+    
+    public subscript(index: Index) -> Element {
+        get { return elements[index] }
+    }
+    
+    public func index(after i: Index) -> Index {
+        return elements.index(after: i)
     }
             
     @discardableResult
     public mutating func insert(_ newMember: __owned Element) -> (inserted: Bool, memberAfterInsert: Element) {
-        if let oldMember = self.elements.first(where: { $0 == newMember }) {
-            return (false, oldMember)
-        }
-        elements.append(newMember)
-        return (true, newMember)
+        elements.insert(newMember)
     }
     
     public mutating func insert<S: Sequence<Element>>(_ newElements: S) {
-        self.elements = (newElements + self.elements).uniquedOptions()
+        self.elements.insert(newElements)
     }
     
     @discardableResult
     public mutating func update(with newMember: __owned Element) -> Element? {
-        if let index = elements.firstIndex(where: { $0 == newMember }) {
-            let oldMember = elements[index]
-            elements[index] = newMember
-            return oldMember
-        }
-        return nil
+        elements.update(with: newMember)
     }
     
     @discardableResult
     public mutating func remove(_ member: Element) -> Element? {
-        self.elements.remove(member)
+        elements.remove(member)
+    }
+    
+    mutating func remove<S: Sequence<Element>>(_ elements: S) {
+        elements.forEach({ self.remove($0) })
     }
     
     public mutating func removeAll() {
-        self.elements.removeAll()
+        elements.removeAll()
+    }
+    
+    mutating func removeAll(where shouldRemove: (Self.Element) -> Bool) -> Self {
+        let toRemove = filter(shouldRemove)
+        self.remove(Array(toRemove))
+        return toRemove
     }
     
     public func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> Self {
-        Self(try self.elements.filter({ try isIncluded($0) }))
+        Self(try elements.filter({ try isIncluded($0) }))
+    }
+    
+    public func compactMap<ElementOfResult>(_ transform: (Element) throws -> ElementOfResult) rethrows -> [ElementOfResult] {
+        try self.elements.compactMap({ try transform($0) })
     }
     
     public func contains(_ member: Element) -> Bool {
-        self.elements.contains(member)
+        elements.contains(member)
     }
     
     public var isEmpty: Bool {
-        self.elements.isEmpty
+        elements.isEmpty
     }
     
     public func union(_ other: __owned Options<Element>) -> Options<Element> {
-        Self((self.elements + other.elements).uniquedOptions())
+        Self(elements.union(other))
     }
     
     public mutating func formUnion(_ other: __owned Options<Element>) {
@@ -110,7 +128,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
     
     public func intersection(_ other: Options<Element>) -> Options<Element> {
-        Self(self.elements.filter({ other.elements.contains($0) }))
+        Self(elements.intersection(other))
     }
     
     public mutating func formIntersection(_ other: Options<Element>) {
@@ -118,16 +136,14 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
     
     public func symmetricDifference(_ other: __owned Options<Element>) -> Options<Element> {
-        var newElements = self.elements.filter({ other.elements.contains($0) == false })
-        newElements.append(contentsOf: other.elements.filter({ self.elements.contains($0) == false }))
-        return Self(newElements)
+        Self(self.elements.symmetricDifference(other))
     }
     
     public mutating func formSymmetricDifference(_ other: __owned Options<Element>) {
         self = self.symmetricDifference(other)
     }
     
-    public func makeIterator() -> IndexingIterator<[Element]> {
+    public func makeIterator() -> Set<Element>.Iterator {
         self.elements.makeIterator()
     }
 }
