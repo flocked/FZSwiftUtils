@@ -72,11 +72,15 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
             
     @discardableResult
     public mutating func insert(_ newMember: __owned Element) -> (inserted: Bool, memberAfterInsert: Element) {
-        elements.insert(newMember)
+        if let oldMember = elements.first(where: { $0 == newMember }) {
+            return (false, oldMember)
+        }
+        elements = .init(([newMember] + elements.collect()).uniquedOptions())
+        return (true, newMember)
     }
     
     public mutating func insert<S: Sequence<Element>>(_ newElements: S) {
-        self.elements.insert(newElements)
+        elements = .init((newElements + elements.collect()).uniquedOptions())
     }
     
     @discardableResult
@@ -120,7 +124,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
     
     public func union(_ other: __owned Options<Element>) -> Options<Element> {
-        Self(elements.union(other))
+        Self((elements.collect() + other.collect()).uniquedOptions())
     }
     
     public mutating func formUnion(_ other: __owned Options<Element>) {
