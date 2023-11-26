@@ -350,6 +350,12 @@ public extension CGRect {
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGRect {
         return CGRect(x: x.rounded(rule), y: y.rounded(rule), width: width.rounded(rule), height: height.rounded(rule))
     }
+    
+    /// A Boolean value that indicates whether the specified rect is fully visible inside the rect.
+    func contains(fullyVisible rect: CGRect) -> Bool {
+        let maxPoint = CGPoint(x: rect.maxX, y: rect.maxY)
+        return self.contains(rect.origin) && self.contains(maxPoint)
+    }
 }
 
 extension CGRect: Hashable {
