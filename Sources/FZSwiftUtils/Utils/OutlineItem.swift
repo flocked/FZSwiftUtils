@@ -12,7 +12,7 @@ public protocol OutlineItem {
     /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get }
     /// An array of child outline items.
-    var children: [any OutlineItem] { get }
+    var children: [OutlineItem] { get }
 }
 
 public extension OutlineItem {
