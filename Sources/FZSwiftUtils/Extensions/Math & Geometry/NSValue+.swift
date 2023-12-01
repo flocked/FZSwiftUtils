@@ -43,6 +43,7 @@ extension NSValue {
 #endif
 
 public extension CGPoint {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
         return NSValue(cgPoint: self)
@@ -53,6 +54,7 @@ public extension CGPoint {
 }
 
 public extension CGRect {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
         return NSValue(cgRect: self)
@@ -63,6 +65,7 @@ public extension CGRect {
 }
 
 public extension CGSize {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
         return NSValue(cgSize: self)
@@ -73,18 +76,21 @@ public extension CGSize {
 }
 
 public extension NSRange {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         return NSValue(range: self)
     }
 }
 
 public extension ClosedRange where Bound: BinaryInteger {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         return NSValue(range: self.nsRange)
     }
 }
 
 public extension Range where Bound: BinaryInteger {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         return NSValue(range: self.nsRange)
     }
@@ -92,6 +98,7 @@ public extension Range where Bound: BinaryInteger {
 
 #if os(macOS)
 public extension NSEdgeInsets {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         return NSValue(edgeInsets: self)
     }
@@ -99,6 +106,7 @@ public extension NSEdgeInsets {
 #elseif canImport(UIKit) || os(watchOS)
 import UIKit
 public extension UIEdgeInsets {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         return NSValue(uiEdgeInsets: self)
     }
@@ -107,6 +115,7 @@ public extension UIEdgeInsets {
 
 #if canImport(QuartzCore)
 public extension CATransform3D {
+    /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         return NSValue(caTransform3D: self)
     }

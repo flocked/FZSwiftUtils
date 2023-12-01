@@ -24,24 +24,38 @@ public extension CGPoint {
      Returns a new CGPoint by offsetting the current point by the specified offset.
      
      - Parameters:
-        - offset: The CGPoint offset to be applied.
-     
-     - Returns: The new CGPoint obtained by offsetting the current point.
+        - offset: The offset to be applied.     
      */
     func offset(by offset: CGPoint) -> CGPoint {
         return CGPoint(x: x + offset.x, y: y + offset.y)
     }
     
     /**
+     Returns a new CGPoint by offsetting the current point by the specified value along the x and y axes.
+
+     - Parameters:
+        - value: The value to be added to the x-coordinate and y-coordinate of the current point.
+     */
+    func offset(by value: CGFloat) -> CGPoint {
+        return CGPoint(x: x + value, y: y + value)
+    }
+    
+    /**
      Returns a new CGPoint by offsetting the current point along the x-axis by the specified value.
      
-     - Parameters:
-        - x: The value to be added to the x-coordinate of the current point.
-     
-     - Returns: The new CGPoint obtained by offsetting the current point along the x-axis.
+     - Parameter x: The value to be added to the x-coordinate of the current point.
      */
     func offset(x: CGFloat) -> CGPoint {
         return CGPoint(x: self.x + x, y: y)
+    }
+    
+    /**
+     Returns a new CGPoint by offsetting the current point along the y-axis by the specified value.
+     
+     - Parameter y: The value to be added to the x-coordinate of the current point.
+     */
+    func offset(y: CGFloat) -> CGPoint {
+        return CGPoint(x: self.x, y: y + y)
     }
     
     /**

@@ -8,7 +8,7 @@
 import Foundation
 
 public extension BinaryInteger {
-    /// The string value.
+    /// The value as `String`.
     var string: String {
         String(self)
     }

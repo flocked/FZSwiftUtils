@@ -9,12 +9,12 @@ import Foundation
 
 public extension ClosedRange where Bound == Int {
     /**
-     Shifts the range by the specified offset value.
+     Offsets the range by the specified value.
      
      - Parameter offset: The offset to shift.
      - Returns: The new range.
      */
-    func shfted(by offset: Int) -> Self {
+    func offset(by offset: Int) -> Self {
         lowerBound+offset...upperBound+offset
     }
     
@@ -102,7 +102,7 @@ public extension Range where Bound == Int {
 }
 
 public extension ClosedRange where Bound: BinaryInteger {
-    /// The closed range as `NSRange`.
+    /// The range as `NSRange`.
     var nsRange: NSRange {
         let length = self.upperBound-self.lowerBound-1
         return NSRange(location: Int(self.lowerBound), length: Int(length))

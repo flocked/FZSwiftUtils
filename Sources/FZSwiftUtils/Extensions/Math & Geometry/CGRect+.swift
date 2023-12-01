@@ -181,13 +181,13 @@ public extension CGRect {
     }
     
     /// The horizontal center of the rectangle.
-    var centerX: CGFloat {
+    internal var centerX: CGFloat {
         get { return midX }
         set { origin.x = newValue - width * 0.5 }
     }
 
     /// The vertical center of the rectangle.
-    var centerY: CGFloat {
+    internal var centerY: CGFloat {
         get { return midY }
         set { origin.y = newValue - height * 0.5 }
     }
@@ -251,6 +251,20 @@ public extension CGRect {
             rect.center = center
         }
         return rect
+    }
+    
+    /**
+     Returns a new rect scaled by the specified factor, anchored at the specified point.
+     
+     - Parameters:
+        - factor: The scaling factor to apply to the rect.
+        - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
+     
+     - Returns: A new rect scaled by the specified factor, anchored at the specified point.
+     */
+    func scaled(byFactor factor: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+        let sizeDelta = size.scaled(byFactor: factor)
+        return scaled(to: sizeDelta, anchor: anchor)
     }
 
     /**
@@ -326,20 +340,6 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled by the specified factor, anchored at the specified point.
-     
-     - Parameters:
-        - factor: The scaling factor to apply to the rect.
-        - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-     
-     - Returns: A new rect scaled by the specified factor, anchored at the specified point.
-     */
-    func scaled(byFactor factor: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
-        let sizeDelta = size.scaled(byFactor: factor)
-        return scaled(to: sizeDelta, anchor: anchor)
-    }
-
-    /**
      Returns a new rect with rounded coordinates according to the specified rounding rule.
      
      - Parameters:
@@ -349,12 +349,6 @@ public extension CGRect {
      */
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGRect {
         return CGRect(x: x.rounded(rule), y: y.rounded(rule), width: width.rounded(rule), height: height.rounded(rule))
-    }
-    
-    /// A Boolean value that indicates whether the specified rect is fully visible inside the rect.
-    func contains(fullyVisible rect: CGRect) -> Bool {
-        let maxPoint = CGPoint(x: rect.maxX, y: rect.maxY)
-        return self.contains(rect.origin) && self.contains(maxPoint)
     }
 }
 
@@ -377,9 +371,4 @@ extension Collection where Element == CGRect {
         }
         return unionRect
     }
-}
-
-extension CGRect {
-
-
 }
