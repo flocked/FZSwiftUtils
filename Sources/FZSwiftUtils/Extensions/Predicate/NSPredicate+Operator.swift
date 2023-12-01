@@ -8,6 +8,7 @@
 import Foundation
 
 public extension NSComparisonPredicate.Options {
+    /// The predicate option's format string.
     var predicateFormat: String {
         var value = ""
         if contains(.caseInsensitive) {

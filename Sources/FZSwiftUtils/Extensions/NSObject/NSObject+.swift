@@ -8,9 +8,9 @@
 import Foundation
 
 /// `NSCoding` errors.
-public enum NSCodingErrors: Error {
+public enum NSCodingError: Error {
     /// Unpacking failed.
-    case unpackingError
+    case unpacking
 }
 
 public extension NSCoding where Self: NSObject {
@@ -25,7 +25,7 @@ public extension NSCoding where Self: NSObject {
     func archiveBasedCopy() throws -> Self {
         let archivedData = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
         guard let object = try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: archivedData) else {
-            throw NSCodingErrors.unpackingError
+            throw NSCodingError.unpacking
         }
         return object
     }
