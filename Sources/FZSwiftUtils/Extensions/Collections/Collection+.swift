@@ -18,7 +18,7 @@ public extension MutableCollection {
 
 public extension Collection {
     subscript(safe safeIndex: Index) -> Element? {
-        if isEmpty == false, safeIndex < count - 1 {
+        if isEmpty == false, safeIndex < count {
             return self[safeIndex]
         }
         return nil
@@ -32,18 +32,14 @@ public extension Collection {
 public extension MutableCollection {
     subscript(safe safeIndex: Index) -> Element? {
         get {
-            if isEmpty == false, safeIndex < count - 1 {
+            if isEmpty == false, safeIndex < count {
                 return self[safeIndex]
             }
             return nil
         }
         set {
-            Swift.print("safeIndex", safeIndex, isEmpty == false, safeIndex < count - 1, newValue ?? "nil")
-            if isEmpty == false, safeIndex < count - 1, let newValue = newValue {
-                Swift.print("safe set bef", self[safeIndex] )
+            if isEmpty == false, safeIndex < count, let newValue = newValue {
                 self[safeIndex] = newValue
-                Swift.print("safe set aft", self[safeIndex] )
-                Swift.print("----")
             }
         }
     }
