@@ -40,7 +40,10 @@ public extension MutableCollection {
         set {
             Swift.print("safeIndex", safeIndex, count, isEmpty)
             if isEmpty == false, safeIndex < count - 1, let newValue = newValue {
+                Swift.print("safe set bef", self[safeIndex] )
                 self[safeIndex] = newValue
+                Swift.print("safe set aft", self[safeIndex] )
+                Swift.print("----")
             }
         }
     }
