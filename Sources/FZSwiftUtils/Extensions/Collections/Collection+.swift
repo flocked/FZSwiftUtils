@@ -38,6 +38,7 @@ public extension MutableCollection {
             return nil
         }
         set {
+            Swift.print("safeIndex", safeIndex, count, isEmpty)
             if isEmpty == false, safeIndex < count - 1, let newValue = newValue {
                 self[safeIndex] = newValue
             }
