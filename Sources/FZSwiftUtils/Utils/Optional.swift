@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// A protocol represeting an iotional value.
+/// A protocol represeting an optional value.
 public protocol OptionalProtocol: ExpressibleByNilLiteral {
     associatedtype Wrapped
     /// The optional value.
