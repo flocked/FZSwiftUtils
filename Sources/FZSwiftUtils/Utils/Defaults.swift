@@ -168,9 +168,9 @@ public final class Defaults {
     /**
      Adds an observer for the specified key which calls the specified handler.
      
-     - Parameters key: The key to the value to observe.
-     - Parameters sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
-     - Parameters handler: The handler to be called whenever the key value changes.
+     - Parameter key: The key to the value to observe.
+     - Parameter sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+     - Parameter handler: The handler to be called whenever the key value changes.
      */
     public func observeChanges<ValueType>(for key: Key<ValueType>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: ValueType, _ newValue: ValueType)->())) {
         self.observer.add(key._key, sendInitalValue: sendInitalValue) { old, new in
@@ -183,7 +183,7 @@ public final class Defaults {
     /**
      Stops  observing for the specified key.
      
-     - Parameters key: The key to stop observing.
+     - Parameter key: The key to stop observing.
      */
     public func stopObserving<ValueType>(for  key: Key<ValueType>) {
         self.observer.remove(key._key)

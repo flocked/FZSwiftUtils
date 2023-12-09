@@ -11,7 +11,7 @@ public extension Sequence where Element == String {
     /**
      Returns a new string by concatenating the elements of the sequence, adding a separator for the option.
      
-     - Parameters option: The option for joining the strings.
+     - Parameter option: The option for joining the strings.
      - Returns: A single, concatenated string.
      */
     func joined(by option: String.JoinOption) -> String {

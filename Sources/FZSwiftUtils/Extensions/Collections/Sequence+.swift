@@ -11,7 +11,7 @@ public extension Sequence {
     /**
      Returns indexes of elements that satisfies the given predicate.
 
-     - Parameters predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
+     - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
      
      - Returns: The indexes of the elements that satisfies the given predicate.
      */
@@ -30,7 +30,7 @@ public extension Sequence where Element: Equatable {
     /**
      Returns indexes of the specified element.
 
-     - Parameters element: The element to return it's indexes.
+     - Parameter element: The element to return it's indexes.
      
      - Returns: The indexes of the element.
      */
@@ -41,7 +41,7 @@ public extension Sequence where Element: Equatable {
     /**
      Returns indexes of the specified elements.
 
-     - Parameters elements: The elements to return their indexes.
+     - Parameter elements: The elements to return their indexes.
      
      - Returns: The indexes of the elements.
      */
@@ -61,7 +61,7 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
     /**
      Returns the first element of the sequence that satisfies the  raw value.
 
-     - Parameters rawValue: The raw value.
+     - Parameter rawValue: The raw value.
      
      - Returns: The first element of the sequence that matches the raw value.
      */
@@ -81,7 +81,8 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
 public extension Sequence where Element: Equatable {
     /**
      A Boolean value indicating whether the sequence contains any of the specified elements.
-     - Parameters elements: The elements.
+     
+     - Parameter elements: The elements.
      - Returns: `true` if any of the elements exists in the sequence, or` false` if non exist in the sequence.
      */
     func contains<S: Sequence<Element>>(any elements: S) -> Bool {
@@ -95,7 +96,8 @@ public extension Sequence where Element: Equatable {
 
     /**
      A Boolean value indicating whether the sequence contains all specified elements.
-     - Parameters elements: The elements.
+     
+     - Parameter elements: The elements.
      - Returns: `true` if all elements exist in the sequence, or` false` if not.
      */
     func contains<S: Sequence<Element>>(all elements: S) -> Bool {

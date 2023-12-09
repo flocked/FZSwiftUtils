@@ -111,7 +111,7 @@ public extension NumberFormatter {
     /**
      Returns a string representation of the specified value value.
      
-     - Parameters value: The value for the string representation.
+     - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string(from value: CChar) -> String? { string(from: NSNumber(value: value)) }
@@ -119,7 +119,7 @@ public extension NumberFormatter {
     /**
      Returns a string representation of the specified value value.
      
-     - Parameters value: The value for the string representation.
+     - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string(from value: Bool) -> String? { string(from: NSNumber(value: value)) }
@@ -127,7 +127,7 @@ public extension NumberFormatter {
     /**
      Returns a string representation of the specified value value.
      
-     - Parameters value: The value for the string representation.
+     - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string<Value>(from value: Value) -> String? where Value: BinaryInteger { string(from: NSNumber(value)) }
@@ -135,7 +135,7 @@ public extension NumberFormatter {
     /**
      Returns a string representation of the specified value value.
      
-     - Parameters value: The value for the string representation.
+     - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string<Value>(from value: Value) -> String? where Value: BinaryFloatingPoint { string(from: NSNumber(value)) }

@@ -180,7 +180,7 @@ public extension StringProtocol {
 public extension StringProtocol {
     /**
      A Boolean value indicating whether the string contains any of the specified strings.
-     - Parameters strings: The strings.
+     - Parameter strings: The strings.
      - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
      */
     func contains<S>(any strings: S) -> Bool where S : Sequence<StringProtocol> {
@@ -194,7 +194,7 @@ public extension StringProtocol {
     
     /**
      A Boolean value indicating whether the string contains all specified strings.
-     - Parameters strings: The strings.
+     - Parameter strings: The strings.
      - Returns: `true` if all strings exist in the string, or` false` if not.
      */
     func contains<S>(all strings: S) -> Bool where S : Sequence<StringProtocol> {

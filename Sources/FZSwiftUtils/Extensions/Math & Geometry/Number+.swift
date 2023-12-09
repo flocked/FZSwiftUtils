@@ -17,7 +17,7 @@ public extension CGFloat {
     /**
      Creates a new instance from the given string.
      
-     - Parameters description: An input string to convert to a `CGFloat` instance.
+     - Parameter description: An input string to convert to a `CGFloat` instance.
      - Returns: The value of the text, or `nil` if the string doesn't contain a numeric value.
      */
     init?<S>(_ text: S) where S : StringProtocol {
@@ -138,7 +138,7 @@ public extension BinaryFloatingPoint {
     /**
      Rounds the value using the specified rounding rule.
      
-     - Parameters rule: The rounding rule to apply.
+     - Parameter rule: The rounding rule to apply.
      - Returns: The rounded value.
      */
     func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
@@ -149,7 +149,7 @@ public extension BinaryFloatingPoint {
     /**
      Rounds the value using the specified rounding rule.
      
-     - Parameters rule: The rounding rule to apply.
+     - Parameter rule: The rounding rule to apply.
      - Returns: The rounded value.
      */
     mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
@@ -168,7 +168,7 @@ public extension CGFloat {
     /**
      Rounds the value using the specified rounding rule.
      
-     - Parameters rule: The rounding rule to apply.
+     - Parameter rule: The rounding rule to apply.
      - Returns: The rounded value.
      */
     func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
@@ -179,7 +179,7 @@ public extension CGFloat {
     /**
      Rounds the value using the specified rounding rule.
      
-     - Parameters rule: The rounding rule to apply.
+     - Parameter rule: The rounding rule to apply.
      - Returns: The rounded value.
      */
     mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
@@ -215,11 +215,12 @@ extension BinaryInteger {
 public extension BinaryInteger {
     /**
      Returns the advanced value for the specified option and range.
+     
      - Parameters:
         - type: The advance type.
         - range: The range of values.
      
-     - The advanced value.
+     - Returns: The advanced value.
      */
     func advanced(by type: AdvanceOption, in range: ClosedRange<Self>) -> Self {
             var index = self

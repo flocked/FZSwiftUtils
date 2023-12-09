@@ -11,7 +11,7 @@ public extension NSError {
     /**
      Creates an `NSError` object for the specified POSIX error code.
      
-     - Parameters errorCode: The POSIX error code.
+     - Parameter errorCode: The POSIX error code.
      - Returns: An `NSError` object representing the POSIX error.
      */
     static func posix(_ errorCode: Int32) -> NSError {

@@ -49,7 +49,7 @@ public extension Collection where Element: Equatable {
     /**
      A Boolean value indicating whether the collection contains any of the specified elements.
      
-     - Parameters elements: The elements.
+     - Parameter elements: The elements.
      - Returns: `true` if any of the elements exists in the collection, or` false` if non exist in the option set.
      */
     func contains<S>(any elements: S) -> Bool where S : Sequence, Element == S.Element {
@@ -63,7 +63,8 @@ public extension Collection where Element: Equatable {
     
     /**
      A Boolean value indicating whether the collection contains all specified elements.
-     - Parameters elements: The elements.
+     
+     - Parameter elements: The elements.
      - Returns: `true` if all elements exist in the collection, or` false` if not.
      */
     func contains<S>(all elements: S) -> Bool where S : Sequence, Element == S.Element {
@@ -125,7 +126,8 @@ public extension RangeReplaceableCollection where Element: Equatable {
     @discardableResult
     /**
      Removes the specificed elements and returns them.
-     - Parameters elements: The elements to remove.
+     
+     - Parameter elements: The elements to remove.
      - Returns: Returns the removed elements.
      */
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
@@ -144,7 +146,8 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
     @discardableResult
     /**
      Removes the elements at the specified indexes and returns them.
-     - Parameters indexes: The indexes of the elements to remove.
+     
+     - Parameter indexes: The indexes of the elements to remove.
      - Returns: Returns the removed elements.
      */
     mutating func remove(at indexes: IndexSet) -> [Self.Element] {
@@ -160,8 +163,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
     @discardableResult
     /**
      Moves the element at the specified index to the specified position.
-     - Parameters index: The index of the element.
-     - Parameters destinationIndex: The index of the destionation.
+     
+     - Parameters:
+        - index: The index of the element.
+        - destinationIndex: The index of the destionation.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move(from index: Int, to destinationIndex: Index) -> Bool {
@@ -171,8 +177,10 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
     @discardableResult
     /**
      Moves the elements at the specified indexes to the specified position.
-     - Parameters indexes: The indexes of the elements to move.
-     - Parameters destinationIndex: The index of the destionation.
+     
+     - Parameters:
+        - indexes: The indexes of the elements to move.
+        - destinationIndex: The index of the destionation.
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move(from indexes: IndexSet, to destinationIndex: Index) -> Bool {
@@ -199,8 +207,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Moves the specified element to the specified position.
-     - Parameters element: The element to move.
-     - Parameters destinationIndex: The index of the destionation.
+     
+     - Parameters:
+        - element: The element to move.
+        - destinationIndex: The index of the destionation.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move(_ element: Element, to destinationIndex: Self.Indices.Element) -> Bool {
@@ -211,8 +222,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Moves the specified elements to the specified position.
-     - Parameters elements: The elements to move.
-     - Parameters destinationIndex: The index of the destionation.
+     
+     - Parameters:
+        - elements: The elements to move.
+        - destinationIndex: The index of the destionation.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move<S: Sequence<Element>>(_ elements: S, to destinationIndex: Self.Indices.Element) -> Bool {
@@ -223,8 +237,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Moves the specified element before the specified `beforeElement`.
-     - Parameters element: The element to move.
-     - Parameters beforeElement: The element to move before.
+     
+     - Parameters:
+        - element: The element to move.
+        - beforeElement: The element to move before.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move(_ element: Element, before beforeElement: Element) -> Bool {
@@ -236,8 +253,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Moves the specified elements before the specified `beforeElement`.
-     - Parameters elements: The elements to move.
-     - Parameters beforeElement: The element to move before.
+     
+     - Parameters:
+        - elements: The elements to move.
+        - beforeElement: The element to move before.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move<S: Sequence<Element>>(_ elements: S, before beforeElement: Element) -> Bool {
@@ -249,8 +269,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Moves the specified element after the specified `afterElement`.
-     - Parameters element: The element to move.
-     - Parameters afterElement: The element to move after.
+     
+     - Parameters:
+        - element: The element to move.
+        - afterElement: The element to move after.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move(_ element: Element, after afterElement: Element) -> Bool {
@@ -262,8 +285,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Moves the specified elements after the specified `afterElement`.
-     - Parameters elements: The elements to move.
-     - Parameters afterElement: The element to move after.
+     
+     - Parameters:
+        - elements: The elements to move.
+        - afterElement: The element to move after.
+     
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     mutating func move<S: Sequence<Element>>(_ elements: S, after afterElement: Element) -> Bool {
@@ -275,7 +301,8 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Removes the specified element.
-     - Parameters element: The element remove.
+     
+     - Parameter element: The element remove.
      - Returns: Returns the removed element.
      */
     mutating func remove(_ element: Element) -> Element? {
@@ -286,7 +313,8 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     @discardableResult
     /**
      Removes the specified elements.
-     - Parameters elements: The elements to remove.
+     
+     - Parameter elements: The elements to remove.
      - Returns: Returns the removed elements.
      */
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
@@ -296,8 +324,10 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
 
     /**
      Replaces the first appearance of the specified element with another.
-     - Parameters element: The element to replace.
-     - Parameters another: The replacing element.
+     
+     - Parameters:
+        - element: The element to replace.
+        - another: The replacing element.
      */
     mutating func replace(first element: Element, with another: Element) {
         if let index = firstIndex(of: element) {
@@ -308,8 +338,10 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
 
     /**
      Replaces the first appearance of the specified element with other elements.
-     - Parameters element: The element to replace.
-     - Parameters newElements: The replacing elements.
+     
+     - Parameters:
+        - element: The element to replace.
+        - newElements: The replacing elements.
      */
     mutating func replace<C>(first element: Element, with newElements: C) where C: Collection, Self.Element == C.Element {
         if let index = firstIndex(of: element) {
@@ -320,8 +352,10 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
 
     /**
      Replaces all appearances of the specified element with another.
-     - Parameters element: The element to replace.
-     - Parameters another: The replacing element.
+     
+     - Parameters:
+        - element: The element to replace.
+        - another: The replacing element.
      */
     mutating func replace(_ element: Element, with: Element) {
         guard let index = self.firstIndex(of: element) else { return }
@@ -331,8 +365,10 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
 
     /**
      Replaces all appearance of the specified element with other elements.
-     - Parameters element: The element to replace.
-     - Parameters newElements: The replacing elements.
+     
+     - Parameters:
+        - element: The element to replace.
+        - newElements: The replacing elements.
      */
     mutating func replace<C>(_ element: Element, with newElements: C) where C: Collection, Self.Element == C.Element {
         replace(first: element, with: newElements)
@@ -346,8 +382,9 @@ public extension RangeReplaceableCollection where Element: Equatable  {
      
      The new element is inserted before the specified element. If the element doesn't exist in the array, the new element won't be inserted.
 
-     - Parameters newElement: The new element to insert into the array.
-     - Parameters before: The element before which to insert the new element.
+     - Parameters:
+        - newElement: The new element to insert into the array.
+        - before: The element before which to insert the new element.
      */
     mutating func insert(_ newElement: Element, before: Element) {
         guard let index = self.firstIndex(of: before) else { return }
@@ -359,8 +396,9 @@ public extension RangeReplaceableCollection where Element: Equatable  {
      
      The new element is inserted after the specified element. If the element doesn't exist in the array, the new element won't be inserted.
 
-     - Parameters newElement: The new element to insert into the array.
-     - Parameters after: The element after which to insert the new element.
+     - Parameters:
+        - newElement: The new element to insert into the array.
+        - after: The element after which to insert the new element.
      */
     mutating func insert(_ newElement: Element, after: Element) {
         guard let index = self.firstIndex(of: after) else { return }
@@ -372,8 +410,9 @@ public extension RangeReplaceableCollection where Element: Equatable  {
      
      The new elements are inserted before the specified element. If the element doesn't exist in the array, the new elements won't be inserted.
 
-     - Parameters newElements: The new elements to insert into the array.
-     - Parameters before: The element before which to insert the new elements.
+     - Parameters:
+        - newElements: The new elements to insert into the array.
+        - before: The element before which to insert the new elements.
      */
     mutating func insert<C>(_ newElements: C, before: Element) where C: Collection<Element> {
         guard let index = self.firstIndex(of: before) else { return }
@@ -385,8 +424,9 @@ public extension RangeReplaceableCollection where Element: Equatable  {
      
      The new elements are inserted after the specified element. If the element doesn't exist in the array, the new elements won't be inserted.
 
-     - Parameters newElements: The new elements to insert into the array.
-     - Parameters after: The element after which to insert the new elements.
+     - Parameters:
+        - newElements: The new elements to insert into the array.
+        - after: The element after which to insert the new elements.
      */
     mutating func insert<C>(_ newElements: C, after: Element) where C: Collection<Element> {
         guard let index = self.firstIndex(of: after) else { return }

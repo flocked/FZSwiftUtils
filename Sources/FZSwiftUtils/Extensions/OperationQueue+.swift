@@ -11,7 +11,7 @@ public extension OperationQueue {
     /**
      Initalizes an operation queue with the specified maximum number of queued operations that can run at the same time.
      
-     - Parameters maxConcurrentOperationCount: The maximum number of queued operations that can run at the same time.
+     - Parameter maxConcurrentOperationCount: The maximum number of queued operations that can run at the same time.
      - Returns: A new `OperationQueue` object.
      */
     convenience init(maxConcurrentOperationCount: Int) {

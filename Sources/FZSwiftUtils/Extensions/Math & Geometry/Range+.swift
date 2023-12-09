@@ -21,7 +21,7 @@ public extension ClosedRange where Bound == Int {
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
-     - Parameters range: The range to check for containment.
+     - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
     func contains(_ range: ClosedRange<Int>) -> Bool {
@@ -31,7 +31,7 @@ public extension ClosedRange where Bound == Int {
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
-     - Parameters range: The range to check for containment.
+     - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
     func contains(_ range: Range<Int>) -> Bool {
@@ -41,7 +41,7 @@ public extension ClosedRange where Bound == Int {
     /**
      Returns a Boolean value indicating whether the given values are contained within the range.
      
-     - Parameters values: The values to check for containment.
+     - Parameter values: The values to check for containment.
      - Returns: `true` if values are contained in the range; otherwise, `false`.
      */
     func contains<S>(_ values: S) -> Bool where S: Sequence<Int> {
@@ -68,7 +68,7 @@ public extension Range where Bound == Int {
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
-     - Parameters range: The range to check for containment.
+     - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
     func contains(_ range: ClosedRange<Int>) -> Bool {
@@ -78,7 +78,7 @@ public extension Range where Bound == Int {
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
-     - Parameters range: The range to check for containment.
+     - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
     func contains(_ range: Range<Int>) -> Bool {
@@ -88,7 +88,7 @@ public extension Range where Bound == Int {
     /**
      Returns a Boolean value indicating whether the given values are contained within the range.
      
-     - Parameters values: The values to check for containment.
+     - Parameter values: The values to check for containment.
      - Returns: `true` if values are contained in the range; otherwise, `false`.
      */
     func contains<S>(_ values: S) -> Bool where S: Sequence<Int> {

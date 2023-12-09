@@ -37,7 +37,7 @@ public extension FileManager {
      
      The actual name of the item may be changed when moving it to the trash.
      
-     - Parameters url: The item to move to the trash.
+     - Parameter url: The item to move to the trash.
      - Throws: Throws an error if the item couldn't be moved to the trash.
      - Returns: Returns the url of the trashed item.
      */
@@ -88,7 +88,7 @@ public extension FileManager {
     /**
      Returns a Boolean value that indicates whether a file or directory exists at a specified url.
      
-     - Parameters url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return `false`.
+     - Parameter url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return `false`.
      - Returns: `true` if a file or directory at the specified url exists, or `false` if the file or directory does not exist or its existence could not be determined.
      */
     func fileExists(at url: URL) -> Bool {
@@ -98,7 +98,7 @@ public extension FileManager {
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified path.
      
-     - Parameters path: The path of  directory. If path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
+     - Parameter path: The path of  directory. If path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
      - Returns:`true` if a directory at the specified path exists, or `false` if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(atPath path: String) -> Bool {
@@ -110,7 +110,7 @@ public extension FileManager {
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified url.
      
-     - Parameters url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
+     - Parameter url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
      - Returns: `true` if a directory at the specified url exists, or `false if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(at url: URL) -> Bool {

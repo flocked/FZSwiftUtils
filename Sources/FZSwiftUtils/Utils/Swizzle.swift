@@ -59,8 +59,8 @@ public struct Swizzle {
     @discardableResult
     /**
      Swizzles selectors of the specified class.
-     - Parameters class_:  The class to swizzle.
-     - Parameters makeSelectorPairs: The swizzle selector pairs.
+     - Parameter class_:  The class to swizzle.
+     - Parameter makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
@@ -71,8 +71,8 @@ public struct Swizzle {
     @discardableResult
     /**
      Swizzles selectors of the specified class.
-     - Parameters class_:  The class to swizzle.
-     - Parameters makeSelectorPairs: The swizzle selector pairs.
+     - Parameter class_:  The class to swizzle.
+     - Parameter makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
@@ -83,8 +83,8 @@ public struct Swizzle {
     @discardableResult
     /**
      Swizzles selectors of the class with the specified name.
-     - Parameters className:  The name of the class.
-     - Parameters makeSelectorPairs: The swizzle selector pairs.
+     - Parameter className:  The name of the class.
+     - Parameter makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
@@ -95,8 +95,8 @@ public struct Swizzle {
     @discardableResult
     /**
      Swizzles selectors of the class with the specified name.
-     - Parameters className:  The name of the class.
-     - Parameters makeSelectorPairs: The swizzle selector pairs.
+     - Parameter className:  The name of the class.
+     - Parameter makeSelectorPairs: The swizzle selector pairs.
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */

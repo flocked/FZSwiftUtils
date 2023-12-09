@@ -17,7 +17,7 @@ public extension URLSession {
      
      After you create the task, you must start it by calling its resume() method.
      
-     - Parameters request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
+     - Parameter request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
      - Returns: The new resumable session data task.
      */
     func resumableDataTask(with request: URLRequest) -> URLSessionResumableDataTask {
@@ -34,8 +34,8 @@ public extension URLSession {
      
      This method is equivalent to the `resumableDataTask(withResumeData:completionHandler:)` with a nil completion handler. For detailed usage information, including ways to obtain a resume data object, see that method.
      
-     - Parameters request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
-     - Parameters resumeData: A resume data object that provides the data necessary to resume a download.
+     - Parameter request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
+     - Parameter resumeData: A resume data object that provides the data necessary to resume a download.
      - Returns: The new resumable session data task.
      */
     func resumableDataTask(withResumeData resumeData: URLSessionResumableDataTask.ResumableData, request: URLRequest) -> URLSessionResumableDataTask {
@@ -76,9 +76,9 @@ public extension URLSession {
      
      This method is equivalent to the `resumableDataTask(withResumeData:completionHandler:)` with a nil completion handler. For detailed usage information, including ways to obtain a resume data object, see that method.
      
-     - Parameters request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
-     - Parameters resumeData: A resume data object that provides the data necessary to resume a download.
-     - Parameters completionHandler: The completion handler to call when the load request is complete. This handler is executed on the delegate queue.
+     - Parameter request: A URL request object that provides request-specific information such as the URL, cache policy, request type, and body data or body stream.
+     - Parameter resumeData: A resume data object that provides the data necessary to resume a download.
+     - Parameter completionHandler: The completion handler to call when the load request is complete. This handler is executed on the delegate queue.
      If you pass nil, only the session delegate methods are called when the task completes, making this method equivalent to the dataTask(with:) method.
      This completion handler takes the following parameters:
      - data: The data returned by the server.

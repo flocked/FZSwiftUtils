@@ -13,7 +13,8 @@ public struct FileAttributes {
     
     /**
      Creates an object for accessing and modifying the attributes of the specified file.
-     - Parameters url: The url of the file.
+     
+     - Parameter url: The url of the file.
      - Returns: `FileAttribute` for the file.
      */
     public init(url: URL) throws {
@@ -24,8 +25,11 @@ public struct FileAttributes {
     
     /**
      Creates an object for accessing and modifying the attributes of the specified file.
-     - Parameters url: The url of the file.
-     - Parameters fileManager: The file manager.
+     
+     - Parameters:
+        - url: The url of the file.
+        - fileManager: The file manager.
+     
      - Returns: `FileAttribute` for the file.
      */
     internal init(url: URL, fileManager: FileManager) throws {

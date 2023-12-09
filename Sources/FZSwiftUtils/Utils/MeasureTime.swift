@@ -13,8 +13,8 @@ import Foundation
 public class MeasureTime {
     /**
      Meassures the time executing a block and printing it's result.
-     - Parameters operation: The block to meassure.
-     - Parameters title: The title used for printing.
+     - Parameter operation: The block to meassure.
+     - Parameter title: The title used for printing.
      */
     @discardableResult
     public class func printTimeElapsed(title: String, running operation: () -> Void) -> TimeDuration {
@@ -27,7 +27,7 @@ public class MeasureTime {
 
     /**
      Meassures the time executing a block.
-     - Parameters operation: The block to meassure.
+     - Parameter operation: The block to meassure.
      */
     public class func timeElapsed(running operation: () -> Void) -> TimeDuration {
         let startTime = CFAbsoluteTimeGetCurrent()

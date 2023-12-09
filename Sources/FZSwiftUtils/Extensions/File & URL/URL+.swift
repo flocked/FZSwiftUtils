@@ -45,7 +45,7 @@ public extension URL {
     /**
      The components of the url.
      
-     - Parameters resolve: Controls whether the URL should be resolved against its base URL before parsing. If true, and if the url parameter contains a relative URL, the original URL is resolved against its base URL before parsing by calling the absoluteURL method. Otherwise, the string portion is used by itself.
+     - Parameter resolve: Controls whether the URL should be resolved against its base URL before parsing. If true, and if the url parameter contains a relative URL, the original URL is resolved against its base URL before parsing by calling the absoluteURL method. Otherwise, the string portion is used by itself.
      - Returns: A `URLComponents` for the url.
      */
     func urlComponents(resolvingAgainstBase resolve: Bool = false) -> URLComponents? {

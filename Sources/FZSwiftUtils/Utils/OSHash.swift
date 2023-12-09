@@ -43,7 +43,7 @@ public extension OSHash {
     /**
      Creates a OpenSubtitle hash for the file path.
      
-     - Parameters path: The path to the file for calculating the hash.
+     - Parameter path: The path to the file for calculating the hash.
      
      - Returns: The OpenSubtitle hash.
      
@@ -56,7 +56,7 @@ public extension OSHash {
     /**
      Creates a OpenSubtitle hash for the file at the url.
      
-     - Parameters url: The url to the file for calculating the hash.
+     - Parameter url: The url to the file for calculating the hash.
      
      - Returns: The OpenSubtitle hash.
      
@@ -83,7 +83,7 @@ public extension OSHash {
     /**
      Creates a OpenSubtitle hash for the data.
      
-     - Parameters data: The data for calculating the hash.
+     - Parameter data: The data for calculating the hash.
      
      - Returns: The OpenSubtitle hash.
      

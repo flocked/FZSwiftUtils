@@ -156,7 +156,7 @@ public extension URL {
     /**
      Iterate files with the specified enumeration options.
      
-     - Parameters options: Options for enumerating the contents of directories.
+     - Parameter options: Options for enumerating the contents of directories.
      */
     func iterateFiles(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         return iterate(predicate: {
@@ -167,7 +167,7 @@ public extension URL {
     /**
      Iterate files with the specified enumeration options.
      
-     - Parameters options: Options for enumerating the contents of directories.
+     - Parameter options: Options for enumerating the contents of directories.
      */
     func iterateFiles(_ options: DirectoryEnumerationOption...) -> URLSequence {
         return iterateFiles(options: Set(options))
@@ -256,7 +256,7 @@ public extension URL {
     /**
      Iterate directories with the specified enumeration options.
      
-     - Parameters options: Options for enumerating the contents of directories.
+     - Parameter options: Options for enumerating the contents of directories.
      */
     func iterateDirectories(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         return iterate(predicate: { $0.isDirectory == true }, options: options)
@@ -265,7 +265,7 @@ public extension URL {
     /**
      Iterate directories with the specified enumeration options.
      
-     - Parameters options: Options for enumerating the contents of directories.
+     - Parameter options: Options for enumerating the contents of directories.
      */
     func iterateDirectories(_ options: DirectoryEnumerationOption...) -> URLSequence {
         iterateDirectories(options: Set(options))

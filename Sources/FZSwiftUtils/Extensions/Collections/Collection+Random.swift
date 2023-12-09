@@ -11,7 +11,7 @@ public extension Collection {
     /**
      Returns an array of random elements of the collection.
      
-     - Parameters amount: The amount of random elements.
+     - Parameter amount: The amount of random elements.
      */
     func randomElements(amount: Int) -> [Element] {
         var randomElements = [Element]()

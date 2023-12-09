@@ -19,8 +19,9 @@ public extension Sequence {
     /**
     An array of the elements sorted by the given predicate.
      
-     - Parameters compare: The closure to compare the elements.
-     - Parameters order: The order of the sorting.
+     - Parameters:
+        - compare: The closure to compare the elements.
+        - order: The order of the sorting.
      */
     func sorted<Value>(by compare: ((Element) -> Value), _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
@@ -33,8 +34,9 @@ public extension Sequence {
     /**
     An array of the elements sorted by the given predicate.
      
-     - Parameters compare: The closure to compare the elements.
-     - Parameters order: The order of the sorting.
+     - Parameters:
+        - compare: The closure to compare the elements.
+        - order: The order of the sorting.
      */
     func sorted<Value>(by compare: ((Element) -> Value?), _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
@@ -47,8 +49,9 @@ public extension Sequence {
     /**
     An array of the elements sorted by the given keypath.
      
-     - Parameters keyPath: The keypath to compare the elements.
-     - Parameters order: The order of the sorting.
+     - Parameters:
+        - keyPath: The keypath to compare the elements.
+        - order: The order of the sorting.
      */
     func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
@@ -61,8 +64,9 @@ public extension Sequence {
     /**
     An array of the elements sorted by the given keypath.
      
-     - Parameters compare: The keypath to compare the elements.
-     - Parameters order: The order of the sorting.
+     - Parameters:
+        - compare: The keypath to compare the elements.
+        - order: The order of the sorting.
      */
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order : SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         if order == .ascending {
@@ -118,7 +122,7 @@ public extension Sequence {
      images.sorted(by: [ascending(\.pixelSize), descending(\.creationDate)]
      ```
           
-     - Parameters keyPaths: The keypaths used for sorting the elements.
+     - Parameter keyPaths: The keypaths used for sorting the elements.
      - Note:Provided keykaths that don't conform to Comparable will be ingnored when sorting.
      */
     func sorted(by keyPaths: [PartialSortingKeyPath<Element>]) -> [Element] {
@@ -150,7 +154,7 @@ public extension Sequence {
      images.sorted(by: [ascending(\.pixelSize), descending(\.creationDate)]
      ```
           
-     - Parameters keyPaths: The keypaths used for sorting the elements.
+     - Parameter keyPaths: The keypaths used for sorting the elements.
      - Note:Provided keykaths that don't conform to Comparable will be ingnored when sorting.
      */
     func sorted(by keyPaths: PartialSortingKeyPath<Element>...) -> [Element] {

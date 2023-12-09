@@ -29,7 +29,8 @@ public extension Sequence where Element: Identifiable {
 public extension Collection where Element: Identifiable {
     /**
      Returns the first index of the specified element.
-     - Parameters element: The element for returning the index.
+     
+     - Parameter element: The element for returning the index.
      - Returns: The first index of the element, or nil if no index could be found.
 
      */
@@ -39,7 +40,8 @@ public extension Collection where Element: Identifiable {
 
     /**
      Returns the indexes of the specified elements.
-     - Parameters elements: The elements for returning the indexes.
+     
+     - Parameter elements: The elements for returning the indexes.
      - Returns: An array of indexes for the specified elements.
 
      */

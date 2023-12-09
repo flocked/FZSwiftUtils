@@ -9,7 +9,7 @@ public extension Dictionary {
     /**
      The dictionary merged with another dictionary.
      
-     - Parameters dictionary: The dictionary for merging.
+     - Parameter dictionary: The dictionary for merging.
      - Returns: A dictionary with merged values.
      */
     func merged(_ dictionary: Self) -> Self {
@@ -19,7 +19,7 @@ public extension Dictionary {
     /**
      Merges the dictionary with another dictionary.
      
-     - Parameters dictionary: The dictionary for merging.
+     - Parameter dictionary: The dictionary for merging.
      */
     mutating func merge(_ dictionary: Self) {
         self += dictionary

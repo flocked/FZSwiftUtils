@@ -166,7 +166,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified nanoseconds.
      
-     - Parameters value: The nanoseconds.
+     - Parameter value: The nanoseconds.
      - Returns: `TimeDuration`with the specified nanoseconds.
      */
     static func nanoseconds(_ value: Double) -> Self { return Self(nanoseconds: value) }
@@ -174,7 +174,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified milliseconds.
      
-     - Parameters value: The milliseconds.
+     - Parameter value: The milliseconds.
      - Returns: `TimeDuration`with the specified milliseconds.
      */
     static func milliseconds(_ value: Double) -> Self { Self(milliseconds: value) }
@@ -182,7 +182,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified seconds.
      
-     - Parameters value: The seconds.
+     - Parameter value: The seconds.
      - Returns: `TimeDuration`with the specified seconds.
      */
     static func seconds(_ value: Double) -> Self { Self(seconds: value) }
@@ -190,7 +190,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified minutes.
      
-     - Parameters value: The minutes.
+     - Parameter value: The minutes.
      - Returns: `TimeDuration`with the specified minutes.
      */
     static func minutes(_ value: Double) -> Self { Self(minutes: value) }
@@ -198,7 +198,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified hours.
      
-     - Parameters value: The hours.
+     - Parameter value: The hours.
      - Returns: `TimeDuration`with the specified hours.
      */
     static func hours(_ value: Double) -> Self { Self(hours: value) }
@@ -206,7 +206,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified days.
      
-     - Parameters value: The days.
+     - Parameter value: The days.
      - Returns: `TimeDuration`with the specified days.
      */
     static func days(_ value: Double) -> Self { Self(days: value) }
@@ -214,7 +214,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified weeks.
      
-     - Parameters value: The weeks.
+     - Parameter value: The weeks.
      - Returns: `TimeDuration`with the specified weeks.
      */
     static func weeks(_ value: Double) -> Self { Self(weeks: value) }
@@ -222,7 +222,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified months.
      
-     - Parameters value: The months.
+     - Parameter value: The months.
      - Returns: `TimeDuration`with the specified months.
      */
     static func months(_ value: Double) -> Self { Self(months: value) }
@@ -230,7 +230,7 @@ public extension TimeDuration {
     /**
      Returns a time duration with the specified years.
      
-     - Parameters value: The years.
+     - Parameter value: The years.
      - Returns: `TimeDuration`with the specified years.
      */
     static func years(_ value: Double) -> Self { Self(years: value) }
@@ -252,7 +252,7 @@ public extension Date {
     /**
      Returns the interval between this date and another given date.
      
-     - Parameters another: The date with which to compare this one.
+     - Parameter another: The date with which to compare this one.
      - Returns: The interval between this date and the another date. If this date is earlier than the other date, the return value is a time duration with 0 seconds.
      
      */
@@ -537,6 +537,31 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
         lhs.seconds / rhs.seconds
     }
 }
+
+public extension Collection where Element == TimeDuration {
+    /**
+      The average duration of all durations in the collection.
+      
+      - Returns: A `TimeDuration` instance representing the average duration. If the collection is empty, it returns `zerp`.
+      */
+    func average() -> TimeDuration {
+        guard !isEmpty else { return .zero }
+        let average = compactMap { $0.seconds }.average().rounded(.down)
+        return TimeDuration(average)
+    }
+
+    /**
+     The total duration of all durations in the collection.
+     
+     - Returns: A `TimeDuration` instance representing the total duration. If the collection is empty, it returns `zero`.
+     */
+    func sum() -> TimeDuration {
+        guard !isEmpty else { return .zero }
+        let sum = compactMap { $0.seconds }.sum()
+        return TimeDuration(sum)
+    }
+}
+
 
 public extension Timer {
     /**

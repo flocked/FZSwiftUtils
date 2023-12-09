@@ -22,7 +22,8 @@ public extension Sequence {
 
     /**
      Returns an array of all elements to the specified completion handler
-     - Parameters completion: The handler which gets called when all elements got collected.
+     
+     - Parameter completion: The handler which gets called when all elements got collected.
      */
     func collect(completion: @escaping ([Element]) -> ()) {
         DispatchQueue.global(qos: .userInitiated).async {
@@ -42,7 +43,8 @@ public extension AsyncSequence {
 
     /**
      Returns an array of all elements to the specified completion handler
-     - Parameters completion: The handler which gets called when all elements got collected.
+     
+     - Parameter completion: The handler which gets called when all elements got collected.
      */
     func collect(completion: @escaping ([Element]) -> Void) throws {
         Task {

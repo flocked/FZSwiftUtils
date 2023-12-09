@@ -12,7 +12,7 @@ public extension Comparable {
     /**
      Returns a Boolean value indicating whether the value is less than another value.
      
-     - Parameters other: A value conforming to Comparable.
+     - Parameter other: A value conforming to Comparable.
      - Returns: Returns true if the value is less than the other value; or false if it isn't or if the other value isn't the same Comparable type.
      */
     func isLessThan(_ other: any Comparable) -> Bool {
@@ -25,7 +25,7 @@ public extension Comparable {
     /**
      Returns a Boolean value indicating whether the value is less than another value.
      
-     - Parameters other: A value conforming to Comparable.
+     - Parameter other: A value conforming to Comparable.
      - Returns: Returns true if the value is less than the other value; or false if it isn't or if the other value isn't the same Comparable type.
      */
     func isLessThan(_ other: (any Comparable)?) -> Bool {
@@ -38,7 +38,7 @@ public extension Comparable {
     /**
      Returns a Boolean value indicating whether the value is less or equal to another value.
      
-     - Parameters other: A value conforming to Comparable.
+     - Parameter other: A value conforming to Comparable.
      - Returns: Returns true if the value is less than or equal to the other value; or false if it isn't or if the other value isn't the same Comparable type.
      */
     func isLessThanOrEqual(_ other: any Comparable) -> Bool {
@@ -51,7 +51,7 @@ public extension Comparable {
     /**
      Returns a Boolean value indicating whether the value is less or equal to another value.
      
-     - Parameters other: A value conforming to Comparable.
+     - Parameter other: A value conforming to Comparable.
      - Returns: Returns true if the value is less than or equal to the other value; or false if it isn't or if the other value isn't the same Comparable type.
      */
     func isLessThanOrEqual(_ other: (any Comparable)?) -> Bool {
@@ -103,7 +103,7 @@ public extension PartialKeyPath {
     /**
      Returns a Boolean value indicating whether the keypath's value is less than another keypath's value.
      
-     - Parameters keyPath: The keypath for comparing it's value.
+     - Parameter keyPath: The keypath for comparing it's value.
      - Returns: Returns true if the keypath's value is less than the other keypath's value; or false if it isn't or if the other keypath's value isn't the same Comparable type.
      */
     func isLessThan(_ keyPath: PartialKeyPath<Root>) -> Bool {
@@ -115,7 +115,7 @@ public extension PartialKeyPath {
     /**
      Returns a Boolean value indicating whether the keypath's value is less than or equal to another keypath's value.
      
-     - Parameters keyPath: The keypath for comparing it's value.
+     - Parameter keyPath: The keypath for comparing it's value.
      - Returns: Returns true if the keypath's value is less than or equal to the other keypath's value; or false if it isn't or if the other keypath's value isn't the same Comparable type.
      */
     func isLessThanOrEqual(_ keyPath: PartialKeyPath<Root>) -> Bool {

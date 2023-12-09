@@ -17,7 +17,7 @@ public struct DataSize: Hashable, Sendable {
       
       - Parameters:
         - bytes: The number of bytes.
-        - countStyle: The count style for formatting the data size. Default is `.file`.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
       */
     public init<Value: BinaryInteger>(_ bytes: Value, countStyle: CountStyle = .file) {
         self.bytes = Int(bytes)
@@ -33,7 +33,7 @@ public struct DataSize: Hashable, Sendable {
        - megabytes: The size in megabytes. Default is 0.
        - kilobytes: The size in kilobytes. Default is 0.
        - bytes: The size in bytes. Default is 0.
-       - countStyle: The count style for formatting the data size. Default is `.file`.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
      */
     public init(petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
@@ -99,7 +99,10 @@ public extension DataSize {
     /**
      Returns a data size with the specified bytes.
      
-     - Parameters value: The bytes.
+     - Parameters:
+        - value: The bytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+     
      - Returns: `DataSize`with the specified bytes.
      */
     static func bytes(_ value: Int, countStyle: CountStyle = .file) -> Self { Self(bytes: value, countStyle: countStyle) }
@@ -107,7 +110,10 @@ public extension DataSize {
     /**
      Returns a data size with the specified kilobytes.
      
-     - Parameters value: The kilobytes.
+     - Parameters:
+        - value: The kilobytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
      - Returns: `DataSize`with the specified kilobytes.
      */
     static func kilobytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(kilobytes: value, countStyle: countStyle) }
@@ -115,7 +121,10 @@ public extension DataSize {
     /**
      Returns a data size with the specified megabytes.
      
-     - Parameters value: The megabytes.
+     - Parameters:
+        - value: The megabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
      - Returns: `DataSize`with the specified megabytes.
      */
     static func megabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(megabytes: value, countStyle: countStyle) }
@@ -123,7 +132,10 @@ public extension DataSize {
     /**
      Returns a data size with the specified gigabytes.
      
-     - Parameters value: The gigabytes.
+     - Parameters:
+        - value: The gigabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
      - Returns: `DataSize`with the specified gigabytes.
      */
     static func gigabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(gigabytes: value, countStyle: countStyle) }
@@ -131,7 +143,10 @@ public extension DataSize {
     /**
      Returns a data size with the specified terabytes.
      
-     - Parameters value: The terabytes.
+     - Parameters:
+        - value: The terabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
      - Returns: `DataSize`with the specified terabytes.
      */
     static func terabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(terabytes: value, countStyle: countStyle) }
@@ -139,7 +154,10 @@ public extension DataSize {
     /**
      Returns a data size with the specified petabytes.
      
-     - Parameters value: The petabytes.
+     - Parameters:
+        - value: The petabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
      - Returns: `DataSize`with the specified petabytes.
      */
     static func petabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(petabytes: value, countStyle: countStyle) }
@@ -229,9 +247,9 @@ public extension DataSize {
 
 public extension Collection where Element == DataSize {
     /**
-      The average size of the data sizes in the collection.
+      The average size of all data sizes in the collection.
       
-      - Returns: A `DataSize` instance representing the average size. If the collection is empty, returns a `DataSize` instance with 0 bytes.
+      - Returns: A `DataSize` instance representing the average size. If the collection is empty, it returns `zerp`.
       */
     func average() -> DataSize {
         guard !isEmpty else { return .zero }
@@ -240,9 +258,9 @@ public extension Collection where Element == DataSize {
     }
 
     /**
-     The total size of the data sizes in the collection.
+     The total size of all data sizes in the collection.
      
-     - Returns: A `DataSize` instance representing the total size. If the collection is empty, returns a `DataSize` instance with 0 bytes.
+     - Returns: A `DataSize` instance representing the total size. If the collection is empty, it returns `zero`.
      */
     func sum() -> DataSize {
         guard !isEmpty else { return .zero }
@@ -307,7 +325,7 @@ extension DataSize: LosslessStringConvertible {
     }
 }
 
-extension DataSize: Comparable {
+extension DataSize: Comparable, AdditiveArithmetic {
     public static func + (lhs: Self, rhs: Self) -> Self {
         Self(lhs.bytes + rhs.bytes, countStyle: lhs.countStyle)
     }
@@ -342,41 +360,3 @@ extension DataSize: Comparable {
         return lhs.bytes >= rhs.bytes
     }
 }
-
-/*
- /*
-  public static func +(lhs: Self, rhs: Int) -> Self {
-      Self(lhs.bytes+rhs, countStyle: lhs.countStyle)
-  }
-
-  public static func +=(lhs: inout Self, rhs: Int) {
-      lhs = lhs + rhs
-  }
-
-  public static func -(lhs: Self, rhs: Int) -> Self {
-      var bytes = lhs.bytes-rhs
-      if (bytes < 0) { bytes = 0 }
-      return Self(bytes, countStyle: lhs.countStyle)
-  }
-
-  public static func -=(lhs: inout Self, rhs: Int) {
-      lhs = lhs - rhs
-  }
-
-  public static func <(lhs: Self, rhs: Int) -> Bool {
-      return lhs.bytes < rhs
-  }
-
-  public static func <=(lhs: Self, rhs: Int) -> Bool {
-      return lhs.bytes <= rhs
-  }
-
-  public static func >(lhs: Self, rhs: Int) -> Bool {
-      return lhs.bytes > rhs
-  }
-
-  public static func >=(lhs: Self, rhs: Int) -> Bool {
-      return lhs.bytes >= rhs
-  }
-   */
- */

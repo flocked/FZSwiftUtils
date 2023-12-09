@@ -20,7 +20,7 @@ public extension Collection where Index == Int {
      array.chunked(size: 2) // [[1,2], [3,4], [5,6], [7,8], [9]]
      ```
      
-     - Parameters size: The size of the chunk.
+     - Parameter size: The size of the chunk.
      - Returns: Returns an array of chunks.
      */
     func chunked(size: Int) -> [[Element]] {
@@ -40,7 +40,7 @@ public extension Collection where Index == Int {
      array.chunked(amount: 2) // [[1,2,3,4], [5,6,7,8,9]]
      ```
      
-     - Parameters amount: The amount of chunks.
+     - Parameter amount: The amount of chunks.
      - Returns: Returns an array of chunks.
      */
     func chunked(amount: Int) -> [[Element]] {
@@ -67,23 +67,28 @@ public extension Collection where Index == Int {
     }
 
     /** Splits the collection into arrays for each specified unique keypath value.
-     - Parameters keyPath: The keyPath of the value.
+     
+     - Parameter keyPath: The keyPath of the value.
      - Returns: Returns an array of chunks for each unique keypath value.
      */
     func chunked<C: Comparable>(by keyPath: KeyPath<Element, C?>, ascending: Bool = true) -> [(C, [Element])] {
         return chunked(by: { $0[keyPath: keyPath] }, ascending: ascending)
     }
 
-    /** Splits the collection into arrays for each specified unique keypath value.
-     - Parameters keyPath: The keyPath of the value.
+    /** 
+     Splits the collection into arrays for each specified unique keypath value.
+     
+     - Parameter keyPath: The keyPath of the value.
      - Returns: Returns an array of chunks for each unique keypath value.
      */
     func chunked<C: Comparable>(by keyPath: KeyPath<Element, C>, ascending: Bool = true) -> [(C, [Element])] {
         return chunked(by: { $0[keyPath: keyPath] }, ascending: ascending)
     }
 
-    /** Splits the collection into arrays for each specified unique comparison value.
-     - Parameters comparison: A comparison handler returning a comparable value.
+    /** 
+     Splits the collection into arrays for each specified unique comparison value.
+     
+     - Parameter comparison: A comparison handler returning a comparable value.
      - Returns: Returns an array of chunks for each unique comparison value.
      */
     func chunked<C: Comparable>(by comparison: (Element) -> C?, ascending: Bool = true) -> [(C, [Element])] {

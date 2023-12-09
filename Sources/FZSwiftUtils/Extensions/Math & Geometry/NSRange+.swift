@@ -51,7 +51,7 @@ public extension NSRange {
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
-     - Parameters range: The range to check for containment.
+     - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
     func contains(_ range: NSRange) -> Bool {
@@ -60,10 +60,12 @@ public extension NSRange {
         return range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
 
-    /// Return a copied NSRange but whose location is shifted toward the given `offset`.
-    ///
-    /// - Parameter offset: The offset to shift.
-    /// - Returns: A new NSRange.
+    /**
+     Return a copied NSRange but whose location is shifted toward the given `offset`.
+     
+     - Parameter offset: The offset to shift.
+     - Returns: A new NSRange.
+     */
     func shifted(by offset: Int) -> NSRange {
         NSRange(location: location + offset, length: length)
     }

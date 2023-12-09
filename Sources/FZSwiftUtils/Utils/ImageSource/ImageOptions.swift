@@ -101,7 +101,7 @@ public extension ImageSource {
 
         /**
          Returns new thumbnail options with the specified maximum thumbnail size.
-         - Parameters maxSize: The maximum size for the thumbnails.
+         - Parameter maxSize: The maximum size for the thumbnails.
          - Returns:New thumbnail options.
          */
         public static func maxSize(_ maxSize: CGSize) -> ThumbnailOptions {
@@ -112,7 +112,7 @@ public extension ImageSource {
 
         /**
          Returns new thumbnail options with the specified maximum thumbnail size.
-         - Parameters maxSize: The maximum size for the thumbnails.
+         - Parameter maxSize: The maximum size for the thumbnails.
          - Returns:New thumbnail options.
          */
         public static func maxSize(_ maxSize: Int) -> ThumbnailOptions {
@@ -123,7 +123,7 @@ public extension ImageSource {
 
         /**
          Returns new thumbnail options with the specified subsample factor.
-         - Parameters subsampleFactor: The factor by which to scale down returned images.
+         - Parameter subsampleFactor: The factor by which to scale down returned images.
          - Returns:New thumbnail options.
          */
         public static func subsampleFactor(_ subsampleFactor: SubsampleFactor) -> ThumbnailOptions {

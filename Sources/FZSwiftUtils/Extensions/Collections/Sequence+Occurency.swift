@@ -32,7 +32,7 @@ public extension Sequence where Element: Comparable & Hashable {
     /**
      An array of elements sorted by number of occurences.
      
-     - Parameters order: The order of the sorting.
+     - Parameter order: The order of the sorting.
      */
     func sortedByOccurences(order: SequenceSortOrder = .ascending) -> [Element] {
         let numberOfOccurences = self.numberOfOccurencesByElement()

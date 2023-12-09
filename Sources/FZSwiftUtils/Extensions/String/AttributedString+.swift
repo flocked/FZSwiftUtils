@@ -164,7 +164,7 @@ public extension AttributedSubstring {
 public extension Collection where Element == AttributedString {
     /**
      Returns a new attributed string by concatenating the elements of the sequence, adding the given separator between each element.
-     - Parameters separator: An attributed string to insert between each of the elements in this sequence.
+     - Parameter separator: An attributed string to insert between each of the elements in this sequence.
      - Returns: A single, concatenated attributed string.
      */
     func joined(separator: AttributedString) -> AttributedString {
@@ -177,7 +177,7 @@ public extension Collection where Element == AttributedString {
 
     /**
      Returns a new attributed string by concatenating the elements of the sequence, adding the given separator between each element.
-     - Parameters separator: A string to insert between each of the elements in this sequence. The default separator is an empty string.
+     - Parameter separator: A string to insert between each of the elements in this sequence. The default separator is an empty string.
      - Returns: A single, concatenated attributed string.
      */
     func joined(separator: String = "") -> AttributedString {

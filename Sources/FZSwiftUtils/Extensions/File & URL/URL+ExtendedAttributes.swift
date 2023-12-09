@@ -28,7 +28,8 @@ public extension URL {
         
         /**
          Creates an extended attributes object from the specified url.
-         - Parameters url: The url of the file.
+         
+         - Parameter url: The url of the file.
          - Returns: An object for reading and writing extended attributes of the file.
          */
         public init(_ url: URL) {
@@ -73,8 +74,10 @@ public extension URL {
         /**
          Sets an attribute to a value.
          
-         - Parameters value: The value, or nil if the attribute should be removed.
-         - Parameters key: The name of the attribute.
+         - Parameters:
+            - value: The value, or nil if the attribute should be removed.
+            - key: The name of the attribute.
+         
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws where T: Codable {
@@ -89,8 +92,10 @@ public extension URL {
         /**
          Sets an attribute to a value.
          
-         - Parameters value: The value, or nil if the attribute should be removed.
-         - Parameters key: The name of the attribute.
+         - Parameters:
+            - value: The value, or nil if the attribute should be removed.
+            - key: The name of the attribute.
+         
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
@@ -105,8 +110,7 @@ public extension URL {
         /**
          The value of an key.
          
-         - Parameters key: The name of the attribute.
-         
+         - Parameter key: The name of the attribute.
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
         public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
@@ -117,8 +121,7 @@ public extension URL {
         /**
          The value of an key.
          
-         - Parameters key: The name of the attribute.
-         
+         - Parameter key: The name of the attribute.
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
         public func extendedAttribute<T>(for key: Key) -> T? {
@@ -191,8 +194,7 @@ public extension URL {
         /**
          Removes an attribute.
          
-         - Parameters key: The name of the attribute.
-         
+         - Parameter key: The name of the attribute.
          - Throws: Throws if the value couldn't be removed.
          */
         public func removeExtendedAttribute(_ key: Key) throws {
@@ -205,9 +207,8 @@ public extension URL {
         /**
          A bool indicating whether the attribute with an name exists.
          
-         - Parameters key: The name of the attribute.
-         
-         - Returns: True if the attribute exists, or false if it isn't.
+         - Parameter key: The name of the attribute.
+         - Returns: `true` if the attribute exists, or `false if it isn't.
          */
         public func hasExtendedAttribute(_ key: Key) -> Bool {
             let result = url.withUnsafeFileSystemRepresentation {

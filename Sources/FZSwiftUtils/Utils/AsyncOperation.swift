@@ -144,7 +144,7 @@ open class AsyncBlockOperation: AsyncOperation {
 
     /**
      Initalize a new operation with the specified handler.
-     - Parameters closure: The handler to execute.
+     - Parameter closure: The handler to execute.
      - Returns: A new `AsyncBlockOperation` object.
      */
     public init(closure: @escaping ((AsyncBlockOperation) -> ())) {

@@ -34,7 +34,8 @@ public class URLResources {
     
     /**
      Creates an object for accessing and modifying properties of the resource at the specified url.
-     - Parameters url: The url to the resource.
+     
+     - Parameter url: The url to the resource.
      - Returns: `URLResources` for the specified resource.
      */
     public init(url: URL) {
