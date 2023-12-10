@@ -17,11 +17,9 @@ public extension MutableCollection {
 }
 
 public extension Collection {
-    subscript(safe safeIndex: Index) -> Element? {
-        if isEmpty == false, safeIndex < count {
-            return self[safeIndex]
-        }
-        return nil
+    subscript(safe index: Index) -> Element? {
+        guard !isEmpty, index >= startIndex, index < count else { return nil }
+        return self[index]
     }
     
     subscript(indexes: [Index]) -> [Element] {
@@ -30,17 +28,14 @@ public extension Collection {
 }
 
 public extension MutableCollection {
-    subscript(safe safeIndex: Index) -> Element? {
+    subscript(safe index: Index) -> Element? {
         get {
-            if isEmpty == false, safeIndex < count {
-                return self[safeIndex]
-            }
-            return nil
+            guard !isEmpty, index >= startIndex, index < count else { return nil }
+            return self[index]
         }
         set {
-            if isEmpty == false, safeIndex < count, let newValue = newValue {
-                self[safeIndex] = newValue
-            }
+            guard !isEmpty, index >= startIndex, index < count, let newValue = newValue else { return }
+            self[index] = newValue
         }
     }
 }
@@ -110,15 +105,47 @@ public extension Collection {
 
 public extension Collection where Index == Int {
     subscript(safe range: Range<Index>) -> [Element] {
+        guard !self.isEmpty else { return [] }
+        let range = range.clamped(to: 0..<count)
         return range.compactMap({ self[safe: $0] })
     }
     
     subscript(safe range: ClosedRange<Int>) -> [Element] {
+        guard !self.isEmpty else { return [] }
+        let range = range.clamped(to: 0...count-1)
         return range.compactMap({ self[safe: $0] })
     }
 
     subscript(indexes: IndexSet) -> [Element] {
         return indexes.compactMap { self[safe: $0] }
+    }
+}
+
+public extension RangeReplaceableCollection where Index == Int {
+    subscript(safe range: Range<Index>) -> [Element] {
+        get {
+            guard !self.isEmpty else { return [] }
+            let range = range.clamped(to: 0..<count)
+            return range.compactMap({ self[safe: $0] })
+        }
+        set {
+            guard !self.isEmpty else { return }
+            let range = range.clamped(to: 0..<count)
+            self.replaceSubrange(range, with: newValue)
+        }
+    }
+    
+    subscript(safe range: ClosedRange<Int>) -> [Element] {
+        get {
+            guard !self.isEmpty else { return [] }
+            let range = range.clamped(to: 0...count-1)
+            return range.compactMap({ self[safe: $0] })
+        }
+        set {
+            guard !self.isEmpty else { return }
+            let range = range.clamped(to: 0...count-1)
+            self.replaceSubrange(range, with: newValue)
+        }
     }
 }
 
