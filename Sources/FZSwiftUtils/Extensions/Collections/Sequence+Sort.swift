@@ -13,6 +13,21 @@ public enum SequenceSortOrder: Int, Hashable {
     case ascending
     /// A descending sorting order.
     case descending
+  
+    /// An ascending sorting order.
+    static let oldestFirst = SequenceSortOrder.ascending
+    /// A descending sorting order.
+    static let newestFirst = SequenceSortOrder.descending
+    
+    /// An ascending sorting order.
+    static let smallestFirst = SequenceSortOrder.ascending
+    /// A descending sorting order.
+    static let largestFirst = SequenceSortOrder.descending
+    
+    /// An ascending sorting order.
+    static let shortestFirst = SequenceSortOrder.ascending
+    /// A descending sorting order.
+    static let longestFirst = SequenceSortOrder.descending
 }
 
 public extension Sequence {
