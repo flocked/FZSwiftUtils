@@ -326,8 +326,13 @@ public extension URLResources {
     var tags: [String] {
         get { (try? value(for: \.tagNames)) ?? [] }
         set {
-            let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
-            url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+            do {
+                try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
+            } catch {
+                debugPrint(error)
+                let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
+                url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+            }
         }
     }
 
