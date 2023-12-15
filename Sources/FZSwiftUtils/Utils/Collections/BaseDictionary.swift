@@ -12,6 +12,7 @@ import SwiftUI
 public struct BaseDictionary< Key: Hashable, Value>: Collection, Sequence, ExpressibleByDictionaryLiteral {
     public typealias Element = (key: Key, value: Value)
 
+    var dictionary: [Key:Value]
     
     public init(dictionaryLiteral elements: (Value, Key)...) {
         self.dictionary = [:]
@@ -44,131 +45,108 @@ public struct BaseDictionary< Key: Hashable, Value>: Collection, Sequence, Expre
         self.dictionary = try .init(grouping: values, by: keyForValue)
     }
 
-    private var dictionary: [Key:Value]
-}
-
-public extension BaseDictionary {
-    mutating func edit(_ edit: @escaping (inout [Key:Value])->()) {
+    public mutating func edit(_ edit: @escaping (inout [Key:Value])->()) {
         edit(&self.dictionary)
     }
     
-    var startIndex: Dictionary<Key, Value>.Index {
-        return self.dictionary.startIndex
+    public var isEmpty: Bool {
+        self.dictionary.isEmpty
     }
     
-    var endIndex: Dictionary<Key, Value>.Index {
-        return self.dictionary.endIndex
+    public var count: Int {
+        self.dictionary.count
     }
     
-    var isEmpty: Bool {
-        return self.dictionary.isEmpty
-    }
-    
-    var count: Int {
-        return self.dictionary.count
-    }
-    
-    var capacity: Int {
+    public var capacity: Int {
         self.dictionary.capacity
     }
     
-    func forEach(_ body: ((key: Key, value: Value)) throws -> Void) rethrows {
-        try self.dictionary.forEach(body)
+    public var startIndex: Dictionary<Key, Value>.Index {
+        self.dictionary.startIndex
     }
     
-    func index(after i: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Index {
+    public var endIndex: Dictionary<Key, Value>.Index {
+        self.dictionary.endIndex
+    }
+    
+    public func index(after i: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Index {
         return self.dictionary.index(after: i)
     }
     
-    func index(forKey key: Key) -> Dictionary<Key, Value>.Index? {
-        return self.dictionary.index(forKey: key)
+    public func index(forKey key: Key) -> Dictionary<Key, Value>.Index? {
+        self.dictionary.index(forKey: key)
     }
     
-    subscript(position: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
+    public subscript(position: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
         self.dictionary[position]
     }
-
-    func filter(_ isIncluded: ((_ key: Key, _ value: Value) throws -> Bool)) rethrows -> [Key: Value] {
-        return try self.dictionary.filter(isIncluded)
+    
+    public subscript(key: Key) -> Value? {
+        set(newValue) { dictionary[key] = newValue }
+        get { dictionary[key] }
     }
     
-    func map(_ transform: ((_ key: Key, _ value: Value) throws -> Value)) rethrows -> [Value] {
-        return try self.dictionary.map(transform)
+    public subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { dictionary[key, default: defaultValue()] }
+        set { dictionary[key, default: defaultValue()] = newValue }
     }
     
-    var keys: [Key] {
+    public var keys: [Key] {
         Array(self.dictionary.keys)
     }
     
-    var values: [Value] {
+    public var values: [Value] {
         Array(self.dictionary.values)
     }
-
-    subscript(key: Key) -> Value? {
-        set(newValue) {
-            self.dictionary[key] = newValue
-        }
-        get {
-            return self.dictionary[key]
-        }
+    
+    public var first: BaseDictionary.Element? {
+        dictionary.first
     }
     
-    subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
-        get { self.dictionary[key, default: defaultValue()] }
-        set { self.dictionary[key, default: defaultValue()] = newValue }
-    }
-    
-    mutating func removeValue(forKey key: Key) {
+    public mutating func removeValue(forKey key: Key) {
         self.dictionary.removeValue(forKey: key)
     }
 
-    mutating func removeAll(keepingCapacity: Bool = false) {
+    public mutating func removeAll(keepingCapacity: Bool = false) {
         self.dictionary.removeAll(keepingCapacity: keepingCapacity)
     }
     
     @discardableResult
-    mutating func remove(at index: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
+    public mutating func remove(at index: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
         self.dictionary.remove(at: index)
     }
     
-    var first: BaseDictionary.Element? {
-        self.dictionary.first
-    }
-    
-    func randomElement() -> Self.Element? {
-        self.dictionary.randomElement()
-    }
-    func randomElement<T>(using generator: inout T) -> Self.Element? where T : RandomNumberGenerator {
-        self.dictionary.randomElement(using: &generator)
-    }
-    
     @discardableResult
-    mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
+    public mutating func updateValue(_ value: Value, forKey key: Key) -> Value? {
         dictionary.updateValue(value, forKey: key)
     }
     
-    mutating func merge(_ other: [Key : Value], uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows {
+    public mutating func merge(_ other: [Key : Value], uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows {
         try dictionary.merge(other, uniquingKeysWith: combine)
     }
     
-    mutating func merge<S>(_ other: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows where S : Sequence, S.Element == (Key, Value) {
+    public mutating func merge<S>(_ other: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows where S : Sequence, S.Element == (Key, Value) {
         try dictionary.merge(other, uniquingKeysWith: combine)
     }
     
-    func merging(_ other: [Key : Value], uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Key : Value] {
+    public func merging(_ other: [Key : Value], uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Key : Value] {
         try dictionary.merging(other, uniquingKeysWith: combine)
     }
     
-    func merging<S>(_ other: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Key : Value] where S : Sequence, S.Element == (Key, Value) {
+    public func merging<S>(_ other: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Key : Value] where S : Sequence, S.Element == (Key, Value) {
         try dictionary.merging(other, uniquingKeysWith: combine)
     }
     
-    mutating func reserveCapacity(_ minimumCapacity: Int) {
+    public mutating func reserveCapacity(_ minimumCapacity: Int) {
         dictionary.reserveCapacity(minimumCapacity)
     }
 }
 
 extension BaseDictionary: @unchecked Sendable where Element: Sendable { }
+extension BaseDictionary: Equatable where Value: Equatable { }
+extension BaseDictionary: Hashable where Value: Hashable { }
+extension BaseDictionary: Encodable where Key: Encodable, Value: Encodable { }
+extension BaseDictionary: Decodable where Key: Decodable, Value: Decodable { }
 
 extension BaseDictionary: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
@@ -183,12 +161,6 @@ extension BaseDictionary: CustomStringConvertible, CustomDebugStringConvertible,
         return dictionary.description
     }
 }
-
-extension BaseDictionary: Equatable where Value: Equatable { }
-extension BaseDictionary: Hashable where Value: Hashable { }
-
-extension BaseDictionary: Encodable where Key: Encodable, Value: Encodable { }
-extension BaseDictionary: Decodable where Key: Decodable, Value: Decodable { }
 
 extension BaseDictionary: CVarArg {
     public var _cVarArgEncoding: [Int] {

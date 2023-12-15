@@ -31,7 +31,6 @@ public extension NSRange {
         location == NSNotFound
     }
 
-
     /**
      A Boolean value indicating whether range constains the specified index.
      - Parameter index: The index to test.
@@ -39,13 +38,6 @@ public extension NSRange {
      */
     func contains(_ index: Int) -> Bool {
         index >= lowerBound && index <= upperBound
-    }
-
-    /// Return a boolean indicating whether the specified range intersects the receiver’s range.
-    ///
-    /// - Parameter other: The other range.
-    func intersects(_ other: NSRange) -> Bool {
-        intersection(other) != nil
     }
 
     /**
@@ -68,6 +60,16 @@ public extension NSRange {
      */
     func shifted(by offset: Int) -> NSRange {
         NSRange(location: location + offset, length: length)
+    }
+    
+    /**
+     Returns a Boolean value indicating whether this range and the given range contain an element in common.
+     
+     - Parameter other: A range to check for elements in common.
+     - Returns: `true` if this range and other have at least one element in common; otherwise, `false`.
+     */
+    func overlaps(_ other: NSRange) -> Bool {
+        intersection(other) != nil
     }
 }
 

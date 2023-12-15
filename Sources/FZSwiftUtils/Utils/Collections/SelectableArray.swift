@@ -6,8 +6,6 @@
 //
 
 import Foundation
-public protocol ABC {}
-public typealias Vecttt = SelectableArray<ABC>
 
 public struct SelectableArray<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
     internal var elements: [Element] = []

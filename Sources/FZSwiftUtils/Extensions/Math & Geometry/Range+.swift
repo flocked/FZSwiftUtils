@@ -119,14 +119,101 @@ public extension Range where Bound: BinaryInteger {
 
 public extension ClosedRange where Bound: BinaryInteger {
     /// The range as floating range.
-    func toFloating() -> ClosedRange<Float> {
+    var toFloating: ClosedRange<Float> {
         Float(self.lowerBound)...Float(self.upperBound)
     }
 }
 
 public extension Range where Bound: BinaryInteger {
     /// The range as floating range.
-    func toFloating() -> Range<Float> {
+    var toFloating: Range<Float> {
         Float(self.lowerBound)..<Float(self.upperBound)
+    }
+}
+
+extension Sequence<ClosedRange<Int>> {
+    /// The range that contains all ranges.
+    var union: ClosedRange<Int>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound...upperBound
+    }
+}
+
+extension Sequence<ClosedRange<Float>> {
+    /// The range that contains all ranges.
+    var union: ClosedRange<Float>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound...upperBound
+    }
+}
+
+extension Sequence<ClosedRange<Double>> {
+    /// The range that contains all ranges.
+    var union: ClosedRange<Double>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound...upperBound
+    }
+}
+
+extension Sequence<ClosedRange<CGFloat>> {
+    /// The range that contains all ranges.
+    var union: ClosedRange<CGFloat>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound...upperBound
+    }
+}
+
+extension Sequence<Range<Int>> {
+    /// The range that contains all ranges.
+    var union: Range<Int>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound..<upperBound
+    }
+}
+
+extension Sequence<Range<Float>> {
+    /// The range that contains all ranges.
+    var union: Range<Float>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound..<upperBound
+    }
+}
+
+extension Sequence<Range<Double>> {
+    /// The range that contains all ranges.
+    var union: Range<Double>? {
+        guard
+            let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound..<upperBound
+    }
+}
+
+extension Sequence<Range<CGFloat>> {
+    /// The range that contains all ranges.
+    var union: Range<CGFloat>? {
+        guard let lowerBound = map(\.lowerBound).min(),
+            let upperBound = map(\.upperBound).max()
+        else { return nil }
+        return lowerBound..<upperBound
     }
 }
