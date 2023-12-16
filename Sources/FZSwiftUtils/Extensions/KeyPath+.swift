@@ -8,17 +8,11 @@
 import Foundation
 
 public extension PartialKeyPath {
-    /// The name of the key path.
+    /// The name of the key path, if it's a @objc property, else the hash value.
     var stringValue: String {
         if let string = self._kvcKeyPathString {
             return string
         }
-        let me = String(describing: self)
-        let rootName =  String(describing: Root.self)
-        let removingRootName = me.components(separatedBy: rootName)
-        var keyPathValue = removingRootName.last ?? ""
-        if keyPathValue.first == "." { keyPathValue.removeFirst() }
-        keyPathValue = keyPathValue.replacingOccurrences(of: "?", with: "")
-        return keyPathValue
+        return String(hashValue)
     }
 }

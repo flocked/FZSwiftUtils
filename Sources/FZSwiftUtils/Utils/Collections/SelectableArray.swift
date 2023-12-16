@@ -20,14 +20,6 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         return elements.count
     }
 
-    public var underestimatedCount: Int {
-        return elements.underestimatedCount
-    }
-
-    public mutating func set(contents: [Element]) {
-        elements = contents
-    }
-
     public mutating func removeAll() {
         elements.removeAll()
         isSelected.removeAll()
