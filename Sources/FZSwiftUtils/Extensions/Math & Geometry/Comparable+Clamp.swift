@@ -1,6 +1,6 @@
 //
 //  Comparable+Clamp.swift
-//  
+//
 //
 //  Created by Florian Zand on 06.06.22.
 //
@@ -84,7 +84,8 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
      - Returns: The clamped value.
      */
     func clamped(max maxValue: Self) -> Self {
-        min(0, maxValue)
+        guard maxValue > 0 else { return self }
+        return clamped(to: 0 ... maxValue)
     }
     
     /**
@@ -102,6 +103,7 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
      - Parameter maxValue: The maximum value to clamp the value to.
      */
     mutating func clamp(max maxValue: Self) {
-        self = min(0, maxValue)
+        guard maxValue > 0 else { return }
+        self = clamped(to: 0 ... maxValue)
     }
 }
