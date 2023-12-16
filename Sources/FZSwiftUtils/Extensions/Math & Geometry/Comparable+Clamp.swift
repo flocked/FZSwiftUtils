@@ -84,7 +84,7 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
      - Returns: The clamped value.
      */
     func clamped(max maxValue: Self) -> Self {
-        clamped(to: 0 ... maxValue)
+        min(0, maxValue)
     }
     
     /**
@@ -102,6 +102,6 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
      - Parameter maxValue: The maximum value to clamp the value to.
      */
     mutating func clamp(max maxValue: Self) {
-        self = clamped(to: 0 ... maxValue)
+        self = min(0, maxValue)
     }
 }
