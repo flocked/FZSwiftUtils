@@ -45,7 +45,11 @@ public extension Float {
         #else
         let scale = 1.0
         #endif
+        #if os(macOS)
         return floor(self * scale) / scale
+        #else
+        return Float(floor(self * scale) / scale)
+        #endif
     }
 }
 
