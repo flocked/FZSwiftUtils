@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AppKit
 
 /**
  Observes multiple properties of an object.
