@@ -9,17 +9,17 @@ import Foundation
 
 
 public extension URL {
-    ///  A bool indicating whether the resource is a directory.
+    ///  A Boolean value indicating whether the resource is a directory.
     var isDirectory: Bool {
         resources.isDirectory
     }
 
-    ///  A bool indicating whether the resource is a file.
+    ///  A Boolean value indicating whether the resource is a file.
     var isFile: Bool {
         resources.isRegularFile
     }
 
-    /// A bool indicating whether the URL’s resource exists and is reachable.
+    /// A Boolean value indicating whether the URL’s resource exists and is reachable.
     var isReachable: Bool {
         (try? checkResourceIsReachable()) == true
     }
@@ -37,7 +37,7 @@ public extension URL {
         return nil
     }
 
-    ///  A bool indicating whether the resource exist.
+    ///  A Boolean value indicating whether the resource exist.
     var fileExists: Bool {
         FileManager.default.fileExists(atPath: path)
     }

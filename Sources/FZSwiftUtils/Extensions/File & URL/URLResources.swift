@@ -62,44 +62,44 @@ public class URLResources {
     /// Localized or extension-hidden name  as displayed to users.
     public var localizedName: String? { return try? value(for: \.localizedName) }
 
-    /// A bool indicating whether the resource is a regular file rather than a directory or a symbolic link.
+    /// A Boolean value indicating whether the resource is a regular file rather than a directory or a symbolic link.
     public var isRegularFile: Bool { return (try? value(for: \.isRegularFile)) ?? false }
 
-    /// A bool indicating if the resource is a directory.
+    /// A Boolean value indicating if the resource is a directory.
     public var isDirectory: Bool { return (try? value(for: \.isDirectory)) ?? false }
 
-    /// A bool indicating if the resource is a isymbolic link.
+    /// A Boolean value indicating if the resource is a isymbolic link.
     public var isSymbolicLink: Bool { return (try? value(for: \.isSymbolicLink)) ?? false }
 
-    /// A bool indicating if the resource is a volume.
+    /// A Boolean value indicating if the resource is a volume.
     public var isVolume: Bool { return (try? value(for: \.isVolume)) ?? false }
 
-    /// A bool indicating if the resource is a packaged directory.
+    /// A Boolean value indicating if the resource is a packaged directory.
     public var isPackage: Bool {
         get { (try? value(for: \.isPackage)) ?? false }
         set { try? setValue(newValue, for: \.isPackage) }
     }
 
     @available(macOS 10.11, iOS 9.0, *)
-    /// A bool indicating if the resource is an application.
+    /// A Boolean value indicating if the resource is an application.
     public var isApplication: Bool { (try? value(for: \.isApplication)) ?? false }
 
-    /// A bool indicating if the resource is system-immutable.
+    /// A Boolean value indicating if the resource is system-immutable.
     public var isSystemImmutable: Bool { (try? value(for: \.isSystemImmutable)) ?? false }
 
-    /// A bool indicating if the resource is user-immutable.
+    /// A Boolean value indicating if the resource is user-immutable.
     public var isUserImmutable: Bool {
         get { (try? value(for: \.isUserImmutable)) ?? false }
         set { try? setValue(newValue, for: \.isUserImmutable) }
     }
 
-    /// A bool indicating if the resource is normally not displayed to users.
+    /// A Boolean value indicating if the resource is normally not displayed to users.
     public var isHidden: Bool {
         get { (try? value(for: \.isHidden)) ?? false }
         set { try? setValue(newValue, for: \.isHidden) }
     }
 
-    /// A bool indicating if the resources filename extension is removed from the localizedName property.
+    /// A Boolean value indicating if the resources filename extension is removed from the localizedName property.
     public var hasHiddenExtension: Bool {
         get { (try? value(for: \.hasHiddenExtension)) ?? false }
         set { try? setValue(newValue, for: \.hasHiddenExtension) }
@@ -155,13 +155,13 @@ public class URLResources {
     /// The optimal block size when reading or writing this file’s data, or nil if not available.
     public var preferredIOBlockSize: Int? { try? value(for: \.preferredIOBlockSize) }
 
-    /// A bool indicating if the resource is readable.
+    /// A Boolean value indicating if the resource is readable.
     public var isReadable: Bool? { try? value(for: \.isReadable) }
 
-    /// A bool indicating if the resource is writable.
+    /// A Boolean value indicating if the resource is writable.
     public var isWritable: Bool? { try? value(for: \.isWritable) }
 
-    /// A bool indicating if the resource is executable.
+    /// A Boolean value indicating if the resource is executable.
     public var isExecutable: Bool? { try? value(for: \.isExecutable) }
 
     public var fileSecurity: NSFileSecurity? {
@@ -169,7 +169,7 @@ public class URLResources {
         set { try? setValue(newValue, for: \.fileSecurity) }
     }
 
-    /// A bool indicating whether the resource is excluded from backups.
+    /// A Boolean value indicating whether the resource is excluded from backups.
     public var isExcludedFromBackup: Bool? {
         get { try? value(for: \.isExcludedFromBackup) }
         set { try? setValue(newValue, for: \.isExcludedFromBackup) }
@@ -182,7 +182,7 @@ public class URLResources {
     /// The resource’s path as a canonical absolute file system path.
     public var canonicalPath: String? { try? value(for: \.canonicalPath) }
 
-    /// A bool indicating whether the resource is a file system trigger directory.
+    /// A Boolean value indicating whether the resource is a file system trigger directory.
     public var isMountTrigger: Bool? { try? value(for: \.isMountTrigger) }
 
     @available(macOS 10.10, iOS 8.0, *)
@@ -198,15 +198,15 @@ public class URLResources {
     public var documentIdentifier: Int? { try? value(for: \.documentIdentifier) }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// A bool indicating whether the file may have extended attributes.
+    /// A Boolean value indicating whether the file may have extended attributes.
     public var mayHaveExtendedAttributes: Bool { (try? value(for: \.mayHaveExtendedAttributes)) ?? false }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// A bool indicating whether the file system can delete the file when the system needs to free space.
+    /// A Boolean value indicating whether the file system can delete the file when the system needs to free space.
     public var isPurgeable: Bool { (try? value(for: \.isPurgeable)) ?? false }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// A bool indicating whether the file has sparse regions.
+    /// A Boolean value indicating whether the file has sparse regions.
     public var isSparse: Bool { (try? value(for: \.isSparse)) ?? false }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
@@ -216,19 +216,19 @@ public class URLResources {
     /// The type of the fresource.
     public var fileResourceType: URLFileResourceType? { try? value(for: \.fileResourceType) }
 
-    /// A bool indicating whether the resource is in the iCloud storage.
+    /// A Boolean value indicating whether the resource is in the iCloud storage.
     public var isUbiquitousItem: Bool { (try? value(for: \.isUbiquitousItem)) ?? false }
 
-    /// A bool indicating whether the resource has outstanding conflicts.
+    /// A Boolean value indicating whether the resource has outstanding conflicts.
     public var ubiquitousItemHasUnresolvedConflicts: Bool { (try? value(for: \.ubiquitousItemHasUnresolvedConflicts)) ?? false }
 
-    /// A bool indicating whether the system is downloading the resource.
+    /// A Boolean value indicating whether the system is downloading the resource.
     public var ubiquitousItemIsDownloading: Bool { (try? value(for: \.ubiquitousItemIsDownloading)) ?? false }
 
-    /// A bool indicating whether data is present in the cloud for the resource.
+    /// A Boolean value indicating whether data is present in the cloud for the resource.
     public var ubiquitousItemIsUploaded: Bool { (try? value(for: \.ubiquitousItemIsUploaded)) ?? false }
 
-    /// A bool indicating whether the system is uploading the resource.
+    /// A Boolean value indicating whether the system is uploading the resource.
     public var ubiquitousItemIsUploading: Bool { (try? value(for: \.ubiquitousItemIsUploading)) ?? false }
 
     /// The download status of the resource.
@@ -266,7 +266,7 @@ public class URLResources {
 
     internal var totalFileAllocatedSizeBytes: Int? { try? value(for: \.totalFileAllocatedSize) }
 
-    /// A bool indicating whether the resource is a Finder alias file or a symlink.
+    /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
     public var isAliasFile: Bool { (try? value(for: \.isAliasFile)) ?? false }
 
     #if canImport(UniformTypeIdentifiers)
@@ -304,7 +304,7 @@ extension URLResources {
 
 #if os(macOS)
 public extension URLResources {
-    /// A bool indicating whether the resource is scriptable. Only applies to applications.
+    /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
     @available(macOS 10.11, *)
     var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
 
@@ -397,31 +397,31 @@ public extension URLResources {
         public var creationDate: Date? { return try? _url.resourceValues(for: .volumeCreationDateKey).volumeCreationDate
         }
 
-        /// A bool indicating whether the volume is read-only.
+        /// A Boolean value indicating whether the volume is read-only.
         public var isReadOnly: Bool { return (try? _url.resourceValues(for: .volumeIsReadOnlyKey).volumeIsReadOnly) ?? true
         }
 
-        /// A bool indicating whether the volume supports setting standard access permissions.
+        /// A Boolean value indicating whether the volume supports setting standard access permissions.
         public var supportsAccessPermissions: Bool { return (try? _url.resourceValues(for: .volumeSupportsAccessPermissionsKey).volumeSupportsAccessPermissions) ?? false
         }
 
-        /// A bool indicating whether the volume can be renamed.
+        /// A Boolean value indicating whether the volume can be renamed.
         public var supportsRenaming: Bool { return (try? _url.resourceValues(for: .volumeSupportsRenamingKey).volumeSupportsRenaming) ?? false
         }
 
-        /// A bool indicating whether the volume supports symbolic links.
+        /// A Boolean value indicating whether the volume supports symbolic links.
         public var supportsSymbolicLinks: Bool { return (try? _url.resourceValues(for: .volumeSupportsSymbolicLinksKey).volumeSupportsSymbolicLinks) ?? false
         }
 
-        /// A bool indicating whether the volume is removable.
+        /// A Boolean value indicating whether the volume is removable.
         public var isRemovable: Bool { return (try? _url.resourceValues(for: .volumeIsRemovableKey).volumeIsRemovable) ?? false
         }
 
-        /// A bool indicating whether the volume is ejectable.
+        /// A Boolean value indicating whether the volume is ejectable.
         public var isEjectable: Bool { return (try? _url.resourceValues(for: .volumeIsEjectableKey).volumeIsEjectable) ?? false
         }
 
-        /// A bool indicating whether the volume is the root filesystem.
+        /// A Boolean value indicating whether the volume is the root filesystem.
         public var isRootFileSystem: Bool { return (try? _url.resourceValues(for: .volumeIsRootFileSystemKey).volumeIsRootFileSystem) ?? false
         }
 

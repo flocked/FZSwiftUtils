@@ -66,7 +66,7 @@ public extension FileManager {
      
      - Parameters:
         - type: The type of application support directory (either identifier or name).
-        - createIfNeeded: A bool indicating whether the directory should be created if it doesn't exist. The default value is `false`.
+        - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist. The default value is `false`.
      */
     func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
         if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {

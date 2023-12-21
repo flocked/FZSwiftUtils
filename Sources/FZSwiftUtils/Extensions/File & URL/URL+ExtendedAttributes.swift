@@ -205,7 +205,7 @@ public extension URL {
         }
 
         /**
-         A bool indicating whether the attribute with an name exists.
+         A Boolean value indicating whether the attribute with an name exists.
          
          - Parameter key: The name of the attribute.
          - Returns: `true` if the attribute exists, or `false if it isn't.
