@@ -14,9 +14,18 @@ public extension Sequence where Element: Equatable {
      - Parameter other: The other collection to compare.
      - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
      */
-    func difference<S: Sequence<Element>>(to other: S) -> (removed: [Element], added: [Element]) {
-        let removed = self.filter({ other.contains($0) == false })
+    func difference<S: Sequence<Element>>(to other: S) -> (removed: [Element], added: [Element], unchanged: [Element]) {
+        var removed: [Element] = []
+        var unchanged: [Element] = []
+        for element in self {
+            if other.contains(element) {
+                unchanged.append(element)
+            } else {
+                removed.append(element)
+            }
+        }
+
         let added = other.filter({ self.contains($0) == false })
-        return (removed, added)
+        return (removed, added, unchanged)
     }
 }
