@@ -45,7 +45,7 @@ public extension Float {
         #else
         let scale: Float = 1.0
         #endif
-        return floor(self * scale) / scale
+        return rounded(toNearest: 1.0/scale)
     }
 }
 
@@ -63,7 +63,7 @@ public extension Double {
         #else
         let scale = 1.0
         #endif
-        return floor(self * scale) / scale
+        return rounded(toNearest: 1.0/scale)
     }
 }
 
@@ -81,7 +81,7 @@ public extension CGFloat {
         #else
         let scale = 1.0
         #endif
-        return floor(self * scale) / scale
+        return rounded(toNearest: 1.0/scale)
     }
     
     /// Converts the value from degrees to radians.
