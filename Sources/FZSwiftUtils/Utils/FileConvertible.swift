@@ -10,23 +10,42 @@ import Foundation
 /// A type that can be read from and written to a file.
 public protocol FileConvertible: Codable {
     /**
-     Initializes the type from the file at the specified URL.
+     Initializes from the file at the specified URL.
      
      - Parameter url: The url of the file.
-     - Throws: If the file doesn't exist, can't be accessed or isn't compatible
+     - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
     init(contentsOf url: URL) throws
     
     /**
-     Writes the type to the specified location.
+     Initializes from the file at the specified path.
+     
+     - Parameter path: The path of the file.
+     - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
+     */
+    init(contentsOf path: String) throws
+    
+    /**
+     Writes to the specified location.
      
      - Parameters:
-        - url: The location to write the type.
-        - options: Options for writing the type. Default value is `[]`.
+        - url: The location to write.
+        - options: Options for writing. Default value is `[]`.
      
      - Throws: If the file couldn't be created.
      */
     func write(to url: URL, options: Data.WritingOptions) throws
+    
+    /**
+     Writes to the specified location.
+     
+     - Parameters:
+        - path: The location to write.
+        - options: Options for writing. Default value is `[]`.
+     
+     - Throws: If the file couldn't be created.
+     */
+    func write(to path: String, options: Data.WritingOptions) throws
 }
 
 public extension FileConvertible {
@@ -39,6 +58,10 @@ public extension FileConvertible {
         }
     }
     
+    init(contentsOf path: String) throws {
+        try self.init(contentsOf: URL(fileURLWithPath: path))
+    }
+    
     func write(to url: URL, options: Data.WritingOptions = []) throws {
         do {
             let data = try JSONEncoder().encode(self)
@@ -46,5 +69,9 @@ public extension FileConvertible {
         } catch {
             throw error
         }
+    }
+    
+    func write(to path: String, options: Data.WritingOptions = []) throws {
+        try self.write(to: URL(fileURLWithPath: path), options: options)
     }
 }
