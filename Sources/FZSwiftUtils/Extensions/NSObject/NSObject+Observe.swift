@@ -80,12 +80,12 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - options: The options for observing the property. The default value is `[.new].
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.old, .new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates(by: { ($0 == $1) })
             .sink(receiveValue: handler)
@@ -96,7 +96,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - options: The options for observing the property. The default value is `[.new].
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
@@ -111,7 +111,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - options: The options for observing the property. The default value is `[.new].
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
@@ -121,6 +121,17 @@ public extension NSObjectProtocol where Self: NSObject {
             .sink(receiveValue: handler)
     }
     
+    /**
+     Observes changes to a property identified by the given key path using Combine publishers with throttling.
+     
+     - Parameters:
+        - keypath: The key path of the property to observe.
+        - options: The options for observing the property. The default value is `[.new].
+        - interval: The time interval used for throttling.
+        - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
+     
+     - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+     */
     func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = .new, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
         return publisher(for: keypath, options: options)
             .removeDuplicates { $0 == $1 }
@@ -133,7 +144,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - options: The options for observing the property. The default value is `[.new].
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
@@ -151,7 +162,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - options: The options for observing the property. The default value is `[.new].
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
@@ -169,7 +180,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - options: The options for observing the property. The default value is `[.new].
         - interval: The time interval used for debouncing.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
