@@ -181,18 +181,22 @@ extension Sequence {
     }
 }
 
+/// Returns a keypath used for sorting a sequence in an ascending order.
 public prefix func << <Root>(keyPath: PartialKeyPath<Root>) -> PartialSortingKeyPath<Root> {
     return .ascending(keyPath)
 }
 
+/// Returns a keypath used for sorting a sequence in an ascending order.
 public prefix func << <Root>(keyPaths: [PartialKeyPath<Root>]) -> PartialSortingKeyPath<Root> {
     return .ascending(keyPaths)
 }
 
+/// Returns a keypath used for sorting a sequence in a descending order.
 public prefix func >> <Root>(keyPath: PartialKeyPath<Root>) -> PartialSortingKeyPath<Root> {
     return .descending(keyPath)
 }
 
+/// Returns a keypath used for sorting a sequence in a descending order.
 public prefix func >> <Root>(keyPaths: [PartialKeyPath<Root>]) -> PartialSortingKeyPath<Root> {
     return .descending(keyPaths)
 }
@@ -212,82 +216,82 @@ public struct PartialSortingKeyPath<Root> {
         self.order = order
     }
 
-    /// Returns a keypath used for sorting a sequence ascending.
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func ascending(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
-
-    /// Returns a keypath used for sorting a sequence descending.
-    public static func descending(_ keyPath: PartialKeyPath<Root>...) -> Self {
-        return Self(keyPath, order: .descending)
-    }
-
-    /// Returns a keypath used for sorting a sequence ascending.
+    
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func ascending(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
     }
 
-    /// Returns a keypath used for sorting a sequence descending.
+    /// Returns a keypath used for sorting a sequence in a descending order.
+    public static func descending(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        return Self(keyPath, order: .descending)
+    }
+
+    /// Returns a keypath used for sorting a sequence in a descending order.
     public static func descending(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
     
-    /// Returns a keypath used for sorting a sequence ascending.
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func oldestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
-
-    /// Returns a keypath used for sorting a sequence descending.
-    public static func newestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
-        return Self(keyPath, order: .descending)
-    }
-
-    /// Returns a keypath used for sorting a sequence ascending.
+    
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func oldestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
     }
 
-    /// Returns a keypath used for sorting a sequence descending.
+    /// Returns a keypath used for sorting a sequence in a descending order.
+    public static func newestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        return Self(keyPath, order: .descending)
+    }
+
+    /// Returns a keypath used for sorting a sequence in a descending order.
     public static func newestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
     
-    /// Returns a keypath used for sorting a sequence ascending.
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func smallestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
-
-    /// Returns a keypath used for sorting a sequence descending.
-    public static func largestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
-        return Self(keyPath, order: .descending)
-    }
-
-    /// Returns a keypath used for sorting a sequence ascending.
+    
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func smallestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
     }
 
-    /// Returns a keypath used for sorting a sequence descending.
+    /// Returns a keypath used for sorting a sequence in a descending order.
+    public static func largestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        return Self(keyPath, order: .descending)
+    }
+    
+    /// Returns a keypath used for sorting a sequence in a descending order.
     public static func largestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
     
-    /// Returns a keypath used for sorting a sequence ascending.
+    /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func shortestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
 
-    /// Returns a keypath used for sorting a sequence descending.
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func shortestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        return Self(keyPaths, order: .ascending)
+    }
+    
+    /// Returns a keypath used for sorting a sequence in a descending order.
     public static func longestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .descending)
     }
 
-    /// Returns a keypath used for sorting a sequence ascending.
-    public static func shortestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
-        return Self(keyPaths, order: .ascending)
-    }
-
-    /// Returns a keypath used for sorting a sequence descending.
+    /// Returns a keypath used for sorting a sequence in a descending order.
     public static func longestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
