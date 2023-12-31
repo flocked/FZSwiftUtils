@@ -197,6 +197,7 @@ public prefix func >> <Root>(keyPaths: [PartialKeyPath<Root>]) -> PartialSorting
     return .descending(keyPaths)
 }
 
+/// A keypath that is used for sorting a sequence.
 public struct PartialSortingKeyPath<Root> {
     let keyPaths: [PartialKeyPath<Root>]
     let order: SequenceSortOrder
