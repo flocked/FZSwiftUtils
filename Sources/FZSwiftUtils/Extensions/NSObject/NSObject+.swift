@@ -20,23 +20,20 @@ public extension NSCoding where Self: NSObject {
      - Throws: An error if copying fails.
      */
     func archiveBasedCopy() throws -> Self {
+        let data: Data
+        let unarchiver: NSKeyedUnarchiver
         if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
-            let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-            unarchiver.requiresSecureCoding = false
-            guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? Self else {
-                throw NSCodingError.unpacking
-            }
-            return copy
+            data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
+            unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
         } else {
-            let data = NSKeyedArchiver.archivedData(withRootObject: self)
-            let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
-            unarchiver.requiresSecureCoding = false
-            guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? Self else {
-                throw NSCodingError.unpacking
-            }
-            return copy
+            data = NSKeyedArchiver.archivedData(withRootObject: self)
+            unarchiver = NSKeyedUnarchiver(forReadingWith: data)
         }
+        unarchiver.requiresSecureCoding = false
+        guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? Self else {
+            throw NSCodingError.unpacking
+        }
+        return copy
     }
 }
 
