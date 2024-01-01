@@ -14,20 +14,29 @@ public enum NSCodingError: Error {
 }
 
 public extension NSCoding where Self: NSObject {
-    
     /**
      Creates an archived-based copy of the object.
      
-     - Throws: An error if the archiving or unarchiving process fails.
-     
-     - Returns: A copy of the object that is created by archiving and unarchiving the original object.
+     - Throws: An error if copying fails.
      */
     func archiveBasedCopy() throws -> Self {
-        let archivedData = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-        guard let object = try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: archivedData) else {
-            throw NSCodingError.unpacking
+        if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+            let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
+            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+            unarchiver.requiresSecureCoding = false
+            guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? Self else {
+                throw NSCodingError.unpacking
+            }
+            return copy
+        } else {
+            let data = NSKeyedArchiver.archivedData(withRootObject: self)
+            let unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+            unarchiver.requiresSecureCoding = false
+            guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? Self else {
+                throw NSCodingError.unpacking
+            }
+            return copy
         }
-        return object
     }
 }
 
