@@ -49,7 +49,7 @@ extension NSObject {
 }
 
 extension NSObject {
-    internal enum ObjCMethodEncoding {
+    enum ObjCMethodEncoding {
         static let getClass = extract("#@:")
         
         private static func extract(_ string: StaticString) -> UnsafePointer<CChar> {
@@ -57,11 +57,11 @@ extension NSObject {
         }
     }
     
-    internal func subclass() throws -> AnyClass {
+    func subclass() throws -> AnyClass {
         try getExistingSubclass() ?? createSubclass()
     }
     
-    internal func replaceMethod<MethodSignature>(for selector: Selector, replacement: MethodSignature) throws {
+    func replaceMethod<MethodSignature>(for selector: Selector, replacement: MethodSignature) throws {
         let dynamicSubclass: AnyClass = try subclass()
         let replacementIMP = imp_implementationWithBlock(replacement)
         
@@ -72,7 +72,7 @@ extension NSObject {
         class_addMethod(dynamicSubclass, selector, replacementIMP, encoding)
     }
     
-    internal func originalMethod<MethodSignature>(for selector: Selector) -> MethodSignature? {
+    func originalMethod<MethodSignature>(for selector: Selector) -> MethodSignature? {
         var currentClass: AnyClass? = type(of: self)
         repeat {
             if let currentClass = currentClass,
@@ -86,7 +86,7 @@ extension NSObject {
         return nil
     }
     
-    internal func originalIMP(for selector: Selector) -> IMP? {
+    func originalIMP(for selector: Selector) -> IMP? {
         var currentClass: AnyClass? = type(of: self)
         repeat {
             if let currentClass = currentClass,
@@ -98,7 +98,7 @@ extension NSObject {
         return nil
     }
     
-    internal func hasExistingMethod(_ klass: AnyClass, _ selector: Selector) -> Bool {
+    func hasExistingMethod(_ klass: AnyClass, _ selector: Selector) -> Bool {
         var methodCount: CUnsignedInt = 0
         guard let methodsInAClass = class_copyMethodList(klass, &methodCount) else { return false }
         defer { free(methodsInAClass) }
@@ -111,7 +111,7 @@ extension NSObject {
         return false
     }
     
-    internal func createSubclass() throws -> AnyClass {
+    func createSubclass() throws -> AnyClass {
         let perceivedClass: AnyClass = type(of: self)
         let actualClass: AnyClass = object_getClass(self)!
         
@@ -142,7 +142,7 @@ extension NSObject {
         return nnSubclass
     }
     
-    internal func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {
+    func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {
         // crashes on linux
         let getClass: @convention(block) (AnyObject) -> AnyClass = { _ in
             perceivedClass
@@ -153,7 +153,7 @@ extension NSObject {
     }
     
     /// We need to reuse a dynamic subclass if the object already has one.
-    internal func getExistingSubclass() -> AnyClass? {
+    func getExistingSubclass() -> AnyClass? {
         let actualClass: AnyClass = object_getClass(self)!
         if NSStringFromClass(actualClass).hasPrefix("FZSubclass_") {
             return actualClass
@@ -187,6 +187,7 @@ public class Hook<MethodSignature> {
 public enum NSObjectSwizzleError: LocalizedError {
     /// Unable to register subclass for object-based interposing.
     case failedToAllocateClassPair(class: AnyClass, subclassName: String)
+    
     public var errorDescription: String? {
         switch self {
         case .failedToAllocateClassPair(let klass, let subclassName):

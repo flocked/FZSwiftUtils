@@ -37,12 +37,12 @@ public extension NSObject {
     }
 }
 
-internal func getTypesOfProperties(in clazz: NSObject.Type, includeSuperclass: Bool = false, excludeReadOnlyProperties _: Bool = false) -> [String: Any]? {
+func getTypesOfProperties(in clazz: NSObject.Type, includeSuperclass: Bool = false, excludeReadOnlyProperties _: Bool = false) -> [String: Any]? {
     let types: [String: Any] = [:]
     return getTypesOfProperties(in: clazz, types: types, includeSuperclass: includeSuperclass)
 }
 
-internal func getTypesOfProperties(in clazz: NSObject.Type, types: [String: Any], includeSuperclass: Bool, excludeReadOnlyProperties: Bool = false) -> [String: Any]? {
+func getTypesOfProperties(in clazz: NSObject.Type, types: [String: Any], includeSuperclass: Bool, excludeReadOnlyProperties: Bool = false) -> [String: Any]? {
     var count = UInt32()
     guard let properties = class_copyPropertyList(clazz, &count) else { return nil }
     var types = types
@@ -64,27 +64,27 @@ internal func getTypesOfProperties(in clazz: NSObject.Type, types: [String: Any]
     }
 }
 
-internal func getTypesOfProperties(ofObject object: NSObject) -> [String: Any]? {
+func getTypesOfProperties(ofObject object: NSObject) -> [String: Any]? {
     let clazz: NSObject.Type = type(of: object)
     return getTypesOfProperties(in: clazz)
 }
 
-internal func typeOf(property propertyName: String, for object: NSObject) -> Any? {
+func typeOf(property propertyName: String, for object: NSObject) -> Any? {
     let type = type(of: object)
     return typeOf(property: propertyName, in: type)
 }
 
-internal func typeOf(property propertyName: String, in clazz: NSObject.Type) -> Any? {
+func typeOf(property propertyName: String, in clazz: NSObject.Type) -> Any? {
     guard let propertyTypes = getTypesOfProperties(in: clazz), let type = propertyTypes[propertyName] else { return nil }
     return type
 }
 
-internal func isProperty(named propertyName: String, ofType targetType: Any, for object: NSObject) -> Bool {
+func isProperty(named propertyName: String, ofType targetType: Any, for object: NSObject) -> Bool {
     let type = type(of: object)
     return isProperty(named: propertyName, ofType: targetType, in: type)
 }
 
-internal func isProperty(named propertyName: String, ofType targetType: Any, in clazz: NSObject.Type) -> Bool {
+func isProperty(named propertyName: String, ofType targetType: Any, in clazz: NSObject.Type) -> Bool {
     if let propertyType = typeOf(property: propertyName, in: clazz) {
         let match = propertyType == targetType
         return match

@@ -6,11 +6,9 @@
 //
 
 import Foundation
+import AppKit
 
-/// A type that is key-value codable.
-protocol KVO: NSObject { }
-extension NSObject: KVO { }
-extension KVO {
+extension NSObjectProtocol where Self: NSObject {
     /// Returns the value for the derived property identified by a given key path.
     public func value<Value>(forKeyPath keyPath: KeyPath<Self, Value>) -> Value? {
         if let value = value(forKeyPath: keyPath.stringValue) {
