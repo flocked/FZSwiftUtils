@@ -212,11 +212,11 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             let keyPath = keyPath,
             let observer = self.observers[keyPath],
             let change = change,
-            let oldValue = change[NSKeyValueChangeKey.oldKey],
             let newValue = change[NSKeyValueChangeKey.newKey] else {
            // super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
+        let oldValue = change[NSKeyValueChangeKey.oldKey] ?? newValue
         observer.handler(oldValue, newValue)
     }
     
