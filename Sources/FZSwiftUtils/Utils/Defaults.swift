@@ -46,7 +46,7 @@ public final class Defaults {
     public subscript(key: String) -> Any? {
         get { userDefaults.value(forKey: key) }
         set { 
-            Swift.print("ggg")
+            Swift.print("HERE")
             userDefaults.setValue(newValue, forKey: key)
             userDefaults.synchronize()
         }
