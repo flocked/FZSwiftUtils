@@ -28,11 +28,11 @@ public struct DataSize: Hashable, Sendable {
      Initializes a `DataSize` instance with the specified sizes in various units and count style.
      
      - Parameters:
-       - terabytes: The size in terabytes. Default is 0.
-       - gigabytes: The size in gigabytes. Default is 0.
-       - megabytes: The size in megabytes. Default is 0.
-       - kilobytes: The size in kilobytes. Default is 0.
-       - bytes: The size in bytes. Default is 0.
+       - terabytes: The size in terabytes. The default value is `0`.
+       - gigabytes: The size in gigabytes. The default value is `0`.
+       - megabytes: The size in megabytes. The default value is `0`.
+       - kilobytes: The size in kilobytes. The default value is `0`.
+       - bytes: The size in bytes. The default value is `0`.
         - countStyle: The count style for formatting the data size. The default value is `file`.
      */
     public init(petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
@@ -81,11 +81,11 @@ public struct DataSize: Hashable, Sendable {
         set { bytes = bytes(for: newValue, .petabyte) }
     }
 
-    internal func value(for unit: Unit) -> Double {
+    func value(for unit: Unit) -> Double {
         Unit.byte.convert(Double(bytes), to: unit, countStyle: countStyle)
     }
 
-    internal func bytes(for value: Double, _ unit: Unit) -> Int {
+    func bytes(for value: Double, _ unit: Unit) -> Int {
         Int(unit.convert(value, to: .byte, countStyle: countStyle))
     }
     
@@ -214,7 +214,7 @@ public extension DataSize {
         /// >ottabyte
         case yottabyte = 8
 
-        internal var byteCountFormatterUnit: ByteCountFormatter.Units {
+        var byteCountFormatterUnit: ByteCountFormatter.Units {
             switch self {
             case .byte:
                 return .useBytes
@@ -237,7 +237,7 @@ public extension DataSize {
             }
         }
 
-        internal func convert(_ number: Double, to targetUnit: Unit, countStyle: CountStyle = .file) -> Double {
+        func convert(_ number: Double, to targetUnit: Unit, countStyle: CountStyle = .file) -> Double {
             let factor: Double = (countStyle == .binary) ? 1024 : 1000
             let conversionFactor = pow(factor, Double(rawValue - targetUnit.rawValue))
             return number * conversionFactor
@@ -292,7 +292,7 @@ extension DataSize: CustomStringConvertible {
      
      - Parameters:
        - unit: The unit to use for formatting the data size.
-       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. Default is `true`.
+       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
      
      - Returns: A string representation of the data size.
      */
@@ -304,8 +304,8 @@ extension DataSize: CustomStringConvertible {
      Returns a string representation of the data size using the specified allowed units.
      
      - Parameters:
-       - allowedUnits: The allowed units for formatting the data size.
-       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. Default is `true`.
+       - allowedUnits: The allowed units for formatting the data size. The default value is `useAll`.
+       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
      
      - Returns: A string representation of the data size.
      */
@@ -326,36 +326,45 @@ extension DataSize: LosslessStringConvertible {
 }
 
 extension DataSize: Comparable, AdditiveArithmetic {
+    /// Adds the two data sizes.
     public static func + (lhs: Self, rhs: Self) -> Self {
         Self(lhs.bytes + rhs.bytes, countStyle: lhs.countStyle)
     }
 
+    /// Adds two data size and stores the result in the left-hand-side variable.
     public static func += (lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
     }
 
+    /// Subtracts the two data sizes.
     public static func - (lhs: Self, rhs: Self) -> Self {
         var bytes = lhs.bytes - rhs.bytes
         if bytes < 0 { bytes = 0 }
         return Self(bytes, countStyle: lhs.countStyle)
     }
 
+    /// Subtracts the second data size from the first and stores the difference in the left-hand-side variable.
     public static func -= (lhs: inout Self, rhs: Self) {
         lhs = lhs - rhs
     }
 
+    /// A Boolean value indicating whether the first data size is smaller than the second data size.
     public static func < (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes < rhs.bytes
     }
 
+    /// A Boolean value indicating whether the first data size is smaller or equal to the second data size.
     public static func <= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes <= rhs.bytes
     }
+    
 
+    /// A Boolean value indicating whether the first data size is larger than the second data size.
     public static func > (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes > rhs.bytes
     }
 
+    /// A Boolean value indicating whether the first data size is larger or equal to the second data size.
     public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes >= rhs.bytes
     }

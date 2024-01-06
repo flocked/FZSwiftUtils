@@ -153,11 +153,11 @@ public struct TimeDuration: Hashable, Sendable {
         return TimeDuration(0.0)
     }
 
-    internal func value(for unit: Unit) -> Double {
+    func value(for unit: Unit) -> Double {
         return seconds / unit.calendarComponent.timeInterval!
     }
 
-    internal func seconds(for value: Double, _ unit: Unit) -> Double {
+    func seconds(for value: Double, _ unit: Unit) -> Double {
         return unit.convert(value, to: .second)
     }
 }
@@ -237,7 +237,7 @@ public extension TimeDuration {
 }
 
 public extension DateInterval {
-    /// The duration.
+    /// The time duration.
     var timeDuration: TimeDuration {
         TimeDuration(duration)
     }
@@ -312,7 +312,8 @@ public extension TimeDuration {
         case month
         /// Year
         case year
-        internal var calendarComponent: Calendar.Component {
+        
+        var calendarComponent: Calendar.Component {
             switch self {
             case .nanoSecond: return .second
             case .millisecond: return .second
@@ -326,7 +327,7 @@ public extension TimeDuration {
             }
         }
 
-        internal func convert(_ number: Double, to targetUnit: Unit) -> Double {
+        func convert(_ number: Double, to targetUnit: Unit) -> Double {
             let factor: Double = 60
             let conversionFactor = pow(factor, Double(rawValue - targetUnit.rawValue))
             return number * conversionFactor
@@ -372,8 +373,8 @@ public extension TimeDuration {
             self.rawValue = Self.allCases.first(where: {$0.unit == unit})?.rawValue ??  1 << 2
         }
         
-        internal static let allCases: [Units] = [.nanoSecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
-        internal var unit: Unit? {
+        static let allCases: [Units] = [.nanoSecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
+        var unit: Unit? {
             switch self {
             case .nanoSecond: return .nanoSecond
             case .millisecond: return .millisecond
@@ -388,7 +389,7 @@ public extension TimeDuration {
             }
         }
         
-        internal func units(for duration: TimeDuration) -> [TimeDuration.Unit] {
+        func units(for duration: TimeDuration) -> [TimeDuration.Unit] {
             var units: [TimeDuration.Unit] = []
             for unitCase in Self.allCases {
                 if let unit = unitCase.unit {
@@ -413,14 +414,14 @@ extension TimeDuration: CustomStringConvertible {
         return string()
     }
 
-    internal var formatter: DateComponentsFormatter {
+    var formatter: DateComponentsFormatter {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
         return formatter
     }
 
     /// A string representation of the time duration.
-    public var string: String {
+    var string: String {
         return string(allowedUnits: .all)
     }
 
@@ -434,7 +435,7 @@ extension TimeDuration: CustomStringConvertible {
      
      - Parameters:
        - unit: The unit to use for formatting the time duration.
-       - style: The formatting style.
+       - style: The formatting style. The default value is `full`.
      
      - Returns: A string representation of the time duration.
      */
@@ -446,8 +447,8 @@ extension TimeDuration: CustomStringConvertible {
      Returns a string representation of the time duration using the specified allowed time units and style.
      
      - Parameters:
-       - allowedUnits: The allowed units for formatting the time duration.
-       - style: The formatting style.
+       - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
+       - style: The formatting style. The default value is `full`.
      
      - Returns: A string representation of the time duration.
      */
@@ -459,7 +460,7 @@ extension TimeDuration: CustomStringConvertible {
         return formatter.string(from: TimeInterval(seconds))!
     }
     
-    internal func allCurrentUnits() -> [Unit] {
+    func allCurrentUnits() -> [Unit] {
         var units: [Unit] = []
         if self.years >= 1 {  units.append(.year)  }
         if self.months >= 1 { units.append(.month) }
@@ -471,7 +472,7 @@ extension TimeDuration: CustomStringConvertible {
         return units
     }
     
-    internal func preferredUnits(compact: Bool = true) -> [Unit] {
+    func preferredUnits(compact: Bool = true) -> [Unit] {
         let currentUnits = allCurrentUnits()
         if compact == false, currentUnits.count >= 3 {
             return Array(currentUnits[0..<3])
@@ -487,52 +488,59 @@ extension TimeDuration: CustomStringConvertible {
 extension TimeDuration: DurationProtocol {}
 
 extension TimeDuration: Comparable, AdditiveArithmetic {
+    /// Adds the two time durations.
     public static func + (lhs: Self, rhs: Self) -> Self {
         Self(lhs.seconds + rhs.seconds)
     }
 
+    /// Adds two time durations and stores the result in the left-hand-side variable.
     public static func += (lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
     }
-    
-    public static func += (lhs: inout Self, rhs: Double) {
-        lhs = lhs + Self(rhs)
-    }
 
+    /// Subtracts the two time durations.
     public static func - (lhs: Self, rhs: Self) -> Self {
         var seconds = lhs.seconds - rhs.seconds
         if seconds < 0 { seconds = 0 }
         return Self(seconds)
     }
 
+    /// Subtracts the second time duration from the first and stores the difference in the left-hand-side variable.
     public static func -= (lhs: inout Self, rhs: Self) {
         lhs = lhs - rhs
     }
 
+    /// A Boolean value indicating whether the first time duration is smaller than the second time duration.
     public static func < (lhs: Self, rhs: Self) -> Bool {
         return lhs.seconds < rhs.seconds
     }
 
+    /// A Boolean value indicating whether the first time duration is smaller or equal to the second time duration.
     public static func <= (lhs: Self, rhs: Self) -> Bool {
         return lhs.seconds <= rhs.seconds
     }
 
+    /// A Boolean value indicating whether the first time duration is larger than the second time duration.
     public static func > (lhs: Self, rhs: Self) -> Bool {
         return lhs.seconds > rhs.seconds
     }
 
+    /// A Boolean value indicating whether the first time duration is larger or equal to the second time duration.
     public static func >= (lhs: Self, rhs: Self) -> Bool {
         return lhs.seconds >= rhs.seconds
     }
 
+    /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
     public static func / (lhs: TimeDuration, rhs: Int) -> TimeDuration {
         TimeDuration(lhs.seconds / Double(rhs))
     }
-
+    
+    /// Multiplies the time duration and produces their product, rounding to a representable value.
     public static func * (lhs: TimeDuration, rhs: Int) -> TimeDuration {
         TimeDuration(lhs.seconds * Double(rhs))
     }
 
+    /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
     public static func / (lhs: TimeDuration, rhs: TimeDuration) -> Double {
         lhs.seconds / rhs.seconds
     }
