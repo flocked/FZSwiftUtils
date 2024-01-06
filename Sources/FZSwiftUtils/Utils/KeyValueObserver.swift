@@ -207,7 +207,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
            // super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
-        Swift.print("here", change[NSKeyValueChangeKey.oldKey]  ?? "nil", change[NSKeyValueChangeKey.newKey]  ?? "nil")
+      //  Swift.print("here", change[NSKeyValueChangeKey.oldKey]  ?? "nil", change[NSKeyValueChangeKey.newKey]  ?? "nil")
         if let oldValue = change[NSKeyValueChangeKey.oldKey] {
             if observer.sendUnique == false {
                 observer.handler(oldValue, newValue)
