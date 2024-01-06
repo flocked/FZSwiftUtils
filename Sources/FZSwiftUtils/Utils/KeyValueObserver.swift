@@ -216,15 +216,18 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
            // super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
+        Swift.print("here", change[NSKeyValueChangeKey.oldKey]  ?? "nil", change[NSKeyValueChangeKey.newKey]  ?? "nil")
         if let oldValue = change[NSKeyValueChangeKey.oldKey] {
             if observer.sendUnique == false {
                 observer.handler(oldValue, newValue)
-            } else if let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable), oldValue.isEqual(newValue) {
+            } else if observer.sendUnique, let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable), oldValue.isEqual(newValue) {
+                observer.handler(oldValue, newValue)
+            } else {
                 observer.handler(oldValue, newValue)
             }
         } else {
             observer.handler(newValue, newValue)
-        }       
+        }
     }
     
     deinit {
