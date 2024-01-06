@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// A protocol that represents an expandable item.
+/// A type that represents an expandable item.
 public protocol OutlineItem {
     /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get }
@@ -21,14 +21,14 @@ public extension OutlineItem {
     }
 }
 
-/// A protocol that represents an expandable item.
+/// A type that represents an expandable item.
 public protocol ExpandingOutlineItem {
     /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get }
     /// A Boolean value indicating whether the item is expanded.
     var isExpanded: Bool { get set }
     /// An array of child outline items.
-    var children: [any ExpandingOutlineItem] { get set }
+    var children: [Self] { get set }
 }
 
 public extension ExpandingOutlineItem {
