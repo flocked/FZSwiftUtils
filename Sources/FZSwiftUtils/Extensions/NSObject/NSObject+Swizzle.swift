@@ -11,7 +11,31 @@
 import Foundation
 
 extension NSObject {
-    /// Replace an `@objc dynamic` instance method via selector on the current object.
+    /**
+     Replace an `@objc dynamic` instance method via selector on the current object.
+     
+     Example usage that replaces the `mouseDown`method of a view:
+     
+     ```swift
+     let view = NSView()
+     do {
+         try view.replaceMethod(
+             #selector(NSView.mouseDown(with:)),
+             methodSignature: (@convention(c)  (AnyObject, Selector, NSEvent) -> ()).self,
+             hookSignature: (@convention(block)  (AnyObject, NSEvent) -> ()).self) { store in { 
+                object, event in
+                let view = (object as! NSView)
+                // handle replaced `mouseDown`
+     
+                // calls `super.mouseDown`
+                store.original(object, #selector(NSView.mouseDown(with:)), event)
+             }
+        }
+     } catch {
+     // handle error
+     }
+     ```
+     */
     public func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
