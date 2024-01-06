@@ -13,7 +13,7 @@ import Foundation
  When the instances are deallocated, the KVO is automatically unregistered.
  */
 public class KeyValueObserver<Object>: NSObject where Object: NSObject {
-    typealias Observer = (handler: ((_ oldValue: Any, _ newValue: Any)->()), sendInital: Bool, sendUnique: Bool)
+    typealias Observer = (handler: ((_ oldValue: Any?, _ newValue: Any)->()), sendInital: Bool, sendUnique: Bool)
     internal var observers: [String:  Observer] = [:]
     /// The object to register for KVO notifications.
     public fileprivate(set) weak var observedObject: Object?
@@ -103,11 +103,11 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the keypath value changes.
      */
-    public func add(_ keypath: String, sendInitalValue: Bool = false, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
+    public func add(_ keypath: String, sendInitalValue: Bool = false, handler: @escaping ( _ oldValue: Any?, _ newValue: Any)->()) {
         self.add(keypath, sendInitalValue: sendInitalValue, sendUniqueOnly: false, handler: handler)
     }
     
-    func add(_ keypath: String, sendInitalValue: Bool = false, sendUniqueOnly: Bool = false, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
+    func add(_ keypath: String, sendInitalValue: Bool = false, sendUniqueOnly: Bool = false, handler: @escaping ( _ oldValue: Any?, _ newValue: Any)->()) {
         if observers[keypath] == nil || observers[keypath]?.sendInital != sendInitalValue || observers[keypath]?.sendUnique != sendUniqueOnly {
             observers[keypath] = (handler, sendInitalValue, sendUniqueOnly)
             let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
@@ -216,8 +216,17 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
            // super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
             return
         }
-        let oldValue = change[NSKeyValueChangeKey.oldKey] ?? newValue
-        observer.handler(oldValue, newValue)
+        if let oldValue = change[NSKeyValueChangeKey.oldKey] {
+            if observer.sendUnique == false {
+                observer.handler(oldValue, newValue)
+            } else if let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable), oldValue.isEqual(newValue) {
+                observer.handler(oldValue, newValue)
+            }
+        } else {
+            observer.handler(newValue, newValue)
+        }
+        let oldValue = change[NSKeyValueChangeKey.oldKey]
+       
     }
     
     deinit {
