@@ -8,87 +8,95 @@
 
 import Foundation
 
-public extension Defaults {
-    /// Represents a `Key` with an associated generic value type conforming to the
-    /// `Codable` protocol.
-    ///
-    ///     static let someKey = Key<ValueType>("someKey")
-    final class Key<ValueType: Codable> {
-        fileprivate let _key: String
-        public init(_ key: String) {
-            _key = key
-        }
-    }
-}
-
-/// Provides strongly typed values associated with the lifetime
-/// of an application. Apropriate for user preferences.
-/// - Warning
-/// These should not be used to store sensitive information that could compromise
-/// the application or the user's security and privacy.
+/**
+ Provides strongly typed values associated with the lifetime of an application. Apropriate for user preferences.
+ 
+ Example usage:
+ ```swift
+ Defaults.shared["isInitalStart"] = false
+ 
+ if let isInitalStart: Bool = Defaults.shared["isInitalStart"] {
+ 
+ }
+ ```
+ 
+ - Note: These should not be used to store sensitive information that could compromise the application or the user's security and privacy.
+ */
 public final class Defaults {
-    private var userDefaults: UserDefaults
+    var userDefaults: UserDefaults
 
-    /// Shared instance of `Defaults`, used for ad-hoc access to the user's
-    /// defaults database throughout the app.
+    /// Shared instance of `Defaults`, used for ad-hoc access to the user's defaults database throughout the app.
     public static let shared = Defaults()
 
-    /// An instance of `Defaults` with the specified `UserDefaults` instance.
-    ///
-    /// - Parameter userDefaults: The UserDefaults.
+    /**
+     An instance of `Defaults` with the specified `UserDefaults` instance.
+     
+     - Parameter userDefaults: The UserDefaults.
+     */
     public init(userDefaults: UserDefaults = UserDefaults.standard) {
         self.userDefaults = userDefaults
     }
 
-    /// Deletes the value associated with the specified key, if any.
-    ///
-    /// - Parameter key: The key.
-    public func clear<ValueType>(_ key: Key<ValueType>) {
-        userDefaults.set(nil, forKey: key._key)
+    /**
+     Deletes the value associated with the specified key, if any.
+     
+     - Parameter key: The key.
+     */
+    func clear<Value>(_ key: Key<Value>) {
+        self.clear(key._key)
+    }
+    
+    /**
+     Deletes the value associated with the specified key, if any.
+     
+     - Parameter key: The key.
+     */
+    func clear(_ key: String) {
+        userDefaults.set(nil, forKey: key)
         userDefaults.synchronize()
     }
-
-    /// Checks if there is a value associated with the specified key.
-    ///
-    /// - Parameter key: The key to look for.
-    /// - Returns: A Boolean value indicating if a value exists for the specified key.
-    public func has<ValueType>(_ key: Key<ValueType>) -> Bool {
+    
+    /**
+     A Boolean value indicating whether a value exists for the specified key.
+     
+     - Parameter key: The key for the value.
+     */
+    func has<Value>(_ key: Key<Value>) -> Bool {
         return userDefaults.value(forKey: key._key) != nil
+    }
+    
+    /**
+     A Boolean value indicating whether a value exists for the specified key.
+     
+     - Parameter key: The key for the value.
+     */
+    func has(_ key: String) -> Bool {
+        return userDefaults.value(forKey: key) != nil
     }
 
     public subscript<T: Codable>(key: Key<T>) -> T? {
-        get { get(for: key) }
-        set {
-            if let newValue = newValue {
-                set(newValue, for: key)
-            } else {
-                clear(key)
-            }
-        }
+        get { return get(key) }
+        set { set(newValue, for: key) }
     }
 
     public subscript<T: Codable>(key: String) -> T? {
-        get {
-            let key = Key<T>(key)
-            return get(for: key)
-        }
-        set {
-            let key = Key<T>(key)
-            if let newValue = newValue {
-                set(newValue, for: key)
-            } else {
-                clear(key)
-            }
-        }
+        get { return get(key) }
+        set { set(newValue, for: key) }
+    }
+    
+    public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
+        get { return get(key) }
+        set { set(newValue, for: key) }
     }
 
-    /// Returns the value associated with the specified key.
-    ///
-    /// - Parameter key: The key.
-    /// - Returns: A `ValueType` or nil if the key was not found.
-    public func get<ValueType>(for key: Key<ValueType>) -> ValueType? {
-        if isSwiftCodableType(ValueType.self) || isFoundationCodableType(ValueType.self) {
-            return userDefaults.value(forKey: key._key) as? ValueType
+    /**
+     The value for the specified key, or `nil`if there isn't a value for the key.
+
+     - Parameter key: The key.
+     */
+    func get<Value>(_ key: Key<Value>) -> Value? {
+        if isSwiftCodableType(Value.self) || isFoundationCodableType(Value.self) {
+            return userDefaults.value(forKey: key._key) as? Value
         }
 
         guard let data = userDefaults.data(forKey: key._key) else {
@@ -97,7 +105,7 @@ public final class Defaults {
 
         do {
             let decoder = JSONDecoder()
-            let decoded = try decoder.decode(ValueType.self, from: data)
+            let decoded = try decoder.decode(Value.self, from: data)
             return decoded
         } catch {
             #if DEBUG
@@ -108,14 +116,17 @@ public final class Defaults {
         return nil
     }
 
-    /// Sets a value associated with the specified key.
-    ///
-    /// - Parameters:
-    ///   - some: The value to set.
-    ///   - key: The associated `Key<ValueType>`.
-    public func set<ValueType>(_ value: ValueType, for key: Key<ValueType>) {
-        if isSwiftCodableType(ValueType.self) || isFoundationCodableType(ValueType.self) {
+    /**
+     Sets a value for the specified key.
+     
+     - Parameters:
+        - value: The value to set.
+        - key: The key.
+     */
+    func set<Value>(_ value: Value?, for key: Key<Value>) {
+        if isSwiftCodableType(Value.self) || isFoundationCodableType(Value.self) {
             userDefaults.set(value, forKey: key._key)
+            userDefaults.synchronize()
             return
         }
 
@@ -131,69 +142,172 @@ public final class Defaults {
         }
     }
 
+    /**
+     The value for the specified key, or `nil`if there isn't a value for the key.
+
+     - Parameter key: The key.
+     */
+    func get<Value: Codable>(_ key: String) -> Value? {
+        let key = Key<Value>(key)
+        return get(key)
+    }
     
-    /// Returns the value associated with the specified key.
-    ///
-    /// - Parameter key: The key.
-    /// - Returns: A `ValueType` or nil if the key was not found.
-    public func get<ValueType: Codable>(for key: String) -> ValueType? {
-        let key = Key<ValueType>(key)
-        return get(for: key)
+    /**
+     The value for the specified key, or `nil`if there isn't a value for the key.
+
+     - Parameter key: The key.
+     */
+    func get<Value: RawRepresentable>(_ key: String) -> Value? where Value.RawValue: Codable {
+        let convertedKey = Key<Value.RawValue>(key)
+        if let raw = get(convertedKey) {
+            return Value(rawValue: raw)
+        }
+        return nil
     }
 
-    /// Sets a value associated with the specified key.
-    ///
-    /// - Parameters:
-    ///   - value: The value to set.
-    ///   - key: The associated key.
-    public func set<ValueType: Codable>(_ value: ValueType?, for key: String) {
-        let key = Key<ValueType>(key)
+    /**
+     Sets a value for the specified key.
+     
+     - Parameters:
+        - value: The value to set.
+        - key: The key.
+     */
+    func set<Value: Codable>(_ value: Value?, for key: String) {
+        let key = Key<Value>(key)
         if let value = value {
             set(value, for: key)
         } else {
             clear(key)
         }
     }
+    
+    /**
+     Sets a value for the specified key.
+     
+     - Parameters:
+        - value: The value to set.
+        - key: The key.
+     */
+    func set<Value: RawRepresentable>(_ value: Value?, for key: String) where Value.RawValue: Codable {
+        if let value = value {
+            let convertedKey = Key<Value.RawValue>(key)
+            set(value.rawValue, for: convertedKey)
+        } else {
+            clear(key)
+        }
+    }
 
-    /// Removes given bundle's persistent domain
-    ///
-    /// - Parameter type: Bundle.
+    /**
+     Removes given bundle's persistent domain.
+     
+     - Parameter type: Bundle.
+     */
     public func removeAll(bundle: Bundle = Bundle.main) {
         guard let name = bundle.bundleIdentifier else { return }
         userDefaults.removePersistentDomain(forName: name)
     }
     
-    internal lazy var observer = KeyValueObserver(self.userDefaults)
+    lazy var observer = KeyValueObserver(self.userDefaults)
     
     /**
-     Adds an observer for the specified key which calls the specified handler.
-     
-     - Parameter key: The key to the value to observe.
-     - Parameter sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
-     - Parameter handler: The handler to be called whenever the key value changes.
+     Adds an observer for the value at the specified key which calls the handler.
+
+     - Parameters:
+        - key: The key to the value to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - handler: The handler to be called whenever the key value changes.
      */
-    public func observeChanges<ValueType>(for key: Key<ValueType>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: ValueType, _ newValue: ValueType)->())) {
-        self.observer.add(key._key, sendInitalValue: sendInitalValue) { old, new in
-            let old = old as! ValueType
-            let new = new as! ValueType
+    public func observeChanges<Value>(_ key: String, type: Value, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+        self.observer.add(key, sendInitalValue: sendInitalValue) { old, new, _ in
+            let old = old as! Value
+            let new = new as! Value
             handler(old, new)
         }
     }
     
     /**
-     Stops  observing for the specified key.
+     Adds an observer for the value at the specified key which calls the handler.
+
+     - Parameters:
+        - key: The key to the value to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - handler: The handler to be called whenever the key value changes.
+     */
+    public func observeChanges<Value: Equatable>(_ key: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+        self.observer.add(key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
+            let old = old as! Value
+            let new = new as! Value
+            if uniqueValues {
+                if (old != new) || inital {
+                    handler(old, new)
+                }
+            } else {
+                handler(old, new)
+            }
+        }
+        self[""] = "fdf"
+        self.observeChanges("", type: String.self, handler: { old, new in })
+    }
+    
+    /**
+     Adds an observer for the value at the specified key which calls the handler.
+
+     - Parameters:
+        - key: The key to the value to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - handler: The handler to be called whenever the key value changes.
+     */
+    public func observeChanges<Value>(for key: Key<Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+        self.observer.add(key._key, sendInitalValue: sendInitalValue) { old, new, _ in
+            let old = old as! Value
+            let new = new as! Value
+            handler(old, new)
+        }
+    }
+    
+    /**
+     Adds an observer for the value at the specified key which calls the handler.
+     
+     - Parameters:
+        - key: The key to the value to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - handler: The handler to be called whenever the key value changes.
+     */
+    public func observeChanges<Value: Equatable>(for key: Key<Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+        self.observer.add(key._key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
+            let old = old as! Value
+            let new = new as! Value
+            if uniqueValues {
+                if (old != new) || inital {
+                    handler(old, new)
+                }
+            } else {
+                handler(old, new)
+            }
+        }
+    }
+    
+    /**
+     Stops observation for the specified key.
      
      - Parameter key: The key to stop observing.
      */
-    public func stopObserving<ValueType>(for  key: Key<ValueType>) {
+    public func stopObserving(_ key: String) {
+        self.observer.remove(key)
+    }
+    
+    /**
+     Stops observation for the specified key.
+     
+     - Parameter key: The key to stop observing.
+     */
+    public func stopObserving<Value>(_ key: Key<Value>) {
         self.observer.remove(key._key)
     }
 
-    /// Checks if the specified type is a Codable from the Swift standard library.
-    ///
-    /// - Parameter type: The type.
-    /// - Returns: A Boolean value.
-    private func isSwiftCodableType<ValueType>(_ type: ValueType.Type) -> Bool {
+    func isSwiftCodableType<Value>(_ type: Value.Type) -> Bool {
         switch type {
         case is String.Type, is Bool.Type, is Int.Type, is Float.Type, is Double.Type:
             return true
@@ -202,12 +316,7 @@ public final class Defaults {
         }
     }
 
-    /// Checks if the specified type is a Codable, from the Swift's core libraries
-    /// Foundation framework.
-    ///
-    /// - Parameter type: The type.
-    /// - Returns: A Boolean value.
-    private func isFoundationCodableType<ValueType>(_ type: ValueType.Type) -> Bool {
+    func isFoundationCodableType<Value>(_ type: Value.Type) -> Bool {
         switch type {
         case is Date.Type:
             return true
@@ -217,28 +326,50 @@ public final class Defaults {
     }
 }
 
-// MARK: ValueType with RawRepresentable conformance
+extension Defaults {
+    /**
+     Represents a `Key` with an associated generic value type conforming to the `Codable` protocol.
+     
+     Example:
+     ```swift
+     static let someKey = Key<Bool>("isInitalStart")
+     ```
+     */
+    public class Key<Value: Codable> {
+        let _key: String
+        public init(_ key: String) {
+            _key = key
+        }
+    }
+}
 
-public extension Defaults {
-    /// Returns the value associated with the specified key.
-    ///
-    /// - Parameter key: The key.
-    /// - Returns: A `ValueType` or nil if the key was not found.
-    func get<ValueType: RawRepresentable>(for key: Key<ValueType>) -> ValueType? where ValueType.RawValue: Codable {
-        let convertedKey = Key<ValueType.RawValue>(key._key)
-        if let raw = get(for: convertedKey) {
-            return ValueType(rawValue: raw)
+
+// MARK: Value with RawRepresentable conformance
+
+extension Defaults {
+    /**
+     The value for the specified key, or `nil`if there isn't a value for the key.
+
+     - Parameter key: The key.
+     */
+    func get<Value: RawRepresentable>(for key: Key<Value>) -> Value? where Value.RawValue: Codable {
+        let convertedKey = Key<Value.RawValue>(key._key)
+        if let raw = get(convertedKey) {
+            return Value(rawValue: raw)
         }
         return nil
     }
 
-    /// Sets a value associated with the specified key.
-    ///
-    /// - Parameters:
-    ///   - some: The value to set.
-    ///   - key: The associated `Key<ValueType>`.
-    func set<ValueType: RawRepresentable>(_ value: ValueType, for key: Key<ValueType>) where ValueType.RawValue: Codable {
-        let convertedKey = Key<ValueType.RawValue>(key._key)
+    /**
+     Sets a value for the specified key.
+     
+     - Parameters:
+        - value: The value to set.
+        - key: The key.
+     */
+    func set<Value: RawRepresentable>(_ value: Value, for key: Key<Value>) where Value.RawValue: Codable {
+        let convertedKey = Key<Value.RawValue>(key._key)
         set(value.rawValue, for: convertedKey)
     }
 }
+
