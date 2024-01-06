@@ -104,59 +104,104 @@ public extension Collection {
 }
 
 public extension Collection where Index == Int {
-    subscript(safe range: Range<Index>) -> [Element] {
+    /**
+     Accesses a contiguous subrange of the collection’s elements.
+     
+     - Parameter bounds: A range of integers.
+     - Returns: The available elements of the collection at the range.
+     */
+    subscript(safe bounds: Range<Index>) -> [Element] {
         guard !self.isEmpty else { return [] }
-        let range = range.clamped(to: 0..<count)
+        let range = bounds.clamped(to: 0..<count)
         return range.compactMap({ self[safe: $0] })
     }
     
-    subscript(safe range: ClosedRange<Int>) -> [Element] {
+    /**
+     Accesses a contiguous subrange of the collection’s elements.
+     
+     - Parameter bounds: A range of integers.
+     - Returns: The available elements of the collection at the range.
+     */
+    subscript(safe bounds: ClosedRange<Int>) -> [Element] {
         guard !self.isEmpty else { return [] }
-        let range = range.clamped(to: 0...count-1)
+        let range = bounds.clamped(to: 0...count-1)
         return range.compactMap({ self[safe: $0] })
     }
 
+    /**
+     Accesses a contiguous subrange of the collection’s elements.
+     
+     - Parameter indexes: A range of integers.
+     - Returns: The available elements of the collection at the range.
+     */
     subscript(indexes: IndexSet) -> [Element] {
-        return indexes.compactMap { self[safe: $0] }
+        get { indexes.compactMap { self[safe: $0] } }
     }
 }
 
 public extension RangeReplaceableCollection where Index == Int {
-    subscript(safe range: Range<Index>) -> [Element] {
+    /**
+     Accesses a contiguous subrange of the collection’s elements.
+     
+     - Parameter bounds: A range of integers.
+     - Returns: The available elements of the collection at the range.
+     */
+    subscript(safe bounds: Range<Index>) -> [Element] {
         get {
             guard !self.isEmpty else { return [] }
-            let range = range.clamped(to: 0..<count)
+            let range = bounds.clamped(to: 0..<count)
             return range.compactMap({ self[safe: $0] })
         }
         set {
             guard !self.isEmpty else { return }
-            let range = range.clamped(to: 0..<count)
+            let range = bounds.clamped(to: 0..<count)
             self.replaceSubrange(range, with: newValue)
         }
     }
     
-    subscript(safe range: ClosedRange<Int>) -> [Element] {
+    /**
+     Accesses a contiguous subrange of the collection’s elements.
+     
+     - Parameter bounds: A range of integers.
+     - Returns: The available elements of the collection at the range.
+     */
+    subscript(safe bounds: ClosedRange<Int>) -> [Element] {
         get {
             guard !self.isEmpty else { return [] }
-            let range = range.clamped(to: 0...count-1)
+            let range = bounds.clamped(to: 0...count-1)
             return range.compactMap({ self[safe: $0] })
         }
         set {
             guard !self.isEmpty else { return }
-            let range = range.clamped(to: 0...count-1)
+            let range = bounds.clamped(to: 0...count-1)
             self.replaceSubrange(range, with: newValue)
         }
     }
 }
 
 public extension RangeReplaceableCollection where Element: Equatable {
+    /**
+     Removes the specificed element and returns them.
+     
+     - Parameter element: The element to remove.
+     - Returns: Returns the removed element.
+     */
     @discardableResult
+    mutating func remove(_ element: Element) -> Element? {
+        var removedElement: Element? = nil
+        while let index = self.firstIndex(of: element) {
+            removedElement = self.remove(at: index)
+        }
+        return removedElement
+    }
+    
     /**
      Removes the specificed elements and returns them.
      
      - Parameter elements: The elements to remove.
      - Returns: Returns the removed elements.
      */
+    @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         var removedElements: [Element] = []
         for element in elements {
@@ -170,13 +215,13 @@ public extension RangeReplaceableCollection where Element: Equatable {
 }
 
 public extension RangeReplaceableCollection where Self.Indices.Element == Int {
-    @discardableResult
     /**
      Removes the elements at the specified indexes and returns them.
      
      - Parameter indexes: The indexes of the elements to remove.
      - Returns: Returns the removed elements.
      */
+    @discardableResult
     mutating func remove(at indexes: IndexSet) -> [Self.Element] {
         var returnItems = [Self.Element]()
         for (index, _) in enumerated().reversed() {
@@ -187,7 +232,6 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
         return returnItems
     }
 
-    @discardableResult
     /**
      Moves the element at the specified index to the specified position.
      
@@ -197,11 +241,11 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move(from index: Int, to destinationIndex: Index) -> Bool {
         return move(from: IndexSet([index]), to: destinationIndex)
     }
 
-    @discardableResult
     /**
      Moves the elements at the specified indexes to the specified position.
      
@@ -210,6 +254,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
         - destinationIndex: The index of the destionation.
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move(from indexes: IndexSet, to destinationIndex: Index) -> Bool {
         guard indexes.isSubset(of: IndexSet(indices)) else {
             debugPrint("Source indices out of range.")
@@ -231,7 +276,6 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int {
 }
 
 public extension RangeReplaceableCollection where Self.Indices.Element == Int, Element: Equatable {
-    @discardableResult
     /**
      Moves the specified element to the specified position.
      
@@ -241,12 +285,12 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move(_ element: Element, to destinationIndex: Self.Indices.Element) -> Bool {
         let indexes = self.indexes(for: [element])
         return move(from: indexes, to: destinationIndex)
     }
 
-    @discardableResult
     /**
      Moves the specified elements to the specified position.
      
@@ -256,12 +300,12 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move<S: Sequence<Element>>(_ elements: S, to destinationIndex: Self.Indices.Element) -> Bool {
         let indexes = self.indexes(for: elements)
         return move(from: indexes, to: destinationIndex)
     }
     
-    @discardableResult
     /**
      Moves the specified element before the specified `beforeElement`.
      
@@ -271,13 +315,13 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move(_ element: Element, before beforeElement: Element) -> Bool {
         let indexes = self.indexes(for: [element])
         guard let destinationIndex = self.firstIndex(of: beforeElement) else { return false }
         return move(from: indexes, to: destinationIndex)
     }
 
-    @discardableResult
     /**
      Moves the specified elements before the specified `beforeElement`.
      
@@ -287,13 +331,13 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move<S: Sequence<Element>>(_ elements: S, before beforeElement: Element) -> Bool {
         guard let destinationIndex = self.firstIndex(of: beforeElement), destinationIndex + 1 < self.count else { return false }
         let indexes = self.indexes(for: elements)
         return move(from: indexes, to: destinationIndex)
     }
     
-    @discardableResult
     /**
      Moves the specified element after the specified `afterElement`.
      
@@ -303,13 +347,13 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move(_ element: Element, after afterElement: Element) -> Bool {
         let indexes = self.indexes(for: [element])
         guard let destinationIndex = self.firstIndex(of: afterElement), destinationIndex + 1 < self.count else { return false }
         return move(from: indexes, to: destinationIndex + 1)
     }
 
-    @discardableResult
     /**
      Moves the specified elements after the specified `afterElement`.
      
@@ -319,31 +363,32 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      
      - Returns: `true` if moving succeeded, or `false` if not.
      */
+    @discardableResult
     mutating func move<S: Sequence<Element>>(_ elements: S, after afterElement: Element) -> Bool {
         guard let destinationIndex = self.firstIndex(of: afterElement), destinationIndex + 1 < self.count else { return false }
         let indexes = self.indexes(for: elements)
         return move(from: indexes, to: destinationIndex + 1)
     }
 
-    @discardableResult
     /**
      Removes the specified element.
      
      - Parameter element: The element remove.
      - Returns: Returns the removed element.
      */
+    @discardableResult
     mutating func remove(_ element: Element) -> Element? {
         let indexes = self.indexes(for: [element])
         return remove(at: indexes).first
     }
 
-    @discardableResult
     /**
      Removes the specified elements.
      
      - Parameter elements: The elements to remove.
      - Returns: Returns the removed elements.
      */
+    @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         let indexes = self.indexes(for: elements)
         return remove(at: indexes)

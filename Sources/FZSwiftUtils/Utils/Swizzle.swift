@@ -56,50 +56,62 @@ public struct Swizzle {
         }
     }
 
-    @discardableResult
     /**
      Swizzles selectors of the specified class.
-     - Parameter class_:  The class to swizzle.
-     - Parameter makeSelectorPairs: The swizzle selector pairs.
+     
+     - Parameters:
+        - type:  The class to swizzle.
+        - makeSelectorPairs: The swizzle selector pairs.
+     
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
-    public init(_ class_: AnyClass, @Builder _ makeSelectorPairs: () -> [SelectorPair]) throws {
-        try self.init(class_, swizzlePairs: makeSelectorPairs())
+    @discardableResult
+    public init(_ type: AnyClass, @Builder _ makeSelectorPairs: () -> [SelectorPair]) throws {
+        try self.init(type, swizzlePairs: makeSelectorPairs())
     }
 
-    @discardableResult
     /**
      Swizzles selectors of the specified class.
-     - Parameter class_:  The class to swizzle.
-     - Parameter makeSelectorPairs: The swizzle selector pairs.
+     
+     - Parameters:
+        - type:  The class to swizzle.
+        - makeSelectorPairs: The swizzle selector pairs.
+     
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
-    public init(_ class_: AnyClass, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
-        try self.init(class_, swizzlePairs: [makeSelectorPairs()])
+    @discardableResult
+    public init(_ type: AnyClass, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
+        try self.init(type, swizzlePairs: [makeSelectorPairs()])
     }
 
-    @discardableResult
     /**
      Swizzles selectors of the class with the specified name.
-     - Parameter className:  The name of the class.
-     - Parameter makeSelectorPairs: The swizzle selector pairs.
+     
+     - Parameters:
+        - className:  The name of the class.
+        - makeSelectorPairs: The swizzle selector pairs.
+     
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
+    @discardableResult
     public init(_ className: String, @Builder _ makeSelectorPairs: () -> [SelectorPair]) throws {
         try self.init(className, swizzlePairs: makeSelectorPairs())
     }
 
-    @discardableResult
     /**
      Swizzles selectors of the class with the specified name.
-     - Parameter className:  The name of the class.
-     - Parameter makeSelectorPairs: The swizzle selector pairs.
+     
+     - Parameters:
+        - className:  The name of the class.
+        - makeSelectorPairs: The swizzle selector pairs.
+     
      - Throws:Throws if swizzling fails.
      - Returns: A `Swizzle` object for the specified values.
      */
+    @discardableResult
     public init(_ className: String, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
         try self.init(className, swizzlePairs: [makeSelectorPairs()])
     }

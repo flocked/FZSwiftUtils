@@ -35,12 +35,12 @@ extension Set {
         self.removeAll(where: { $0[keyPath: keypath] != nil })
     }
 
-    @discardableResult
     /**
      Removes all elements that satisfy the given predicate.
 
      - Parameter shouldRemove: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the set.
      */
+    @discardableResult
     mutating func removeAll(where shouldRemove: (Self.Element) -> Bool) -> Set<Element> {
         let toRemove = filter(shouldRemove)
         self.remove(Array(toRemove))

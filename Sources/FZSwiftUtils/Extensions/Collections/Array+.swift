@@ -8,13 +8,14 @@
 import Foundation
 
 extension Array {
-    
+    /// Adds the specified optional `Element`.
     public static func +=(lhs: inout [Element], rhs: Element?) {
         if let rhs = rhs {
             lhs.append(rhs)
         }
     }
 
+    /// Adds the specified optional `Element`.
     public static func +(lhs: [Element], rhs: Element?) -> [Element]  {
         var copy = lhs
         if let rhs = rhs {
