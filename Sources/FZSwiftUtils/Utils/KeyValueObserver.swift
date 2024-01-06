@@ -211,7 +211,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         if let oldValue = change[NSKeyValueChangeKey.oldKey] {
             if observer.sendUnique == false {
                 observer.handler(oldValue, newValue)
-            } else if let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable), oldValue.isEqual(newValue) {
+            } else if let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable), oldValue.isEqual(newValue) == false {
                 observer.handler(oldValue, newValue)
             }
         } else {
