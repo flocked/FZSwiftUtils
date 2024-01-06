@@ -43,15 +43,16 @@ public extension NSObjectProtocol where Self: NSObject {
     func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return self.observe(keyPath, options: options) { object, change in
-            Swift.print("sss", change.oldValue ?? "nil", change.newValue ?? "nil")
             if let newValue = change.newValue {
                 if let oldValue = change.oldValue {
+                    Swift.print("bbb", uniqueValues, newValue != oldValue )
                     if uniqueValues, newValue != oldValue {
                         handler(oldValue, newValue)
                     } else {
                         handler(oldValue, newValue)
                     }
                 } else {
+                    Swift.print("sss", change.oldValue ?? "nil", change.newValue ?? "nil")
                     handler(newValue, newValue)
                 }
             }
