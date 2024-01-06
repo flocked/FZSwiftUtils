@@ -45,8 +45,12 @@ public final class Defaults {
     
     public subscript(key: String) -> Any? {
         get { userDefaults.value(forKey: key) }
-        set { 
-            Swift.print("HERE")
+        set {
+            if case Optional<Any>.none = newValue {
+                print("ISNIL")
+            } else {
+                print("not nil")
+            }
             userDefaults.setValue(newValue, forKey: key)
             userDefaults.synchronize()
         }
