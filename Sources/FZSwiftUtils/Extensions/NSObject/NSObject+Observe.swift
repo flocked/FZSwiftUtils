@@ -88,6 +88,17 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes to a property identified by the given key path using Combine publishers.
      
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.stringValue, uniqueValues: true) {
+        newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
         - keypath: The key path of the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
@@ -110,6 +121,17 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes in to optional property identified by the given key path using Combine publishers.
+     
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.placeholderString, uniqueValues: true) {
+        newValue in
+        // handle changed value
+     }
+     ```
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
@@ -134,6 +156,17 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes to a property identified by the given key path using Combine publishers.
      
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.stringValue) {
+        newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
         - keypath: The key path of the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
@@ -150,6 +183,17 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes to an optional property identified by the given key path using Combine publishers.
      
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.placeholderString) {
+        newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
         - keypath: The key path of the optional property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
@@ -165,6 +209,17 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes to a property identified by the given key path using Combine publishers with throttling.
+     
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.stringValue, throttle: .milliseconds(50)) {
+        newValue in
+        // handle changed value
+     }
+     ```
      
      - Parameters:
         - keypath: The key path of the property to observe.
@@ -192,6 +247,17 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes to a property identified by the given key path using Combine publishers with throttling.
      
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.placeholderString, throttle: .milliseconds(50)) {
+        newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
         - keypath: The key path of the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
@@ -218,6 +284,17 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes to an optional property identified by the given key path using Combine publishers with throttling.
      
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.stringValue, debounce: .milliseconds(50)) {
+        newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
         - keypath: The key path of the optional property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
@@ -243,6 +320,17 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes to a property identified by the given key path using Combine publishers with debouncing.
+     
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.obChanged(\.placeholderString, debounce: .milliseconds(50)) {
+        newValue in
+        // handle changed value
+     }
+     ```
      
      - Parameters:
         - keypath: The key path of the property to observe.
