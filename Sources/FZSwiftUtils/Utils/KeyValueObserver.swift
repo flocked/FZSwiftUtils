@@ -48,9 +48,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         - keyPath: The keypath to the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only be called if the new value isn't equal to the previous value.
-        - handler: The handler to be called whenever the keypath value changes.
+        - handler: The handler to be called whenever the property value changes.
      */
-    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         if uniqueValues {
             self.add(keyPath, sendInitalValue: sendInitalValue, handler: handler)
         } else {
@@ -63,14 +63,13 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
-    /*
     /**
      Adds an observer for the property at the specified keypath which calls the handler.
           
      - Parameters:
         - keyPath: The keypath to the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
-        - handler: The handler to be called whenever the keypath value changes to a new value that isn't equal to the previous value. If you want to the handler to get called on all changes, use ``add(_:sendInitalValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
+        - handler: The handler to be called whenever the property value changes to a new value that isn't equal to the previous value. If you want to the handler to get called on all changes, use ``add(_:sendInitalValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
      */
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
@@ -81,7 +80,6 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             }
         }
     }
-     */
     
     /**
      Adds an observer for the property at the specified keypath which calls the handler.
@@ -89,7 +87,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The keypath to the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
-        - handler: The handler to be called whenever the keypath value changes.
+        - handler: The handler to be called whenever the property value changes.
      */
     public func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         guard let name = keyPath._kvcKeyPathString else { return }
@@ -107,7 +105,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The keypath to the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
-        - handler: The handler to be called whenever the keypath value changes.
+        - handler: The handler to be called whenever the property value changes.
      */
     public func add(_ keypath: String, sendInitalValue: Bool = false, handler: @escaping ( _ oldValue: Any?, _ newValue: Any)->()) {
         self.add(keypath, sendInitalValue: sendInitalValue, uniqueValues: false, handler: handler)
@@ -128,7 +126,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
      
      - Parameters:
         - keyPaths: The keypaths to the propertys to observe.
-        - handler: The handler to be called whenever any of keypaths values changes.
+        - handler: The handler to be called whenever any of property values for the keypaths changes.
      */
     public func add(_ keyPaths: [PartialKeyPath<Object>], handler: @escaping ((_ keyPath: PartialKeyPath<Object>)->())) {
         for keyPath in keyPaths {
