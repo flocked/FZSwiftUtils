@@ -110,10 +110,10 @@ public class URLResources {
         get { try? value(for: \.creationDate) }
         set { try? setValue(newValue, for: \.creationDate) }
     }
-    /// The date the resource was created, or renamed into or within its parent directory.
+    /// Date the resource was created, or renamed into or within its parent directory.
     public var addedToDirectoryDate: Date? { try? value(for: \.addedToDirectoryDate) }
 
-    /// Date the resource was last accessed.
+    /// Date the resource content was last accessed.
     public var contentAccessDate: Date? {
         get { try? value(for: \.contentAccessDate) }
         set { try? setValue(newValue, for: \.contentAccessDate) }
@@ -334,18 +334,6 @@ public extension URLResources {
                 url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
             }
         }
-    }
-
-    /// Describes where the resource was obtained from. For example download urls.
-    var whereFroms: [String]? {
-        get { return url.extendedAttributes["com.apple.metadata:kMDItemWhereFroms"] }
-        set { url.extendedAttributes["com.apple.metadata:kMDItemWhereFroms"] = newValue }
-    }
-
-    /// The download date of the resource.
-    var downloadDate: Date? {
-        get { return url.extendedAttributes["com.apple.metadata:kMDItemDownloadedDate"] }
-        set { url.extendedAttributes["com.apple.metadata:kMDItemDownloadedDate"] = newValue }
     }
 
     /// The icon stored with the resource.

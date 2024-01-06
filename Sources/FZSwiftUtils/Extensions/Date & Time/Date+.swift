@@ -9,6 +9,15 @@ import Foundation
 
 public extension Date {
     /**
+     Returns a date instance that represents the current date and time, at the moment of access.
+     
+     This property is equivalent to calling `init()`. If you assign this value to a variable or property, the assigned value doesn’t automatically update as time passes.
+     */
+    static var now: Date {
+        Date()
+    }
+    
+    /**
      Adds a value to a specific component of the date.
 
      - Parameters:
