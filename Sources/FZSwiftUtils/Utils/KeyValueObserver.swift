@@ -220,9 +220,13 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             return
         }
         if let oldValue = change[NSKeyValueChangeKey.oldKey] {
-            if observer.sendUnique == false {
-                observer.handler(oldValue, newValue)
-            } else if let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable), oldValue.isEqual(newValue) == false {
+            if let oldValue = oldValue as? (any Equatable), let newValue = newValue as? (any Equatable) {
+                if observer.sendUnique == false {
+                    observer.handler(oldValue, newValue)
+                } else if oldValue.isEqual(newValue) == false {
+                    observer.handler(oldValue, newValue)
+                }
+            } else {
                 observer.handler(oldValue, newValue)
             }
         } else {

@@ -67,9 +67,9 @@ public extension NSObjectProtocol where Self: NSObject {
         return self.observe(keyPath, options: options) { object, change in
             if let newValue = change.newValue {
                 if let oldValue = change.oldValue {
-                    if uniqueValues, newValue != oldValue {
+                    if uniqueValues == false {
                         handler(oldValue, newValue)
-                    } else {
+                    } else if newValue != oldValue {
                         handler(oldValue, newValue)
                     }
                 } else {
@@ -82,6 +82,14 @@ public extension NSObjectProtocol where Self: NSObject {
 
 #if canImport(Combine)
 import Combine
+import AppKit
+
+@available(macOS 10.15.2, *)
+func test() {
+    let textField = NSTextField()
+    
+    let stringValueObservation = textField.onChanged(\.stringValue) { newValue in }
+}
 
 @available(macOS 10.15.2, iOS 13.2, tvOS 13, watchOS 6, *)
 public extension NSObjectProtocol where Self: NSObject {
@@ -90,15 +98,22 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.old, .new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [.old, .new], handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
-        return publisher(for: keypath, options: options)
-            .removeDuplicates(by: { ($0 == $1) })
-            .sink(receiveValue: handler)
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
+        if uniqueValues {
+            return publisher(for: keypath, options: options)
+                .removeDuplicates(by: { ($0 == $1) })
+                .sink(receiveValue: handler)
+        } else {
+            return publisher(for: keypath, options: options)
+                .sink(receiveValue: handler)
+        }
     }
     
     /**
@@ -106,15 +121,22 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
-        return publisher(for: keypath, options: options)
-            .removeDuplicates(by: { ($0 == $1) })
-            .sink(receiveValue: handler)
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
+        if uniqueValues {
+            return publisher(for: keypath, options: options)
+                .removeDuplicates(by: { ($0 == $1) })
+                .sink(receiveValue: handler)
+        } else {
+            return publisher(for: keypath, options: options)
+                .sink(receiveValue: handler)
+        }
     }
     
     /**
@@ -122,12 +144,13 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [ .new], handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
@@ -137,12 +160,13 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = [.new], handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value?>, sendInitalValue: Bool = false, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
@@ -152,17 +176,25 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = .new, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
-        return publisher(for: keypath, options: options)
-            .removeDuplicates { $0 == $1 }
-            .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
-            .sink(receiveValue: handler)
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
+        if uniqueValues {
+            return publisher(for: keypath, options: options)
+                .removeDuplicates { $0 == $1 }
+                .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
+                .sink(receiveValue: handler)
+        } else {
+            return publisher(for: keypath, options: options)
+                .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
+                .sink(receiveValue: handler)
+        }
     }
     
     /**
@@ -170,17 +202,25 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = .new, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
-        return publisher(for: keypath, options: options)
-            .removeDuplicates { $0 == $1 }
-            .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
-            .sink(receiveValue: handler)
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, sendInitalValue: Bool = false, uniqueValues: Bool, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
+        if uniqueValues {
+            return publisher(for: keypath, options: options)
+                .removeDuplicates { $0 == $1 }
+                .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
+                .sink(receiveValue: handler)
+        } else {
+            return publisher(for: keypath, options: options)
+                .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
+                .sink(receiveValue: handler)
+        }
     }
     
     /**
@@ -188,17 +228,25 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = .new, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
-        return publisher(for: keypath, options: options)
-            .removeDuplicates { $0 == $1 }
-            .debounce(for: interval, scheduler: DispatchQueue.main)
-            .sink(receiveValue: handler)
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
+        if uniqueValues {
+            return publisher(for: keypath, options: options)
+                .removeDuplicates { $0 == $1 }
+                .debounce(for: interval, scheduler: DispatchQueue.main)
+                .sink(receiveValue: handler)
+        } else {
+            return publisher(for: keypath, options: options)
+                .debounce(for: interval, scheduler: DispatchQueue.main)
+                .sink(receiveValue: handler)
+        }
     }
     
     /**
@@ -206,17 +254,25 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keypath: The key path of the property to observe.
-        - options: The options for observing the property. The default value is `[.new].
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for debouncing.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
      
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, options: NSKeyValueObservingOptions = .new, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
-        return publisher(for: keypath, options: options)
-            .removeDuplicates { $0 == $1 }
-            .debounce(for: interval, scheduler: DispatchQueue.main)
-            .sink(receiveValue: handler)
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value?>, sendInitalValue: Bool = false, uniqueValues: Bool, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value?) -> Void)) -> AnyCancellable? {
+        let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
+        if uniqueValues {
+            return publisher(for: keypath, options: options)
+                .removeDuplicates { $0 == $1 }
+                .debounce(for: interval, scheduler: DispatchQueue.main)
+                .sink(receiveValue: handler)
+        } else {
+            return publisher(for: keypath, options: options)
+                .debounce(for: interval, scheduler: DispatchQueue.main)
+                .sink(receiveValue: handler)
+        }
     }
 }
 #endif
