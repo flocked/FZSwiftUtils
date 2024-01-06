@@ -45,7 +45,7 @@ public extension NSObjectProtocol where Self: NSObject {
         return self.observe(keyPath, options: options) { object, change in
             if let newValue = change.newValue {
                 if let oldValue = change.oldValue {
-                    Swift.print("bbb", uniqueValues, newValue != oldValue )
+                    Swift.print("bbb", uniqueValues, newValue != oldValue, oldValue, newValue, oldValue, (oldValue as? String)?.count ?? "", (newValue as? String)?.count ?? "" )
                     if uniqueValues, newValue != oldValue {
                         handler(oldValue, newValue)
                     } else {
