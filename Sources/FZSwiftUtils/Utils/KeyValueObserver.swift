@@ -224,9 +224,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             }
         } else {
             observer.handler(newValue, newValue)
-        }
-        let oldValue = change[NSKeyValueChangeKey.oldKey]
-       
+        }       
     }
     
     deinit {
