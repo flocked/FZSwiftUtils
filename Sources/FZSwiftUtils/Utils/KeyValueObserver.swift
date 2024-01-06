@@ -50,7 +50,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         - uniqueValues: A Boolean value indicating whether the handler should only be called if the new value isn't equal to the previous value.
         - handler: The handler to be called whenever the keypath value changes.
      */
-    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
         if uniqueValues {
             self.add(keyPath, sendInitalValue: sendInitalValue, handler: handler)
         } else {
@@ -63,6 +63,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
+    /*
     /**
      Adds an observer for the property at the specified keypath which calls the handler.
           
@@ -80,6 +81,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
             }
         }
     }
+     */
     
     /**
      Adds an observer for the property at the specified keypath which calls the handler.

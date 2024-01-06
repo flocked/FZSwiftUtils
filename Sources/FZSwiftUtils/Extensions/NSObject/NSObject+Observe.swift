@@ -82,14 +82,6 @@ public extension NSObjectProtocol where Self: NSObject {
 
 #if canImport(Combine)
 import Combine
-import AppKit
-
-@available(macOS 10.15.2, *)
-func test() {
-    let textField = NSTextField()
-    
-    let stringValueObservation = textField.onChanged(\.stringValue) { newValue in }
-}
 
 @available(macOS 10.15.2, iOS 13.2, tvOS 13, watchOS 6, *)
 public extension NSObjectProtocol where Self: NSObject {
