@@ -45,23 +45,12 @@ public extension NSObjectProtocol where Self: NSObject {
         return self.observe(keyPath, options: options) { object, change in
             if let newValue = change.newValue {
                 if let oldValue = change.oldValue {
-                    if let oldValue = oldValue as? String, let newValue = newValue as? String {
-                        var value = ""
-                        for i in zip(oldValue, newValue) {
-                            value = value + "[\(i.0),\(i.1),\(i.0 == i.1)],"
-                        }
-                        Swift.print("bbb", uniqueValues, newValue != oldValue, oldValue, newValue, oldValue.count, newValue.count, value, oldValue.lowercased() != newValue.lowercased(), "\(oldValue)" != "\(newValue)")
-                    } else {
-                        Swift.print("bbb", uniqueValues, newValue != oldValue, oldValue, newValue)
-
-                    }
                     if uniqueValues, newValue != oldValue {
                         handler(oldValue, newValue)
                     } else {
                         handler(oldValue, newValue)
                     }
                 } else {
-                    Swift.print("sss", change.oldValue ?? "nil", change.newValue ?? "nil")
                     handler(newValue, newValue)
                 }
             }
