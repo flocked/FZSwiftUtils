@@ -23,8 +23,8 @@ public extension NSObjectProtocol where Self: NSObject {
     func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return self.observe(keyPath, options: options) { object, change in
-            if let newValue = change.newValue, let oldValue = change.oldValue {
-                handler(oldValue, newValue)
+            if let newValue = change.newValue {
+                handler(change.oldValue ?? newValue, newValue)
             }
         }
     }
@@ -43,11 +43,15 @@ public extension NSObjectProtocol where Self: NSObject {
     func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return self.observe(keyPath, options: options) { object, change in
-            if let newValue = change.newValue, let oldValue = change.oldValue {
-                if uniqueValues == false {
-                    handler(oldValue, newValue)
-                } else if change.newValue != change.oldValue {
-                    handler(oldValue, newValue)
+            if let newValue = change.newValue {
+                if let oldValue = change.oldValue {
+                    if uniqueValues, newValue != oldValue {
+                        handler(oldValue, newValue)
+                    } else {
+                        handler(oldValue, newValue)
+                    }
+                } else {
+                    handler(newValue, newValue)
                 }
             }
         }

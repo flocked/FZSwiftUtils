@@ -43,8 +43,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         } else {
             guard let name = keyPath._kvcKeyPathString else { return }
             self.add(name, sendInitalValue: sendInitalValue) { old, new in
-                guard let old = old as? Value, let new = new as? Value else { return }
-                handler(old, new)
+                if let new = new as? Value {
+                    handler(old as? Value ?? new, new)
+                }
             }
         }
     }
@@ -61,6 +62,16 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         guard let name = keyPath._kvcKeyPathString else { return }
         
         self.add(name, sendInitalValue: sendInitalValue, sendUniqueOnly: true) { old, new in
+            if let new = new as? Value {
+                if let old = old as? Value {
+                    if old != new {
+                        handler(old, new)
+                    }
+                } else {
+                    handler(new, new)
+                }
+            }
+            
             guard let old = old as? Value, let new = new as? Value, old != new else { return }
             handler(old, new)
         }
@@ -78,8 +89,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
         guard let name = keyPath._kvcKeyPathString else { return }
         
         self.add(name, sendInitalValue: sendInitalValue) { old, new in
-            guard let old = old as? Value, let new = new as? Value else { return }
-            handler(old, new)
+            if let new = new as? Value {
+                handler(old as? Value ?? new, new)
+            }
         }
     }
     
