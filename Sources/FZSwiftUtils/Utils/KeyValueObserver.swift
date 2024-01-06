@@ -19,8 +19,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     public fileprivate(set) weak var observedObject: Object?
     
     /**
-    Creates a key-value observer with the specifed observed object.
-     - Parameter observedObject: The object to register for KVO notifications.
+    Creates a key-value observer for the specifed observed object.
+     
+     - Parameter observedObject: The object to observe.
      - Returns: The  key-value observer.
      */
     public init(_ observedObject: Object) {
@@ -29,7 +30,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the handler.
      
      - Parameters:
         - keyPath: The keypath to the property to observe.
@@ -51,7 +52,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the handler.
           
      - Parameters:
         - keyPath: The keypath to the property to observe.
@@ -69,7 +70,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the handler.
      
      - Parameters:
         - keyPath: The keypath to the property to observe.
@@ -87,7 +88,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the handler.
      
      - Parameters:
         - keyPath: The keypath to the property to observe.
@@ -109,7 +110,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds observers for the properties at the specified keypaths which calls the specified handler whenever any of the keypaths properties changes.
+     Adds observers for the properties at the specified keypaths which calls the handler whenever any of the keypaths properties changes.
      
      - Parameters:
         - keyPaths: The keypaths to the propertys to observe.
