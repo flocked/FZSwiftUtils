@@ -43,6 +43,14 @@ public final class Defaults {
         set { set(newValue, for: key) }
     }
     
+    public subscript(key: String) -> Any? {
+        get { userDefaults.value(forKey: key) }
+        set { 
+            userDefaults.setValue(newValue, forKey: key)
+            userDefaults.synchronize()
+        }
+    }
+    
     public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
         get { return get(key) }
         set { set(newValue, for: key) }
