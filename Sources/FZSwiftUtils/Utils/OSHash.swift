@@ -10,13 +10,13 @@ import Foundation
 /**
  An implementation of the OpenSuptitle hash.
  
- The OSHash is calculated via the provided file/data size + the checksum of the first and last 64k bytes (even if they overlap because the file/data is smaller than 128k bytes).
+ The OSHash is calculated via the provided file size + the checksum of the first and last 64k bytes (even if they overlap because the file/data is smaller than 128k bytes).
+ 
+ - Note: The file has to be at least 65536 bytes large.
  */
 public struct OSHash {
     /// OSHash errors.
     public enum Errors: Error {
-        /// The file isn't available.
-        case invalidFile
         /// The data / gile is too small.
         case toSmall
     }
@@ -27,16 +27,16 @@ public struct OSHash {
     public static let blockByteCount = 8
     
     /// The hash value.
-    let value: UInt64
+    public let value: UInt64
     
     internal init(value: UInt64) {
         self.value = value
     }
 }
 
-public extension OSHash {
+extension OSHash {
     /// The hash value.
-    var stringValue: String {
+    public var stringValue: String {
         String(format: "%qx", arguments: [self.value])
     }
     
@@ -47,9 +47,9 @@ public extension OSHash {
      
      - Returns: The OpenSubtitle hash.
      
-     - Throws: Throws if the file isn't available or to small.
+     - Throws: Throws if the file isn't available, can't be accessed or is to small.
      */
-    init(path: String) throws  {
+    public init(path: String) throws  {
         try self.init(url: URL(fileURLWithPath: path))
     }
     
@@ -60,9 +60,9 @@ public extension OSHash {
      
      - Returns: The OpenSubtitle hash.
      
-     - Throws: Throws if the file isn't available or to small.
+     - Throws: Throws if the file isn't available, can't be accessed or is to small.
      */
-    init(url: URL) throws  {
+    public init(url: URL) throws  {
         let fileHandler = try FileHandle(forReadingFrom: url)
         let startData: Data = fileHandler.readData(ofLength: Self.byteCount) as Data
         
@@ -89,7 +89,7 @@ public extension OSHash {
      
      - Throws: Throws if the data is to small.
      */
-    init(data: Data) throws  {
+    public init(data: Data) throws  {
         let size = UInt64(data.count)
         guard UInt64(Self.byteCount) <= size else {
             throw Errors.toSmall
@@ -99,7 +99,7 @@ public extension OSHash {
         try self.init(size: size, startData: startData, endData: endData)
     }
     
-    internal init(size: UInt64, startData: Data, endData: Data) throws  {
+    init(size: UInt64, startData: Data, endData: Data) throws  {
         guard UInt64(Self.byteCount) <= startData.count else {
             throw Errors.toSmall
         }
