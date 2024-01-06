@@ -20,7 +20,7 @@ public protocol FileConvertible: Codable {
     /**
      Initializes from the file at the specified path.
      
-     - Parameter path: The path of the file.
+     - Parameter path: The path to the file.
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
     init(contentsOf path: String) throws
@@ -65,7 +65,7 @@ public extension FileConvertible {
     func write(to url: URL, options: Data.WritingOptions = []) throws {
         do {
             let data = try JSONEncoder().encode(self)
-            try data.write(to: url)
+            try data.write(to: url, options: options)
         } catch {
             throw error
         }
