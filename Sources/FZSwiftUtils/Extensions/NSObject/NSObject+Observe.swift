@@ -50,7 +50,7 @@ public extension NSObjectProtocol where Self: NSObject {
                         for i in zip(oldValue, newValue) {
                             value = value + "[\(i.0),\(i.1)],"
                         }
-                        Swift.print("bbb", uniqueValues, newValue != oldValue, oldValue, newValue, oldValue.count, newValue.count, value)
+                        Swift.print("bbb", uniqueValues, newValue != oldValue, oldValue, newValue, oldValue.count, newValue.count, value, oldValue.lowercased() != newValue.lowercased())
                     } else {
                         Swift.print("bbb", uniqueValues, newValue != oldValue, oldValue, newValue)
 
