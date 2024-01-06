@@ -11,6 +11,7 @@ infix operator <->
 infix operator <~>
 
 public extension Selector {
+    /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: Selector, rhs: Selector) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: lhs, new: rhs)
     }
@@ -19,20 +20,24 @@ public extension Selector {
         Swizzle.SelectorPair(old: lhs, new: Selector(rhs))
     }
 
+    /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: Selector, rhs: Selector) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: lhs, new: rhs, static: true)
     }
 
+    /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: Selector, rhs: String) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: lhs, new: Selector(rhs), static: true)
     }
 }
 
 public extension String {
+    /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: Selector(lhs), new: rhs)
     }
 
+    /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: Selector(lhs), new: rhs, static: true)
     }
@@ -177,13 +182,16 @@ public struct Swizzle {
 }
 
 extension Swizzle {
-    enum Error: LocalizedError {
+    /// An error for swizzleing.
+    public enum Error: LocalizedError {
+        /// The class is missing.
+        case missingClass(_ name: String)
+        /// The method is missing.
+        case missingMethod(_ type: AnyObject.Type, _ static: Bool, _ old: Bool, SelectorPair)
+        
         static let prefix: String = "Swizzle.Error: "
-        case missingClass(_ name: String),
-             missingMethod(
-                 _ type: AnyObject.Type, _ static: Bool, _ old: Bool, SelectorPair
-             )
-        var failureReason: String? {
+
+        public var failureReason: String? {
             switch self {
             case let .missingClass(type):
                 return "Missing class: \(type)"
@@ -196,7 +204,7 @@ extension Swizzle {
             }
         }
 
-        var recoverySuggestion: String? {
+        public var recoverySuggestion: String? {
             switch self {
             case .missingClass:
                 return nil
@@ -209,22 +217,35 @@ extension Swizzle {
             }
         }
 
-        var errorDescription: String? {
+        public var errorDescription: String? {
             switch self {
             case .missingClass:
-                return Self.prefix.appending(failureReason!)
+                return Self.prefix.appending(failureReason ?? "")
             case .missingMethod:
-                return Self.prefix.appending(failureReason!)
+                return Self.prefix.appending(failureReason ?? "")
             }
         }
     }
 }
 
 public extension Swizzle {
+    /// A pair of selectors for swizzleing.
     struct SelectorPair: CustomStringConvertible {
+        /// The old selector.
         public let old: Selector
+        /// The new selector to replace the old.
         public let new: Selector
+        /// A Boolean value indicating whether the selectors are static.
         public let `static`: Bool
+        
+        /**
+         Creates a selector pair.
+         
+         - Parameters:
+            - old: The old selector.
+            - new: The new selector to replace the old.
+            - static: A Boolean value indicating whether the selectors are static. The default value is `false`.
+         */
         public init(old: Selector, new: Selector, `static`: Bool = false) {
             self.old = old
             self.new = new
@@ -243,7 +264,7 @@ public extension Swizzle {
             self.static = `static`
         }
         
-        internal var `operator`: String {
+        var `operator`: String {
             `static` ? "<~>" : "<->"
         }
 
