@@ -29,11 +29,11 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
      
      - Parameters:
         - keyPath: The keypath to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - sendUniqueOnly: A Boolean value indicating whether the handler should only be called if the new value isn't equal to the previous value.
         - handler: The handler to be called whenever the keypath value changes.
      */
@@ -50,11 +50,11 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
           
      - Parameters:
         - keyPath: The keypath to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the keypath value changes to a new value that isn't equal to the previous value. If you want to the handler to get called on all changes, use ``add(_:sendInitalValue:sendUniqueOnly:handler:)`` and set `sendUniqueOnly` to `false`.
      */
     public func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
@@ -67,11 +67,11 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
      
      - Parameters:
         - keyPath: The keypath to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the keypath value changes.
      */
     public func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
@@ -84,11 +84,11 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
      
      - Parameters:
         - keyPath: The keypath to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the keypath value changes.
      */
     public func add(_ keypath: String, sendInitalValue: Bool = false, handler: @escaping ( _ oldValue: Any, _ newValue: Any)->()) {
@@ -106,7 +106,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds observers for the specified keypaths which calls the specified handler whenever any of the keypaths properties changes.
+     Adds observers for the properties at the specified keypaths which calls the specified handler whenever any of the keypaths properties changes.
      
      - Parameters:
         - keyPaths: The keypaths to the values to observe.
@@ -129,7 +129,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Removes the observer for the specified keypath.
+     Removes the observer for the property at the specified keypath.
      
      - Parameter keyPath: The keypath to remove.
      */
@@ -139,7 +139,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Removes the observer for the specified keypath.
+     Removes the observer for the property at the specified keypath.
      
      - Parameter keyPath: The keypath to remove.
      */
@@ -152,7 +152,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Removes the observesr for the specified keypaths.
+     Removes the observers for the properties at the specified keypaths.
      
      - Parameter keyPaths: The keypaths to remove.
      */
@@ -171,9 +171,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     A Boolean value indicating whether the value at the specified keypath is observed.
+     A Boolean value indicating whether the property at the specified keypath is observed.
      
-     - Parameter keyPath: The keyPath to the value.
+     - Parameter keyPath: The keypath to the value.
      */
     public func isObserving(_ keyPath: PartialKeyPath<Object>) -> Bool {
         guard let name = keyPath._kvcKeyPathString else { return false }
@@ -181,9 +181,9 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     A Boolean value indicating whether the value at the specified keypath is observed.
+     A Boolean value indicating whether the property at the specified keypath is observed.
      
-     - Parameter keyPath: The keyPath to the value.
+     - Parameter keyPath: The keypath to the value.
      */
     public func isObserving(_ keyPath: String) -> Bool {
         return self.observers[keyPath] != nil
@@ -215,7 +215,7 @@ public class KeyValueObserver<Object>: NSObject where Object: NSObject {
 
 public extension KeyValueObserver {
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
           
      - Parameters:
         - keyPath: The keypath to the value to observe.
@@ -235,11 +235,11 @@ public extension KeyValueObserver {
     }
     
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
      
      - Parameters:
         - keyPath: The keypath to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the keypath value changes.
      */
     subscript<Value>(keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false) -> ((_ oldValue: Value, _ newValue: Value)->())? {
@@ -254,11 +254,11 @@ public extension KeyValueObserver {
     }
     
     /**
-     Adds an observer for the specified keypath which calls the specified handler.
+     Adds an observer for the property at the specified keypath which calls the specified handler.
      
      - Parameters:
         - keyPath: The keypath to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should be called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the keypath value changes.
      */
     subscript(keyPath: String, sendInitalValue: Bool = false) -> ((_ oldValue: Any, _ newValue: Any)->())? {
