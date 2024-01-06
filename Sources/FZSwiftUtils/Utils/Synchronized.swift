@@ -11,9 +11,11 @@ import Foundation
 /**
  Synchronizes an object.
  
- - Parameter lock: The object that is used for locking.
- - Parameter closure: The closure that is executed when the lock is acquired.
+ - Parameters:
+    - lock: The object that is used for locking.
+    - closure: The closure that is executed when the lock is acquired.
  - Returns: The return value of the block is returned to the caller.
+ 
  - Throws: Re-throws if the given block throws.
 */
 public func synchronized<T>(_ lock: Any, _ closure: () throws -> T) rethrows -> T {
