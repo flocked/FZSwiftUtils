@@ -23,13 +23,13 @@ open class PausableOperationQueue: OperationQueue {
     /// The operations currently in the queue.
     open private(set)var pausableOperations: [(Pausable & Operation)] = []
     
-    internal lazy var sequentialOperationsQueue = {
+    lazy var sequentialOperationsQueue = {
         var queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
     
-    internal let _progress = MutableProgress()
+    let _progress = MutableProgress()
     
     open override var progress: Progress {
         get { _progress }
