@@ -47,12 +47,9 @@ public final class Defaults {
         get { userDefaults.value(forKey: key) }
         set {
             if case Optional<Any>.none = newValue {
-                print("ISNIL")
-            } else {
-                print("not nil")
+                userDefaults.setValue(newValue, forKey: key)
+                userDefaults.synchronize()
             }
-            userDefaults.setValue(newValue, forKey: key)
-            userDefaults.synchronize()
         }
     }
     
