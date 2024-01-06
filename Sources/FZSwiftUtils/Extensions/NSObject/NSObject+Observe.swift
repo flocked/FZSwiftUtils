@@ -13,6 +13,17 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes for a property identified by the given key path.
      
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.observeChanges(for: \.stringValue) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
         - keyPath: The key path of the property to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
@@ -31,6 +42,17 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes for a property identified by the given key path.
+     
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.observeChanges(for: \.stringValue, uniqueValues: true) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
      
      - Parameters:
         - keyPath: The key path of the property to observe.
