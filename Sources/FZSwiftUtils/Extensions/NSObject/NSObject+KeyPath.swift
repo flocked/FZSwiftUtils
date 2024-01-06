@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AppKit
 
 extension NSObjectProtocol where Self: NSObject {
     /**
