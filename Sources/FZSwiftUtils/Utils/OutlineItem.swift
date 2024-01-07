@@ -13,6 +13,8 @@ public protocol OutlineItem {
     var isExpandable: Bool { get }
     /// An array of child outline items.
     var children: [Self] { get }
+    /// Creates the outline item.
+    init(isExpandable: Bool, children: [Self])
 }
 
 public extension OutlineItem {
@@ -24,11 +26,13 @@ public extension OutlineItem {
 /// A type that represents an expandable item.
 public protocol ExpandingOutlineItem {
     /// A Boolean value indicating whether the item is expandable.
-    var isExpandable: Bool { get }
+    var isExpandable: Bool { get set }
     /// A Boolean value indicating whether the item is expanded.
     var isExpanded: Bool { get set }
     /// An array of child outline items.
     var children: [Self] { get set }
+    /// Creates the outline item.
+    init(isExpandable: Bool, isExpanded: Bool, children: [Self])
 }
 
 public extension ExpandingOutlineItem {
