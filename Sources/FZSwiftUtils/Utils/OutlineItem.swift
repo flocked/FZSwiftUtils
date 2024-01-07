@@ -8,7 +8,7 @@
 import Foundation
 
 /// A type that represents an expandable item.
-public protocol OutlineItem {
+public protocol OutlineItem: Hashable {
     /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get }
     /// An array of child outline items.
@@ -21,10 +21,28 @@ public extension OutlineItem {
     var isExpandable: Bool {
         return (children.isEmpty == false)
     }
+    
+    func parent(of member: Self) -> Self? {
+        for child in children {
+            if child == member { return self }
+            if let p = child.parent(of: member) { return p }
+        }
+        return nil
+    }
+    
+    func search(for item: Self) -> Self? {
+        if item == self { return self }
+        for child in children {
+            if let hit = child.search(for: item) {
+                return hit
+            }
+        }
+        return nil
+    }
 }
 
 /// A type that represents an expandable item.
-public protocol ExpandingOutlineItem {
+public protocol ExpandingOutlineItem: Hashable {
     /// A Boolean value indicating whether the item is expandable.
     var isExpandable: Bool { get set }
     /// A Boolean value indicating whether the item is expanded.
@@ -38,6 +56,24 @@ public protocol ExpandingOutlineItem {
 public extension ExpandingOutlineItem {
     var isExpandable: Bool {
         return (children.isEmpty == false)
+    }
+    
+    func parent(of member: Self) -> Self? {
+        for child in children {
+            if child == member { return self }
+            if let p = child.parent(of: member) { return p }
+        }
+        return nil
+    }
+    
+    func search(for item: Self) -> Self? {
+        if item == self { return self }
+        for child in children {
+            if let hit = child.search(for: item) {
+                return hit
+            }
+        }
+        return nil
     }
 }
 
