@@ -13,8 +13,8 @@ public protocol OutlineItem: Hashable {
     var isExpandable: Bool { get }
     /// An array of child outline items.
     var children: [Self] { get }
-    /// Creates the outline item.
-    init(isExpandable: Bool, children: [Self])
+    /// The root item.
+    static var root: Self { get }
 }
 
 public extension OutlineItem {
@@ -60,8 +60,8 @@ public protocol ExpandingOutlineItem: Hashable {
     var isExpanded: Bool { get set }
     /// An array of child outline items.
     var children: [Self] { get set }
-    /// Creates the outline item.
-    init(isExpandable: Bool, isExpanded: Bool, children: [Self])
+    /// The root item.
+    static var root: Self { get }
 }
 
 public extension ExpandingOutlineItem {
