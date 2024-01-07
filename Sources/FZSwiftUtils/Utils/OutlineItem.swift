@@ -39,6 +39,17 @@ public extension OutlineItem {
         }
         return nil
     }
+    
+    func indexPath(of item: Self) -> IndexPath? {
+        for (idx, child) in children.enumerated() {
+            if child == item {
+                return IndexPath(indexes: [idx])
+            } else if let childIP = child.indexPath(of: item) {
+                return IndexPath(indexes: [idx]).appending(childIP)
+            }
+        }
+        return nil
+    }
 }
 
 /// A type that represents an expandable item.
@@ -71,6 +82,17 @@ public extension ExpandingOutlineItem {
         for child in children {
             if let hit = child.search(for: item) {
                 return hit
+            }
+        }
+        return nil
+    }
+    
+    func indexPath(of item: Self) -> IndexPath? {
+        for (idx, child) in children.enumerated() {
+            if child == item {
+                return IndexPath(indexes: [idx])
+            } else if let childIP = child.indexPath(of: item) {
+                return IndexPath(indexes: [idx]).appending(childIP)
             }
         }
         return nil
