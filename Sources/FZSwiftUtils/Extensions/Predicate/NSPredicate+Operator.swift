@@ -1,5 +1,5 @@
 //
-//  NSPredicate+Operator+.swift
+//  NSPredicate+Operator.swift
 //
 //
 //  Created by Florian Zand on 16.03.23.
@@ -37,129 +37,129 @@ public func || (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs == rhs)
+    NSComparisonPredicate(lhs == rhs)
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs == rhs)
+    NSComparisonPredicate(lhs == rhs)
 }
 
 public func == <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C>, rhs: V) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs == rhs)
+    NSComparisonPredicate(lhs == rhs)
 }
 
 public func == <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C?>, rhs: V) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs == rhs)
+    NSComparisonPredicate(lhs == rhs)
 }
 
 public func === <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C>, rhs: V) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs === rhs)
+    NSComparisonPredicate(lhs === rhs)
 }
 
 public func === <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C?>, rhs: V) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs === rhs)
+    NSComparisonPredicate(lhs === rhs)
 }
 
 public func != <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs != rhs)
+    NSComparisonPredicate(lhs != rhs)
 }
 
 public func != <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs != rhs)
+    NSComparisonPredicate(lhs != rhs)
 }
 
 public func !== <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C>, rhs: V) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs !== rhs)
+    NSComparisonPredicate(lhs !== rhs)
 }
 
 public func !== <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C?>, rhs: V) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs !== rhs)
+    NSComparisonPredicate(lhs !== rhs)
 }
 
 public func < <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs < rhs)
+    NSComparisonPredicate(lhs < rhs)
 }
 
 public func < <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs < rhs)
+    NSComparisonPredicate(lhs < rhs)
 }
 
 public func <= <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs <= rhs)
+    NSComparisonPredicate(lhs <= rhs)
 }
 
 public func <= <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs <= rhs)
+    NSComparisonPredicate(lhs <= rhs)
 }
 
 public func > <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs > rhs)
+    NSComparisonPredicate(lhs > rhs)
 }
 
 public func > <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs > rhs)
+    NSComparisonPredicate(lhs > rhs)
 }
 
 public func >= <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs >= rhs)
+    NSComparisonPredicate(lhs >= rhs)
 }
 
 public func >= <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs >= rhs)
+    NSComparisonPredicate(lhs >= rhs)
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: ClosedRange<C>) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs == rhs)
+    NSComparisonPredicate(lhs == rhs)
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: ClosedRange<C>) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs == rhs)
+    NSComparisonPredicate(lhs == rhs)
 }
 
 public func *== <R>(lhs: KeyPath<R, String>, rhs: String) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *== rhs)
+    NSComparisonPredicate(lhs *== rhs)
 }
 
 public func *== <R>(lhs: KeyPath<R, String?>, rhs: String) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *== rhs)
+    NSComparisonPredicate(lhs *== rhs)
 }
 
 public func ==* <R>(lhs: KeyPath<R, String>, rhs: String) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs ==* rhs)
+    NSComparisonPredicate(lhs ==* rhs)
 }
 
 public func ==* <R>(lhs: KeyPath<R, String?>, rhs: String) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs ==* rhs)
+    NSComparisonPredicate(lhs ==* rhs)
 }
 
 public func *=* <R>(lhs: KeyPath<R, String>, rhs: String) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *=* rhs)
+    NSComparisonPredicate(lhs *=* rhs)
 }
 
 public func *=* <R>(lhs: KeyPath<R, String?>, rhs: String) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *=* rhs)
+    NSComparisonPredicate(lhs *=* rhs)
 }
 
 public func *== <R, C: Collection<String>>(lhs: KeyPath<R, String>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *== rhs)
+    NSComparisonPredicate(lhs *== rhs)
 }
 
 public func *== <R, C: Collection<String>>(lhs: KeyPath<R, String?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *== rhs)
+    NSComparisonPredicate(lhs *== rhs)
 }
 
 public func ==* <R, C: Collection<String>>(lhs: KeyPath<R, String>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs ==* rhs)
+    NSComparisonPredicate(lhs ==* rhs)
 }
 
 public func ==* <R, C: Collection<String>>(lhs: KeyPath<R, String?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs ==* rhs)
+    NSComparisonPredicate(lhs ==* rhs)
 }
 
 public func *=* <R, C: Collection<String>>(lhs: KeyPath<R, String>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *=* rhs)
+    NSComparisonPredicate(lhs *=* rhs)
 }
 
 public func *=* <R, C: Collection<String>>(lhs: KeyPath<R, String?>, rhs: C) -> NSComparisonPredicate {
-    return NSComparisonPredicate(lhs *=* rhs)
+    NSComparisonPredicate(lhs *=* rhs)
 }

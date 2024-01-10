@@ -1,6 +1,6 @@
 //
 //  Sequence+Difference.swift
-//  
+//
 //
 //  Created by Florian Zand on 19.07.23.
 //
@@ -10,7 +10,7 @@ import Foundation
 public extension Sequence where Element: Equatable {
     /**
      Returns the difference needed to produce this collection’s ordered elements from the given collection.
-     
+
      - Parameter other: The other collection to compare.
      - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
      */
@@ -25,7 +25,7 @@ public extension Sequence where Element: Equatable {
             }
         }
 
-        let added = other.filter({ self.contains($0) == false })
+        let added = other.filter { self.contains($0) == false }
         return (removed, added, unchanged)
     }
 }

@@ -1,6 +1,6 @@
 //
 //  Sequence+String.swift
-//  
+//
 //
 //  Created by Florian Zand on 06.09.23.
 //
@@ -10,17 +10,17 @@ import Foundation
 public extension Sequence where Element == String {
     /**
      Returns a new string by concatenating the elements of the sequence, adding a separator for the option.
-     
+
      - Parameter option: The option for joining the strings.
      - Returns: A single, concatenated string.
      */
     func joined(by option: String.JoinOption) -> String {
         var strings = Array(self)
         if let prefix = option.prefix {
-            strings = strings.compactMap({ prefix + $0 })
+            strings = strings.compactMap { prefix + $0 }
         }
         if option.isNumeric {
-           strings = strings.enumerated().compactMap({ "\($0.offset + 1)\($0.element)" })
+            strings = strings.enumerated().compactMap { "\($0.offset + 1)\($0.element)" }
         }
         if let lastSeperator = option.lastSeperator, strings.count >= 2 {
             let lastString = strings.removeLast()
@@ -37,7 +37,7 @@ public extension String {
     enum JoinOption: Int {
         /**
          Joined by adding lines.
-         
+
          ```
          Apple
          Orange
@@ -47,7 +47,7 @@ public extension String {
         case line
         /**
          Joined by adding comma's.
-         
+
          ```
          Apple, Orange, Strawberry, Banana
          ```
@@ -55,7 +55,7 @@ public extension String {
         case comma
         /**
          Joined by adding comma's and `and` to join the last string.
-         
+
          ```
          Apple, Orange, Strawberry and Banana
          ```
@@ -63,7 +63,7 @@ public extension String {
         case commaAnd
         /**
          Joined by adding comma's and `or` to join the last string.
-         
+
          ```
          Apple, Orange, Strawberry or Banana
          ```
@@ -71,7 +71,7 @@ public extension String {
         case commaOr
         /**
          Joined by adding comma's and `&` to join the last string.
-         
+
          ```
          Apple, Orange, Strawberry & Banana
          ```
@@ -79,7 +79,7 @@ public extension String {
         case commaAmpersand
         /**
          Joined by adding `and`.
-         
+
          ```
          Apple and Orange and Banana
          ```
@@ -87,7 +87,7 @@ public extension String {
         case and
         /**
          Joined by adding `or`.
-         
+
          ```
          Apple or Orange or Banana
          ```
@@ -95,7 +95,7 @@ public extension String {
         case or
         /**
          Joined by adding `/`.
-         
+
          ```
          Apple / Orange / Banana
          ```
@@ -103,7 +103,7 @@ public extension String {
         case slash
         /**
          Joined by adding `\`.
-         
+
          ```
          Apple \ Orange \ Banana
          ```
@@ -111,7 +111,7 @@ public extension String {
         case backslash
         /**
          Joined by adding new lines and `-`.
-         
+
          ```
           - Apple
           - Orange
@@ -121,7 +121,7 @@ public extension String {
         case list
         /**
          Joined by adding new lines and `*`.
-         
+
          ```
           * Apple
           * Orange
@@ -132,7 +132,7 @@ public extension String {
         /// Joined by adding new lines and numbers.
         /**
          Joined by adding new lines and numbers.
-         
+
          ```
          1 Apple
          2 Orange
@@ -142,7 +142,7 @@ public extension String {
         case listNumeric
         /**
          Joined by adding new lines and numbers with dots.
-         
+
          ```
          1. Apple
          2. Orange
@@ -152,7 +152,7 @@ public extension String {
         case listNumericDot
         /**
          Joined by adding new lines and numbers with colons.
-         
+
          ```
          1: Apple
          2: Orange
@@ -161,7 +161,7 @@ public extension String {
          */
         case listNumericColon
 
-        internal var seperator: String {
+        var seperator: String {
             switch self {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
@@ -172,14 +172,14 @@ public extension String {
             }
         }
 
-        internal var isNumeric: Bool {
+        var isNumeric: Bool {
             switch self {
             case .listNumeric, .listNumericDot, .listNumericColon: return true
             default: return false
             }
         }
 
-        internal var prefix: String? {
+        var prefix: String? {
             switch self {
             case .list: return " - "
             case .listStars: return " * "
@@ -190,7 +190,7 @@ public extension String {
             }
         }
 
-        internal var lastSeperator: String? {
+        var lastSeperator: String? {
             switch self {
             case .commaAnd: return " and "
             case .commaOr: return " or "

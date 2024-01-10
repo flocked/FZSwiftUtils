@@ -1,6 +1,6 @@
 //
-//  ArrayBase.swift
-//  
+//  BaseArray.swift
+//
 //
 //  Created by Florian Zand on 15.10.21.
 //
@@ -10,7 +10,7 @@ import Foundation
 public struct BaseArray<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
     var elements: [Element] = []
 
-    public init() { }
+    public init() {}
 
     public init(arrayLiteral elements: Element...) {
         self.elements = elements
@@ -25,54 +25,55 @@ public struct BaseArray<Element>: MutableCollection, RangeReplaceableCollection,
     }
 
     public var count: Int {
-        return elements.count
+        elements.count
     }
 
     public var isEmpty: Bool {
-        return elements.isEmpty
+        elements.isEmpty
     }
 
     public var startIndex: Int {
-        return elements.startIndex
+        elements.startIndex
     }
 
     public var endIndex: Int {
-        return elements.endIndex
+        elements.endIndex
     }
 
     public subscript(index: Int) -> Element {
-        get {  return elements[index] }
-        set {  elements[index] = newValue }
+        get { elements[index] }
+        set { elements[index] = newValue }
     }
 
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
+    {
         elements.replaceSubrange(subrange, with: newElements)
     }
 }
 
-extension BaseArray: ExpressibleByArrayLiteral { }
-extension BaseArray: Sendable where Element: Sendable { }
+extension BaseArray: ExpressibleByArrayLiteral {}
+extension BaseArray: Sendable where Element: Sendable {}
 extension BaseArray: Encodable where Element: Encodable {}
 extension BaseArray: Decodable where Element: Decodable {}
 
 extension BaseArray: CVarArg {
     public var _cVarArgEncoding: [Int] {
-        return elements._cVarArgEncoding
+        elements._cVarArgEncoding
     }
 }
 
 extension BaseArray: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
-        return elements.customMirror
+        elements.customMirror
     }
 
     public var debugDescription: String {
-        return elements.debugDescription
+        elements.debugDescription
     }
 
     public var description: String {
-        return elements.description
+        elements.description
     }
 }
 
@@ -90,6 +91,6 @@ extension BaseArray: ContiguousBytes {
 
 extension BaseArray: Equatable where Element: Equatable {
     public static func == (lhs: BaseArray<Element>, rhs: BaseArray<Element>) -> Bool {
-        return lhs.elements == rhs.elements
+        lhs.elements == rhs.elements
     }
 }

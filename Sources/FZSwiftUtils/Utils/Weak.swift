@@ -10,7 +10,7 @@ import Foundation
 /// A weak reference to an object.
 public struct Weak<T: AnyObject>: Equatable, Hashable, WeakReference {
     public weak var object: T?
-    public init (_ object: T) {
+    public init(_ object: T) {
         self.object = object
     }
 
@@ -33,23 +33,23 @@ public protocol WeakReference {
     var object: T? { get set }
 }
 
-extension Array where Element: WeakReference {
+public extension Array where Element: WeakReference {
     /// Removes all weak objects that are 'nil'.
-    public mutating func reap () {
-        self = self.filter { nil != $0.object }
+    mutating func reap() {
+        self = filter { $0.object != nil }
     }
 }
 
-extension Set where Element: WeakReference {
+public extension Set where Element: WeakReference {
     /// Removes all weak objects that are 'nil'.
-    public mutating func reap () {
-        self = self.filter { nil != $0.object }
+    mutating func reap() {
+        self = filter { $0.object != nil }
     }
 }
 
-extension Dictionary where Value: WeakReference {
+public extension Dictionary where Value: WeakReference {
     /// Removes all weak objects that are 'nil'.
-    public mutating func reap () {
-        self = self.filter { $0.value.object != nil }
+    mutating func reap() {
+        self = filter { $0.value.object != nil }
     }
 }

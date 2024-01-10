@@ -10,7 +10,7 @@ import Foundation
 public extension OptionSet {
     /**
      A Boolean value indicating whether the option set contains all specified elements.
-     
+
      - Parameter elements: The elements.
      - Returns: `true` if all elements exist in the option set, or` false` if not.
      */
@@ -25,7 +25,7 @@ public extension OptionSet {
 
     /**
      A Boolean value indicating whether the option set contains any of the specified elements.
-     
+
      - Parameter elements: The elements.
      - Returns: `true` if any of the elements exists in the option set, or` false` if non exist in the option set.
      */
@@ -45,7 +45,7 @@ public extension OptionSet where RawValue: FixedWidthInteger {
         var remainingBits = rawValue
         var bitMask: RawValue = 1
         return AnySequence {
-            return AnyIterator {
+            AnyIterator {
                 while remainingBits != 0 {
                     defer { bitMask = bitMask &* 2 }
                     if remainingBits & bitMask != 0 {

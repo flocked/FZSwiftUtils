@@ -10,16 +10,16 @@ import Foundation
 
 /**
  Provides strongly typed values associated with the lifetime of an application. Apropriate for user preferences.
- 
+
  Example usage:
  ```swift
  Defaults.shared["isInitalStart"] = false
- 
+
  if let isInitalStart: Bool = Defaults.shared["isInitalStart"] {
- 
+
  }
  ```
- 
+
  - Note: These should not be used to store sensitive information that could compromise the application or the user's security and privacy.
  */
 public final class Defaults {
@@ -31,7 +31,7 @@ public final class Defaults {
 
     /**
      An instance of `Defaults` with the specified `UserDefaults` instance.
-     
+
      - Parameter userDefaults: The UserDefaults.
      */
     public init(userDefaults: UserDefaults = UserDefaults.standard) {
@@ -39,7 +39,7 @@ public final class Defaults {
     }
 
     public subscript<T: Codable>(key: String) -> T? {
-        get { return get(key) }
+        get { get(key) }
         set { set(newValue, for: key) }
     }
 
@@ -54,7 +54,7 @@ public final class Defaults {
     }
 
     public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
-        get { return get(key) }
+        get { get(key) }
         set { set(newValue, for: key) }
     }
 
@@ -83,7 +83,7 @@ public final class Defaults {
 
     /**
      Sets a value for the specified key.
-     
+
      - Parameters:
         - value: The value to set.
         - key: The key.
@@ -99,7 +99,7 @@ public final class Defaults {
 
     /**
      Sets a value for the specified key.
-     
+
      - Parameters:
         - value: The value to set.
         - key: The key.
@@ -115,7 +115,7 @@ public final class Defaults {
 
     /**
      Deletes the value associated with the specified key, if any.
-     
+
      - Parameter key: The key.
      */
     func clear(_ key: String) {
@@ -125,16 +125,16 @@ public final class Defaults {
 
     /**
      A Boolean value indicating whether a value exists for the specified key.
-     
+
      - Parameter key: The key for the value.
      */
     func has(_ key: String) -> Bool {
-        return userDefaults.value(forKey: key) != nil
+        userDefaults.value(forKey: key) != nil
     }
 
     /**
      Removes given bundle's persistent domain.
-     
+
      - Parameter type: Bundle.
      */
     public func removeAll(bundle: Bundle = Bundle.main) {
@@ -150,8 +150,8 @@ public final class Defaults {
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the key value changes.
      */
-    public func observeChanges<Value>(_ key: String, type: Value, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
-        self.observer.add(key, sendInitalValue: sendInitalValue) { old, new, _ in
+    public func observeChanges<Value>(_ key: String, type _: Value, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
+        observer.add(key, sendInitalValue: sendInitalValue) { old, new, _ in
             let old = old as! Value
             let new = new as! Value
             handler(old, new)
@@ -167,8 +167,8 @@ public final class Defaults {
         - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: The handler to be called whenever the key value changes.
      */
-    public func observeChanges<Value: Equatable>(_ key: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
-        self.observer.add(key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
+    public func observeChanges<Value: Equatable>(_ key: String, type _: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
+        observer.add(key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
             let old = old as! Value
             let new = new as! Value
             if uniqueValues {
@@ -180,16 +180,16 @@ public final class Defaults {
             }
         }
         self[""] = "fdf"
-        self.observeChanges("", type: String.self, handler: { _, _ in })
+        observeChanges("", type: String.self, handler: { _, _ in })
     }
 
     /**
      Stops observation for the specified key.
-     
+
      - Parameter key: The key to stop observing.
      */
     public func stopObserving(_ key: String) {
-        self.observer.remove(key)
+        observer.remove(key)
     }
 
     func isSwiftCodableType<Value>(_ type: Value.Type) -> Bool {
@@ -216,7 +216,7 @@ public final class Defaults {
 extension Defaults {
     /**
      Represents a `Key` with an associated generic value type conforming to the `Codable` protocol.
-     
+
      Example:
      ```swift
      static let someKey = Key<Bool>("isInitalStart")
@@ -230,7 +230,7 @@ extension Defaults {
     }
 
     subscript<T: Codable>(key: Key<T>) -> T? {
-        get { return get(key) }
+        get { get(key) }
         set { set(newValue, for: key) }
     }
 
@@ -254,7 +254,7 @@ extension Defaults {
             return decoded
         } catch {
             #if DEBUG
-            print(error)
+                print(error)
             #endif
         }
 
@@ -276,7 +276,7 @@ extension Defaults {
 
     /**
      Sets a value for the specified key.
-     
+
      - Parameters:
         - value: The value to set.
         - key: The key.
@@ -295,14 +295,14 @@ extension Defaults {
             userDefaults.synchronize()
         } catch {
             #if DEBUG
-            print(error)
+                print(error)
             #endif
         }
     }
 
     /**
      Sets a value for the specified key.
-     
+
      - Parameters:
         - value: The value to set.
         - key: The key.
@@ -314,20 +314,20 @@ extension Defaults {
 
     /**
      Deletes the value associated with the specified key, if any.
-     
+
      - Parameter key: The key.
      */
     func clear<Value>(_ key: Key<Value>) {
-        self.clear(key._key)
+        clear(key._key)
     }
 
     /**
      A Boolean value indicating whether a value exists for the specified key.
-     
+
      - Parameter key: The key for the value.
      */
     func has<Value>(_ key: Key<Value>) -> Bool {
-        return userDefaults.value(forKey: key._key) != nil
+        userDefaults.value(forKey: key._key) != nil
     }
 
     /**
@@ -338,8 +338,8 @@ extension Defaults {
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the key value changes.
      */
-    func observeChanges<Value>(for key: Key<Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
-        self.observer.add(key._key, sendInitalValue: sendInitalValue) { old, new, _ in
+    func observeChanges<Value>(for key: Key<Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
+        observer.add(key._key, sendInitalValue: sendInitalValue) { old, new, _ in
             let old = old as! Value
             let new = new as! Value
             handler(old, new)
@@ -348,15 +348,15 @@ extension Defaults {
 
     /**
      Adds an observer for the value at the specified key which calls the handler.
-     
+
      - Parameters:
         - key: The key to the value to observe.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: The handler to be called whenever the key value changes.
      */
-    func observeChanges<Value: Equatable>(for key: Key<Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
-        self.observer.add(key._key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
+    func observeChanges<Value: Equatable>(for key: Key<Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
+        observer.add(key._key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
             let old = old as! Value
             let new = new as! Value
             if uniqueValues {
@@ -371,10 +371,10 @@ extension Defaults {
 
     /**
      Stops observation for the specified key.
-     
+
      - Parameter key: The key to stop observing.
      */
     func stopObserving<Value>(_ key: Key<Value>) {
-        self.observer.remove(key._key)
+        observer.remove(key._key)
     }
 }

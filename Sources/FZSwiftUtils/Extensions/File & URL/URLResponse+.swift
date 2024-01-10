@@ -1,6 +1,6 @@
 //
 //  URLResponse+.swift
-//  
+//
 //
 //  Created by Florian Zand on 20.07.23.
 //
@@ -8,12 +8,12 @@
 import Foundation
 
 public extension URLResponse {
-        /// The validator which identifies the current state of the resource on the server.
+    /// The validator which identifies the current state of the resource on the server.
     var validator: String? {
         guard let response = self as? HTTPURLResponse,
               response.statusCode == 200 /* OK */ || response.statusCode == 206, /* Partial Content */
               let acceptRanges = response.allHeaderFields["Accept-Ranges"] as? String,
-              acceptRanges.lowercased() == "bytes" else { return nil  }
+              acceptRanges.lowercased() == "bytes" else { return nil }
 
         if let entityTag = response.allHeaderFields["ETag"] as? String {
             return entityTag
@@ -32,7 +32,7 @@ public extension URLResponse {
 
     /// A suggested filename for the response data.
     var extendedSuggestedFilename: String? {
-        if var fileName = self.suggestedFilename {
+        if var fileName = suggestedFilename {
             var fileExtension: String?
             let nameWithExtension = fileName.split(separator: ".")
             if nameWithExtension.count > 1, let _extension = nameWithExtension.last {
@@ -42,10 +42,12 @@ public extension URLResponse {
                 if let httpResponse = self as? HTTPURLResponse {
                     let contentType = httpResponse.allHeaderFields["Content-Type"] as? String
                     if let range = contentType?.range(of: "/.+;", options: .regularExpression),
-                       let _extension = contentType?[range].dropFirst().dropLast() {
+                       let _extension = contentType?[range].dropFirst().dropLast()
+                    {
                         fileExtension = String(_extension)
                     } else if let range = contentType?.range(of: "/.+", options: .regularExpression),
-                              let _extension = contentType?[range].dropFirst() {
+                              let _extension = contentType?[range].dropFirst()
+                    {
                         fileExtension = String(_extension)
                         fileName = fileName + ".\(String(_extension))"
                     }

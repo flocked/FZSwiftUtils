@@ -1,6 +1,6 @@
 //
 //  IPTCImageProperties.swift
-//  
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //

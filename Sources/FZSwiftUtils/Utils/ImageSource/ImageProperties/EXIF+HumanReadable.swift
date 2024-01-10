@@ -1,6 +1,6 @@
 //
 //  EXIF+HumanReadable.swift
-//  
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //
@@ -9,7 +9,7 @@ import Foundation
 
 extension ImageSource.ImageProperties.EXIF {
     var humanReadable: HumanReadable {
-        return HumanReadable(self)
+        HumanReadable(self)
     }
 
     struct HumanReadable {

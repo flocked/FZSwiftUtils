@@ -1,6 +1,6 @@
 //
-//  URLRedirect.swift
-//  
+//  URL+Redirect.swift
+//
 //
 //  Created by Florian Zand on 09.12.22.
 //
@@ -10,7 +10,7 @@ import Foundation
 public extension URL {
     /**
      Retrieves the redirected URL for the current URL.
-     
+
      - Throws: An error if the redirection process fails.
      - Returns: The redirected URL if available, `nil` otherwise.
      */
@@ -20,7 +20,7 @@ public extension URL {
 
     /**
      Retrieves the redirected URL for the current URL asynchronously.
-     
+
      - Parameters:
         - completionHandler: A closure to be called with the redirected URL or an error.
      */
@@ -30,7 +30,7 @@ public extension URL {
 
     /**
      Retrieves the redirected URL for the current URL asynchronously.
-     
+
      - Throws: An error if the redirection process fails.
      - Returns: The redirected URL if available, `nil` otherwise.
      */
@@ -57,7 +57,7 @@ public extension URL {
 public class URLRedirection: NSObject, URLSessionTaskDelegate {
     /**
      Retrieves the redirected URL for the specified URL asynchronously.
-     
+
      - Parameters:
         - url: The original URL to be redirected.
         - completionHandler: A closure to be called with the redirected URL or an error.
@@ -77,12 +77,12 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
 
     /**
      Retrieves the redirected URL for the specified URL synchronously.
-     
+
      - Parameters:
         - url: The original URL to be redirected.
-     
+
      - Throws: An error if the redirection process fails.
-     
+
      - Returns: The redirected URL if available, `nil` otherwise.
      */
     public static func redirectedURL(for url: URL) throws -> URL? {
@@ -108,7 +108,7 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
 
     /**
      Retrieves the redirected URL for the current URL.
-     
+
      - Throws: An error if the redirection process fails.
      - Returns: The redirected URL if available, `nil` otherwise.
      */
@@ -135,5 +135,5 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
     }()
 
     /// The URL session used for handling the redirection.
-    internal lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
+    lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
 }

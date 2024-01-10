@@ -5,8 +5,8 @@
 //  Created by Florian Zand on 16.03.23.
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 
 public extension CGRect {
     /// Creates a rect with the specified values.
@@ -31,12 +31,12 @@ public extension CGRect {
 
     /**
      Initializes a CGRect with the specified point and size.
-     
+
      - Parameters:
         - point: The center point of the rectangle.
         - size: The size of the rectangle.
         - integralized: A Boolean value indicating whether the resulting CGRect should have integral values. The default value is `false`.
-     
+
      - Returns: A new CGRect initialized with the specified parameters.
      */
     init(aroundPoint point: CGPoint, size: CGSize, integralized: Bool = false) {
@@ -46,11 +46,11 @@ public extension CGRect {
     }
 
     /**
-      Returns the scaled integral rect based on the current rect.
-      The origin and size values are scaled based on the current device's screen scale.
-      
-      - Returns: The scaled integral rect.
-      */
+     Returns the scaled integral rect based on the current rect.
+     The origin and size values are scaled based on the current device's screen scale.
+
+     - Returns: The scaled integral rect.
+     */
     var scaledIntegral: CGRect {
         CGRect(
             x: origin.x.scaledIntegral,
@@ -64,7 +64,7 @@ public extension CGRect {
     var x: CGFloat {
         get { origin.x }
         set {
-            var origin = self.origin
+            var origin = origin
             origin.x = newValue
             self.origin = origin
         }
@@ -74,7 +74,7 @@ public extension CGRect {
     var y: CGFloat {
         get { origin.y }
         set {
-            var origin = self.origin
+            var origin = origin
             origin.y = newValue
             self.origin = origin
         }
@@ -86,108 +86,111 @@ public extension CGRect {
         set {
             let old = self
             size = newValue
-            self.center = old.center
+            center = old.center
         }
     }
 
     /// The left edge of the rectangle.
     var left: CGFloat {
-        get {return origin.x}
-        set {origin.x = newValue}
+        get { origin.x }
+        set { origin.x = newValue }
     }
+
     /// The right edge of the rectangle.
     var right: CGFloat {
-        get {return x + width}
-        set {x = newValue - width}
+        get { x + width }
+        set { x = newValue - width }
     }
 
     #if canImport(UIKit)
-    /// The top edge of the rectangle.
-    var top: CGFloat {
-        get {return y}
-        set {y = newValue}
-    }
-    /// The bottom edge of the rectangle.
-    var bottom: CGFloat {
-        get {return y + height}
-        set {y = newValue - height}
-    }
+        /// The top edge of the rectangle.
+        var top: CGFloat {
+            get { y }
+            set { y = newValue }
+        }
+
+        /// The bottom edge of the rectangle.
+        var bottom: CGFloat {
+            get { y + height }
+            set { y = newValue - height }
+        }
     #else
-    /// The top edge of the rectangle.
-    var top: CGFloat {
-        get {return y + height}
-        set {y = newValue - height}
-    }
-    /// The bottom edge of the rectangle.
-    var bottom: CGFloat {
-        get {return y}
-        set {y = newValue}
-    }
+        /// The top edge of the rectangle.
+        var top: CGFloat {
+            get { y + height }
+            set { y = newValue - height }
+        }
+
+        /// The bottom edge of the rectangle.
+        var bottom: CGFloat {
+            get { y }
+            set { y = newValue }
+        }
     #endif
 
     /// The top-left point of the rectangle.
     var topLeft: CGPoint {
-        get {return CGPoint(x: left, y: top)}
-        set {left = newValue.x; top = newValue.y}
+        get { CGPoint(x: left, y: top) }
+        set { left = newValue.x; top = newValue.y }
     }
 
     /// The top-center point of the rectangle.
     var topCenter: CGPoint {
-        get {return CGPoint(x: centerX, y: top)}
-        set {centerX = newValue.x; top = newValue.y}
+        get { CGPoint(x: centerX, y: top) }
+        set { centerX = newValue.x; top = newValue.y }
     }
 
     /// The top-right point of the rectangle.
     var topRight: CGPoint {
-        get {return CGPoint(x: right, y: top)}
-        set {right = newValue.x; top = newValue.y}
+        get { CGPoint(x: right, y: top) }
+        set { right = newValue.x; top = newValue.y }
     }
 
     /// The center-left point of the rectangle.
     var centerLeft: CGPoint {
-        get {return CGPoint(x: left, y: centerY)}
-        set {left = newValue.x; centerY = newValue.y}
+        get { CGPoint(x: left, y: centerY) }
+        set { left = newValue.x; centerY = newValue.y }
     }
 
     /// The center point of the rectangle.
     var center: CGPoint {
-        get { return CGPoint(x: centerX, y: centerY) }
+        get { CGPoint(x: centerX, y: centerY) }
         set { centerX = newValue.x; centerY = newValue.y }
     }
 
     /// The center-right point of the rectangle.
     var centerRight: CGPoint {
-        get {return CGPoint(x: right, y: centerY)}
-        set {right = newValue.x; centerY = newValue.y}
+        get { CGPoint(x: right, y: centerY) }
+        set { right = newValue.x; centerY = newValue.y }
     }
 
     /// The bottom-left point of the rectangle.
     var bottomLeft: CGPoint {
-        get {return CGPoint(x: left, y: bottom)}
-        set {left = newValue.x; bottom = newValue.y}
+        get { CGPoint(x: left, y: bottom) }
+        set { left = newValue.x; bottom = newValue.y }
     }
 
     /// The bottom-center point of the rectangle.
     var bottomCenter: CGPoint {
-        get {return CGPoint(x: centerX, y: bottom)}
-        set {centerX = newValue.x; bottom = newValue.y}
+        get { CGPoint(x: centerX, y: bottom) }
+        set { centerX = newValue.x; bottom = newValue.y }
     }
 
     /// The bottom-right point of the rectangle.
     var bottomRight: CGPoint {
-        get {return CGPoint(x: right, y: bottom)}
-        set {right = newValue.x; bottom = newValue.y}
+        get { CGPoint(x: right, y: bottom) }
+        set { right = newValue.x; bottom = newValue.y }
     }
 
     /// The horizontal center of the rectangle.
     internal var centerX: CGFloat {
-        get { return midX }
+        get { midX }
         set { origin.x = newValue - width * 0.5 }
     }
 
     /// The vertical center of the rectangle.
     internal var centerY: CGFloat {
-        get { return midY }
+        get { midY }
         set { origin.y = newValue - height * 0.5 }
     }
 
@@ -204,11 +207,11 @@ public extension CGRect {
 
     /**
      Returns a new rect expanded by the specified amount in the given edge direction.
-     
+
      - Parameters:
         - amount: The amount by which to expand the rect.
         - edge: The edge direction in which to expand the rect.
-     
+
      - Returns: A new rect expanded by the specified amount in the given edge direction.
      */
     func expanded(_ amount: CGFloat, edge: ExpandEdge) -> CGRect {
@@ -236,11 +239,11 @@ public extension CGRect {
 
     /**
      Returns a new rect scaled by the specified factor.
-     
+
      - Parameters:
         - factor: The scaling factor to apply to the rect.
         - centered: A Boolean value indicating whether the scaling should be centered around the CGRect's center point. The default value is `true`.
-     
+
      - Returns: A new rect scaled by the specified factor.
      */
     func scaled(byFactor factor: CGFloat, centered: Bool = true) -> CGRect {
@@ -254,11 +257,11 @@ public extension CGRect {
 
     /**
      Returns a new rect scaled by the specified factor, anchored at the specified point.
-     
+
      - Parameters:
         - factor: The scaling factor to apply to the rect.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-     
+
      - Returns: A new rect scaled by the specified factor, anchored at the specified point.
      */
     func scaled(byFactor factor: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
@@ -268,11 +271,11 @@ public extension CGRect {
 
     /**
      Returns a new rect scaled to the specified size, anchored at the specified point.
-     
+
      - Parameters:
         - size: The target size for scaling the rect.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-     
+
      - Returns: A new rect scaled to the specified size, anchored at the specified point.
      */
     func scaled(to size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
@@ -284,11 +287,11 @@ public extension CGRect {
 
     /**
      Returns a new rect scaled to fit the specified size, anchored at the specified point.
-     
+
      - Parameters:
         - size: The target size for scaling the rect to fit.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-     
+
      - Returns: A new rect scaled to fit the specified size, anchored at the specified point.
      */
     func scaled(toFit size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
@@ -297,14 +300,14 @@ public extension CGRect {
     }
 
     /**
-      Returns a new rect scaled to fill the specified size, anchored at the specified point.
-      
-      - Parameters:
-         - size: The target size for scaling the rect to fill.
-         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-      
-      - Returns: A new rect scaled to fill the specified size, anchored at the specified point.
-      */
+     Returns a new rect scaled to fill the specified size, anchored at the specified point.
+
+     - Parameters:
+        - size: The target size for scaling the rect to fill.
+        - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
+
+     - Returns: A new rect scaled to fill the specified size, anchored at the specified point.
+     */
     func scaled(toFill size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = self.size.scaled(toFill: size)
         return scaled(to: sizeDelta, anchor: anchor)
@@ -312,11 +315,11 @@ public extension CGRect {
 
     /**
      Returns a new rect scaled to the specified width, anchored at the specified point.
-     
+
      - Parameters:
         - width: The target width for scaling the rect.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-     
+
      - Returns: A new rect scaled to the specified width, anchored at the specified point.
      */
     func scaled(toWidth width: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
@@ -326,11 +329,11 @@ public extension CGRect {
 
     /**
      Returns a new rect scaled to the specified height, anchored at the specified point.
-     
+
      - Parameters:
         - height: The target height for scaling the rect.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
-     
+
      - Returns: A new rect scaled to the specified height, anchored at the specified point.
      */
     func scaled(toHeight height: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
@@ -340,14 +343,14 @@ public extension CGRect {
 
     /**
      Returns a new rect with rounded coordinates according to the specified rounding rule.
-     
+
      - Parameters:
         - rule: The rounding rule to apply to the coordinates. The default value is `.toNearestOrAwayFromZero`.
-     
+
      - Returns: A new rect with rounded coordinates according to the specified rounding rule.
      */
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGRect {
-        return CGRect(x: x.rounded(rule), y: y.rounded(rule), width: width.rounded(rule), height: height.rounded(rule))
+        CGRect(x: x.rounded(rule), y: y.rounded(rule), width: width.rounded(rule), height: height.rounded(rule))
     }
 }
 
@@ -358,15 +361,15 @@ extension CGRect: Hashable {
     }
 }
 
-extension Collection where Element == CGRect {
+public extension Collection where Element == CGRect {
     /// The union of all rectangles in the collection.
-    public func union() -> CGRect {
+    func union() -> CGRect {
         var unionRect = CGRect.zero
         for rect in self {
             unionRect.origin.x = Swift.min(rect.origin.x, unionRect.origin.x)
             unionRect.origin.y = Swift.min(rect.origin.y, unionRect.origin.y)
-            unionRect.size.width = Swift.max(rect.origin.x.sign == .minus ? rect.size.width-rect.origin.x : rect.size.width, unionRect.size.width)
-            unionRect.size.height = Swift.max(rect.origin.y.sign == .minus ? rect.size.height-rect.origin.y : rect.size.height, unionRect.size.height)
+            unionRect.size.width = Swift.max(rect.origin.x.sign == .minus ? rect.size.width - rect.origin.x : rect.size.width, unionRect.size.width)
+            unionRect.size.height = Swift.max(rect.origin.y.sign == .minus ? rect.size.height - rect.origin.y : rect.size.height, unionRect.size.height)
         }
         return unionRect
     }

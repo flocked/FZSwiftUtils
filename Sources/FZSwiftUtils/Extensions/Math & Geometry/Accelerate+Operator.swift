@@ -5,91 +5,90 @@
 //  Created by Florian Zand on 04.12.23.
 //
 
-import Foundation
 import Accelerate
+import Foundation
 
-infix operator .+ : AdditionPrecedence
-infix operator .- : AdditionPrecedence
-infix operator .* : MultiplicationPrecedence
-infix operator ./ : MultiplicationPrecedence
+infix operator .+: AdditionPrecedence
+infix operator .-: AdditionPrecedence
+infix operator .*: MultiplicationPrecedence
+infix operator ./: MultiplicationPrecedence
 
-infix operator .+= : AssignmentPrecedence
-infix operator .-= : AssignmentPrecedence
-infix operator .*= : AssignmentPrecedence
-infix operator ./= : AssignmentPrecedence
+infix operator .+=: AssignmentPrecedence
+infix operator .-=: AssignmentPrecedence
+infix operator .*=: AssignmentPrecedence
+infix operator ./=: AssignmentPrecedence
 
 public extension AccelerateBuffer where Element == Float {
-
     static func .+ (lhs: Self, rhs: Self) -> [Float] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .+ (lhs: ArraySlice<Float>, rhs: Self) -> [Float] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .+ (lhs: Self, rhs: ArraySlice<Float>) -> [Float] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .- (lhs: Self, rhs: Self) -> [Float] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .- (lhs: ArraySlice<Float>, rhs: Self) -> [Float] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .- (lhs: Self, rhs: ArraySlice<Float>) -> [Float] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Self) -> [Float] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: ArraySlice<Float>, rhs: Self) -> [Float] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: ArraySlice<Float>) -> [Float] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Float) -> [Float] {
-        return vDSP.multiply(rhs, lhs)
+        vDSP.multiply(rhs, lhs)
     }
 
     static func ./ (lhs: Self, rhs: Float) -> [Float] {
-        return vDSP.multiply(1.0 / rhs, lhs)
+        vDSP.multiply(1.0 / rhs, lhs)
     }
 }
 
 public extension ArraySlice where Element == Float {
     static func .+ (lhs: Self, rhs: Self) -> [Float] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .- (lhs: Self, rhs: Self) -> [Float] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Self) -> [Float] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Float) -> [Float] {
-        return vDSP.multiply(rhs, lhs)
+        vDSP.multiply(rhs, lhs)
     }
 
     static func ./ (lhs: Self, rhs: Float) -> [Float] {
-        return vDSP.multiply(1.0 / rhs, lhs)
+        vDSP.multiply(1.0 / rhs, lhs)
     }
 }
 
 public extension AccelerateMutableBuffer where Element == Float {
     static func .+= (lhs: inout Self, rhs: Self) {
-         vDSP.add(lhs, rhs, result: &lhs)
+        vDSP.add(lhs, rhs, result: &lhs)
     }
 
     static func .+= (lhs: inout ArraySlice<Float>, rhs: Self) {
@@ -156,77 +155,76 @@ public extension ArraySlice where Element == Float {
 }
 
 public extension AccelerateBuffer where Element == Double {
-
     static func .+ (lhs: Self, rhs: Self) -> [Double] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .+ (lhs: ArraySlice<Double>, rhs: Self) -> [Double] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .+ (lhs: Self, rhs: ArraySlice<Double>) -> [Double] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .- (lhs: Self, rhs: Self) -> [Double] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .- (lhs: ArraySlice<Double>, rhs: Self) -> [Double] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .- (lhs: Self, rhs: ArraySlice<Double>) -> [Double] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Self) -> [Double] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: ArraySlice<Double>, rhs: Self) -> [Double] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: ArraySlice<Double>) -> [Double] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Double) -> [Double] {
-        return vDSP.multiply(rhs, lhs)
+        vDSP.multiply(rhs, lhs)
     }
 
     static func ./ (lhs: Self, rhs: Double) -> [Double] {
-        return vDSP.multiply(1.0 / rhs, lhs)
+        vDSP.multiply(1.0 / rhs, lhs)
     }
 }
 
 public extension ArraySlice where Element == Double {
     static func .+ (lhs: Self, rhs: Self) -> [Double] {
-        return vDSP.add(lhs, rhs)
+        vDSP.add(lhs, rhs)
     }
 
     static func .- (lhs: Self, rhs: Self) -> [Double] {
-        return vDSP.subtract(lhs, rhs)
+        vDSP.subtract(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Self) -> [Double] {
-        return vDSP.multiply(lhs, rhs)
+        vDSP.multiply(lhs, rhs)
     }
 
     static func .* (lhs: Self, rhs: Double) -> [Double] {
-        return vDSP.multiply(rhs, lhs)
+        vDSP.multiply(rhs, lhs)
     }
 
     static func ./ (lhs: Self, rhs: Double) -> [Double] {
-        return vDSP.multiply(1.0 / rhs, lhs)
+        vDSP.multiply(1.0 / rhs, lhs)
     }
 }
 
 public extension AccelerateMutableBuffer where Element == Double {
     static func .+= (lhs: inout Self, rhs: Self) {
-         vDSP.add(lhs, rhs, result: &lhs)
+        vDSP.add(lhs, rhs, result: &lhs)
     }
 
     static func .+= (lhs: inout ArraySlice<Double>, rhs: Self) {

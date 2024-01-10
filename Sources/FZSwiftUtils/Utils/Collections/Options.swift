@@ -47,9 +47,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
 
     var elements: Set<Element> = []
 
-    public init() {
-
-    }
+    public init() {}
 
     public init<S: Sequence<Element>>(_ elements: S) {
         self.elements = .init(elements).uniquedOptions()
@@ -59,15 +57,13 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
         self.elements = Set(elements).uniquedOptions()
     }
 
-    public var startIndex: Index { return elements.startIndex }
-    public var endIndex: Index { return elements.endIndex }
+    public var startIndex: Index { elements.startIndex }
+    public var endIndex: Index { elements.endIndex }
 
-    public subscript(index: Index) -> Element {
-        get { return elements[index] }
-    }
+    public subscript(index: Index) -> Element { elements[index] }
 
     public func index(after i: Index) -> Index {
-        return elements.index(after: i)
+        elements.index(after: i)
     }
 
     @discardableResult
@@ -94,7 +90,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
 
     mutating func remove<S: Sequence<Element>>(_ elements: S) {
-        elements.forEach({ self.remove($0) })
+        elements.forEach { remove($0) }
     }
 
     public mutating func removeAll() {
@@ -103,16 +99,16 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
 
     mutating func removeAll(where shouldRemove: (Self.Element) -> Bool) -> Self {
         let toRemove = filter(shouldRemove)
-        self.remove(Array(toRemove))
+        remove(Array(toRemove))
         return toRemove
     }
 
     public func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> Self {
-        Self(try elements.filter({ try isIncluded($0) }))
+        try Self(elements.filter { try isIncluded($0) })
     }
 
     public func compactMap<ElementOfResult>(_ transform: (Element) throws -> ElementOfResult) rethrows -> [ElementOfResult] {
-        try self.elements.compactMap({ try transform($0) })
+        try elements.compactMap { try transform($0) }
     }
 
     public func contains(_ member: Element) -> Bool {
@@ -128,7 +124,7 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
 
     public mutating func formUnion(_ other: __owned Options<Element>) {
-        self = self.union(other)
+        self = union(other)
     }
 
     public func intersection(_ other: Options<Element>) -> Options<Element> {
@@ -136,26 +132,26 @@ public struct Options<Element: Option>: Equatable, ExpressibleByArrayLiteral, Se
     }
 
     public mutating func formIntersection(_ other: Options<Element>) {
-        self = self.intersection(other)
+        self = intersection(other)
     }
 
     public func symmetricDifference(_ other: __owned Options<Element>) -> Options<Element> {
-        Self(self.elements.symmetricDifference(other))
+        Self(elements.symmetricDifference(other))
     }
 
     public mutating func formSymmetricDifference(_ other: __owned Options<Element>) {
-        self = self.symmetricDifference(other)
+        self = symmetricDifference(other)
     }
 
     public func makeIterator() -> Set<Element>.Iterator {
-        self.elements.makeIterator()
+        elements.makeIterator()
     }
 }
 
-extension Options: Hashable where Element: Hashable { }
-extension Options: Sendable where Element: Sendable { }
-extension Options: Encodable where Element: Encodable { }
-extension Options: Decodable where Element: Decodable { }
+extension Options: Hashable where Element: Hashable {}
+extension Options: Sendable where Element: Sendable {}
+extension Options: Encodable where Element: Encodable {}
+extension Options: Decodable where Element: Decodable {}
 
 extension Options: CustomStringConvertible {
     public var description: String {

@@ -10,7 +10,7 @@ import Foundation
 public extension Sequence {
     /// Returns an array of all elements.
     func collect() -> [Element] {
-        return reduce(into: [Element]()) { $0.append($1) }
+        reduce(into: [Element]()) { $0.append($1) }
     }
 
     /// Returns an array of all elements.
@@ -22,7 +22,7 @@ public extension Sequence {
 
     /**
      Returns an array of all elements to the specified completion handler
-     
+
      - Parameter completion: The handler which gets called when all elements got collected.
      */
     func collect(completion: @escaping ([Element]) -> Void) {
@@ -43,7 +43,7 @@ public extension AsyncSequence {
 
     /**
      Returns an array of all elements to the specified completion handler
-     
+
      - Parameter completion: The handler which gets called when all elements got collected.
      */
     func collect(completion: @escaping ([Element]) -> Void) throws {

@@ -10,14 +10,14 @@ import Foundation
 
 /**
  Synchronizes an object.
- 
+
  - Parameters:
     - lock: The object that is used for locking.
     - closure: The closure that is executed when the lock is acquired.
  - Returns: The return value of the block is returned to the caller.
- 
+
  - Throws: Re-throws if the given block throws.
-*/
+ */
 public func synchronized<T>(_ lock: Any, _ closure: () throws -> T) rethrows -> T {
     objc_sync_enter(lock)
     defer { objc_sync_exit(lock) }
@@ -27,12 +27,12 @@ public func synchronized<T>(_ lock: Any, _ closure: () throws -> T) rethrows -> 
 
 public extension NSObject {
     /**
-     Synchronizes the object.
-     
-     - Parameter closure: The closure that is executed when the lock is acquired.
-     - Returns: The return value of the block is returned to the caller.
-     - Throws: Re-throws if the given block throws.
-    */
+      Synchronizes the object.
+
+      - Parameter closure: The closure that is executed when the lock is acquired.
+      - Returns: The return value of the block is returned to the caller.
+      - Throws: Re-throws if the given block throws.
+     */
     func synchronized<T>(_ closure: () throws -> T) rethrows -> T {
         try FZSwiftUtils.synchronized(self, closure)
     }
@@ -40,12 +40,12 @@ public extension NSObject {
 
 public extension Array {
     /**
-     Synchronizes the array.
-     
-     - Parameter closure: The closure that is executed when the lock is acquired.
-     - Returns: The return value of the block is returned to the caller.
-     - Throws: Re-throws if the given block throws.
-    */
+      Synchronizes the array.
+
+      - Parameter closure: The closure that is executed when the lock is acquired.
+      - Returns: The return value of the block is returned to the caller.
+      - Throws: Re-throws if the given block throws.
+     */
     func synchronized<T>(_ closure: () throws -> T) rethrows -> T {
         try FZSwiftUtils.synchronized(self, closure)
     }
@@ -53,12 +53,12 @@ public extension Array {
 
 public extension Dictionary {
     /**
-     Synchronizes the dictionary.
-     
-     - Parameter closure: The closure that is executed when the lock is acquired.
-     - Returns: The return value of the block is returned to the caller.
-     - Throws: Re-throws if the given block throws.
-    */
+      Synchronizes the dictionary.
+
+      - Parameter closure: The closure that is executed when the lock is acquired.
+      - Returns: The return value of the block is returned to the caller.
+      - Throws: Re-throws if the given block throws.
+     */
     func synchronized<T>(_ closure: () throws -> T) rethrows -> T {
         try FZSwiftUtils.synchronized(self, closure)
     }
@@ -66,12 +66,12 @@ public extension Dictionary {
 
 public extension Set {
     /**
-     Synchronizes the set.
-     
-     - Parameter closure: The closure that is executed when the lock is acquired.
-     - Returns: The return value of the block is returned to the caller.
-     - Throws: Re-throws if the given block throws.
-    */
+      Synchronizes the set.
+
+      - Parameter closure: The closure that is executed when the lock is acquired.
+      - Returns: The return value of the block is returned to the caller.
+      - Throws: Re-throws if the given block throws.
+     */
     func synchronized<T>(_ closure: () throws -> T) rethrows -> T {
         try FZSwiftUtils.synchronized(self, closure)
     }

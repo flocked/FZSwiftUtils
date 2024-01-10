@@ -1,5 +1,5 @@
 //
-//  FileManager+Attributes.swift
+//  FileAttributes.swift
 //
 //
 //  Created by Florian Zand on 19.05.23.
@@ -13,29 +13,29 @@ public struct FileAttributes {
 
     /**
      Creates an object for accessing and modifying the attributes of the specified file.
-     
+
      - Parameter url: The url of the file.
      - Returns: `FileAttribute` for the file.
      */
     public init(url: URL) throws {
         self.url = url
-        self.fileManager = .default
-        self.attributes = try fileManager.attributesOfItem(atPath: url.path)
+        fileManager = .default
+        attributes = try fileManager.attributesOfItem(atPath: url.path)
     }
 
     /**
      Creates an object for accessing and modifying the attributes of the specified file.
-     
+
      - Parameters:
         - url: The url of the file.
         - fileManager: The file manager.
-     
+
      - Returns: `FileAttribute` for the file.
      */
-    internal init(url: URL, fileManager: FileManager) throws {
+    init(url: URL, fileManager: FileManager) throws {
         self.url = url
         self.fileManager = fileManager
-        self.attributes = try fileManager.attributesOfItem(atPath: url.path)
+        attributes = try fileManager.attributesOfItem(atPath: url.path)
     }
 
     // MARK: Attributes
@@ -43,7 +43,7 @@ public struct FileAttributes {
     public var fileType: FileAttributeType? { if let rawValue: String = _attributes.fileType() {
         return FileAttributeType(rawValue: rawValue)
     }
-        return nil
+    return nil
     }
 
     /// The file size.
@@ -139,7 +139,7 @@ public struct FileAttributes {
     public var fileProtection: FileProtectionType? { if let rawValue: String = self[.protectionKey] {
         return FileProtectionType(rawValue: rawValue)
     }
-        return nil
+    return nil
     }
 
     /// The size of the file system.
@@ -169,32 +169,32 @@ public struct FileAttributes {
     /// The url of the file.
     public let url: URL
     /// The file mananger.
-    internal let fileManager: FileManager
-    internal var attributes: [FileAttributeKey: Any]
-    internal var _attributes: NSDictionary {
+    let fileManager: FileManager
+    var attributes: [FileAttributeKey: Any]
+    var _attributes: NSDictionary {
         attributes as NSDictionary
     }
 
-    internal mutating func updateAttributes() throws {
+    mutating func updateAttributes() throws {
         attributes = try fileManager.attributesOfItem(atPath: url.path)
     }
 
-    internal func getAttribute<T>(_ attribute: FileAttributeKey) -> T? {
+    func getAttribute<T>(_ attribute: FileAttributeKey) -> T? {
         attributes[attribute] as? T
     }
 
     public subscript<T>(attribute: FileAttributeKey) -> T? {
         get { attributes[attribute] as? T }
         set {
-            var attributes = self.attributes
+            var attributes = attributes
             attributes[attribute] = newValue
             try? fileManager.setAttributes(attributes, ofItemAtPath: url.path)
             self.attributes = attributes
         }
     }
 
-    internal mutating func setAttribute(_ attribute: FileAttributeKey, to value: Any?) throws {
-        var attributes = self.attributes
+    mutating func setAttribute(_ attribute: FileAttributeKey, to value: Any?) throws {
+        var attributes = attributes
         attributes[attribute] = value
         try fileManager.setAttributes(attributes, ofItemAtPath: url.path)
         self.attributes = attributes

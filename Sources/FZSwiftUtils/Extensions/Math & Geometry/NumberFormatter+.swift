@@ -1,6 +1,6 @@
 //
 //  NumberFormatter+.swift
-//  
+//
 //
 //  Created by Florian Zand on 06.06.22.
 //
@@ -11,11 +11,11 @@ import Foundation
 public extension NumberFormatter {
     /**
      Creates a `NumberFormatter` instance configured for decimal formatting.
-     
+
      - Parameters:
         - min: The minimum number of fraction digits to display. The default value is `0`.
         - max: The maximum number of fraction digits to display. The default value is `0`.
-     
+
      - Returns: A `NumberFormatter` instance configured for decimal formatting.
      */
     static func decimal(min: Int = 0, max: Int = 0) -> NumberFormatter {
@@ -26,11 +26,11 @@ public extension NumberFormatter {
 
     /**
      Creates a `NumberFormatter` instance configured for percent formatting.
-     
+
      - Parameters:
         - min: The minimum number of fraction digits to display. The default value is `0`.
         - max: The maximum number of fraction digits to display. The default value is `0`.
-     
+
      - Returns: A `NumberFormatter` instance configured for percent formatting.
      */
     static func percent(min: Int = 0, max: Int = 0) -> NumberFormatter {
@@ -41,7 +41,7 @@ public extension NumberFormatter {
 
     /**
      Creates a `NumberFormatter` instance with the specified minimum fraction digits.
-     
+
      - Parameter minFractionDigits: The minimum number of fraction digits to display.
      */
     convenience init(minFractionDigits: Int) {
@@ -51,7 +51,7 @@ public extension NumberFormatter {
 
     /**
      Creates a `NumberFormatter` instance with the specified maximum fraction digits.
-     
+
      - Parameter maxFractionDigits: The maximum number of fraction digits to display.
      */
     convenience init(maxFractionDigits: Int) {
@@ -61,7 +61,7 @@ public extension NumberFormatter {
 
     /**
      Creates a `NumberFormatter` instance with the specified minimum and maximum fraction digits.
-     
+
      - Parameters:
         - minFractionDigits: The minimum number of fraction digits to display.
         - maxFractionDigits: The maximum number of fraction digits to display.
@@ -74,7 +74,7 @@ public extension NumberFormatter {
 
     /**
      Creates a number formatter for an integer value with the specified format, number of digits and locale.
-     
+
      - Parameters:
         - format: The format string used to format the number. The default value is `"#,###"`.
         - numberOfDigits: The number of digits to display. The default value is `0`.
@@ -92,7 +92,7 @@ public extension NumberFormatter {
 
     /**
      Creates a number formatter for a floating point value with the specified format, number of digits and locale.
-     
+
      - Parameters:
         - format: The format string used to format the number. The default value is `"#,###"`.
         - numberOfDigits: The number of digits to display. The default value is `1`.
@@ -110,7 +110,7 @@ public extension NumberFormatter {
 
     /**
      Returns a string representation of the specified value value.
-     
+
      - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
@@ -118,7 +118,7 @@ public extension NumberFormatter {
 
     /**
      Returns a string representation of the specified value value.
-     
+
      - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
@@ -126,7 +126,7 @@ public extension NumberFormatter {
 
     /**
      Returns a string representation of the specified value value.
-     
+
      - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
@@ -134,7 +134,7 @@ public extension NumberFormatter {
 
     /**
      Returns a string representation of the specified value value.
-     
+
      - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
@@ -144,12 +144,12 @@ public extension NumberFormatter {
 public extension BinaryInteger {
     /**
      Returns a localized string representation of the integer value using the specified format, number of digits, and locale.
-     
+
      - Parameters:
         - format: The format string used to format the number. The default value is `"#,###"`.
         - numberOfDigits: The number of digits to display. The default value is `0`.
         - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-     
+
      - Returns: A localized string representation of the integer value.
      */
     func localizedString(with format: String = "#,###", numberOfDigits: Int = 0, locale: Locale? = nil) -> String {
@@ -161,12 +161,12 @@ public extension BinaryInteger {
 public extension BinaryFloatingPoint {
     /**
      Returns a localized string representation of the float value using the specified format, number of digits, and locale.
-     
+
      - Parameters:
         - format: The format string used to format the number. The default value is `"#.#"`.
         - numberOfDigits: The number of digits to display. The default value is `1`.
         - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-     
+
      - Returns: A localized string representation of the float value.
      */
     func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {
@@ -178,12 +178,12 @@ public extension BinaryFloatingPoint {
 public extension CGFloat {
     /**
      Returns a localized string representation of the CGFloat value using the specified format, number of digits, and locale.
-     
+
      - Parameters:
         - format: The format string used to format the number. The default value is `"#.#"`.
         - numberOfDigits: The number of digits to display. The default value is `1`.
         - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-     
+
      - Returns: A localized string representation of the CGFloat value.
      */
     func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {

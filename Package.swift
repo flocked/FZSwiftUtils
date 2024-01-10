@@ -10,7 +10,7 @@ let package = Package(
         .library(
             name: "FZSwiftUtils",
             targets: ["FZSwiftUtils"]
-        )
+        ),
     ],
     dependencies: [
     ],
@@ -18,6 +18,6 @@ let package = Package(
         .target(
             name: "FZSwiftUtils",
             dependencies: []
-        )
+        ),
     ]
 )

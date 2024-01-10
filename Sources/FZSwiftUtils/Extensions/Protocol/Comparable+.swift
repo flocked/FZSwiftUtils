@@ -1,6 +1,6 @@
 //
 //  Comparable+.swift
-//  
+//
 //
 //  Created by Florian Zand on 01.06.23.
 //
@@ -10,7 +10,7 @@ import Foundation
 public extension Comparable {
     /**
      A Boolean value indicating whether the value is less than another value.
-     
+
      - Parameter other: A value conforming to Comparable.
      - Returns: Returns `true` if the value is less than the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
      */
@@ -23,7 +23,7 @@ public extension Comparable {
 
     /**
      A Boolean value indicating whether the value is less than another value.
-     
+
      - Parameter other: A value conforming to Comparable.
      - Returns: Returns `true` if the value is less than the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
      */
@@ -36,7 +36,7 @@ public extension Comparable {
 
     /**
      A Boolean value indicating whether the value is less or equal to another value.
-     
+
      - Parameter other: A value conforming to Comparable.
      - Returns: Returns `true` if the value is less than or equal to the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
      */
@@ -49,7 +49,7 @@ public extension Comparable {
 
     /**
      A Boolean value indicating whether the value is less or equal to another value.
-     
+
      - Parameter other: A value conforming to Comparable.
      - Returns: Returns `true` if the value is less than or equal to the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
      */
@@ -78,7 +78,7 @@ public extension Comparable {
 public extension Comparable {
     /**
      A Boolean value indicating whether the value is in the provided closed range.
-     
+
      Example usage:
      ```swift
      1.isBetween(5...7) // false
@@ -86,7 +86,7 @@ public extension Comparable {
      "c".isBetween("a"..."d") // true
      0.32.isBetween(0.31...0.33) // true
      ```
-     
+
      - Parameter range: The range against which the value is checked to be included.
      - Returns: Returns `true` if the value is in the provided range, or `false` if it isn't.
      */
@@ -94,7 +94,7 @@ public extension Comparable {
 
     /**
      A Boolean value indicating whether the value is in the provided range.
-     
+
      Example usage:
      ```swift
      1.isBetween(5..<7) // false
@@ -102,7 +102,7 @@ public extension Comparable {
      "c".isBetween("a"..<"d") // true
      0.32.isBetween(0.31..<0.33) // true
      ```
-     
+
      - Parameter range: The closed range against which the value is checked to be included.
      - Returns: Returns `true` if the value is in the provided range, or `false` if it isn't.
      */
@@ -112,7 +112,7 @@ public extension Comparable {
 public extension PartialKeyPath {
     /**
      A Boolean value indicating whether the keypath's value is less than another keypath's value.
-     
+
      - Parameter keyPath: The keypath for comparing it's value.
      - Returns: Returns `true` if the keypath's value is less than the other keypath's value; or `false` if it isn't or if the other keypath's value isn't the same Comparable type.
      */
@@ -124,7 +124,7 @@ public extension PartialKeyPath {
 
     /**
      A Boolean value indicating whether the keypath's value is less than or equal to another keypath's value.
-     
+
      - Parameter keyPath: The keypath for comparing it's value.
      - Returns: Returns `true` if the keypath's value is less than or equal to the other keypath's value; or `false` if it isn't or if the other keypath's value isn't the same Comparable type.
      */

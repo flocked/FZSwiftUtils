@@ -1,5 +1,5 @@
 //
-//  URL+FileType.swift
+//  FileType.swift
 //
 //
 //  Created by Florian Zand on 10.03.23.
@@ -8,17 +8,17 @@
 import Foundation
 
 #if canImport(UniformTypeIdentifiers)
-import UniformTypeIdentifiers
+    import UniformTypeIdentifiers
 #endif
 
 #if canImport(UIKit)
-import MobileCoreServices
+    import MobileCoreServices
 #endif
 
 public extension URL {
     /// The file type of the url.
     var fileType: FileType? {
-        return FileType(url: self)
+        FileType(url: self)
     }
 
     /// A Boolean value indicating whether the file is a video.
@@ -122,25 +122,24 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable {
         }
     }
 
-#if canImport(UniformTypeIdentifiers)
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// Returns the type for the specified content type.
-    public init?(contentType: UTType) {
-
-        if let fileType = FileType.allCases.first(where: {
-            if let allContentType = $0.contentType, contentType.conforms(to: allContentType) {
-                return true
+    #if canImport(UniformTypeIdentifiers)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        /// Returns the type for the specified content type.
+        public init?(contentType: UTType) {
+            if let fileType = FileType.allCases.first(where: {
+                if let allContentType = $0.contentType, contentType.conforms(to: allContentType) {
+                    return true
+                }
+                return false
+            }) {
+                self = fileType
+            } else if let pathExtension = contentType.preferredFilenameExtension {
+                self = .other(pathExtension)
+            } else {
+                return nil
             }
-            return false
-        }) {
-            self = fileType
-        } else if let pathExtension = contentType.preferredFilenameExtension {
-            self = .other(pathExtension)
-        } else {
-            return nil
         }
-    }
-#endif
+    #endif
 }
 
 @available(macOS, deprecated: 11.0, message: "Use contentType instead")
@@ -159,7 +158,7 @@ public extension FileType {
 
     /// Returns the type for the specified content type tree.
     init?(contentTypeTree: [String]) {
-        let allIdentifiers = FileType.allCases.compactMap { $0.identifier }
+        let allIdentifiers = FileType.allCases.compactMap(\.identifier)
         if let identifier = contentTypeTree.first(where: { allIdentifiers.contains($0) }), let fileType = FileType(contentTypeIdentifier: identifier) {
             self = fileType
             return
@@ -267,16 +266,16 @@ public extension FileType {
     /// An array of all image file types (`image` and `gif`).
     static var imageTypes: [FileType] = [.gif, .image]
 
-#if canImport(UniformTypeIdentifiers)
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// The content type of the file type.
-    var contentType: UTType? {
-        if let identifier = identifier {
-            return UTType(identifier)
+    #if canImport(UniformTypeIdentifiers)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        /// The content type of the file type.
+        var contentType: UTType? {
+            if let identifier = identifier {
+                return UTType(identifier)
+            }
+            return nil
         }
-        return nil
-    }
-#endif
+    #endif
 
     internal var predicate: NSPredicate {
         let key: NSExpression

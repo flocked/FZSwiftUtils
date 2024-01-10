@@ -1,6 +1,6 @@
 //
 //  CodableDefault.swift
-//  
+//
 //
 //  Created by Florian Zand on 07.06.22.
 //
@@ -78,10 +78,12 @@ public extension KeyedDecodingContainer {
                 return DefaultCodable(wrappedValue: P.defaultValue)
             }
             if let intValue = try? decodeIfPresent(Int.self, forKey: key),
-               let bool = Bool(exactly: NSNumber(value: intValue)) {
+               let bool = Bool(exactly: NSNumber(value: intValue))
+            {
                 return DefaultCodable(wrappedValue: bool)
             } else if let stringValue = try? decodeIfPresent(String.self, forKey: key),
-                      let bool = Bool(stringValue) {
+                      let bool = Bool(stringValue)
+            {
                 return DefaultCodable(wrappedValue: bool)
             } else {
                 return DefaultCodable(wrappedValue: P.defaultValue)

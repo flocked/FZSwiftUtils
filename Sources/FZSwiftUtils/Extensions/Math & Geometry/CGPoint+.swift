@@ -5,11 +5,10 @@
 //  Created by Florian Zand on 16.03.23.
 //
 
-import Foundation
 import CoreGraphics
+import Foundation
 
 public extension CGPoint {
-
     /// Creates a point with the specified x and y value.
     init(_ x: CGFloat, _ y: CGFloat) {
         self.init(x: x, y: y)
@@ -22,12 +21,12 @@ public extension CGPoint {
 
     /**
      Returns a new CGPoint by offsetting the current point by the specified offset.
-     
+
      - Parameters:
-        - offset: The offset to be applied.     
+        - offset: The offset to be applied.
      */
     func offset(by offset: CGPoint) -> CGPoint {
-        return CGPoint(x: x + offset.x, y: y + offset.y)
+        CGPoint(x: x + offset.x, y: y + offset.y)
     }
 
     /**
@@ -37,46 +36,46 @@ public extension CGPoint {
         - value: The value to be added to the x-coordinate and y-coordinate of the current point.
      */
     func offset(by value: CGFloat) -> CGPoint {
-        return CGPoint(x: x + value, y: y + value)
+        CGPoint(x: x + value, y: y + value)
     }
 
     /**
      Returns a new CGPoint by offsetting the current point along the x-axis by the specified value.
-     
+
      - Parameter x: The value to be added to the x-coordinate of the current point.
      */
     func offset(x: CGFloat) -> CGPoint {
-        return CGPoint(x: self.x + x, y: y)
+        CGPoint(x: self.x + x, y: y)
     }
 
     /**
      Returns a new CGPoint by offsetting the current point along the y-axis by the specified value.
-     
+
      - Parameter y: The value to be added to the x-coordinate of the current point.
      */
     func offset(y: CGFloat) -> CGPoint {
-        return CGPoint(x: self.x, y: y + y)
+        CGPoint(x: x, y: y + y)
     }
 
     /**
      Returns a new CGPoint by offsetting the current point by the specified values along the x and y axes.
-     
+
      - Parameters:
         - x: The value to be added to the x-coordinate of the current point.
         - y: The value to be added to the y-coordinate of the current point.
-     
+
      - Returns: The new CGPoint obtained by offsetting the current point by the specified values.
      */
     func offset(x: CGFloat = 0, y: CGFloat) -> CGPoint {
-        return CGPoint(x: self.x + x, y: self.y + y)
+        CGPoint(x: self.x + x, y: self.y + y)
     }
 
     /**
      Returns the distance between the current point and the specified point.
-     
+
      - Parameters:
         - point: The target CGPoint.
-     
+
      - Returns: The distance between the current point and the specified point.
      */
     func distance(to point: CGPoint) -> CGFloat {
@@ -88,7 +87,7 @@ public extension CGPoint {
     /**
      Returns the scaled integral point of the current CGPoint.
      The x and y values are scaled based on the current device's screen scale.
-     
+
      - Returns: The scaled integral CGPoint.
      */
     var scaledIntegral: CGPoint {
@@ -97,14 +96,14 @@ public extension CGPoint {
 
     /**
      Returns a new CGPoint with rounded x and y values using the specified rounding rule.
-     
+
      - Parameters:
         - rule: The rounding rule to be applied. The default value is `.toNearestOrAwayFromZero`.
-     
+
      - Returns: The new CGPoint with rounded x and y values.
      */
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGPoint {
-        return CGPoint(x: x.rounded(rule), y: y.rounded(rule))
+        CGPoint(x: x.rounded(rule), y: y.rounded(rule))
     }
 
     /// The point as `CGSize`, using the x-coordinate as width and y-coordinate as height.
@@ -122,55 +121,55 @@ extension CGPoint: Hashable {
 
 public extension CGPoint {
     static func + (l: CGPoint, r: CGPoint) -> CGPoint {
-        return CGPoint(l.x + r.x, l.y + r.y)
+        CGPoint(l.x + r.x, l.y + r.y)
     }
 
     static func + (l: CGPoint, r: CGFloat) -> CGPoint {
-        return CGPoint(l.x + r, l.y + r)
+        CGPoint(l.x + r, l.y + r)
     }
 
     static func + (l: CGPoint, r: Double) -> CGPoint {
-        return CGPoint(l.x + r, l.y + r)
+        CGPoint(l.x + r, l.y + r)
     }
 
     static func - (l: CGPoint, r: CGPoint) -> CGPoint {
-        return CGPoint(l.x - r.x, l.y - r.y)
+        CGPoint(l.x - r.x, l.y - r.y)
     }
 
     static func - (l: CGPoint, r: CGFloat) -> CGPoint {
-        return CGPoint(l.x - r, l.y - r)
+        CGPoint(l.x - r, l.y - r)
     }
 
     static func - (l: CGPoint, r: Double) -> CGPoint {
-        return CGPoint(l.x - r, l.y - r)
+        CGPoint(l.x - r, l.y - r)
     }
 
     static func * (l: CGPoint, r: CGFloat) -> CGPoint {
-        return CGPoint(x: l.x * r, y: l.y * r)
+        CGPoint(x: l.x * r, y: l.y * r)
     }
 
     static func * (l: CGFloat, r: CGPoint) -> CGPoint {
-        return CGPoint(x: l * r.x, y: l * r.y)
+        CGPoint(x: l * r.x, y: l * r.y)
     }
 
     static func * (l: CGPoint, r: Double) -> CGPoint {
-        return CGPoint(x: l.x * CGFloat(r), y: l.y * CGFloat(r))
+        CGPoint(x: l.x * CGFloat(r), y: l.y * CGFloat(r))
     }
 
     static func * (l: Double, r: CGPoint) -> CGPoint {
-        return CGPoint(x: CGFloat(l) * r.x, y: CGFloat(l) * r.y)
+        CGPoint(x: CGFloat(l) * r.x, y: CGFloat(l) * r.y)
     }
 
     static func * (l: CGPoint, r: CGPoint) -> CGFloat {
-        return l.x * r.x + l.y * r.y
+        l.x * r.x + l.y * r.y
     }
 
     static func / (l: CGPoint, r: CGFloat) -> CGPoint {
-        return CGPoint(x: l.x / r, y: l.y / r)
+        CGPoint(x: l.x / r, y: l.y / r)
     }
 
     static func / (l: CGPoint, r: Double) -> CGPoint {
-        return CGPoint(x: l.x / CGFloat(r), y: l.y / CGFloat(r))
+        CGPoint(x: l.x / CGFloat(r), y: l.y / CGFloat(r))
     }
 
     static func += (l: inout CGPoint, r: CGPoint) {

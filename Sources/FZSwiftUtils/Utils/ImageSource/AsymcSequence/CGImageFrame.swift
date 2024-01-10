@@ -1,14 +1,14 @@
 //
 //  CGImageFrame.swift
-//  
+//
 //
 //  Created by Florian Zand on 22.08.22.
 //
 
 #if os(macOS)
-import AppKit
+    import AppKit
 #elseif canImport(UIKit)
-import UIKit
+    import UIKit
 #endif
 
 public struct CGImageFrame {

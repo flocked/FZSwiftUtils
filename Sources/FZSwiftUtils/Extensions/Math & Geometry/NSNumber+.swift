@@ -1,6 +1,6 @@
 //
 //  NSNumber+.swift
-//  
+//
 //
 //  Created by Florian Zand on 06.06.22.
 //
@@ -10,7 +10,7 @@ import Foundation
 public extension NSNumber {
     /**
      Returns an NSNumber object initialized to contain the specified value.
-     
+
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
      */
@@ -18,7 +18,7 @@ public extension NSNumber {
 
     /**
      Returns an NSNumber object initialized to contain the specified value.
-     
+
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
      */
@@ -26,7 +26,7 @@ public extension NSNumber {
 
     /**
      Returns an NSNumber object initialized to contain the specified value.
-     
+
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
      */
@@ -34,7 +34,7 @@ public extension NSNumber {
 
     /**
      Returns an NSNumber object initialized to contain the specified value.
-     
+
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
      */
@@ -42,7 +42,7 @@ public extension NSNumber {
 
     /**
      Returns an NSNumber object initialized to contain the specified value.
-     
+
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
      */
@@ -50,7 +50,7 @@ public extension NSNumber {
 
     /**
      Returns an NSNumber object initialized to contain the specified value of the string.
-     
+
      - Parameter value: The value of the string for the new number.
      - Returns: An `NSNumber` object containing the value of the string, or `nil` if the string doesn't contain a value.
      */

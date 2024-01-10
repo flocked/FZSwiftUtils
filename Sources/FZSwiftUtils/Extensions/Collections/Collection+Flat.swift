@@ -10,14 +10,14 @@ import Foundation
 public extension Collection where Element: Collection {
     /// Returns a flattened array of all collection elements.
     func flattened() -> [Element.Element] {
-        return flatMap { $0 }
+        flatMap { $0 }
     }
 }
 
 public extension Collection where Element: OptionalProtocol {
     /// Returns a flattened array of all collection elements.
     func flattened<V>() -> [V] where Element.Wrapped: Collection<V> {
-        return compactMap { $0.optional }.flattened()
+        compactMap(\.optional).flattened()
     }
 }
 
@@ -36,6 +36,6 @@ public extension Collection where Element: Any {
 public extension Collection where Element: OptionalProtocol, Element.Wrapped: Any {
     /// Returns a flattened array of all elements.
     func anyFlattened() -> [Any] where Element.Wrapped: Any {
-        return compactMap { $0.optional }.anyFlattened()
+        compactMap(\.optional).anyFlattened()
     }
 }

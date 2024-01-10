@@ -71,7 +71,7 @@ public extension NSString {
 
         var location = searchRange.location
         while location != NSNotFound {
-            let range = self.range(of: searchString, options: options, range: NSRange(location ..< searchRange.upperBound))
+            let range = range(of: searchString, options: options, range: NSRange(location ..< searchRange.upperBound))
             location = range.upperBound
 
             guard range.location != NSNotFound else { break }
@@ -140,7 +140,8 @@ public extension NSString {
 
         if includingLastEmptyLine,
            ranges == [NSRange(location: length, length: 0)],
-           length == 0 || character(at: length - 1).isNewLine {
+           length == 0 || character(at: length - 1).isNewLine
+        {
             return ranges
         }
 
@@ -237,7 +238,7 @@ public extension NSString {
     }
 }
 
-internal extension unichar {
+extension unichar {
     /// A Boolean value indicating whether this character represents a newline.
     var isNewLine: Bool {
         switch self {

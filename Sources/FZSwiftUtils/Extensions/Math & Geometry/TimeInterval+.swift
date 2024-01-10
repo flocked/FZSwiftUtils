@@ -6,13 +6,13 @@
 //
 
 #if os(macOS) || os(iOS) || os(tvOS)
-import Foundation
-import QuartzCore
+    import Foundation
+    import QuartzCore
 
-public extension TimeInterval {
-    /// The current time interval in seconds.
-    static var now: TimeInterval {
-        return CACurrentMediaTime()
+    public extension TimeInterval {
+        /// The current time interval in seconds.
+        static var now: TimeInterval {
+            CACurrentMediaTime()
+        }
     }
-}
 #endif

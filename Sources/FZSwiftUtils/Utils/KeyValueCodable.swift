@@ -21,27 +21,25 @@ public protocol KeyValueCodable {
 }
 
 public extension KeyValueCodable {
-    func value(for key: String) -> Any? {
-        return nil
+    func value(for _: String) -> Any? {
+        nil
     }
 
     func value<V>(for key: String) -> V? {
-        return self.value(for: key) as? V
+        value(for: key) as? V
     }
 
-    func setValue(_ value: Any?, for key: String) {
-
-    }
+    func setValue(_: Any?, for _: String) {}
 
     @discardableResult
-    func call(_ name: String, values: [Any?]) -> Any? {
-        return nil
+    func call(_: String, values _: [Any?]) -> Any? {
+        nil
     }
 
     /// Calls the selector with the specified name and values and returns its result.
     @discardableResult
     func call<V>(_ name: String, values: [Any?]) -> V? {
-        return self.call(name, values: values) as? V
+        call(name, values: values) as? V
     }
 
     subscript(key key: String) -> Any? {
@@ -57,10 +55,10 @@ public extension KeyValueCodable {
 
 extension KeyValueCodable where Self: NSObject {
     func value(for key: String) -> Any? {
-        self.value(forKeyPath: key)
+        value(forKeyPath: key)
     }
 
     func setValue(_ value: Any?, for key: String) {
-        self.setValue(value, forKeyPath: key)
+        setValue(value, forKeyPath: key)
     }
 }

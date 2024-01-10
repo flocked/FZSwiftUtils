@@ -1,6 +1,6 @@
 //
-//  DisplayableEnum.swift
-//  
+//  Enum+Displayable.swift
+//
 //
 //  Created by Boinx on 29.08.22.
 //
@@ -23,22 +23,22 @@ public protocol DisplayableEnum: CaseIterable, Equatable {
 
 public extension DisplayableEnum {
     static var count: Int {
-        return allCases.count
+        allCases.count
     }
 
     static func value(at index: Int) -> Self {
-        return Array(allCases)[index]
+        Array(allCases)[index]
     }
 
     static func index(of value: Self) -> Int {
-        return Array(allCases).firstIndex(of: value)!
+        Array(allCases).firstIndex(of: value)!
     }
 
     static func localizedName(at index: Int) -> String {
-        return value(at: index).localizedName
+        value(at: index).localizedName
     }
 
     var localizedName: String {
-        return "\(self)"
+        "\(self)"
     }
 }

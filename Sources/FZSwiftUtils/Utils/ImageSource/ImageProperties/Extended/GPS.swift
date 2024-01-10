@@ -1,6 +1,6 @@
 //
 //  GPS.swift
-//  
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //
@@ -152,6 +152,6 @@ public extension ImageSource.ImageProperties {
 
 extension CLLocation {
     func location(byAddingAccuracy horizontalError: CLLocationDistance) -> CLLocation {
-        return CLLocation(coordinate: coordinate, altitude: altitude, horizontalAccuracy: CLLocationAccuracy(horizontalError), verticalAccuracy: verticalAccuracy, course: course, speed: speed, timestamp: timestamp)
+        CLLocation(coordinate: coordinate, altitude: altitude, horizontalAccuracy: CLLocationAccuracy(horizontalError), verticalAccuracy: verticalAccuracy, course: course, speed: speed, timestamp: timestamp)
     }
 }

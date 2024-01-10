@@ -14,7 +14,7 @@ extension Set {
      - Parameter elements: An elements to remove from the set.
      */
     mutating func remove<S: Sequence<Element>>(_ elements: S) {
-        elements.forEach({ self.remove($0) })
+        elements.forEach { self.remove($0) }
     }
 
     /**
@@ -23,7 +23,7 @@ extension Set {
      - Parameter elements: An elements to insert into the set.
      */
     mutating func insert<S: Sequence<Element>>(_ elements: S) {
-        elements.forEach({ self.insert($0) })
+        elements.forEach { self.insert($0) }
     }
 
     /**
@@ -32,7 +32,7 @@ extension Set {
      - Parameter keypath: The keypath.
      */
     mutating func removeAll<Value>(containing keypath: KeyPath<Element, Value?>) {
-        self.removeAll(where: { $0[keyPath: keypath] != nil })
+        removeAll(where: { $0[keyPath: keypath] != nil })
     }
 
     /**
@@ -43,7 +43,7 @@ extension Set {
     @discardableResult
     mutating func removeAll(where shouldRemove: (Self.Element) -> Bool) -> Set<Element> {
         let toRemove = filter(shouldRemove)
-        self.remove(Array(toRemove))
+        remove(Array(toRemove))
         return toRemove
     }
 
@@ -53,16 +53,16 @@ extension Set {
     }
 }
 
-extension Set where Element: Hashable {
-    public static func +=(lhs: inout Set<Element>, rhs: Element) {
+public extension Set where Element: Hashable {
+    static func += (lhs: inout Set<Element>, rhs: Element) {
         lhs.insert(rhs)
     }
 
-    public static func +=(lhs: inout Set<Element>, rhs: Set<Element>) {
+    static func += (lhs: inout Set<Element>, rhs: Set<Element>) {
         for element in rhs {
             lhs.insert(element)
         }
-     }
+    }
 }
 
 extension Set: Comparable where Element: Comparable {

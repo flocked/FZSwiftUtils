@@ -9,23 +9,23 @@
 
 import Foundation
 
-extension NSObject {
+public extension NSObject {
     /**
      Replace an `@objc dynamic` instance method via selector on the current object.
-     
+
      Example usage that replaces the `mouseDown`method of a view:
-     
+
      ```swift
      let view = NSView()
      do {
          try view.replaceMethod(
              #selector(NSView.mouseDown(with:)),
              methodSignature: (@convention(c)  (AnyObject, Selector, NSEvent) -> ()).self,
-             hookSignature: (@convention(block)  (AnyObject, NSEvent) -> ()).self) { store in { 
+             hookSignature: (@convention(block)  (AnyObject, NSEvent) -> ()).self) { store in {
                 object, event in
                 let view = (object as! NSView)
                 // handle replaced `mouseDown`
-     
+
                 // calls `super.mouseDown`
                 store.original(object, #selector(NSView.mouseDown(with:)), event)
              }
@@ -35,29 +35,30 @@ extension NSObject {
      }
      ```
      */
-    public func replaceMethod<MethodSignature, HookSignature> (
+    func replaceMethod<MethodSignature, HookSignature>(
         _ selector: Selector,
-        methodSignature: MethodSignature.Type = MethodSignature.self,
-        hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (Hook<MethodSignature>) -> HookSignature?) throws {
-            let subclass: AnyClass = try subclass()
-            let hook = Hook<MethodSignature>(selector: selector, class: type(of: self))
-            let block = implementation(hook) as AnyObject
-            let replacementIMP = imp_implementationWithBlock(block)
-            guard let viewClass = object_getClass(self) else { return }
-            guard let method = class_getInstanceMethod(viewClass, selector) else { return }
-            let encoding = method_getTypeEncoding(method)
+        methodSignature _: MethodSignature.Type = MethodSignature.self,
+        hookSignature _: HookSignature.Type = HookSignature.self,
+        _ implementation: (Hook<MethodSignature>) -> HookSignature?
+    ) throws {
+        let subclass: AnyClass = try subclass()
+        let hook = Hook<MethodSignature>(selector: selector, class: type(of: self))
+        let block = implementation(hook) as AnyObject
+        let replacementIMP = imp_implementationWithBlock(block)
+        guard let viewClass = object_getClass(self) else { return }
+        guard let method = class_getInstanceMethod(viewClass, selector) else { return }
+        let encoding = method_getTypeEncoding(method)
 
-            let hasExistingMethod = hasExistingMethod(subclass, selector)
-            if hasExistingMethod {
-                class_replaceMethod(subclass, selector, replacementIMP, encoding)
-            } else {
-                class_addMethod(subclass, selector, replacementIMP, encoding)
-            }
+        let hasExistingMethod = hasExistingMethod(subclass, selector)
+        if hasExistingMethod {
+            class_replaceMethod(subclass, selector, replacementIMP, encoding)
+        } else {
+            class_addMethod(subclass, selector, replacementIMP, encoding)
         }
+    }
 
     /// Resets an `@objc dynamic` instance method on the current object to it's original state.
-    public func resetMethod(_ selector: Selector) {
+    func resetMethod(_ selector: Selector) {
         guard let subclass = getExistingSubclass() else { return }
         guard let viewClass = object_getClass(self) else { return }
         guard let method = class_getInstanceMethod(viewClass, selector) else { return }
@@ -76,7 +77,7 @@ extension NSObject {
         static let getClass = extract("#@:")
 
         private static func extract(_ string: StaticString) -> UnsafePointer<CChar> {
-            return UnsafeRawPointer(string.utf8Start).assumingMemoryBound(to: CChar.self)
+            UnsafeRawPointer(string.utf8Start).assumingMemoryBound(to: CChar.self)
         }
     }
 
@@ -99,7 +100,8 @@ extension NSObject {
         var currentClass: AnyClass? = type(of: self)
         repeat {
             if let currentClass = currentClass,
-               let method = class_getInstanceMethod(currentClass, selector) {
+               let method = class_getInstanceMethod(currentClass, selector)
+            {
                 let origIMP = method_getImplementation(method)
 
                 return unsafeBitCast(origIMP, to: MethodSignature.self)
@@ -113,7 +115,8 @@ extension NSObject {
         var currentClass: AnyClass? = type(of: self)
         repeat {
             if let currentClass = currentClass,
-               let method = class_getInstanceMethod(currentClass, selector) {
+               let method = class_getInstanceMethod(currentClass, selector)
+            {
                 return method_getImplementation(method)
             }
             currentClass = class_getSuperclass(currentClass)
@@ -186,18 +189,19 @@ extension NSObject {
 }
 
 public class Hook<MethodSignature> {
-    internal let selector: Selector
-    internal let `class`: AnyClass
-    internal init(selector: Selector, `class`: AnyClass) {
+    let selector: Selector
+    let `class`: AnyClass
+    init(selector: Selector, class: AnyClass) {
         self.selector = selector
-        self.`class` = `class`
+        self.class = `class`
     }
 
     public var original: MethodSignature {
         var currentClass: AnyClass? = `class`
         repeat {
             if let currentClass = currentClass,
-               let method = class_getInstanceMethod(currentClass, selector) {
+               let method = class_getInstanceMethod(currentClass, selector)
+            {
                 let origIMP = method_getImplementation(method)
                 return unsafeBitCast(origIMP, to: MethodSignature.self)
             }
@@ -213,7 +217,7 @@ public enum NSObjectSwizzleError: LocalizedError {
 
     public var errorDescription: String? {
         switch self {
-        case .failedToAllocateClassPair(let klass, let subclassName):
+        case let .failedToAllocateClassPair(klass, subclassName):
             return "Failed to allocate class pair: \(klass), \(subclassName)"
         }
     }

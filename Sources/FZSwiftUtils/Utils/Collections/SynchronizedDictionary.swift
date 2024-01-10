@@ -1,6 +1,6 @@
 //
 //  SynchronizedDictionary.swift
-//  
+//
 //
 //  Created by Florian Zand on 23.07.23.
 //
@@ -8,43 +8,43 @@
 import Foundation
 
 /// A synchronized dictionary.
-public class SynchronizedDictionary< Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
+public class SynchronizedDictionary<Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
     public typealias Element = (key: Key, value: Value)
 
     public required init(dictionaryLiteral elements: (Value, Key)...) {
-        self.dictionary = [:]
+        dictionary = [:]
         for element in elements {
-            self.dictionary[element.1] = element.0
+            dictionary[element.1] = element.0
         }
     }
 
     public init(dict: [Key: Value] = [Key: Value]()) {
-        self.dictionary = dict
+        dictionary = dict
     }
 
     public init() {
-        self.dictionary = [:]
+        dictionary = [:]
     }
 
     public init(minimumCapacity: Int) {
-        self.dictionary = .init(minimumCapacity: minimumCapacity)
+        dictionary = .init(minimumCapacity: minimumCapacity)
     }
 
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S: Sequence, S.Element == (Key, Value) {
-        self.dictionary = .init(uniqueKeysWithValues: keysAndValues)
+        dictionary = .init(uniqueKeysWithValues: keysAndValues)
     }
 
     public init<S>(_ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows where S: Sequence, S.Element == (Key, Value) {
-        self.dictionary = try .init(keysAndValues, uniquingKeysWith: combine)
+        dictionary = try .init(keysAndValues, uniquingKeysWith: combine)
     }
 
     public init<S>(grouping values: S, by keyForValue: (S.Element) throws -> Key) rethrows where Value == [S.Element], S: Sequence {
-        self.dictionary = try .init(grouping: values, by: keyForValue)
+        dictionary = try .init(grouping: values, by: keyForValue)
     }
 
     private var dictionary: [Key: Value]
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedDictionary",
-                                                attributes: .concurrent)
+                                      attributes: .concurrent)
 }
 
 public extension SynchronizedDictionary {
@@ -64,25 +64,25 @@ public extension SynchronizedDictionary {
 
     var startIndex: Dictionary<Key, Value>.Index {
         queue.sync {
-            return self.dictionary.startIndex
+            self.dictionary.startIndex
         }
     }
 
     var endIndex: Dictionary<Key, Value>.Index {
         queue.sync {
-            return self.dictionary.endIndex
+            self.dictionary.endIndex
         }
     }
 
     var isEmpty: Bool {
         queue.sync {
-            return self.dictionary.isEmpty
+            self.dictionary.isEmpty
         }
     }
 
     var count: Int {
         queue.sync {
-            return self.dictionary.count
+            self.dictionary.count
         }
     }
 
@@ -94,40 +94,40 @@ public extension SynchronizedDictionary {
 
     func index(after i: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Index {
         queue.sync {
-            return self.dictionary.index(after: i)
+            self.dictionary.index(after: i)
         }
     }
 
-    func filter(_ isIncluded: ((_ key: Key, _ value: Value) throws -> Bool)) rethrows -> [Key: Value] {
+    func filter(_ isIncluded: (_ key: Key, _ value: Value) throws -> Bool) rethrows -> [Key: Value] {
         try queue.sync {
-            return try self.dictionary.filter(isIncluded)
+            try self.dictionary.filter(isIncluded)
         }
     }
 
-    func map(_ transform: ((_ key: Key, _ value: Value) throws -> Value)) rethrows -> [Value] {
+    func map(_ transform: (_ key: Key, _ value: Value) throws -> Value) rethrows -> [Value] {
         try queue.sync {
-            return try self.dictionary.map(transform)
+            try self.dictionary.map(transform)
         }
     }
 
     var keys: [Key] {
-        queue.sync { return Array(self.dictionary.keys) }
+        queue.sync { Array(self.dictionary.keys) }
     }
 
     var values: [Value] {
         queue.sync {
-            return Array(self.dictionary.values)
+            Array(self.dictionary.values)
         }
     }
 
     subscript(key: Key) -> Value? {
         get {
             queue.sync {
-                return self.dictionary[key]
+                self.dictionary[key]
             }
         }
         set(newValue) {
-            queue.async(flags: .barrier) {[weak self] in
+            queue.async(flags: .barrier) { [weak self] in
                 self?.dictionary[key] = newValue
             }
         }
@@ -135,7 +135,7 @@ public extension SynchronizedDictionary {
 
     subscript(index: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
         queue.sync {
-            return self.dictionary[index]
+            self.dictionary[index]
         }
     }
 
@@ -146,7 +146,7 @@ public extension SynchronizedDictionary {
             }
         }
         set {
-            queue.async(flags: .barrier) {[weak self] in
+            queue.async(flags: .barrier) { [weak self] in
                 self?.dictionary[key, default: defaultValue()] = newValue
             }
         }
@@ -154,12 +154,12 @@ public extension SynchronizedDictionary {
 
     func index(forKey key: Key) -> Dictionary<Key, Value>.Index? {
         queue.sync {
-            return self.dictionary.index(forKey: key)
+            self.dictionary.index(forKey: key)
         }
     }
 
     func removeValue(forKey key: Key) {
-        queue.async(flags: .barrier) {[weak self] in
+        queue.async(flags: .barrier) { [weak self] in
             self?.dictionary.removeValue(forKey: key)
         }
     }
@@ -171,7 +171,7 @@ public extension SynchronizedDictionary {
     }
 
     func removeAll(keepingCapacity: Bool = false) {
-        queue.async(flags: .barrier) {[weak self] in
+        queue.async(flags: .barrier) { [weak self] in
             self?.dictionary.removeAll(keepingCapacity: keepingCapacity)
         }
     }
@@ -189,24 +189,24 @@ public extension SynchronizedDictionary {
     }
 
     func reserveCapacity(_ minimumCapacity: Int) {
-        queue.async(flags: .barrier) {[weak self] in
+        queue.async(flags: .barrier) { [weak self] in
             self?.dictionary.reserveCapacity(minimumCapacity)
         }
     }
 }
 
-extension SynchronizedDictionary: @unchecked Sendable where Element: Sendable { }
+extension SynchronizedDictionary: @unchecked Sendable where Element: Sendable {}
 
 extension SynchronizedDictionary: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
-        return synchronized.customMirror
+        synchronized.customMirror
     }
 
     public var debugDescription: String {
-        return synchronized.debugDescription
+        synchronized.debugDescription
     }
 
     public var description: String {
-        return synchronized.description
+        synchronized.description
     }
 }

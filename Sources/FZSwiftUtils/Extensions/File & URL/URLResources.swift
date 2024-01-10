@@ -1,31 +1,31 @@
 //
-//  URL+Resource.swift
-//  
+//  URLResources.swift
+//
 //
 //  Created by Florian Zand on 25.12.21.
 //
 
 import Foundation
 #if canImport(UniformTypeIdentifiers)
-import UniformTypeIdentifiers
+    import UniformTypeIdentifiers
 #endif
 
 #if os(macOS)
-import AppKit
+    import AppKit
 #elseif canImport(MobileCoreServices)
-import MobileCoreServices
+    import MobileCoreServices
 #endif
 
 public extension URL {
     ///  The properties of a file system resource.
     var resources: URLResources {
-        return URLResources(url: self)
+        URLResources(url: self)
     }
 }
 
 /**
  The properties of a file system resource.
- 
+
  Some of the properties can be modified. Not all properties exist for all files. For example, if a file is located on a volume that doesn’t support creation dates, the creationDate property will return nil.
  */
 public class URLResources {
@@ -34,7 +34,7 @@ public class URLResources {
 
     /**
      Creates an object for accessing and modifying properties of the resource at the specified url.
-     
+
      - Parameter url: The url to the resource.
      - Returns: `URLResources` for the specified resource.
      */
@@ -42,12 +42,12 @@ public class URLResources {
         self.url = url
     }
 
-    internal func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) throws -> V? {
+    func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) throws -> V? {
         guard let resourceKey = keyPath.resourceKey else { return nil }
         return try url.resourceValues(for: resourceKey)[keyPath: keyPath]
     }
 
-    internal func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) throws {
+    func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) throws {
         var urlResouceValues = URLResourceValues()
         urlResouceValues[keyPath: keyPath] = newValue
         try url.setResourceValues(urlResouceValues)
@@ -55,24 +55,24 @@ public class URLResources {
 
     /// Name of the resource in the file system.
     public var name: String? {
-        get { return try? value(for: \.name) }
+        get { try? value(for: \.name) }
         set { try? setValue(newValue, for: \.name) }
     }
 
     /// Localized or extension-hidden name  as displayed to users.
-    public var localizedName: String? { return try? value(for: \.localizedName) }
+    public var localizedName: String? { try? value(for: \.localizedName) }
 
     /// A Boolean value indicating whether the resource is a regular file rather than a directory or a symbolic link.
-    public var isRegularFile: Bool { return (try? value(for: \.isRegularFile)) ?? false }
+    public var isRegularFile: Bool { (try? value(for: \.isRegularFile)) ?? false }
 
     /// A Boolean value indicating if the resource is a directory.
-    public var isDirectory: Bool { return (try? value(for: \.isDirectory)) ?? false }
+    public var isDirectory: Bool { (try? value(for: \.isDirectory)) ?? false }
 
     /// A Boolean value indicating if the resource is a isymbolic link.
-    public var isSymbolicLink: Bool { return (try? value(for: \.isSymbolicLink)) ?? false }
+    public var isSymbolicLink: Bool { (try? value(for: \.isSymbolicLink)) ?? false }
 
     /// A Boolean value indicating if the resource is a volume.
-    public var isVolume: Bool { return (try? value(for: \.isVolume)) ?? false }
+    public var isVolume: Bool { (try? value(for: \.isVolume)) ?? false }
 
     /// A Boolean value indicating if the resource is a packaged directory.
     public var isPackage: Bool {
@@ -110,6 +110,7 @@ public class URLResources {
         get { try? value(for: \.creationDate) }
         set { try? setValue(newValue, for: \.creationDate) }
     }
+
     /// Date the resource was created, or renamed into or within its parent directory.
     public var addedToDirectoryDate: Date? { try? value(for: \.addedToDirectoryDate) }
 
@@ -132,9 +133,7 @@ public class URLResources {
     public var linkCount: Int? { try? value(for: \.linkCount) }
 
     /// The resource’s parent directory, if any.
-    public var parentDirectory: URL? {
-        get { try? value(for: \.parentDirectory) }
-    }
+    public var parentDirectory: URL? { try? value(for: \.parentDirectory) }
 
     /// User-visible type or “kind” description of the resource.
     public var localizedTypeDescription: String? { try? value(for: \.localizedTypeDescription) }
@@ -188,7 +187,7 @@ public class URLResources {
     @available(macOS 10.10, iOS 8.0, *)
     /**
      An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
-     
+
      For resources which refer to the same file inode, the generation identifier will change when the data in the file’s data fork is changed (changes to extended attributes or other file system metadata do not change the generation identifier). For resources which refer to the same directory inode, the generation identifier will change when direct children of that directory are added, removed or renamed (changes to the data of the direct children of that directory will not change the generation identifier). The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
     public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { try? value(for: \.generationIdentifier) }
@@ -258,21 +257,21 @@ public class URLResources {
         return DataSize(bytes)
     }
 
-    internal var fileSizeBytes: Int? { try? value(for: \.fileSize) }
+    var fileSizeBytes: Int? { try? value(for: \.fileSize) }
 
-    internal var fileAllocatedSizeBytes: Int? { try? value(for: \.fileAllocatedSize) }
+    var fileAllocatedSizeBytes: Int? { try? value(for: \.fileAllocatedSize) }
 
-    internal var totalFileSizeBytes: Int? { try? value(for: \.totalFileSize) }
+    var totalFileSizeBytes: Int? { try? value(for: \.totalFileSize) }
 
-    internal var totalFileAllocatedSizeBytes: Int? { try? value(for: \.totalFileAllocatedSize) }
+    var totalFileAllocatedSizeBytes: Int? { try? value(for: \.totalFileAllocatedSize) }
 
     /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
     public var isAliasFile: Bool { (try? value(for: \.isAliasFile)) ?? false }
 
     #if canImport(UniformTypeIdentifiers)
-    @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
-    /// A content type of the resource.
-    public var contentType: UTType? { try? value(for: \.contentType) }
+        @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
+        /// A content type of the resource.
+        public var contentType: UTType? { try? value(for: \.contentType) }
     #endif
 }
 
@@ -292,7 +291,7 @@ extension URLResources {
     return []
     }
 
-    internal func getSupertypes(for identifier: String) -> [String] {
+    func getSupertypes(for identifier: String) -> [String] {
         let params = UTTypeCopyDeclaration(identifier as CFString)?.takeRetainedValue() as? [String: Any]
         var supertypes = params?[String(kUTTypeConformsToKey)] as? [String] ?? []
         for supertype in supertypes {
@@ -303,114 +302,114 @@ extension URLResources {
 }
 
 #if os(macOS)
-public extension URLResources {
-    /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
-    @available(macOS 10.11, *)
-    var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
+    public extension URLResources {
+        /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
+        @available(macOS 10.11, *)
+        var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
 
-    @available(macOS 12.0, *)
-    /// URLs to applications that support opening the file.
-    var supportedApplicationURLs: [URL]? {
-        return contentType?.supportedApplicationURLs
-    }
+        @available(macOS 12.0, *)
+        /// URLs to applications that support opening the file.
+        var supportedApplicationURLs: [URL]? {
+            contentType?.supportedApplicationURLs
+        }
 
-    @available(macOS 10.10, *)
-    /// The quarantine properties of the resource.
-    var quarantineProperties: [String: Any]? {
-        get { try? value(for: \.quarantineProperties) }
-        set { try? setValue(newValue, for: \.quarantineProperties) }
-    }
+        @available(macOS 10.10, *)
+        /// The quarantine properties of the resource.
+        var quarantineProperties: [String: Any]? {
+            get { try? value(for: \.quarantineProperties) }
+            set { try? setValue(newValue, for: \.quarantineProperties) }
+        }
 
-    @available(macOS 10.9, *)
-    /// The finder tags of the resource.
-    var tags: [String] {
-        get { (try? value(for: \.tagNames)) ?? [] }
-        set {
-            do {
-                try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
-            } catch {
-                debugPrint(error)
-                let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
-                url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+        @available(macOS 10.9, *)
+        /// The finder tags of the resource.
+        var tags: [String] {
+            get { (try? value(for: \.tagNames)) ?? [] }
+            set {
+                do {
+                    try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
+                } catch {
+                    debugPrint(error)
+                    let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
+                    url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+                }
             }
         }
+
+        /// The icon stored with the resource.
+        var customIcon: NSUIImage? { try? value(for: \.customIcon) }
+
+        /// The normal icon for the resource.
+        var effectiveIcon: NSUIImage? { (try? value(for: \.effectiveIcon)) as? NSUIImage }
+
+        /// The label color of the resource.
+        var labelColor: NSUIColor? { try? value(for: \.labelColor) }
     }
-
-    /// The icon stored with the resource.
-    var customIcon: NSUIImage? { try? value(for: \.customIcon) }
-
-    /// The normal icon for the resource.
-    var effectiveIcon: NSUIImage? { (try? value(for: \.effectiveIcon)) as? NSUIImage }
-
-    /// The label color of the resource.
-    var labelColor: NSUIColor? { try? value(for: \.labelColor) }
-}
 #endif
 
 public extension URLResources {
     /// The volume properties of the resource.
     var volume: VolumeURLResources {
-        return VolumeURLResources(url)
+        VolumeURLResources(url)
     }
 
     ///  The volume properties of a file system resource.
     struct VolumeURLResources {
-        internal let _url: URL
+        let _url: URL
         public init(_ _url: URL) {
             self._url = _url
         }
 
         /// The url of the volume.
         public var url: URL? {
-            return try? _url.resourceValues(for: .volumeURLKey).volume
+            try? _url.resourceValues(for: .volumeURLKey).volume
         }
 
         /// The name of the volume.
-        public var name: String? { return try? _url.resourceValues(for: .volumeNameKey).volumeName
+        public var name: String? { try? _url.resourceValues(for: .volumeNameKey).volumeName
         }
 
         /// The name of the volume as it should be displayed in the user interface.
-        public var localizedName: String? { return try? _url.resourceValues(for: .volumeLocalizedNameKey).volumeLocalizedName
+        public var localizedName: String? { try? _url.resourceValues(for: .volumeLocalizedNameKey).volumeLocalizedName
         }
 
         /// The persistent UUID of the volume.
-        public var uuid: String? { return try? _url.resourceValues(for: .volumeUUIDStringKey).volumeUUIDString
+        public var uuid: String? { try? _url.resourceValues(for: .volumeUUIDStringKey).volumeUUIDString
         }
 
         /// The total number of resources on the volume.
-        public var resourceCount: Int? { return try? _url.resourceValues(for: .volumeResourceCountKey).volumeResourceCount
+        public var resourceCount: Int? { try? _url.resourceValues(for: .volumeResourceCountKey).volumeResourceCount
         }
 
         /// The creation date of the volume.
-        public var creationDate: Date? { return try? _url.resourceValues(for: .volumeCreationDateKey).volumeCreationDate
+        public var creationDate: Date? { try? _url.resourceValues(for: .volumeCreationDateKey).volumeCreationDate
         }
 
         /// A Boolean value indicating whether the volume is read-only.
-        public var isReadOnly: Bool { return (try? _url.resourceValues(for: .volumeIsReadOnlyKey).volumeIsReadOnly) ?? true
+        public var isReadOnly: Bool { (try? _url.resourceValues(for: .volumeIsReadOnlyKey).volumeIsReadOnly) ?? true
         }
 
         /// A Boolean value indicating whether the volume supports setting standard access permissions.
-        public var supportsAccessPermissions: Bool { return (try? _url.resourceValues(for: .volumeSupportsAccessPermissionsKey).volumeSupportsAccessPermissions) ?? false
+        public var supportsAccessPermissions: Bool { (try? _url.resourceValues(for: .volumeSupportsAccessPermissionsKey).volumeSupportsAccessPermissions) ?? false
         }
 
         /// A Boolean value indicating whether the volume can be renamed.
-        public var supportsRenaming: Bool { return (try? _url.resourceValues(for: .volumeSupportsRenamingKey).volumeSupportsRenaming) ?? false
+        public var supportsRenaming: Bool { (try? _url.resourceValues(for: .volumeSupportsRenamingKey).volumeSupportsRenaming) ?? false
         }
 
         /// A Boolean value indicating whether the volume supports symbolic links.
-        public var supportsSymbolicLinks: Bool { return (try? _url.resourceValues(for: .volumeSupportsSymbolicLinksKey).volumeSupportsSymbolicLinks) ?? false
+        public var supportsSymbolicLinks: Bool { (try? _url.resourceValues(for: .volumeSupportsSymbolicLinksKey).volumeSupportsSymbolicLinks) ?? false
         }
 
         /// A Boolean value indicating whether the volume is removable.
-        public var isRemovable: Bool { return (try? _url.resourceValues(for: .volumeIsRemovableKey).volumeIsRemovable) ?? false
+        public var isRemovable: Bool { (try? _url.resourceValues(for: .volumeIsRemovableKey).volumeIsRemovable) ?? false
         }
 
         /// A Boolean value indicating whether the volume is ejectable.
-        public var isEjectable: Bool { return (try? _url.resourceValues(for: .volumeIsEjectableKey).volumeIsEjectable) ?? false
+        public var isEjectable: Bool { (try? _url.resourceValues(for: .volumeIsEjectableKey).volumeIsEjectable) ?? false
         }
 
         /// A Boolean value indicating whether the volume is the root filesystem.
-        public var isRootFileSystem: Bool { return (try? _url.resourceValues(for: .volumeIsRootFileSystemKey).volumeIsRootFileSystem) ?? false
+        public var isRootFileSystem: Bool { (try? _url.resourceValues(for: .volumeIsRootFileSystemKey).volumeIsRootFileSystem) ?? false
         }
 
         /// The available capacity of the volume.

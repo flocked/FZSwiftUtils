@@ -10,40 +10,40 @@ import Foundation
 public extension URLRequest {
     /**
      Adds a range HTTP header for the specified data. This e.g. allows to resume a data download.
-     
+
      - Parameter data: The data used for the HTTP header.
      - Parameter validator: A validator to ensure the requested data hasn't changed on the server since the last request. You can obtain the validator on previous url responses via `URLResponse` `validator`.
      */
     mutating func addRangeHeader(for data: Data, validator: String? = nil) {
-        var headers = self.allHTTPHeaderFields ?? [:]
+        var headers = allHTTPHeaderFields ?? [:]
         headers["Range"] = "bytes=\(data.count)-"
         if let validator = validator {
             headers["If-Range"] = validator
         }
-        self.allHTTPHeaderFields = headers
+        allHTTPHeaderFields = headers
     }
 
     /**
      Adds a range HTTP header for the specified file. This e.g. allows to resume downloading the file.
-     
+
      - Parameter file: A local file used for the HTTP header.
      - Parameter validator: A validator to ensure the requested data hasn't changed on the server since the last request. You can obtain the validator on previous url responses via `URLResponse` `validator`.
      */
     mutating func addRangeHeader(for file: URL, validator: String? = nil) {
         guard let fileSize = file.resources.fileSize, fileSize != .zero else { return }
-        var headers = self.allHTTPHeaderFields ?? [:]
+        var headers = allHTTPHeaderFields ?? [:]
         headers["Range"] = "bytes=\(fileSize.bytes)-"
         if let validator = validator {
             headers["If-Range"] = validator
         }
-        self.allHTTPHeaderFields = headers
+        allHTTPHeaderFields = headers
     }
 
     /**
      Adds multiple HTTP headers to the URLRequest.
-     
+
      - Parameter headerValues: A dictionary of header field-value pairs to add to the URLRequest.
-     
+
      This method provides the ability to add multiple values to header fields. If a value was previously set for the specified field, the supplied value is appended to the existing value using the appropriate field delimiter (a comma).
      Certain header fields are reserved (see Reserved HTTP Headers). Do not use this method to change such headers.
      */
@@ -53,13 +53,13 @@ public extension URLRequest {
 
     /**
      The range of bytes specified in the "Range" header field of the request.
-     
+
      The range is represented as a closed range of integer values, indicating the start and end positions of the byte range.
      */
     var bytesRanges: ClosedRange<Int>? {
         get {
             if let string = allHTTPHeaderFields?["Range"] {
-                let matches = string.matches(regex: "bytes=(\\d+)-(\\d+)").compactMap({$0.string})
+                let matches = string.matches(regex: "bytes=(\\d+)-(\\d+)").compactMap(\.string)
                 if matches.count == 2, let from = Int(matches[0]), let to = Int(matches[1]) {
                     return from ... to
                 }
@@ -78,11 +78,11 @@ public extension URLRequest {
 
     /**
      Returns the curl command equivalent of the URLRequest.
-     
+
      The curl command string includes the URL, HTTP method, headers, and body (if present) of the URLRequest.
-     
+
      - Important: The generated curl command may not accurately represent all aspects of the URLRequest, such as multipart form data.
-     
+
      - Returns: A string representing the curl command equivalent of the URLRequest.
      */
     var curlString: String {
@@ -105,7 +105,8 @@ public extension URLRequest {
         }
 
         if let data = httpBody,
-           let body = String(data: data, encoding: .utf8) {
+           let body = String(data: data, encoding: .utf8)
+        {
             command.append("-d '\(body)'")
         }
 
@@ -115,21 +116,21 @@ public extension URLRequest {
     /// A dictionary containing all of the HTTP header fields for a request.
     var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String]? {
         get {
-            guard let allHTTPHeaderFields = self.allHTTPHeaderFields else { return nil }
+            guard let allHTTPHeaderFields = allHTTPHeaderFields else { return nil }
             var dic: [HTTPRequestHeaderFieldKey: String] = [:]
-            for key in allHTTPHeaderFields.keys.compactMap({HTTPRequestHeaderFieldKey(rawValue: $0)}) {
+            for key in allHTTPHeaderFields.keys.compactMap({ HTTPRequestHeaderFieldKey(rawValue: $0) }) {
                 dic[key] = allHTTPHeaderFields[key.rawValue]
             }
             return dic
         }
         set {
             guard let newValue = newValue else {
-                self.allHTTPHeaderFields = nil
+                allHTTPHeaderFields = nil
                 return
             }
-            self.allHTTPHeaderFields = [:]
+            allHTTPHeaderFields = [:]
             for key in newValue.keys {
-                self.allHTTPHeaderFields?[key.rawValue] = newValue[key]
+                allHTTPHeaderFields?[key.rawValue] = newValue[key]
             }
         }
     }
@@ -172,7 +173,7 @@ public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable,
     case custom(String)
 
     public init(stringLiteral value: String) {
-        if let first = Self.allCases.first(where: {$0.rawValue == value}) {
+        if let first = Self.allCases.first(where: { $0.rawValue == value }) {
             self = first
         } else {
             self = .custom(value)
@@ -180,7 +181,7 @@ public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable,
     }
 
     public init(rawValue: String) {
-        if let first = Self.allCases.first(where: {$0.rawValue == rawValue}) {
+        if let first = Self.allCases.first(where: { $0.rawValue == rawValue }) {
             self = first
         } else {
             self = .custom(rawValue)
@@ -223,7 +224,7 @@ public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable,
         case .userAgent: return "User-Agent"
         case .via: return "Via"
         case .warning: return "Warning"
-        case .custom(let string): return string
+        case let .custom(string): return string
         }
     }
 }

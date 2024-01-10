@@ -8,7 +8,7 @@
 import Foundation
 
 public struct SelectableArray<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
-    internal var elements: [Element] = []
+    var elements: [Element] = []
 
     public init() {}
 
@@ -17,7 +17,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public var count: Int {
-        return elements.count
+        elements.count
     }
 
     public mutating func removeAll() {
@@ -91,15 +91,15 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public var indices: Range<Int> {
-        return elements.indices
+        elements.indices
     }
 
     public var isEmpty: Bool {
-        return elements.isEmpty
+        elements.isEmpty
     }
 
     public func distance(from start: Int, to end: Int) -> Int {
-        return elements.distance(from: start, to: end)
+        elements.distance(from: start, to: end)
     }
 
     public mutating func swapAt(_ i: Int, _ j: Int) {
@@ -150,50 +150,51 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     // Collection / Mutable Collection
 
     private func isInBounds(index: Int) -> Bool {
-        return indices ~= index
+        indices ~= index
     }
 
     public var startIndex: Int {
-        return elements.startIndex
+        elements.startIndex
     }
 
     public var endIndex: Int {
-        return elements.endIndex
+        elements.endIndex
     }
 
     public subscript(index: Int) -> Element {
-        get {  return elements[index] }
-        set {  elements[index] = newValue }
+        get { elements[index] }
+        set { elements[index] = newValue }
     }
 
     public subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
-        get { return elements[range] }
+        get { elements[range] }
         set { elements[range] = newValue }
     }
 
     public subscript(range: Range<Int>) -> ArraySlice<Element> {
-        get { return elements[range] }
+        get { elements[range] }
         set { elements[range] = newValue }
     }
 
     public func index(after i: Int) -> Int {
-        return elements.index(after: i)
+        elements.index(after: i)
     }
 
     public func index(before i: Int) -> Int {
-        return elements.index(before: i)
+        elements.index(before: i)
     }
 
     public func index(_ i: Int, offsetBy distance: Int) -> Int {
-        return elements.index(i, offsetBy: distance)
+        elements.index(i, offsetBy: distance)
     }
 
     public func index(_ i: Int, offsetBy distance: Int, limitedBy limit: Int) -> Int? {
-        return elements.index(i, offsetBy: distance, limitedBy: limit)
+        elements.index(i, offsetBy: distance, limitedBy: limit)
     }
 
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
+    {
         elements.replaceSubrange(subrange, with: newElements)
     }
 
@@ -287,7 +288,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public mutating func select(at indexes: [Int]) {
         guard allowsSelection else { return }
         if allowsMultipleSelection {
-            indexes.forEach { self.select(at: $0) }
+            indexes.forEach { select(at: $0) }
         } else if let firstIndex = indexes.first {
             select(at: firstIndex)
         }
@@ -300,7 +301,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func deselect(at indexes: [Int]) {
-        indexes.forEach { self.deselect(at: $0) }
+        indexes.forEach { deselect(at: $0) }
     }
 
     private mutating func updateSelections() {
@@ -308,7 +309,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
             if allowsMultipleSelection == false, let firstIndex = selectedIndexes.first {
                 select(at: firstIndex, exclusivly: true)
             }
-            if allowsEmptySelection == false && selectedIndexes.count == 0 {
+            if allowsEmptySelection == false, selectedIndexes.count == 0 {
                 select(at: 0)
             }
         } else {
@@ -377,7 +378,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 }
 
-extension SelectableArray: Sendable where Element: Sendable { }
+extension SelectableArray: Sendable where Element: Sendable {}
 
 extension SelectableArray: Encodable where Element: Encodable {}
 
@@ -385,21 +386,21 @@ extension SelectableArray: Decodable where Element: Decodable {}
 
 extension SelectableArray: CVarArg {
     public var _cVarArgEncoding: [Int] {
-        return elements._cVarArgEncoding
+        elements._cVarArgEncoding
     }
 }
 
 extension SelectableArray: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
-        return elements.customMirror
+        elements.customMirror
     }
 
     public var debugDescription: String {
-        return elements.debugDescription
+        elements.debugDescription
     }
 
     public var description: String {
-        return elements.description
+        elements.description
     }
 }
 
@@ -417,7 +418,7 @@ extension SelectableArray: ContiguousBytes {
 
 extension SelectableArray: Equatable where Element: Equatable {
     public static func == (lhs: SelectableArray<Element>, rhs: SelectableArray<Element>) -> Bool {
-        return lhs.elements == rhs.elements
+        lhs.elements == rhs.elements
     }
 }
 

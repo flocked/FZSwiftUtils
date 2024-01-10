@@ -1,6 +1,6 @@
 //
 //  Number+String.swift
-//  
+//
 //
 //  Created by Florian Zand on 31.07.23.
 //

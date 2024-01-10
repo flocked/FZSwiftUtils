@@ -1,6 +1,6 @@
 //
 //  DateFormatter+.swift
-//  
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //
@@ -43,7 +43,7 @@ public extension DateComponentsFormatter {
         get { allowedUnits.components }
         set {
             var unit: NSCalendar.Unit = []
-            newValue.compactMap { $0.nsUnit }.forEach { unit.insert($0) }
+            newValue.compactMap(\.nsUnit).forEach { unit.insert($0) }
             allowedUnits = unit
         }
     }

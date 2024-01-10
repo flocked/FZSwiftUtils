@@ -1,6 +1,6 @@
 //
 //  Range+.swift
-//  
+//
 //
 //  Created by Florian Zand on 27.09.23.
 //
@@ -10,17 +10,17 @@ import Foundation
 public extension ClosedRange where Bound == Int {
     /**
      Offsets the range by the specified value.
-     
+
      - Parameter offset: The offset to shift.
      - Returns: The new range.
      */
     func offset(by offset: Int) -> Self {
-        lowerBound+offset...upperBound+offset
+        lowerBound + offset ... upperBound + offset
     }
 
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
-     
+
      - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
@@ -30,7 +30,7 @@ public extension ClosedRange where Bound == Int {
 
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
-     
+
      - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
@@ -40,13 +40,13 @@ public extension ClosedRange where Bound == Int {
 
     /**
      Returns a Boolean value indicating whether the given values are contained within the range.
-     
+
      - Parameter values: The values to check for containment.
      - Returns: `true` if values are contained in the range; otherwise, `false`.
      */
     func contains<S>(_ values: S) -> Bool where S: Sequence<Int> {
         for value in values.uniqued() {
-            if self.contains(value) == false {
+            if contains(value) == false {
                 return false
             }
         }
@@ -57,17 +57,17 @@ public extension ClosedRange where Bound == Int {
 public extension Range where Bound == Int {
     /**
      Shifts the range by the specified offset value.
-     
+
      - Parameter offset: The offset to shift.
      - Returns: The new range.
      */
     func shfted(by offset: Int) -> Self {
-        lowerBound+offset..<upperBound+offset
+        lowerBound + offset ..< upperBound + offset
     }
 
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
-     
+
      - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
@@ -77,7 +77,7 @@ public extension Range where Bound == Int {
 
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
-     
+
      - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
@@ -87,13 +87,13 @@ public extension Range where Bound == Int {
 
     /**
      Returns a Boolean value indicating whether the given values are contained within the range.
-     
+
      - Parameter values: The values to check for containment.
      - Returns: `true` if values are contained in the range; otherwise, `false`.
      */
     func contains<S>(_ values: S) -> Bool where S: Sequence<Int> {
         for value in values.uniqued() {
-            if self.contains(value) == false {
+            if contains(value) == false {
                 return false
             }
         }
@@ -104,30 +104,30 @@ public extension Range where Bound == Int {
 public extension ClosedRange where Bound: BinaryInteger {
     /// The range as `NSRange`.
     var nsRange: NSRange {
-        let length = self.upperBound-self.lowerBound-1
-        return NSRange(location: Int(self.lowerBound), length: Int(length))
+        let length = upperBound - lowerBound - 1
+        return NSRange(location: Int(lowerBound), length: Int(length))
     }
 }
 
 public extension Range where Bound: BinaryInteger {
     /// The range as `NSRange`.
     var nsRange: NSRange {
-        let length = self.upperBound-self.lowerBound
-        return NSRange(location: Int(self.lowerBound), length: Int(length))
+        let length = upperBound - lowerBound
+        return NSRange(location: Int(lowerBound), length: Int(length))
     }
 }
 
 public extension ClosedRange where Bound: BinaryInteger {
     /// The range as floating range.
     var toFloating: ClosedRange<Float> {
-        Float(self.lowerBound)...Float(self.upperBound)
+        Float(lowerBound) ... Float(upperBound)
     }
 }
 
 public extension Range where Bound: BinaryInteger {
     /// The range as floating range.
     var toFloating: Range<Float> {
-        Float(self.lowerBound)..<Float(self.upperBound)
+        Float(lowerBound) ..< Float(upperBound)
     }
 }
 
@@ -138,7 +138,7 @@ extension Sequence<ClosedRange<Int>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound...upperBound
+        return lowerBound ... upperBound
     }
 }
 
@@ -149,7 +149,7 @@ extension Sequence<ClosedRange<Float>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound...upperBound
+        return lowerBound ... upperBound
     }
 }
 
@@ -160,7 +160,7 @@ extension Sequence<ClosedRange<Double>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound...upperBound
+        return lowerBound ... upperBound
     }
 }
 
@@ -171,7 +171,7 @@ extension Sequence<ClosedRange<CGFloat>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound...upperBound
+        return lowerBound ... upperBound
     }
 }
 
@@ -182,7 +182,7 @@ extension Sequence<Range<Int>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound..<upperBound
+        return lowerBound ..< upperBound
     }
 }
 
@@ -193,7 +193,7 @@ extension Sequence<Range<Float>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound..<upperBound
+        return lowerBound ..< upperBound
     }
 }
 
@@ -204,7 +204,7 @@ extension Sequence<Range<Double>> {
             let lowerBound = map(\.lowerBound).min(),
             let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound..<upperBound
+        return lowerBound ..< upperBound
     }
 }
 
@@ -212,8 +212,8 @@ extension Sequence<Range<CGFloat>> {
     /// The range that contains all ranges.
     var union: Range<CGFloat>? {
         guard let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
+              let upperBound = map(\.upperBound).max()
         else { return nil }
-        return lowerBound..<upperBound
+        return lowerBound ..< upperBound
     }
 }

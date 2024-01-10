@@ -1,6 +1,6 @@
 //
 //  CaseIterable+Advance.swift
-//  
+//
 //
 //  Created by Florian Zand on 30.08.23.
 //
@@ -63,12 +63,12 @@ public extension CaseIterable where Self: Hashable {
 
     /// Returns a random case from `Self.allCases`.
     var randomCase: Self? {
-        return Self.allCases.randomElement()
+        Self.allCases.randomElement()
     }
 
     /// Returns a random new case from `Self.allCases` excluding self or `nil` if there isn´t a new random case.
     var randomNewCase: Self? {
-        guard Self.allCases.count > 1 else { return nil}
+        guard Self.allCases.count > 1 else { return nil }
         var random = Self.allCases.randomElement()
         while random != self {
             random = Self.allCases.randomElement()

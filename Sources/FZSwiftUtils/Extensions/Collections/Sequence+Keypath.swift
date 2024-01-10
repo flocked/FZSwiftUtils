@@ -1,5 +1,5 @@
 //
-//  Sequence+KeyPath.swift
+//  Sequence+Keypath.swift
 //
 //
 //  Created by Florian Zand on 19.05.23.
@@ -10,12 +10,12 @@ import Foundation
 public extension Sequence {
     /**
      Returns an array containing the results of mapping the given keypath element.
-     
+
      - Parameter keyPath: The keypath to the element.
      - Returns: An array containing the keypath elements of this sequence.
      */
     func map<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
-        return map { $0[keyPath: keyPath] }
+        map { $0[keyPath: keyPath] }
     }
 
     /**
@@ -25,7 +25,7 @@ public extension Sequence {
      - Returns: An array of the non-nil results of the keypath elements.
      */
     func compactMap<T>(_ keyPath: KeyPath<Element, T?>) -> [T] {
-        return compactMap { $0[keyPath: keyPath] }
+        compactMap { $0[keyPath: keyPath] }
     }
 
     /**
@@ -35,7 +35,7 @@ public extension Sequence {
      - Returns: An array of the non-nil results of the keypath elements.
      */
     func compactMap<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
-        return compactMap { $0[keyPath: keyPath] }
+        compactMap { $0[keyPath: keyPath] }
     }
 
     /**
@@ -47,17 +47,17 @@ public extension Sequence {
      - Returns: The resulting flattened array.
      */
     func flatMap<T, S: Sequence<T>>(_ keyPath: KeyPath<Element, S>) -> [T] {
-        return flatMap { $0[keyPath: keyPath] }
+        flatMap { $0[keyPath: keyPath] }
     }
 
     /**
      Returns an array containing, in order, the elements of the sequence that contain the keypath element.
-     
+
      - Parameter keyPath: The keypath to the element.
      - Returns: An array containing, in order, the elements of the sequence that contain the keypath element.
      */
     func filter<T>(contains keyPath: KeyPath<Element, T?>) -> [Element] {
-        return filter { $0[keyPath: keyPath] != nil }
+        filter { $0[keyPath: keyPath] != nil }
     }
 
     /**
@@ -67,7 +67,7 @@ public extension Sequence {
      - Returns: true if the sequence contains an element at the keypath; otherwise, false.
      */
     func contains<T>(_ keyPath: KeyPath<Element, T?>) -> Bool {
-        return contains(where: { $0[keyPath: keyPath] != nil })
+        contains(where: { $0[keyPath: keyPath] != nil })
     }
 
     /**
@@ -77,7 +77,7 @@ public extension Sequence {
      - Returns: The first element of the sequence at the keypath.
      */
     func first<T>(_ keyPath: KeyPath<Element, T?>) -> T? {
-        return first(where: { $0[keyPath: keyPath] != nil })?[keyPath: keyPath]
+        first(where: { $0[keyPath: keyPath] != nil })?[keyPath: keyPath]
     }
 
     /**
@@ -87,7 +87,7 @@ public extension Sequence {
      - Returns: The number of elements of the sequence at the keypath.
      */
     func count<T>(of keyPath: KeyPath<Element, T?>) -> Int {
-        return filter { $0[keyPath: keyPath] != nil }.count
+        filter { $0[keyPath: keyPath] != nil }.count
     }
 
     /**
@@ -108,6 +108,6 @@ public extension RangeReplaceableCollection {
      - Parameter keypath: The keypath.
      */
     mutating func removeAll<Value>(containing keypath: KeyPath<Element, Value?>) {
-        self.removeAll(where: { $0[keyPath: keypath] != nil })
+        removeAll(where: { $0[keyPath: keypath] != nil })
     }
 }

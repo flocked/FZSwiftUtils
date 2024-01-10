@@ -1,6 +1,6 @@
 //
 //  ImageFrameSequence.swift
-//  
+//
 //
 //  Created by Florian Zand on 03.06.22.
 //
@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 #if os(macOS)
-import AppKit
+    import AppKit
 #endif
 
 public struct ImageFrameSequence: AsyncSequence {
@@ -23,7 +23,7 @@ public struct ImageFrameSequence: AsyncSequence {
 
     public let source: ImageSource?
     #if os(macOS)
-    public let representation: NSBitmapImageRep?
+        public let representation: NSBitmapImageRep?
     #endif
     public let thumbnailOptions: ThumbnailOptions?
     public let imageOptions: ImageOptions?
@@ -45,28 +45,28 @@ public struct ImageFrameSequence: AsyncSequence {
         self.type = type
         self.loop = loop
         #if os(macOS)
-        self.representation = nil
+            representation = nil
         #endif
     }
 
     #if os(macOS)
-    public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
-        self.representation = representation
-        self.type = .image
-        self.imageOptions = nil
-        self.thumbnailOptions = nil
-        self.source = nil
-        self.loop = loop
-    }
+        public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
+            self.representation = representation
+            type = .image
+            imageOptions = nil
+            thumbnailOptions = nil
+            source = nil
+            self.loop = loop
+        }
     #endif
 
     public func makeAsyncIterator() -> ImageFrameIterator {
         #if os(macOS)
-        if let representation = representation {
-            return ImageFrameIterator(representation, loop: loop)
-        }
+            if let representation = representation {
+                return ImageFrameIterator(representation, loop: loop)
+            }
         #endif
-        let source = self.source!
+        let source = source!
         switch type {
         case .image:
             return ImageFrameIterator.image(source: source, options: imageOptions, loop: loop)
@@ -84,7 +84,7 @@ public extension ImageFrameSequence {
         public let source: ImageSource?
         public let type: FrameType
         #if os(macOS)
-        public let representation: NSBitmapImageRep?
+            public let representation: NSBitmapImageRep?
         #endif
         public let thumbnailOptions: ThumbnailOptions?
         public let imageOptions: ImageOptions?
@@ -94,37 +94,37 @@ public extension ImageFrameSequence {
         }
 
         public static func thumbnail(source: ImageSource, options: ThumbnailOptions? = nil, loop _: Bool = false) -> ImageFrameIterator {
-            return ImageFrameIterator(source: source, type: .thumbnail, thumbnailOptions: options, imageOptions: nil)
+            ImageFrameIterator(source: source, type: .thumbnail, thumbnailOptions: options, imageOptions: nil)
         }
 
         public static func image(source: ImageSource, options: ImageOptions? = nil, loop _: Bool = false) -> ImageFrameIterator {
-            return ImageFrameIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
+            ImageFrameIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
         }
 
         public init(source: ImageSource, type: FrameType, thumbnailOptions: ThumbnailOptions?, imageOptions: ImageOptions?, loop: Bool = false) {
             self.source = source
-            self.frameCount = source.count
-            self.currentFrame = 0
+            frameCount = source.count
+            currentFrame = 0
             self.loop = loop
             self.type = type
             self.thumbnailOptions = thumbnailOptions
             self.imageOptions = imageOptions
             #if os(macOS)
-            self.representation = nil
+                representation = nil
             #endif
         }
 
         #if os(macOS)
-        public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
-            self.representation = representation
-            self.source = nil
-            self.frameCount = representation.frameCount
-            self.type = .image
-            self.loop = loop
-            self.thumbnailOptions = nil
-            self.imageOptions = nil
-            self.currentFrame = 0
-        }
+            public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
+                self.representation = representation
+                source = nil
+                frameCount = representation.frameCount
+                type = .image
+                self.loop = loop
+                thumbnailOptions = nil
+                imageOptions = nil
+                currentFrame = 0
+            }
         #endif
 
         func nextImage() async -> CGImage? {
@@ -154,20 +154,21 @@ public extension ImageFrameSequence {
                 return imageFrame
             }
             #if os(macOS)
-            if let representation = representation {
-                if currentFrame >= frameCount {
-                    if loop { currentFrame = 0 } else {
-                        return nil }
+                if let representation = representation {
+                    if currentFrame >= frameCount {
+                        if loop { currentFrame = 0 } else {
+                            return nil
+                        }
+                    }
+                    var imageFrame: CGImageFrame?
+                    representation.currentFrame = currentFrame
+                    if let image = representation.cgImage {
+                        let duration = representation.currentFrameDuration
+                        imageFrame = CGImageFrame(image, duration)
+                    }
+                    currentFrame = currentFrame + 1
+                    return imageFrame
                 }
-                var imageFrame: CGImageFrame?
-                representation.currentFrame = self.currentFrame
-                if let image = representation.cgImage {
-                    let duration = representation.currentFrameDuration
-                    imageFrame = CGImageFrame(image, duration)
-                }
-                currentFrame = currentFrame + 1
-                return imageFrame
-            }
             #endif
             return nil
         }
@@ -175,26 +176,24 @@ public extension ImageFrameSequence {
 }
 
 #if os(macOS)
-fileprivate extension NSBitmapImageRep {
-    /// The number of frames in an animated GIF image, or `1` if the image isn't a GIF.
-    var frameCount: Int {
-        (self.value(forProperty: .frameCount) as? Int) ?? 1
-    }
+    fileprivate extension NSBitmapImageRep {
+        /// The number of frames in an animated GIF image, or `1` if the image isn't a GIF.
+        var frameCount: Int {
+            (value(forProperty: .frameCount) as? Int) ?? 1
+        }
 
-    /// The the current frame for an animated GIF image, or `0` if the image isn't a GIF.
-    var currentFrame: Int {
-        get { (self.value(forProperty: .currentFrame) as? Int) ?? 0 }
-        set { self.setProperty(.currentFrame, withValue: newValue) }
-    }
+        /// The the current frame for an animated GIF image, or `0` if the image isn't a GIF.
+        var currentFrame: Int {
+            get { (value(forProperty: .currentFrame) as? Int) ?? 0 }
+            set { setProperty(.currentFrame, withValue: newValue) }
+        }
 
-    /// The duration (in seconds) of the current frame for an animated GIF image, or `0` if the image isn't a GIF.
-    var currentFrameDuration: TimeInterval {
-        get { (self.value(forProperty: .currentFrameDuration) as? TimeInterval) ?? 0.0 }
-    }
+        /// The duration (in seconds) of the current frame for an animated GIF image, or `0` if the image isn't a GIF.
+        var currentFrameDuration: TimeInterval { (value(forProperty: .currentFrameDuration) as? TimeInterval) ?? 0.0 }
 
-    /// The number of loops to make when animating a GIF image, or `0` if the image isn't a GIF.
-    var loopCount: Int {
-        (self.value(forProperty: .loopCount) as? Int) ?? 0
+        /// The number of loops to make when animating a GIF image, or `0` if the image isn't a GIF.
+        var loopCount: Int {
+            (value(forProperty: .loopCount) as? Int) ?? 0
+        }
     }
-}
 #endif

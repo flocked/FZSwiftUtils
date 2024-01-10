@@ -7,7 +7,7 @@
 
 import Foundation
 
-internal struct _EmptyDecodable: Decodable {}
+struct _EmptyDecodable: Decodable {}
 
 public extension UnkeyedDecodingContainer {
     /// Skips decoding.

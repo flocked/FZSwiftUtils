@@ -1,6 +1,6 @@
 //
 //  OutlineItem.swift
-//  
+//
 //
 //  Created by Florian Zand on 06.11.21.
 //
@@ -19,7 +19,7 @@ public protocol OutlineItem: Hashable {
 
 public extension OutlineItem {
     var isExpandable: Bool {
-        return (children.isEmpty == false)
+        children.isEmpty == false
     }
 
     func parent(of member: Self) -> Self? {
@@ -66,7 +66,7 @@ public protocol ExpandingOutlineItem: Hashable {
 
 public extension ExpandingOutlineItem {
     var isExpandable: Bool {
-        return (children.isEmpty == false)
+        children.isEmpty == false
     }
 
     func parent(of member: Self) -> Self? {
@@ -102,29 +102,29 @@ public extension ExpandingOutlineItem {
 public extension ExpandingOutlineItem {
     /**
      Expands the current item and optionally expands all subchildren as well.
-     
+
      - Parameter includingSubchildren: A Boolean value indicating whether to expand all subchildren. The default value is `false`.
      */
     mutating func expandAll(includingSubchildren: Bool = false) {
-        children.editEach({
+        children.editEach {
             $0.isExpanded = true
             if includingSubchildren {
                 $0.expandAll(includingSubchildren: true)
             }
-        })
+        }
     }
 
     /**
-      Collapses the current item and optionally collapses all subchildren as well.
-      
-      - Parameter includingSubchildren: A Boolean value indicating whether to collapse all subchildren. The default value is `false`.
-      */
+     Collapses the current item and optionally collapses all subchildren as well.
+
+     - Parameter includingSubchildren: A Boolean value indicating whether to collapse all subchildren. The default value is `false`.
+     */
     mutating func collapseAll(includingSubchildren: Bool = false) {
-        children.editEach({
+        children.editEach {
             $0.isExpanded = false
             if includingSubchildren {
                 $0.collapseAll(includingSubchildren: true)
             }
-        })
+        }
     }
 }

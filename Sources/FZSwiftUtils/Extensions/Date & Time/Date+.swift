@@ -1,6 +1,6 @@
 //
 //  Date+.swift
-//  
+//
 //
 //  Created by Florian Zand on 07.06.22.
 //
@@ -18,7 +18,7 @@ public extension Date {
      - Returns: A new `Date` object obtained by adding the specified value to the given component of the date.
      */
     func adding(_ value: Int, to component: Calendar.Component) -> Date {
-        return Calendar.current.date(byAdding: component, value: value, to: self)!
+        Calendar.current.date(byAdding: component, value: value, to: self)!
     }
 
     /**
@@ -81,7 +81,7 @@ public extension Date {
 
      - Parameters:
         - interval: The date interval.
-     
+
      - Returns: `true` if the date is between the date interval, otherwise, `false`.
      */
     func isBetween(_ interval: DateInterval) -> Bool {
@@ -267,7 +267,7 @@ public extension Date {
      - Returns: `true` if the date is in the current specified component; otherwise, `false`.
      */
     func isInCurrent(_ component: Calendar.Component) -> Bool {
-        return Calendar.current.isDate(self, equalTo: Date(), toGranularity: component)
+        Calendar.current.isDate(self, equalTo: Date(), toGranularity: component)
     }
 
     enum Component {
@@ -280,7 +280,7 @@ public extension Date {
         case minute(Int = 1)
         case second(Int = 1)
         case nanosecond(Int = 1)
-        internal var value: (Calendar.Component, Int) {
+        var value: (Calendar.Component, Int) {
             switch self {
             case let .year(value): return (.year, value)
             case let .quarter(value): return (.quarter, value)
@@ -296,7 +296,7 @@ public extension Date {
     }
 
     static func + (lhs: Self, rhs: Component) -> Self {
-        return lhs.adding(rhs.value.1, to: rhs.value.0)
+        lhs.adding(rhs.value.1, to: rhs.value.0)
     }
 
     static func += (lhs: inout Self, rhs: Component) {
@@ -304,7 +304,7 @@ public extension Date {
     }
 
     static func - (lhs: Self, rhs: Component) -> Self {
-        return lhs.adding(-rhs.value.1, to: rhs.value.0)
+        lhs.adding(-rhs.value.1, to: rhs.value.0)
     }
 
     static func -= (lhs: inout Self, rhs: Component) {

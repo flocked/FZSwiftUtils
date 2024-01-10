@@ -10,7 +10,7 @@ import Foundation
 public extension JSONEncoder {
     /**
      Encodes the specified encodable object to a JSON object.
-     
+
      - Parameter value: The encodable object to encode.
      - Parameter options: The reading options for deserializing the JSON data. Default is an empty set of options.
      - Returns: The encoded JSON object.
@@ -25,7 +25,7 @@ public extension JSONEncoder {
 public extension JSONDecoder {
     /**
      Decodes a JSON object to a model object of the specified type.
-     
+
      - Parameter type: The type of the model object to decode.
      - Parameter object: The JSON object to decode.
      - Parameter options: The writing options for serializing the JSON data. Default is an empty set of options.

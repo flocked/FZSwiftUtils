@@ -1,6 +1,6 @@
 //
 //  ImageSequence.swift
-//  
+//
 //
 //  Created by Florian Zand on 03.06.22.
 //
@@ -65,11 +65,11 @@ public extension ImageSource {
         }
 
         public static func thumbnail(source: ImageSource, options: ThumbnailOptions? = nil, loop _: Bool = false) -> ImageIterator {
-            return ImageIterator(source: source, type: .thumbnail, thumbnailOptions: options, imageOptions: nil)
+            ImageIterator(source: source, type: .thumbnail, thumbnailOptions: options, imageOptions: nil)
         }
 
         public static func image(source: ImageSource, options: ImageOptions? = nil, loop _: Bool = false) -> ImageIterator {
-            return ImageIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
+            ImageIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
         }
 
         public init(source: ImageSource, type: ImageType, thumbnailOptions: ThumbnailOptions?, imageOptions: ImageOptions?, loop: Bool = false) {

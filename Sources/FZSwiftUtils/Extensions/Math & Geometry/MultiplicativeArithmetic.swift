@@ -19,28 +19,28 @@ public protocol MultiplicativeArithmetic: AdditiveArithmetic {
     static func *= (lhs: inout Self, rhs: Self)
 }
 
-extension MultiplicativeArithmetic {
-    public static func /= (lhs: inout Self, rhs: Self) {
+public extension MultiplicativeArithmetic {
+    static func /= (lhs: inout Self, rhs: Self) {
         lhs = lhs / rhs
     }
 
-    public static func *= (lhs: inout Self, rhs: Self) {
+    static func *= (lhs: inout Self, rhs: Self) {
         lhs = lhs * rhs
     }
 }
 
-extension Double: MultiplicativeArithmetic { }
-extension Float: MultiplicativeArithmetic { }
-extension CGFloat: MultiplicativeArithmetic { }
+extension Double: MultiplicativeArithmetic {}
+extension Float: MultiplicativeArithmetic {}
+extension CGFloat: MultiplicativeArithmetic {}
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-extension Float16: MultiplicativeArithmetic { }
-extension Int: MultiplicativeArithmetic { }
-extension Int8: MultiplicativeArithmetic { }
-extension Int16: MultiplicativeArithmetic { }
-extension Int32: MultiplicativeArithmetic { }
-extension Int64: MultiplicativeArithmetic { }
-extension UInt: MultiplicativeArithmetic { }
-extension UInt8: MultiplicativeArithmetic { }
-extension UInt16: MultiplicativeArithmetic { }
-extension UInt32: MultiplicativeArithmetic { }
-extension UInt64: MultiplicativeArithmetic { }
+extension Float16: MultiplicativeArithmetic {}
+extension Int: MultiplicativeArithmetic {}
+extension Int8: MultiplicativeArithmetic {}
+extension Int16: MultiplicativeArithmetic {}
+extension Int32: MultiplicativeArithmetic {}
+extension Int64: MultiplicativeArithmetic {}
+extension UInt: MultiplicativeArithmetic {}
+extension UInt8: MultiplicativeArithmetic {}
+extension UInt16: MultiplicativeArithmetic {}
+extension UInt32: MultiplicativeArithmetic {}
+extension UInt64: MultiplicativeArithmetic {}

@@ -1,5 +1,5 @@
 //
-//  ArrayBase.swift
+//  SelectableArrayNew.swift
 //
 //
 //  Created by Florian Zand on 15.10.21.
@@ -30,7 +30,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
             if allowsMultipleSelection == false, let firstIndex = selectedIndexes.first {
                 select(at: firstIndex, exclusivly: true)
             }
-            if allowsEmptySelection == false && selectedIndexes.count == 0 {
+            if allowsEmptySelection == false, selectedIndexes.count == 0 {
                 select(at: 0)
             }
         } else {
@@ -57,11 +57,11 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     }
 
     public var selectedIndexes: [Int] {
-        elements.indexes(where: { $0.isSelected }).compactMap({ $0 })
+        elements.indexes(where: { $0.isSelected }).compactMap { $0 }
     }
 
     public var selectedElements: [Element] {
-        elements[selectedIndexes].compactMap({ $0.element })
+        elements[selectedIndexes].compactMap(\.element)
     }
 
     var isSelecting: Bool = false
@@ -74,7 +74,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
         isSelecting = true
         guard allowsSelection, index < elements.count else { return }
         if !allowsMultipleSelection || exclusivly == true {
-            elements.editEach({ $0.isSelected = false })
+            elements.editEach { $0.isSelected = false }
         }
         elements[index].isSelected = true
         isSelecting = false
@@ -83,7 +83,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     public mutating func select(at indexes: [Int]) {
         guard allowsSelection else { return }
         if allowsMultipleSelection {
-            indexes.forEach { self.select(at: $0) }
+            indexes.forEach { select(at: $0) }
         } else if let firstIndex = indexes.first {
             select(at: firstIndex)
         }
@@ -129,7 +129,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     }
 
     public mutating func deselect(at indexes: [Int]) {
-        indexes.forEach { self.deselect(at: $0) }
+        indexes.forEach { deselect(at: $0) }
     }
 
     public mutating func deselectFirst() {
@@ -192,14 +192,14 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
         select(at: selectIndexes)
     }
 
-    public init() { }
+    public init() {}
 
     public init(arrayLiteral elements: Element...) {
-        self.elements = elements.compactMap({ SelectableElement($0) })
+        self.elements = elements.compactMap { SelectableElement($0) }
     }
 
     public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
-        self.elements = elements.compactMap({ SelectableElement($0) })
+        self.elements = elements.compactMap { SelectableElement($0) }
     }
 
     public init(repeating repeatedValue: Element, count: Int) {
@@ -207,62 +207,63 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     }
 
     public var count: Int {
-        return elements.count
+        elements.count
     }
 
     public var isEmpty: Bool {
-        return elements.isEmpty
+        elements.isEmpty
     }
 
     public var startIndex: Int {
-        return elements.startIndex
+        elements.startIndex
     }
 
     public var endIndex: Int {
-        return elements.endIndex
+        elements.endIndex
     }
 
     public subscript(index: Int) -> Element {
-        get {  return elements[index].element }
-        set {  elements[index] = SelectableElement(newValue) }
+        get { elements[index].element }
+        set { elements[index] = SelectableElement(newValue) }
     }
 
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
-        let newElements =  newElements.compactMap({ SelectableElement($0) })
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
+    {
+        let newElements = newElements.compactMap { SelectableElement($0) }
         elements.replaceSubrange(subrange, with: newElements)
     }
 }
 
-extension SelectableArrayNew: ExpressibleByArrayLiteral { }
-extension SelectableArrayNew: Sendable where Element: Sendable { }
-extension SelectableArrayNew.SelectableElement: Encodable where Element: Encodable { }
-extension SelectableArrayNew.SelectableElement: Decodable where Element: Decodable { }
+extension SelectableArrayNew: ExpressibleByArrayLiteral {}
+extension SelectableArrayNew: Sendable where Element: Sendable {}
+extension SelectableArrayNew.SelectableElement: Encodable where Element: Encodable {}
+extension SelectableArrayNew.SelectableElement: Decodable where Element: Decodable {}
 extension SelectableArrayNew: Encodable where Element: Encodable {}
 extension SelectableArrayNew: Decodable where Element: Decodable {}
 
 extension SelectableArrayNew: CVarArg {
     public var _cVarArgEncoding: [Int] {
-        return elements._cVarArgEncoding
+        elements._cVarArgEncoding
     }
 }
 
 extension SelectableArrayNew: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
-        return elements.customMirror
+        elements.customMirror
     }
 
     public var debugDescription: String {
-        return elements.debugDescription
+        elements.debugDescription
     }
 
     public var description: String {
-        return elements.description
+        elements.description
     }
 }
 
-extension SelectableArrayNew.SelectableElement: Equatable where Element: Equatable { }
-extension SelectableArrayNew.SelectableElement: Hashable where Element: Hashable { }
+extension SelectableArrayNew.SelectableElement: Equatable where Element: Equatable {}
+extension SelectableArrayNew.SelectableElement: Hashable where Element: Hashable {}
 
 extension SelectableArrayNew: Hashable where Element: Hashable {
     public func hash(into hasher: inout Hasher) {
@@ -278,6 +279,6 @@ extension SelectableArrayNew: ContiguousBytes {
 
 extension SelectableArrayNew: Equatable where Element: Equatable {
     public static func == (lhs: SelectableArrayNew<Element>, rhs: SelectableArrayNew<Element>) -> Bool {
-        return lhs.elements == rhs.elements
+        lhs.elements == rhs.elements
     }
 }

@@ -1,5 +1,5 @@
 //
-//  PausableOperation.swift
+//  PausableOperationQueue.swift
 //
 //
 //  Created by Florian Zand on 01.03.23.
@@ -19,9 +19,8 @@ public protocol Pausable {
 
 /// A pausable queue that regulates the execution of operations.
 open class PausableOperationQueue: OperationQueue {
-
     /// The operations currently in the queue.
-    open private(set)var pausableOperations: [(Pausable & Operation)] = []
+    open private(set) var pausableOperations: [Pausable & Operation] = []
 
     lazy var sequentialOperationsQueue = {
         var queue = OperationQueue()
@@ -31,22 +30,20 @@ open class PausableOperationQueue: OperationQueue {
 
     let _progress = MutableProgress()
 
-    open override var progress: Progress {
-        get { _progress }
-    }
+    override open var progress: Progress { _progress }
 
     override open func addOperation(_ op: Operation) {
         let completionBlock = op.completionBlock
         if let pausableOperation = op as? (Pausable & Operation) {
             op.completionBlock = {
                 self.sequentialOperationsQueue.addOperation {
-                    if let index = self.pausableOperations.firstIndex(where: {$0 == op}) {
+                    if let index = self.pausableOperations.firstIndex(where: { $0 == op }) {
                         self.pausableOperations.remove(at: index)
                     }
                 }
                 completionBlock?()
             }
-            self.sequentialOperationsQueue.addOperation {
+            sequentialOperationsQueue.addOperation {
                 self.pausableOperations.append(pausableOperation)
             }
         }
@@ -54,20 +51,19 @@ open class PausableOperationQueue: OperationQueue {
     }
 
     override open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
-        let pausableOperations = ops.compactMap { $0 as?  (Pausable & Operation) }
-        pausableOperations.forEach({ operation in
+        let pausableOperations = ops.compactMap { $0 as? (Pausable & Operation) }
+        pausableOperations.forEach { operation in
             let completionBlock = operation.completionBlock
             operation.completionBlock = {
                 self.sequentialOperationsQueue.addOperation {
-                    if let index = self.pausableOperations.firstIndex(where: {$0 == operation}) {
+                    if let index = self.pausableOperations.firstIndex(where: { $0 == operation }) {
                         self.pausableOperations.remove(at: index)
                     }
                 }
                 completionBlock?()
             }
-
-        })
-        self.sequentialOperationsQueue.addOperation {
+        }
+        sequentialOperationsQueue.addOperation {
             self.pausableOperations.append(contentsOf: pausableOperations)
         }
         super.addOperations(ops, waitUntilFinished: wait)
@@ -76,22 +72,22 @@ open class PausableOperationQueue: OperationQueue {
     /// Pauses the queue.
     open func pause() {
         isSuspended = true
-        self.sequentialOperationsQueue.addOperation {
-            self.pausableOperations.filter({$0.isExecuting}).forEach { $0.pause() }
+        sequentialOperationsQueue.addOperation {
+            self.pausableOperations.filter(\.isExecuting).forEach { $0.pause() }
         }
     }
 
     /// Resznes the queue.
     open func resume() {
         isSuspended = false
-        self.sequentialOperationsQueue.addOperation {
-            self.pausableOperations.filter({$0.isExecuting}).forEach { $0.resume() }
+        sequentialOperationsQueue.addOperation {
+            self.pausableOperations.filter(\.isExecuting).forEach { $0.resume() }
         }
     }
 
     override open func cancelAllOperations() {
         super.cancelAllOperations()
-        self.sequentialOperationsQueue.addOperation {
+        sequentialOperationsQueue.addOperation {
             self.pausableOperations.removeAll()
         }
     }

@@ -13,12 +13,12 @@ public struct DataSize: Hashable, Sendable {
     public typealias CountStyle = ByteCountFormatter.CountStyle
 
     /**
-      Initializes a `DataSize` instance with the given number of bytes and count style.
-      
-      - Parameters:
-        - bytes: The number of bytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
-      */
+     Initializes a `DataSize` instance with the given number of bytes and count style.
+
+     - Parameters:
+       - bytes: The number of bytes.
+       - countStyle: The count style for formatting the data size. The default value is `file`.
+     */
     public init<Value: BinaryInteger>(_ bytes: Value, countStyle: CountStyle = .file) {
         self.bytes = Int(bytes)
         self.countStyle = countStyle
@@ -26,7 +26,7 @@ public struct DataSize: Hashable, Sendable {
 
     /**
      Initializes a `DataSize` instance with the specified sizes in various units and count style.
-     
+
      - Parameters:
        - terabytes: The size in terabytes. The default value is `0`.
        - gigabytes: The size in gigabytes. The default value is `0`.
@@ -91,25 +91,25 @@ public struct DataSize: Hashable, Sendable {
 
     /// Returns a `DataSize`  with zero bytes.
     public static var zero: DataSize {
-        return DataSize()
+        DataSize()
     }
 }
 
 public extension DataSize {
     /**
      Returns a data size with the specified bytes.
-     
+
      - Parameters:
         - value: The bytes.
         - countStyle: The count style for formatting the data size. The default value is `file`.
-     
+
      - Returns: `DataSize`with the specified bytes.
      */
     static func bytes(_ value: Int, countStyle: CountStyle = .file) -> Self { Self(bytes: value, countStyle: countStyle) }
 
     /**
      Returns a data size with the specified kilobytes.
-     
+
      - Parameters:
         - value: The kilobytes.
         - countStyle: The count style for formatting the data size. The default value is `file`.
@@ -120,7 +120,7 @@ public extension DataSize {
 
     /**
      Returns a data size with the specified megabytes.
-     
+
      - Parameters:
         - value: The megabytes.
         - countStyle: The count style for formatting the data size. The default value is `file`.
@@ -131,7 +131,7 @@ public extension DataSize {
 
     /**
      Returns a data size with the specified gigabytes.
-     
+
      - Parameters:
         - value: The gigabytes.
         - countStyle: The count style for formatting the data size. The default value is `file`.
@@ -142,7 +142,7 @@ public extension DataSize {
 
     /**
      Returns a data size with the specified terabytes.
-     
+
      - Parameters:
         - value: The terabytes.
         - countStyle: The count style for formatting the data size. The default value is `file`.
@@ -153,7 +153,7 @@ public extension DataSize {
 
     /**
      Returns a data size with the specified petabytes.
-     
+
      - Parameters:
         - value: The petabytes.
         - countStyle: The count style for formatting the data size. The default value is `file`.
@@ -161,7 +161,6 @@ public extension DataSize {
      - Returns: `DataSize`with the specified petabytes.
      */
     static func petabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(petabytes: value, countStyle: countStyle) }
-
 }
 
 extension DataSize: Codable {
@@ -247,24 +246,24 @@ public extension DataSize {
 
 public extension Collection where Element == DataSize {
     /**
-      The average size of all data sizes in the collection.
-      
-      - Returns: A `DataSize` instance representing the average size. If the collection is empty, it returns `zerp`.
-      */
+     The average size of all data sizes in the collection.
+
+     - Returns: A `DataSize` instance representing the average size. If the collection is empty, it returns `zerp`.
+     */
     func average() -> DataSize {
         guard !isEmpty else { return .zero }
-        let average = Int(compactMap { $0.bytes }.average().rounded(.down))
+        let average = Int(compactMap(\.bytes).average().rounded(.down))
         return DataSize(average)
     }
 
     /**
      The total size of all data sizes in the collection.
-     
+
      - Returns: A `DataSize` instance representing the total size. If the collection is empty, it returns `zero`.
      */
     func sum() -> DataSize {
         guard !isEmpty else { return .zero }
-        let sum = compactMap { $0.bytes }.sum()
+        let sum = compactMap(\.bytes).sum()
         return DataSize(sum)
     }
 }
@@ -272,45 +271,45 @@ public extension Collection where Element == DataSize {
 extension DataSize: CustomStringConvertible {
     /// A string representation of the data size.
     public var description: String {
-        let formatter = self.formatter
+        let formatter = formatter
         formatter.includesActualByteCount = true
         return formatter.string(fromByteCount: Int64(bytes))
     }
 
     /// A byte count formatter configured with the data size's count style.
     public var formatter: ByteCountFormatter {
-        return ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
+        ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
     }
 
     /// A string representation of the data size.
     public var string: String {
-        return string()
+        string()
     }
 
     /**
      Returns a string representation of the data size using the specified unit.
-     
+
      - Parameters:
        - unit: The unit to use for formatting the data size.
        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-     
+
      - Returns: A string representation of the data size.
      */
     public func string(for unit: Unit, includesUnit: Bool = true) -> String {
-        return string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
+        string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
     }
 
     /**
      Returns a string representation of the data size using the specified allowed units.
-     
+
      - Parameters:
        - allowedUnits: The allowed units for formatting the data size. The default value is `useAll`.
        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-     
+
      - Returns: A string representation of the data size.
      */
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true) -> String {
-        let formatter = self.formatter
+        let formatter = formatter
         formatter.allowedUnits = allowedUnits
         formatter.includesUnit = includesUnit
         return formatter.string(fromByteCount: Int64(bytes))
@@ -350,21 +349,21 @@ extension DataSize: Comparable, AdditiveArithmetic {
 
     /// A Boolean value indicating whether the first data size is smaller than the second data size.
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        return lhs.bytes < rhs.bytes
+        lhs.bytes < rhs.bytes
     }
 
     /// A Boolean value indicating whether the first data size is smaller or equal to the second data size.
     public static func <= (lhs: Self, rhs: Self) -> Bool {
-        return lhs.bytes <= rhs.bytes
+        lhs.bytes <= rhs.bytes
     }
 
     /// A Boolean value indicating whether the first data size is larger than the second data size.
     public static func > (lhs: Self, rhs: Self) -> Bool {
-        return lhs.bytes > rhs.bytes
+        lhs.bytes > rhs.bytes
     }
 
     /// A Boolean value indicating whether the first data size is larger or equal to the second data size.
     public static func >= (lhs: Self, rhs: Self) -> Bool {
-        return lhs.bytes >= rhs.bytes
+        lhs.bytes >= rhs.bytes
     }
 }

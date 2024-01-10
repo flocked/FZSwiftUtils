@@ -1,6 +1,6 @@
 //
 //  TimeDuration.swift
-//  
+//
 //
 //  Created by Florian Zand on 10.03.23.
 //
@@ -12,7 +12,7 @@ import Foundation
 public struct TimeDuration: Hashable, Sendable {
     /**
      Initializes a new `TimeDuration` instance with the specified duration in seconds.
-     
+
      - Parameter seconds: The duration in seconds.
      */
     public init(_ seconds: Double) {
@@ -20,19 +20,19 @@ public struct TimeDuration: Hashable, Sendable {
     }
 
     #if os(macOS) || os(iOS) || os(tvOS)
-    /**
-     Initializes a new `TimeDuration` instance with the specified `CMTime`.
-     
-     - Parameter time: The `CMTime` to use for the duration.
-     */
-    public init(_ time: CMTime) {
-        seconds = time.seconds
-    }
+        /**
+         Initializes a new `TimeDuration` instance with the specified `CMTime`.
+
+         - Parameter time: The `CMTime` to use for the duration.
+         */
+        public init(_ time: CMTime) {
+            seconds = time.seconds
+        }
     #endif
 
     /**
      Initializes a new time duration with the interval between the two specified dates.
-     
+
      - Parameters:
      - date: The first date.
      - another: The second date.
@@ -43,19 +43,19 @@ public struct TimeDuration: Hashable, Sendable {
     }
 
     /**
-     Initializes a new `TimeDuration` instance with the specified duration in various units of time.
-     
-     - Parameters:
-       - nanoSeconds: The duration in nanoseconds. The default value is `0`.
-       - milliseconds: The duration in milliseconds. The default value is `0`.
-       - seconds: The duration in seconds. The default value is `0`.
-       - minutes: The duration in minutes. The default value is `0`.
-    - hours: The duration in hours. The default value is `0`.
-       - days: The duration in days. The default value is `0`.
-       - weeks: The duration in weeks. The default value is `0`.
-       - months: The duration in months. The default value is `0`.
-       - years: The duration in years. The default value is `0`.
-     */
+      Initializes a new `TimeDuration` instance with the specified duration in various units of time.
+
+      - Parameters:
+        - nanoSeconds: The duration in nanoseconds. The default value is `0`.
+        - milliseconds: The duration in milliseconds. The default value is `0`.
+        - seconds: The duration in seconds. The default value is `0`.
+        - minutes: The duration in minutes. The default value is `0`.
+     - hours: The duration in hours. The default value is `0`.
+        - days: The duration in days. The default value is `0`.
+        - weeks: The duration in weeks. The default value is `0`.
+        - months: The duration in months. The default value is `0`.
+        - years: The duration in years. The default value is `0`.
+      */
     public init(nanoseconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, hours: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
         self.seconds = seconds
         self.seconds += (milliseconds / 1000)
@@ -70,7 +70,7 @@ public struct TimeDuration: Hashable, Sendable {
 
     /**
      Initializes a new `TimeDuration` instance with the duration between the start and end dates of the specified `DateInterval`.
-     
+
      - Parameter dateInterval: The `DateInterval` to calculate the duration from.
      */
     public init(dateInterval: DateInterval) {
@@ -130,7 +130,7 @@ public struct TimeDuration: Hashable, Sendable {
 
     /**
      Returns the start date based on the given end date and the current duration.
-     
+
      - Parameter end: The end date from which to calculate the start date.
      - Returns: The calculated start date.
      */
@@ -140,7 +140,7 @@ public struct TimeDuration: Hashable, Sendable {
 
     /**
      Returns the end date based on the given start date and the current duration.
-     
+
      - Parameter start: The start date from which to calculate the end date.
      - Returns: The calculated end date.
      */
@@ -150,30 +150,30 @@ public struct TimeDuration: Hashable, Sendable {
 
     /// Returns a `TimeDuration`  with zero seconds.
     public static var zero: TimeDuration {
-        return TimeDuration(0.0)
+        TimeDuration(0.0)
     }
 
     func value(for unit: Unit) -> Double {
-        return seconds / unit.calendarComponent.timeInterval!
+        seconds / unit.calendarComponent.timeInterval!
     }
 
     func seconds(for value: Double, _ unit: Unit) -> Double {
-        return unit.convert(value, to: .second)
+        unit.convert(value, to: .second)
     }
 }
 
 public extension TimeDuration {
     /**
      Returns a time duration with the specified nanoseconds.
-     
+
      - Parameter value: The nanoseconds.
      - Returns: `TimeDuration`with the specified nanoseconds.
      */
-    static func nanoseconds(_ value: Double) -> Self { return Self(nanoseconds: value) }
+    static func nanoseconds(_ value: Double) -> Self { Self(nanoseconds: value) }
 
     /**
      Returns a time duration with the specified milliseconds.
-     
+
      - Parameter value: The milliseconds.
      - Returns: `TimeDuration`with the specified milliseconds.
      */
@@ -181,7 +181,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified seconds.
-     
+
      - Parameter value: The seconds.
      - Returns: `TimeDuration`with the specified seconds.
      */
@@ -189,7 +189,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified minutes.
-     
+
      - Parameter value: The minutes.
      - Returns: `TimeDuration`with the specified minutes.
      */
@@ -197,7 +197,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified hours.
-     
+
      - Parameter value: The hours.
      - Returns: `TimeDuration`with the specified hours.
      */
@@ -205,7 +205,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified days.
-     
+
      - Parameter value: The days.
      - Returns: `TimeDuration`with the specified days.
      */
@@ -213,7 +213,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified weeks.
-     
+
      - Parameter value: The weeks.
      - Returns: `TimeDuration`with the specified weeks.
      */
@@ -221,7 +221,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified months.
-     
+
      - Parameter value: The months.
      - Returns: `TimeDuration`with the specified months.
      */
@@ -229,7 +229,7 @@ public extension TimeDuration {
 
     /**
      Returns a time duration with the specified years.
-     
+
      - Parameter value: The years.
      - Returns: `TimeDuration`with the specified years.
      */
@@ -251,13 +251,13 @@ public extension DateInterval {
 public extension Date {
     /**
      Returns the interval between this date and another given date.
-     
+
      - Parameter another: The date with which to compare this one.
      - Returns: The interval between this date and the another date. If this date is earlier than the other date, the return value is a time duration with 0 seconds.
-     
+
      */
     func timeDurationSince(_ another: Date) -> TimeDuration {
-      TimeDuration(self.timeIntervalSince(another))
+        TimeDuration(timeIntervalSince(another))
     }
 }
 
@@ -278,18 +278,18 @@ extension TimeDuration: Codable {
 }
 
 /*
-extension TimeDuration: ExpressibleByIntegerLiteral {
-    public init(integerLiteral value: Int) {
-        seconds = Double(value)
-    }
-}
+ extension TimeDuration: ExpressibleByIntegerLiteral {
+     public init(integerLiteral value: Int) {
+         seconds = Double(value)
+     }
+ }
 
-extension TimeDuration: ExpressibleByFloatLiteral {
-    public init(floatLiteral value: Double) {
-        seconds = value
-    }
-}
-*/
+ extension TimeDuration: ExpressibleByFloatLiteral {
+     public init(floatLiteral value: Double) {
+         seconds = value
+     }
+ }
+ */
 
 public extension TimeDuration {
     ///  Enumeration representing different duration time units.
@@ -370,7 +370,7 @@ public extension TimeDuration {
 
         /// Creates a units structure with the specified time duration unit.
         public init(unit: Unit) {
-            self.rawValue = Self.allCases.first(where: {$0.unit == unit})?.rawValue ??  1 << 2
+            rawValue = Self.allCases.first(where: { $0.unit == unit })?.rawValue ?? 1 << 2
         }
 
         static let allCases: [Units] = [.nanoSecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
@@ -393,15 +393,16 @@ public extension TimeDuration {
             var units: [TimeDuration.Unit] = []
             for unitCase in Self.allCases {
                 if let unit = unitCase.unit {
-                    if self.contains(unitCase) {
-                        units.append(unit) }
+                    if contains(unitCase) {
+                        units.append(unit)
+                    }
                 }
             }
             if self == .allDetailed {
-                units.append(contentsOf: self.elements().compactMap({$0.unit}).collect())
+                units.append(contentsOf: elements().compactMap(\.unit).collect())
             }
-            if self.contains(.all) { units.append(contentsOf: duration.preferredUnits(compact: false)) }
-            if self.contains(.allCompact) { units.append(contentsOf: duration.preferredUnits(compact: true)) }
+            if contains(.all) { units.append(contentsOf: duration.preferredUnits(compact: false)) }
+            if contains(.allCompact) { units.append(contentsOf: duration.preferredUnits(compact: true)) }
             units = units.uniqued()
             return units
         }
@@ -411,7 +412,7 @@ public extension TimeDuration {
 extension TimeDuration: CustomStringConvertible {
     /// A string representation of the time duration.
     public var description: String {
-        return string()
+        string()
     }
 
     var formatter: DateComponentsFormatter {
@@ -422,52 +423,52 @@ extension TimeDuration: CustomStringConvertible {
 
     /// A string representation of the time duration.
     var string: String {
-        return string(allowedUnits: .all)
+        string(allowedUnits: .all)
     }
 
     /// A compact string representation of the time duration.
     public var stringCompact: String {
-        return string(allowedUnits: .allCompact, style: .brief)
+        string(allowedUnits: .allCompact, style: .brief)
     }
 
     /**
      Returns a string representation of the time duration using the specified time unit and style.
-     
+
      - Parameters:
        - unit: The unit to use for formatting the time duration.
        - style: The formatting style. The default value is `full`.
-     
+
      - Returns: A string representation of the time duration.
      */
     public func string(for unit: Unit, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
-        return string(allowedUnits: .init(unit: unit), style: style)
+        string(allowedUnits: .init(unit: unit), style: style)
     }
 
     /**
      Returns a string representation of the time duration using the specified allowed time units and style.
-     
+
      - Parameters:
        - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
        - style: The formatting style. The default value is `full`.
-     
+
      - Returns: A string representation of the time duration.
      */
     public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
         let allowedUnits = allowedUnits.units(for: self)
-        let formatter = self.formatter
-        formatter.allowedComponents = allowedUnits.compactMap { $0.calendarComponent }.uniqued()
+        let formatter = formatter
+        formatter.allowedComponents = allowedUnits.compactMap(\.calendarComponent).uniqued()
         formatter.unitsStyle = style
         return formatter.string(from: TimeInterval(seconds))!
     }
 
     func allCurrentUnits() -> [Unit] {
         var units: [Unit] = []
-        if self.years >= 1 {  units.append(.year)  }
-        if self.months >= 1 { units.append(.month) }
-        if self.weeks >= 1 {  units.append(.week) }
-        if self.days >= 1 {  units.append(.day) }
-        if self.hours >= 1 { units.append(.hour) }
-        if self.minutes >= 1 { units.append(.minute) }
+        if years >= 1 { units.append(.year) }
+        if months >= 1 { units.append(.month) }
+        if weeks >= 1 { units.append(.week) }
+        if days >= 1 { units.append(.day) }
+        if hours >= 1 { units.append(.hour) }
+        if minutes >= 1 { units.append(.minute) }
         units.append(.second)
         return units
     }
@@ -475,9 +476,9 @@ extension TimeDuration: CustomStringConvertible {
     func preferredUnits(compact: Bool = true) -> [Unit] {
         let currentUnits = allCurrentUnits()
         if compact == false, currentUnits.count >= 3 {
-            return Array(currentUnits[0..<3])
+            return Array(currentUnits[0 ..< 3])
         } else if currentUnits.count >= 2 {
-            return Array(currentUnits[0..<2])
+            return Array(currentUnits[0 ..< 2])
         } else {
             return [.second]
         }
@@ -512,22 +513,22 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
 
     /// A Boolean value indicating whether the first time duration is smaller than the second time duration.
     public static func < (lhs: Self, rhs: Self) -> Bool {
-        return lhs.seconds < rhs.seconds
+        lhs.seconds < rhs.seconds
     }
 
     /// A Boolean value indicating whether the first time duration is smaller or equal to the second time duration.
     public static func <= (lhs: Self, rhs: Self) -> Bool {
-        return lhs.seconds <= rhs.seconds
+        lhs.seconds <= rhs.seconds
     }
 
     /// A Boolean value indicating whether the first time duration is larger than the second time duration.
     public static func > (lhs: Self, rhs: Self) -> Bool {
-        return lhs.seconds > rhs.seconds
+        lhs.seconds > rhs.seconds
     }
 
     /// A Boolean value indicating whether the first time duration is larger or equal to the second time duration.
     public static func >= (lhs: Self, rhs: Self) -> Bool {
-        return lhs.seconds >= rhs.seconds
+        lhs.seconds >= rhs.seconds
     }
 
     /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
@@ -548,24 +549,24 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
 
 public extension Collection where Element == TimeDuration {
     /**
-      The average duration of all durations in the collection.
-      
-      - Returns: A `TimeDuration` instance representing the average duration. If the collection is empty, it returns `zerp`.
-      */
+     The average duration of all durations in the collection.
+
+     - Returns: A `TimeDuration` instance representing the average duration. If the collection is empty, it returns `zerp`.
+     */
     func average() -> TimeDuration {
         guard !isEmpty else { return .zero }
-        let average = compactMap { $0.seconds }.average().rounded(.down)
+        let average = compactMap(\.seconds).average().rounded(.down)
         return TimeDuration(average)
     }
 
     /**
      The total duration of all durations in the collection.
-     
+
      - Returns: A `TimeDuration` instance representing the total duration. If the collection is empty, it returns `zero`.
      */
     func sum() -> TimeDuration {
         guard !isEmpty else { return .zero }
-        let sum = compactMap { $0.seconds }.sum()
+        let sum = compactMap(\.seconds).sum()
         return TimeDuration(sum)
     }
 }
@@ -579,7 +580,7 @@ public extension Timer {
         - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
         - block: A block to be executed when the timer fires. The block takes a single Timer parameter and has no return value.
-     
+
      - Returns:A new Timer object, configured according to the specified parameters.
      */
     convenience init(fire: Date, interval: TimeDuration, repeats: Bool, block: @escaping ((Timer) -> Void)) {
@@ -587,19 +588,19 @@ public extension Timer {
     }
 
     /**
-     Initializes a timer using the specified object and selector.
+      Initializes a timer using the specified object and selector.
 
-     - Parameters:
-        - fire: The time at which the timer should first fire.
-        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
-        -  target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to this object until it (the timer) is invalidated.
-        - selector: The message to send to target when the timer fires.
-    The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument). The timer passes itself as the argument, thus the method would adopt the following pattern:
-        - userInfo: Custom user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
-        - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
-     
-     - Returns:A new Timer object, configured according to the specified parameters.
-     */
+      - Parameters:
+         - fire: The time at which the timer should first fire.
+         - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+         -  target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to this object until it (the timer) is invalidated.
+         - selector: The message to send to target when the timer fires.
+     The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument). The timer passes itself as the argument, thus the method would adopt the following pattern:
+         - userInfo: Custom user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
+
+      - Returns:A new Timer object, configured according to the specified parameters.
+      */
     convenience init(fireAt date: Date, interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
         self.init(fireAt: date, interval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
@@ -611,7 +612,7 @@ public extension Timer {
         - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
         - block: A block to be executed when the timer fires. The block takes a single Timer parameter and has no return value.
-     
+
      - Returns:A new Timer object, configured according to the specified parameters.
      */
     convenience init(timeInterval interval: TimeDuration, repeats: Bool, block: @escaping ((Timer) -> Void)) {
@@ -627,7 +628,7 @@ public extension Timer {
         - selector: The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument).
         - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
-     
+
      - Returns:A new Timer object, configured according to the specified parameters.
      */
     convenience init(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
@@ -641,12 +642,12 @@ public extension Timer {
         - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
         - block: A block to be executed when the timer fires. The block takes a single Timer parameter and has no return value.
-     
+
      - Returns:A new Timer object, configured according to the specified parameters.
      */
     @discardableResult
     static func scheduledTimer(withTimeInterval interval: TimeDuration, repeats: Bool, block: @escaping ((Timer) -> Void)) -> Timer {
-        return self.scheduledTimer(withTimeInterval: interval.seconds, repeats: repeats, block: block)
+        scheduledTimer(withTimeInterval: interval.seconds, repeats: repeats, block: block)
     }
 
     /**
@@ -658,10 +659,10 @@ public extension Timer {
         - selector: The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument).
         - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
-     
+
      - Returns:A new Timer object, configured according to the specified parameters.
      */
     static func scheduledTimer(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) -> Timer {
-        return self.scheduledTimer(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
+        scheduledTimer(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
 }

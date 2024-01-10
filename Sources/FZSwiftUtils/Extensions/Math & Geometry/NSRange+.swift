@@ -10,12 +10,12 @@ import Foundation
 public extension NSRange {
     /// The range as `ClosedRange`.
     var closedRange: ClosedRange<Int> {
-        return lowerBound...upperBound
+        lowerBound ... upperBound
     }
 
     /// The range as `Range`.
     var range: Range<Int> {
-        return lowerBound..<upperBound+1
+        lowerBound ..< upperBound + 1
     }
 
     static let notFound = NSRange(location: NSNotFound, length: 0)
@@ -41,7 +41,7 @@ public extension NSRange {
 
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
-     
+
      - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
@@ -53,7 +53,7 @@ public extension NSRange {
 
     /**
      Return a copied NSRange but whose location is shifted toward the given `offset`.
-     
+
      - Parameter offset: The offset to shift.
      - Returns: A new NSRange.
      */
@@ -63,7 +63,7 @@ public extension NSRange {
 
     /**
      Returns a Boolean value indicating whether this range and the given range contain an element in common.
-     
+
      - Parameter other: A range to check for elements in common.
      - Returns: `true` if this range and other have at least one element in common; otherwise, `false`.
      */

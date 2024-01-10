@@ -11,7 +11,7 @@ import Foundation
 public protocol FileConvertible: Codable {
     /**
      Initializes from the file at the specified URL.
-     
+
      - Parameter url: The url of the file.
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
@@ -19,7 +19,7 @@ public protocol FileConvertible: Codable {
 
     /**
      Initializes from the file at the specified path.
-     
+
      - Parameter path: The path to the file.
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
@@ -27,22 +27,22 @@ public protocol FileConvertible: Codable {
 
     /**
      Writes to the specified location.
-     
+
      - Parameters:
         - url: The location to write.
         - options: Options for writing. Default value is `[]`.
-     
+
      - Throws: If the file couldn't be created.
      */
     func write(to url: URL, options: Data.WritingOptions) throws
 
     /**
      Writes to the specified location.
-     
+
      - Parameters:
         - path: The location to write.
         - options: Options for writing. Default value is `[]`.
-     
+
      - Throws: If the file couldn't be created.
      */
     func write(to path: String, options: Data.WritingOptions) throws
@@ -72,6 +72,6 @@ public extension FileConvertible {
     }
 
     func write(to path: String, options: Data.WritingOptions = []) throws {
-        try self.write(to: URL(fileURLWithPath: path), options: options)
+        try write(to: URL(fileURLWithPath: path), options: options)
     }
 }

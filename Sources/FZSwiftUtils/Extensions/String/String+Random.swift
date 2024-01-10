@@ -30,33 +30,33 @@ public extension String {
     }
 
     /**
-       Generates a random string.
+     Generates a random string.
 
-       - Parameters:
-          - types: An array of `RandomizationType` values specifying the types of characters to be used.
-          - length: A range representing the length of the generated random string.
+     - Parameters:
+        - types: An array of `RandomizationType` values specifying the types of characters to be used.
+        - length: A range representing the length of the generated random string.
 
-       - Returns: A randomly generated string based on the specified randomization types and a random length within the given range.
-       */
+     - Returns: A randomly generated string based on the specified randomization types and a random length within the given range.
+     */
     static func random(using types: [RandomizationType] = [.letters, .lettersUppercase], length: Range<Int>) -> String {
-        return random(using: Array(types), length: Int.random(in: length))
+        random(using: Array(types), length: Int.random(in: length))
     }
 }
 
-public struct loremIpsum {
+public enum loremIpsum {
     /// Generates a single word.
     public static var word: String {
-        return allWords.randomElement()!
+        allWords.randomElement()!
     }
 
     /**
      Generates multiple words whose count is defined by the given value.
-     
+
      - Parameter count: The number of words to generate.
      - Returns: The generated words joined by a space character.
      */
     public static func words(_ count: Int) -> String {
-        return _compose(
+        _compose(
             word,
             count: count,
             joinBy: .space
@@ -65,28 +65,28 @@ public struct loremIpsum {
 
     /**
      Generates multiple words whose count is randomly selected from within the given range.
-     
+
      - Parameter range: The range of number of words to generate.
      - Returns: The generated words joined by a space character.
      */
     public static func words(_ range: Range<Int>) -> String {
-        return _compose(word, count: Int.random(in: range), joinBy: .space)
+        _compose(word, count: Int.random(in: range), joinBy: .space)
     }
 
     /**
      Generates multiple words whose count is randomly selected from within the given closed range.
-     
+
      - Parameter range: The range of number of words to generate.
      - Returns: The generated words joined by a space character.
      */
     public static func words(_ range: ClosedRange<Int>) -> String {
-        return _compose(word, count: Int.random(in: range), joinBy: .space)
+        _compose(word, count: Int.random(in: range), joinBy: .space)
     }
 
     /// Generates a single sentence.
     public static var sentence: String {
         let numberOfWords = Int.random(
-            in: minWordsCountInSentence...maxWordsCountInSentence
+            in: minWordsCountInSentence ... maxWordsCountInSentence
         )
 
         return _compose(
@@ -100,12 +100,12 @@ public struct loremIpsum {
 
     /**
      Generates multiple sentences whose count is defined by the given value.
-     
+
      - Parameter count: The number of sentences to generate.
      - Returns: The generated sentences joined by a space character.
      */
     public static func sentences(_ count: Int) -> String {
-        return _compose(
+        _compose(
             sentence,
             count: count,
             joinBy: .space
@@ -114,22 +114,22 @@ public struct loremIpsum {
 
     /**
      Generates multiple sentences whose count is selected from within the given range.
-     
+
      - Parameter count: The number of sentences to generate.
      - Returns: The generated sentences joined by a space character.
      */
     public static func sentences(_ range: Range<Int>) -> String {
-        return _compose(sentence, count: Int.random(in: range), joinBy: .space)
+        _compose(sentence, count: Int.random(in: range), joinBy: .space)
     }
 
     /**
      Generates multiple sentences whose count is selected from within the given closed range.
-     
+
      - Parameter count: The number of sentences to generate.
      - Returns: The generated sentences joined by a space character.
      */
     public static func sentences(_ range: ClosedRange<Int>) -> String {
-        return _compose(sentence, count: Int.random(in: range), joinBy: .space)
+        _compose(sentence, count: Int.random(in: range), joinBy: .space)
     }
 
     fileprivate enum Separator: String {
@@ -148,7 +148,7 @@ public struct loremIpsum {
     ) -> String {
         var string = ""
 
-        for index in 0..<count {
+        for index in 0 ..< count {
             string += provider()
 
             if index < count - 1 {

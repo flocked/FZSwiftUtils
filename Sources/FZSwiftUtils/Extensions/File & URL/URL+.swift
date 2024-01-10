@@ -12,7 +12,7 @@ public extension URL {
      Creates a file URL that references the local file or directory at path.
 
      If the path is an empty string, the system interprets it as “.”.
-     
+
      - parameter path: The location in the file system.
      */
     static func file(_ path: String) -> URL {
@@ -35,7 +35,7 @@ public extension URL {
     }
 
     internal func resourceValues(for key: URLResourceKey) throws -> URLResourceValues {
-        return try resourceValues(forKeys: [key])
+        try resourceValues(forKeys: [key])
     }
 
     /// The parent directory of the url.
@@ -54,17 +54,17 @@ public extension URL {
 
     /**
      The components of the url.
-     
+
      - Parameter resolve: Controls whether the URL should be resolved against its base URL before parsing. If true, and if the url parameter contains a relative URL, the original URL is resolved against its base URL before parsing by calling the absoluteURL method. Otherwise, the string portion is used by itself.
      - Returns: A `URLComponents` for the url.
      */
     func urlComponents(resolvingAgainstBase resolve: Bool = false) -> URLComponents? {
-        return URLComponents(url: self, resolvingAgainstBaseURL: resolve)
+        URLComponents(url: self, resolvingAgainstBaseURL: resolve)
     }
 
     /// An array of query items for the URL in the order in which they appear in the original query string.
     var queryItems: [URLQueryItem]? {
-        return urlComponents()?.queryItems
+        urlComponents()?.queryItems
     }
 
     /// Returns the url without schema.
@@ -94,12 +94,12 @@ public extension URL {
 }
 
 #if canImport(UniformTypeIdentifiers)
-import UniformTypeIdentifiers
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public extension URL {
-    /// The content type of the url.
-    var contentType: UTType? {
-        UTType(url: self)
+    import UniformTypeIdentifiers
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    public extension URL {
+        /// The content type of the url.
+        var contentType: UTType? {
+            UTType(url: self)
+        }
     }
-}
 #endif

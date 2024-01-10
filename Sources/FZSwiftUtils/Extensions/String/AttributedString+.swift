@@ -26,7 +26,7 @@ public extension AttributedString {
 
     /// The character contents of the attributed string as a string.
     var string: String {
-        String(self.characters)
+        String(characters)
     }
 
     /// A `NSAttributedString` representation of the attributed string.
@@ -40,7 +40,7 @@ public extension AttributedString {
      - Returns: A lowercase copy of the attributed string.
      */
     func lowercased() -> AttributedString {
-        return AttributedString(NSAttributedString(self).lowercased())
+        AttributedString(NSAttributedString(self).lowercased())
     }
 
     /**
@@ -49,7 +49,7 @@ public extension AttributedString {
      - Returns: A uppercase copy of the attributed string.
      */
     func uppercased() -> AttributedString {
-        return AttributedString(NSAttributedString(self).uppercased())
+        AttributedString(NSAttributedString(self).uppercased())
     }
 
     /**
@@ -58,49 +58,49 @@ public extension AttributedString {
      - Returns: A capitalized copy of the attributed string.
      */
     func capitalized() -> AttributedString {
-        return AttributedString(NSAttributedString(self).capitalized())
+        AttributedString(NSAttributedString(self).capitalized())
     }
 }
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 public extension AttributedString {
     subscript(substring: StringLiteralType) -> AttributedString? {
-        guard let range = self.range(of: substring) else { return self }
+        guard let range = range(of: substring) else { return self }
         return AttributedString(self[range])
     }
 
     subscript(range: ClosedRange<Int>) -> AttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         guard let range = self.range(of: string) else { return self }
         return AttributedString(self[range])
     }
 
     subscript(offset: Int) -> AttributedString {
-        let string = String(self.string[offset])
-        guard let range = self.range(of: string) else { return self }
+        let string = String(string[offset])
+        guard let range = range(of: string) else { return self }
         return AttributedString(self[range])
     }
 
     subscript(range: Range<Int>) -> AttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         guard let range = self.range(of: string) else { return self }
         return AttributedString(self[range])
     }
 
     subscript(range: PartialRangeFrom<Int>) -> AttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         guard let range = self.range(of: string) else { return self }
         return AttributedString(self[range])
     }
 
     subscript(range: PartialRangeThrough<Int>) -> AttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         guard let range = self.range(of: string) else { return self }
         return AttributedString(self[range])
     }
 
     subscript(range: PartialRangeUpTo<Int>) -> AttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         guard let range = self.range(of: string) else { return self }
         return AttributedString(self[range])
     }
@@ -114,19 +114,19 @@ public extension AttributeContainer {
      Modifying the underlinedLink property will update the link and underlineStyle properties of the AttributeContainer.
      */
     var underlinedLink: URL? {
-          get {
-              self.link
-          }
-          set {
-              if let newValue = newValue {
-                  self.link = newValue
-                  self.underlineStyle = .single
-              } else {
-                  self.link = nil
-                  self.underlineStyle = nil
-              }
-          }
-      }
+        get {
+            self.link
+        }
+        set {
+            if let newValue = newValue {
+                self.link = newValue
+                self.underlineStyle = .single
+            } else {
+                self.link = nil
+                self.underlineStyle = nil
+            }
+        }
+    }
 }
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
@@ -137,20 +137,20 @@ public extension AttributedStringProtocol {
      Modifying the underlinedLink property will update the link and underlineStyle properties of the attributed string.
      */
     var underlinedLink: URL? {
-          get {
-              self.link
-          }
-          set {
-              if let newValue = newValue {
-                  self.link = newValue
-                  self.underlineStyle = .single
-              } else {
-                  self.link = nil
-                  self.underlineStyle = nil
-              }
-          }
-      }
-  }
+        get {
+            self.link
+        }
+        set {
+            if let newValue = newValue {
+                self.link = newValue
+                self.underlineStyle = .single
+            } else {
+                self.link = nil
+                self.underlineStyle = nil
+            }
+        }
+    }
+}
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 public extension AttributedSubstring {

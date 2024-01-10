@@ -1,5 +1,5 @@
 //
-//  Collection+Unique.swift
+//  Sequence+Unique.swift
 //
 //
 //  Created by Florian Zand on 23.02.23.
@@ -10,12 +10,12 @@ import Foundation
 public extension Sequence where Element: Equatable {
     /**
      Returns a random element of the collection excluding any of the specified elements.
-     
+
      - Parameter excluding: The elements excluded for the returned element.
      - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns nil.
      */
     func randomElement(excluding: [Element]) -> Element? {
-       let elements = self.filter({excluding.contains($0) == false})
+        let elements = filter { excluding.contains($0) == false }
         guard elements.isEmpty == false else { return nil }
         return elements.randomElement()
     }
@@ -37,16 +37,16 @@ public extension Sequence where Element: Equatable {
 public extension Sequence {
     /**
      An array of elements by filtering the keypath for unique values.
-     
+
      - Parameter keyPath: The keypath for filtering the object.
      */
     func uniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
-        return uniqued(by: { $0[keyPath: keyPath] })
+        uniqued(by: { $0[keyPath: keyPath] })
     }
 
     /**
      An array of unique elements.
-     
+
      - Parameter map: A mapping closure. map accepts an element of this sequence as its parameter and returns a value of the same or of a different type.
      */
     func uniqued<T: Equatable>(by map: (Element) -> T) -> [Element] {

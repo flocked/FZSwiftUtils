@@ -1,6 +1,6 @@
 //
 //  NSObject+Reflection.swift
-//  
+//
 //
 //  Adopted from:
 //  Cyon Alexander (Ext. Netlight) on 01/09/16.
@@ -13,27 +13,27 @@ import Foundation
 
 public extension NSObject {
     static func classReflection(includeSuperclass: Bool = false, excludeReadOnlyProperties: Bool = false) -> [String: Any]? {
-        return getTypesOfProperties(in: self, includeSuperclass: includeSuperclass, excludeReadOnlyProperties: excludeReadOnlyProperties)
+        getTypesOfProperties(in: self, includeSuperclass: includeSuperclass, excludeReadOnlyProperties: excludeReadOnlyProperties)
     }
 
     static func typeOfProperty(_ propertyName: String) -> Any? {
-        return typeOf(property: propertyName, in: self)
+        typeOf(property: propertyName, in: self)
     }
 
     static func containsProperty(_ propertyName: String) -> Bool {
-        return typeOfProperty(propertyName) != nil
+        typeOfProperty(propertyName) != nil
     }
 
     func classReflection() -> [String: Any]? {
-        return getTypesOfProperties(ofObject: self)
+        getTypesOfProperties(ofObject: self)
     }
 
     func typeOfProperty(named propertyName: String) -> Any? {
-        return typeOf(property: propertyName, for: self)
+        typeOf(property: propertyName, for: self)
     }
 
     func containsProperty(named propertyName: String) -> Bool {
-        return typeOfProperty(named: propertyName) != nil
+        typeOfProperty(named: propertyName) != nil
     }
 }
 
@@ -51,7 +51,7 @@ func getTypesOfProperties(in clazz: NSObject.Type, types: [String: Any], include
         guard let name = getNameOf(property: property)
         else { continue }
         let isReadOnlyProperty = isReadOnly(property: property)
-        if excludeReadOnlyProperties && isReadOnlyProperty { continue }
+        if excludeReadOnlyProperties, isReadOnlyProperty { continue }
         let type = getTypeOf(property: property)
         types[name] = type
     }
@@ -116,7 +116,7 @@ private func == (rhs: Any, lhs: NSObject.Type) -> Bool {
 struct Unknown {}
 
 private func removeBrackets(_ className: String) -> String {
-    guard className.contains("<") && className.contains(">") else { return className }
+    guard className.contains("<"), className.contains(">") else { return className }
     let removed = String(className.dropFirst(1).dropLast(1))
     return removed
 }
@@ -169,7 +169,7 @@ private let valueTypesMap: [String: Any] = [
     "B": Bool.self,
     "d": Double.self,
     "f": Float.self,
-    "{": Decimal.self
+    "{": Decimal.self,
 ]
 
 private extension String {
@@ -180,7 +180,7 @@ private extension String {
 
     /// Extracts "NSDate" from the string "Optional(NSDate)"
     var withoutOptional: String {
-        guard contains("Optional(") && contains(")") else { return self }
+        guard contains("Optional("), contains(")") else { return self }
         let afterOpeningParenthesis = components(separatedBy: "(")[1]
         let wihtoutOptional = afterOpeningParenthesis.components(separatedBy: ")")[0]
         return wihtoutOptional

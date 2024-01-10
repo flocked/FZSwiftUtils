@@ -1,6 +1,6 @@
 //
 //  MeasureTime.swift
-//  
+//
 //
 //  Created by Florian Zand on 23.05.22.
 //

@@ -11,11 +11,11 @@ import Foundation
 public extension URL {
     /**
      The extended attributes of a file.
-     
+
      An object for reading and writing the extended attributes of a file.
      */
     var extendedAttributes: ExtendedAttributes {
-        return ExtendedAttributes(self)
+        ExtendedAttributes(self)
     }
 
     /// An object for reading and writing extended attributes of a file system resource.
@@ -27,31 +27,32 @@ public extension URL {
 
         /**
          Creates an extended attributes object from the specified url.
-         
+
          - Parameter url: The url of the file.
          - Returns: An object for reading and writing extended attributes of the file.
          */
         public init(_ url: URL) {
             self.url = url
         }
+
         /*
-        public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
-            get {
-                if let value: T = getExtendedAttribute(for: key) {
-                    return value
-                } else if let initalValue = initalValue {
-                    do {
-                        try setExtendedAttribute(initalValue, for: key)
-                        return initalValue
-                    } catch {
-                        return nil
-                    }
-                }
-                return nil
-            }
-            set { try? setExtendedAttributeExplicit(newValue, for: key) }
-        }
-        */
+         public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
+             get {
+                 if let value: T = getExtendedAttribute(for: key) {
+                     return value
+                 } else if let initalValue = initalValue {
+                     do {
+                         try setExtendedAttribute(initalValue, for: key)
+                         return initalValue
+                     } catch {
+                         return nil
+                     }
+                 }
+                 return nil
+             }
+             set { try? setExtendedAttributeExplicit(newValue, for: key) }
+         }
+         */
 
         public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
             get {
@@ -72,11 +73,11 @@ public extension URL {
 
         /**
          Sets an attribute to a value.
-         
+
          - Parameters:
             - value: The value, or nil if the attribute should be removed.
             - key: The name of the attribute.
-         
+
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws where T: Codable {
@@ -90,11 +91,11 @@ public extension URL {
 
         /**
          Sets an attribute to a value.
-         
+
          - Parameters:
             - value: The value, or nil if the attribute should be removed.
             - key: The name of the attribute.
-         
+
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
@@ -108,7 +109,7 @@ public extension URL {
 
         /**
          The value of an key.
-         
+
          - Parameter key: The name of the attribute.
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
@@ -119,7 +120,7 @@ public extension URL {
 
         /**
          The value of an key.
-         
+
          - Parameter key: The name of the attribute.
          - Returns: The value of the key, or nil if there isn't an attribute with the key.
          */
@@ -129,7 +130,7 @@ public extension URL {
             return value
         }
 
-        internal func getExtendedAttribute<T>(for key: Key) -> T? {
+        func getExtendedAttribute<T>(for key: Key) -> T? {
             guard let data = extendedAttributeData(for: key) else { return nil }
 
             if let codableType = T.self as? Codable.Type {
@@ -138,29 +139,30 @@ public extension URL {
                 }
             }
             if let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
-               let value = any as? T {
+               let value = any as? T
+            {
                 return value
             }
             return nil
         }
 
-        internal func setExtendedAttributeExplicit<T>(_ value: T?, for key: Key) throws {
+        func setExtendedAttributeExplicit<T>(_ value: T?, for key: Key) throws {
             if isCodable(for: value, key: key) == true {
                 if let codable = value as? Codable {
-                   try self.setExtendedAttribute(codable, for: key)
+                    try setExtendedAttribute(codable, for: key)
                 }
             } else if isNonCodable(for: value, key: key) == true {
-                try self.setExtendedAttribute(value, for: key)
+                try setExtendedAttribute(value, for: key)
             } else {
                 if let codable = value as? Codable {
-                    try self.setExtendedAttribute(codable, for: key)
+                    try setExtendedAttribute(codable, for: key)
                 } else {
-                    try self.setExtendedAttribute(value, for: key)
+                    try setExtendedAttribute(value, for: key)
                 }
             }
         }
 
-        internal func isNonCodable<T>(for value: T, key: Key) -> Bool? {
+        func isNonCodable<T>(for _: T, key: Key) -> Bool? {
             if let data = extendedAttributeData(for: key) {
                 if ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true {
                     return true
@@ -175,7 +177,7 @@ public extension URL {
             return nil
         }
 
-        internal func isCodable<T>(for value: T, key: Key) -> Bool? {
+        func isCodable<T>(for _: T, key: Key) -> Bool? {
             if let data = extendedAttributeData(for: key) {
                 if let codableType = T.self as? Codable.Type {
                     if (try? JSONDecoder().decode(codableType.self, from: data)) != nil {
@@ -191,7 +193,7 @@ public extension URL {
 
         /**
          Removes an attribute.
-         
+
          - Parameter key: The name of the attribute.
          - Throws: Throws if the value couldn't be removed.
          */
@@ -204,7 +206,7 @@ public extension URL {
 
         /**
          A Boolean value indicating whether the attribute with an name exists.
-         
+
          - Parameter key: The name of the attribute.
          - Returns: `true` if the attribute exists, or `false if it isn't.
          */
@@ -224,7 +226,8 @@ public extension URL {
             var values: [String: Any] = [:]
             for key in keys {
                 if let data = extendedAttributeData(for: key),
-                   let value = try? PropertyListSerialization.propertyList(from: data, format: nil) {
+                   let value = try? PropertyListSerialization.propertyList(from: data, format: nil)
+                {
                     values[key] = value
                 }
             }

@@ -15,15 +15,15 @@ public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCo
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
     private var array = [Element]()
 
-    required public init(from decoder: Decoder) throws where Element: Decodable {
+    public required init(from decoder: Decoder) throws where Element: Decodable {
         var container = try decoder.unkeyedContainer()
-        self.array = try container.decode([Element].self)
+        array = try container.decode([Element].self)
     }
 
-    required public init() {}
+    public required init() {}
 
     public required init(arrayLiteral elements: Element...) {
-        self.array = elements
+        array = elements
     }
 
     public convenience init(_ array: [Element]) {
@@ -159,15 +159,15 @@ public extension SynchronizedArray {
     }
 
     var first: Element? {
-        queue.sync { return self.array.first }
+        queue.sync { self.array.first }
     }
 
     var last: Element? {
-        queue.sync { return self.array.last }
+        queue.sync { self.array.last }
     }
 
     var isEmpty: Bool {
-        queue.sync { return self.array.isEmpty }
+        queue.sync { self.array.isEmpty }
     }
 
     subscript(index: Int) -> Element {
@@ -211,13 +211,12 @@ public extension SynchronizedArray {
 }
 
 public extension SynchronizedArray {
-
     /// Adds a new element at the end of the array.
     ///
     /// - Parameters:
     ///   - left: The collection to append to.
     ///   - right: The element to append to the array.
-    static func +=(left: inout SynchronizedArray, right: Element) {
+    static func += (left: inout SynchronizedArray, right: Element) {
         left.append(right)
     }
 
@@ -226,13 +225,12 @@ public extension SynchronizedArray {
     /// - Parameters:
     ///   - left: The collection to append to.
     ///   - right: The elements to append to the array.
-    static func +=(left: inout SynchronizedArray, right: [Element]) {
+    static func += (left: inout SynchronizedArray, right: [Element]) {
         left.append(contentsOf: right)
     }
 }
 
 public extension SynchronizedArray {
-
     /// Returns the first element of the sequence that satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
@@ -356,7 +354,8 @@ public extension SynchronizedArray {
     }
 
     func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
+    {
         queue.async(flags: .barrier) {
             self.array.replaceSubrange(subrange, with: newElements)
         }
@@ -381,7 +380,7 @@ public extension SynchronizedArray where Element: Comparable {
 
 extension SynchronizedArray: Equatable where Element: Equatable {
     public static func == (lhs: SynchronizedArray<Element>, rhs: SynchronizedArray<Element>) -> Bool {
-        return lhs.synchronized == rhs.synchronized
+        lhs.synchronized == rhs.synchronized
     }
 }
 
@@ -393,33 +392,33 @@ extension SynchronizedArray: Hashable where Element: Hashable {
 
 extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
-        return synchronized.customMirror
+        synchronized.customMirror
     }
 
     public var debugDescription: String {
-        return synchronized.debugDescription
+        synchronized.debugDescription
     }
 
     public var description: String {
-        return synchronized.description
+        synchronized.description
     }
 }
 
-extension SynchronizedArray: ExpressibleByArrayLiteral { }
+extension SynchronizedArray: ExpressibleByArrayLiteral {}
 
-extension SynchronizedArray: @unchecked Sendable where Element: Sendable { }
+extension SynchronizedArray: @unchecked Sendable where Element: Sendable {}
 
 extension SynchronizedArray: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
-       var container =  encoder.unkeyedContainer()
+        var container = encoder.unkeyedContainer()
         try container.encode(contentsOf: synchronized)
     }
 }
 
-extension SynchronizedArray: Decodable where Element: Decodable { }
+extension SynchronizedArray: Decodable where Element: Decodable {}
 
 extension SynchronizedArray: CVarArg {
     public var _cVarArgEncoding: [Int] {
-        return synchronized._cVarArgEncoding
+        synchronized._cVarArgEncoding
     }
 }

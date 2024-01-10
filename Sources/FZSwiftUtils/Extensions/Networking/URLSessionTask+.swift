@@ -1,6 +1,6 @@
 //
 //  URLSessionTask+.swift
-//  
+//
 //
 //  Created by Florian Zand on 01.08.23.
 //
@@ -21,7 +21,7 @@ public extension URLSessionTask {
 
     /// The expected length of the content.
     var expectedContentLength: Int64? {
-        var fileSize = self.countOfBytesExpectedToReceive
+        var fileSize = countOfBytesExpectedToReceive
         if fileSize < 1 {
             fileSize = response?.expectedContentLength ?? fileSize
         }

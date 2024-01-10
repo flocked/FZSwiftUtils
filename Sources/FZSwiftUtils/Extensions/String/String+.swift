@@ -48,9 +48,8 @@ public extension String {
      - Returns: A new string with emoji numbers replaced by their corresponding decimal representations.
      */
     func replaceEmojiNumbers() -> String {
-        return self.replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
+        replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
     }
-
 }
 
 public extension StringProtocol {
@@ -80,14 +79,14 @@ public extension StringProtocol {
 public extension StringProtocol {
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
     subscript(range: Range<Int>) -> SubSequence {
-        let range = range.clamped(to: 0..<self.count)
-        let startIndex = index(self.startIndex, offsetBy: range.lowerBound)
+        let range = range.clamped(to: 0 ..< count)
+        let startIndex = index(startIndex, offsetBy: range.lowerBound)
         return self[startIndex ..< index(startIndex, offsetBy: range.count)]
     }
 
     subscript(range: ClosedRange<Int>) -> SubSequence {
-        let range = range.clamped(to: 0...self.count-1)
-        let startIndex = index(self.startIndex, offsetBy: range.lowerBound)
+        let range = range.clamped(to: 0 ... count - 1)
+        let startIndex = index(startIndex, offsetBy: range.lowerBound)
         return self[startIndex ..< index(startIndex, offsetBy: range.count)]
     }
 
@@ -102,12 +101,12 @@ public extension String {
     }
 
     static func + (lhs: String, rhs: Character) -> String {
-        return lhs + String(rhs)
+        lhs + String(rhs)
     }
 }
 
 public extension Character {
     static func + (lhs: Character, rhs: String) -> String {
-        return String(lhs) + rhs
+        String(lhs) + rhs
     }
 }

@@ -1,6 +1,6 @@
 //
 //  ImageOptions.swift
-//  
+//
 //
 //  Created by Florian Zand on 03.06.22.
 //
@@ -29,8 +29,8 @@ public extension ImageSource {
             case factor8 = 8
         }
 
-        internal var dic: CFDictionary {
-            return toDictionary() as CFDictionary
+        var dic: CFDictionary {
+            toDictionary() as CFDictionary
         }
 
         /// Returns new image options.
@@ -58,8 +58,8 @@ public extension ImageSource {
         public var maxSize: Int?
         /// A Boolean value that indicates whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
         public var shouldTransform: Bool?
-        internal var createIfAbsent: Bool?
-        internal var createAlways: Bool? = true
+        var createIfAbsent: Bool?
+        var createAlways: Bool? = true
 
         /// Option when a thumbnail should be created.
         public var createOption: CreateOption {
@@ -91,8 +91,8 @@ public extension ImageSource {
             case never
         }
 
-        internal var dic: CFDictionary {
-            return toDictionary() as CFDictionary
+        var dic: CFDictionary {
+            toDictionary() as CFDictionary
         }
 
         /// Returns new thumbnail options.

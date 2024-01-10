@@ -9,17 +9,17 @@ import Foundation
 
 // Equal
 public func == <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: Equatable {
-    return { block($0) == value }
+    { block($0) == value }
 }
 
 // Not equal
 public func != <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: Equatable {
-    return { block($0) != value }
+    { block($0) != value }
 }
 
 // Smaller
 public func < <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: Comparable {
-    return { block($0) < value }
+    { block($0) < value }
 }
 
 // Smaller?
@@ -34,7 +34,7 @@ public func < <Root, Value>(block: @escaping (Root) -> Value?, value: Value) -> 
 
 // Larger
 public func > <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: Comparable {
-    return { block($0) > value }
+    { block($0) > value }
 }
 
 // Larger?
@@ -50,7 +50,7 @@ public func > <Root, Value>(block: @escaping (Root) -> Value?, value: Value) -> 
 
 // Less or equal
 public func <= <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: Comparable {
-    return { block($0) <= value }
+    { block($0) <= value }
 }
 
 // Less or equal?
@@ -66,7 +66,7 @@ public func <= <Root, Value>(block: @escaping (Root) -> Value?, value: Value) ->
 
 // Greater or equal
 public func >= <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: Comparable {
-    return { block($0) >= value }
+    { block($0) >= value }
 }
 
 // Greater or equal?
@@ -82,44 +82,44 @@ public func >= <Root, Value>(block: @escaping (Root) -> Value?, value: Value) ->
 
 // Not
 public prefix func ! <Root>(block: @escaping (Root) -> Bool) -> (Root) -> Bool {
-    return { !block($0) }
+    { !block($0) }
 }
 
 // And
 public func && <Root>(lhs: @escaping @autoclosure () -> Bool, rhs: @escaping (Root) -> Bool) -> (Root) -> Bool {
-    return { lhs() && rhs($0) }
+    { lhs() && rhs($0) }
 }
 
 // Or
 public func || <Root>(lhs: @escaping @autoclosure () -> Bool, rhs: @escaping (Root) -> Bool) -> (Root) -> Bool {
-    return { lhs() || rhs($0) }
+    { lhs() || rhs($0) }
 }
 
 // And
 public func && <Root>(lhs: @escaping (Root) -> Bool, rhs: @escaping @autoclosure () -> Bool) -> (Root) -> Bool {
-    return { lhs($0) && rhs() }
+    { lhs($0) && rhs() }
 }
 
 // Or
 public func || <Root>(lhs: @escaping (Root) -> Bool, rhs: @escaping @autoclosure () -> Bool) -> (Root) -> Bool {
-    return { lhs($0) || rhs() }
+    { lhs($0) || rhs() }
 }
 
 // And
 public func && <Root>(lhs: @escaping (Root) -> Bool, rhs: @escaping (Root) -> Bool) -> (Root) -> Bool {
-    return { lhs($0) && rhs($0) }
+    { lhs($0) && rhs($0) }
 }
 
 // Or
 public func || <Root>(lhs: @escaping (Root) -> Bool, rhs: @escaping (Root) -> Bool) -> (Root) -> Bool {
-    return { lhs($0) || rhs($0) }
+    { lhs($0) || rhs($0) }
 }
 
 // MARK: - Range
 
 // In Range
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: ClosedRange<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0)) }
+    { value.contains(block($0)) }
 }
 
 // In Range?
@@ -133,7 +133,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: ClosedRan
 
 // In PartialRangeFrom
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: PartialRangeFrom<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0)) }
+    { value.contains(block($0)) }
 }
 
 // In PartialRangeFrom?
@@ -147,7 +147,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: PartialRa
 
 // In PartialRangeUpTo
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: PartialRangeUpTo<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0)) }
+    { value.contains(block($0)) }
 }
 
 // In PartialRangeUpTo?
@@ -161,7 +161,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: PartialRa
 
 // In PartialRangeThrough
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: PartialRangeThrough<Value>) -> (Root) -> Bool where Value: Comparable {
-    return { value.contains(block($0)) }
+    { value.contains(block($0)) }
 }
 
 // In PartialRangeThrough?
@@ -175,7 +175,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: PartialRa
 
 // Contains String
 public func << <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: StringProtocol {
-    return { block($0).contains(value) }
+    { block($0).contains(value) }
 }
 
 // Contains String?
@@ -190,7 +190,7 @@ public func << <Root, Value>(block: @escaping (Root) -> Value?, value: Value) ->
 // Contains String lowercased
 infix operator <<~
 func <<~ <Root, Value>(block: @escaping (Root) -> Value, value: Value) -> (Root) -> Bool where Value: StringProtocol {
-    return { block($0).lowercased().contains(value.lowercased()) }
+    { block($0).lowercased().contains(value.lowercased()) }
 }
 
 // Contains String lowercased?
@@ -203,7 +203,7 @@ func <<~ <Root, Value>(block: @escaping (Root) -> Value?, value: Value) -> (Root
 }
 
 public func <<~ <Root, S>(block: @escaping (Root) -> S.Element, value: S) -> (Root) -> Bool where S: Sequence, S.Element: StringProtocol {
-    return { value.compactMap { $0.lowercased() }.contains(block($0).lowercased()) }
+    { value.compactMap { $0.lowercased() }.contains(block($0).lowercased()) }
 }
 
 public func <<~ <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: StringProtocol {
@@ -217,7 +217,7 @@ public func <<~ <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (R
 // MARK: - Sequence
 
 public func << <Root, S>(block: @escaping (Root) -> S.Element, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { value.contains(block($0)) }
+    { value.contains(block($0)) }
 }
 
 public func << <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -229,7 +229,7 @@ public func << <Root, S>(block: @escaping (Root) -> S.Element?, value: S) -> (Ro
 }
 
 public func >> <Root, S>(block: @escaping (Root) -> S, value: S.Element) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { block($0).contains(value) }
+    { block($0).contains(value) }
 }
 
 public func >> <Root, S>(block: @escaping (Root) -> S?, value: S.Element) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -241,7 +241,7 @@ public func >> <Root, S>(block: @escaping (Root) -> S?, value: S.Element) -> (Ro
 }
 
 public func << <Root, S>(block: @escaping (Root) -> S, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { value.contains(any: block($0)) }
+    { value.contains(any: block($0)) }
 }
 
 public func << <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -254,7 +254,7 @@ public func << <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> B
 
 infix operator <<!
 public func <<! <Root, S>(block: @escaping (Root) -> S, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { value.contains(all: block($0)) }
+    { value.contains(all: block($0)) }
 }
 
 public func <<! <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -266,7 +266,7 @@ public func <<! <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> 
 }
 
 public func >> <Root, S>(block: @escaping (Root) -> S, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { block($0).contains(any: value) }
+    { block($0).contains(any: value) }
 }
 
 public func >> <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -279,7 +279,7 @@ public func >> <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> B
 
 infix operator >>!
 public func >>! <Root, S>(block: @escaping (Root) -> S, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
-    return { block($0).contains(all: value) }
+    { block($0).contains(all: value) }
 }
 
 public func >>! <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> Bool where S: Sequence, S.Element: Equatable {
@@ -291,7 +291,7 @@ public func >>! <Root, S>(block: @escaping (Root) -> S?, value: S) -> (Root) -> 
 }
 
 public func == <Root, Value>(block: @escaping (Root) -> Value, value: (Value, Value)) -> (Root) -> Bool where Value: FloatingPoint {
-    return { abs(block($0) - value.0) < value.1 }
+    { abs(block($0) - value.0) < value.1 }
 }
 
 public func == <Root, Value>(block: @escaping (Root) -> Value?, value: (Value, Value)) -> (Root) -> Bool where Value: FloatingPoint {
@@ -305,5 +305,5 @@ public func == <Root, Value>(block: @escaping (Root) -> Value?, value: (Value, V
 infix operator ±: NilCoalescingPrecedence
 
 public func ± <Value>(number: Value, accuracy: Value) -> (Value, Value) where Value: FloatingPoint {
-    return (number, accuracy)
+    (number, accuracy)
 }

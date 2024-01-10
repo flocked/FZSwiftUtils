@@ -1,6 +1,6 @@
 //
 //  Print+.swift
-//  
+//
 //
 //  Created by Florian Zand on 13.07.23.
 //
@@ -9,7 +9,7 @@ import Foundation
 
 /**
  Writes the textual representations of the given items most suitable for debugging into the standard output.
- 
+
  - Parameters:
     - leading: The string to print before all items have been printed.
     - items: Zero or more items to print.
@@ -22,7 +22,7 @@ public func print(leading: String, _ items: Any..., separator: String = " ", ter
 
 /**
  Writes the textual representations of the given items most suitable for debugging into the standard output.
- 
+
  - Parameters:
     - indent: The indent level of the print.
     - leading: The string to print before all items have been printed. The default is ("").
@@ -37,7 +37,7 @@ public func print(indent: Int, leading: String = "", _ items: Any..., separator:
 
 /**
  Writes the textual representations of the given items most suitable for debugging into the standard output.
- 
+
  - Parameters:
     - leading: The string to print before all items have been printed.
     - items: Zero or more items to print.
@@ -50,7 +50,7 @@ public func debugPrint(leading: String, _ items: Any..., separator: String = " "
 
 /**
  Writes the textual representations of the given items most suitable for debugging into the standard output.
- 
+
  - Parameters:
     - indent: The indent level of the print.
     - leading: The string to print before all items have been printed. The default is ("").

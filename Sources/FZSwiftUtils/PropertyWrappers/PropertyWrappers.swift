@@ -15,35 +15,35 @@ public typealias DateValueTimestamp = DateValue<PropertyWrapperStrategies.Timest
 public typealias DateValueISO8601 = DateValue<PropertyWrapperStrategies.ISO8601>
 public typealias DateValueYearMonthDay = DateValue<PropertyWrapperStrategies.YearMonthDay>
 
-public struct PropertyWrapperStrategies {
+public enum PropertyWrapperStrategies {
     public struct Zero: DefaultCodableStrategy {
-        public static var defaultValue: Int { return 0 }
+        public static var defaultValue: Int { 0 }
     }
 
     public struct True: DefaultCodableStrategy {
-        public static var defaultValue: Bool { return true }
+        public static var defaultValue: Bool { true }
     }
 
     public struct False: DefaultCodableStrategy {
-        public static var defaultValue: Bool { return false }
+        public static var defaultValue: Bool { false }
     }
 
     public struct DefaultEmptyArrayStrategy<T: Decodable>: DefaultCodableStrategy {
-        public static var defaultValue: [T] { return [] }
+        public static var defaultValue: [T] { [] }
     }
 
     public struct TimestampStrategy: DateValueCodableStrategy {
         public static func decode(_ value: TimeInterval) throws -> Date {
-            return Date(timeIntervalSince1970: value)
+            Date(timeIntervalSince1970: value)
         }
 
         public static func encode(_ date: Date) -> TimeInterval {
-            return date.timeIntervalSince1970
+            date.timeIntervalSince1970
         }
     }
 
     public struct DefaultEmptyDictionaryStrategy<Key: Decodable & Hashable, Value: Decodable>: DefaultCodableStrategy {
-        public static var defaultValue: [Key: Value] { return [:] }
+        public static var defaultValue: [Key: Value] { [:] }
     }
 
     public struct ISO8601: DateValueCodableStrategy {
@@ -55,7 +55,7 @@ public struct PropertyWrapperStrategies {
         }
 
         public static func encode(_ date: Date) -> String {
-            return ISO8601DateFormatter().string(from: date)
+            ISO8601DateFormatter().string(from: date)
         }
     }
 
@@ -77,7 +77,7 @@ public struct PropertyWrapperStrategies {
         }
 
         public static func encode(_ date: Date) -> String {
-            return YearMonthDay.dateFormatter.string(from: date)
+            YearMonthDay.dateFormatter.string(from: date)
         }
     }
 }

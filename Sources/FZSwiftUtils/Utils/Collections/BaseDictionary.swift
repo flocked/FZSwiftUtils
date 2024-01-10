@@ -9,76 +9,76 @@ import Foundation
 import SwiftUI
 
 /// A synchronized dictionary.
-public struct BaseDictionary< Key: Hashable, Value>: Collection, Sequence, ExpressibleByDictionaryLiteral {
+public struct BaseDictionary<Key: Hashable, Value>: Collection, Sequence, ExpressibleByDictionaryLiteral {
     public typealias Element = (key: Key, value: Value)
 
     var dictionary: [Key: Value]
 
     public init(dictionaryLiteral elements: (Value, Key)...) {
-        self.dictionary = [:]
+        dictionary = [:]
         for element in elements {
-            self.dictionary[element.1] = element.0
+            dictionary[element.1] = element.0
         }
     }
 
     public init(dict: [Key: Value] = [Key: Value]()) {
-        self.dictionary = dict
+        dictionary = dict
     }
 
     public init() {
-        self.dictionary = [:]
+        dictionary = [:]
     }
 
     public init(minimumCapacity: Int) {
-        self.dictionary = .init(minimumCapacity: minimumCapacity)
+        dictionary = .init(minimumCapacity: minimumCapacity)
     }
 
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S: Sequence, S.Element == (Key, Value) {
-        self.dictionary = .init(uniqueKeysWithValues: keysAndValues)
+        dictionary = .init(uniqueKeysWithValues: keysAndValues)
     }
 
     public init<S>(_ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows where S: Sequence, S.Element == (Key, Value) {
-        self.dictionary = try .init(keysAndValues, uniquingKeysWith: combine)
+        dictionary = try .init(keysAndValues, uniquingKeysWith: combine)
     }
 
     public init<S>(grouping values: S, by keyForValue: (S.Element) throws -> Key) rethrows where Value == [S.Element], S: Sequence {
-        self.dictionary = try .init(grouping: values, by: keyForValue)
+        dictionary = try .init(grouping: values, by: keyForValue)
     }
 
     public mutating func edit(_ edit: @escaping (inout [Key: Value]) -> Void) {
-        edit(&self.dictionary)
+        edit(&dictionary)
     }
 
     public var isEmpty: Bool {
-        self.dictionary.isEmpty
+        dictionary.isEmpty
     }
 
     public var count: Int {
-        self.dictionary.count
+        dictionary.count
     }
 
     public var capacity: Int {
-        self.dictionary.capacity
+        dictionary.capacity
     }
 
     public var startIndex: Dictionary<Key, Value>.Index {
-        self.dictionary.startIndex
+        dictionary.startIndex
     }
 
     public var endIndex: Dictionary<Key, Value>.Index {
-        self.dictionary.endIndex
+        dictionary.endIndex
     }
 
     public func index(after i: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Index {
-        return self.dictionary.index(after: i)
+        dictionary.index(after: i)
     }
 
     public func index(forKey key: Key) -> Dictionary<Key, Value>.Index? {
-        self.dictionary.index(forKey: key)
+        dictionary.index(forKey: key)
     }
 
     public subscript(position: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
-        self.dictionary[position]
+        dictionary[position]
     }
 
     public subscript(key: Key) -> Value? {
@@ -92,11 +92,11 @@ public struct BaseDictionary< Key: Hashable, Value>: Collection, Sequence, Expre
     }
 
     public var keys: [Key] {
-        Array(self.dictionary.keys)
+        Array(dictionary.keys)
     }
 
     public var values: [Value] {
-        Array(self.dictionary.values)
+        Array(dictionary.values)
     }
 
     public var first: BaseDictionary.Element? {
@@ -104,16 +104,16 @@ public struct BaseDictionary< Key: Hashable, Value>: Collection, Sequence, Expre
     }
 
     public mutating func removeValue(forKey key: Key) {
-        self.dictionary.removeValue(forKey: key)
+        dictionary.removeValue(forKey: key)
     }
 
     public mutating func removeAll(keepingCapacity: Bool = false) {
-        self.dictionary.removeAll(keepingCapacity: keepingCapacity)
+        dictionary.removeAll(keepingCapacity: keepingCapacity)
     }
 
     @discardableResult
     public mutating func remove(at index: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
-        self.dictionary.remove(at: index)
+        dictionary.remove(at: index)
     }
 
     @discardableResult
@@ -142,28 +142,28 @@ public struct BaseDictionary< Key: Hashable, Value>: Collection, Sequence, Expre
     }
 }
 
-extension BaseDictionary: @unchecked Sendable where Element: Sendable { }
-extension BaseDictionary: Equatable where Value: Equatable { }
-extension BaseDictionary: Hashable where Value: Hashable { }
-extension BaseDictionary: Encodable where Key: Encodable, Value: Encodable { }
-extension BaseDictionary: Decodable where Key: Decodable, Value: Decodable { }
+extension BaseDictionary: @unchecked Sendable where Element: Sendable {}
+extension BaseDictionary: Equatable where Value: Equatable {}
+extension BaseDictionary: Hashable where Value: Hashable {}
+extension BaseDictionary: Encodable where Key: Encodable, Value: Encodable {}
+extension BaseDictionary: Decodable where Key: Decodable, Value: Decodable {}
 
 extension BaseDictionary: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
-        return dictionary.customMirror
+        dictionary.customMirror
     }
 
     public var debugDescription: String {
-        return dictionary.debugDescription
+        dictionary.debugDescription
     }
 
     public var description: String {
-        return dictionary.description
+        dictionary.description
     }
 }
 
 extension BaseDictionary: CVarArg {
     public var _cVarArgEncoding: [Int] {
-        return dictionary._cVarArgEncoding
+        dictionary._cVarArgEncoding
     }
 }

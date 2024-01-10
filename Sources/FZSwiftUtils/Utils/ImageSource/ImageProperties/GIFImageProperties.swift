@@ -1,6 +1,6 @@
 //
-//  EXIFImageProperties.swift
-//  
+//  GIFImageProperties.swift
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //
@@ -11,19 +11,19 @@ public extension ImageSource.ImageProperties {
     struct GIF: Codable {
         /**
          The number of times that an animated image should play through its frames before stopping.
-         
+
          A value of 0 means the animated image repeats forever.
          */
         public var loopCount: Int?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
-         
+
          The value of this key is never less than 50 millseconds, and the system adjusts values less than that amount to 50 milliseconds, as needed. See kCGImagePropertyAPNGUnclampedDelayTime.
          */
         public var clampedDelayTime: Double?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
-         
+
          This value may be 0 milliseconds or higher. Unlike the `clampedDelayTime` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double?
@@ -31,7 +31,7 @@ public extension ImageSource.ImageProperties {
         public var hasGlobalColorMap: Bool?
 
         public var delayTime: Double? {
-            return unclampedDelayTime ?? clampedDelayTime
+            unclampedDelayTime ?? clampedDelayTime
         }
 
         enum CodingKeys: String, CodingKey {

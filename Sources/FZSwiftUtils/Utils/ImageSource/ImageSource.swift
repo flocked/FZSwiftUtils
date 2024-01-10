@@ -1,6 +1,6 @@
 //
 //  ImageSource.swift
-//  
+//
 //
 //  Created by Florian Zand on 02.06.22.
 //
@@ -15,7 +15,7 @@ public class ImageSource {
 
     /// The type identifier of the image source.
     public var typeIdentifier: String? {
-        return CGImageSourceGetType(cgImageSource) as String?
+        CGImageSourceGetType(cgImageSource) as String?
     }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
@@ -27,7 +27,7 @@ public class ImageSource {
 
     /// The number of images of the images included in the image source.
     public var count: Int {
-        return CGImageSourceGetCount(cgImageSource)
+        CGImageSourceGetCount(cgImageSource)
     }
 
     /// The current status of the image source.
@@ -37,12 +37,12 @@ public class ImageSource {
 
     /// Returns the current status of an image at the specified index in the image source.
     public func status(at index: Int) -> CGImageSourceStatus {
-        return CGImageSourceGetStatusAtIndex(cgImageSource, index)
+        CGImageSourceGetStatusAtIndex(cgImageSource, index)
     }
 
     /// Returns the index of the primary image for an HEIF image, or 0 for any other image format.
     public var primaryImageIndex: Int {
-        return CGImageSourceGetPrimaryImageIndex(cgImageSource)
+        CGImageSourceGetPrimaryImageIndex(cgImageSource)
     }
 
     /**
@@ -73,7 +73,7 @@ public class ImageSource {
      - Returns: The image at the specified index, or nil if an error occurs.
      */
     public func getImage(at index: Int = 0, options: ImageOptions? = .init()) -> CGImage? {
-        return CGImageSourceCreateImageAtIndex(cgImageSource, index, options?.dic)
+        CGImageSourceCreateImageAtIndex(cgImageSource, index, options?.dic)
     }
 
     /**
@@ -86,7 +86,7 @@ public class ImageSource {
      - Returns: The image at the specified index, or nil if an error occurs.
      */
     public func image(at index: Int = 0, options: ImageOptions? = .init()) async -> CGImage? {
-        return await withCheckedContinuation { continuation in
+        await withCheckedContinuation { continuation in
             image(at: index, options: options) { image in
                 continuation.resume(returning: image)
             }
@@ -118,7 +118,7 @@ public class ImageSource {
      - Returns: The thumbnail at the specified index, or nil if an error occurs.
      */
     public func getThumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) -> CGImage? {
-        return CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toCFDictionary())
+        CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toCFDictionary())
     }
 
     /**
@@ -131,7 +131,7 @@ public class ImageSource {
      - Returns: The thumbnail at the specified index, or nil if an error occurs.
      */
     public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) async -> CGImage? {
-        return await withCheckedContinuation { continuation in
+        await withCheckedContinuation { continuation in
             thumbnail(at: index, options: options) { image in
                 continuation.resume(returning: image)
             }
@@ -154,19 +154,19 @@ public class ImageSource {
     }
 
     public func images(options: ImageOptions? = .init()) -> ImageSequence {
-        return ImageSequence.image(self, options: options)
+        ImageSequence.image(self, options: options)
     }
 
     public func thumbnails(options: ThumbnailOptions? = .init()) -> ImageSequence {
-        return ImageSequence.thumbnail(self, options: options)
+        ImageSequence.thumbnail(self, options: options)
     }
 
     public func imageFrames(options: ImageOptions? = .init()) -> ImageFrameSequence {
-        return ImageFrameSequence.image(self, options: options)
+        ImageFrameSequence.image(self, options: options)
     }
 
     public func thumbnailFrames(options: ThumbnailOptions? = .init()) -> ImageFrameSequence {
-        return ImageFrameSequence.thumbnail(self, options: options)
+        ImageFrameSequence.thumbnail(self, options: options)
     }
 
     /**
@@ -215,20 +215,20 @@ public class ImageSource {
 extension ImageSource: CustomStringConvertible {
     /// A string representation of the image source.
     public var description: String {
-        return "ImageSource[\(ObjectIdentifier(self))"
+        "ImageSource[\(ObjectIdentifier(self))"
     }
 }
 
 extension ImageSource: Equatable {
     public static func == (lhs: ImageSource, rhs: ImageSource) -> Bool {
-        return lhs.cgImageSource == rhs.cgImageSource
+        lhs.cgImageSource == rhs.cgImageSource
     }
 }
 
 public extension ImageSource {
     /// Returns if the image source is animated (e.g. GIF)
     var isAnimated: Bool {
-        if count > 1, properties(at: 0)?.delayTime  != nil {
+        if count > 1, properties(at: 0)?.delayTime != nil {
             return true
         }
         return false
@@ -244,7 +244,7 @@ public extension ImageSource {
 
     /// The pixel size of the image source.
     var pixelSize: CGSize? {
-        return properties(at: 0)?.pixelSize
+        properties(at: 0)?.pixelSize
     }
 
     private static let defaultFrameRate: Double = 15.0
@@ -254,11 +254,11 @@ public extension ImageSource {
 
     /**
      The total animation duration of an image source that is animated.,
-     
+
      Returns nil if the image isn't animated.
      */
     var animationDuration: Double? {
-        guard self.count > 1 else { return nil }
+        guard count > 1 else { return nil }
         let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? 0.0) }
         return (totalDuration != 0.0) ? totalDuration : nil
     }
@@ -276,35 +276,35 @@ extension ImageSource {
 }
 
 #if os(macOS)
-import AppKit
-public extension ImageSource {
-    /**
-     Creates an image source that reads from a NSImage,
+    import AppKit
+    public extension ImageSource {
+        /**
+         Creates an image source that reads from a NSImage,
 
-     - Parameters:
-        - image: The NSImage object.
-     */
-    convenience init?(image: NSImage) {
-        guard let data = image.tiffRepresentation else { return nil }
-        self.init(data: data)
+         - Parameters:
+            - image: The NSImage object.
+         */
+        convenience init?(image: NSImage) {
+            guard let data = image.tiffRepresentation else { return nil }
+            self.init(data: data)
+        }
     }
-}
 #endif
 
 #if canImport(UIKit)
-import UIKit
-public extension ImageSource {
-    /**
-     Creates an image source that reads from a UIImage,
+    import UIKit
+    public extension ImageSource {
+        /**
+         Creates an image source that reads from a UIImage,
 
-     - Parameters:
-        - image: The UIImage object.
-     */
-    convenience init?(image: UIImage) {
-        guard let data = image.pngData() else { return nil }
-        self.init(data: data)
+         - Parameters:
+            - image: The UIImage object.
+         */
+        convenience init?(image: UIImage) {
+            guard let data = image.pngData() else { return nil }
+            self.init(data: data)
+        }
     }
-}
 #endif
 
 public extension ImageSource {

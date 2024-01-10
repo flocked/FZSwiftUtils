@@ -1,6 +1,6 @@
 //
-//  DateValuePropertt.swift
-//  
+//  DateValueCodable.swift
+//
 //
 //  Created by Florian Zand on 07.06.22.
 //
@@ -47,7 +47,7 @@ extension DateValue: Encodable where Formatter.RawValue: Encodable {
 
 extension DateValue: Equatable {
     public static func == (lhs: DateValue<Formatter>, rhs: DateValue<Formatter>) -> Bool {
-        return lhs.wrappedValue == rhs.wrappedValue
+        lhs.wrappedValue == rhs.wrappedValue
     }
 }
 

@@ -50,7 +50,7 @@ public extension NSAttributedString {
      - Returns: A new sttributed string with the specified color applied.
      */
     func color(_ color: NSUIColor) -> NSAttributedString {
-        return applyingAttributes([.foregroundColor: color])
+        applyingAttributes([.foregroundColor: color])
     }
 
     /**
@@ -62,7 +62,7 @@ public extension NSAttributedString {
      - Returns: A new sttributed string with the specified link applied.
      */
     func link(_ url: URL) -> NSAttributedString {
-        return applyingAttributes([.link: url])
+        applyingAttributes([.link: url])
     }
 
     /**
@@ -74,7 +74,7 @@ public extension NSAttributedString {
      - Returns: A new sttributed string with the specified font applied.
      */
     func font(_ font: NSUIFont) -> NSAttributedString {
-        return applyingAttributes( [.font: font])
+        applyingAttributes([.font: font])
     }
 
     /**
@@ -159,51 +159,51 @@ public extension NSAttributedString {
 
 public extension NSAttributedString {
     subscript(substring: StringLiteralType) -> NSAttributedString? {
-        guard self.string.contains(substring) else { return nil }
-        let range = (self.string as NSString).range(of: substring)
-        return self.attributedSubstring(from: range)
+        guard string.contains(substring) else { return nil }
+        let range = (string as NSString).range(of: substring)
+        return attributedSubstring(from: range)
     }
 
     subscript(range: ClosedRange<Int>) -> NSAttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 
     subscript(offset: Int) -> NSAttributedString {
-        let string = String(self.string[offset])
+        let string = String(string[offset])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 
     subscript(range: Range<Int>) -> NSAttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 
     subscript(range: PartialRangeFrom<Int>) -> NSAttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 
     subscript(range: PartialRangeThrough<Int>) -> NSAttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 
     subscript(range: PartialRangeUpTo<Int>) -> NSAttributedString {
-        let string = String(self.string[range])
+        let string = String(string[range])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 
     subscript(range: NSRange) -> NSAttributedString {
-        let string = String(self.string[range.closedRange])
+        let string = String(string[range.closedRange])
         let range = (self.string as NSString).range(of: string)
-        return self.attributedSubstring(from: range)
+        return attributedSubstring(from: range)
     }
 }
 

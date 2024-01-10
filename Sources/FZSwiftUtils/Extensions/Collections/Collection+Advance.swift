@@ -29,12 +29,12 @@ public enum AdvanceOption {
 public extension Collection where Element: Equatable, Index == Int {
     /**
      Returns the advanced element for the specified current element and advance type.
-     
+
      - Parameters:
         - type: The advance type.
         - current: The current element used to advance the index.
         - excluding: Elements to exclude from advancing.
-     
+
      - Returns: The advanced element for the current element.
      */
     func advance(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Element? {
@@ -46,12 +46,12 @@ public extension Collection where Element: Equatable, Index == Int {
 
     /**
      Returns the advanced index for the specified current element and advance type.
-     
+
      - Parameters:
         - type: The advance type.
         - current: The current element used to advance the index.
         - excluding: Elements to exclude from advancing.
-     
+
      - Returns: The advanced index for the current element.
      */
     func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {

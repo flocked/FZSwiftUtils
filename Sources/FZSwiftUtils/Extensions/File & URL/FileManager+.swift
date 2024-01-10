@@ -32,72 +32,72 @@ public extension FileManager {
     }
 
     #if os(macOS) || os(iOS)
-    /**
-     Moves an item to the trash.
-     
-     The actual name of the item may be changed when moving it to the trash.
-     
-     - Parameter url: The item to move to the trash.
-     - Throws: Throws an error if the item couldn't be moved to the trash.
-     - Returns: Returns the url of the trashed item.
-     */
-    @discardableResult
-    func trashItem(at url: URL) throws -> URL {
-        var trashedFileURL: NSURL?
-        try self.trashItem(at: url, resultingItemURL: &trashedFileURL)
-        guard let fileURL = trashedFileURL as? URL else {
-            throw Errors.failedToMoveToTrash
+        /**
+         Moves an item to the trash.
+
+         The actual name of the item may be changed when moving it to the trash.
+
+         - Parameter url: The item to move to the trash.
+         - Throws: Throws an error if the item couldn't be moved to the trash.
+         - Returns: Returns the url of the trashed item.
+         */
+        @discardableResult
+        func trashItem(at url: URL) throws -> URL {
+            var trashedFileURL: NSURL?
+            try trashItem(at: url, resultingItemURL: &trashedFileURL)
+            guard let fileURL = trashedFileURL as? URL else {
+                throw Errors.failedToMoveToTrash
+            }
+            return fileURL
         }
-        return fileURL
-    }
     #endif
 
-#if os(macOS)
-    /// The type of appliction support directory.
-    enum ApplicationSupportDirectoryType {
-        /// Uses the application identifier.
-        case identifier
-        /// Uses the application name.
-        case name
-    }
+    #if os(macOS)
+        /// The type of appliction support directory.
+        enum ApplicationSupportDirectoryType {
+            /// Uses the application identifier.
+            case identifier
+            /// Uses the application name.
+            case name
+        }
 
-    /**
-     Returns the application support directory for the specified type.
-     
-     - Parameters:
-        - type: The type of application support directory (either identifier or name).
-        - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist. The default value is `false`.
-     */
-    func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
-        if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
-            let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
-            if directoryExists(at: directoryURL) {
-                return directoryURL
-            } else if createIfNeeded {
-                do {
-                    try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+        /**
+         Returns the application support directory for the specified type.
+
+         - Parameters:
+            - type: The type of application support directory (either identifier or name).
+            - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist. The default value is `false`.
+         */
+        func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
+            if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
+                let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
+                if directoryExists(at: directoryURL) {
                     return directoryURL
-                } catch {
-                    Swift.debugPrint(error)
+                } else if createIfNeeded {
+                    do {
+                        try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+                        return directoryURL
+                    } catch {
+                        Swift.debugPrint(error)
+                    }
                 }
             }
+            return nil
         }
-        return nil
-    }
-#endif
+    #endif
     /**
      Returns a Boolean value that indicates whether a file or directory exists at a specified url.
-     
+
      - Parameter url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return `false`.
      - Returns: `true` if a file or directory at the specified url exists, or `false` if the file or directory does not exist or its existence could not be determined.
      */
     func fileExists(at url: URL) -> Bool {
-        return fileExists(atPath: url.path)
+        fileExists(atPath: url.path)
     }
 
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified path.
-     
+
      - Parameter path: The path of  directory. If path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
      - Returns:`true` if a directory at the specified path exists, or `false` if the directory does not exist or its existence could not be determined.
      */
@@ -108,11 +108,11 @@ public extension FileManager {
 
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified url.
-     
+
      - Parameter url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
      - Returns: `true` if a directory at the specified url exists, or `false if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(at url: URL) -> Bool {
-        return directoryExists(atPath: url.path)
+        directoryExists(atPath: url.path)
     }
 }

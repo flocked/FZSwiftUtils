@@ -118,11 +118,11 @@ public func *=* (lhs: NSExpression, rhs: NSExpression) -> ComparisonExpression {
 //
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) == NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) == NSExpression(forConstantValue: rhs)
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) == NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) == NSExpression(forConstantValue: rhs)
 }
 
 public func == <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C>, rhs: V) -> ComparisonExpression {
@@ -150,97 +150,97 @@ public func !== <C: Comparable, R, V: Collection<C>>(lhs: KeyPath<R, C?>, rhs: V
 }
 
 public func != <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) != NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) != NSExpression(forConstantValue: rhs)
 }
 
 public func != <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) != NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) != NSExpression(forConstantValue: rhs)
 }
 
 public func < <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) < NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) < NSExpression(forConstantValue: rhs)
 }
 
 public func < <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) < NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) < NSExpression(forConstantValue: rhs)
 }
 
 public func <= <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) <= NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) <= NSExpression(forConstantValue: rhs)
 }
 
 public func <= <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) <= NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) <= NSExpression(forConstantValue: rhs)
 }
 
 public func > <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) > NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) > NSExpression(forConstantValue: rhs)
 }
 
 public func > <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) > NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) > NSExpression(forConstantValue: rhs)
 }
 
 public func >= <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) >= NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) >= NSExpression(forConstantValue: rhs)
 }
 
 public func >= <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: C) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) >= NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) >= NSExpression(forConstantValue: rhs)
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: ClosedRange<C>) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) >< NSExpression(forConstantValue: [rhs.lowerBound, rhs.upperBound])
+    NSExpression(forKeyPath: lhs) >< NSExpression(forConstantValue: [rhs.lowerBound, rhs.upperBound])
 }
 
 public func == <C: Comparable, R>(lhs: KeyPath<R, C?>, rhs: ClosedRange<C>) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) >< NSExpression(forConstantValue: [rhs.lowerBound, rhs.upperBound])
+    NSExpression(forKeyPath: lhs) >< NSExpression(forConstantValue: [rhs.lowerBound, rhs.upperBound])
 }
 
 public func *== <R>(lhs: KeyPath<R, String>, rhs: String) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) *== NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) *== NSExpression(forConstantValue: rhs)
 }
 
 public func *== <R>(lhs: KeyPath<R, String?>, rhs: String) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) *== NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) *== NSExpression(forConstantValue: rhs)
 }
 
 public func ==* <R>(lhs: KeyPath<R, String>, rhs: String) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) ==* NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) ==* NSExpression(forConstantValue: rhs)
 }
 
 public func ==* <R>(lhs: KeyPath<R, String?>, rhs: String) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) ==* NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) ==* NSExpression(forConstantValue: rhs)
 }
 
 public func *=* <R>(lhs: KeyPath<R, String>, rhs: String) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) *=* NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) *=* NSExpression(forConstantValue: rhs)
 }
 
 public func *=* <R>(lhs: KeyPath<R, String?>, rhs: String) -> ComparisonExpression {
-    return NSExpression(forKeyPath: lhs) *=* NSExpression(forConstantValue: rhs)
+    NSExpression(forKeyPath: lhs) *=* NSExpression(forConstantValue: rhs)
 }
 
 public func *== <R, C: Collection<String>>(lhs: KeyPath<R, String>, rhs: C) -> ComparisonExpression {
-    return ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .beginsWith, modifier: .any)
+    ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .beginsWith, modifier: .any)
 }
 
 public func *== <R, C: Collection<String>>(lhs: KeyPath<R, String?>, rhs: C) -> ComparisonExpression {
-    return ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .beginsWith, modifier: .any)
+    ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .beginsWith, modifier: .any)
 }
 
 public func ==* <R, C: Collection<String>>(lhs: KeyPath<R, String>, rhs: C) -> ComparisonExpression {
-    return ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .endsWith, modifier: .any)
+    ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .endsWith, modifier: .any)
 }
 
 public func ==* <R, C: Collection<String>>(lhs: KeyPath<R, String?>, rhs: C) -> ComparisonExpression {
-    return ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .endsWith, modifier: .any)
+    ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .endsWith, modifier: .any)
 }
 
 public func *=* <R, C: Collection<String>>(lhs: KeyPath<R, String>, rhs: C) -> ComparisonExpression {
-    return ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .contains, modifier: .any)
+    ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .contains, modifier: .any)
 }
 
 public func *=* <R, C: Collection<String>>(lhs: KeyPath<R, String?>, rhs: C) -> ComparisonExpression {
-    return ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .contains, modifier: .any)
+    ComparisonExpression(left: NSExpression(forKeyPath: lhs), right: NSExpression(forConstantValue: rhs), type: .contains, modifier: .any)
 }

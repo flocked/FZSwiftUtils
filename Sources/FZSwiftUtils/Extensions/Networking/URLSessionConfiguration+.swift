@@ -1,6 +1,6 @@
 //
 //  URLSessionConfiguration+.swift
-//  
+//
 //
 //  Created by Florian Zand on 01.08.23.
 //
@@ -11,7 +11,7 @@ public extension URLSessionConfiguration {
     /// A dictionary of additional headers to send with requests.
     var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String]? {
         get {
-            guard let allHTTPHeaderFields = self.httpAdditionalHeaders else { return nil }
+            guard let allHTTPHeaderFields = httpAdditionalHeaders else { return nil }
             var dic: [HTTPRequestHeaderFieldKey: String] = [:]
             for value in allHTTPHeaderFields {
                 if let rawValue = value.key as? String {
@@ -23,12 +23,12 @@ public extension URLSessionConfiguration {
         }
         set {
             guard let newValue = newValue else {
-                self.httpAdditionalHeaders = nil
+                httpAdditionalHeaders = nil
                 return
             }
-            self.httpAdditionalHeaders = [:]
+            httpAdditionalHeaders = [:]
             for key in newValue.keys {
-                self.httpAdditionalHeaders?[key.rawValue] = newValue[key]
+                httpAdditionalHeaders?[key.rawValue] = newValue[key]
             }
         }
     }

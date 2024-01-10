@@ -10,20 +10,20 @@ import Foundation
 extension Calendar.Component: CaseIterable {
     /// Returns an array containing all calendar components.
     public static var allCases: [Calendar.Component] {
-        return [.month, .weekday, .weekdayOrdinal, .weekOfYear, .weekOfMonth, .year, .yearForWeekOfYear, .weekOfYear, .quarter, .nanosecond, .second, .hour, .month, .minute, .day, .era]
+        [.month, .weekday, .weekdayOrdinal, .weekOfYear, .weekOfMonth, .year, .yearForWeekOfYear, .weekOfYear, .quarter, .nanosecond, .second, .hour, .month, .minute, .day, .era]
     }
 }
 
 public extension Calendar.Component {
-     /**
-      Returns an array of string representations for the calendar component.
-    
-      E.g.:
-      .month: ["months", "month", "mon"]
-      .day: ["days", "day", "d"]
-      
-      - Returns: An array of string representations, or `nil` if no string representations are available for the component.
-      */
+    /**
+     Returns an array of string representations for the calendar component.
+
+     E.g.:
+     .month: ["months", "month", "mon"]
+     .day: ["days", "day", "d"]
+
+     - Returns: An array of string representations, or `nil` if no string representations are available for the component.
+     */
     var stringRepresentations: [String]? {
         switch self {
         case .month: return ["months", "month", "mon"]
@@ -63,7 +63,7 @@ public extension Calendar.Component {
 
     /**
      Returns the time interval for the calendar component, if applicable.
-     
+
      - Returns: The time interval for the component, or `nil` if the component does not have a corresponding time interval.
      */
     var timeInterval: Double? {

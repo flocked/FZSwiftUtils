@@ -19,7 +19,7 @@ public extension URLSession {
      - Returns: The new session download task.
      */
     func downloadTask(withResumeData resumeData: Data, request: URLRequest) -> URLSessionDownloadTask {
-        let downloadTask = self.downloadTask(withResumeData: resumeData)
+        let downloadTask = downloadTask(withResumeData: resumeData)
         downloadTask.setRequest(request)
         return downloadTask
     }

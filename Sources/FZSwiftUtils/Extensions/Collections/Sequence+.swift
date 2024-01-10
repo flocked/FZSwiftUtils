@@ -12,7 +12,7 @@ public extension Sequence {
      Returns indexes of elements that satisfies the given predicate.
 
      - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
-     
+
      - Returns: The indexes of the elements that satisfies the given predicate.
      */
     func indexes(where predicate: (Element) throws -> Bool) rethrows -> IndexSet {
@@ -31,7 +31,7 @@ public extension Sequence where Element: Equatable {
      Returns indexes of the specified element.
 
      - Parameter element: The element to return it's indexes.
-     
+
      - Returns: The indexes of the element.
      */
     func indexes(of element: Element) -> IndexSet {
@@ -42,7 +42,7 @@ public extension Sequence where Element: Equatable {
      Returns indexes of the specified elements.
 
      - Parameter elements: The elements to return their indexes.
-     
+
      - Returns: The indexes of the elements.
      */
     func indexes<S: Sequence<Element>>(for elements: S) -> IndexSet {
@@ -53,7 +53,7 @@ public extension Sequence where Element: Equatable {
 public extension Sequence where Element: RawRepresentable {
     /// An array of corresponding values of the raw type.
     func rawValues() -> [Element.RawValue] {
-        compactMap { $0.rawValue }
+        compactMap(\.rawValue)
     }
 }
 
@@ -62,15 +62,15 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
      Returns the first element of the sequence that satisfies the  raw value.
 
      - Parameter rawValue: The raw value.
-     
+
      - Returns: The first element of the sequence that matches the raw value.
      */
     func first(rawValue: Element.RawValue) -> Element? {
-        return first(where: { $0.rawValue == rawValue })
+        first(where: { $0.rawValue == rawValue })
     }
 
     subscript(rawValue rawValue: Element.RawValue) -> [Element] {
-        self.filter({$0.rawValue == rawValue})
+        filter { $0.rawValue == rawValue }
     }
 
     subscript(firstRawValue rawValue: Element.RawValue) -> Element? {
@@ -81,7 +81,7 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
 public extension Sequence where Element: Equatable {
     /**
      A Boolean value indicating whether the sequence contains any of the specified elements.
-     
+
      - Parameter elements: The elements.
      - Returns: `true` if any of the elements exists in the sequence, or` false` if non exist in the sequence.
      */
@@ -96,7 +96,7 @@ public extension Sequence where Element: Equatable {
 
     /**
      A Boolean value indicating whether the sequence contains all specified elements.
-     
+
      - Parameter elements: The elements.
      - Returns: `true` if all elements exist in the sequence, or` false` if not.
      */
@@ -113,7 +113,7 @@ public extension Sequence where Element: Equatable {
 public extension Sequence where Element: OptionalProtocol {
     /// Returns an array of non optional elemenets.
     var nonNil: [Element.Wrapped] {
-        self.compactMap({$0.optional})
+        compactMap(\.optional)
     }
 }
 

@@ -16,7 +16,7 @@ public enum NSCodingError: Error {
 public extension NSCoding where Self: NSObject {
     /**
      Creates an archived-based copy of the object.
-     
+
      - Throws: An error if copying fails.
      */
     func archiveBasedCopy() throws -> Self {
@@ -38,22 +38,21 @@ public extension NSCoding where Self: NSObject {
 }
 
 public extension NSObject {
-
     /**
      Removes an observer for the specified key path.
-     
+
      - Parameters:
         - observer: The observer to remove.
         - keypath: The key path to stop observing.
      */
     func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<NSObject, Value>) {
         guard let keypathString = keypath._kvcKeyPathString else { return }
-        self.removeObserver(observer, forKeyPath: keypathString)
+        removeObserver(observer, forKeyPath: keypathString)
     }
 
     /**
      Sets the value safely for the specified key, only if the object contains a property with the given key.
-     
+
      - Parameters:
         - value: The value to set.
         - key: The key of the property to set.
@@ -66,11 +65,11 @@ public extension NSObject {
 
     /**
      Retrieves the value for the specified key, casting it to the specified type, if the object contains a property with the given key.
-     
+
      - Parameters:
         - key: The key of the property to retrieve the value for.
         - type: The type to cast the value to.
-     
+
      - Returns: The value for the specified key, cast to the specified type, or `nil` if the key is not found or the value cannot be cast.
      */
     func value<T>(forKey key: String, type _: T.Type) -> T? {
@@ -82,10 +81,10 @@ public extension NSObject {
 
     /**
      Checks if the object overrides the specified selector.
-     
+
      - Parameters:
         - selector: The selector to check for override.
-     
+
      - Returns: `true` if the object overrides the selector, `false` otherwise.
      */
     func overrides(_ selector: Selector) -> Bool {
@@ -104,10 +103,10 @@ public extension NSObject {
 
     /**
      Checks if the object is a subclass of the specified class.
-     
+
      - Parameters:
         - class_: The class to check against.
-     
+
      - Returns: `true` if the object is a subclass of the specified class, `false` otherwise.
      */
     func isSubclass(of class_: AnyClass) -> Bool {

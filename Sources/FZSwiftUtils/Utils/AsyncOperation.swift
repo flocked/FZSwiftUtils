@@ -9,10 +9,8 @@ import Foundation
 
 /// An asynchronous, pausable operation.
 open class AsyncOperation: Operation, Pausable {
-
     /// The state of the operation.
     public enum State: String, Hashable {
-
         /// The operation is waiting to start.
         case waiting = "isWaiting"
 
@@ -109,19 +107,19 @@ open class AsyncOperation: Operation, Pausable {
 
     /// A Boolean value indicating whether the operation has been paused.
     open var isPaused: Bool {
-        return self.state == .paused
+        self.state == .paused
     }
 
     /// Resumes the operation, if it's paused.
     open func resume() {
-        if isExecuting && state == .paused {
+        if isExecuting, state == .paused {
             state = .executing
         }
     }
 
     /// Pauses the operation.
     open func pause() {
-        if isExecuting && state != .paused {
+        if isExecuting, state != .paused {
             state = .paused
         }
     }
@@ -140,18 +138,18 @@ open class AsyncOperation: Operation, Pausable {
     }
 
     override open var isAsynchronous: Bool {
-        return true
+        true
     }
 }
 
 /// A asynchronous, pausable operation executing a specifed handler.
 open class AsyncBlockOperation: AsyncOperation {
     /// The handler to execute.
-    public let closure: ((AsyncBlockOperation) -> Void)
+    public let closure: (AsyncBlockOperation) -> Void
 
     /**
      Initalize a new operation with the specified handler.
-     
+
      - Parameter closure: The handler to execute.
      - Returns: A new `AsyncBlockOperation` object.
      */

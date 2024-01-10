@@ -7,16 +7,16 @@
 
 import Foundation
 
-extension Array {
+public extension Array {
     /// Adds the specified optional `Element`.
-    public static func +=(lhs: inout [Element], rhs: Element?) {
+    static func += (lhs: inout [Element], rhs: Element?) {
         if let rhs = rhs {
             lhs.append(rhs)
         }
     }
 
     /// Adds the specified optional `Element`.
-    public static func +(lhs: [Element], rhs: Element?) -> [Element] {
+    static func + (lhs: [Element], rhs: Element?) -> [Element] {
         var copy = lhs
         if let rhs = rhs {
             copy.append(rhs)
@@ -24,7 +24,7 @@ extension Array {
         return copy
     }
 
-    public static func +(lhs: Element?, rhs: [Element]) -> [Element] {
+    static func + (lhs: Element?, rhs: [Element]) -> [Element] {
         var copy = rhs
         if let lhs = lhs {
             copy.insert(lhs, at: 0)

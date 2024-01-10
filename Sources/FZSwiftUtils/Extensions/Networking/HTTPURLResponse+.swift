@@ -1,6 +1,6 @@
 //
 //  HTTPURLResponse+.swift
-//  
+//
 //
 //  Created by Florian Zand on 01.08.23.
 //
@@ -10,9 +10,9 @@ import Foundation
 public extension HTTPURLResponse {
     /// A Boolean value indicating whether the response’s HTTP status code is sucessful (200-299).
     var statusIsSucess: Bool {
-        let code = self.statusCode
+        let code = statusCode
         switch code {
-        case 200..<300:
+        case 200 ..< 300:
             return true
         default:
             return false
@@ -21,16 +21,14 @@ public extension HTTPURLResponse {
 
     /// All HTTP header fields of the response.
     var allHeaderFieldsMapped: [HTTPHeaderFieldKey: String]? {
-        get {
-            var dic: [HTTPHeaderFieldKey: String] = [:]
-            for value in allHeaderFields {
-                if let rawValue = value.key as? String {
-                    let key = HTTPHeaderFieldKey(rawValue: rawValue)
-                    dic[key] = allHeaderFields[value.key] as? String
-                }
+        var dic: [HTTPHeaderFieldKey: String] = [:]
+        for value in allHeaderFields {
+            if let rawValue = value.key as? String {
+                let key = HTTPHeaderFieldKey(rawValue: rawValue)
+                dic[key] = allHeaderFields[value.key] as? String
             }
-            return dic
         }
+        return dic
     }
 
     /// Enumeration of all HTTP response header field keys.
@@ -73,7 +71,7 @@ public extension HTTPURLResponse {
         case custom(String)
 
         public init(stringLiteral value: String) {
-            if let first = Self.allCases.first(where: {$0.rawValue == value}) {
+            if let first = Self.allCases.first(where: { $0.rawValue == value }) {
                 self = first
             } else {
                 self = .custom(value)
@@ -81,7 +79,7 @@ public extension HTTPURLResponse {
         }
 
         public init(rawValue: String) {
-            if let first = Self.allCases.first(where: {$0.rawValue == rawValue}) {
+            if let first = Self.allCases.first(where: { $0.rawValue == rawValue }) {
                 self = first
             } else {
                 self = .custom(rawValue)
@@ -127,7 +125,7 @@ public extension HTTPURLResponse {
             case .via: return "Via"
             case .warning: return "Warning"
             case .wwwAuthenticate: return "WWW-Authenticate"
-            case .custom(let string): return string
+            case let .custom(string): return string
             }
         }
     }

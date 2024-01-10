@@ -20,7 +20,7 @@ public enum DateFormatComponents {
 
     /*
      Convenience block to create format string.
-     
+
      ```swift
      let format = DateFormatComponents.build {
      "\($0.year(.yyyy))-\($0.month(.mm))-\($0.day(.d))" }

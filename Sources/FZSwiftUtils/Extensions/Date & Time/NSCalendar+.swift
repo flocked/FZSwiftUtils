@@ -10,7 +10,7 @@ import Foundation
 public extension NSCalendar.Unit {
     /// Returns an array containing all unit's.
     static var allCases: NSCalendar.Unit {
-        return NSCalendar.Unit([.nanosecond, .second, .minute, .hour, .day, .weekOfMonth, .month, .year])
+        NSCalendar.Unit([.nanosecond, .second, .minute, .hour, .day, .weekOfMonth, .month, .year])
     }
 
     var components: [Calendar.Component] {

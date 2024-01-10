@@ -1,5 +1,5 @@
 //
-//  String+StringMatch.swift
+//  String+Match.swift
 //
 //
 //  Created by Florian Zand on 04.05.23.
@@ -18,13 +18,13 @@ public extension String {
         /// The score or importance of the match.
         public let score: Int
 
-        internal init(string: String, range: Range<String.Index>, score: Int) {
+        init(string: String, range: Range<String.Index>, score: Int) {
             self.string = string
             self.range = range
             self.score = score
         }
 
-        internal init(_ result: NSTextCheckingResult, source: String) {
+        init(_ result: NSTextCheckingResult, source: String) {
             range = Range(result.range, in: source)!
             string = String(source[range])
             score = source.distance(from: range.lowerBound, to: range.upperBound)
@@ -43,7 +43,7 @@ public extension String {
         case paragraphs
         /// Lines.
         case lines
-        internal var enumerationOptions: NSString.EnumerationOptions {
+        var enumerationOptions: NSString.EnumerationOptions {
             switch self {
             case .lines: return .byLines
             case .characters: return .byComposedCharacterSequences
@@ -53,36 +53,37 @@ public extension String {
             }
         }
     }
+
     /**
      Returns an array of individual words in the string.
-     
+
      - Returns: An array of words.
      */
     var words: [String] {
-        self.matches(for: .words).compactMap({$0.string})
+        matches(for: .words).compactMap(\.string)
     }
 
     /**
      Returns an array of lines in the string.
-     
+
      - Returns: An array of lines.
      */
     var lines: [String] {
-        self.matches(for: .lines).compactMap({$0.string})
+        matches(for: .lines).compactMap(\.string)
     }
 
     /**
      Returns an array of sentences in the string.
-     
+
      - Returns: An array of sentences.
      */
     var sentences: [String] {
-        self.matches(for: .sentences).compactMap({$0.string})
+        matches(for: .sentences).compactMap(\.string)
     }
 
     /**
      Finds all matches in the string based on the provided regular expression pattern.
-     
+
      - Parameter regex: The regular expression pattern to search for.
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
@@ -94,33 +95,33 @@ public extension String {
 
     /**
      Finds all matches of substrings between the two specified strings.
-     
+
      - Parameters:
         - fromString: The starting string to search for.
         - toString: The ending string to search for.
         - includingFromTo: A flag indicating whether to include the starting and ending strings in the results.
-     
+
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
     func matches(between fromString: String, and toString: String, includingFromTo: Bool = false) -> [StringMatch] {
         let pattern = fromString + "(.*?)" + toString
-        var matches = self.matches(regex: pattern)
+        var matches = matches(regex: pattern)
         if includingFromTo == false {
-            matches = matches.compactMap({ match in
+            matches = matches.compactMap { match in
                 let lowerBound = self.index(match.range.lowerBound, offsetBy: fromString.count)
                 let upperBound = self.index(match.range.upperBound, offsetBy: -toString.count)
-                let range = lowerBound..<upperBound
+                let range = lowerBound ..< upperBound
                 let score = self.distance(from: range.lowerBound, to: range.upperBound)
                 let string = String(match.string.dropFirst(fromString.count).dropLast(toString.count))
                 return StringMatch(string: string, range: range, score: score)
-            })
+            }
         }
         return matches
     }
 
     /**
      Finds all matches in the string based on the given option.
-     
+
      - Parameter option: The option for finding matches.
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
@@ -137,7 +138,7 @@ public extension String {
 
     /**
      Finds all matches for the given option using natural language processing.
-     
+
      - Parameter option: The option for finding matches (e.g. for findinge person names, places, nouns, verbs, etc.)
      - Returns: An array of `StringMatch` objects representing the matches found.
       */
@@ -154,12 +155,12 @@ public extension String {
                 .omitPunctuation,
                 .omitWhitespace,
                 .omitOther,
-                .joinNames
+                .joinNames,
             ]
         )
         for (tag, range) in tags {
             if tag == option {
-                let score = self.distance(from: range.lowerBound, to: range.upperBound)
+                let score = distance(from: range.lowerBound, to: range.upperBound)
                 matches.append(StringMatch(string: String(self[range]), range: range, score: score))
             }
         }
@@ -170,9 +171,9 @@ public extension String {
 public extension StringProtocol {
     /// Returns a new string made by removing all emoji characters.
     func trimmingEmojis() -> String {
-        return self.unicodeScalars
-             .filter { (!$0.properties.isEmojiPresentation && !$0.properties.isEmoji) }
-             .reduce(into: "") { $0 += String($1) }
+        unicodeScalars
+            .filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }
+            .reduce(into: "") { $0 += String($1) }
     }
 }
 
@@ -184,7 +185,7 @@ public extension StringProtocol {
      */
     func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
         for string in strings {
-            if self.contains(string) {
+            if contains(string) {
                 return true
             }
         }
@@ -198,7 +199,7 @@ public extension StringProtocol {
      */
     func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
         for string in strings {
-            if self.contains(string) == false {
+            if contains(string) == false {
                 return false
             }
         }
