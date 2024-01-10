@@ -19,7 +19,7 @@ open class MutableProgress: Progress {
             diff.added.forEach({ self.addChild($0) })
         }
     }
-    
+
     internal lazy var _progressState = ProgressState()
     @objc public dynamic var progressState: ProgressState {
         get { self._progressState }
@@ -36,7 +36,7 @@ open class MutableProgress: Progress {
         willChangeValue(for: \.totalUnitCount)
         let observer = KeyValueObserver(child)
         observedChildren[child] = observer
-        observer.add(\.fractionCompleted, sendInitalValue: true) {  [weak self] old, new in
+        observer.add(\.fractionCompleted, sendInitalValue: true) {  [weak self] _, _ in
             guard let self = self else { return }
             self.willChangeValue(for: \.fractionCompleted)
             self.didChangeValue(for: \.fractionCompleted)
@@ -48,17 +48,17 @@ open class MutableProgress: Progress {
                 self.removeChild(child)
             }
         }
-        
-        observer.add(\.isCancelled) {  [weak self] old, new in
+
+        observer.add(\.isCancelled) {  [weak self] _, new in
             guard let self = self else { return }
             if new == true {
                 self.removeChild(child)
             }
         }
-        
+
         didChangeValue(for: \.totalUnitCount)
     }
-    
+
     internal func updateProgressState() {
         self.willChangeValue(for: \.progressState)
         self.willChangeValue(for: \.progressState.unfinished)
@@ -70,7 +70,7 @@ open class MutableProgress: Progress {
         self.progressState.unfinished._completedUnitCount = unfinished.compactMap({$0.completedUnitCount}).sum()
         self.progressState.unfinished._totalUnitCount = unfinished.compactMap({$0.totalUnitCount}).sum()
         self.progressState.unfinished._fractionCompleted = Double(self.progressState.unfinished.completedUnitCount) / Double(self.progressState.unfinished.totalUnitCount)
-        
+
         let timeRemainings = unfinished.compactMap({$0.estimatedTimeRemaining})
         let timeRemaining = timeRemainings.sum()
         self.progressState.estimatedTimeRemaining = timeRemaining
@@ -81,7 +81,7 @@ open class MutableProgress: Progress {
             self.progressState.estimatedTimeRemaining = 0
             self.estimatedTimeRemaining = nil
         }
-        
+
         let throughputs = unfinished.compactMap({$0.throughput})
         let throughput = throughputs.sum()
         progressState.throughput = throughput
@@ -107,7 +107,7 @@ open class MutableProgress: Progress {
         didChangeValue(for: \.completedUnitCount)
         didChangeValue(for: \.fractionCompleted)
     }
-    
+
     public override var totalUnitCount: Int64 {
         get {
             return Int64(observedChildren.count)
@@ -121,8 +121,8 @@ open class MutableProgress: Progress {
         }
         set { }
     }
-    
-    public override var userInfo: [ProgressUserInfoKey : Any] {
+
+    public override var userInfo: [ProgressUserInfoKey: Any] {
         get {
             var userinfo = super.userInfo
             userinfo[.throughputKey] = self.children.compactMap({$0.throughput}).sum()
@@ -148,25 +148,25 @@ public extension MutableProgress {
                 guard oldValue != _completedUnitCount else { return }
                 self.completedUnitCount = _completedUnitCount}
         }
-        
+
         internal var _totalUnitCount: Int64 = 0 {
             didSet {
                 guard oldValue != _totalUnitCount else { return }
                 self.totalUnitCount = _totalUnitCount}
         }
-        
+
         internal var _fractionCompleted: Double = 0 {
             didSet {
                 guard oldValue != _fractionCompleted else { return }
                 self.fractionCompleted = _fractionCompleted}
         }
-        
+
         internal var _throughput: Int = 0 {
             didSet {
                 guard oldValue != _throughput else { return }
                 self.throughput = _throughput}
         }
-        
+
         internal var _estimatedTimeRemaining: Double = 0 {
             didSet {
                 guard oldValue != _estimatedTimeRemaining else { return }
@@ -174,16 +174,15 @@ public extension MutableProgress {
         }
 
         @objc public dynamic fileprivate(set) var completedUnitCount: Int64 = 0
-        
-        
+
         @objc public dynamic fileprivate(set) var totalUnitCount: Int64 = 0
-        
+
         @objc public dynamic fileprivate(set) var fractionCompleted: Double = 0
-        
+
         @objc public dynamic fileprivate(set) var throughput: Int = 0
-        
+
         @objc public dynamic fileprivate(set) var estimatedTimeRemaining: Double = 0
-        
+
         @objc public dynamic fileprivate(set) var unfinished = UnfinishedProgressState()
 
         public class UnfinishedProgressState: NSObject {
@@ -192,19 +191,19 @@ public extension MutableProgress {
                     guard oldValue != _completedUnitCount else { return }
                     self.completedUnitCount = _completedUnitCount}
             }
-            
+
             internal var _totalUnitCount: Int64 = 0 {
                 didSet {
                     guard oldValue != _totalUnitCount else { return }
                     self.totalUnitCount = _totalUnitCount}
             }
-            
+
             internal var _fractionCompleted: Double = 0 {
                 didSet {
                     guard oldValue != _fractionCompleted else { return }
                     self.fractionCompleted = _fractionCompleted}
             }
-            
+
             @objc public dynamic fileprivate(set) var fractionCompleted: Double = 0
             @objc public dynamic fileprivate(set) var totalUnitCount: Int64 = 0
             @objc public dynamic fileprivate(set) var completedUnitCount: Int64 = 0

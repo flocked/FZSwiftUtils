@@ -17,7 +17,7 @@ public extension ClosedRange where Bound == Int {
     func offset(by offset: Int) -> Self {
         lowerBound+offset...upperBound+offset
     }
-    
+
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
@@ -27,7 +27,7 @@ public extension ClosedRange where Bound == Int {
     func contains(_ range: ClosedRange<Int>) -> Bool {
         range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
-    
+
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
@@ -37,7 +37,7 @@ public extension ClosedRange where Bound == Int {
     func contains(_ range: Range<Int>) -> Bool {
         range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
-    
+
     /**
      Returns a Boolean value indicating whether the given values are contained within the range.
      
@@ -64,7 +64,7 @@ public extension Range where Bound == Int {
     func shfted(by offset: Int) -> Self {
         lowerBound+offset..<upperBound+offset
     }
-    
+
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
@@ -74,7 +74,7 @@ public extension Range where Bound == Int {
     func contains(_ range: ClosedRange<Int>) -> Bool {
         range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
-    
+
     /**
      Returns a Boolean value indicating whether the given range is contained within the range.
      
@@ -84,7 +84,7 @@ public extension Range where Bound == Int {
     func contains(_ range: Range<Int>) -> Bool {
         range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
-    
+
     /**
      Returns a Boolean value indicating whether the given values are contained within the range.
      

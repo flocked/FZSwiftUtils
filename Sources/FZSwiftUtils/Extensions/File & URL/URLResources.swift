@@ -31,7 +31,7 @@ public extension URL {
 public class URLResources {
     /// The url to the resource
     public private(set) var url: URL
-    
+
     /**
      Creates an object for accessing and modifying properties of the resource at the specified url.
      

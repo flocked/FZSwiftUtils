@@ -15,7 +15,7 @@ public struct BaseArray<Element>: MutableCollection, RangeReplaceableCollection,
     public init(arrayLiteral elements: Element...) {
         self.elements = elements
     }
-    
+
     public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
         self.elements = .init(elements)
     }
@@ -27,7 +27,6 @@ public struct BaseArray<Element>: MutableCollection, RangeReplaceableCollection,
     public var count: Int {
         return elements.count
     }
-
 
     public var isEmpty: Bool {
         return elements.isEmpty
@@ -94,4 +93,3 @@ extension BaseArray: Equatable where Element: Equatable {
         return lhs.elements == rhs.elements
     }
 }
-

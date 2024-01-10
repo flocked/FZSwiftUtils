@@ -23,7 +23,7 @@ extension MultiplicativeArithmetic {
     public static func /= (lhs: inout Self, rhs: Self) {
         lhs = lhs / rhs
     }
-    
+
     public static func *= (lhs: inout Self, rhs: Self) {
         lhs = lhs * rhs
     }

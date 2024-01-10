@@ -13,7 +13,7 @@ public extension CGSize {
     init(_ width: CGFloat, _ height: CGFloat) {
         self.init(width: width, height: height)
     }
-    
+
     /// Creates a size with the specified width and height.
     init(_ widthHeight: CGFloat) {
         self.init(width: widthHeight, height: widthHeight)
@@ -108,7 +108,7 @@ public extension CGSize {
         } else if size.height == -1 {
             return self.scaled(toWidth: size.width)
         }
-        
+
         // the width and height ratios of the rects
         let wRatio = self.width / size.width
         let hRatio = self.height / size.height
@@ -134,7 +134,7 @@ public extension CGSize {
     func scaled(toFill size: CGSize) -> CGSize {
         return self.scaled(toHeight: size.height)
     }
-    
+
     /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.
     var point: CGPoint {
         CGPoint(width, height)
@@ -251,4 +251,3 @@ extension Collection where Element == CGSize {
         return totalSize
     }
 }
-

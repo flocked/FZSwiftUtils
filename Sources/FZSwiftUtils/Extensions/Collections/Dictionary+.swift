@@ -16,7 +16,7 @@ public extension Dictionary {
             self[keyVal.key] = value
         }
     }
-    
+
     /**
      Transforms keys without modifying values.
      
@@ -29,7 +29,7 @@ public extension Dictionary {
             uniqueKeysWithValues: try map { (try transform($0.key), $0.value) }
         )
     }
-    
+
     /**
      Transforms keys without modifying values.
 
@@ -44,7 +44,7 @@ public extension Dictionary {
         uniquingKeysWith: combine
       )
     }
-    
+
     /**
      Transforms keys without modifying values. Drops (key, value) pairs where the transform results in a nil key.
      
@@ -66,7 +66,7 @@ public extension Dictionary {
     var cfDictionary: CFDictionary {
         self as CFDictionary
     }
-    
+
     /// The dictionary as `NSDictionary`.
     var nsDictionary: NSDictionary {
         self as NSDictionary
@@ -76,16 +76,16 @@ public extension Dictionary {
 public extension NSDictionary {
     /// The dictionary as `Dictionary`.
     func toDictionary() -> [String: Any] {
-        var swiftDictionary = Dictionary<String, Any>()
-          for key : Any in self.allKeys {
+        var swiftDictionary = [String: Any]()
+          for key: Any in self.allKeys {
               let stringKey = key as! String
-              if let keyValue = self.value(forKey: stringKey){
+              if let keyValue = self.value(forKey: stringKey) {
                   swiftDictionary[stringKey] = keyValue
               }
           }
           return swiftDictionary
     }
-    
+
     /// The dictionary as `CFDictionary`.
     var cfDictionary: CFDictionary {
         self as CFDictionary

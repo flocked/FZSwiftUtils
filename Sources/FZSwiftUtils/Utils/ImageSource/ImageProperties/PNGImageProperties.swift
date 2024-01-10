@@ -27,7 +27,7 @@ public extension ImageSource.ImageProperties {
          This value may be 0 milliseconds or higher. Unlike the `clampedDelayTime` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double?
-        
+
         public var delayTime: Double? {
             return unclampedDelayTime ?? clampedDelayTime
         }

@@ -18,7 +18,7 @@ public extension ImageSource {
             return nil
         }
         private var _fileSize: Int?
-        
+
         /// The pixel width of the image.
         public var pixelWidth: CGFloat?
         /// The pixel height of the image.
@@ -34,7 +34,7 @@ public extension ImageSource {
         /// The dpi height of the image.
         public var dpiHeight: CGFloat?
         public var depth: Int?
-        
+
         /// Additional GIF properties of the image.
         public var gif: GIF?
         /// Additional PNG properties of the image.
@@ -49,7 +49,7 @@ public extension ImageSource {
         public var heic: HEIC?
         /// Additional EXIF properties of the image.
         public var exif: EXIF?
-        
+
         /// The pixel size of the image.
         public var pixelSize: CGSize? {
             guard var width = pixelWidth, var height = pixelHeight else { return nil }
@@ -58,7 +58,7 @@ public extension ImageSource {
             }
             return CGSize(width: width, height: height)
         }
-        
+
         /// The dpi size of the image.
         public var dpiSize: CGSize? {
             guard var width = dpiWidth, var height = dpiHeight else { return nil }
@@ -67,17 +67,17 @@ public extension ImageSource {
             }
             return CGSize(width: width, height: height)
         }
-        
+
         /// The orientation of the image.
         public var orientation: Orientation {
             return _orientation ?? tiff?.orientation ?? iptc?.orientation ?? .up
         }
-        
+
         /// A Boolean value indicating whether the image is a screenshot.
         public var isScreenshot: Bool {
             return exif?.isScreenshot ?? false
         }
-        
+
         /**
          The number of times that an animated image should play through its frames before stopping.
          
@@ -86,7 +86,7 @@ public extension ImageSource {
         public var loopCount: Int? {
             return heic?.loopCount ?? gif?.loopCount ?? png?.loopCount
         }
-        
+
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
          
@@ -95,7 +95,7 @@ public extension ImageSource {
         public var clampedDelayTime: Double? {
             return heic?.clampedDelayTime ?? gif?.clampedDelayTime ?? png?.clampedDelayTime
         }
-        
+
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
          
@@ -104,9 +104,9 @@ public extension ImageSource {
         public var unclampedDelayTime: Double? {
             return heic?.unclampedDelayTime ?? gif?.unclampedDelayTime ?? png?.unclampedDelayTime
         }
-        
+
         private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
-        
+
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
             let value = clampedDelayTime ?? unclampedDelayTime
@@ -115,7 +115,7 @@ public extension ImageSource {
             }
             return value
         }
-        
+
         enum CodingKeys: String, CodingKey, CaseIterable {
             case _fileSize = "FileSize"
             case pixelWidth = "PixelWidth"

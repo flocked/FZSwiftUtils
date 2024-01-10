@@ -33,7 +33,7 @@ public extension NSNumber {
     var intString: String {
         String(Int(truncating: self))
     }
-    
+
     /// The value as Float `String`.
     var string: String {
         String(Float(truncating: self))

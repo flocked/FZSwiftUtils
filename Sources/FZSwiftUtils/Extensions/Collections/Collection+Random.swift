@@ -27,7 +27,7 @@ public extension Collection {
 }
 
 public extension Collection where Element: Equatable {
-    
+
     /**
      Returns an array of random elements of the collection.
      - Parameters:
@@ -48,7 +48,7 @@ public extension Collection where Element: Equatable {
         }
         return randomElements
     }
-    
+
     /**
      Returns a random element of the collection excluding the specified elements.
      
@@ -60,7 +60,7 @@ public extension Collection where Element: Equatable {
         guard elements.isEmpty == false else { return nil }
         return elements.randomElement()
     }
-    
+
     /**
      Returns an array of random elements excluding the specified elements.
      

@@ -15,7 +15,7 @@ import Foundation
 public class NotificationToken: NSObject {
     /// The `NotificationCenter` instance associated with the observer.
     let notificationCenter: NotificationCenter
-    
+
     /// The token that identifies the observer.
     let token: Any
 
@@ -55,8 +55,7 @@ public extension NotificationCenter {
      */
     func observe(_ name: NSNotification.Name?, object: Any?,
                  queue: OperationQueue? = nil, using block: @escaping (Notification) -> Void)
-        -> NotificationToken
-    {
+        -> NotificationToken {
         let token = addObserver(forName: name, object: object, queue: queue, using: block)
         return NotificationToken(notificationCenter: self, token: token)
     }

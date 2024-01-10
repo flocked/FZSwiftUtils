@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 public extension Comparable {
     /**
      A Boolean value indicating whether the value is less than another value.
@@ -34,7 +33,7 @@ public extension Comparable {
         }
         return self < other
     }
-    
+
     /**
      A Boolean value indicating whether the value is less or equal to another value.
      
@@ -47,7 +46,7 @@ public extension Comparable {
         }
         return self <= other
     }
-    
+
     /**
      A Boolean value indicating whether the value is less or equal to another value.
      
@@ -110,7 +109,6 @@ public extension Comparable {
     func isBetween(_ range: Range<Self>) -> Bool { range ~= self }
 }
 
-
 public extension PartialKeyPath {
     /**
      A Boolean value indicating whether the keypath's value is less than another keypath's value.
@@ -123,7 +121,7 @@ public extension PartialKeyPath {
         guard let a = self as? any Comparable else { return false }
         return a.isLessThan(b)
     }
-    
+
     /**
      A Boolean value indicating whether the keypath's value is less than or equal to another keypath's value.
      

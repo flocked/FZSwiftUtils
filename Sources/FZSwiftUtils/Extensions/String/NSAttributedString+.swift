@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension NSAttributedString {    
+public extension NSAttributedString {
     /**
      Applies the specified attributes to the attributed string.
 
@@ -22,7 +22,7 @@ public extension NSAttributedString {
         copy.addAttributes(attributes, range: NSRange(0 ..< length))
         return copy
     }
-    
+
     /**
      Removes the specified attributes.
 
@@ -40,7 +40,7 @@ public extension NSAttributedString {
         }
         return copy
     }
-    
+
     /**
      Applies the specified color to the sttributed string.
 
@@ -52,7 +52,7 @@ public extension NSAttributedString {
     func color(_ color: NSUIColor) -> NSAttributedString {
         return applyingAttributes([.foregroundColor: color])
     }
-    
+
     /**
      Applies the specified link to the sttributed string.
 
@@ -131,7 +131,7 @@ public extension NSAttributedString {
     static func += (lhs: inout NSAttributedString, rhs: String) {
         let index = (lhs.string as NSString).length - 1
         if index >= 0, let font = lhs.attribute(.font, at: index, effectiveRange: nil) {
-            lhs += NSAttributedString(string: rhs, attributes: [.font : font])
+            lhs += NSAttributedString(string: rhs, attributes: [.font: font])
         } else {
             lhs += NSAttributedString(string: rhs)
         }
@@ -140,12 +140,12 @@ public extension NSAttributedString {
     static func + (lhs: NSAttributedString, rhs: String) -> NSAttributedString {
         let index = (lhs.string as NSString).length - 1
         if index >= 0, let font = lhs.attribute(.font, at: index, effectiveRange: nil) {
-            return lhs + NSAttributedString(string: rhs, attributes: [.font : font])
+            return lhs + NSAttributedString(string: rhs, attributes: [.font: font])
         } else {
             return lhs + NSAttributedString(string: rhs)
         }
     }
-    
+
     /**
      Finds and returns the range of the first occurrence of a given string within the string.
 
@@ -163,43 +163,43 @@ public extension NSAttributedString {
         let range = (self.string as NSString).range(of: substring)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(range: ClosedRange<Int>) -> NSAttributedString {
         let string = String(self.string[range])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(offset: Int) -> NSAttributedString {
         let string = String(self.string[offset])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(range: Range<Int>) -> NSAttributedString {
         let string = String(self.string[range])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(range: PartialRangeFrom<Int>) -> NSAttributedString {
         let string = String(self.string[range])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(range: PartialRangeThrough<Int>) -> NSAttributedString {
         let string = String(self.string[range])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(range: PartialRangeUpTo<Int>) -> NSAttributedString {
         let string = String(self.string[range])
         let range = (self.string as NSString).range(of: string)
         return self.attributedSubstring(from: range)
     }
-    
+
     subscript(range: NSRange) -> NSAttributedString {
         let string = String(self.string[range.closedRange])
         let range = (self.string as NSString).range(of: string)

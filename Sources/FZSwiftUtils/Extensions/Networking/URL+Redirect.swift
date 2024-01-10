@@ -8,7 +8,6 @@
 import Foundation
 
 public extension URL {
-    
     /**
      Retrieves the redirected URL for the current URL.
      
@@ -18,17 +17,17 @@ public extension URL {
     func redirectedURL() throws -> URL? {
         try URLRedirection.redirectedURL(for: self)
     }
-    
+
     /**
      Retrieves the redirected URL for the current URL asynchronously.
      
      - Parameters:
         - completionHandler: A closure to be called with the redirected URL or an error.
      */
-    func redirectedURL(complectionHandler: @escaping ((URL?, Error?) -> ())) {
+    func redirectedURL(complectionHandler: @escaping ((URL?, Error?) -> Void)) {
         URLRedirection.redirectedURL(for: self, completionHandler: complectionHandler)
     }
-    
+
     /**
      Retrieves the redirected URL for the current URL asynchronously.
      
@@ -63,9 +62,9 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
         - url: The original URL to be redirected.
         - completionHandler: A closure to be called with the redirected URL or an error.
      */
-    public static func redirectedURL(for url: URL, completionHandler: @escaping (URL?, Error?) -> ()) {
+    public static func redirectedURL(for url: URL, completionHandler: @escaping (URL?, Error?) -> Void) {
         let request = URLRequest(url: url)
-        
+
         let task = Self.shared.session.dataTask(with: request, completionHandler: { _, response, error in
             if let httpResponse = response as? HTTPURLResponse, let location = httpResponse.allHeaderFields["Location"] as? String, let locationURL = URL(string: location) {
                 completionHandler(locationURL, error)
@@ -89,7 +88,7 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
     public static func redirectedURL(for url: URL) throws -> URL? {
         var redirectedURL: URL?
         var error: Error?
-        
+
         let semaphore = DispatchSemaphore(value: 0)
 
         Self.redirectedURL(for: url) {
@@ -97,16 +96,16 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
             error = $1
             semaphore.signal()
         }
-        
+
         _ = semaphore.wait(timeout: .distantFuture)
-        
+
         if let error = error {
             throw error
         }
 
         return redirectedURL
     }
-    
+
     /**
      Retrieves the redirected URL for the current URL.
      
@@ -128,13 +127,13 @@ public class URLRedirection: NSObject, URLSessionTaskDelegate {
             return nil
         }
     }
-    
+
     /// The shared instance of `URLRedirection`.
     private static let shared: URLRedirection = {
         let instance = URLRedirection()
         return instance
     }()
-    
+
     /// The URL session used for handling the redirection.
     internal lazy var session = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
 }

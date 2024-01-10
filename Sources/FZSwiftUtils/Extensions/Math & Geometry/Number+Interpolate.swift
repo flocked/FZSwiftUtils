@@ -70,7 +70,7 @@ public extension Sequence where Element: BinaryInteger {
     func interpolated(from: ClosedRange<Element>, to: ClosedRange<Element>) -> [Element] {
         return self.compactMap({ $0.interpolated(from: from, to: to) })
     }
-    
+
     /**
      Interpolates the elements of the sequence to another range by using the minimum and maximum value inside the sequence.
      
@@ -99,7 +99,7 @@ public extension Sequence where Element: BinaryFloatingPoint {
     func interpolated(from: ClosedRange<Element>, to: ClosedRange<Element>) -> [Element] {
         self.compactMap({ $0.interpolated(from: from, to: to) })
     }
-    
+
     /**
      Interpolates the elements of the sequence to another range by using the minimum and maximum value inside the sequence.
      
@@ -128,7 +128,7 @@ public extension Sequence where Element == CGFloat {
     func interpolated(from: ClosedRange<Element>, to: ClosedRange<Element>) -> [Element] {
         self.compactMap({ $0.interpolated(from: from, to: to) })
     }
-    
+
     /**
      Interpolates the elements of the sequence to another range by using the minimum and maximum value inside the sequence.
      

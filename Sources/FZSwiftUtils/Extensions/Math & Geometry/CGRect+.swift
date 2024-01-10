@@ -23,7 +23,7 @@ public extension CGRect {
     init(size: CGSize) {
         self.init(x: 0, y: 0, width: size.width, height: size.height)
     }
-    
+
     /// Creates a rect with the specified size.
     init(size: CGFloat) {
         self.init(x: 0, y: 0, width: size, height: size)
@@ -59,8 +59,7 @@ public extension CGRect {
             height: size.height.scaledIntegral
         )
     }
-    
-    
+
     /// The x-coordinate of the origin of the rectangle.
     var x: CGFloat {
         get { origin.x }
@@ -80,17 +79,17 @@ public extension CGRect {
             self.origin = origin
         }
     }
-    
+
     /// A size centered that specifies the height and width of the rectangle. Changing this value keeps the rectangle centered.
     var sizeCentered: CGSize {
         get { size }
-        set { 
+        set {
             let old = self
             size = newValue
             self.center = old.center
         }
     }
-    
+
     /// The left edge of the rectangle.
     var left: CGFloat {
         get {return origin.x}
@@ -131,7 +130,7 @@ public extension CGRect {
         get {return CGPoint(x: left, y: top)}
         set {left = newValue.x; top = newValue.y}
     }
-    
+
     /// The top-center point of the rectangle.
     var topCenter: CGPoint {
         get {return CGPoint(x: centerX, y: top)}
@@ -143,43 +142,43 @@ public extension CGRect {
         get {return CGPoint(x: right, y: top)}
         set {right = newValue.x; top = newValue.y}
     }
-    
+
     /// The center-left point of the rectangle.
     var centerLeft: CGPoint {
         get {return CGPoint(x: left, y: centerY)}
         set {left = newValue.x; centerY = newValue.y}
     }
-    
+
     /// The center point of the rectangle.
     var center: CGPoint {
         get { return CGPoint(x: centerX, y: centerY) }
         set { centerX = newValue.x; centerY = newValue.y }
     }
-    
+
     /// The center-right point of the rectangle.
     var centerRight: CGPoint {
         get {return CGPoint(x: right, y: centerY)}
         set {right = newValue.x; centerY = newValue.y}
     }
-    
+
     /// The bottom-left point of the rectangle.
     var bottomLeft: CGPoint {
         get {return CGPoint(x: left, y: bottom)}
         set {left = newValue.x; bottom = newValue.y}
     }
-    
+
     /// The bottom-center point of the rectangle.
     var bottomCenter: CGPoint {
         get {return CGPoint(x: centerX, y: bottom)}
         set {centerX = newValue.x; bottom = newValue.y}
     }
-    
+
     /// The bottom-right point of the rectangle.
     var bottomRight: CGPoint {
         get {return CGPoint(x: right, y: bottom)}
         set {right = newValue.x; bottom = newValue.y}
     }
-    
+
     /// The horizontal center of the rectangle.
     internal var centerX: CGFloat {
         get { return midX }
@@ -252,7 +251,7 @@ public extension CGRect {
         }
         return rect
     }
-    
+
     /**
      Returns a new rect scaled by the specified factor, anchored at the specified point.
      

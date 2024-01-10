@@ -16,7 +16,7 @@ extension Array {
     }
 
     /// Adds the specified optional `Element`.
-    public static func +(lhs: [Element], rhs: Element?) -> [Element]  {
+    public static func +(lhs: [Element], rhs: Element?) -> [Element] {
         var copy = lhs
         if let rhs = rhs {
             copy.append(rhs)

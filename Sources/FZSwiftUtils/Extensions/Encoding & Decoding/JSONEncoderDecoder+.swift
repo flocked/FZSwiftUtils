@@ -30,8 +30,7 @@ public extension JSONEncoder {
      */
     convenience init(dateEncodingStrategy: DateEncodingStrategy,
                      outputFormatting: OutputFormatting = [],
-                     keyEncodingStrategy: KeyEncodingStrategy = .useDefaultKeys)
-    {
+                     keyEncodingStrategy: KeyEncodingStrategy = .useDefaultKeys) {
         self.init()
         self.dateEncodingStrategy = dateEncodingStrategy
         self.outputFormatting = outputFormatting
@@ -60,8 +59,7 @@ public extension JSONDecoder {
        - keyDecodingStrategy: The strategy to use for decoding keys. Default is `.useDefaultKeys`.
      */
     convenience init(dateDecodingStrategy: DateDecodingStrategy,
-                     keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys)
-    {
+                     keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys) {
         self.init()
         self.dateDecodingStrategy = dateDecodingStrategy
         self.keyDecodingStrategy = keyDecodingStrategy

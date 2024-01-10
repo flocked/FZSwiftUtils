@@ -25,7 +25,7 @@ public extension Sequence {
      
      - Parameter completion: The handler which gets called when all elements got collected.
      */
-    func collect(completion: @escaping ([Element]) -> ()) {
+    func collect(completion: @escaping ([Element]) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
             let elements = reduce(into: [Element]()) { $0.append($1) }
             DispatchQueue.main.async {

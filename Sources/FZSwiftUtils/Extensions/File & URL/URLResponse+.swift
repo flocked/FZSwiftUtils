@@ -14,7 +14,7 @@ public extension URLResponse {
               response.statusCode == 200 /* OK */ || response.statusCode == 206, /* Partial Content */
               let acceptRanges = response.allHeaderFields["Accept-Ranges"] as? String,
               acceptRanges.lowercased() == "bytes" else { return nil  }
-        
+
         if let entityTag = response.allHeaderFields["ETag"] as? String {
             return entityTag
         }
@@ -29,11 +29,11 @@ public extension URLResponse {
         }
         return nil
     }
-    
+
     /// A suggested filename for the response data.
     var extendedSuggestedFilename: String? {
         if var fileName = self.suggestedFilename {
-            var fileExtension: String? = nil
+            var fileExtension: String?
             let nameWithExtension = fileName.split(separator: ".")
             if nameWithExtension.count > 1, let _extension = nameWithExtension.last {
                 fileExtension = String(_extension)

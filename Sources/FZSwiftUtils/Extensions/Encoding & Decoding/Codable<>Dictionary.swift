@@ -87,7 +87,7 @@ public extension Dictionary {
     func toModel<T: Codable>() -> T? {
         return toModel(T.self, decoder: .init())
     }
-    
+
     /**
      Converts the dictionary to a model object of the specified type using the specified JSON decoder.
      

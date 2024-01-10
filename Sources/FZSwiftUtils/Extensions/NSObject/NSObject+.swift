@@ -38,7 +38,7 @@ public extension NSCoding where Self: NSObject {
 }
 
 public extension NSObject {
-    
+
     /**
      Removes an observer for the specified key path.
      
@@ -50,7 +50,7 @@ public extension NSObject {
         guard let keypathString = keypath._kvcKeyPathString else { return }
         self.removeObserver(observer, forKeyPath: keypathString)
     }
-    
+
     /**
      Sets the value safely for the specified key, only if the object contains a property with the given key.
      

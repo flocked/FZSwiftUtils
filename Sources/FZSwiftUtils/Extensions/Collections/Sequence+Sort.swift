@@ -13,17 +13,17 @@ public enum SequenceSortOrder: Int, Hashable {
     case ascending
     /// A descending sorting order.
     case descending
-  
+
     /// An ascending sorting order.
     public static let oldestFirst = SequenceSortOrder.ascending
     /// A descending sorting order.
     public static let newestFirst = SequenceSortOrder.descending
-    
+
     /// An ascending sorting order.
     public static let smallestFirst = SequenceSortOrder.ascending
     /// A descending sorting order.
     public static let largestFirst = SequenceSortOrder.descending
-    
+
     /// An ascending sorting order.
     public static let shortestFirst = SequenceSortOrder.ascending
     /// A descending sorting order.
@@ -45,7 +45,7 @@ extension Sequence {
             return sorted { compare($0) > compare($1) }
         }
     }
-    
+
     /**
     An array of the elements sorted by the given predicate.
      
@@ -60,7 +60,7 @@ extension Sequence {
             return self.sorted(by: compare, using: >)
         }
     }
-    
+
     /**
     An array of the elements sorted by the given keypath.
      
@@ -75,7 +75,7 @@ extension Sequence {
             return self.sorted(by: keyPath, using: >)
         }
     }
-    
+
     /**
     An array of the elements sorted by the given keypath.
      
@@ -90,7 +90,7 @@ extension Sequence {
             return self.sorted(by: keyPath, using: >)
         }
     }
-    
+
     func sorted<Value>(by compare: (Element) -> Value?, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
         sorted { a, b in
             guard let b = compare(b) else { return true }
@@ -98,13 +98,13 @@ extension Sequence {
             return comparator(a, b)
         }
     }
-    
+
     func sorted<Value>(by keyPath: KeyPath<Element, Value>, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
         sorted { a, b in
             return comparator(a[keyPath: keyPath], b[keyPath: keyPath])
         }
     }
-    
+
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
         sorted { a, b in
             guard let b = b[keyPath: keyPath] else { return true }
@@ -161,7 +161,7 @@ extension Sequence {
             return false
         }
     }
-    
+
     /**
      Returns the elements of the sequence, sorted using given keypaths as comparison between elements.
      
@@ -220,7 +220,7 @@ public struct PartialSortingKeyPath<Root> {
     public static func ascending(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func ascending(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
@@ -235,12 +235,12 @@ public struct PartialSortingKeyPath<Root> {
     public static func descending(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func oldestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func oldestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
@@ -255,12 +255,12 @@ public struct PartialSortingKeyPath<Root> {
     public static func newestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func smallestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func smallestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
@@ -270,12 +270,12 @@ public struct PartialSortingKeyPath<Root> {
     public static func largestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
     public static func largestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
     public static func shortestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .ascending)
@@ -285,7 +285,7 @@ public struct PartialSortingKeyPath<Root> {
     public static func shortestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
         return Self(keyPaths, order: .ascending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
     public static func longestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         return Self(keyPath, order: .descending)

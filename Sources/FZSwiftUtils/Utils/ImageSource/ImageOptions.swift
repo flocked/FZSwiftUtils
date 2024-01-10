@@ -13,9 +13,9 @@ public extension ImageSource {
         /// A Boolean value that indicates whether to cache the decoded image.
         public var shouldCache: Bool? = true
         /// A Boolean value that indicates whether image decoding and caching happens at image creation time.
-        public var shouldDecodeImmediately: Bool? = nil
+        public var shouldDecodeImmediately: Bool?
         /// The factor by which to scale down any returned images.
-        public var subsampleFactor: SubsampleFactor? = nil
+        public var subsampleFactor: SubsampleFactor?
         /// A Boolean that indicates whether to use floating-point values in returned images.
         public var shouldAllowFloat: Bool? = false
 
@@ -51,20 +51,19 @@ public extension ImageSource {
         /// A Boolean value that indicates whether image decoding and caching happens at image creation time.
         public var shouldDecodeImmediately: Bool? = true
         /// The factor by which to scale down any returned images.
-        public var subsampleFactor: SubsampleFactor? = nil
+        public var subsampleFactor: SubsampleFactor?
         /// A Boolean that indicates whether to use floating-point values in returned images.
         public var shouldAllowFloat: Bool? = false
         /// The maximum size of a thumbnail image, specified in pixels.
-        public var maxSize: Int? = nil
+        public var maxSize: Int?
         /// A Boolean value that indicates whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
-        public var shouldTransform: Bool? = nil
-        internal var createIfAbsent: Bool? = nil
+        public var shouldTransform: Bool?
+        internal var createIfAbsent: Bool?
         internal var createAlways: Bool? = true
 
         /// Option when a thumbnail should be created.
         public var createOption: CreateOption {
-            get { if createAlways == true { return .always }
-                else if createIfAbsent == true { return .ifAbsent }
+            get { if createAlways == true { return .always } else if createIfAbsent == true { return .ifAbsent }
                 return .never
             }
             set { createAlways = (newValue == .always) ? true : nil

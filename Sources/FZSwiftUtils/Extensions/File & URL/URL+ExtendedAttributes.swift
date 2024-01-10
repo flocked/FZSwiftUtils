@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 public extension URL {
     /**
      The extended attributes of a file.
@@ -25,7 +24,7 @@ public extension URL {
 
         /// The url of the file system resource.
         public private(set) var url: URL
-        
+
         /**
          Creates an extended attributes object from the specified url.
          
@@ -70,7 +69,7 @@ public extension URL {
             }
             set { try? setExtendedAttributeExplicit(newValue, for: key) }
         }
-        
+
         /**
          Sets an attribute to a value.
          
@@ -106,7 +105,7 @@ public extension URL {
                 try removeExtendedAttribute(key)
             }
         }
-        
+
         /**
          The value of an key.
          
@@ -129,7 +128,7 @@ public extension URL {
                   let value = any as? T else { return nil }
             return value
         }
-        
+
         internal func getExtendedAttribute<T>(for key: Key) -> T? {
             guard let data = extendedAttributeData(for: key) else { return nil }
 
@@ -144,7 +143,7 @@ public extension URL {
             }
             return nil
         }
-        
+
         internal func setExtendedAttributeExplicit<T>(_ value: T?, for key: Key) throws {
             if isCodable(for: value, key: key) == true {
                 if let codable = value as? Codable {
@@ -160,14 +159,13 @@ public extension URL {
                 }
             }
         }
-        
-   
+
         internal func isNonCodable<T>(for value: T, key: Key) -> Bool? {
             if let data = extendedAttributeData(for: key) {
                 if ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true {
                     return true
                 }
-                
+
                 if let codableType = T.self as? Codable.Type {
                     if (try? JSONDecoder().decode(codableType.self, from: data)) != nil {
                         return false
@@ -176,7 +174,7 @@ public extension URL {
             }
             return nil
         }
-        
+
         internal func isCodable<T>(for value: T, key: Key) -> Bool? {
             if let data = extendedAttributeData(for: key) {
                 if let codableType = T.self as? Codable.Type {
@@ -226,8 +224,7 @@ public extension URL {
             var values: [String: Any] = [:]
             for key in keys {
                 if let data = extendedAttributeData(for: key),
-                   let value = try? PropertyListSerialization.propertyList(from: data, format: nil)
-                {
+                   let value = try? PropertyListSerialization.propertyList(from: data, format: nil) {
                     values[key] = value
                 }
             }
@@ -264,7 +261,7 @@ public extension URL {
 
             return list
         }
-        
+
         private func extendedAttributeData(for key: Key) -> Data? {
             let data = try? url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in

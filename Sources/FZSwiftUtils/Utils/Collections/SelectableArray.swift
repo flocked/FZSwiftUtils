@@ -30,7 +30,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         let element = elements.remove(at: i)
         isSelected.remove(at: i)
         updateSelections()
-        return element        
+        return element
     }
 
     @discardableResult
@@ -165,12 +165,12 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         get {  return elements[index] }
         set {  elements[index] = newValue }
     }
-    
+
     public subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
         get { return elements[range] }
         set { elements[range] = newValue }
     }
-    
+
     public subscript(range: Range<Int>) -> ArraySlice<Element> {
         get { return elements[range] }
         set { elements[range] = newValue }
@@ -193,11 +193,10 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
-    {
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
         elements.replaceSubrange(subrange, with: newElements)
     }
-    
+
     public var allowsSelection: Bool = true {
         didSet {
             updateSelections()
@@ -303,7 +302,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public mutating func deselect(at indexes: [Int]) {
         indexes.forEach { self.deselect(at: $0) }
     }
-    
+
     private mutating func updateSelections() {
         if allowsSelection {
             if allowsMultipleSelection == false, let firstIndex = selectedIndexes.first {

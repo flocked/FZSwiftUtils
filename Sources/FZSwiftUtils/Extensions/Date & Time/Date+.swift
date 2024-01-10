@@ -70,12 +70,12 @@ public extension Date {
      - Returns: `true` if the date is between `date1` and `date2`, inclusive; otherwise, `false`.
      */
     func isBetween(_ date1: Date, _ date2: Date) -> Bool {
-        if (date1 == date2) {
+        if date1 == date2 {
             return self == date1
         }
-        return DateInterval(start:  (date1 < date2) ? date1 : date2, end:  (date1 < date2) ? date2 : date1).contains(self)
+        return DateInterval(start: (date1 < date2) ? date1 : date2, end: (date1 < date2) ? date2 : date1).contains(self)
     }
-    
+
     /**
      Checks if the date is between the specified date interval.
 
@@ -93,7 +93,7 @@ public extension Date {
         get { value(for: .year) }
         set { setValue(newValue, for: .year) }
     }
-    
+
     /// The quarter of this date.
     var quarter: Int {
         get { value(for: .quarter) }
@@ -147,7 +147,7 @@ public extension Date {
         get { value(for: .second) }
         set { setValue(newValue, for: .second) }
     }
-    
+
     /// The nanosecond of this date.
     var nanosecond: Int {
         get { value(for: .nanosecond) }

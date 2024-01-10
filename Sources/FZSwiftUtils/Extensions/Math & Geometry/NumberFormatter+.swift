@@ -71,7 +71,7 @@ public extension NumberFormatter {
         minimumFractionDigits = minFractionDigits
         maximumFractionDigits = maxFractionDigits
     }
-    
+
     /**
      Creates a number formatter for an integer value with the specified format, number of digits and locale.
      
@@ -115,7 +115,7 @@ public extension NumberFormatter {
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string(from value: CChar) -> String? { string(from: NSNumber(value: value)) }
-    
+
     /**
      Returns a string representation of the specified value value.
      
@@ -123,7 +123,7 @@ public extension NumberFormatter {
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string(from value: Bool) -> String? { string(from: NSNumber(value: value)) }
-    
+
     /**
      Returns a string representation of the specified value value.
      
@@ -131,7 +131,7 @@ public extension NumberFormatter {
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string<Value>(from value: Value) -> String? where Value: BinaryInteger { string(from: NSNumber(value)) }
-    
+
     /**
      Returns a string representation of the specified value value.
      

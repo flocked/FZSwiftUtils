@@ -9,34 +9,34 @@ import Foundation
 
 /// An asynchronous, pausable operation.
 open class AsyncOperation: Operation, Pausable {
-    
+
     /// The state of the operation.
     public enum State: String, Hashable {
-        
+
         /// The operation is waiting to start.
         case waiting = "isWaiting"
-        
+
         /// The operation is ready to start.
         case ready = "isReady"
-        
+
         /// The operation is executing.
         case executing = "isExecuting"
-        
+
         /// The operation is finished.
         case finished = "isFinished"
-        
+
         /// The operation is cancelled.
         case cancelled = "isCancelled"
-        
+
         /// The operation is paused.
         case paused = "isPaused"
     }
 
     /// The handler that gets called when the state changes.
-    open var onStateChange: ((State) -> Void)? = nil
-    
+    open var onStateChange: ((State) -> Void)?
+
     /// The error, if the operation failed.
-    open var error: Error? = nil
+    open var error: Error?
 
     /// The state of the operation.
     open var state: State = .waiting {
@@ -147,7 +147,7 @@ open class AsyncOperation: Operation, Pausable {
 /// A asynchronous, pausable operation executing a specifed handler.
 open class AsyncBlockOperation: AsyncOperation {
     /// The handler to execute.
-    public let closure: ((AsyncBlockOperation) -> ())
+    public let closure: ((AsyncBlockOperation) -> Void)
 
     /**
      Initalize a new operation with the specified handler.
@@ -155,7 +155,7 @@ open class AsyncBlockOperation: AsyncOperation {
      - Parameter closure: The handler to execute.
      - Returns: A new `AsyncBlockOperation` object.
      */
-    public init(closure: @escaping ((AsyncBlockOperation) -> ())) {
+    public init(closure: @escaping ((AsyncBlockOperation) -> Void)) {
         self.closure = closure
     }
 

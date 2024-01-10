@@ -93,8 +93,7 @@ public extension ImageSource {
 
         public mutating func next() async -> CGImage? {
             if currentFrame >= frameCount {
-                if loop { currentFrame = 0 }
-                else { return nil }
+                if loop { currentFrame = 0 } else { return nil }
             }
             let image = await nextImage()
             currentFrame = currentFrame + 1

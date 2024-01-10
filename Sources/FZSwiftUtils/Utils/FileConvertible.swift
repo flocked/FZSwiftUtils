@@ -16,7 +16,7 @@ public protocol FileConvertible: Codable {
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
     init(contentsOf url: URL) throws
-    
+
     /**
      Initializes from the file at the specified path.
      
@@ -24,7 +24,7 @@ public protocol FileConvertible: Codable {
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
     init(contentsOf path: String) throws
-    
+
     /**
      Writes to the specified location.
      
@@ -35,7 +35,7 @@ public protocol FileConvertible: Codable {
      - Throws: If the file couldn't be created.
      */
     func write(to url: URL, options: Data.WritingOptions) throws
-    
+
     /**
      Writes to the specified location.
      
@@ -57,11 +57,11 @@ public extension FileConvertible {
             throw error
         }
     }
-    
+
     init(contentsOf path: String) throws {
         try self.init(contentsOf: URL(fileURLWithPath: path))
     }
-    
+
     func write(to url: URL, options: Data.WritingOptions = []) throws {
         do {
             let data = try JSONEncoder().encode(self)
@@ -70,7 +70,7 @@ public extension FileConvertible {
             throw error
         }
     }
-    
+
     func write(to path: String, options: Data.WritingOptions = []) throws {
         try self.write(to: URL(fileURLWithPath: path), options: options)
     }

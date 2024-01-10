@@ -19,7 +19,7 @@ extension NSObjectProtocol where Self: NSObject {
         }
         return nil
     }
-    
+
     /**
      Returns the value for the derived property identified by a given key path.
      
@@ -31,7 +31,7 @@ extension NSObjectProtocol where Self: NSObject {
         }
         return nil
     }
-    
+
     /**
      Sets the value for the property identified by a given key path to a given value.
      
@@ -39,10 +39,10 @@ extension NSObjectProtocol where Self: NSObject {
         - value: The value of the property.
         - keyPath: The keypath of the property.
      */
-    public func setValue<Value>(_ value: Value, forKeyPath keyPath: KeyPath<Self, Value>){
+    public func setValue<Value>(_ value: Value, forKeyPath keyPath: KeyPath<Self, Value>) {
         self.setValue(value, forKeyPath: keyPath.stringValue)
     }
-    
+
     /**
      Sets the value for the property identified by a given key path to a given value.
      
@@ -50,7 +50,7 @@ extension NSObjectProtocol where Self: NSObject {
         - value: The value of the property.
         - keyPath: The keypath of the property.
      */
-    public  func setValue<Value>(_ value: Value?, forKeyPath keyPath: KeyPath<Self, Value?>){
+    public  func setValue<Value>(_ value: Value?, forKeyPath keyPath: KeyPath<Self, Value?>) {
         self.setValue(value, forKeyPath: keyPath.stringValue)
     }
 }

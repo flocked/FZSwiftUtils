@@ -14,19 +14,18 @@ import Foundation
 public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
     private var array = [Element]()
-    
-    
+
     required public init(from decoder: Decoder) throws where Element: Decodable {
         var container = try decoder.unkeyedContainer()
         self.array = try container.decode([Element].self)
     }
 
     required public init() {}
-    
+
     public required init(arrayLiteral elements: Element...) {
         self.array = elements
     }
-    
+
     public convenience init(_ array: [Element]) {
         self.init()
         self.array = array
@@ -41,13 +40,13 @@ public extension SynchronizedArray {
         }
         return array
     }
-    
-    func edit(_ edit: @escaping (inout [Element])->()) {
+
+    func edit(_ edit: @escaping (inout [Element]) -> Void) {
         queue.async(flags: .barrier) {
             edit(&self.array)
         }
     }
-    
+
     func index(_ i: Int, offsetBy distance: Int) -> Int {
         queue.sync {
             self.array.index(i, offsetBy: distance)
@@ -113,13 +112,13 @@ public extension SynchronizedArray {
             self.array.append(element)
         }
     }
-    
+
     func append(contentsOf elements: [Element]) {
         queue.async(flags: .barrier) {
             self.array += elements
         }
     }
-    
+
     func insert(_ element: Element, at index: Int) {
         queue.async(flags: .barrier) {
             self.array.insert(element, at: index)
@@ -132,15 +131,15 @@ public extension SynchronizedArray {
             DispatchQueue.main.async { completion?(element) }
         }
     }
-    
+
     func remove(where predicate: @escaping (Element) -> Bool, completion: (([Element]) -> Void)? = nil) {
         queue.async(flags: .barrier) {
             var elements = [Element]()
-            
+
             while let index = self.array.firstIndex(where: predicate) {
                 elements.append(self.array.remove(at: index))
             }
-            
+
             DispatchQueue.main.async { completion?(elements) }
         }
     }
@@ -158,15 +157,15 @@ public extension SynchronizedArray {
             self.array.removeAll()
         }
     }
-    
+
     var first: Element? {
         queue.sync { return self.array.first }
     }
-    
+
     var last: Element? {
         queue.sync { return self.array.last }
     }
-    
+
     var isEmpty: Bool {
         queue.sync { return self.array.isEmpty }
     }
@@ -183,7 +182,7 @@ public extension SynchronizedArray {
             }
         }
     }
-    
+
     subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
         get {
             queue.sync {
@@ -196,7 +195,7 @@ public extension SynchronizedArray {
             }
         }
     }
-    
+
     subscript(range: Range<Int>) -> ArraySlice<Element> {
         get {
             queue.sync {
@@ -212,7 +211,7 @@ public extension SynchronizedArray {
 }
 
 public extension SynchronizedArray {
-    
+
     /// Adds a new element at the end of the array.
     ///
     /// - Parameters:
@@ -221,7 +220,7 @@ public extension SynchronizedArray {
     static func +=(left: inout SynchronizedArray, right: Element) {
         left.append(right)
     }
-    
+
     /// Adds new elements at the end of the array.
     ///
     /// - Parameters:
@@ -233,7 +232,7 @@ public extension SynchronizedArray {
 }
 
 public extension SynchronizedArray {
-    
+
     /// Returns the first element of the sequence that satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
@@ -243,7 +242,7 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.first(where: predicate) }
         return result
     }
-    
+
     /// Returns the last element of the sequence that satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
@@ -253,18 +252,18 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.last(where: predicate) }
         return result
     }
-    
+
     /// Returns an array containing, in order, the elements of the sequence that satisfy the given predicate.
     ///
     /// - Parameter isIncluded: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be included in the returned array.
     /// - Returns: An array of the elements that includeElement allowed.
     func filter(_ isIncluded: @escaping (Element) -> Bool) -> SynchronizedArray {
         var result: SynchronizedArray?
-        
+
         queue.sync { result = SynchronizedArray(self.array.filter(isIncluded)) }
         return result!
     }
-    
+
     /// Returns the first index in which an element of the collection satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element as its argument and returns a Boolean value that indicates whether the passed element represents a match.
@@ -274,7 +273,7 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.firstIndex(where: predicate) }
         return result
     }
-    
+
     /// Returns the elements of the collection, sorted using the given predicate as the comparison between elements.
     ///
     /// - Parameter areInIncreasingOrder: A predicate that returns true if its first argument should be ordered before its second argument; otherwise, false.
@@ -284,7 +283,7 @@ public extension SynchronizedArray {
         queue.sync { result = SynchronizedArray(self.array.sorted(by: areInIncreasingOrder)) }
         return result!
     }
-    
+
     /// Returns an array containing the results of mapping the given closure over the sequence’s elements.
     ///
     /// - Parameter transform: A closure that accepts an element of this sequence as its argument and returns an optional value.
@@ -294,7 +293,7 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.map(transform) }
         return result
     }
-    
+
     /// Returns an array containing the non-nil results of calling the given transformation with each element of this sequence.
     ///
     /// - Parameter transform: A closure that accepts an element of this sequence as its argument and returns an optional value.
@@ -304,7 +303,7 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.compactMap(transform) }
         return result
     }
-    
+
     /// Returns the result of combining the elements of the sequence using the given closure.
     ///
     /// - Parameters:
@@ -316,26 +315,26 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.reduce(initialResult, nextPartialResult) }
         return result ?? initialResult
     }
-    
+
     /// Returns the result of combining the elements of the sequence using the given closure.
     ///
     /// - Parameters:
     ///   - initialResult: The value to use as the initial accumulating value.
     ///   - updateAccumulatingResult: A closure that updates the accumulating value with an element of the sequence.
     /// - Returns: The final accumulated value. If the sequence has no elements, the result is initialResult.
-    func reduce<ElementOfResult>(into initialResult: ElementOfResult, _ updateAccumulatingResult: @escaping (inout ElementOfResult, Element) -> ()) -> ElementOfResult {
+    func reduce<ElementOfResult>(into initialResult: ElementOfResult, _ updateAccumulatingResult: @escaping (inout ElementOfResult, Element) -> Void) -> ElementOfResult {
         var result: ElementOfResult?
         queue.sync { result = self.array.reduce(into: initialResult, updateAccumulatingResult) }
         return result ?? initialResult
     }
-    
+
     /// Calls the given closure on each element in the sequence in the same order as a for-in loop.
     ///
     /// - Parameter body: A closure that takes an element of the sequence as a parameter.
     func forEach(_ body: (Element) -> Void) {
         queue.sync { self.array.forEach(body) }
     }
-    
+
     /// Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value that indicates whether the passed element represents a match.
@@ -345,7 +344,7 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.contains(where: predicate) }
         return result
     }
-    
+
     /// Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value that indicates whether the passed element satisfies a condition.
@@ -355,7 +354,7 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.allSatisfy(predicate) }
         return result
     }
-    
+
     func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
         where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
         queue.async(flags: .barrier) {
@@ -400,7 +399,7 @@ extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertib
     public var debugDescription: String {
         return synchronized.debugDescription
     }
-    
+
     public var description: String {
         return synchronized.description
     }

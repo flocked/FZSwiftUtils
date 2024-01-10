@@ -48,7 +48,7 @@ public struct ImageFrameSequence: AsyncSequence {
         self.representation = nil
         #endif
     }
-    
+
     #if os(macOS)
     public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
         self.representation = representation
@@ -59,7 +59,6 @@ public struct ImageFrameSequence: AsyncSequence {
         self.loop = loop
     }
     #endif
-
 
     public func makeAsyncIterator() -> ImageFrameIterator {
         #if os(macOS)
@@ -114,7 +113,7 @@ public extension ImageFrameSequence {
             self.representation = nil
             #endif
         }
-        
+
         #if os(macOS)
         public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
             self.representation = representation
@@ -143,13 +142,12 @@ public extension ImageFrameSequence {
         public mutating func next() async -> CGImageFrame? {
             if let source = source {
                 if currentFrame >= frameCount {
-                    if loop { currentFrame = 0 }
-                    else { return nil }
+                    if loop { currentFrame = 0 } else { return nil }
                 }
                 let duration = source.properties(at: currentFrame)?.delayTime
                 let image = await nextImage()
                 currentFrame = currentFrame + 1
-                var imageFrame: CGImageFrame? = nil
+                var imageFrame: CGImageFrame?
                 if let image = image {
                     imageFrame = CGImageFrame(image, duration)
                 }
@@ -161,7 +159,7 @@ public extension ImageFrameSequence {
                     if loop { currentFrame = 0 } else {
                         return nil }
                 }
-                var imageFrame: CGImageFrame? = nil
+                var imageFrame: CGImageFrame?
                 representation.currentFrame = self.currentFrame
                 if let image = representation.cgImage {
                     let duration = representation.currentFrameDuration
@@ -182,18 +180,18 @@ fileprivate extension NSBitmapImageRep {
     var frameCount: Int {
         (self.value(forProperty: .frameCount) as? Int) ?? 1
     }
-    
+
     /// The the current frame for an animated GIF image, or `0` if the image isn't a GIF.
     var currentFrame: Int {
         get { (self.value(forProperty: .currentFrame) as? Int) ?? 0 }
         set { self.setProperty(.currentFrame, withValue: newValue) }
     }
-    
+
     /// The duration (in seconds) of the current frame for an animated GIF image, or `0` if the image isn't a GIF.
     var currentFrameDuration: TimeInterval {
         get { (self.value(forProperty: .currentFrameDuration) as? TimeInterval) ?? 0.0 }
     }
-    
+
     /// The number of loops to make when animating a GIF image, or `0` if the image isn't a GIF.
     var loopCount: Int {
         (self.value(forProperty: .loopCount) as? Int) ?? 0

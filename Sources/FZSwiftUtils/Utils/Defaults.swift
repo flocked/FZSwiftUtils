@@ -42,7 +42,7 @@ public final class Defaults {
         get { return get(key) }
         set { set(newValue, for: key) }
     }
-    
+
     public subscript(key: String) -> Any? {
         get { userDefaults.value(forKey: key) }
         set {
@@ -52,7 +52,7 @@ public final class Defaults {
             }
         }
     }
-    
+
     public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
         get { return get(key) }
         set { set(newValue, for: key) }
@@ -67,7 +67,7 @@ public final class Defaults {
         let key = Key<Value>(key)
         return get(key)
     }
-    
+
     /**
      The value for the specified key, or `nil`if there isn't a value for the key.
 
@@ -96,7 +96,7 @@ public final class Defaults {
             clear(key)
         }
     }
-    
+
     /**
      Sets a value for the specified key.
      
@@ -112,7 +112,7 @@ public final class Defaults {
             clear(key)
         }
     }
-    
+
     /**
      Deletes the value associated with the specified key, if any.
      
@@ -122,7 +122,7 @@ public final class Defaults {
         userDefaults.set(nil, forKey: key)
         userDefaults.synchronize()
     }
-    
+
     /**
      A Boolean value indicating whether a value exists for the specified key.
      
@@ -141,7 +141,7 @@ public final class Defaults {
         guard let name = bundle.bundleIdentifier else { return }
         userDefaults.removePersistentDomain(forName: name)
     }
-    
+
     /**
      Adds an observer for the value at the specified key which calls the handler.
 
@@ -150,14 +150,14 @@ public final class Defaults {
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the key value changes.
      */
-    public func observeChanges<Value>(_ key: String, type: Value, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    public func observeChanges<Value>(_ key: String, type: Value, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
         self.observer.add(key, sendInitalValue: sendInitalValue) { old, new, _ in
             let old = old as! Value
             let new = new as! Value
             handler(old, new)
         }
     }
-    
+
     /**
      Adds an observer for the value at the specified key which calls the handler.
 
@@ -167,7 +167,7 @@ public final class Defaults {
         - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: The handler to be called whenever the key value changes.
      */
-    public func observeChanges<Value: Equatable>(_ key: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    public func observeChanges<Value: Equatable>(_ key: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
         self.observer.add(key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
             let old = old as! Value
             let new = new as! Value
@@ -180,9 +180,9 @@ public final class Defaults {
             }
         }
         self[""] = "fdf"
-        self.observeChanges("", type: String.self, handler: { old, new in })
+        self.observeChanges("", type: String.self, handler: { _, _ in })
     }
-    
+
     /**
      Stops observation for the specified key.
      
@@ -228,12 +228,12 @@ extension Defaults {
             _key = key
         }
     }
-    
+
     subscript<T: Codable>(key: Key<T>) -> T? {
         get { return get(key) }
         set { set(newValue, for: key) }
     }
-    
+
     /**
      The value for the specified key, or `nil`if there isn't a value for the key.
 
@@ -260,7 +260,7 @@ extension Defaults {
 
         return nil
     }
-    
+
     /**
      The value for the specified key, or `nil`if there isn't a value for the key.
 
@@ -299,7 +299,7 @@ extension Defaults {
             #endif
         }
     }
-    
+
     /**
      Sets a value for the specified key.
      
@@ -311,7 +311,7 @@ extension Defaults {
         let convertedKey = Key<Value.RawValue>(key._key)
         set(value.rawValue, for: convertedKey)
     }
-    
+
     /**
      Deletes the value associated with the specified key, if any.
      
@@ -320,7 +320,7 @@ extension Defaults {
     func clear<Value>(_ key: Key<Value>) {
         self.clear(key._key)
     }
-    
+
     /**
      A Boolean value indicating whether a value exists for the specified key.
      
@@ -329,7 +329,7 @@ extension Defaults {
     func has<Value>(_ key: Key<Value>) -> Bool {
         return userDefaults.value(forKey: key._key) != nil
     }
-    
+
     /**
      Adds an observer for the value at the specified key which calls the handler.
 
@@ -338,14 +338,14 @@ extension Defaults {
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
         - handler: The handler to be called whenever the key value changes.
      */
-    func observeChanges<Value>(for key: Key<Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    func observeChanges<Value>(for key: Key<Value>, sendInitalValue: Bool = false, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
         self.observer.add(key._key, sendInitalValue: sendInitalValue) { old, new, _ in
             let old = old as! Value
             let new = new as! Value
             handler(old, new)
         }
     }
-    
+
     /**
      Adds an observer for the value at the specified key which calls the handler.
      
@@ -355,7 +355,7 @@ extension Defaults {
         - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: The handler to be called whenever the key value changes.
      */
-    func observeChanges<Value: Equatable>(for key: Key<Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value)->())) {
+    func observeChanges<Value: Equatable>(for key: Key<Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (( _ oldValue: Value, _ newValue: Value) -> Void)) {
         self.observer.add(key._key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
             let old = old as! Value
             let new = new as! Value
@@ -368,7 +368,7 @@ extension Defaults {
             }
         }
     }
-    
+
     /**
      Stops observation for the specified key.
      

@@ -17,7 +17,7 @@ public extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         return max(range.lowerBound, min(self, range.upperBound))
     }
-    
+
     /**
      Clamps the value to the specified partial range.
      
@@ -27,7 +27,7 @@ public extension Comparable {
     func clamped(to range: PartialRangeFrom<Self>) -> Self {
         return max(range.lowerBound, self)
     }
-    
+
     /**
      Clamps the value to the specified partial range.
      
@@ -46,7 +46,7 @@ public extension Comparable {
     mutating func clamp(to range: ClosedRange<Self>) {
         self = clamped(to: range)
     }
-    
+
     /**
      Clamps the value to specified partial range.
      
@@ -55,7 +55,7 @@ public extension Comparable {
     mutating func clamp(to range: PartialRangeFrom<Self>) {
         self = max(range.lowerBound, self)
     }
-    
+
     /**
      Clamps the value to specified partial range.
      
@@ -76,7 +76,7 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
     func clamped(min minValue: Self) -> Self {
         max(minValue, self)
     }
-    
+
     /**
      Clamps the value to a maximum value. It uses 0 as minimum value.
      
@@ -87,7 +87,7 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
         guard maxValue > 0 else { return self }
         return clamped(to: 0 ... maxValue)
     }
-    
+
     /**
      Clamps the value to a minimum value.
      

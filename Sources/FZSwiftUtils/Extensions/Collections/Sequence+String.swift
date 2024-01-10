@@ -160,7 +160,7 @@ public extension String {
          ```
          */
         case listNumericColon
-        
+
         internal var seperator: String {
             switch self {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon: return "\n"
@@ -171,14 +171,14 @@ public extension String {
             case .or: return " or "
             }
         }
-        
+
         internal var isNumeric: Bool {
             switch self {
             case .listNumeric, .listNumericDot, .listNumericColon: return true
             default: return false
             }
         }
-        
+
         internal var prefix: String? {
             switch self {
             case .list: return " - "
@@ -189,7 +189,7 @@ public extension String {
             default: return nil
             }
         }
-        
+
         internal var lastSeperator: String? {
             switch self {
             case .commaAnd: return " and "

@@ -233,7 +233,7 @@ public extension ImageSource {
         }
         return false
     }
-    
+
     /// Returns if the image source is animatable (contains several images)
     var isAnimatable: Bool {
         if count > 1 {
@@ -342,7 +342,7 @@ public extension ImageSource {
                 self = .other(status)
             }
         }
-        
+
         public var description: String {
             switch self {
             case .unexpectedEOF: return "Unexpected EOF"

@@ -20,22 +20,22 @@ public extension URL {
     var fileType: FileType? {
         return FileType(url: self)
     }
-    
+
     /// A Boolean value indicating whether the file is a video.
     var isVideo: Bool {
         fileType == .video
     }
-    
+
     /// A Boolean value indicating whether the file is an image.
     var isImage: Bool {
         fileType == .image
     }
-    
+
     /// A Boolean value indicating whether the file is a GIF.
     var isGIF: Bool {
         fileType == .gif
     }
-    
+
     /// A Boolean value indicating whether the file is a multimedia file (audio, image, GIF or video).
     var isMultimedia: Bool {
         fileType?.isMultimedia ?? false
@@ -76,7 +76,7 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable {
     case text
     /// Video
     case video
-    
+
     /// Returns the type for the file at the specified url.
     public init?(url: URL) {
         /*    if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
@@ -98,21 +98,21 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable {
             return nil
         }
     }
-    
+
     /// Returns the type for the specified file extension.
     public init?(fileExtension: String) {
         if fileExtension == "" {
             self = .folder
             return
         }
-        
+
         if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
             if let contentType = UTType(filenameExtension: fileExtension), let fileType = FileType(contentType: contentType) {
                 self = fileType
                 return
             }
         }
-        
+
         let fileExtension = fileExtension.lowercased()
         if let fileType = FileType.allCases.first(where: { $0.commonExtensions.contains(fileExtension) }) {
             self = fileType
@@ -121,12 +121,12 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable {
             return nil
         }
     }
-    
+
 #if canImport(UniformTypeIdentifiers)
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// Returns the type for the specified content type.
     public init?(contentType: UTType) {
-        
+
         if let fileType = FileType.allCases.first(where: {
             if let allContentType = $0.contentType, contentType.conforms(to: allContentType) {
                 return true
@@ -143,7 +143,6 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable {
 #endif
 }
 
-
 @available(macOS, deprecated: 11.0, message: "Use contentType instead")
 @available(iOS, deprecated: 14.0, message: "Use contentType instead")
 @available(macCatalyst, deprecated: 14.0, message: "Use contentType instead")
@@ -157,7 +156,7 @@ public extension FileType {
         }
         self = fileType
     }
-    
+
     /// Returns the type for the specified content type tree.
     init?(contentTypeTree: [String]) {
         let allIdentifiers = FileType.allCases.compactMap { $0.identifier }
@@ -204,7 +203,7 @@ public extension FileType {
             return nil
         }
     }
-    
+
     /// The most common file extensions of the file type.
     var commonExtensions: [String] {
         switch self {
@@ -231,7 +230,7 @@ public extension FileType {
             return []
         }
     }
-    
+
     /// The description of the file type.
     var description: String {
         switch self {
@@ -253,21 +252,21 @@ public extension FileType {
         case .video: return "Movie"
         }
     }
-    
+
     /// A Boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
     var isMultimedia: Bool {
         self == .video || self == .audio || self == .gif || self == .image
     }
-    
+
     /// An array of all file types.
-    static let allCases: [FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio,  .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
-    
+    static let allCases: [FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio, .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
+
     /// An array of all multimedia file types (`audio`, `video`, `image` and `gif`).
     static var multimediaTypes: [FileType] = [.gif, .image, .video]
-    
+
     /// An array of all image file types (`image` and `gif`).
     static var imageTypes: [FileType] = [.gif, .image]
-    
+
 #if canImport(UniformTypeIdentifiers)
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// The content type of the file type.
@@ -278,7 +277,7 @@ public extension FileType {
         return nil
     }
 #endif
-    
+
     internal var predicate: NSPredicate {
         let key: NSExpression
         let type: NSComparisonPredicate.Operator
@@ -309,7 +308,7 @@ public extension FileType {
         case .symbolicLink: value = NSExpression(format: "%@", "public.symlink")
         case let .other(oValue): value = NSExpression(format: "%@", oValue)
         }
-        
+
         let modifier: NSComparisonPredicate.Modifier
         switch self {
         case .application, .archive, .text, .document, .other:

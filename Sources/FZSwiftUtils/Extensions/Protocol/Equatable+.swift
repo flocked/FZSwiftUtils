@@ -33,7 +33,7 @@ public extension Equatable {
         }
         return self == other
     }
-    
+
     /**
      A Boolean value indicating whether the values for the specified key paths are equatable to the values of another object..
      

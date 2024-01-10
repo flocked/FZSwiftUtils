@@ -18,7 +18,7 @@ public extension DispatchQueue {
     func asyncAfter(timeInterval: TimeInterval, execute: DispatchWorkItem) {
         self.asyncAfter(deadline: .now() + timeInterval, execute: execute)
     }
-    
+
     /**
      Schedules a work item for execution at the specified time interval, and returns immediately.
      
@@ -29,8 +29,7 @@ public extension DispatchQueue {
     func asyncAfter(timeInterval: TimeDuration, execute: DispatchWorkItem) {
         self.asyncAfter(deadline: .now() + timeInterval.seconds, execute: execute)
     }
-    
-    
+
     /**
      Schedules a block for execution using the specified attributes, and returns immediately.
      
@@ -44,7 +43,7 @@ public extension DispatchQueue {
     func asyncAfter(timeInterval: TimeInterval, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
         self.asyncAfter(deadline: .now() + timeInterval, qos: qos, flags: flags, execute: work)
     }
-    
+
     /**
      Schedules a block for execution using the specified attributes, and returns immediately.
      

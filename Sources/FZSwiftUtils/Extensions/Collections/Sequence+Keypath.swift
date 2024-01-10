@@ -49,7 +49,7 @@ public extension Sequence {
     func flatMap<T, S: Sequence<T>>(_ keyPath: KeyPath<Element, S>) -> [T] {
         return flatMap { $0[keyPath: keyPath] }
     }
-    
+
     /**
      Returns an array containing, in order, the elements of the sequence that contain the keypath element.
      

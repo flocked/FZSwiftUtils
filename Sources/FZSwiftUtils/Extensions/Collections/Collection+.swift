@@ -21,7 +21,7 @@ public extension Collection {
         guard !isEmpty, index >= startIndex, index < count else { return nil }
         return self[index]
     }
-    
+
     subscript(indexes: [Index]) -> [Element] {
         return indexes.compactMap { self[safe: $0] }
     }
@@ -47,7 +47,7 @@ public extension Collection where Element: Equatable {
      - Parameter elements: The elements.
      - Returns: `true` if any of the elements exists in the collection, or` false` if non exist in the option set.
      */
-    func contains<S>(any elements: S) -> Bool where S : Sequence, Element == S.Element {
+    func contains<S>(any elements: S) -> Bool where S: Sequence, Element == S.Element {
         for element in elements {
             if self.contains(element) {
                 return true
@@ -55,14 +55,14 @@ public extension Collection where Element: Equatable {
         }
         return false
     }
-    
+
     /**
      A Boolean value indicating whether the collection contains all specified elements.
      
      - Parameter elements: The elements.
      - Returns: `true` if all elements exist in the collection, or` false` if not.
      */
-    func contains<S>(all elements: S) -> Bool where S : Sequence, Element == S.Element {
+    func contains<S>(all elements: S) -> Bool where S: Sequence, Element == S.Element {
         for element in elements {
             if self.contains(element) == false {
                 return false
@@ -77,17 +77,17 @@ public extension Collection {
     func grouped<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: [Element]] {
         try Dictionary(grouping: self, by: keyForValue)
     }
-    
+
     /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
     func grouped<Key>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
         Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
     }
-    
+
     /// Splits the collection by the specified keypath and values that are returned for each keypath.
     func split<Key>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] where Key: Equatable {
         self.split(by: { $0[keyPath: keyPath] })
     }
-    
+
     /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
     func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
         var output: [(key: Key, values: [Element])] = []
@@ -115,7 +115,7 @@ public extension Collection where Index == Int {
         let range = bounds.clamped(to: 0..<count)
         return range.compactMap({ self[safe: $0] })
     }
-    
+
     /**
      Accesses a contiguous subrange of the collection’s elements.
      
@@ -158,7 +158,7 @@ public extension RangeReplaceableCollection where Index == Int {
             self.replaceSubrange(range, with: newValue)
         }
     }
-    
+
     /**
      Accesses a contiguous subrange of the collection’s elements.
      
@@ -188,13 +188,13 @@ public extension RangeReplaceableCollection where Element: Equatable {
      */
     @discardableResult
     mutating func remove(_ element: Element) -> Element? {
-        var removedElement: Element? = nil
+        var removedElement: Element?
         while let index = self.firstIndex(of: element) {
             removedElement = self.remove(at: index)
         }
         return removedElement
     }
-    
+
     /**
      Removes the specificed elements and returns them.
      
@@ -305,7 +305,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
         let indexes = self.indexes(for: elements)
         return move(from: indexes, to: destinationIndex)
     }
-    
+
     /**
      Moves the specified element before the specified `beforeElement`.
      
@@ -337,7 +337,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
         let indexes = self.indexes(for: elements)
         return move(from: indexes, to: destinationIndex)
     }
-    
+
     /**
      Moves the specified element after the specified `afterElement`.
      
@@ -448,7 +448,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     }
 }
 
-public extension RangeReplaceableCollection where Element: Equatable  {
+public extension RangeReplaceableCollection where Element: Equatable {
     /**
      Inserts a new element before the specified element.
      
@@ -462,7 +462,7 @@ public extension RangeReplaceableCollection where Element: Equatable  {
         guard let index = self.firstIndex(of: before) else { return }
         self.insert(newElement, at: index)
     }
-    
+
     /**
      Inserts a new element after the specified element.
      
@@ -476,7 +476,7 @@ public extension RangeReplaceableCollection where Element: Equatable  {
         guard let index = self.firstIndex(of: after) else { return }
         self.insert(newElement, at: self.index(after: index))
     }
-    
+
     /**
      Inserts the new elements before the specified element.
      
@@ -490,7 +490,7 @@ public extension RangeReplaceableCollection where Element: Equatable  {
         guard let index = self.firstIndex(of: before) else { return }
         self.insert(contentsOf: newElements, at: index)
     }
-    
+
     /**
      Inserts the new elements after the specified element.
      
@@ -550,13 +550,13 @@ public extension RangeReplaceableCollection {
         }
         return Self(self[index...] + self[..<index])
     }
-    
+
     /**
      Rotates the collection by the specified amount of positions.
           
      - Parameter positions: The amount of positions to rotate. A value larger than 0 rotates the collection to the right, a value smaller than 0 left.
      */
-    mutating func rotate(positions: Int)  {
+    mutating func rotate(positions: Int) {
         guard positions != 0 else { return }
         let positions = -positions
         if positions > 0 {

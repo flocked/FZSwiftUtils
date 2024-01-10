@@ -15,13 +15,13 @@ public extension Progress {
             set(associatedValue: newValue, key: "Progress_identifier", object: self)
         }
     }
-    
+
     /// Updates the estimate time remaining and throughput.
     func updateEstimatedTimeRemaining() {
         self.setupEstimatedTimeProgressObserver()
         self.updateEstimatedTimeRemaining(dateStarted: estimatedTimeStartDate)
     }
-    
+
     /**
      Updates the estimate time remaining and throughput by providing the start date of the progress.
      
@@ -33,7 +33,7 @@ public extension Progress {
         let elapsedTime = Date().timeIntervalSince(date)
         updateEstimatedTimeRemaining(timeElapsed: elapsedTime, completedUnits: completedUnits)
     }
-    
+
     /**
      Updates the estimate time remaining and throughput by providing the time elapsed since the start of the progress.
      
@@ -47,7 +47,7 @@ public extension Progress {
             self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
-        
+
         guard self.completedUnitCount != self.totalUnitCount else {
             self.throughput = 0
             self.estimatedTimeRemaining = 0.0
@@ -56,30 +56,30 @@ public extension Progress {
         self.estimatedTimeCompletedUnits = completedUnits ?? self.estimatedTimeCompletedUnits
         var completedUnitCount = completedUnitCount - self.estimatedTimeCompletedUnits
         var totalUnitCount = totalUnitCount - (completedUnits ?? 0)
-        
+
         if completedUnitCount < 0 {
             completedUnitCount = 0
         }
         if totalUnitCount < 0 {
             totalUnitCount = 0
         }
-        
+
         let unitsPerSecond = Double(completedUnitCount) / elapsedTime
         let throughput = Int(unitsPerSecond)
         let unitsRemaining = totalUnitCount - completedUnitCount
-        
+
         guard unitsPerSecond > 0 else {
             self.throughput = throughput
             self.estimatedTimeRemaining = TimeInterval.infinity
             return
         }
-        
+
         let secondsRemaining = Double(unitsRemaining) / unitsPerSecond
-        
+
         self.throughput = throughput
         self.estimatedTimeRemaining = secondsRemaining
     }
-    
+
     /// A Boolean value indicating whether the progress should auomatically update the estimated time and throughput remaining.
     var autoUpdateEstimatedTimeRemaining: Bool {
         get { getAssociatedValue(key: "Progress_autoUpdateEstimatedTimeRemaining", object: self, initialValue: false) }
@@ -109,7 +109,7 @@ public extension Progress {
             self.isPublished = true
         }
     }
-    
+
     /**
      Creates a file progress.
      
@@ -135,47 +135,47 @@ public extension Progress {
         return progress
     }
 #endif
-    
+
     internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
         get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
         set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
     }
-    
+
     internal var estimatedTimeStartDate: Date {
         get { getAssociatedValue(key: "Progress_estimatedTimeStartDate", object: self, initialValue: Date()) }
         set {  set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
     }
-    
+
     internal var estimatedTimeCompletedUnits: Int64 {
         get { getAssociatedValue(key: "Progress_estimatedTimeCompletedUnits", object: self, initialValue: self.completedUnitCount) }
         set {
             guard estimatedTimeCompletedUnits != newValue else { return }
             set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self) }
     }
-    
+
     internal var isPublished: Bool {
         get { getAssociatedValue(key: "isPublished", object: self, initialValue: false) }
         set {
             set(associatedValue: newValue, key: "isPublished", object: self) }
     }
-    
+
     internal func setupEstimatedTimeProgressObserver(_ shouldObserve: Bool = false) {
         if shouldObserve {
             if estimatedTimeProgressObserver == nil {
                 estimatedTimeProgressObserver = KeyValueObserver(self)
-                
+
                 estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
                     guard old != new else { return }
                     self.estimatedTimeStartDate = Date()
                     self.estimatedTimeCompletedUnits = self.completedUnitCount
                     self.updateEstimatedTimeRemaining()
                 }
-                
+
                 estimatedTimeProgressObserver?.add(\.isCancelled) { old, new in
                     guard old != new else { return }
                     self.updateEstimatedTimeRemaining()
                 }
-                
+
                 estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
                     guard old != new else { return }
                     self.updateEstimatedTimeRemaining()

@@ -120,57 +120,57 @@ public class AssociatedValue<Object: AssociatedValuesProvider> {
     internal init(_ object: Object) {
         self.object = object
     }
-    
+
     subscript<Value>(associated: String) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated, object: object) }
         set { set(associatedValue: newValue, key: associated, object: object) }
     }
-    
+
     subscript<Value>(associated: String, initialValue initialValue: () -> Value) -> Value {
         get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated, object: object) }
     }
-    
+
     subscript<Value>(associated: String, initialValue initialValue: @autoclosure () -> Value) -> Value {
         get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated, object: object) }
     }
-    
+
     subscript<Value>(associated: String, initialValue initialValue: () -> Value?) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated, object: object) }
     }
-    
+
     subscript<Value>(associated: String, initialValue initialValue: @autoclosure () -> Value?) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated, object: object) }
     }
-    
+
     subscript<Value>(associated: KeyPath<Object, Value>) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object) }
         set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
     }
-    
+
     subscript<Value>(associated: KeyPath<Object, Value>, initialValue initialValue: () -> Value) -> Value {
         get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
     }
-    
+
     subscript<Value>(associated: KeyPath<Object, Value>, initialValue initialValue: @autoclosure () -> Value) -> Value {
         get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
     }
-    
+
     subscript<Value>(associated: KeyPath<Object, Value?>) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object) }
         set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
     }
-    
+
     subscript<Value>(associated: KeyPath<Object, Value?>, initialValue initialValue: () -> Value?) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated.stringValue, object: object) }
     }
-    
+
     subscript<Value>(associated: KeyPath<Object, Value?>, initialValue initialValue: @autoclosure () -> Value?) -> Value? {
         get { FZSwiftUtils.getAssociatedValue(key: associated.stringValue, object: object, initialValue: initialValue) }
         set { set(associatedValue: newValue, key: associated.stringValue, object: object) }

@@ -24,19 +24,19 @@ internal extension FileManager.DirectoryEnumerationOptions {
 public extension URL {
     /// Options for enumerating the contents of directories.
     enum DirectoryEnumerationOption: Hashable {
-        
+
         /// An option to treat packages like files and descend into their contents.
         case includePackageDescendants
-        
+
         /// An option to perform a shallow enumeration that descend into directories.
         case includeSubdirectoryDescendants
-        
+
         /// An option to include hidden files.
         case includeHiddenFiles
-        
+
         /// An option that specified the depth of enumation.
         case maxDepth(Int)
-                
+
         internal var depth: Int? {
             switch self {
             case let .maxDepth(value): return value
@@ -86,7 +86,7 @@ public extension URL {
             }
             directoryEnumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil, options: options)
         }
- 
+
         public func next() -> URL? {
             if let directoryEnumerator = directoryEnumerator {
                 while let nextURL = directoryEnumerator.nextObject() as? URL {
@@ -109,7 +109,7 @@ public extension URL {
             directoryEnumerator?.level
         }
     }
-    
+
     /**
      Iterate items with the specified enumeration options.
      
@@ -119,7 +119,7 @@ public extension URL {
     func iterate(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         return URLSequence(url: self, options: options, predicate: { _ in true })
     }
-    
+
     /**
      Iterate items with the specified enumeration options.
      
@@ -209,7 +209,7 @@ public extension URL {
     func iterateFiles(contentTypes: [UTType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         return iterate(predicate: {
             if contentTypes.isEmpty { return $0.isFile }
-            if let type = $0.contentType, (contentTypes.contains(type) || type.conforms(toAny: contentTypes))  {
+            if let type = $0.contentType, contentTypes.contains(type) || type.conforms(toAny: contentTypes) {
                 return true
             } else { return false }
         }, options: options)
@@ -299,7 +299,6 @@ internal extension Dictionary where Key == FileAttributeKey {
     }
 }
 
-
 public extension URL {
     /**
      Iterate files with the specified file enumeration.
@@ -311,7 +310,7 @@ public extension URL {
     func iterateFiles(by fileEnumation: FileEnumerationOption, options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         return iterate(predicate: fileEnumation.predicate, options: options)
     }
-    
+
     /**
      Iterate files with the specified file enumeration.
      
@@ -322,7 +321,7 @@ public extension URL {
     func iterateFiles(by fileEnumation: FileEnumerationOption, _ options: DirectoryEnumerationOption...) -> URLSequence {
         return iterate(predicate: fileEnumation.predicate, options: Set(options))
     }
-    
+
     /**
      Options for iterating files. To combine file enumerations use `||` as OR.
      
@@ -337,7 +336,7 @@ public extension URL {
         public static func `extension`(_ value: String) -> Self {
             self.extensions([value])
         }
-        
+
         /// Iterate files with the specified file extensions.
         public static func extensions(_ extensions: [String]) -> Self {
             let extensions = extensions.compactMap { $0.lowercased() }
@@ -346,17 +345,17 @@ public extension URL {
                 return extensions.contains($0.pathExtension.lowercased())
             }
         }
-        
+
         /// Iterate files with the specified file extensions.
         public static func extensions(_ extensions: String...) -> Self {
             self.extensions(extensions)
         }
-        
+
         /// Iterate files with the specified file type.
         public static func type(_ type: FileType) -> Self {
             self.types([type])
         }
-        
+
         /// Iterate files with the specified file types.
         public static func types(_ types: [FileType]) -> Self {
             Self {
@@ -364,19 +363,18 @@ public extension URL {
                 if let fileType = $0.fileType, types.contains(fileType) { return true } else { return false }
             }
         }
-        
+
         /// Iterate files with the specified file types.
         public static func types(_ types: FileType...) -> Self {
             self.types(types)
         }
-        
-        
+
         /// Iterate files with the specified UTType.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func contentType(_ type: UTType) -> Self {
             self.contentTypes([type])
         }
-        
+
         /// Iterate files with the specified UTTypes.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func contentTypes(_ types: [UTType]) -> Self {
@@ -385,13 +383,13 @@ public extension URL {
                 if let type = $0.contentType, types.contains(type) { return true } else { return false }
             }
         }
-        
+
         /// Iterate files with the specified UTTypes.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func contentTypes(_ types: UTType...) -> Self {
             contentTypes(types)
         }
-        
+
         /// Iterate files conforming to the specified UTTypes.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func conforming(to types: [UTType]) -> Self {
@@ -400,124 +398,123 @@ public extension URL {
                 return $0.contentType?.conforms(toAny: types) ?? false
             }
         }
-        
+
         /// Iterate files conforming to the specified UTTypes.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func conforming(to types: UTType...) -> Self {
             conforming(to: types)
         }
-        
+
         /// Iterate files which file names contain the specified string.
         public static func name(contains string: String) -> Self {
             Self {
                 $0.lastPathComponent.contains(string)
             }
         }
-        
+
         /// Iterate files which file names begin with the specified string.
         public static func name(beginsWith string: String) -> Self {
             Self {
                 $0.lastPathComponent.hasPrefix(string)
             }
         }
-        
+
         /// Iterate files which file names end with the specified string.
         public static func name(endsWith string: String) -> Self {
             Self {
                 $0.deletingPathExtension().lastPathComponent.hasSuffix(string)
             }
         }
-        
-        
+
         /// Iterate files whose file sizes are larger or equal than the specified file size.
         public static func fileSize(isLargerOrEqualTo size: DataSize) -> Self {
             Self {
                 $0.resources.fileSize ?? .zero >= size
             }
         }
-        
+
         /// Iterate files whose file sizes are larger or equal than the specified file size.
         public static func fileSize(isLessOrEqualTo size: DataSize) -> Self {
             Self {
                 $0.resources.fileSize ?? .zero <= size
             }
         }
-        
+
         /// Iterate files whose file sizes are larger or equal than the specified file size.
         public static func fileSize(isBetween range: ClosedRange<DataSize>) -> Self {
             Self {
                 $0.resources.fileSize ?? .zero <= range.upperBound && $0.resources.fileSize ?? .zero >= range.lowerBound
             }
         }
-        
+
         /// Iterate files whose creation date was before the specified date.
         public static func creationDate(before date: Date) -> Self {
             Self {
                 $0.resources.creationDate ?? .distantFuture < date
             }
         }
-        
+
         /// Iterate files whose creation date was after the specified date.
         public static func creationDate(after date: Date) -> Self {
             Self {
                 $0.resources.creationDate ?? .distantFuture > date
             }
         }
-        
+
         /// Iterate files whose creation date is between the specified date internval.
         public static func creationDate(between interval: DateInterval) -> Self {
             Self {
                 interval.contains($0.resources.creationDate ?? .distantFuture)
             }
         }
-        
+
         /// Iterate files whose content modification date was before the specified date.
         public static func contentModificationDate(before date: Date) -> Self {
             Self {
                 $0.resources.contentModificationDate ?? .distantFuture < date
             }
         }
-        
+
         /// Iterate files whose content modification date was after the specified date.
         public static func contentModificationDate(after date: Date) -> Self {
             Self {
                 $0.resources.contentModificationDate ?? .distantFuture > date
             }
         }
-        
+
         /// Iterate files whose content modification date is between the specified date internval.
         public static func contentModificationDate(between interval: DateInterval) -> Self {
             Self {
                 interval.contains($0.resources.contentModificationDate ?? .distantFuture)
             }
         }
-        
+
         /// Iterate files which content access date was before the specified date.
         public static func contentAccessDate(before date: Date) -> Self {
             Self {
                 $0.resources.contentAccessDate ?? .distantFuture < date
             }
         }
-        
+
         /// Iterate files which content access date was after the specified date.
         public static func contentAccessDate(after date: Date) -> Self {
             Self {
                 $0.resources.contentAccessDate ?? .distantFuture > date
             }
         }
-        
+
         /// Iterate files whose content access date is between the specified date internval.
         public static func contentAccessDate(between interval: DateInterval) -> Self {
             Self {
                 interval.contains($0.resources.contentAccessDate ?? .distantFuture)
             }
         }
-        
+
         internal let predicate: (URL) -> Bool
         internal init(_ predicate: @escaping (URL) -> Bool) {
             self.predicate = predicate
         }
-        
+
         public static func || (lhs: Self, rhs: Self) -> Self {
             Self {
                 lhs.predicate($0) || rhs.predicate($0)

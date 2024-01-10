@@ -13,7 +13,7 @@ public extension Bundle {
     enum BundlePlatform {
         /// macOS platform.
         case macOS
-        
+
         /// maciOS platform.
         case maciOS
     }

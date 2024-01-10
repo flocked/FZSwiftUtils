@@ -68,11 +68,11 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
     func first(rawValue: Element.RawValue) -> Element? {
         return first(where: { $0.rawValue == rawValue })
     }
-    
+
     subscript(rawValue rawValue: Element.RawValue) -> [Element] {
         self.filter({$0.rawValue == rawValue})
     }
-    
+
     subscript(firstRawValue rawValue: Element.RawValue) -> Element? {
         first(where: { $0.rawValue == rawValue })
     }

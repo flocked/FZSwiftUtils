@@ -9,7 +9,6 @@
 import Foundation
 import SystemConfiguration
 
-
 /// An object for checking if the device is connected to the network.
 public class Reachability {
     /// A Boolean value indicating whether the device is connected to the network.

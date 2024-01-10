@@ -16,7 +16,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
             self.isSelected = isSelected
         }
     }
-    
+
     var elements: [SelectableElement] = [] {
         didSet {
             if isSelecting == false {
@@ -24,7 +24,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
             }
         }
     }
-    
+
     mutating func updateSelections() {
         if allowsSelection {
             if allowsMultipleSelection == false, let firstIndex = selectedIndexes.first {
@@ -37,7 +37,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
             deselect(at: selectedIndexes)
         }
     }
-    
+
     public var allowsSelection: Bool = true {
         didSet {
             updateSelections()
@@ -55,21 +55,21 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
             updateSelections()
         }
     }
-    
+
     public var selectedIndexes: [Int] {
         elements.indexes(where: { $0.isSelected }).compactMap({ $0 })
     }
-    
+
     public var selectedElements: [Element] {
         elements[selectedIndexes].compactMap({ $0.element })
     }
-    
+
     var isSelecting: Bool = false
-    
+
     public mutating func select(at index: Int) {
         select(at: index, exclusivly: false)
     }
-    
+
     public mutating func select(at index: Int, exclusivly: Bool) {
         isSelecting = true
         guard allowsSelection, index < elements.count else { return }
@@ -79,7 +79,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
         elements[index].isSelected = true
         isSelecting = false
     }
-    
+
     public mutating func select(at indexes: [Int]) {
         guard allowsSelection else { return }
         if allowsMultipleSelection {
@@ -88,7 +88,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
             select(at: firstIndex)
         }
     }
-    
+
     public mutating func select(_ option: AdvanceOption, exclusivly: Bool) {
         switch option {
         case .next:
@@ -131,7 +131,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     public mutating func deselect(at indexes: [Int]) {
         indexes.forEach { self.deselect(at: $0) }
     }
-    
+
     public mutating func deselectFirst() {
         guard elements.isEmpty == false else { return }
         deselect(at: 0)
@@ -197,7 +197,7 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     public init(arrayLiteral elements: Element...) {
         self.elements = elements.compactMap({ SelectableElement($0) })
     }
-    
+
     public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
         self.elements = elements.compactMap({ SelectableElement($0) })
     }
@@ -209,7 +209,6 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     public var count: Int {
         return elements.count
     }
-
 
     public var isEmpty: Bool {
         return elements.isEmpty
@@ -282,4 +281,3 @@ extension SelectableArrayNew: Equatable where Element: Equatable {
         return lhs.elements == rhs.elements
     }
 }
-

@@ -19,22 +19,22 @@ public protocol Pausable {
 
 /// A pausable queue that regulates the execution of operations.
 open class PausableOperationQueue: OperationQueue {
-    
+
     /// The operations currently in the queue.
     open private(set)var pausableOperations: [(Pausable & Operation)] = []
-    
+
     lazy var sequentialOperationsQueue = {
         var queue = OperationQueue()
         queue.maxConcurrentOperationCount = 1
         return queue
     }()
-    
+
     let _progress = MutableProgress()
-    
+
     open override var progress: Progress {
         get { _progress }
     }
-    
+
     override open func addOperation(_ op: Operation) {
         let completionBlock = op.completionBlock
         if let pausableOperation = op as? (Pausable & Operation) {

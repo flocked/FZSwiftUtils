@@ -25,7 +25,7 @@ public extension String {
         }
         return newString
     }
-    
+
     /**
      Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
 
@@ -34,25 +34,24 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
      */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target : Replacement]) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement]) -> String where Target: StringProtocol, Replacement: StringProtocol {
         var string = self
         for value in values {
             string = string.replacingOccurrences(of: value.key, with: value.value)
         }
         return string
     }
-        
+
     /**
      Replaces emoji representations of numbers.
 
      - Returns: A new string with emoji numbers replaced by their corresponding decimal representations.
      */
     func replaceEmojiNumbers() -> String {
-        return self.replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣":"2", "3️⃣":"3", "4️⃣":"4", "5️⃣":"5", "6️⃣":"6", "7️⃣":"7", "8️⃣": "8", "9️⃣":"9", "🔟": "10"])
+        return self.replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
     }
 
 }
-
 
 public extension StringProtocol {
     /// A representation of the string where the first character is lowercased.
@@ -66,7 +65,7 @@ public extension StringProtocol {
         if isEmpty { return "" }
         return prefix(1).uppercased() + dropFirst()
     }
-    
+
     /// A mangled representation of the string.
     var mangled: String {
         String(utf16.map { $0 - 1 }.compactMap(UnicodeScalar.init).map(Character.init))
@@ -77,7 +76,6 @@ public extension StringProtocol {
         String(utf16.map { $0 + 1 }.compactMap(UnicodeScalar.init).map(Character.init))
     }
 }
-
 
 public extension StringProtocol {
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
@@ -102,7 +100,7 @@ public extension String {
     static func += (lhs: inout Self, rhs: Character) {
         lhs += String(rhs)
     }
-    
+
     static func + (lhs: String, rhs: Character) -> String {
         return lhs + String(rhs)
     }

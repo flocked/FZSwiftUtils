@@ -15,7 +15,7 @@ public extension Dictionary {
     func merged(_ dictionary: Self) -> Self {
         self + dictionary
     }
-    
+
     /**
      Merges the dictionary with another dictionary.
      

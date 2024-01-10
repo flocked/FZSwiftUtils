@@ -13,7 +13,7 @@ public extension FileManager {
         /// An error that occures if a file coudnl't be moved to trash.
         case failedToMoveToTrash
     }
-    
+
     /**
      Creates a temporary directory inside the file system's default temporary directory.
      - Throws: Throws if the temporary directory couldn't be created.
@@ -30,7 +30,7 @@ public extension FileManager {
         try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
         return folderURL
     }
-    
+
     #if os(macOS) || os(iOS)
     /**
      Moves an item to the trash.
@@ -43,7 +43,7 @@ public extension FileManager {
      */
     @discardableResult
     func trashItem(at url: URL) throws -> URL {
-        var trashedFileURL: NSURL? = nil
+        var trashedFileURL: NSURL?
         try self.trashItem(at: url, resultingItemURL: &trashedFileURL)
         guard let fileURL = trashedFileURL as? URL else {
             throw Errors.failedToMoveToTrash
@@ -51,7 +51,7 @@ public extension FileManager {
         return fileURL
     }
     #endif
-    
+
 #if os(macOS)
     /// The type of appliction support directory.
     enum ApplicationSupportDirectoryType {
@@ -60,7 +60,7 @@ public extension FileManager {
         /// Uses the application name.
         case name
     }
-    
+
     /**
      Returns the application support directory for the specified type.
      
@@ -94,7 +94,7 @@ public extension FileManager {
     func fileExists(at url: URL) -> Bool {
         return fileExists(atPath: url.path)
     }
-    
+
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified path.
      
@@ -105,8 +105,7 @@ public extension FileManager {
         var isDir: ObjCBool = true
         return fileExists(atPath: path, isDirectory: &isDir)
     }
-    
-    
+
     /**
      Returns a Boolean value that indicates whether a directory exists at a specified url.
      

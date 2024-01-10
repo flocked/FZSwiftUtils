@@ -25,13 +25,9 @@ public struct OSHash {
     public static let byteCount: Int = 65536
     /// The number of bytes that represents the hash function’s internal state.
     public static let blockByteCount = 8
-    
+
     /// The hash value.
     public let value: UInt64
-    
-    internal init(value: UInt64) {
-        self.value = value
-    }
 }
 
 extension OSHash {
@@ -39,7 +35,7 @@ extension OSHash {
     public var stringValue: String {
         String(format: "%qx", arguments: [self.value])
     }
-    
+
     /**
      Creates a OpenSubtitle hash for the file path.
      
@@ -49,10 +45,10 @@ extension OSHash {
      
      - Throws: Throws if the file isn't available, can't be accessed or is to small.
      */
-    public init(path: String) throws  {
+    public init(path: String) throws {
         try self.init(url: URL(fileURLWithPath: path))
     }
-    
+
     /**
      Creates a OpenSubtitle hash for the file at the url.
      
@@ -62,10 +58,10 @@ extension OSHash {
      
      - Throws: Throws if the file isn't available, can't be accessed or is to small.
      */
-    public init(url: URL) throws  {
+    public init(url: URL) throws {
         let fileHandler = try FileHandle(forReadingFrom: url)
         let startData: Data = fileHandler.readData(ofLength: Self.byteCount) as Data
-        
+
         fileHandler.seekToEndOfFile()
         let fileSize: UInt64 = fileHandler.offsetInFile
         guard UInt64(Self.byteCount) <= fileSize else {
@@ -79,7 +75,7 @@ extension OSHash {
         try self.init(size: fileSize, startData: startData, endData: endData)
         fileHandler.closeFile()
     }
-    
+
     /**
      Creates a OpenSubtitle hash for the data.
      
@@ -89,7 +85,7 @@ extension OSHash {
      
      - Throws: Throws if the data is to small.
      */
-    public init(data: Data) throws  {
+    public init(data: Data) throws {
         let size = UInt64(data.count)
         guard UInt64(Self.byteCount) <= size else {
             throw Errors.toSmall
@@ -98,8 +94,8 @@ extension OSHash {
         let endData = data[(data.count - 1 - Self.byteCount) ... data.count - 1]
         try self.init(size: size, startData: startData, endData: endData)
     }
-    
-    init(size: UInt64, startData: Data, endData: Data) throws  {
+
+    init(size: UInt64, startData: Data, endData: Data) throws {
         guard UInt64(Self.byteCount) <= startData.count else {
             throw Errors.toSmall
         }

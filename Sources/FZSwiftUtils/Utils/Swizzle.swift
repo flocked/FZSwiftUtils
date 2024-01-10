@@ -120,7 +120,7 @@ public struct Swizzle {
     public init(_ className: String, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
         try self.init(className, swizzlePairs: [makeSelectorPairs()])
     }
-    
+
     @discardableResult
     internal init(_ class_: AnyClass, swizzlePairs: [SelectorPair]) throws {
         guard object_isClass(class_) else {
@@ -164,15 +164,14 @@ public struct Swizzle {
                class_addMethod(
                    `class`, pair.old,
                    method_getImplementation(rhs), method_getTypeEncoding(rhs)
-               )
-            {
+               ) {
                 class_replaceMethod(
                     `class`,
                     pair.new,
                     method_getImplementation(lhs),
                     method_getTypeEncoding(lhs)
                 )
-                
+
             } else {
                 method_exchangeImplementations(lhs, rhs)
             }
@@ -188,7 +187,7 @@ extension Swizzle {
         case missingClass(_ name: String)
         /// The method is missing.
         case missingMethod(_ type: AnyObject.Type, _ static: Bool, _ old: Bool, SelectorPair)
-        
+
         static let prefix: String = "Swizzle.Error: "
 
         public var failureReason: String? {
@@ -237,7 +236,7 @@ public extension Swizzle {
         public let new: Selector
         /// A Boolean value indicating whether the selectors are static.
         public let `static`: Bool
-        
+
         /**
          Creates a selector pair.
          
@@ -251,19 +250,19 @@ public extension Swizzle {
             self.new = new
             self.static = `static`
         }
-        
+
         public init<V>(get old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
             self.old = NSSelectorFromString(old._kvcKeyPathString!)
             self.new = NSSelectorFromString(new._kvcKeyPathString!)
             self.static = `static`
         }
-        
+
         public init<V>(set old: PartialKeyPath<V>, new: PartialKeyPath<V>, `static`: Bool = false) {
             self.old = NSSelectorFromString("set" + old._kvcKeyPathString!.capitalized)
             self.new = NSSelectorFromString("set" + new._kvcKeyPathString!.capitalized)
             self.static = `static`
         }
-        
+
         var `operator`: String {
             `static` ? "<~>" : "<->"
         }

@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Collection where Index == Int {
-    
+
     /**
      Splits the collection into arrays with the specified size.
      
@@ -46,7 +46,7 @@ public extension Collection where Index == Int {
     func chunked(amount: Int) -> [[Element]] {
         let amount = amount.clamped(max: count)
         let chunksize = Int((Float(count) / Float(amount)).rounded(.towardZero))
-        
+
         /*
         let remaining = Int(Double(self.count).remainder(dividingBy: Double(amount)))
         var count = 0
@@ -62,7 +62,7 @@ public extension Collection where Index == Int {
             }
         }
          */
-        
+
         return chunked(size: chunksize)
     }
 

@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 public extension URL {
     /**
      Creates a file URL that references the local file or directory at path.
@@ -19,7 +18,7 @@ public extension URL {
     static func file(_ path: String) -> URL {
         URL(fileURLWithPath: path)
     }
-    
+
     ///  A Boolean value indicating whether the resource is a directory.
     var isDirectory: Bool {
         resources.isDirectory

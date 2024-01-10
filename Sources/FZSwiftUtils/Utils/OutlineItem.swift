@@ -21,7 +21,7 @@ public extension OutlineItem {
     var isExpandable: Bool {
         return (children.isEmpty == false)
     }
-    
+
     func parent(of member: Self) -> Self? {
         for child in children {
             if child == member { return self }
@@ -29,7 +29,7 @@ public extension OutlineItem {
         }
         return nil
     }
-    
+
     func search(for item: Self) -> Self? {
         if item == self { return self }
         for child in children {
@@ -39,7 +39,7 @@ public extension OutlineItem {
         }
         return nil
     }
-    
+
     func indexPath(of item: Self) -> IndexPath? {
         for (idx, child) in children.enumerated() {
             if child == item {
@@ -68,7 +68,7 @@ public extension ExpandingOutlineItem {
     var isExpandable: Bool {
         return (children.isEmpty == false)
     }
-    
+
     func parent(of member: Self) -> Self? {
         for child in children {
             if child == member { return self }
@@ -76,7 +76,7 @@ public extension ExpandingOutlineItem {
         }
         return nil
     }
-    
+
     func search(for item: Self) -> Self? {
         if item == self { return self }
         for child in children {
@@ -86,7 +86,7 @@ public extension ExpandingOutlineItem {
         }
         return nil
     }
-    
+
     func indexPath(of item: Self) -> IndexPath? {
         for (idx, child) in children.enumerated() {
             if child == item {
@@ -113,7 +113,7 @@ public extension ExpandingOutlineItem {
             }
         })
     }
-    
+
     /**
       Collapses the current item and optionally collapses all subchildren as well.
       

@@ -88,7 +88,7 @@ public struct DataSize: Hashable, Sendable {
     func bytes(for value: Double, _ unit: Unit) -> Int {
         Int(unit.convert(value, to: .byte, countStyle: countStyle))
     }
-    
+
     /// Returns a `DataSize`  with zero bytes.
     public static var zero: DataSize {
         return DataSize()
@@ -106,7 +106,7 @@ public extension DataSize {
      - Returns: `DataSize`with the specified bytes.
      */
     static func bytes(_ value: Int, countStyle: CountStyle = .file) -> Self { Self(bytes: value, countStyle: countStyle) }
-    
+
     /**
      Returns a data size with the specified kilobytes.
      
@@ -117,7 +117,7 @@ public extension DataSize {
      - Returns: `DataSize`with the specified kilobytes.
      */
     static func kilobytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(kilobytes: value, countStyle: countStyle) }
-    
+
     /**
      Returns a data size with the specified megabytes.
      
@@ -128,7 +128,7 @@ public extension DataSize {
      - Returns: `DataSize`with the specified megabytes.
      */
     static func megabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(megabytes: value, countStyle: countStyle) }
-    
+
     /**
      Returns a data size with the specified gigabytes.
      
@@ -139,7 +139,7 @@ public extension DataSize {
      - Returns: `DataSize`with the specified gigabytes.
      */
     static func gigabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(gigabytes: value, countStyle: countStyle) }
-    
+
     /**
      Returns a data size with the specified terabytes.
      
@@ -150,7 +150,7 @@ public extension DataSize {
      - Returns: `DataSize`with the specified terabytes.
      */
     static func terabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(terabytes: value, countStyle: countStyle) }
-    
+
     /**
      Returns a data size with the specified petabytes.
      
@@ -357,7 +357,6 @@ extension DataSize: Comparable, AdditiveArithmetic {
     public static func <= (lhs: Self, rhs: Self) -> Bool {
         return lhs.bytes <= rhs.bytes
     }
-    
 
     /// A Boolean value indicating whether the first data size is larger than the second data size.
     public static func > (lhs: Self, rhs: Self) -> Bool {

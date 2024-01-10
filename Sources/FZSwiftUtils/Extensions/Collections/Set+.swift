@@ -25,7 +25,7 @@ extension Set {
     mutating func insert<S: Sequence<Element>>(_ elements: S) {
         elements.forEach({ self.insert($0) })
     }
-    
+
     /**
      Removes all elements that satisfy the contain a value at the given keypath.
 
@@ -46,7 +46,7 @@ extension Set {
         self.remove(Array(toRemove))
         return toRemove
     }
-    
+
     /// The set as `Array`.
     var asArray: [Element] {
         Array(self)
@@ -54,11 +54,11 @@ extension Set {
 }
 
 extension Set where Element: Hashable {
-    public static func +=(lhs:inout Set<Element>, rhs:Element) {
+    public static func +=(lhs: inout Set<Element>, rhs: Element) {
         lhs.insert(rhs)
     }
 
-    public static func +=(lhs:inout Set<Element>, rhs:Set<Element>) {
+    public static func +=(lhs: inout Set<Element>, rhs: Set<Element>) {
         for element in rhs {
             lhs.insert(element)
         }

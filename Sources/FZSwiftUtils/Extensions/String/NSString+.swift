@@ -140,8 +140,7 @@ public extension NSString {
 
         if includingLastEmptyLine,
            ranges == [NSRange(location: length, length: 0)],
-           length == 0 || character(at: length - 1).isNewLine
-        {
+           length == 0 || character(at: length - 1).isNewLine {
             return ranges
         }
 

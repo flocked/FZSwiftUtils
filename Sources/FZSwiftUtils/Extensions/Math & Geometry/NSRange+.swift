@@ -5,7 +5,6 @@
 //  Created by Florian Zand on 06.06.22.
 //
 
-
 import Foundation
 
 public extension NSRange {
@@ -13,7 +12,7 @@ public extension NSRange {
     var closedRange: ClosedRange<Int> {
         return lowerBound...upperBound
     }
-    
+
     /// The range as `Range`.
     var range: Range<Int> {
         return lowerBound..<upperBound+1
@@ -61,7 +60,7 @@ public extension NSRange {
     func shifted(by offset: Int) -> NSRange {
         NSRange(location: location + offset, length: length)
     }
-    
+
     /**
      Returns a Boolean value indicating whether this range and the given range contain an element in common.
      

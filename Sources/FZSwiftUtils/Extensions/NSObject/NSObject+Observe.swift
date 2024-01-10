@@ -31,15 +31,15 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
+    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
-        return self.observe(keyPath, options: options) { object, change in
+        return self.observe(keyPath, options: options) { _, change in
             if let newValue = change.newValue {
                 handler(change.oldValue ?? newValue, newValue)
             }
         }
     }
-    
+
     /**
      Observes changes for a property identified by the given key path.
      
@@ -62,9 +62,9 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> ())) -> NSKeyValueObservation {
+    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation {
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
-        return self.observe(keyPath, options: options) { object, change in
+        return self.observe(keyPath, options: options) { _, change in
             if let newValue = change.newValue {
                 if let oldValue = change.oldValue {
                     if uniqueValues == false {
@@ -118,7 +118,7 @@ public extension NSObjectProtocol where Self: NSObject {
                 .sink(receiveValue: handler)
         }
     }
-    
+
     /**
      Observes changes in to optional property identified by the given key path using Combine publishers.
      
@@ -152,7 +152,7 @@ public extension NSObjectProtocol where Self: NSObject {
                 .sink(receiveValue: handler)
         }
     }
-    
+
     /**
      Observes changes to a property identified by the given key path using Combine publishers.
      
@@ -179,7 +179,7 @@ public extension NSObjectProtocol where Self: NSObject {
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
-    
+
     /**
      Observes changes to an optional property identified by the given key path using Combine publishers.
      
@@ -206,7 +206,7 @@ public extension NSObjectProtocol where Self: NSObject {
         return publisher(for: keypath, options: options)
             .sink(receiveValue: handler)
     }
-    
+
     /**
      Observes changes to a property identified by the given key path using Combine publishers with throttling.
      
@@ -243,7 +243,7 @@ public extension NSObjectProtocol where Self: NSObject {
                 .sink(receiveValue: handler)
         }
     }
-    
+
     /**
      Observes changes to a property identified by the given key path using Combine publishers with throttling.
      
@@ -280,7 +280,7 @@ public extension NSObjectProtocol where Self: NSObject {
                 .sink(receiveValue: handler)
         }
     }
-    
+
     /**
      Observes changes to an optional property identified by the given key path using Combine publishers with throttling.
      
@@ -317,7 +317,7 @@ public extension NSObjectProtocol where Self: NSObject {
                 .sink(receiveValue: handler)
         }
     }
-    
+
     /**
      Observes changes to a property identified by the given key path using Combine publishers with debouncing.
      

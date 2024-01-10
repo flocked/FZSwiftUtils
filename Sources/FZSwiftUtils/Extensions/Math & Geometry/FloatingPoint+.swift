@@ -18,12 +18,12 @@ public extension BinaryFloatingPoint {
     var degreesToRadians: Self {
         return Self.pi * self / 180.0
     }
-    
+
     /// Converts the value from radians to degress.
     var radiansToDegrees: Self {
         return self * 180 / Self.pi
     }
-    
+
     /// Returns the number of decimal places in the value.
     var placesCount: Int {
         let decimal = Decimal(Double(self))
@@ -83,30 +83,30 @@ public extension CGFloat {
         #endif
         return rounded(toNearest: 1.0/scale)
     }
-    
+
     /// Converts the value from degrees to radians.
     var degreesToRadians: CGFloat {
         return Self.pi * self / 180.0
     }
-    
+
     /// Converts the value from radians to degress.
     var radiansToDegrees: CGFloat {
         return self * 180 / Self.pi
     }
-    
+
     /// Returns the number of decimal places in the value.
     var placesCount: Int {
         let decimal = Decimal(Double(self))
         return Swift.max(-decimal.exponent, 0)
     }
-    
+
     /**
      Creates a new instance from the given string.
      
      - Parameter description: An input string to convert to a `CGFloat` instance.
      - Returns: The value of the text, or `nil` if the string doesn't contain a numeric value.
      */
-    init?<S>(_ text: S) where S : StringProtocol {
+    init?<S>(_ text: S) where S: StringProtocol {
         if let doubleValue = Double(text) {
             self = CGFloat(doubleValue)
         } else {
@@ -136,7 +136,7 @@ public extension BinaryFloatingPoint {
         let divisor = Self(rule.divisor)
         self = (self * divisor).rounded(rule.rounding) / divisor
     }
-    
+
     /**
      Rounds the value by the specified rounding factor.
      
@@ -149,7 +149,7 @@ public extension BinaryFloatingPoint {
     func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointFactorRoundingRule = .up) -> Self {
         (self / roundingFactor).rounded(rule.rounding) * roundingFactor
     }
-    
+
     /**
      Rounds the value by the specified rounding factor.
      
@@ -183,7 +183,7 @@ public extension CGFloat {
         let divisor = Self(rule.divisor)
         self = (self * divisor).rounded(rule.rounding) / divisor
     }
-    
+
     /**
      Rounds the value by the specified rounding factor.
      
@@ -196,7 +196,7 @@ public extension CGFloat {
     func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointFactorRoundingRule = .up) -> Self {
         (self / roundingFactor).rounded(rule.rounding) * roundingFactor
     }
-    
+
     /**
      Rounds the value by the specified rounding factor.
      
@@ -290,7 +290,7 @@ public enum FloatingPointFactorRoundingRule {
      ```
      */
     case down
-    
+
     var rounding: FloatingPointRoundingRule {
         switch self {
         case .up: return .toNearestOrAwayFromZero
@@ -306,7 +306,7 @@ extension BinaryInteger {
             return numberOfDigits(in: self)
         }
     }
-    
+
     // private recursive method for counting digits
     private func numberOfDigits(in number: Self) -> Int {
         if number < 10 && number >= 0 || number > -10 && number < 0 {

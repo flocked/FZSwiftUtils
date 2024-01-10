@@ -19,7 +19,7 @@ public extension CaseIterable where Self: Hashable {
         }
         return nil
     }
-    
+
     /// Returns the next case from `Self.allCases` or `nil` if there isn´t a next case. If the current case is the last case, it returns the first case.
     var nextCaseLooping: Self? {
         let allCases = Self.allCases
@@ -33,7 +33,7 @@ public extension CaseIterable where Self: Hashable {
         }
         return nil
     }
-    
+
     /// Returns the previous case from `Self.allCases` or `nil` if there isn´t a previous case.
     var previousCase: Self? {
         let allCases = Self.allCases
@@ -45,7 +45,7 @@ public extension CaseIterable where Self: Hashable {
         }
         return nil
     }
-    
+
     /// Returns the previous case from `Self.allCases` or `nil` if there isn´t a previous case. If the current case is the first case, it returns the last case.
     var previousCaseLooping: Self? {
         let allCases = Self.allCases
@@ -60,12 +60,12 @@ public extension CaseIterable where Self: Hashable {
         }
         return nil
     }
-    
+
     /// Returns a random case from `Self.allCases`.
     var randomCase: Self? {
         return Self.allCases.randomElement()
     }
-    
+
     /// Returns a random new case from `Self.allCases` excluding self or `nil` if there isn´t a new random case.
     var randomNewCase: Self? {
         guard Self.allCases.count > 1 else { return nil}

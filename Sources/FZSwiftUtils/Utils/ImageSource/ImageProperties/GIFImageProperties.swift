@@ -29,7 +29,7 @@ public extension ImageSource.ImageProperties {
         public var unclampedDelayTime: Double?
         /// A Boolean value that indicates whether the GIF has a global color map.
         public var hasGlobalColorMap: Bool?
-        
+
         public var delayTime: Double? {
             return unclampedDelayTime ?? clampedDelayTime
         }

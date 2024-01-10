@@ -12,7 +12,7 @@ public extension Sequence where Element: Identifiable {
     var ids: [Element.ID] {
         return compactMap { $0.id }
     }
-    
+
     subscript(firstID id: Element.ID) -> Element? {
         first { $0.id == id }
     }

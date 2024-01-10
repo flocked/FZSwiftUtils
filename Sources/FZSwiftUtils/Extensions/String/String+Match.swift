@@ -8,7 +8,6 @@
 import Foundation
 import NaturalLanguage
 
-
 public extension String {
     ///  A structure representing a match found in a string.
     struct StringMatch: Hashable {
@@ -18,13 +17,13 @@ public extension String {
         public let range: Range<String.Index>
         /// The score or importance of the match.
         public let score: Int
-        
+
         internal init(string: String, range: Range<String.Index>, score: Int) {
             self.string = string
             self.range = range
             self.score = score
         }
-        
+
         internal init(_ result: NSTextCheckingResult, source: String) {
             range = Range(result.range, in: source)!
             string = String(source[range])
@@ -80,7 +79,7 @@ public extension String {
     var sentences: [String] {
         self.matches(for: .sentences).compactMap({$0.string})
     }
-        
+
     /**
      Finds all matches in the string based on the provided regular expression pattern.
      
@@ -90,9 +89,9 @@ public extension String {
     func matches(regex: String) -> [StringMatch] {
         let string = self
         let regex = try? NSRegularExpression(pattern: regex, options: [])
-        return regex?.matches(in: string, range: NSMakeRange(0, string.utf16.count)).compactMap { StringMatch($0, source: string) } ?? []
+        return regex?.matches(in: string, range: NSRange(location: 0, length: string.utf16.count)).compactMap { StringMatch($0, source: string) } ?? []
     }
-    
+
     /**
      Finds all matches of substrings between the two specified strings.
      
@@ -118,7 +117,7 @@ public extension String {
         }
         return matches
     }
-    
+
     /**
      Finds all matches in the string based on the given option.
      
@@ -127,15 +126,15 @@ public extension String {
      */
     func matches(for option: StringMatchOption) -> [StringMatch] {
         var matches: [StringMatch] = []
-        
+
         enumerateSubstrings(in: startIndex..., options: option.enumerationOptions) { _, range, _, _ in
             let score = self.distance(from: range.lowerBound, to: range.upperBound)
             matches.append(StringMatch(string: String(self[range]), range: range, score: score))
         }
-        
+
         return matches
     }
-    
+
     /**
      Finds all matches for the given option using natural language processing.
      
@@ -155,7 +154,7 @@ public extension String {
                 .omitPunctuation,
                 .omitWhitespace,
                 .omitOther,
-                .joinNames,
+                .joinNames
             ]
         )
         for (tag, range) in tags {
@@ -183,7 +182,7 @@ public extension StringProtocol {
      - Parameter strings: The strings.
      - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
      */
-    func contains<S>(any strings: S) -> Bool where S : Sequence<StringProtocol> {
+    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
         for string in strings {
             if self.contains(string) {
                 return true
@@ -191,13 +190,13 @@ public extension StringProtocol {
         }
         return false
     }
-    
+
     /**
      A Boolean value indicating whether the string contains all specified strings.
      - Parameter strings: The strings.
      - Returns: `true` if all strings exist in the string, or` false` if not.
      */
-    func contains<S>(all strings: S) -> Bool where S : Sequence<StringProtocol> {
+    func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
         for string in strings {
             if self.contains(string) == false {
                 return false

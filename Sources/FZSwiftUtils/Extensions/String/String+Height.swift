@@ -20,7 +20,7 @@ public extension String {
     func height(withConstrainedWidth width: CGFloat, font: NSUIFont) -> CGFloat {
         let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
         let boundingBox = self.boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, attributes: [.font: font], context: nil)
-    
+
         return ceil(boundingBox.height)
     }
 
@@ -55,7 +55,7 @@ public extension NSAttributedString {
     func height(withConstrainedWidth width: CGFloat) -> CGFloat {
         let constraintRect = CGSize(width: width, height: .greatestFiniteMagnitude)
         let boundingBox = boundingRect(with: constraintRect, options: .usesLineFragmentOrigin, context: nil)
-    
+
         return ceil(boundingBox.height)
     }
 
@@ -91,7 +91,7 @@ public extension AttributedString {
         let nsAttributedString = NSAttributedString(self)
         return nsAttributedString.height(withConstrainedWidth: width)
     }
-    
+
     /*
     /**
      Calculates the height of the attributed string with the given constrained width.

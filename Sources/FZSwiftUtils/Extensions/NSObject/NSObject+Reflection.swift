@@ -169,7 +169,7 @@ private let valueTypesMap: [String: Any] = [
     "B": Bool.self,
     "d": Double.self,
     "f": Float.self,
-    "{": Decimal.self,
+    "{": Decimal.self
 ]
 
 private extension String {

@@ -18,7 +18,7 @@ public extension URLSessionTask {
         setValue(request, forKeyPath: "originalRequest")
         setValue(request, forKeyPath: "currentRequest")
     }
-    
+
     /// The expected length of the content.
     var expectedContentLength: Int64? {
         var fileSize = self.countOfBytesExpectedToReceive

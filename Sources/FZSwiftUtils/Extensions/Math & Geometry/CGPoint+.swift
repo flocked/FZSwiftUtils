@@ -9,7 +9,7 @@ import Foundation
 import CoreGraphics
 
 public extension CGPoint {
-    
+
     /// Creates a point with the specified x and y value.
     init(_ x: CGFloat, _ y: CGFloat) {
         self.init(x: x, y: y)
@@ -19,7 +19,7 @@ public extension CGPoint {
     init(_ xY: CGFloat) {
         self.init(x: xY, y: xY)
     }
-    
+
     /**
      Returns a new CGPoint by offsetting the current point by the specified offset.
      
@@ -29,7 +29,7 @@ public extension CGPoint {
     func offset(by offset: CGPoint) -> CGPoint {
         return CGPoint(x: x + offset.x, y: y + offset.y)
     }
-    
+
     /**
      Returns a new CGPoint by offsetting the current point by the specified value along the x and y axes.
 
@@ -39,7 +39,7 @@ public extension CGPoint {
     func offset(by value: CGFloat) -> CGPoint {
         return CGPoint(x: x + value, y: y + value)
     }
-    
+
     /**
      Returns a new CGPoint by offsetting the current point along the x-axis by the specified value.
      
@@ -48,7 +48,7 @@ public extension CGPoint {
     func offset(x: CGFloat) -> CGPoint {
         return CGPoint(x: self.x + x, y: y)
     }
-    
+
     /**
      Returns a new CGPoint by offsetting the current point along the y-axis by the specified value.
      
@@ -57,7 +57,7 @@ public extension CGPoint {
     func offset(y: CGFloat) -> CGPoint {
         return CGPoint(x: self.x, y: y + y)
     }
-    
+
     /**
      Returns a new CGPoint by offsetting the current point by the specified values along the x and y axes.
      
@@ -70,7 +70,7 @@ public extension CGPoint {
     func offset(x: CGFloat = 0, y: CGFloat) -> CGPoint {
         return CGPoint(x: self.x + x, y: self.y + y)
     }
-    
+
     /**
      Returns the distance between the current point and the specified point.
      
@@ -84,7 +84,7 @@ public extension CGPoint {
         let ydst = y - point.y
         return sqrt((xdst * xdst) + (ydst * ydst))
     }
-    
+
     /**
      Returns the scaled integral point of the current CGPoint.
      The x and y values are scaled based on the current device's screen scale.
@@ -94,7 +94,7 @@ public extension CGPoint {
     var scaledIntegral: CGPoint {
         CGPoint(x: x.scaledIntegral, y: y.scaledIntegral)
     }
-    
+
     /**
      Returns a new CGPoint with rounded x and y values using the specified rounding rule.
      
@@ -106,13 +106,12 @@ public extension CGPoint {
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGPoint {
         return CGPoint(x: x.rounded(rule), y: y.rounded(rule))
     }
-    
+
     /// The point as `CGSize`, using the x-coordinate as width and y-coordinate as height.
     var size: CGSize {
         CGSize(x, y)
     }
 }
-
 
 extension CGPoint: Hashable {
     public func hash(into hasher: inout Hasher) {
