@@ -314,3 +314,54 @@ extension BinaryInteger {
         }
     }
 }
+
+extension BinaryFloatingPoint where Self.RawSignificand : FixedWidthInteger {
+    /**
+     Returns a random value within the a range of `0.0` and the specified value.
+     
+     Use this method to generate a floating-point value within a specific range. This example creates three new values in the range `0.0 ... 20.0`.
+     
+     ```swift
+     for _ in 1...3 {
+         print(Double.random(max: 20.0))
+     }
+     // Prints "18.1900709259179"
+     // Prints "14.2286325689993"
+     // Prints "13.1485686260762"
+     ```
+     
+     The `random()` static method chooses a random value from a continuous uniform distribution in range, and then converts that value to the nearest representable value in this type. Depending on the size and span of range, some concrete values may be represented more frequently than others.
+     This method is equivalent to calling `random(in:using:)`, passing in the system’s default random generator.
+     
+     - Parameter max: The maximum value of the range.
+     - Returns: A random value within the bounds of range.
+     */
+    public static func random(max: Self) -> Self {
+        Self.random(in: 0...max)
+    }
+}
+
+extension Int {
+    /**
+     Returns a random value within a range of `0` and the specified value.
+     
+     Use this method to generate an integer within a specific range. This example creates three new values in the range `0...100`.
+     
+     ```swift
+     for _ in 1...3 {
+         print(Int.random(max: 100))
+     }
+     // Prints "53"
+     // Prints "64"
+     // Prints "5"
+     ```
+     
+     This method is equivalent to calling `random(in:using:)`, passing in the system’s default random generator.
+     
+     - Parameter max: The maximum value of the range.
+     - Returns: A random value within the bounds of range.
+     */
+    public static func random(max: Int) -> Int {
+        Int.random(in: 0...max)
+    }
+}
