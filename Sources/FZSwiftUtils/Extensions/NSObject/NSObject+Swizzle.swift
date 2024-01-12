@@ -163,7 +163,7 @@ extension NSObject {
         }
 
         object_setClass(self, nnSubclass)
-        let oldName = NSStringFromClass(class_getSuperclass(object_getClass(self)!)!)
+        // let oldName = NSStringFromClass(class_getSuperclass(object_getClass(self)!)!)
         // debugPrint("Generated \(NSStringFromClass(nnSubclass)) for object (was: \(oldName))")
         return nnSubclass
     }
