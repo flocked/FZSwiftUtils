@@ -153,6 +153,26 @@ public extension Date {
         get { value(for: .nanosecond) }
         set { setValue(newValue, for: .second) }
     }
+    
+    /**
+     Returns a string representation of the date that the system formats using the date format string.
+     
+     - Parameter formatter: The date format string.
+     - Returns: A string representation of the date.
+     */
+    func string(using format: String) -> String {
+        DateFormatter(format).string(from: self)
+    }
+    
+    /**
+     Returns a string representation of the date that the system formats using the formatter.
+     
+     - Parameter formatter: The date formatter.
+     - Returns: A string representation of the date.
+     */
+    func string(using formatter: DateFormatter) -> String {
+        formatter.string(from: self)
+    }
 }
 
 public extension Date {
