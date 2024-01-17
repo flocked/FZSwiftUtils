@@ -34,11 +34,18 @@ public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCo
 
 public extension SynchronizedArray {
     var synchronized: [Element] {
-        var array: [Element] = []
-        queue.sync {
-            array = self.array
+        get {
+            var array: [Element] = []
+            queue.sync {
+                array = self.array
+            }
+            return array
         }
-        return array
+        set {
+            queue.async(flags: .barrier) {
+                self.array = newValue
+            }
+        }
     }
 
     func edit(_ edit: @escaping (inout [Element]) -> Void) {

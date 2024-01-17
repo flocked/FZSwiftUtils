@@ -21,6 +21,8 @@ open class MutableProgress: Progress {
     }
 
     lazy var _progressState = ProgressState()
+    
+    /// The state of the progress.
     @objc public dynamic var progressState: ProgressState {
         get { _progressState }
         set {}
@@ -29,9 +31,11 @@ open class MutableProgress: Progress {
     /// All the current tracked children progresses and their observers.
     private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
 
-    /// Adds a new child. Will always use a pending unit count of 1.
-    ///
-    /// - Parameter child: The child to add.
+    /**
+     Adds a new child. Will always use a pending unit count of 1.
+     
+     - Parameter child: The child to add.
+     */
     open func addChild(_ child: Progress) {
         willChangeValue(for: \.totalUnitCount)
         let observer = KeyValueObserver(child)
@@ -94,9 +98,11 @@ open class MutableProgress: Progress {
         didChangeValue(for: \.progressState.unfinished)
     }
 
-    /// Removes the given child from the progress reporting.
-    ///
-    /// - Parameter child: The child to remove.
+    /**
+     Removes the given child from the progress reporting.
+     
+     - Parameter child: The child to remove.
+     */
     public func removeChild(_ child: Progress) {
         willChangeValue(for: \.fractionCompleted)
         willChangeValue(for: \.completedUnitCount)
@@ -141,6 +147,7 @@ open class MutableProgress: Progress {
 }
 
 public extension MutableProgress {
+    /// The state of an mutable progress.
     class ProgressState: NSObject {
         var _completedUnitCount: Int64 = 0 {
             didSet {
@@ -177,14 +184,19 @@ public extension MutableProgress {
             }
         }
 
+        /// The completed unit count of the progress.
         @objc public fileprivate(set) dynamic var completedUnitCount: Int64 = 0
 
+        /// The total unit count of the progress.
         @objc public fileprivate(set) dynamic var totalUnitCount: Int64 = 0
 
+        /// The fraction completed of the progress.
         @objc public fileprivate(set) dynamic var fractionCompleted: Double = 0
 
+        /// The speed of data processing, in bytes per second.
         @objc public fileprivate(set) dynamic var throughput: Int = 0
 
+        /// The estimated timeremaining until the progress finishes.
         @objc public fileprivate(set) dynamic var estimatedTimeRemaining: Double = 0
 
         @objc public fileprivate(set) dynamic var unfinished = UnfinishedProgressState()
