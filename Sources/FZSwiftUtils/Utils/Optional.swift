@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// A protocol represeting an optional value.
+/// A type represeting an optional value.
 public protocol OptionalProtocol: ExpressibleByNilLiteral {
     associatedtype Wrapped
     /// The optional value.
@@ -17,4 +17,9 @@ public protocol OptionalProtocol: ExpressibleByNilLiteral {
 extension Optional: OptionalProtocol {
     /// The optional value.
     public var optional: Self { self }
+    
+    /// A Boolean value that indicates whether the optional value is `nil`.
+    var isNil: Bool {
+        self.optional == nil
+    }
 }
