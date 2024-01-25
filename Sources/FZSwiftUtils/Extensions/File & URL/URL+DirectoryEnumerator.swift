@@ -136,7 +136,7 @@ public extension URL {
         - predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
         - options: Options for enumerating the contents of directories.
      */
-    func iterate(predicate: ((URL) -> Bool)? = nil, options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
+    func iterate(options: Set<DirectoryEnumerationOption> = [], predicate: ((URL) -> Bool)? = nil) -> URLSequence {
         let predicate = predicate ?? { _ in true }
         return URLSequence(url: self, options: options, predicate: predicate)
     }
@@ -148,8 +148,8 @@ public extension URL {
         - predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
         - options: Options for enumerating the contents of directories.
      */
-    func iterate(predicate: ((URL) -> Bool)? = nil, _ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterate(predicate: predicate, options: Set(options))
+    func iterate( _ options: DirectoryEnumerationOption..., predicate: ((URL) -> Bool)? = nil) -> URLSequence {
+        iterate(options: Set(options), predicate: predicate)
     }
 
     /**
@@ -158,9 +158,9 @@ public extension URL {
      - Parameter options: Options for enumerating the contents of directories.
      */
     func iterateFiles(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(predicate: {
+        iterate(options: options, predicate: {
             $0.isFile
-        }, options: options)
+        })
     }
 
     /**
@@ -180,10 +180,10 @@ public extension URL {
         - options: Options for enumerating the contents of directories.
      */
     func iterateFiles(types: [FileType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(predicate: {
+        iterate(options: options, predicate: {
             if types.isEmpty { return $0.isFile }
             if let fileType = $0.fileType, types.contains(fileType) { return true } else { return false }
-        }, options: options)
+        })
     }
 
     /**
@@ -206,12 +206,12 @@ public extension URL {
         - options: Options for enumerating the contents of directories.
      */
     func iterateFiles(contentTypes: [UTType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(predicate: {
+        iterate(options: options, predicate: {
             if contentTypes.isEmpty { return $0.isFile }
             if let type = $0.contentType, contentTypes.contains(type) || type.conforms(toAny: contentTypes) {
                 return true
             } else { return false }
-        }, options: options)
+        })
     }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
@@ -235,10 +235,10 @@ public extension URL {
      */
     func iterateFiles(extensions: [String], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
         let extensions = extensions.compactMap { $0.lowercased() }
-        return iterate(predicate: {
+        return iterate(options: options, predicate: {
             if extensions.isEmpty { return $0.isFile }
             return extensions.contains($0.pathExtension.lowercased())
-        }, options: options)
+        })
     }
 
     /**
@@ -258,7 +258,7 @@ public extension URL {
      - Parameter options: Options for enumerating the contents of directories.
      */
     func iterateDirectories(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(predicate: { $0.isDirectory == true }, options: options)
+        iterate(options: options, predicate: { $0.isDirectory == true })
     }
 
     /**
@@ -307,7 +307,7 @@ public extension URL {
         - options: Options for enumerating the contents of directories.
      */
     func iterateFiles(by fileEnumation: FileEnumerationOption, options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(predicate: fileEnumation.predicate, options: options)
+        iterate(options: options, predicate: fileEnumation.predicate)
     }
 
     /**
@@ -318,7 +318,7 @@ public extension URL {
         - options: Options for enumerating the contents of directories.
      */
     func iterateFiles(by fileEnumation: FileEnumerationOption, _ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterate(predicate: fileEnumation.predicate, options: Set(options))
+        iterate(options: Set(options), predicate: fileEnumation.predicate)
     }
 
     /**

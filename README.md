@@ -68,24 +68,54 @@ progress.addFileProgress(url: fileURL, kind: .downloading)
 
 Addition `URL` methods for iterating the content of file system directories.
 
-```swift
-let downloadsDirectory = URL.downloadsDirectory
+ - Iterate sub directories:
+ 
+ ```swift
+ for subDirectory in downloadsDirectory.iterateDirectories() {
+     
+ }
+ ```
+ 
+ - Iterate files:
+ 
+ ```swift
+ for file in downloadsDirectory.iterateFiles() {
+     
+ }
+ ```
+ 
+ - Iterate files by file extensions, file types or by predicate:
+ 
+ ```swift
+ // Iterates files with .txt extension
+ for txtFile in downloadsDirectory.iterateFiles(extensions: ["txt"]) {
 
-// Iterates all files
-for fileURL in downloadsDirectory.iterateFiles() {
-
-}
-
-// Iterates all files including hidden files and files in subdirectories.
-for fileURL in downloadsDirectory.iterateFiles(.includeHiddenFiles, .includeSubdirectoryDescendants) {
-
-}
-
-// Iterates all subdirectories
-for subDirectory in downloadsDirectory.iterateDirectories() {
-
-}
-```
+ }
+ 
+ // Iterate multimedia files
+ for multimediaFile in downloadsDirectory.iterateFiles(types: [.video, .image, .gif]) {
+ 
+ }
+ 
+ // Iterates video files with file names that contain "vid_" and finder tags containing "Favorite"
+ for file in downloadsDirectory.iterate(.includeSubdirectoryDescendants, .includeHiddenFiles, predicate: { file in
+     
+     return file.fileType == .video &&
+     file.lastPathComponent.contains("vid_") &&
+     file.resources.finderTags.contains("Favorite")
+ }) {
+     
+ }
+ ```
+ 
+ You can also specifiy iterate options:
+ 
+ ```swift
+ /// Iterates files including files in subdirectories and hidden files.
+ for file in downloadsDirectory.iterateFiles(.includeSubdirectoryDescendants, .includeHiddenFiles) {
+     
+ }
+ ```
 
 ### MeasureTime
 Meassures the time executing a block.

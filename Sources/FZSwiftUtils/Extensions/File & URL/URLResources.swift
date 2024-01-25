@@ -322,7 +322,7 @@ extension URLResources {
 
         @available(macOS 10.9, *)
         /// The finder tags of the resource.
-        var tags: [String] {
+        var finderTags: [String] {
             get { (try? value(for: \.tagNames)) ?? [] }
             set {
                 do {
