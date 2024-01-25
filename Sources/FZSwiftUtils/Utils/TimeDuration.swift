@@ -426,16 +426,11 @@ extension TimeDuration: CustomStringConvertible {
         string()
     }
 
-    var formatter: DateComponentsFormatter {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        return formatter
-    }
-
     /**
      A string representation of the time duration including the units.
      
-     Example:
+     Example usage:
+     
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
      duration.string // "3 hours, 2 minutes, 1 second"
@@ -448,8 +443,8 @@ extension TimeDuration: CustomStringConvertible {
     /**
      A compact string representation of the time duration.
      
-     Example:
-     
+     Example usage:
+
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
      duration.stringCompact // "3hrs 2min"
@@ -462,8 +457,8 @@ extension TimeDuration: CustomStringConvertible {
     /**
      Returns a string representation of the time duration using the specified time unit and style.
 
-     Example:
-     
+     Example usage:
+
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
      
@@ -499,7 +494,7 @@ extension TimeDuration: CustomStringConvertible {
     /**
      Returns a string representation of the time duration using the specified allowed time units and style.
      
-     Example:
+     Example usage:
 
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
@@ -523,6 +518,12 @@ extension TimeDuration: CustomStringConvertible {
         formatter.allowedComponents = allowedUnits.compactMap(\.calendarComponent).uniqued()
         formatter.unitsStyle = style
         return formatter.string(from: TimeInterval(seconds))!
+    }
+    
+    var formatter: DateComponentsFormatter {
+        let formatter = DateComponentsFormatter()
+        formatter.allowedUnits = [.hour, .minute, .second]
+        return formatter
     }
 
     func allCurrentUnits() -> [Unit] {

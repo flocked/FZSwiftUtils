@@ -344,16 +344,11 @@ extension DataSize: CustomStringConvertible {
         return formatter.string(fromByteCount: Int64(bytes))
     }
 
-    /// A byte count formatter configured with the data size's count style.
-    public var formatter: ByteCountFormatter {
-        ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
-    }
-
     /**
      A string representation of the data size that includes the units.
      
-     Example:
-     
+     Example usage:
+
      ```swift
      let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
      dataSize.string // "1 GB"
@@ -362,55 +357,28 @@ extension DataSize: CustomStringConvertible {
     public var string: String {
         string()
     }
-    
+        
     /**
-     A compact string representation of the data size that includes the units.
+     A detailed string representation of the data size that includes the units.
      
-     Example:
-     
-     ```swift
-     let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
-     dataSize.stringCompact // "1 GB"
-     ```
-     */
-    public var stringCompact: String {
-        if yottabytes >= 1 {
-            return string(for: .yottabyte)
-        } else if zettabytes >= 1 {
-            return string(for: .zettabyte)
-        } else if exabytes >= 1 {
-            return string(for: .exabyte)
-        } else if petabytes >= 1 {
-            return string(for: .petabyte)
-        } else if terabytes >= 1 {
-            return string(for: .terabyte)
-        } else if gigabytes >= 1 {
-            return string(for: .gigabyte)
-        } else if megabytes >= 1 {
-            return string(for: .megabyte)
-        } else if kilobytes >= 1 {
-            return string(for: .kilobyte)
-        } else if bytes >= 1 {
-            return string(for: .byte)
-        } else {
-            return string()
-        }
-    }
-    
-    /**
-     A compact string representation of the data size that includes the units.
-     
-     Example:
-     
+     Example usage:
+
      ```swift
      let dataSize1 = DataSize(gigabytes: 1, megabytes: 15)
-     dataSize1.stringDetail() // "1 GB"
+     dataSize1.stringDetailed() // "1.015 MB"
      
-     let dataSize2 = DataSize(terabytes: 2, gigabytes: 10)
-     dataSize1.stringDetail() // "1 GB"
+     let dataSize2 = DataSize(terabytes: 2.5, gigabytes: 1)
+     dataSize2.stringDetailed() // "2.501 GB"
      ```
+     
+     - Parameters:
+        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.  The default value is `false`.
+        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string. The default value is `false`.
+
+     - Returns: A detailed string representation of the data size.
      */
-    public func stringDetail(includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
+    public func stringDetailed(includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
         if yottabytes >= 1 {
             return string(for: .zettabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
         } else if zettabytes >= 1 {
@@ -433,7 +401,7 @@ extension DataSize: CustomStringConvertible {
     /**
      Returns a string representation of the data size using the specified unit.
      
-     Example:
+     Example usage:
 
      ```swift
      let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
@@ -445,18 +413,19 @@ extension DataSize: CustomStringConvertible {
      - Parameters:
         - unit: The unit to use for formatting the data size.
         - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.  The default value is `false`.
+        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string. The default value is `false`.
 
      - Returns: A string representation of the data size.
      */
-    public func string(for unit: Unit, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
-        string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+    public func string(for unit: Unit, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false) -> String {
+        string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits, includesActualByteCount: includesActualByteCount)
     }
 
     /**
      Returns a string representation of the data size using the specified allowed units.
      
-     Example:
+     Example usage:
      
      ```swift
      let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
@@ -468,16 +437,23 @@ extension DataSize: CustomStringConvertible {
      - Parameters:
         - allowedUnits: The allowed units for formatting the data size. The default value is `useAll`.
         - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.  The default value is `false`.
+        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string. The default value is `false`.
 
      - Returns: A string representation of the data size.
      */
-    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
+    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false) -> String {
         let formatter = formatter
         formatter.allowedUnits = allowedUnits
         formatter.includesUnit = includesUnit
+        formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
         return formatter.string(fromByteCount: Int64(bytes))
+    }
+    
+    /// A byte count formatter configured with the data size's count style.
+    var formatter: ByteCountFormatter {
+        ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
     }
 }
 
