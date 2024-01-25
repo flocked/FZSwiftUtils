@@ -38,8 +38,13 @@ public struct TimeDuration: Hashable, Sendable {
      - another: The second date.
      */
     public init(from date: Date, to another: Date) {
-        let interval = date.timeIntervalSince(another)
-        seconds = (interval >= 0.0) ? interval : 0
+        if date <= another {
+            let interval = date.timeIntervalSince(another)
+            seconds = (interval >= 0.0) ? interval : 0
+        } else {
+            let interval = another.timeIntervalSince(date)
+            seconds = (interval >= 0.0) ? interval : 0
+        }
     }
 
     /**
@@ -90,7 +95,13 @@ public struct TimeDuration: Hashable, Sendable {
     }
 
     /// The duration in seconds.
-    public var seconds: Double
+    public var seconds: Double {
+        didSet {
+            if seconds < 0.0 {
+                seconds = 0.0
+            }
+        }
+    }
 
     /// The duration in minutes.
     public var minutes: Double {

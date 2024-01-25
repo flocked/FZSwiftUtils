@@ -53,7 +53,13 @@ public struct DataSize: Hashable, Sendable {
     public var countStyle: CountStyle = .file
 
     /// The size in bytes.
-    public var bytes: Int
+    public var bytes: Int {
+        didSet {
+            if bytes < 0 {
+                bytes = 0
+            }
+        }
+    }
 
     /// The size in kilobytes.
     public var kilobytes: Double {
