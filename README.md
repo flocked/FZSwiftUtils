@@ -11,8 +11,7 @@ Swift Foundation extensions and useful classes & utilities.
 A data size abstraction.
 
 ```swift
-let dataSize = DataSize(gigabytes: 1.5)
-dataSize.countStyle = .file // Specify the number of bytes to be used for kilobytes (either for  file or storage byte counts)
+var dataSize = DataSize(gigabytes: 1.5)
 dataSize.megabyte // 1500 megabytes
 dataSize.terabyte += 1
 dataSize.string(includesUnit: true) // "1tb, 1gb, 500mb"
@@ -24,10 +23,13 @@ dataSize.string(for: .terabyte, includesUnit: false) // "1,15"
 A duration/time interval abstraction.
 
 ```swift
-let duration = TimeDuration(seconds: 1)
+var duration = TimeDuration(seconds: 1)
 duration.minutes += 2
 duration.string(style: .full) // "2 minutes, 1 seconds"
 duration.string(for: .seconds) =  "121 seconds"
+
+// Duration between two dates.
+let dateDuration = TimeDuration(from: date1, to: date2)
 ```
 
 ### KeyValueObserver
