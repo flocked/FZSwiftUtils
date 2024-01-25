@@ -28,14 +28,18 @@ public struct DataSize: Hashable, Sendable {
      Initializes a `DataSize` instance with the specified sizes in various units and count style.
 
      - Parameters:
-        - terabytes: The size in terabytes. The default value is `0`.
-        - gigabytes: The size in gigabytes. The default value is `0`.
-        - megabytes: The size in megabytes. The default value is `0`.
-        - kilobytes: The size in kilobytes. The default value is `0`.
-        - bytes: The size in bytes. The default value is `0`.
-        - countStyle: Specify the number of bytes to be used for ``kilobytes``. The default value is `file`.
+        - yottabytes: The yottabytes. The default value is `0`.
+        - zettabytes: The zettabytes. The default value is `0`.
+        - exabytes: The exabytes. The default value is `0`.
+        - petabytes: The petabytes. The default value is `0`.
+        - terabytes: The terabytes. The default value is `0`.
+        - gigabytes: The gigabytes. The default value is `0`.
+        - megabytes: The megabytes. The default value is `0`.
+        - kilobytes: The kilobytes. The default value is `0`.
+        - bytes: The bytes. The default value is `0`.
+        - countStyle: The number of bytes to be used for ``kilobytes``. The default value is `file`.
      */
-    public init(petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
+    public init(yottabytes: Double = 0, zettabytes: Double = 0, exabytes: Double = 0, petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
         self.bytes += self.bytes(for: kilobytes, .kilobyte)
@@ -43,8 +47,11 @@ public struct DataSize: Hashable, Sendable {
         self.bytes += self.bytes(for: gigabytes, .gigabyte)
         self.bytes += self.bytes(for: terabytes, .terabyte)
         self.bytes += self.bytes(for: petabytes, .petabyte)
+        self.bytes += self.bytes(for: exabytes, .exabyte)
+        self.bytes += self.bytes(for: zettabytes, .zettabyte)
+        self.bytes += self.bytes(for: yottabytes, .yottabyte)
     }
-
+    
     /**
      Specify the number of bytes to be used for kilobytes.
      
@@ -89,6 +96,24 @@ public struct DataSize: Hashable, Sendable {
     public var petabytes: Double {
         get { value(for: .petabyte) }
         set { bytes = bytes(for: newValue, .petabyte) }
+    }
+    
+    /// The size in exabytes.
+    public var exabytes: Double {
+        get { value(for: .exabyte) }
+        set { bytes = bytes(for: newValue, .exabyte) }
+    }
+    
+    /// The size in zettabytes.
+    public var zettabytes: Double {
+        get { value(for: .zettabyte) }
+        set { bytes = bytes(for: newValue, .zettabyte) }
+    }
+    
+    /// The size in yottabytes.
+    public var yottabytes: Double {
+        get { value(for: .yottabyte) }
+        set { bytes = bytes(for: newValue, .yottabyte) }
     }
 
     func value(for unit: Unit) -> Double {
@@ -171,10 +196,43 @@ public extension DataSize {
      - Returns: `DataSize`with the specified petabytes.
      */
     static func petabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(petabytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified exabytes.
+
+     - Parameters:
+        - value: The exabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
+     - Returns: `DataSize`with the specified exabytes.
+     */
+    static func exabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(exabytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified zettabytes.
+
+     - Parameters:
+        - value: The zettabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
+     - Returns: `DataSize`with the specified zettabytes.
+     */
+    static func zettabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(zettabytes: value, countStyle: countStyle) }
+    
+    /**
+     Returns a data size with the specified yottabytes.
+
+     - Parameters:
+        - value: The yottabytes.
+        - countStyle: The count style for formatting the data size. The default value is `file`.
+
+     - Returns: `DataSize`with the specified yottabytes.
+     */
+    static func yottabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(yottabytes: value, countStyle: countStyle) }
 }
 
 extension DataSize: Codable {
-    enum CodingKeys: CodingKey {
+    public enum CodingKeys: CodingKey {
         case bytes
         case countStyle
     }
@@ -220,7 +278,7 @@ public extension DataSize {
         case exabyte = 6
         /// Zettabyte
         case zettabyte = 7
-        /// >ottabyte
+        /// Yottabyte
         case yottabyte = 8
 
         var byteCountFormatterUnit: ByteCountFormatter.Units {
@@ -258,7 +316,7 @@ public extension Collection where Element == DataSize {
     /**
      The average size of all data sizes in the collection.
 
-     - Returns: A `DataSize` instance representing the average size. If the collection is empty, it returns `zerp`.
+     - Returns: A `DataSize` instance representing the average size. If the collection is empty, it returns `zero`.
      */
     func average() -> DataSize {
         guard !isEmpty else { return .zero }
@@ -291,37 +349,134 @@ extension DataSize: CustomStringConvertible {
         ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
     }
 
-    /// A string representation of the data size.
+    /**
+     A string representation of the data size that includes the units.
+     
+     Example:
+     
+     ```swift
+     let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
+     dataSize.string // "1 GB"
+     ```
+     */
     public var string: String {
         string()
+    }
+    
+    /**
+     A compact string representation of the data size that includes the units.
+     
+     Example:
+     
+     ```swift
+     let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
+     dataSize.stringCompact // "1 GB"
+     ```
+     */
+    public var stringCompact: String {
+        if yottabytes >= 1 {
+            return string(for: .yottabyte)
+        } else if zettabytes >= 1 {
+            return string(for: .zettabyte)
+        } else if exabytes >= 1 {
+            return string(for: .exabyte)
+        } else if petabytes >= 1 {
+            return string(for: .petabyte)
+        } else if terabytes >= 1 {
+            return string(for: .terabyte)
+        } else if gigabytes >= 1 {
+            return string(for: .gigabyte)
+        } else if megabytes >= 1 {
+            return string(for: .megabyte)
+        } else if kilobytes >= 1 {
+            return string(for: .kilobyte)
+        } else if bytes >= 1 {
+            return string(for: .byte)
+        } else {
+            return string()
+        }
+    }
+    
+    /**
+     A compact string representation of the data size that includes the units.
+     
+     Example:
+     
+     ```swift
+     let dataSize1 = DataSize(gigabytes: 1, megabytes: 15)
+     dataSize1.stringDetail() // "1 GB"
+     
+     let dataSize2 = DataSize(terabytes: 2, gigabytes: 10)
+     dataSize1.stringDetail() // "1 GB"
+     ```
+     */
+    public func stringDetail(includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
+        if yottabytes >= 1 {
+            return string(for: .zettabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else if zettabytes >= 1 {
+            return string(for: .exabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else if exabytes >= 1 {
+            return string(for: .petabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else if petabytes >= 1 {
+            return string(for: .terabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else if terabytes >= 1 {
+            return string(for: .gigabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else if gigabytes >= 1 {
+            return string(for: .megabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else if megabytes >= 1 {
+            return string(for: .kilobyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        } else {
+            return string(for: .byte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+        }
     }
 
     /**
      Returns a string representation of the data size using the specified unit.
+     
+     Example:
 
+     ```swift
+     let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
+
+     dataSize.string(for: .byte, includesUnit: false) // "1.002.000.003"
+     dataSize.string(for: .megabyte, includesUnit: true) // "1.002 MB"
+     ```
+     
      - Parameters:
-       - unit: The unit to use for formatting the data size.
-       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
+        - unit: The unit to use for formatting the data size.
+        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
 
      - Returns: A string representation of the data size.
      */
-    public func string(for unit: Unit, includesUnit: Bool = true) -> String {
-        string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit)
+    public func string(for unit: Unit, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
+        string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
     }
 
     /**
      Returns a string representation of the data size using the specified allowed units.
+     
+     Example:
+     
+     ```swift
+     let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
+
+     dataSize.string(allowedUnits: .useAll, includesUnit: true) // "1 GB"
+     dataSize.string(allowedUnits: .useMB, includesUnit: false) // "1.002"
+     ```
 
      - Parameters:
-       - allowedUnits: The allowed units for formatting the data size. The default value is `useAll`.
-       - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
+        - allowedUnits: The allowed units for formatting the data size. The default value is `useAll`.
+        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
 
      - Returns: A string representation of the data size.
      */
-    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true) -> String {
+    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
         let formatter = formatter
-        formatter.allowedUnits = allowedUnits
+        formatter.allowedUnits = [.useEB]
         formatter.includesUnit = includesUnit
+        formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
         return formatter.string(fromByteCount: Int64(bytes))
     }
 }

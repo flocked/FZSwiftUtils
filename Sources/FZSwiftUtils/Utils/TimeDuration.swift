@@ -432,12 +432,29 @@ extension TimeDuration: CustomStringConvertible {
         return formatter
     }
 
-    /// A string representation of the time duration.
+    /**
+     A string representation of the time duration including the units.
+     
+     Example:
+     ```swift
+     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+     duration.string // "3 hours, 2 minutes, 1 second"
+     ```
+     */
     var string: String {
         string(allowedUnits: .all)
     }
 
-    /// A compact string representation of the time duration.
+    /**
+     A compact string representation of the time duration.
+     
+     Example:
+     
+     ```swift
+     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+     duration.stringCompact // "3hrs 2min"
+     ```
+     */
     public var stringCompact: String {
         string(allowedUnits: .allCompact, style: .brief)
     }
@@ -445,6 +462,30 @@ extension TimeDuration: CustomStringConvertible {
     /**
      Returns a string representation of the time duration using the specified time unit and style.
 
+     Example:
+     
+     ```swift
+     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+     
+     // full
+     duration.string(for: .second, style: .full) // "10.921 seconds"
+
+     // brief
+     duration.string(for: .second, style: .brief) // "10.921secs"
+
+     // short
+     duration.string(for: .second, style: .short) // "10.921 secs"
+
+     // abbreviated
+     duration.string(for: .second, style: .abbreviated) // "10.921s"
+
+     // positional
+     duration.string(for: .second, style: .positional) // "10.921"
+
+     // spellOut
+     duration.string(for: .second, style: .spellOut) // "ten thousand nine hundred twenty-one seconds"
+     ```
+     
      - Parameters:
        - unit: The unit to use for formatting the time duration.
        - style: The formatting style. The default value is `full`.
@@ -457,7 +498,19 @@ extension TimeDuration: CustomStringConvertible {
 
     /**
      Returns a string representation of the time duration using the specified allowed time units and style.
+     
+     Example:
 
+     ```swift
+     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+     
+     // "182min 1sec"
+     duration.string(allowedUnits: [.minute, .second], style: .brief)
+     
+     // "3 hours, 2 minutes, 1 second"
+     duration.string(allowedUnits: .all, style: .full)
+     ```
+     
      - Parameters:
        - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
        - style: The formatting style. The default value is `full`.
