@@ -75,7 +75,7 @@ public extension URL {
          Sets an attribute to a value.
 
          - Parameters:
-            - value: The value, or nil if the attribute should be removed.
+            - value: The value, or `nil` if the attribute should be removed.
             - key: The name of the attribute.
 
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
@@ -93,7 +93,7 @@ public extension URL {
          Sets an attribute to a value.
 
          - Parameters:
-            - value: The value, or nil if the attribute should be removed.
+            - value: The value, or `nil` if the attribute should be removed.
             - key: The name of the attribute.
 
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
@@ -111,7 +111,7 @@ public extension URL {
          The value of an key.
 
          - Parameter key: The name of the attribute.
-         - Returns: The value of the key, or nil if there isn't an attribute with the key.
+         - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
          */
         public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
             guard let data = extendedAttributeData(for: key) else { return nil }
@@ -122,7 +122,7 @@ public extension URL {
          The value of an key.
 
          - Parameter key: The name of the attribute.
-         - Returns: The value of the key, or nil if there isn't an attribute with the key.
+         - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
          */
         public func extendedAttribute<T>(for key: Key) -> T? {
             guard let data = extendedAttributeData(for: key), let any = try? PropertyListSerialization.propertyList(from: data, format: nil),

@@ -31,7 +31,7 @@ public extension Collection where Element: Identifiable {
      Returns the first index of the specified element.
 
      - Parameter element: The element for returning the index.
-     - Returns: The first index of the element, or nil if no index could be found.
+     - Returns: The first index of the element, or `nil` if no index could be found.
 
      */
     func index(of element: Element) -> Self.Index? {

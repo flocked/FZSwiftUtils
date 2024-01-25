@@ -71,7 +71,7 @@ public struct PartialSourceLazySplitSequence<Base: Collection>: IteratorProtocol
     ///
     /// - Parameters:
     ///   - bases: A function which returns the next collection in the series each time it is called,
-    ///     or nil if there are no more collections.
+    ///     or `nil` if there are no more collections.
     ///   - separator: The element of ‘bases’ to split over.
     public init(_ bases: @escaping () -> Base?, separator: Base.Element) {
         gs = AnyIterator(bases).lazy.map {

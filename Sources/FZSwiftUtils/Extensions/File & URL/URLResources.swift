@@ -151,7 +151,7 @@ public class URLResources {
     /// A value APFS assigns that identifies a file’s content data stream.
     public var fileContentIdentifier: Int64? { try? value(for: \.fileContentIdentifier) }
 
-    /// The optimal block size when reading or writing this file’s data, or nil if not available.
+    /// The optimal block size when reading or writing this file’s data, or `nil` if not available.
     public var preferredIOBlockSize: Int? { try? value(for: \.preferredIOBlockSize) }
 
     /// A Boolean value indicating if the resource is readable.

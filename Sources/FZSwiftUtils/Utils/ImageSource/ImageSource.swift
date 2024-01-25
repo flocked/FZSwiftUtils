@@ -67,10 +67,10 @@ public class ImageSource {
      Returns the image at the specified index in the image source.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns nil.
+        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil.
         - options: Additional image creation options
 
-     - Returns: The image at the specified index, or nil if an error occurs.
+     - Returns: The image at the specified index, or `nil` if an error occurs.
      */
     public func getImage(at index: Int = 0, options: ImageOptions? = .init()) -> CGImage? {
         CGImageSourceCreateImageAtIndex(cgImageSource, index, options?.dic)
@@ -80,10 +80,10 @@ public class ImageSource {
      Returns the image at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns nil.
+        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil.
         - options: Additional image creation options
 
-     - Returns: The image at the specified index, or nil if an error occurs.
+     - Returns: The image at the specified index, or `nil` if an error occurs.
      */
     public func image(at index: Int = 0, options: ImageOptions? = .init()) async -> CGImage? {
         await withCheckedContinuation { continuation in
@@ -97,9 +97,9 @@ public class ImageSource {
      Returns the image at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns nil.
+        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil.
         - options: Additional image creation options
-        - completionHandler: A closure the method calls on completion which returns the image at the specified index, or nil if an error occurs.
+        - completionHandler: A closure the method calls on completion which returns the image at the specified index, or `nil` if an error occurs.
      */
     public func image(at index: Int = 0, options: ImageOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.global(qos: .userInteractive).async {
@@ -112,10 +112,10 @@ public class ImageSource {
      Returns the thumbnail at the specified index in the image source.
 
      - Parameters:
-        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns nil.
+        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil`.
         - options: Additional thumbnail creation options
 
-     - Returns: The thumbnail at the specified index, or nil if an error occurs.
+     - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func getThumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) -> CGImage? {
         CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toCFDictionary())
@@ -125,10 +125,10 @@ public class ImageSource {
      Returns the thumbnail at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns nil.
+        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil`.
         - options: Additional thumbnail creation options
 
-     - Returns: The thumbnail at the specified index, or nil if an error occurs.
+     - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) async -> CGImage? {
         await withCheckedContinuation { continuation in
@@ -142,9 +142,9 @@ public class ImageSource {
      Returns the thumbnail at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns nil.
+        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil.
         - options: Additional thumbnail creation options
-        - completionHandler: A closure the method calls on completion which returns the thumbnail at the specified index, or nil if an error occurs.
+        - completionHandler: A closure the method calls on completion which returns the thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.global(qos: .userInteractive).async {
@@ -255,7 +255,7 @@ public extension ImageSource {
     /**
      The total animation duration of an image source that is animated.,
 
-     Returns nil if the image isn't animated.
+     Returns `nil if the image isn't animated.
      */
     var animationDuration: Double? {
         guard count > 1 else { return nil }

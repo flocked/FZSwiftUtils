@@ -19,20 +19,20 @@ public extension Sequence {
     }
 
     /**
-     Returns an array containing the non-nil results of mapping the given keypath element.
+     Returns an array containing the non-`nil` results of mapping the given keypath element.
 
      - Parameter keyPath: The keypath to the element that can be optional.
-     - Returns: An array of the non-nil results of the keypath elements.
+     - Returns: An array of the non-`nil` results of the keypath elements.
      */
     func compactMap<T>(_ keyPath: KeyPath<Element, T?>) -> [T] {
         compactMap { $0[keyPath: keyPath] }
     }
 
     /**
-     Returns an array containing the non-nil results of mapping the given keypath element.
+     Returns an array containing the non-`nil` results of mapping the given keypath element.
 
      - Parameter keyPath: The keypath to the element that can be optional.
-     - Returns: An array of the non-nil results of the keypath elements.
+     - Returns: An array of the non-`nil` results of the keypath elements.
      */
     func compactMap<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
         compactMap { $0[keyPath: keyPath] }
@@ -41,7 +41,7 @@ public extension Sequence {
     /**
      Returns an array containing the concatenated results of mapping each element of the keypath's sequence.
 
-     Returns an array containing the non-nil results of mapping the given keypath element.
+     Returns an array containing the non-`nil` results of mapping the given keypath element.
 
      - Parameter keyPath: The keypath to the sequence.
      - Returns: The resulting flattened array.

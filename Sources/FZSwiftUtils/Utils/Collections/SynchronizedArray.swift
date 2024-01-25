@@ -241,7 +241,7 @@ public extension SynchronizedArray {
     /// Returns the first element of the sequence that satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
-    /// - Returns: The first element of the sequence that satisfies predicate, or nil if there is no element that satisfies predicate.
+    /// - Returns: The first element of the sequence that satisfies predicate, or `nil` if there is no element that satisfies predicate.
     func first(where predicate: (Element) -> Bool) -> Element? {
         var result: Element?
         queue.sync { result = self.array.first(where: predicate) }
@@ -251,7 +251,7 @@ public extension SynchronizedArray {
     /// Returns the last element of the sequence that satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
-    /// - Returns: The last element of the sequence that satisfies predicate, or nil if there is no element that satisfies predicate.
+    /// - Returns: The last element of the sequence that satisfies predicate, or `nil` if there is no element that satisfies predicate.
     func last(where predicate: (Element) -> Bool) -> Element? {
         var result: Element?
         queue.sync { result = self.array.last(where: predicate) }
@@ -272,7 +272,7 @@ public extension SynchronizedArray {
     /// Returns the first index in which an element of the collection satisfies the given predicate.
     ///
     /// - Parameter predicate: A closure that takes an element as its argument and returns a Boolean value that indicates whether the passed element represents a match.
-    /// - Returns: The index of the first element for which predicate returns true. If no elements in the collection satisfy the given predicate, returns nil.
+    /// - Returns: The index of the first element for which predicate returns `true. If no elements in the collection satisfy the given predicate, returns `nil`.
     func index(where predicate: (Element) -> Bool) -> Int? {
         var result: Int?
         queue.sync { result = self.array.firstIndex(where: predicate) }
@@ -292,17 +292,17 @@ public extension SynchronizedArray {
     /// Returns an array containing the results of mapping the given closure over the sequence’s elements.
     ///
     /// - Parameter transform: A closure that accepts an element of this sequence as its argument and returns an optional value.
-    /// - Returns: An array of the non-nil results of calling transform with each element of the sequence.
+    /// - Returns: An array of the non-`nil` results of calling transform with each element of the sequence.
     func map<ElementOfResult>(_ transform: @escaping (Element) -> ElementOfResult) -> [ElementOfResult] {
         var result = [ElementOfResult]()
         queue.sync { result = self.array.map(transform) }
         return result
     }
 
-    /// Returns an array containing the non-nil results of calling the given transformation with each element of this sequence.
+    /// Returns an array containing the non-`nil` results of calling the given transformation with each element of this sequence.
     ///
     /// - Parameter transform: A closure that accepts an element of this sequence as its argument and returns an optional value.
-    /// - Returns: An array of the non-nil results of calling transform with each element of the sequence.
+    /// - Returns: An array of the non-`nil` results of calling transform with each element of the sequence.
     func compactMap<ElementOfResult>(_ transform: (Element) -> ElementOfResult?) -> [ElementOfResult] {
         var result = [ElementOfResult]()
         queue.sync { result = self.array.compactMap(transform) }

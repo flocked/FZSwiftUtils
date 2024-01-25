@@ -30,7 +30,7 @@ public extension CGPoint {
     }
 
     /**
-     Returns a new CGPoint by offsetting the current point by the specified value along the x and y axes.
+     Returns a new point by offsetting the current point by the specified value along the x- and y-axes.
 
      - Parameters:
         - value: The value to be added to the x-coordinate and y-coordinate of the current point.
@@ -40,7 +40,7 @@ public extension CGPoint {
     }
 
     /**
-     Returns a new CGPoint by offsetting the current point along the x-axis by the specified value.
+     Returns a new point by offsetting the current point along the x-axis by the specified value.
 
      - Parameter x: The value to be added to the x-coordinate of the current point.
      */
@@ -49,9 +49,9 @@ public extension CGPoint {
     }
 
     /**
-     Returns a new CGPoint by offsetting the current point along the y-axis by the specified value.
+     Returns a new point by offsetting the current point along the y-axis by the specified value.
 
-     - Parameter y: The value to be added to the x-coordinate of the current point.
+     - Parameter y: The value to be added to the y-coordinate of the current point.
      */
     func offset(y: CGFloat) -> CGPoint {
         CGPoint(x: x, y: y + y)

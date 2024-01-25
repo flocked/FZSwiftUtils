@@ -22,7 +22,7 @@ private extension String {
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
- - Returns: The associated value for the object and key, or nil if the value couldn't be found for the key..
+ - Returns: The associated value for the object and key, or `nil` if the value couldn't be found for the key..
  */
 public func getAssociatedValue<T>(key: String, object: AnyObject) -> T? {
     (objc_getAssociatedObject(object, key.address) as? _AssociatedValue)?.value as? T

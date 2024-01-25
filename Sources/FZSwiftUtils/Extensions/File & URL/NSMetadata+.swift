@@ -12,7 +12,7 @@ public extension NSMetadataItem {
      Returns the value of the specified attribute.
 
      - Parameter attribute: The name of a metadata attribute. See the “Constants” section for a list of possible keys.
-     - Returns: Returns the value of the attribute or nil if the attribute couldn't be found.
+     - Returns: Returns the value of the attribute or `nil` if the attribute couldn't be found.
      */
     func value<T>(for attribute: String) -> T? {
         value(forAttribute: attribute) as? T

@@ -596,7 +596,7 @@ public extension Timer {
          -  target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to this object until it (the timer) is invalidated.
          - selector: The message to send to target when the timer fires.
      The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument). The timer passes itself as the argument, thus the method would adopt the following pattern:
-         - userInfo: Custom user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+         - userInfo: Custom user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be `nil.
          - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
 
       - Returns:A new Timer object, configured according to the specified parameters.
@@ -626,7 +626,7 @@ public extension Timer {
         - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
         - target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to target until it (the timer) is invalidated.
         - selector: The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument).
-        - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+        - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be `nil.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
 
      - Returns:A new Timer object, configured according to the specified parameters.
@@ -654,10 +654,10 @@ public extension Timer {
      Creates a timer and schedules it on the current run loop in the default mode.
 
      - Parameters:
-        - interval: The interval between firings of the timer. If interval is equal to 0.0 seconds, this method chooses the nonnegative value of 0.0001 seconds instead.
+        - interval: The interval between firings of the timer. If interval is equal to `0.0` seconds, this method chooses the nonnegative value of `0.0001` seconds instead.
         - target: The object to which to send the message specified by aSelector when the timer fires. The timer maintains a strong reference to target until it (the timer) is invalidated.
         - selector: The selector should have the following signature: timerFireMethod: (including a colon to indicate that the method takes an argument).
-        - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be nil.
+        - userInfo: The user info for the timer. The timer maintains a strong reference to this object until it (the timer) is invalidated. This parameter may be `nil`.
         - repeats: If `true`, the timer will repeatedly reschedule itself until invalidated. If `false`, the timer will be invalidated after it fires.
 
      - Returns:A new Timer object, configured according to the specified parameters.

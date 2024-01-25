@@ -64,8 +64,32 @@ progress.addFileProgress(url: fileURL, kind: .downloading)
 ```
 - `MutableProgress`: A progress that allows to add and remove children progresses.
 
+### Iterate directories & files
+
+Addition `URL` methods for iterating the content of file system directories.
+
+```swift
+let downloadsDirectory = URL.downloadsDirectory
+
+// Iterates all files
+for fileURL in downloadsDirectory.iterateFiles() {
+
+}
+
+// Iterates all files including hidden files and files in subdirectories.
+for fileURL in downloadsDirectory.iterateFiles(.includeHiddenFiles, .includeSubdirectoryDescendants) {
+
+}
+
+// Iterates all subdirectories
+for subDirectory in downloadsDirectory.iterateDirectories() {
+
+}
+```
+
 ### MeasureTime
 Meassures the time executing a block.
+
 ```swift
 let timeElapsed = MeasureTime.timeElapsed() {
 /// The block to measure

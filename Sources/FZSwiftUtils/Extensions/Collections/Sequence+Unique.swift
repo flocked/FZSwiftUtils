@@ -12,7 +12,7 @@ public extension Sequence where Element: Equatable {
      Returns a random element of the collection excluding any of the specified elements.
 
      - Parameter excluding: The elements excluded for the returned element.
-     - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns nil.
+     - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
      */
     func randomElement(excluding: [Element]) -> Element? {
         let elements = filter { excluding.contains($0) == false }

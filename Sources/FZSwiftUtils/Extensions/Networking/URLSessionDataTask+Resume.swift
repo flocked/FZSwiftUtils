@@ -58,7 +58,7 @@ import Foundation
       - data: The data returned by the server.
       - data: The resume data returned by task.
       - response: An object that provides response metadata, such as HTTP headers and status code. If you are making an HTTP or HTTPS request, the returned object is actually an HTTPURLResponse object.
-      - error: An error object that indicates why the request failed, or nil if the request was successful.
+      - error: An error object that indicates why the request failed, or `nil` if the request was successful.
 
       - Returns: The new resumable session data task.
       */
@@ -84,7 +84,7 @@ import Foundation
       - data: The data returned by the server.
       - data: The resume data returned by task.
       - response: An object that provides response metadata, such as HTTP headers and status code. If you are making an HTTP or HTTPS request, the returned object is actually an HTTPURLResponse object.
-      - error: An error object that indicates why the request failed, or nil if the request was successful.
+      - error: An error object that indicates why the request failed, or `nil` if the request was successful.
 
       - Returns: The new resumable session data task.
       */
