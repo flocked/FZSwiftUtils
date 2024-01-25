@@ -7,27 +7,33 @@ Swift Foundation extensions and useful classes & utilities.
 ## Notable Extensions & Classes
 
 ### DataSize
-A data size abstraction 
+
+A data size abstraction.
+
 ```swift
 let dataSize = DataSize(gigabytes: 1.5)
-dataSize.countStyle = .file // Specifies display of file or storage byte counts
+dataSize.countStyle = .file // Specify the number of bytes to be used for kilobytes (either for  file or storage byte counts)
 dataSize.megabyte // 1500 megabytes
 dataSize.terabyte += 1
-dataSize.string(includesUnit: true) // 1tb, 1gb, 500mb
-dataSize.string(for: .terabyte, includesUnit: false) // 1,15
+dataSize.string(includesUnit: true) // "1tb, 1gb, 500mb"
+dataSize.string(for: .terabyte, includesUnit: false) // "1,15"
 ```
 
 ### TimeDuration
-A duration/time interval abstraction 
+
+A duration/time interval abstraction.
+
 ```swift
 let duration = TimeDuration(seconds: 1)
 duration.minutes += 2
-duration.string(style: .full) // 2 minutes, 1 seconds
-duration.string(for: .seconds) =  121 seconds
+duration.string(style: .full) // "2 minutes, 1 seconds"
+duration.string(for: .seconds) =  "121 seconds"
 ```
 
 ### KeyValueObserver
+
 Observes multiple properties of an object.
+
 ```swift
 let textField = NSTextField()
 let observer = KeyValueObserver(textField)
@@ -38,7 +44,9 @@ guard oldStringValue != stringValue else { return }
 ```
  
 ### NSObject extensions
+
 - `associatedValue`: Getting and setting associated values of an object.
+
 ```swift
 // Set
 button.associatedValue["myAssociatedValue"] = "SomeValue"
@@ -49,6 +57,7 @@ if let string: String = button.associatedValue["myAssociatedValue"] {
 }
 ```
 - `observeChanges<Value>(for: for keyPath: KeyPath<Self, Value>)`: Observes changes for a property.
+
 ```swift
 textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
 guard oldStringValue != stringValue else { return }
@@ -57,11 +66,14 @@ guard oldStringValue != stringValue else { return }
 ```
 
 ### Progress extensions
+
 - `updateEstimatedTimeRemaining()`: Updates the estimted time remaining and throughput.
 - `addFileProgress(url: URL, kind: FileOperationKind = .downloading)`: Shows the file progress in Finder.
+
 ```swift
 progress.addFileProgress(url: fileURL, kind: .downloading)
 ```
+
 - `MutableProgress`: A progress that allows to add and remove children progresses.
 
 ### Iterate directories & files
@@ -117,6 +129,7 @@ Addition `URL` methods for iterating the content of file system directories.
  ```
 
 ### MeasureTime
+
 Meassures the time executing a block.
 
 ```swift
@@ -126,13 +139,16 @@ let timeElapsed = MeasureTime.timeElapsed() {
 ```
 
 ### OSHash
+
 An implementation of the OpenSuptitle hash.
+
 ```swift
 let hash = try? OSHash(url: fileURL)
 hash?.Value /// The hash value
 ```
  
 ### More…
+
 - `AsyncOperation`: An asynchronous, pausable operation.
 - `PausableOperationQueue`: A pausable operation queue.
 - `SynchronizedArray`/`SynchronizedDictionary`: A synchronized array/dictioanry.

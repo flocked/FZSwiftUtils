@@ -9,15 +9,15 @@ import Foundation
 
 /// A struct representing a data size.
 public struct DataSize: Hashable, Sendable {
-    /// The count style for formatting the data size.
+    /// Specifies display of file or storage byte counts.
     public typealias CountStyle = ByteCountFormatter.CountStyle
-
+    
     /**
      Initializes a `DataSize` instance with the given number of bytes and count style.
 
      - Parameters:
        - bytes: The number of bytes.
-       - countStyle: The count style for formatting the data size. The default value is `file`.
+       - countStyle: Specify the number of bytes to be used for ``kilobytes``. The default value is `file`.
      */
     public init<Value: BinaryInteger>(_ bytes: Value, countStyle: CountStyle = .file) {
         self.bytes = Int(bytes)
@@ -28,12 +28,12 @@ public struct DataSize: Hashable, Sendable {
      Initializes a `DataSize` instance with the specified sizes in various units and count style.
 
      - Parameters:
-       - terabytes: The size in terabytes. The default value is `0`.
-       - gigabytes: The size in gigabytes. The default value is `0`.
-       - megabytes: The size in megabytes. The default value is `0`.
-       - kilobytes: The size in kilobytes. The default value is `0`.
-       - bytes: The size in bytes. The default value is `0`.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - terabytes: The size in terabytes. The default value is `0`.
+        - gigabytes: The size in gigabytes. The default value is `0`.
+        - megabytes: The size in megabytes. The default value is `0`.
+        - kilobytes: The size in kilobytes. The default value is `0`.
+        - bytes: The size in bytes. The default value is `0`.
+        - countStyle: Specify the number of bytes to be used for ``kilobytes``. The default value is `file`.
      */
     public init(petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
@@ -45,8 +45,12 @@ public struct DataSize: Hashable, Sendable {
         self.bytes += self.bytes(for: petabytes, .petabyte)
     }
 
-    /// The count style for formatting the data size.
-    public var countStyle: CountStyle
+    /**
+     Specify the number of bytes to be used for kilobytes.
+     
+     The default setting is `file`, which is the system specific value for file and storage sizes.
+     */
+    public var countStyle: CountStyle = .file
 
     /// The size in bytes.
     public var bytes: Int
