@@ -68,7 +68,7 @@ progress.addFileProgress(url: fileURL, kind: .downloading)
 
 Addition `URL` methods for iterating the content of file system directories.
 
- - Iterate sub directories.
+ - Iterate sub directories
  
  ```swift
  for subDirectoryURL in downloadsDirectory.iterateDirectories() {
@@ -76,7 +76,7 @@ Addition `URL` methods for iterating the content of file system directories.
  }
  ```
  
- - Iterate files.
+ - Iterate files
  
  ```swift
  for fileURL in downloadsDirectory.iterateFiles() {
@@ -84,7 +84,7 @@ Addition `URL` methods for iterating the content of file system directories.
  }
  ```
  
- - Iterate files by file extensions, file types or by predicate.
+ - Iterate files by file extensions, file types or by predicate
  
  ```swift
  // Iterates files with .txt extension
@@ -99,7 +99,6 @@ Addition `URL` methods for iterating the content of file system directories.
  
  // Iterates video files with file names that contain "vid_" and finder tags containing "Favorite"
  for fileURL in downloadsDirectory.iterate(.includeSubdirectoryDescendants, .includeHiddenFiles, predicate: { file in
-     
      return file.fileType == .video &&
      file.lastPathComponent.contains("vid_") &&
      file.resources.finderTags.contains("Favorite")
@@ -111,7 +110,7 @@ Addition `URL` methods for iterating the content of file system directories.
  You can also specifiy iterate options.
  
  ```swift
- /// Iterates files, including files in subdirectories and hidden files.
+ /// Iterates files, including files in subdirectories and hidden files
  for fileURL in downloadsDirectory.iterateFiles(.includeSubdirectoryDescendants, .includeHiddenFiles) {
      
  }
