@@ -474,7 +474,7 @@ extension DataSize: CustomStringConvertible {
      */
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
         let formatter = formatter
-        formatter.allowedUnits = [.useEB]
+        formatter.allowedUnits = allowedUnits
         formatter.includesUnit = includesUnit
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
         return formatter.string(fromByteCount: Int64(bytes))
