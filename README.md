@@ -71,7 +71,7 @@ Addition `URL` methods for iterating the content of file system directories.
  - Iterate sub directories:
  
  ```swift
- for subDirectory in downloadsDirectory.iterateDirectories() {
+ for subDirectoryURL in downloadsDirectory.iterateDirectories() {
      
  }
  ```
@@ -79,7 +79,7 @@ Addition `URL` methods for iterating the content of file system directories.
  - Iterate files:
  
  ```swift
- for file in downloadsDirectory.iterateFiles() {
+ for fileURL in downloadsDirectory.iterateFiles() {
      
  }
  ```
@@ -88,17 +88,17 @@ Addition `URL` methods for iterating the content of file system directories.
  
  ```swift
  // Iterates files with .txt extension
- for txtFile in downloadsDirectory.iterateFiles(extensions: ["txt"]) {
+ for txtFileURL in downloadsDirectory.iterateFiles(extensions: ["txt"]) {
 
  }
  
  // Iterate multimedia files
- for multimediaFile in downloadsDirectory.iterateFiles(types: [.video, .image, .gif]) {
+ for multimediaFileURL in downloadsDirectory.iterateFiles(types: [.video, .image, .gif]) {
  
  }
  
  // Iterates video files with file names that contain "vid_" and finder tags containing "Favorite"
- for file in downloadsDirectory.iterate(.includeSubdirectoryDescendants, .includeHiddenFiles, predicate: { file in
+ for fileURL in downloadsDirectory.iterate(.includeSubdirectoryDescendants, .includeHiddenFiles, predicate: { file in
      
      return file.fileType == .video &&
      file.lastPathComponent.contains("vid_") &&
@@ -111,8 +111,8 @@ Addition `URL` methods for iterating the content of file system directories.
  You can also specifiy iterate options:
  
  ```swift
- /// Iterates files including files in subdirectories and hidden files.
- for file in downloadsDirectory.iterateFiles(.includeSubdirectoryDescendants, .includeHiddenFiles) {
+ /// Iterates files, including files in subdirectories and hidden files.
+ for fileURL in downloadsDirectory.iterateFiles(.includeSubdirectoryDescendants, .includeHiddenFiles) {
      
  }
  ```
