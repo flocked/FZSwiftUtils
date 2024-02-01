@@ -349,16 +349,6 @@ public extension SynchronizedArray {
         queue.sync { result = self.array.contains(where: predicate) }
         return result
     }
-    
-    /**
-     Returns a Boolean value indicating whether the array contains the given element.
-     
-     - Parameter element: The element to find in the array.
-     - Returns: `true` if the element was found in the array; otherwise, `false`.
-     */
-    func contains(_ element: Element) -> Bool where Element: Equatable {
-        return synchronized.contains(element)
-    }
 
     /// Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.
     ///
