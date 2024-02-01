@@ -112,6 +112,7 @@ public extension String {
                 let upperBound = self.index(match.range.upperBound, offsetBy: -toString.count)
                 let range = lowerBound ..< upperBound
                 let score = self.distance(from: range.lowerBound, to: range.upperBound)
+                
                 let string = String(match.string.dropFirst(fromString.count).dropLast(toString.count))
                 return StringMatch(string: string, range: range, score: score)
             }

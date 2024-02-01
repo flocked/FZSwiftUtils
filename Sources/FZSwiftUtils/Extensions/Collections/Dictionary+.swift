@@ -47,7 +47,7 @@ public extension Dictionary {
     }
 
     /**
-     Transforms keys without modifying values. Drops (key, value) pairs where the transform results in a `nil key.
+     Transforms keys without modifying values. Drops (key, value) pairs where the transform results in a `nil` key.
 
      - Parameter transform: A closure that accepts each key of the dictionary as its parameter and returns a potential transformed key of the same or of a different type.
 

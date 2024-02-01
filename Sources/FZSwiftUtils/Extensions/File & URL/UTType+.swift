@@ -21,7 +21,7 @@
         /**
          Creates a type based on a file url..
 
-         This initializer returns `nil if the system doesn’t know the type identifier.
+         This initializer returns `nil` if the system doesn’t know the type identifier.
 
          - Parameters:
             - url:The file url.
