@@ -7,6 +7,9 @@
 
 import CoreGraphics
 import Foundation
+#if os(macOS)
+    import AppKit
+#endif
 
 public extension CGPoint {
     /// Creates a point with the specified x and y value.
@@ -86,6 +89,7 @@ public extension CGPoint {
 
     /**
      Returns the scaled integral point of the current CGPoint.
+     
      The x and y values are scaled based on the current device's screen scale.
 
      - Returns: The scaled integral CGPoint.
@@ -93,6 +97,20 @@ public extension CGPoint {
     var scaledIntegral: CGPoint {
         CGPoint(x: x.scaledIntegral, y: y.scaledIntegral)
     }
+    
+    #if os(macOS)
+    /**
+     Returns the scaled integral point of the current CGPoint for the specified screen.
+     
+     The x and y values are scaled based on the the screen scale.
+
+     - Parameter screen: The screen for scale.
+     - Returns: The scaled integral CGPoint.
+     */
+    func scaledIntegral(for screen: NSScreen) -> CGPoint {
+        CGPoint(x: x.scaledIntegral(for: screen), y: y.scaledIntegral(for: screen))
+    }
+    #endif
 
     /**
      Returns a new CGPoint with rounded x and y values using the specified rounding rule.

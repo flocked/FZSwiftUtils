@@ -7,6 +7,9 @@
 
 import CoreGraphics
 import Foundation
+#if os(macOS)
+    import AppKit
+#endif
 
 public extension CGSize {
     /// Creates a size with the specified width and height.
@@ -21,6 +24,7 @@ public extension CGSize {
 
     /**
      Returns the scaled integral size of the size.
+     
      The width and height values are scaled based on the current device's screen scale.
 
      - Returns: The scaled integral size of the size.
@@ -28,6 +32,20 @@ public extension CGSize {
     var scaledIntegral: CGSize {
         CGSize(width: width.scaledIntegral, height: height.scaledIntegral)
     }
+    
+    #if os(macOS)
+    /**
+     Returns the scaled integral size of the size for the specified screen.
+     
+     The width and height values are scaled based on the screen scale.
+
+     - Parameter screen: The screen for the scale.
+     - Returns: The scaled integral size of the size.
+     */
+    func scaledIntegral(for screen: NSScreen) -> CGSize {
+        CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
+    }
+    #endif
 
     /**
      Returns the aspect ratio of the size.

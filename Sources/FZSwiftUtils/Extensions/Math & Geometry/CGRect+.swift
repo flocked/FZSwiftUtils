@@ -7,13 +7,16 @@
 
 import CoreGraphics
 import Foundation
+#if os(macOS)
+    import AppKit
+#endif
 
 public extension CGRect {
     /// Creates a rect with the specified values.
     init(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) {
         self.init(x: x, y: y, width: width, height: height)
     }
-
+    
     /// Creates a rect with the specified origin and size.
     init(_ origin: CGPoint, _ size: CGSize) {
         self.init(origin: origin, size: size)
@@ -47,6 +50,7 @@ public extension CGRect {
 
     /**
      Returns the scaled integral rect based on the current rect.
+     
      The origin and size values are scaled based on the current device's screen scale.
 
      - Returns: The scaled integral rect.
@@ -59,6 +63,25 @@ public extension CGRect {
             height: size.height.scaledIntegral
         )
     }
+    
+    #if os(macOS)
+    /**
+     Returns the scaled integral rect based on the current rect for the specfied screen.
+     
+     The origin and size values are scaled based on the screen scale.
+
+     - Parameter screen: The screen for scale.
+     - Returns: The scaled integral rect.
+     */
+    func scaledIntegral(for screen: NSScreen) -> CGRect {
+        CGRect(
+            x: origin.x.scaledIntegral(for: screen),
+            y: origin.y.scaledIntegral(for: screen),
+            width: size.width.scaledIntegral(for: screen),
+            height: size.height.scaledIntegral(for: screen)
+        )
+    }
+    #endif
 
     /// The x-coordinate of the origin of the rectangle.
     var x: CGFloat {
