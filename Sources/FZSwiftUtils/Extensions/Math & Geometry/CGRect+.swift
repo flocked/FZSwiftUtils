@@ -364,13 +364,6 @@ extension CGRect: Hashable {
 public extension Collection where Element == CGRect {
     /// The union of all rectangles in the collection.
     func union() -> CGRect {
-        var unionRect = CGRect.zero
-        for rect in self {
-            unionRect.origin.x = Swift.min(rect.origin.x, unionRect.origin.x)
-            unionRect.origin.y = Swift.min(rect.origin.y, unionRect.origin.y)
-            unionRect.size.width = Swift.max(rect.origin.x.sign == .minus ? rect.size.width - rect.origin.x : rect.size.width, unionRect.size.width)
-            unionRect.size.height = Swift.max(rect.origin.y.sign == .minus ? rect.size.height - rect.origin.y : rect.size.height, unionRect.size.height)
-        }
-        return unionRect
+        return reduce(CGRect.zero) {$0.union($1)}
     }
 }
