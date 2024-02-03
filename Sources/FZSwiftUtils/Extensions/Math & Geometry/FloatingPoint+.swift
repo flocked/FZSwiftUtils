@@ -39,7 +39,7 @@ public extension BinaryFloatingPoint {
 #if os(macOS)
         let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
 #elseif os(iOS) || os(tvOS)
-        let scale = UIScreen.main.scale
+        let scale = Self(UIScreen.main.scale)
 #else
         let scale = 1.0
 #endif
