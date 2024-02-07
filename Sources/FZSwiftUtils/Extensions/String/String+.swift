@@ -50,6 +50,12 @@ public extension String {
     func replaceEmojiNumbers() -> String {
         replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
     }
+    
+    /// Returns the substring for the `NSRange`, or `nil` if the range couldn't be found.
+    func substring(fron range: NSRange) -> Substring? {
+        guard range != .notFound, let range = Range(range, in: self) else { return nil }
+        return self[range]
+    }
 }
 
 public extension StringProtocol {
