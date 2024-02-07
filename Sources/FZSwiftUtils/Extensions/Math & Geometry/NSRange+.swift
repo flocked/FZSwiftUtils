@@ -18,6 +18,7 @@ public extension NSRange {
         lowerBound ..< upperBound + 1
     }
 
+    /// Not found range.
     static let notFound = NSRange(location: NSNotFound, length: 0)
 
     /// A Boolean value indicating whether the range contains no elements.

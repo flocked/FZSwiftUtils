@@ -33,7 +33,7 @@ public extension NSNumber {
     convenience init<Value>(_ value: Value) where Value: BinaryFloatingPoint { self.init(value: Float(value)) }
 
     /**
-     Returns an NSNumber object initialized to contain the specified value.
+     Returns an `NSNumber object initialized to contain the specified value.
 
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
@@ -41,7 +41,7 @@ public extension NSNumber {
     convenience init(_ value: CGFloat) { self.init(value: value) }
 
     /**
-     Returns an NSNumber object initialized to contain the specified value.
+     Returns an `NSNumber` object initialized to contain the specified value.
 
      - Parameter value: The value for the new number.
      - Returns: An `NSNumber` object containing the value.
@@ -49,7 +49,7 @@ public extension NSNumber {
     convenience init<Value>(_ value: Value) where Value: BinaryInteger { self.init(value: Int(value)) }
 
     /**
-     Returns an NSNumber object initialized to contain the specified value of the string.
+     Returns an `NSNumber` object initialized to contain the specified value of the string.
 
      - Parameter value: The value of the string for the new number.
      - Returns: An `NSNumber` object containing the value of the string, or `nil` if the string doesn't contain a value.
