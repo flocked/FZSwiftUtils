@@ -71,43 +71,6 @@ public extension NSRange {
     func overlaps(_ other: NSRange) -> Bool {
         intersection(other) != nil
     }
-    
-    /**
-     Creates a string `NSRange` from a `Range`.
-     
-     - Parameters:
-        - range: The range of the string.
-        - string: The string.
-     
-     - Returns: The range, or `nil` if the string doesn't include the range.
-     */
-    init?(range: Range<String.Index>, in string: String) {
-        self.init(string: string, lowerBound: range.lowerBound, upperBound: range.upperBound)
-    }
-
-    /**
-     Creates a string `NSRange` from a `ClosedRange`.
-     
-     - Parameters:
-        - range: The range of the string.
-        - string: The string.
-     
-     - Returns: The range, or `nil` if the string doesn't include the range.
-     */
-    init?(range: ClosedRange<String.Index>, in string: String) {
-        self.init(string: string, lowerBound: range.lowerBound, upperBound: range.upperBound)
-    }
-    
-    internal init?(string: String, lowerBound: String.Index, upperBound: String.Index) {
-        let utf16 = string.utf16
-
-        guard let lowerBound = lowerBound.samePosition(in: utf16), let upperBound = upperBound.samePosition(in: utf16) else {
-            return nil
-        }
-        let location = utf16.distance(from: utf16.startIndex, to: lowerBound)
-        let length = utf16.distance(from: lowerBound, to: upperBound)
-        self.init(location: location, length: length)
-    }
 }
 
 extension Sequence<NSRange> {
