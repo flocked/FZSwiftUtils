@@ -70,6 +70,17 @@ public extension NSObject {
             }
         }
     }
+    
+    /**
+     A Boolean value indicating whether the specified method is replaced.
+     
+     - Returns: Returns `true` if the method is replaced, or `false` if the method isn't replaced or the object isn't responding to the selector.
+     */
+    func didReplaceMethod(_ selector: Selector) -> Bool {
+        guard self.responds(to: selector) else { return false }
+        guard let subclass = getExistingSubclass() else { return false }
+        return hasExistingMethod(subclass, selector)
+    }
 }
 
 extension NSObject {
