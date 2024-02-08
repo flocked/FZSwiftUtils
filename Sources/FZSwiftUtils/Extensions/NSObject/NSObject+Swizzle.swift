@@ -10,6 +10,7 @@
 import Foundation
 
 public extension NSObject {
+    
     /**
      Replace an `@objc dynamic` instance method via selector on the current object.
 
@@ -41,6 +42,7 @@ public extension NSObject {
         hookSignature _: HookSignature.Type = HookSignature.self,
         _ implementation: (Hook<MethodSignature>) -> HookSignature?
     ) throws {
+                
         let subclass: AnyClass = try subclass()
         let hook = Hook<MethodSignature>(selector: selector, class: type(of: self))
         let block = implementation(hook) as AnyObject
@@ -69,17 +71,6 @@ public extension NSObject {
                 class_replaceMethod(subclass, selector, originalIMP, encoding)
             }
         }
-    }
-    
-    /**
-     A Boolean value indicating whether the specified method is replaced.
-     
-     - Returns: Returns `true` if the method is replaced, or `false` if the method isn't replaced or the object isn't responding to the selector.
-     */
-    func didReplaceMethod(_ selector: Selector) -> Bool {
-        guard self.responds(to: selector) else { return false }
-        guard let subclass = getExistingSubclass() else { return false }
-        return hasExistingMethod(subclass, selector)
     }
 }
 
