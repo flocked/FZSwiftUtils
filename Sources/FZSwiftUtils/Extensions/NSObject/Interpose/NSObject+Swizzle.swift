@@ -41,9 +41,7 @@ extension NSObject {
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
-            var _hooks = hooks[selector] ?? []
-            _hooks.append(hook)
-            hooks[selector] = _hooks
+            addHook(hook, for: selector)
     }
 
     /// Replace an `@objc dynamic` class method via selector on the object.
@@ -78,6 +76,23 @@ extension NSObject {
                 _ = try hook.revert()
             } catch {
                 Swift.debugPrint(error)
+            }
+        }
+        hooks[selector] = nil
+    }
+        
+    func addHook(_ hook: AnyHook, for selector: Selector) {
+        var _hooks = hooks[selector] ?? []
+        _hooks.append(hook)
+        hooks[selector] = _hooks
+    }
+    
+    func removeHooks(for selector: Selector) {
+        for hook in hooks[selector] ?? [] {
+            do {
+                try hook.revert()
+            } catch {
+                Swift.print(error)
             }
         }
         hooks[selector] = nil
