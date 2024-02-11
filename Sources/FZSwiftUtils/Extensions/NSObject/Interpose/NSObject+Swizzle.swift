@@ -83,7 +83,7 @@ extension NSObject {
         hooks[selector] = nil
     }
     
-    var hooks: [Selector: [AnyHook]] {
+    public var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }
