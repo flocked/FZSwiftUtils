@@ -8,7 +8,7 @@
 import Foundation
 
 /// A struct representing a data size.
-public struct DataSize: Hashable, Sendable {
+public struct DataSize: Hashable, Sendable, Codable {
     /// Specifies display of file or storage byte counts.
     public typealias CountStyle = ByteCountFormatter.CountStyle
     
@@ -229,27 +229,6 @@ public extension DataSize {
      - Returns: `DataSize`with the specified yottabytes.
      */
     static func yottabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(yottabytes: value, countStyle: countStyle) }
-}
-
-extension DataSize: Codable {
-    public enum CodingKeys: CodingKey {
-        case bytes
-        case countStyle
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: Self.CodingKeys.self)
-        try container.encode(bytes, forKey: .bytes)
-        try container.encode(countStyle.rawValue, forKey: .countStyle)
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let bytes = try container.decode(Int.self, forKey: .bytes)
-        let countStyleRaw = try container.decode(Int.self, forKey: .countStyle)
-        let countStyle = CountStyle(rawValue: countStyleRaw)!
-        self.init(bytes, countStyle: countStyle)
-    }
 }
 
 extension DataSize: ExpressibleByIntegerLiteral {

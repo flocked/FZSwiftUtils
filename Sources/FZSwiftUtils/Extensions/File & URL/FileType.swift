@@ -43,7 +43,7 @@ public extension URL {
 }
 
 /// The type of a file.
-public enum FileType: Hashable, CustomStringConvertible, CaseIterable {
+public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     /// Alias
     case aliasFile
     /// Application

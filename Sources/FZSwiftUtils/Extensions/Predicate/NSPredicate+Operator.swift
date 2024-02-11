@@ -24,7 +24,7 @@ public extension NSComparisonPredicate.Options {
     }
 }
 
-public prefix func ! (lhs: NSPredicate) -> NSPredicate {
+public prefix func ! (lhs: NSPredicate) -> NSCompoundPredicate {
     NSCompoundPredicate(notPredicateWithSubpredicate: lhs)
 }
 

@@ -9,7 +9,7 @@ import AVKit
 import Foundation
 
 /// A structure representing a time duration.
-public struct TimeDuration: Hashable, Sendable {
+public struct TimeDuration: Hashable, Sendable, Codable {
     /**
      Initializes a new `TimeDuration` instance with the specified duration in seconds.
 
@@ -269,22 +269,6 @@ public extension Date {
      */
     func timeDurationSince(_ another: Date) -> TimeDuration {
         TimeDuration(timeIntervalSince(another))
-    }
-}
-
-extension TimeDuration: Codable {
-    public enum CodingKeys: CodingKey {
-        case seconds
-    }
-
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: Self.CodingKeys.self)
-        try container.encode(seconds, forKey: .seconds)
-    }
-
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        seconds = try container.decode(Double.self, forKey: .seconds)
     }
 }
 
