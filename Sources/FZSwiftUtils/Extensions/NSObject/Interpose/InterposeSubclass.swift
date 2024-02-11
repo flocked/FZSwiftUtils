@@ -1,10 +1,3 @@
-//
-//  InterposeSubclass.swift
-//
-//  Copyright (c) 2020 Peter Steinberger
-//  InterposeKit - https://github.com/steipete/InterposeKit/
-//
-
 import Foundation
 
 class InterposeSubclass {
@@ -64,7 +57,7 @@ class InterposeSubclass {
         }
 
         guard let nnSubclass = subclass else {
-            throw NSObject.SwizzleError.failedToAllocateClassPair(class: perceivedClass, subclassName: subclassName)
+            throw InterposeError.failedToAllocateClassPair(class: perceivedClass, subclassName: subclassName)
         }
 
         object_setClass(object, nnSubclass)
@@ -82,6 +75,7 @@ class InterposeSubclass {
         return nil
     }
 
+    #if !os(Linux)
     private func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {
         // crashes on linux
         let getClass: @convention(block) (AnyObject) -> AnyClass = { _ in
@@ -111,4 +105,9 @@ class InterposeSubclass {
             Interpose.log("Added super for -[\(dynamicClass).\(selector)]: \(imp)")
         }
     }
+    #else
+    func addSuperTrampoline(selector: Selector) { }
+    class var supportsSuperTrampolines: Bool { return false }
+    private func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {}
+    #endif
 }

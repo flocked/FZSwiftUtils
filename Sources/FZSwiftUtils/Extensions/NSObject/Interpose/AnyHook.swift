@@ -1,10 +1,3 @@
-//
-//  AnyHook.swift
-//
-//  Copyright (c) 2020 Peter Steinberger
-//  InterposeKit - https://github.com/steipete/InterposeKit/
-//
-
 import Foundation
 
 /// Base class, represents a hook to exactly one method.
@@ -33,7 +26,7 @@ public class AnyHook {
         case interposed
 
         /// An error happened while interposing a method.
-        indirect case error(NSObject.SwizzleError)
+        indirect case error(InterposeError)
     }
 
     init(`class`: AnyClass, selector: Selector) throws {
@@ -53,7 +46,7 @@ public class AnyHook {
     }
 
     /// Apply the interpose hook.
-    @discardableResult public func apply() throws -> Self {
+    @discardableResult public func apply() throws -> AnyHook {
         try execute(newState: .interposed) { try replaceImplementation() }
         return self
     }
@@ -67,9 +60,9 @@ public class AnyHook {
     /// Validate that the selector exists on the active class.
     @discardableResult func validate(expectedState: State = .prepared) throws -> Method {
         guard let method = class_getInstanceMethod(`class`, selector) else {
-            throw NSObject.SwizzleError.methodNotFound(`class`, selector)
+            throw InterposeError.methodNotFound(`class`, selector)
         }
-        guard state == expectedState else { throw NSObject.SwizzleError.invalidState(expectedState: expectedState) }
+        guard state == expectedState else { throw InterposeError.invalidState(expectedState: expectedState) }
         return method
     }
 
@@ -77,7 +70,7 @@ public class AnyHook {
         do {
             try task()
             state = newState
-        } catch let error as NSObject.SwizzleError {
+        } catch let error as InterposeError {
             state = .error(error)
             throw error
         }
