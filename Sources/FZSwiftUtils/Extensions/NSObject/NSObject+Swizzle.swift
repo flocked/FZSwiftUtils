@@ -10,48 +10,10 @@
 import Foundation
 
 extension NSObject {
-    /// Object to reset an replaced method.
-    public class ReplacedMethod {
-        /// The selector for the replaced method.
-        public let selector: Selector
-        
-        public weak var object: NSObject?
-        var `class`: NSObject.Type?
-        let id: UUID
-        
-        /// Resets an replaced method to it's original state.
-        public func reset() {
-            if let _class = self.class {
-                if var hooks = _class.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
-                    _ =  try? hooks[safe: index]?.revert()
-                    hooks.remove(at: index)
-                    object?.hooks[selector] = hooks
-                }
-            } else if var hooks = object?.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
-                _ =  try? hooks[safe: index]?.revert()
-                hooks.remove(at: index)
-                object?.hooks[selector] = hooks
-            }
-        }
-        
-        init(_ object: NSObject?, hook: AnyHook) {
-            self.object = object
-            self.selector = hook.selector
-            self.id = hook.id
-        }
-        
-        init(_ _class: NSObject.Type?, hook: AnyHook) {
-            self.object = nil
-            self.class = _class
-            self.selector = hook.selector
-            self.id = hook.id
-        }
-    }
-    
     /**
-     Replace an `@objc dynamic` instance method via selector on the current object.
+     Replace an `@objc dynamic` instance method of the current object.
           
-     Example usage that replaces the `mouseDown`method of a view:
+     Example usage that replaces the `mouseDown` method of a view:
      
      ```swift
      let view = NSView()
@@ -75,36 +37,54 @@ extension NSObject {
      ```
      
      To reset the replaced method, use `replaceMethod(_:)`.
+     
+     - Returns: The token for resetting the replaced method.
      */
     @discardableResult
     public func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethod {
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
-            return ReplacedMethod(self, hook: hook)
+            return ReplacedMethodToken(hook)
         }
     
-    /// Replace an `@objc dynamic` class method via selector on the object.
+    /// Replace an `@objc dynamic` class method of the current class.
     @discardableResult
     public static func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethod {
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
             let hook = try Interpose.ClassHook(class: self as AnyClass,
                                                selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
-            return ReplacedMethod(self, hook: hook)
+            return ReplacedMethodToken(hook)
         }
     
-    /// Resets an replaced instance method on the current object to it's original state.
+    /**
+     The token for resetting a replaced method.
+     
+     To reset a replaced method of an object, use the token on the object's `resetMethod(:_)`.
+     */
+    public struct ReplacedMethodToken {
+        /// The selector for the replaced method.
+        public let selector: Selector
+        let id: UUID
+        
+        init(_ hook: AnyHook) {
+            self.selector = hook.selector
+            self.id = hook.id
+        }
+    }
+    
+    /// Resets an replaced instance method of the object to it's original state.
     public func resetMethod(_ selector: Selector) {
         for hook in hooks[selector] ?? [] {
             do {
@@ -114,6 +94,19 @@ extension NSObject {
             }
         }
         hooks[selector] = nil
+    }
+    
+    /// Resets an replaced instance method of the object to it's original state.
+    public func resetMethod(_ token: ReplacedMethodToken) {
+        if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
+            do {
+                try hooks[safe: index]?.revert()
+                hooks.remove(at: index)
+                self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
+            } catch {
+                Swift.debugPrint(error)
+            }
+        }
     }
     
     /// Resets all replaced instance methods on the current object to their original state.
@@ -128,7 +121,7 @@ extension NSObject {
         (hooks[selector] ?? []).isEmpty == false
     }
     
-    /// Resets an replaced class method on the object to it's original state.
+    /// Resets an replaced class method of the class to it's original state.
     public static func resetMethod(_ selector: Selector) {
         for hook in hooks[selector] ?? [] {
             do {
@@ -140,7 +133,20 @@ extension NSObject {
         hooks[selector] = nil
     }
     
-    /// Resets all replaced class methods on the current object to their original state.
+    /// Resets an replaced class method of the class to it's original state.
+    public static func resetMethod(_ token: ReplacedMethodToken) {
+        if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
+            do {
+                try hooks[safe: index]?.revert()
+                hooks.remove(at: index)
+                self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
+            } catch {
+                Swift.debugPrint(error)
+            }
+        }
+    }
+    
+    /// Resets all replaced class methods of the class to their original state.
     public static func resetAllMethods() {
         for selector in hooks.keys {
             resetMethod(selector)
