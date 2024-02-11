@@ -27,7 +27,7 @@ extension Interpose {
             }
 
             // Weakly store reference to hook inside the block of the IMP.
-            Interpose.storeHook(hook: self, to: block)
+            storeHook(to: block)
         }
 
         //    /// Release the hook block if possible.
@@ -131,6 +131,34 @@ extension Interpose {
                 }
             }
         }
+        
+        func findNextHook(topmostIMP: IMP) -> Self? {
+            // We are not topmost hook, so find the hook above us!
+            var impl: IMP? = topmostIMP
+            var currentHook: Self?
+            repeat {
+                // get topmost hook
+                let hook: Self? = hookForIMP(impl!)
+                if hook === self {
+                    // return parent
+                    return currentHook
+                }
+                // crawl down the chain until we find ourselves
+                currentHook = hook
+                impl = hook?.origIMP
+            } while impl != nil
+            return nil
+        }
+        
+        func storeHook(to block: AnyObject) {
+            set(weakAssociatedValue: self, key: "_hook", object: block)
+        }
+        
+        func hookForIMP<HookType: AnyHook>(_ imp: IMP) -> HookType? {
+            // Get the block that backs our IMP replacement
+            guard let block = imp_getBlock(imp) as? AnyObject else { return nil }
+            return getAssociatedValue(key: "_hook", object: block)
+        }
 
         override func resetImplementation() throws {
             let method = try validate(expectedState: .interposed)
@@ -160,7 +188,7 @@ extension Interpose {
                 }
                 Interpose.log("Restored -[\(`class`).\(selector)] IMP: \(origIMP!)")
             } else {
-                let nextHook = Interpose.findNextHook(selfHook: self, topmostIMP: currentIMP)
+                let nextHook = findNextHook(topmostIMP: currentIMP)
                 // Replace next's original IMP
                 nextHook?.origIMP = self.origIMP
             }

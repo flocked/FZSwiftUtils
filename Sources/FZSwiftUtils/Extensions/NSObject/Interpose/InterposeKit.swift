@@ -12,23 +12,8 @@ final class Interpose {
     }
 }
 
+/*
 extension Interpose {
-
-    private struct AssociatedKeys {
-        static var hookForBlock: UInt8 = 0
-    }
-
-    private class WeakObjectContainer<T: AnyObject>: NSObject {
-        private weak var _object: T?
-
-        var object: T? {
-            return _object
-        }
-        init(with object: T?) {
-            _object = object
-        }
-    }
-
     static func storeHook<HookType: AnyHook>(hook: HookType, to block: AnyObject) {
         set(weakAssociatedValue: hook, key: "_hook", object: block)
     }
@@ -59,3 +44,4 @@ extension Interpose {
         return nil
     }
 }
+*/
