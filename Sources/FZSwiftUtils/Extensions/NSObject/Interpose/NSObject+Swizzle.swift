@@ -40,7 +40,7 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
-            try hooks[selector]?.revert()
+            resetMethod(selector)
             hooks[selector] = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
     }
 
@@ -50,21 +50,29 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
-            try hooks[selector]?.revert()
+            resetMethod(selector)
             hooks[selector] = try Interpose.ClassHook(class: self as AnyClass,
                                        selector: selector, implementation: implementation).apply()
     }
     
     /// Resets an `@objc dynamic` instance method on the current object to it's original state.
     public func resetMethod(_ selector: Selector) {
-        _ = try? hooks[selector]?.revert()
-        hooks[selector] = nil
+        do {
+            _ = try hooks[selector]?.revert()
+            hooks[selector] = nil
+        } catch {
+            Swift.debugPrint(error)
+        }
     }
     
     /// Resets an `@objc dynamic` class method on the object to it's original state.
     public static func resetMethod(_ selector: Selector) {
-        _ = try? hooks[selector]?.revert()
-        hooks[selector] = nil
+        do {
+            _ = try hooks[selector]?.revert()
+            hooks[selector] = nil
+        } catch {
+            Swift.debugPrint(error)
+        }
     }
     
     var hooks: [Selector: AnyHook] {
