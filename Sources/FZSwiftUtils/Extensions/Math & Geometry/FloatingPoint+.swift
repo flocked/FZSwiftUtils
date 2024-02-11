@@ -41,7 +41,7 @@ public extension BinaryFloatingPoint {
 #elseif os(iOS) || os(tvOS)
         let scale = Self(UIScreen.main.scale)
 #else
-        let scale = 1.0
+        let scale: Self = 1.0
 #endif
         return rounded(toNearest: 1.0 / scale)
     }
