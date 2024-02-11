@@ -1,8 +1,8 @@
 //
-//  File.swift
-//  
+//  Interpose.swift
 //
-//  Created by Florian Zand on 11.02.24.
+//  Copyright (c) 2020 Peter Steinberger
+//  InterposeKit - https://github.com/steipete/InterposeKit/
 //
 
 import Foundation

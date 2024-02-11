@@ -1,8 +1,15 @@
+//
+//  Interpose+ClassHook.swift
+//
+//  Copyright (c) 2020 Peter Steinberger
+//  InterposeKit - https://github.com/steipete/InterposeKit/
+//
+
 import Foundation
 
 extension Interpose {
     /// A hook to an instance method and stores both the original and new implementation.
-    final public class ClassHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
+    final class ClassHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
         /* HookSignature?: This must be optional or swift runtime will crash.
          Or swiftc may segfault. Compiler bug? */
         /// Initialize a new hook to interpose an instance method.

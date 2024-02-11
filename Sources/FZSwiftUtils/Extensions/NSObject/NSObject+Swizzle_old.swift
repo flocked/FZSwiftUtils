@@ -7,6 +7,7 @@
 //  InterposeKit - https://github.com/steipete/InterposeKit/
 //  Copyright (c) 2020 Peter Steinberger
 
+/*
 import Foundation
 
 public extension NSObject {
@@ -224,3 +225,4 @@ public enum NSObjectSwizzleError: LocalizedError {
         }
     }
 }
+*/

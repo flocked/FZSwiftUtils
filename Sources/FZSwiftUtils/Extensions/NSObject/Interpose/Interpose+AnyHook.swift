@@ -1,3 +1,10 @@
+//
+//  AnyHook.swift
+//
+//  Copyright (c) 2020 Peter Steinberger
+//  InterposeKit - https://github.com/steipete/InterposeKit/
+//
+
 import Foundation
 
 /// Base class, represents a hook to exactly one method.

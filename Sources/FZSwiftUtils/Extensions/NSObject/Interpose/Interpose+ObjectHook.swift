@@ -1,10 +1,17 @@
+//
+//  Interpose+ObjectHook.swift
+//
+//  Copyright (c) 2020 Peter Steinberger
+//  InterposeKit - https://github.com/steipete/InterposeKit/
+//
+
 import Foundation
 
 extension Interpose {
 
     /// A hook to an instance method of a single object, stores both the original and new implementation.
     /// Think about: Multiple hooks for one object
-    final public class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
+    final class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
 
         /// The object that is being hooked.
         public let object: AnyObject
@@ -154,12 +161,13 @@ extension Interpose {
         func hookForIMP<HookType: AnyHook>(_ imp: IMP) -> HookType? {
             // Get the block that backs our IMP replacement
             guard let block = imp_getBlock(imp) as? AnyObject else { return nil }
-            return getAssociatedValue(key: "_hook", object: block)
+            return getAssociatedValue(key: "_hook_\(id.hashValue)", object: block)
         }
         
+        let id = UUID()
+        
         func storeHook(to block: AnyObject) {
-            set(weakAssociatedValue: self, key: "_hook", object: block)
-
+            set(weakAssociatedValue: self, key: "_hook_\(id.hashValue)", object: block)
         }
 
         override func resetImplementation() throws {
