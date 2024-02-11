@@ -15,7 +15,7 @@ extension Interpose {
 
         /// The object that is being hooked.
         public let object: AnyObject
-
+        
         /// Subclass that we create on the fly
         var interposeSubclass: InterposeSubclass?
 

@@ -10,6 +10,27 @@
 import Foundation
 
 extension NSObject {
+    public class ReplacedMethod {
+        public weak internal(set) var object: NSObject?
+        public let selector: Selector
+        let id: UUID
+        
+        /// Resets an replaced method to it's original state.
+        public func reset() {
+            if var hooks = object?.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
+                _ =  try? hooks[safe: index]?.revert()
+                hooks.remove(at: index)
+                object?.hooks[selector] = hooks
+            }
+        }
+        
+        init(object: NSObject?, selector: Selector, id: UUID) {
+            self.object = object
+            self.selector = selector
+            self.id = id
+        }
+    }
+    
     /**
      Replace an `@objc dynamic` instance method via selector on the current object.
           
@@ -115,7 +136,7 @@ extension NSObject {
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }
     
-    static var hooks: [Selector: [AnyHook]] {
+    public static var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }

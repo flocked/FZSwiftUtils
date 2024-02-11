@@ -14,6 +14,8 @@ public class AnyHook {
 
     /// The selector this hook interposes.
     public let selector: Selector
+    
+    let id = UUID()
 
     /// The current state of the hook.
     public internal(set) var state = State.prepared
