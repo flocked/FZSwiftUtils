@@ -18,20 +18,21 @@ extension NSObject {
      ```swift
      let view = NSView()
      do {
-     try view.replaceMethod(
-     #selector(NSView.mouseDown(with:)),
-     methodSignature: (@convention(c)  (AnyObject, Selector, NSEvent) -> ()).self,
-     hookSignature: (@convention(block)  (AnyObject, NSEvent) -> ()).self) { store in {
-     object, event in
-     let view = (object as! NSView)
-     // handle replaced `mouseDown`
+        try view.replaceMethod(
+        #selector(NSView.mouseDown(with:)),
+        methodSignature: (@convention(c)  (AnyObject, Selector, NSEvent) -> ()).self,
+        hookSignature: (@convention(block)  (AnyObject, NSEvent) -> ()).self) { store in {
+            object, event in
+            let view = (object as! NSView)
+            // handle replaced `mouseDown`
      
-     // calls `super.mouseDown`
-     store.original(object, #selector(NSView.mouseDown(with:)), event)
-     }
-     }
+            // calls `super.mouseDown`
+            store.original(object, #selector(NSView.mouseDown(with:)), event)
+            }
+        }
      } catch {
-     // handle error
+        // handle error
+        Swift.debugPrint(error)
      }
      ```
      */
@@ -41,7 +42,9 @@ extension NSObject {
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
-            addHook(hook, for: selector)
+            var _hooks = hooks[selector] ?? []
+            _hooks.append(hook)
+            hooks[selector] = _hooks
         }
     
     /// Replace an `@objc dynamic` class method via selector on the object.
@@ -81,24 +84,7 @@ extension NSObject {
         hooks[selector] = nil
     }
     
-    func addHook(_ hook: AnyHook, for selector: Selector) {
-        var _hooks = hooks[selector] ?? []
-        _hooks.append(hook)
-        hooks[selector] = _hooks
-    }
-    
-    func removeHooks(for selector: Selector) {
-        for hook in hooks[selector] ?? [] {
-            do {
-                try hook.revert()
-            } catch {
-                Swift.print(error)
-            }
-        }
-        hooks[selector] = nil
-    }
-    
-    public var hooks: [Selector: [AnyHook]] {
+    var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }
