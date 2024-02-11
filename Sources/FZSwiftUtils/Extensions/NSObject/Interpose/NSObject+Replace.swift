@@ -9,7 +9,7 @@ import Foundation
 
 extension NSObject {
     /// Hook an `@objc dynamic` instance method via selector  on the current object or class..
-    @discardableResult public func replaceMethod<MethodSignature, HookSignature> (
+    @discardableResult public func replaceMethodNew<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
