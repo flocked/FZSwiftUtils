@@ -39,11 +39,11 @@ extension NSObject {
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> AnyHook {
-            resetMethod(selector)
-           // hooks[selector] = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
-            return try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
-
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
+            let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
+            var _hooks = hooks[selector] ?? []
+            _hooks.append(hook)
+            hooks[selector] = _hooks
     }
 
     /// Replace an `@objc dynamic` class method via selector on the object.
@@ -52,37 +52,43 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
-            resetMethod(selector)
-            hooks[selector] = try Interpose.ClassHook(class: self as AnyClass,
+            let hook = try Interpose.ClassHook(class: self as AnyClass,
                                        selector: selector, implementation: implementation).apply()
+            var _hooks = hooks[selector] ?? []
+            _hooks.append(hook)
+            hooks[selector] = _hooks
     }
     
     /// Resets an `@objc dynamic` instance method on the current object to it's original state.
     public func resetMethod(_ selector: Selector) {
-        do {
-            _ = try hooks[selector]?.revert()
-            hooks[selector] = nil
-        } catch {
-            Swift.debugPrint(error)
+        for hook in hooks[selector] ?? [] {
+            do {
+                _ = try hook.revert()
+            } catch {
+                Swift.debugPrint(error)
+            }
         }
+        hooks[selector] = nil
     }
     
     /// Resets an `@objc dynamic` class method on the object to it's original state.
     public static func resetMethod(_ selector: Selector) {
-        do {
-            _ = try hooks[selector]?.revert()
-            hooks[selector] = nil
-        } catch {
-            Swift.debugPrint(error)
+        for hook in hooks[selector] ?? [] {
+            do {
+                _ = try hook.revert()
+            } catch {
+                Swift.debugPrint(error)
+            }
         }
+        hooks[selector] = nil
     }
     
-    var hooks: [Selector: AnyHook] {
+    var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }
     
-    static var hooks: [Selector: AnyHook] {
+    static var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }
