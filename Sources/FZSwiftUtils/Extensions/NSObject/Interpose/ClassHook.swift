@@ -2,7 +2,7 @@ import Foundation
 
 extension Interpose {
     /// A hook to an instance method and stores both the original and new implementation.
-    final public class ClassHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
+    final class ClassHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
         /* HookSignature?: This must be optional or swift runtime will crash.
          Or swiftc may segfault. Compiler bug? */
         /// Initialize a new hook to interpose an instance method.
@@ -15,7 +15,7 @@ extension Interpose {
         override func replaceImplementation() throws {
             let method = try validate()
             origIMP = class_replaceMethod(`class`, selector, replacementIMP, method_getTypeEncoding(method))
-            guard origIMP != nil else { throw InterposeError.nonExistingImplementation(`class`, selector) }
+            guard origIMP != nil else { throw NSObject.SwizzleError.nonExistingImplementation(`class`, selector) }
             Interpose.log("Swizzled -[\(`class`).\(selector)] IMP: \(origIMP!) -> \(replacementIMP!)")
         }
 
@@ -24,7 +24,7 @@ extension Interpose {
             precondition(origIMP != nil)
             let previousIMP = class_replaceMethod(`class`, selector, origIMP!, method_getTypeEncoding(method))
             guard previousIMP == replacementIMP else {
-                throw InterposeError.unexpectedImplementation(`class`, selector, previousIMP)
+                throw NSObject.SwizzleError.unexpectedImplementation(`class`, selector, previousIMP)
             }
             Interpose.log("Restored -[\(`class`).\(selector)] IMP: \(origIMP!)")
         }
@@ -38,7 +38,7 @@ extension Interpose {
 
 #if DEBUG
 extension Interpose.ClassHook: CustomDebugStringConvertible {
-    public var debugDescription: String {
+    var debugDescription: String {
         return "\(selector) -> \(String(describing: origIMP))"
     }
 }

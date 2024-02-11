@@ -4,7 +4,7 @@ extension Interpose {
 
     /// A hook to an instance method of a single object, stores both the original and new implementation.
     /// Think about: Multiple hooks for one object
-    final public class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
+    final class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
 
         /// The object that is being hooked.
         public let object: AnyObject
@@ -23,7 +23,7 @@ extension Interpose {
             let block = implementation(self) as AnyObject
             replacementIMP = imp_implementationWithBlock(block)
             guard replacementIMP != nil else {
-                throw InterposeError.unknownError("imp_implementationWithBlock failed for \(block) - slots exceeded?")
+                throw NSObject.SwizzleError.unknownError("imp_implementationWithBlock failed for \(block) - slots exceeded?")
             }
 
             // Weakly store reference to hook inside the block of the IMP.
@@ -43,7 +43,7 @@ extension Interpose {
                 return unsafeBitCast(savedOrigIMP, to: MethodSignature.self)
             }
             // Else, perform a dynamic lookup
-            guard let origIMP = lookupOrigIMP else { InterposeError.nonExistingImplementation(`class`, selector).log()
+            guard let origIMP = lookupOrigIMP else { NSObject.SwizzleError.nonExistingImplementation(`class`, selector).log()
                 preconditionFailure("IMP must be found for call")
             }
             return origIMP
@@ -90,7 +90,7 @@ extension Interpose {
 
             // The implementation of the call that is hooked must exist.
             guard lookupOrigIMP != nil else {
-                throw InterposeError.nonExistingImplementation(`class`, selector).log()
+                throw NSObject.SwizzleError.nonExistingImplementation(`class`, selector).log()
             }
 
             //  This function searches superclasses for implementations
@@ -107,7 +107,7 @@ extension Interpose {
                 // Replace IMP (by now we guarantee that it exists)
                 origIMP = class_replaceMethod(dynamicSubclass, selector, replacementIMP, encoding)
                 guard origIMP != nil else {
-                    throw InterposeError.nonExistingImplementation(dynamicSubclass, selector)
+                    throw NSObject.SwizzleError.nonExistingImplementation(dynamicSubclass, selector)
                 }
                 Interpose.log("Added -[\(`class`).\(selector)] IMP: \(origIMP!) -> \(replacementIMP!)")
             } else {
@@ -118,7 +118,7 @@ extension Interpose {
                         Interpose.log("Added -[\(`class`).\(selector)] IMP: \(replacementIMP!) via replacement")
                     } else {
                         Interpose.log("Unable to replace: -[\(`class`).\(selector)] IMP: \(replacementIMP!)")
-                        throw InterposeError.unableToAddMethod(`class`, selector)
+                        throw NSObject.SwizzleError.unableToAddMethod(`class`, selector)
                     }
                 } else {
                     let didAddMethod = class_addMethod(dynamicSubclass, selector, replacementIMP, encoding)
@@ -126,7 +126,7 @@ extension Interpose {
                         Interpose.log("Added -[\(`class`).\(selector)] IMP: \(replacementIMP!)")
                     } else {
                         Interpose.log("Unable to add: -[\(`class`).\(selector)] IMP: \(replacementIMP!)")
-                        throw InterposeError.unableToAddMethod(`class`, selector)
+                        throw NSObject.SwizzleError.unableToAddMethod(`class`, selector)
                     }
                 }
             }
@@ -144,11 +144,11 @@ extension Interpose {
                 // We could recreate the whole class at runtime and rebuild all hooks,
                 // but that seesm excessive when we have a trampoline at our disposal.
                 Interpose.log("Reset of -[\(`class`).\(selector)] not supported. No IMP")
-                throw InterposeError.resetUnsupported("No Original IMP found. SuperBuilder missing?")
+                throw NSObject.SwizzleError.resetUnsupported("No Original IMP found. SuperBuilder missing?")
             }
 
             guard let currentIMP = class_getMethodImplementation(dynamicSubclass, selector) else {
-                throw InterposeError.unknownError("No Implementation found")
+                throw NSObject.SwizzleError.unknownError("No Implementation found")
             }
 
             // We are the topmost hook, replace method.
@@ -156,7 +156,7 @@ extension Interpose {
                 let previousIMP = class_replaceMethod(
                     dynamicSubclass, selector, origIMP!, method_getTypeEncoding(method))
                 guard previousIMP == replacementIMP else {
-                    throw InterposeError.unexpectedImplementation(dynamicSubclass, selector, previousIMP)
+                    throw NSObject.SwizzleError.unexpectedImplementation(dynamicSubclass, selector, previousIMP)
                 }
                 Interpose.log("Restored -[\(`class`).\(selector)] IMP: \(origIMP!)")
             } else {
@@ -177,7 +177,7 @@ extension Interpose {
 
 #if DEBUG
 extension Interpose.ObjectHook: CustomDebugStringConvertible {
-    public var debugDescription: String {
+    var debugDescription: String {
         return "\(selector) of \(object) -> \(String(describing: original))"
     }
 }

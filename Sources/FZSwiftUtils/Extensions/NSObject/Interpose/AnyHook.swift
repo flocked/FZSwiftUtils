@@ -26,7 +26,7 @@ public class AnyHook {
         case interposed
 
         /// An error happened while interposing a method.
-        indirect case error(InterposeError)
+        indirect case error(NSObject.SwizzleError)
     }
 
     init(`class`: AnyClass, selector: Selector) throws {
@@ -60,9 +60,9 @@ public class AnyHook {
     /// Validate that the selector exists on the active class.
     @discardableResult func validate(expectedState: State = .prepared) throws -> Method {
         guard let method = class_getInstanceMethod(`class`, selector) else {
-            throw InterposeError.methodNotFound(`class`, selector)
+            throw NSObject.SwizzleError.methodNotFound(`class`, selector)
         }
-        guard state == expectedState else { throw InterposeError.invalidState(expectedState: expectedState) }
+        guard state == expectedState else { throw NSObject.SwizzleError.invalidState(expectedState: expectedState) }
         return method
     }
 
@@ -70,7 +70,7 @@ public class AnyHook {
         do {
             try task()
             state = newState
-        } catch let error as InterposeError {
+        } catch let error as NSObject.SwizzleError {
             state = .error(error)
             throw error
         }

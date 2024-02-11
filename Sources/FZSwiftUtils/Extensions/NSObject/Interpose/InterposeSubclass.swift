@@ -57,7 +57,7 @@ class InterposeSubclass {
         }
 
         guard let nnSubclass = subclass else {
-            throw InterposeError.failedToAllocateClassPair(class: perceivedClass, subclassName: subclassName)
+            throw NSObject.SwizzleError.failedToAllocateClassPair(class: perceivedClass, subclassName: subclassName)
         }
 
         object_setClass(object, nnSubclass)
