@@ -8,7 +8,7 @@
 import Foundation
 
 extension NSObject {
-    /// The list of errors while hooking a method.
+    /// The list of errors while swizzling a method.
     public enum SwizzleError: LocalizedError {
         /// The method couldn't be found. Usually happens for when you use stringified selectors that do not exist.
         case methodNotFound(AnyClass, Selector)
