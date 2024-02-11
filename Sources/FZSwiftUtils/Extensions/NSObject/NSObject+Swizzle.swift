@@ -10,24 +10,42 @@
 import Foundation
 
 extension NSObject {
+    /// Object to reset an replaced method.
     public class ReplacedMethod {
-        public weak internal(set) var object: NSObject?
+        /// The selector for the replaced method.
         public let selector: Selector
+        
+        weak var object: NSObject?
+        var `class`: NSObject.Type?
         let id: UUID
         
         /// Resets an replaced method to it's original state.
         public func reset() {
-            if var hooks = object?.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
+            Swift.print("has object", object != nil)
+            if let _class = self.class {
+                if var hooks = _class.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
+                    _ =  try? hooks[safe: index]?.revert()
+                    hooks.remove(at: index)
+                    object?.hooks[selector] = hooks
+                }
+            } else if var hooks = object?.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
                 _ =  try? hooks[safe: index]?.revert()
                 hooks.remove(at: index)
                 object?.hooks[selector] = hooks
             }
         }
         
-        init(object: NSObject?, selector: Selector, id: UUID) {
+        init(_ object: NSObject?, hook: AnyHook) {
             self.object = object
-            self.selector = selector
-            self.id = id
+            self.selector = hook.selector
+            self.id = hook.id
+        }
+        
+        init(_ _class: NSObject.Type?, hook: AnyHook) {
+            self.object = nil
+            self.class = _class
+            self.selector = hook.selector
+            self.id = hook.id
         }
     }
     
@@ -59,28 +77,32 @@ extension NSObject {
      
      To reset the replaced method, use `replaceMethod(_:)`.
      */
+    @discardableResult
     public func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethod {
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
+            return ReplacedMethod(self, hook: hook)
         }
     
     /// Replace an `@objc dynamic` class method via selector on the object.
+    @discardableResult
     public static func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethod {
             let hook = try Interpose.ClassHook(class: self as AnyClass,
                                                selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
+            return ReplacedMethod(self, hook: hook)
         }
     
     /// Resets an replaced instance method on the current object to it's original state.
@@ -131,7 +153,7 @@ extension NSObject {
         (hooks[selector] ?? []).isEmpty == false
     }
     
-    public var hooks: [Selector: [AnyHook]] {
+    var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }
