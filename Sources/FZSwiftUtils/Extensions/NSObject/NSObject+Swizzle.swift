@@ -12,7 +12,7 @@ import Foundation
 extension NSObject {
     /**
      Replace an `@objc dynamic` instance method via selector on the current object.
-     
+          
      Example usage that replaces the `mouseDown`method of a view:
      
      ```swift
@@ -35,6 +35,8 @@ extension NSObject {
         Swift.debugPrint(error)
      }
      ```
+     
+     To reset the replaced method, use `replaceMethod(_:)`.
      */
     public func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
@@ -60,7 +62,7 @@ extension NSObject {
             hooks[selector] = _hooks
         }
     
-    /// Resets an `@objc dynamic` instance method on the current object to it's original state.
+    /// Resets an replaced instance method on the current object to it's original state.
     public func resetMethod(_ selector: Selector) {
         for hook in hooks[selector] ?? [] {
             do {
@@ -72,7 +74,14 @@ extension NSObject {
         hooks[selector] = nil
     }
     
-    /// Resets an `@objc dynamic` class method on the object to it's original state.
+    /// Resets all replaced instance methods on the current object to their original state.
+    public func resetAllMethods() {
+        for selector in hooks.keys {
+            resetMethod(selector)
+        }
+    }
+    
+    /// Resets an replaced class method on the object to it's original state.
     public static func resetMethod(_ selector: Selector) {
         for hook in hooks[selector] ?? [] {
             do {
@@ -82,6 +91,13 @@ extension NSObject {
             }
         }
         hooks[selector] = nil
+    }
+    
+    /// Resets all replaced class methods on the current object to their original state.
+    public static func resetAllMethods() {
+        for selector in hooks.keys {
+            resetMethod(selector)
+        }
     }
     
     var hooks: [Selector: [AnyHook]] {

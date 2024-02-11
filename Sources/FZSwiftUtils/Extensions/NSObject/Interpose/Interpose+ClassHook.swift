@@ -1,3 +1,10 @@
+//
+//  Interpose+ClassHook.swift
+//
+//  Copyright (c) 2020 Peter Steinberger
+//  InterposeKit - https://github.com/steipete/InterposeKit/
+//
+
 import Foundation
 
 extension Interpose {

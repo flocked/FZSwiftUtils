@@ -1,3 +1,10 @@
+//
+//  Interpose.swift
+//
+//  Copyright (c) 2020 Peter Steinberger
+//  InterposeKit - https://github.com/steipete/InterposeKit/
+//
+
 import Foundation
 
 final class Interpose {
@@ -12,7 +19,7 @@ final class Interpose {
     }
 }
 
-/*
+
 extension Interpose {
     static func storeHook<HookType: AnyHook>(hook: HookType, to block: AnyObject) {
         set(weakAssociatedValue: hook, key: "_hook", object: block)
@@ -44,4 +51,3 @@ extension Interpose {
         return nil
     }
 }
-*/
