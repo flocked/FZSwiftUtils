@@ -112,7 +112,7 @@ import Foundation
  */
 
 extension NSObject {
-    var hooks: [Selector: [AnyHook]] {
+    public var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "hooks", object: self) }
     }
