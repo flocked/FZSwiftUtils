@@ -39,9 +39,11 @@ extension NSObject {
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> AnyHook {
             resetMethod(selector)
-            hooks[selector] = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
+           // hooks[selector] = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
+            return try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
+
     }
 
     /// Replace an `@objc dynamic` class method via selector on the object.
