@@ -15,13 +15,12 @@ extension NSObject {
         /// The selector for the replaced method.
         public let selector: Selector
         
-        weak var object: NSObject?
+        public weak var object: NSObject?
         var `class`: NSObject.Type?
         let id: UUID
         
         /// Resets an replaced method to it's original state.
         public func reset() {
-            Swift.print("has object", object != nil)
             if let _class = self.class {
                 if var hooks = _class.hooks[selector], let index = hooks.firstIndex(where: {$0.id == id}) {
                     _ =  try? hooks[safe: index]?.revert()
