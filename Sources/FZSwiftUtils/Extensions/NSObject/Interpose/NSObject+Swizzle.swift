@@ -40,11 +40,8 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws {
-            //try hooks[selector]?.revert()
-            var _hooks = hooks[selector] ?? []
-            
-            _hooks.append( try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply())
-            hooks[selector] = _hooks
+            try hooks[selector]?.revert()
+            hooks[selector] = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
     }
 
     /// Replace an `@objc dynamic` class method via selector on the object.
@@ -60,7 +57,7 @@ extension NSObject {
     
     /// Resets an `@objc dynamic` instance method on the current object to it's original state.
     public func resetMethod(_ selector: Selector) {
-        hooks[selector]?.forEach({_ = try? $0.revert()})
+        _ = try? hooks[selector]?.revert()
         hooks[selector] = nil
     }
     
@@ -70,7 +67,7 @@ extension NSObject {
         hooks[selector] = nil
     }
     
-    var hooks: [Selector: [AnyHook]] {
+    var hooks: [Selector: AnyHook] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
     }

@@ -161,13 +161,11 @@ extension Interpose {
         func hookForIMP<HookType: AnyHook>(_ imp: IMP) -> HookType? {
             // Get the block that backs our IMP replacement
             guard let block = imp_getBlock(imp) as? AnyObject else { return nil }
-            return getAssociatedValue(key: "_hook_\(id.hashValue)", object: block)
+            return getAssociatedValue(key: "_hook", object: block)
         }
         
-        let id = UUID()
-        
         func storeHook(to block: AnyObject) {
-            set(weakAssociatedValue: self, key: "_hook_\(id.hashValue)", object: block)
+            set(weakAssociatedValue: self, key: "_hook", object: block)
         }
 
         override func resetImplementation() throws {
