@@ -81,6 +81,11 @@ extension NSObject {
         }
     }
     
+    /// A Boolean value indicating whether the instance method for the specified selector is replaced.
+    public func isMethodReplaced(_ selector: Selector) -> Bool {
+        (hooks[selector] ?? []).isEmpty == false
+    }
+    
     /// Resets an replaced class method on the object to it's original state.
     public static func resetMethod(_ selector: Selector) {
         for hook in hooks[selector] ?? [] {
@@ -98,6 +103,11 @@ extension NSObject {
         for selector in hooks.keys {
             resetMethod(selector)
         }
+    }
+    
+    /// A Boolean value indicating whether the class method for the selector is replaced.
+    public static func isMethodReplaced(_ selector: Selector) -> Bool {
+        (hooks[selector] ?? []).isEmpty == false
     }
     
     var hooks: [Selector: [AnyHook]] {
