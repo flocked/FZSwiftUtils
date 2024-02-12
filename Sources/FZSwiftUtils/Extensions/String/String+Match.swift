@@ -90,7 +90,7 @@ public extension String {
     func matches(regex: String) -> [StringMatch] {
         let string = self
         let regex = try? NSRegularExpression(pattern: regex, options: [])
-        return regex?.matches(in: string, range: NSRange(location: 0, length: string.utf16.count)).compactMap { StringMatch($0, source: string) } ?? []
+        return regex?.matches(in: string, range: NSRange(string.startIndex..., in: string)).compactMap { StringMatch($0, source: string) } ?? []
     }
 
     /**
