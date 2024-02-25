@@ -10,7 +10,7 @@ import Foundation
 
 public extension NumberFormatter {
     /// The lowest number allowed as input by the receiver.
-    var minValue: Double? {
+    var minimumValue: Double? {
         get { minimum?.doubleValue }
         set {
             if let newValue = newValue {
@@ -22,7 +22,7 @@ public extension NumberFormatter {
     }
     
     /// The highest number allowed as input by the receiver.
-    var maxValue: Double? {
+    var maximumValue: Double? {
         get { maximum?.doubleValue }
         set {
             if let newValue = newValue {
