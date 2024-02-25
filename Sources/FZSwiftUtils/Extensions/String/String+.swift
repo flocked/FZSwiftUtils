@@ -80,6 +80,11 @@ public extension StringProtocol {
     var unmangled: String {
         String(utf16.map { $0 + 1 }.compactMap(UnicodeScalar.init).map(Character.init))
     }
+    
+    /// Returns a new string made by removing from both ends of the String characters contained in a given character set.
+    func trimmingCharacters(in sets: [CharacterSet]) -> String {
+        trimmingCharacters(in: sets.union)
+    }
 }
 
 public extension StringProtocol {
