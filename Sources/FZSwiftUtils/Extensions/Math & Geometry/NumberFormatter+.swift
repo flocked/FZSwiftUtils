@@ -34,6 +34,87 @@ public extension NumberFormatter {
     }
     
     /**
+     Creates an integer number formatter.
+
+     - Parameters:
+        - minValue: The minimum number.
+        - maxValue: The maximum number.
+
+     - Returns: A `NumberFormatter` instance configured for integer formatting.
+     */
+    static func integer(minValue: Int? = nil, maxValue: Int? = nil) -> NumberFormatter {
+        NumberFormatter(style: .none, minValue: minValue != nil ? Double(minValue!) : nil, maxValue: maxValue != nil ? Double(maxValue!) : nil)
+    }
+    
+    /**
+     Creates a decimal number formatter.
+
+     - Parameters:
+        - minValue: The minimum number.
+        - maxValue: The maximum number.
+        - minFraction: The minimum number of digits after the decimal separator.
+        - maxFraction: The maximum number of digits after the decimal separator.
+
+     - Returns: A `NumberFormatter` instance configured for decimal formatting.
+     */
+    static func decimal(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) -> NumberFormatter {
+        NumberFormatter(style: .decimal, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction)
+    }
+    
+    /**
+     Creates a percent number formatter.
+
+     - Parameters:
+        - minValue: The minimum number.
+        - maxValue: The maximum number.
+        - minFraction: The minimum number of digits after the decimal separator.
+        - maxFraction: The maximum number of digits after the decimal separator.
+
+     - Returns: A `NumberFormatter` instance configured for percent formatting.
+     */
+    static func percent(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) -> NumberFormatter {
+        NumberFormatter(style: .percent, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction)
+    }
+    
+    /**
+     Creates a currency number formatter.
+
+     - Parameters:
+        - minValue: The minimum number.
+        - maxValue: The maximum number.
+        - minFraction: The minimum number of digits after the decimal separator.
+        - maxFraction: The maximum number of digits after the decimal separator.
+
+     - Returns: A `NumberFormatter` instance configured for currency formatting.
+     */
+    static func currency(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) -> NumberFormatter {
+        NumberFormatter(style: .currency, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction)
+    }
+    
+    /**
+     Creates a currency number formatter with the specified style.
+
+     - Parameters:
+        - minValue: The formatting style.
+        - minValue: The minimum number.
+        - maxValue: The maximum number.
+        - minFraction: The minimum number of digits after the decimal separator.
+        - maxFraction: The maximum number of digits after the decimal separator.
+
+     - Returns: A `NumberFormatter` instance configured for currency formatting.
+     */
+    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) {
+        self.init()
+        self.numberStyle = style
+        minimumValue = minValue
+        maximumValue = maxValue
+        minimumFractionDigits = minFraction ?? 0
+        maximumFractionDigits = maxFraction ?? 200000
+        allowsFloats = true
+        isLenient = true
+    }
+    
+    /**
      Creates a `NumberFormatter` instance configured for decimal formatting.
 
      - Parameters:
