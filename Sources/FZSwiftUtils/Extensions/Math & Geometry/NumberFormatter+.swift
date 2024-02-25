@@ -9,6 +9,30 @@ import CoreGraphics
 import Foundation
 
 public extension NumberFormatter {
+    /// The lowest number allowed as input by the receiver.
+    var minValue: Double? {
+        get { minimum?.doubleValue }
+        set {
+            if let newValue = newValue {
+                minimum = NSNumber(newValue)
+            } else {
+                minimum = nil
+            }
+        }
+    }
+    
+    /// The highest number allowed as input by the receiver.
+    var maxValue: Double? {
+        get { maximum?.doubleValue }
+        set {
+            if let newValue = newValue {
+                maximum = NSNumber(newValue)
+            } else {
+                maximum = nil
+            }
+        }
+    }
+    
     /**
      Creates a `NumberFormatter` instance configured for decimal formatting.
 
