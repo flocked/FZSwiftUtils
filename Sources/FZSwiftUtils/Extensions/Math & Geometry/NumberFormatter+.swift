@@ -9,6 +9,7 @@ import CoreGraphics
 import Foundation
 
 public extension NumberFormatter {
+    
     /// The lowest number allowed as input by the receiver.
     var minimumValue: Double? {
         get { minimum?.doubleValue }
@@ -112,69 +113,6 @@ public extension NumberFormatter {
         maximumFractionDigits = maxFraction ?? 200000
         allowsFloats = true
         isLenient = true
-    }
-    
-    /**
-     Creates a `NumberFormatter` instance configured for decimal formatting.
-
-     - Parameters:
-        - min: The minimum number of fraction digits to display. The default value is `0`.
-        - max: The maximum number of fraction digits to display. The default value is `0`.
-
-     - Returns: A `NumberFormatter` instance configured for decimal formatting.
-     */
-    static func decimal(min: Int = 0, max: Int = 0) -> NumberFormatter {
-        let formatter = NumberFormatter(minFractionDigits: min, maxFractionDigits: max)
-        formatter.numberStyle = .decimal
-        return formatter
-    }
-
-    /**
-     Creates a `NumberFormatter` instance configured for percent formatting.
-
-     - Parameters:
-        - min: The minimum number of fraction digits to display. The default value is `0`.
-        - max: The maximum number of fraction digits to display. The default value is `0`.
-
-     - Returns: A `NumberFormatter` instance configured for percent formatting.
-     */
-    static func percent(min: Int = 0, max: Int = 0) -> NumberFormatter {
-        let formatter = NumberFormatter(minFractionDigits: min, maxFractionDigits: max)
-        formatter.numberStyle = .percent
-        return formatter
-    }
-
-    /**
-     Creates a `NumberFormatter` instance with the specified minimum fraction digits.
-
-     - Parameter minFractionDigits: The minimum number of fraction digits to display.
-     */
-    convenience init(minFractionDigits: Int) {
-        self.init()
-        minimumFractionDigits = minFractionDigits
-    }
-
-    /**
-     Creates a `NumberFormatter` instance with the specified maximum fraction digits.
-
-     - Parameter maxFractionDigits: The maximum number of fraction digits to display.
-     */
-    convenience init(maxFractionDigits: Int) {
-        self.init()
-        maximumFractionDigits = maxFractionDigits
-    }
-
-    /**
-     Creates a `NumberFormatter` instance with the specified minimum and maximum fraction digits.
-
-     - Parameters:
-        - minFractionDigits: The minimum number of fraction digits to display.
-        - maxFractionDigits: The maximum number of fraction digits to display.
-     */
-    convenience init(minFractionDigits: Int, maxFractionDigits: Int) {
-        self.init()
-        minimumFractionDigits = minFractionDigits
-        maximumFractionDigits = maxFractionDigits
     }
 
     /**
