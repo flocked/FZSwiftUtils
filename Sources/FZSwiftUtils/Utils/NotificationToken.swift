@@ -18,6 +18,9 @@ public class NotificationToken: NSObject {
 
     /// The token that identifies the observer.
     let token: Any
+    
+    /// The name of the observed notification.
+    public let name: NSNotification.Name?
 
     /**
      Initializes a new `NotificationToken` instance with the specified `NotificationCenter` and token.
@@ -26,9 +29,10 @@ public class NotificationToken: NSObject {
        - notificationCenter: The `NotificationCenter` instance associated with the observer. The default value is `.default`.
        - token: The token that identifies the observer.
      */
-    public init(notificationCenter: NotificationCenter = .default, token: Any) {
+    public init(notificationCenter: NotificationCenter = .default, token: Any, name: NSNotification.Name?) {
         self.notificationCenter = notificationCenter
         self.token = token
+        self.name = name
     }
 
     /**
@@ -58,6 +62,6 @@ public extension NotificationCenter {
         -> NotificationToken
     {
         let token = addObserver(forName: name, object: object, queue: queue, using: block)
-        return NotificationToken(notificationCenter: self, token: token)
+        return NotificationToken(notificationCenter: self, token: token, name: name)
     }
 }
