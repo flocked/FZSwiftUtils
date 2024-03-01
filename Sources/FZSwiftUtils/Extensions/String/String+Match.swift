@@ -101,11 +101,8 @@ public extension String {
     }
     
     /// All double values inside the string.
-    var doubleValue: Double? {
-        if let match = matches(regex: "[-+]?\\d+.?\\d+").first?.string.replacingOccurrences(of: ",", with: "."), let doubleValue = Double(match) {
-            return doubleValue
-        }
-        return nil
+    var doubleValues: [Double] {
+        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
     }
     
     /*
