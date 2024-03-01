@@ -95,11 +95,26 @@ public extension String {
             StringMatch($0, source: string) } ?? []
     }
     
+    /// All integer values inside the string.
+    var integerValues: [Int] {
+        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
+    }
+    
+    /// All double values inside the string.
+    var doubleValue: Double? {
+        if let match = matches(regex: "[-+]?\\d+.?\\d+").first?.string.replacingOccurrences(of: ",", with: "."), let doubleValue = Double(match) {
+            return doubleValue
+        }
+        return nil
+    }
+    
+    /*
     func matchesAlt(regex: String) -> [StringMatch] {
         let string = self
         let regex = try? NSRegularExpression(pattern: regex, options: [])
         return regex?.matches(in: string, range: NSRange(string.startIndex..., in: string)).compactMap { StringMatch($0, source: string) } ?? []
     }
+     */
 
     /**
      Finds all matches of substrings between the two specified strings.
