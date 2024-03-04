@@ -17,6 +17,11 @@ public extension NSRange {
     var range: Range<Int> {
         lowerBound ..< upperBound + 1
     }
+    
+    /// The maximum value.
+    var max: Int {
+        NSMaxRange(self)
+    }
 
     /// Not found range.
     static let notFound = NSRange(location: NSNotFound, length: 0)
@@ -71,6 +76,9 @@ public extension NSRange {
     func overlaps(_ other: NSRange) -> Bool {
         intersection(other) != nil
     }
+    
+    /// The zero range.
+    static var zero = NSRange(location: 0, length: 0)
 }
 
 extension Sequence<NSRange> {
