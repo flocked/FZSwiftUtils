@@ -185,10 +185,10 @@ public extension Date {
 
      - Returns: The beginning date of the specified component, or `nil` if the component is not supported or the calculation fails.
      */
-    func beginning(of component: Calendar.Component, calendar: Calendar = Calendar.current) -> Date {
+    func beginning(of component: Calendar.Component, calendar: Calendar = Calendar.current) -> Date? {
         var startDate = self
         var timeInterval: TimeInterval = 0
-        guard calendar.dateInterval(of: component, start: &startDate, interval: &timeInterval, for: self) else { return self }
+        guard calendar.dateInterval(of: component, start: &startDate, interval: &timeInterval, for: self) else { return nil }
         return startDate
     }
 
@@ -319,35 +319,40 @@ public extension Date {
     }
 
     static func == (lhs: Date, rhs: ComparisonType) -> Bool {
-        let from: Date
+        var from: Date
         let to: Date
         switch rhs {
         case .today:
-            from = lhs.beginning(of: .day)
+            from = lhs.beginning(of: .day) ?? lhs
             to = from.end(of: .day)
         case .yesterday:
-            from = lhs.adding(-1, to: .day).beginning(of: .day)
+            from = lhs.adding(-1, to: .day)
+            from = from.beginning(of: .day) ?? from
             to = from.end(of: .day)
         case .tomorrow:
-            from = lhs.adding(1, to: .day).beginning(of: .day)
+            from = lhs.adding(1, to: .day)
+            from = from.beginning(of: .day) ?? from
             to = from.end(of: .day)
         case let .this(unit):
-            from = lhs.beginning(of: unit)
+            from = lhs.beginning(of: unit) ?? lhs
             to = from.end(of: unit)
         case let .next(unit):
-            from = lhs.adding(1, to: unit).beginning(of: unit)
+            from = lhs.adding(1, to: unit)
+            from = from.beginning(of: unit) ?? from
             to = from.end(of: unit)
         case let .last(value, unit):
-            from = lhs.adding(-value, to: unit).beginning(of: unit)
+            from = lhs.adding(-value, to: unit)
+            from = from.beginning(of: unit) ?? from
             to = from.end(of: unit)
         case .now:
             from = Date()
             to = Date().adding(30, to: .second)
         case let .previous(unit):
-            from = lhs.adding(-1, to: unit).beginning(of: unit)
+            from = lhs.adding(-1, to: unit)
+            from = from.beginning(of: unit) ?? from
             to = from.end(of: unit)
         case let .sameDay(date):
-            from = date.beginning(of: .day)
+            from = date.beginning(of: .day) ?? date
             to = date.end(of: .day)
         }
         return lhs.isBetween(from, to)
