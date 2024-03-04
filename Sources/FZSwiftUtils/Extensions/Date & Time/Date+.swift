@@ -19,7 +19,7 @@ public extension Date {
      - Returns: A new `Date` object obtained by adding the specified value to the given component of the date.
      */
     func adding(_ value: Int, to component: Calendar.Component, calendar: Calendar = Calendar.current) -> Date {
-        calendar.date(byAdding: component, value: value, to: self)!
+        calendar.date(byAdding: component, value: value, to: self) ?? self
     }
 
     /**
@@ -195,70 +195,7 @@ public extension Date {
         guard calendar.dateInterval(of: component, start: &startDate, interval: &timeInterval, for: self) else { return nil }
         return startDate
     }
-/*
-    /**
-     Returns the end date of a specific component.
 
-     - Parameters:
-        - component: The component of the date for which to retrieve the end date.
-        - calendar: The calendar.
-
-     - Returns: The end date of the specified component. If the component is not supported or the calculation fails, the original date is returned.
-     */
-    func end(of component: Calendar.Component, calendar: Calendar = Calendar.current) -> Date {
-        switch component {
-        case .second:
-            var date = adding(1, to: .second)
-            date = calendar.date(from:
-                calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date))!
-            date = date.adding(-1, to: .second)
-            return date
-
-        case .minute:
-            var date = adding(1, to: .minute)
-            let after = calendar.date(from:
-                calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date))!
-            date = after.adding(-1, to: .second)
-            return date
-
-        case .hour:
-            var date = adding(1, to: .hour)
-            let after = calendar.date(from:
-                calendar.dateComponents([.year, .month, .day, .hour], from: date))!
-            date = after.adding(-1, to: .second)
-            return date
-
-        case .day:
-            var date = adding(1, to: .day)
-            date = calendar.startOfDay(for: date)
-            date = date.adding(-1, to: .second)
-            return date
-
-        case .weekOfYear, .weekOfMonth:
-            var date = self
-            let beginningOfWeek = calendar.date(from:
-                calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date))!
-            date = beginningOfWeek.adding(7, to: .day).adding(-1, to: .second)
-            return date
-
-        case .month:
-            var date = adding(1, to: .month)
-            let after = calendar.date(from:
-                calendar.dateComponents([.year, .month], from: date))!
-            date = after.adding(-1, to: .second)
-            return date
-
-        case .year:
-            var date = adding(1, to: .year)
-            let after = calendar.date(from:
-                calendar.dateComponents([.year], from: date))!
-            date = after.adding(-1, to: .second)
-            return date
-        default:
-            return self
-        }
-    }
-    */
     
     /**
      Returns the end date of a specific component.
@@ -270,8 +207,7 @@ public extension Date {
 
      - Returns: The end date of the specified component, or `nil` if the component is not supported or the calculation fails.
      */
-    func end(of component: Calendar.Component, calendar: Calendar = Calendar.current,
-                        returnNextIfAtBoundary: Bool = true) -> Date? {
+    func end(of component: Calendar.Component, calendar: Calendar = Calendar.current, returnNextIfAtBoundary: Bool = true) -> Date? {
         guard let startDate = beginning(of: component, calendar: Calendar.current) else { return nil }
         if startDate == self && !returnNextIfAtBoundary { return self }
         return startDate.adding(1, to: component, calendar: calendar)
