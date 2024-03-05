@@ -38,8 +38,8 @@ public extension BinaryFloatingPoint {
      
      - Returns: The rounded value.
      */
-    func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointFactorRoundingRule = .up) -> Self {
-        (self / roundingFactor).rounded(rule.rounding) * roundingFactor
+    func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
+        (self / roundingFactor).rounded(rule) * roundingFactor
     }
     
     /**
@@ -49,8 +49,8 @@ public extension BinaryFloatingPoint {
      - roundingFactor: The rounding factor.
      - rule: The rounding rule to apply. The default value is `up`.
      */
-    mutating func round(toNearest roundingFactor: Self, _ rule: FloatingPointFactorRoundingRule = .up) {
-        self = (self / roundingFactor).rounded(rule.rounding) * roundingFactor
+    mutating func round(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
+        self = (self / roundingFactor).rounded(rule) * roundingFactor
     }
 }
 
@@ -85,8 +85,8 @@ public extension CGFloat {
      
      - Returns: The rounded value.
      */
-    func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointFactorRoundingRule = .up) -> Self {
-        (self / roundingFactor).rounded(rule.rounding) * roundingFactor
+    func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
+        (self / roundingFactor).rounded(rule) * roundingFactor
     }
     
     /**
@@ -96,8 +96,8 @@ public extension CGFloat {
      - roundingFactor: The rounding factor.
      - rule: The rounding rule to apply. The default value is `up`.
      */
-    mutating func round(toNearest roundingFactor: Self, _ rule: FloatingPointFactorRoundingRule = .up) {
-        self = (self / roundingFactor).rounded(rule.rounding) * roundingFactor
+    mutating func round(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
+        self = (self / roundingFactor).rounded(rule) * roundingFactor
     }
 }
 
