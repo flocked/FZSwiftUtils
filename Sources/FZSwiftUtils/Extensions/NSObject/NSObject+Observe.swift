@@ -18,7 +18,7 @@ public extension NSObjectProtocol where Self: NSObject {
      ```swift
      let textField = NSTextField()
      
-     let stringValueObservation = textField.observe(\.stringValue) {
+     let stringValueObservation = textField.observeChanges(for: \.stringValue) {
      oldValue, newValue in
      // handle changed value
      }
@@ -31,7 +31,7 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observe<Value>(_ keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
+    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
         guard keyPath._kvcKeyPathString != nil else { return nil }
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return observe(keyPath, options: options) { _, change in
@@ -49,7 +49,7 @@ public extension NSObjectProtocol where Self: NSObject {
      ```swift
      let textField = NSTextField()
      
-     let stringValueObservation = textField.observe(\.stringValue, uniqueValues: true) {
+     let stringValueObservation = textField.observeChanges(for: \.stringValue, uniqueValues: true) {
      oldValue, newValue in
      // handle changed value
      }
@@ -63,10 +63,10 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observe<Value: Equatable>(_ keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
+    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
         guard keyPath._kvcKeyPathString != nil else { return nil }
         if sendInitalValue == false {
-            return observe(keyPath, handler: handler)
+            return observeChanges(for: keyPath, handler: handler)
         }
         return observe(keyPath, options: [.old, .new, .initial]) { _, change in
             if let newValue = change.newValue {
