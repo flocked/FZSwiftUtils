@@ -162,6 +162,34 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
             observers[keyPath] = nil
         }
     }
+    
+    /**
+     Removes the observed object and stops observing it, while keeping the list of observed properties and handlers for a new object.
+     
+     When you add a new object to observe via ``replaceObservedObject(_:)``, all previous observed properties and handlers are used.
+     
+     */
+    public func removeObservedObject() {
+        guard let observedObject = observedObject else { return }
+        for observer in observers {
+            observedObject.removeObserver(self, forKeyPath: observer.key)
+        }
+        self.observedObject = nil
+    }
+    
+    /**
+     Replaces the observed object.
+     
+     All previous observed properties and handlers are used.
+    */
+    public func replaceObservedObject(with object: Object) {
+        removeObservedObject()
+        self.observedObject = object
+        for observer in observers {
+            let options: NSKeyValueObservingOptions = observer.value.sendInital ? [.old, .new, .initial] : [.old, .new]
+            object.addObserver(self, forKeyPath: observer.key, options: options, context: nil)
+        }
+    }
 
     /**
      Removes the observer for the properties at the specified keypaths.

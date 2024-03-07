@@ -31,7 +31,8 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation {
+    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
+        guard keyPath._kvcKeyPathString != nil else { return nil }
         let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
         return observe(keyPath, options: options) { _, change in
             if let newValue = change.newValue {
@@ -62,16 +63,15 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation {
-        let options: NSKeyValueObservingOptions = sendInitalValue ? [.old, .new, .initial] : [.old, .new]
-        return observe(keyPath, options: options) { _, change in
+    func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
+        guard keyPath._kvcKeyPathString != nil else { return nil }
+        if sendInitalValue == false {
+            return observeChanges(for: keyPath, handler: handler)
+        }
+        return observe(keyPath, options: [.old, .new, .initial]) { _, change in
             if let newValue = change.newValue {
-                if let oldValue = change.oldValue {
-                    if uniqueValues == false {
-                        handler(oldValue, newValue)
-                    } else if newValue != oldValue {
-                        handler(oldValue, newValue)
-                    }
+                if let oldValue = change.oldValue, newValue != oldValue {
+                    handler(oldValue, newValue)
                 } else {
                     handler(newValue, newValue)
                 }
@@ -82,27 +82,67 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes the deinitialization of the object and calls the specified handler.
      
-     - Parameter handler: A closure that will be called when the object deinitializas.
+     Example:
+     
+     ```swift
+     let deinitObservation = textField.observeDeinit(handler: {
+        // handle deinitialization
+     })
+     ```
+     
+     - Parameter handler: A closure that will be called when the object deinitializes.
+     
+     - Returns: The object that observes the deinitialization. To stop the observations, deinitializate the object.
      */
-    func observeDeinit(_ handler: @escaping () -> ()) {
-        deinitCallback.callbacks.append(handler)
-    }
-    
-    /// Removes all deinitialization observers.
-    func removeAllDeinitObservers() {
-        deinitCallback.callbacks.removeAll()
-    }
+    func observeDeinit(_ handler: @escaping () -> ()) -> DeinitObservation {
+        let observation = DeinitObservation(object: self)
+        deinitCallback.callbacks[observation.id] = handler
+        return observation
+     }
     
     fileprivate var deinitCallback: DeinitCallback {
         get { getAssociatedValue(key: "deinitCallback", object: self, initialValue: DeinitCallback()) }
     }
 }
 
-@objc fileprivate class DeinitCallback: NSObject {
-  var callbacks: [() -> ()] = []
+extension NSObject {
+    
+    /**
+     An object that observe the deinitialization of a `NSObject`.
+     
+     To observe the deinitialization of an object, use ``observeDeinit(_:)``.
+          
+     ```swift
+     let deinitObservation = textField.observeDeinit(handler: {
+        // handle deinitialization
+     })
+     ```
+     */
+    public class DeinitObservation: NSObject {
+        weak var object: NSObject?
+        let id = UUID()
+        
+        /// Invalidates the deinitialization observation.
+        public func invalidate() {
+            object?.deinitCallback.callbacks.removeValue(forKey: id)
+        }
+        
+        init(object: NSObject? = nil) {
+            self.object = object
+        }
+        
+        deinit {
+           invalidate()
+        }
+    }
+}
+
+
+@objc class DeinitCallback: NSObject {
+    var callbacks: [UUID: () -> ()] = [:]
 
   deinit {
-    callbacks.forEach({ $0() })
+      callbacks.forEach({$0.value() })
   }
 }
 
