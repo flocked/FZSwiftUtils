@@ -230,7 +230,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
 
     override open func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
-        Swift.print("observeValue", keyPath ?? "nil", change ?? "nil")
         guard
             observedObject != nil,
             let keyPath = keyPath,
