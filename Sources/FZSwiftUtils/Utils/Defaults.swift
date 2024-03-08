@@ -42,6 +42,11 @@ public final class Defaults {
         get { get(key) }
         set { set(newValue, for: key) }
     }
+    
+    public subscript<T: Codable>(key: String, initalValue: T) -> T? {
+        get { get(key, initalValue: initalValue) }
+        set { set(newValue, for: key) }
+    }
 
     public subscript(key: String) -> Any? {
         get { userDefaults.value(forKey: key) }
@@ -57,6 +62,11 @@ public final class Defaults {
         get { get(key) }
         set { set(newValue, for: key) }
     }
+    
+    public subscript<T: RawRepresentable>(key: String, initialValue: T) -> T? where T.RawValue: Codable {
+        get { get(key, initalValue: initialValue) }
+        set { set(newValue, for: key) }
+    }
 
     /**
      The value for the specified key, or `nil`if there isn't a value for the key.
@@ -66,6 +76,15 @@ public final class Defaults {
     func get<Value: Codable>(_ key: String) -> Value? {
         let key = Key<Value>(key)
         return get(key)
+    }
+    
+    func get<Value: Codable>(_ key: String, initalValue: Value) -> Value {
+        let key = Key<Value>(key)
+        if let value: Value = get(key) {
+            return value
+        }
+        set(initalValue, for: key)
+        return initalValue
     }
 
     /**
@@ -79,6 +98,14 @@ public final class Defaults {
             return Value(rawValue: raw)
         }
         return nil
+    }
+    
+    func get<Value: RawRepresentable>(_ key: String, initalValue: Value) -> Value where Value.RawValue: Codable {
+        if let value: Value = get(key) {
+            return value
+        }
+        set(initalValue, for: key)
+        return initalValue
     }
 
     /**
