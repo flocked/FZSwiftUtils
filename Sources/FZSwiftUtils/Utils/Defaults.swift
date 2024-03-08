@@ -73,12 +73,17 @@ public final class Defaults {
 
      - Parameter key: The key.
      */
-    func get<Value: Codable>(_ key: String) -> Value? {
+    public func get<Value: Codable>(_ key: String) -> Value? {
         let key = Key<Value>(key)
         return get(key)
     }
     
-    func get<Value: Codable>(_ key: String, initalValue: Value) -> Value {
+    /**
+     The value for the specified key, or `nil`if there isn't a value for the key.
+
+     - Parameter key: The key.
+     */
+    public func get<Value: Codable>(_ key: String, initalValue: Value) -> Value {
         let key = Key<Value>(key)
         if let value: Value = get(key) {
             return value
@@ -92,7 +97,7 @@ public final class Defaults {
 
      - Parameter key: The key.
      */
-    func get<Value: RawRepresentable>(_ key: String) -> Value? where Value.RawValue: Codable {
+    public func get<Value: RawRepresentable>(_ key: String) -> Value? where Value.RawValue: Codable {
         let convertedKey = Key<Value.RawValue>(key)
         if let raw = get(convertedKey) {
             return Value(rawValue: raw)
@@ -100,7 +105,7 @@ public final class Defaults {
         return nil
     }
     
-    func get<Value: RawRepresentable>(_ key: String, initalValue: Value) -> Value where Value.RawValue: Codable {
+    public func get<Value: RawRepresentable>(_ key: String, initalValue: Value) -> Value where Value.RawValue: Codable {
         if let value: Value = get(key) {
             return value
         }
@@ -115,7 +120,7 @@ public final class Defaults {
         - value: The value to set.
         - key: The key.
      */
-    func set<Value: Codable>(_ value: Value?, for key: String) {
+    public func set<Value: Codable>(_ value: Value?, for key: String) {
         let key = Key<Value>(key)
         if let value = value {
             set(value, for: key)
@@ -131,7 +136,7 @@ public final class Defaults {
         - value: The value to set.
         - key: The key.
      */
-    func set<Value: RawRepresentable>(_ value: Value?, for key: String) where Value.RawValue: Codable {
+    public func set<Value: RawRepresentable>(_ value: Value?, for key: String) where Value.RawValue: Codable {
         if let value = value {
             let convertedKey = Key<Value.RawValue>(key)
             set(value.rawValue, for: convertedKey)
@@ -145,7 +150,7 @@ public final class Defaults {
 
      - Parameter key: The key.
      */
-    func clear(_ key: String) {
+    public func clear(_ key: String) {
         userDefaults.set(nil, forKey: key)
         userDefaults.synchronize()
     }
@@ -155,7 +160,7 @@ public final class Defaults {
 
      - Parameter key: The key for the value.
      */
-    func has(_ key: String) -> Bool {
+    public func has(_ key: String) -> Bool {
         userDefaults.value(forKey: key) != nil
     }
 
