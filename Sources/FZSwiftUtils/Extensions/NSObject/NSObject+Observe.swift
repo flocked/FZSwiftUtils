@@ -10,6 +10,7 @@
 import Foundation
 
 public extension NSObjectProtocol where Self: NSObject {
+  /*
     /**
      Observes changes for a property identified by the given key path.
      
@@ -65,7 +66,7 @@ public extension NSObjectProtocol where Self: NSObject {
      */
     func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> NSKeyValueObservation? {
         guard keyPath._kvcKeyPathString != nil else { return nil }
-        if sendInitalValue == false {
+        if uniqueValues == false {
             return observeChanges(for: keyPath, handler: handler)
         }
         return observe(keyPath, options: [.old, .new, .initial]) { _, change in
@@ -78,7 +79,7 @@ public extension NSObjectProtocol where Self: NSObject {
             }
         }
     }
-    
+    */
     /**
      Observes the deinitialization of the object and calls the specified handler.
      
@@ -104,6 +105,7 @@ public extension NSObjectProtocol where Self: NSObject {
         get { getAssociatedValue(key: "deinitCallback", object: self, initialValue: DeinitCallback()) }
     }
 }
+
 
 extension NSObject {
     

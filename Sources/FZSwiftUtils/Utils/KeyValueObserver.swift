@@ -270,13 +270,11 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     func setupNotificationObservation() {
         tokens.append(NotificationCenter.default.observe(Self.activateObservation, object: observedObject, using: { [weak self] notification in
-            Swift.debugPrint("activate observation")
             guard let self = self else { return }
             self.activate()
         }))
         
         tokens.append(NotificationCenter.default.observe(Self.deactivateObservation, object: observedObject, using: { [weak self] notification in
-            Swift.debugPrint("deactivate observation")
             guard let self = self else { return }
             self.deactivate()
         }))
@@ -284,22 +282,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
 
     deinit {
         removeAll()
-    }
-}
-
-extension NSObject {
-    static let deactivateObservation = NSNotification.Name("com.fzuikit.deactivateObservation")
-    
-    static let activateObservation = NSNotification.Name("com.fzuikit.activateObservation")
-}
-
-extension NSObjectProtocol where Self: NSObject {
-    func deactivateAllObservations() {
-        NotificationCenter.default.post(name: Self.deactivateObservation, object: self)
-    }
-    
-    func activateAllObservations() {
-        NotificationCenter.default.post(name: Self.activateObservation, object: self)
     }
 }
 
