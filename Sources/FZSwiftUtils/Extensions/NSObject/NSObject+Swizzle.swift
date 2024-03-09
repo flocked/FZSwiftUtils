@@ -46,16 +46,16 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
-            var needsObservationActivion = false
             if hooks.isEmpty {
-                needsObservationActivion = try checkObjectForSwizzling()
+                try checkObjectForSwizzling()
             }
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
-            if needsObservationActivion {
+            if didDeactivateObservations {
                 activateAllObservations()
+                didDeactivateObservations = false
             }
             return ReplacedMethodToken(hook)
         }
@@ -88,20 +88,25 @@ extension NSObject {
         NSStringFromClass(klass).hasPrefix("NSKVO")
     }
     
-    func checkObjectForSwizzling() throws -> Bool {
+    var didDeactivateObservations: Bool {
+        get { getAssociatedValue(key: "didDeactivateObservations", object: self, initialValue: false) }
+        set { set(associatedValue: newValue, key: "didDeactivateObservations", object: self) }
+    }
+    
+    func checkObjectForSwizzling() throws {
         if let actualClass = checkObjectPosingAsDifferentClass() {
             if isKVORuntimeGeneratedClass(actualClass) {
-                deactivateAllObservations()
-                if isKVORuntimeGeneratedClass(actualClass) {
-                    activateAllObservations()
-                    throw SwizzleError.keyValueObservationDetected(self)
+                if didDeactivateObservations == false {
+                    deactivateAllObservations()
+                    didDeactivateObservations = true
+                    return try checkObjectForSwizzling()
                 }
-                return true
+                activateAllObservations()
+                throw SwizzleError.keyValueObservationDetected(self)
             } else {
                 throw SwizzleError.objectPosingAsDifferentClass(self, actualClass: actualClass)
             }
         }
-        return false
     }
     
     /**
