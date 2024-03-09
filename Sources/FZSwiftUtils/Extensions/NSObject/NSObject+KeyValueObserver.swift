@@ -29,7 +29,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         guard let observer = KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler) else {
             return nil
         }
@@ -58,18 +58,18 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? where Value: Equatable {
+    public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? where Value: Equatable {
        guard let observer = KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler) else {
            return nil
        }
        return KeyValueObservation(observer)
     }
     
-    func deactivateAllObservations() {
+    public func deactivateAllObservations() {
         NotificationCenter.default.post(name: Self.deactivateObservation, object: self)
     }
     
-    func activateAllObservations() {
+    public func activateAllObservations() {
         NotificationCenter.default.post(name: Self.activateObservation, object: self)
     }
 }
@@ -93,7 +93,7 @@ extension NSObject {
  ```
  To stop the observation of the property, either call ``invalidate()```, or deinitalize the object.
  */
-class KeyValueObservation: NSObject {
+public class KeyValueObservation: NSObject {
 
     /// Invalidates the observation.
     public func invalidate() {
