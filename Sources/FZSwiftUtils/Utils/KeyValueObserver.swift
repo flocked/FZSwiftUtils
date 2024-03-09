@@ -27,6 +27,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     public init(_ observedObject: Object) {
         self.observedObject = observedObject
         super.init()
+        setupNotificationObservation()
     }
 
     /**
@@ -246,10 +247,50 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
             observer.handler(newValue, newValue, true)
         }
     }
+    
+    func activate() {
+        guard let observedObject = observedObject, isActive == false else { return }
+        isActive = true
+        for observer in observers {
+            let options: NSKeyValueObservingOptions = observer.value.sendInital ? [.old, .new, .initial] : [.old, .new]
+            observedObject.addObserver(self, forKeyPath: observer.key, options: options, context: nil)
+        }
+    }
+    
+    func deactivate() {
+        guard let observedObject = observedObject, isActive else { return }
+        isActive = false
+        for observer in observers {
+            observedObject.removeObserver(self, forKeyPath: observer.key)
+        }
+    }
+    
+    var tokens: [NotificationToken] = []
+    var isActive: Bool = true
+    
+    func setupNotificationObservation() {
+        tokens.append(NotificationCenter.default.observe(Self.activateObservation, object: observedObject, using: { [weak self] notification in
+            Swift.debugPrint("activate observation")
+            guard let self = self else { return }
+            self.activate()
+        }))
+        
+        tokens.append(NotificationCenter.default.observe(Self.deactivateObservation, object: observedObject, using: { [weak self] notification in
+            Swift.debugPrint("deactivate observation")
+            guard let self = self else { return }
+            self.deactivate()
+        }))
+    }
 
     deinit {
         removeAll()
     }
+}
+
+extension NSObject {
+    static let deactivateObservation = NSNotification.Name("com.fzuikit.deactivateObservation")
+    
+    static let activateObservation = NSNotification.Name("com.fzuikit.activateObservation")
 }
 
 /*
