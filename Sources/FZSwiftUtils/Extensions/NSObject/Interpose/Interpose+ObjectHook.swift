@@ -14,7 +14,7 @@ extension Interpose {
     final class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
 
         /// The object that is being hooked.
-        public weak var object: AnyObject?
+        public let object: AnyObject
         
         /// Subclass that we create on the fly
         var interposeSubclass: InterposeSubclass?
@@ -93,9 +93,6 @@ extension Interpose {
 
             // Check if there's an existing subclass we can reuse.
             // Create one at runtime if there is none.
-            guard let object = object else {
-                throw NSObject.SwizzleError.nonExistingImplementation(`class`, selector).log()
-            }
             interposeSubclass = try InterposeSubclass(object: object)
 
             // The implementation of the call that is hooked must exist.

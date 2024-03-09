@@ -51,7 +51,7 @@ extension NSObject {
             }
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
-            _hooks.append(Weak(value: hook))
+            _hooks.append(hook)
             hooks[selector] = _hooks
             return ReplacedMethodToken(hook)
         }
@@ -114,7 +114,7 @@ extension NSObject {
     public func resetMethod(_ selector: Selector) {
         for hook in hooks[selector] ?? [] {
             do {
-                _ = try hook.value?.revert()
+                _ = try hook.revert()
             } catch {
                 Swift.debugPrint(error)
             }
@@ -124,9 +124,9 @@ extension NSObject {
     
     /// Resets an replaced instance method of the object to it's original state.
     public func resetMethod(_ token: ReplacedMethodToken) {
-        if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.value?.id == token.id}) {
+        if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
             do {
-                try hooks[safe: index]?.value?.revert()
+                try hooks[safe: index]?.revert()
                 hooks.remove(at: index)
                 self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
             } catch {
@@ -184,16 +184,9 @@ extension NSObject {
         (hooks[selector] ?? []).isEmpty == false
     }
     
-    var hooks: [Selector: [Weak<AnyHook>]] {
+    var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
         set { set(associatedValue: newValue, key: "_hooks", object: self) }
-    }
-    
-    class Weak<T: AnyObject> {
-      weak var value : T?
-      init (value: T) {
-        self.value = value
-      }
     }
     
     static var hooks: [Selector: [AnyHook]] {
