@@ -26,7 +26,7 @@ class InterposeSubclass {
     }
 
     /// The object that is being hooked.
-    let object: AnyObject
+    weak var object: AnyObject?
 
     /// Subclass that we create on the fly
     private(set) var dynamicClass: AnyClass
@@ -43,6 +43,9 @@ class InterposeSubclass {
     }
 
     private func createSubclass() throws -> AnyClass {
+        guard let object = object else {
+            throw NSObject.SwizzleError.objectDoesntExistAnymore
+        }
         let perceivedClass: AnyClass = type(of: object)
         let actualClass: AnyClass = object_getClass(object)!
 

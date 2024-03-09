@@ -47,6 +47,8 @@ extension NSObject {
         
         /// Generic failure
         case unknownError(_ reason: String)
+        
+        case objectDoesntExistAnymore
     }
 }
 
@@ -78,6 +80,8 @@ extension NSObject.SwizzleError: Equatable {
             return "Reset Unsupported: \(reason)"
         case .unknownError(let reason):
             return reason
+        case .objectDoesntExistAnymore:
+            return "The object for swizzling doesn't exist anymore."
         }
     }
 
