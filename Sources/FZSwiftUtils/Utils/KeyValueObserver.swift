@@ -249,6 +249,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     func activate() {
+        Swift.print("IS ACTIVE")
         guard let observedObject = observedObject, isActive == false else { return }
         isActive = true
         for observer in observers {
@@ -258,6 +259,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     func deactivate() {
+        Swift.print("IS DEACTIVE")
         guard let observedObject = observedObject, isActive else { return }
         isActive = false
         for observer in observers {
