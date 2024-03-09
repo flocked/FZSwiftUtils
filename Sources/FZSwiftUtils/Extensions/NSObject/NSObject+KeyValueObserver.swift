@@ -158,6 +158,7 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVOObservation {
     }
     
     func deactivate() {
+        Swift.print("deactivate")
         observation?.invalidate()
         observation = nil
     }
