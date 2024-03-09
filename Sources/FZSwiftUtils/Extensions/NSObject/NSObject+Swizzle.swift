@@ -46,13 +46,17 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
+            var needsObservationActivion = false
             if hooks.isEmpty {
-                try checkObjectForSwizzling()
+                needsObservationActivion = try checkObjectForSwizzling()
             }
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
+            if needsObservationActivion {
+                activateAllObservations()
+            }
             return ReplacedMethodToken(hook)
         }
     
@@ -84,14 +88,20 @@ extension NSObject {
         NSStringFromClass(klass).hasPrefix("NSKVO")
     }
     
-    func checkObjectForSwizzling() throws {
+    func checkObjectForSwizzling() throws -> Bool {
         if let actualClass = checkObjectPosingAsDifferentClass() {
             if isKVORuntimeGeneratedClass(actualClass) {
-                throw SwizzleError.keyValueObservationDetected(self)
+                deactivateAllObservations()
+                if isKVORuntimeGeneratedClass(actualClass) {
+                    activateAllObservations()
+                    throw SwizzleError.keyValueObservationDetected(self)
+                }
+                return true
             } else {
                 throw SwizzleError.objectPosingAsDifferentClass(self, actualClass: actualClass)
             }
         }
+        return false
     }
     
     /**

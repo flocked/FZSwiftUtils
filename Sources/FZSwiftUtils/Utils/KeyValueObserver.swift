@@ -293,6 +293,16 @@ extension NSObject {
     static let activateObservation = NSNotification.Name("com.fzuikit.activateObservation")
 }
 
+extension NSObjectProtocol where Self: NSObject {
+    func deactivateAllObservations() {
+        NotificationCenter.default.post(name: Self.deactivateObservation, object: self)
+    }
+    
+    func activateAllObservations() {
+        NotificationCenter.default.post(name: Self.activateObservation, object: self)
+    }
+}
+
 /*
  public extension KeyValueObserver {
      /**
