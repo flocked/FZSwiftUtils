@@ -46,6 +46,9 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
+            if hooks.isEmpty {
+                try checkObjectForSwizzling()
+            }
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
@@ -67,6 +70,29 @@ extension NSObject {
             hooks[selector] = _hooks
             return ReplacedMethodToken(hook)
         }
+    
+    func checkObjectPosingAsDifferentClass() -> AnyClass? {
+         let perceivedClass: AnyClass = type(of: self)
+         let actualClass: AnyClass = object_getClass(self)!
+         if actualClass != perceivedClass {
+             return actualClass
+         }
+         return nil
+     }
+    
+    func isKVORuntimeGeneratedClass(_ klass: AnyClass) -> Bool {
+        NSStringFromClass(klass).hasPrefix("NSKVO")
+    }
+    
+    func checkObjectForSwizzling() throws {
+        if let actualClass = checkObjectPosingAsDifferentClass() {
+            if isKVORuntimeGeneratedClass(actualClass) {
+                throw SwizzleError.keyValueObservationDetected(self)
+            } else {
+                throw SwizzleError.objectPosingAsDifferentClass(self, actualClass: actualClass)
+            }
+        }
+    }
     
     /**
      The token for resetting a replaced method.
