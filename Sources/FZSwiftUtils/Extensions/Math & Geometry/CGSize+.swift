@@ -150,7 +150,21 @@ public extension CGSize {
      - Returns: The scaled size that fills the specified size while maintaining the aspect ratio.
      */
     func scaled(toFill size: CGSize) -> CGSize {
-        if size.height > size.width && height < width {
+        var newSize = self
+        if size.width > size.height {
+            newSize = newSize.scaled(toWidth: size.width)
+            if  newSize.height < size.height {
+                newSize = newSize.scaled(toHeight: size.height)
+            }
+        } else {
+            newSize = newSize.scaled(toHeight: size.height)
+            if newSize.width < size.width {
+                newSize = newSize.scaled(toWidth: size.width)
+            }
+        }
+      //  return newSize
+        
+        if size.height > size.width && height > width {
             return scaled(toHeight: size.height)
         } else {
             return scaled(toWidth: size.width)
