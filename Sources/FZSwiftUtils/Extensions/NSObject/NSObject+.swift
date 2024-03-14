@@ -62,6 +62,20 @@ public extension NSObject {
             setValue(value, forKey: key)
         }
     }
+    
+    /**
+     Returns the value for the property identified by a given key.
+
+     - Parameters:
+        - value: The value to set.
+        - key: The key of the property.
+
+     - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
+     */
+    func value(forKeySafely key: String) -> Any? {
+        guard containsProperty(named: key) else { return nil }
+        return value(forKey: key)
+    }
 
     /**
      Retrieves the value for the specified key, casting it to the specified type, if the object contains a property with the given key.
