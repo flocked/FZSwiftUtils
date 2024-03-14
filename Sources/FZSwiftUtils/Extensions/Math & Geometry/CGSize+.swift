@@ -150,7 +150,11 @@ public extension CGSize {
      - Returns: The scaled size that fills the specified size while maintaining the aspect ratio.
      */
     func scaled(toFill size: CGSize) -> CGSize {
-        scaled(toHeight: size.height)
+        if size.height > size.width && height < width {
+            return scaled(toHeight: size.height)
+        } else {
+            return scaled(toWidth: size.width)
+        }
     }
 
     /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.
