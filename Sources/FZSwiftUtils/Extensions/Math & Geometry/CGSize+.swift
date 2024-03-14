@@ -162,13 +162,7 @@ public extension CGSize {
                 newSize = newSize.scaled(toWidth: size.width)
             }
         }
-      //  return newSize
-        
-        if size.height > size.width && height > width {
-            return scaled(toHeight: size.height)
-        } else {
-            return scaled(toWidth: size.width)
-        }
+      return newSize
     }
 
     /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.
