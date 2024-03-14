@@ -95,9 +95,10 @@ public extension CGSize {
     func scaled(toHeight newHeight: CGFloat) -> CGSize {
         let scale = newHeight / height
         let newWidth = width * scale
+       // self.clamped
         return CGSize(width: newWidth, height: newHeight)
     }
-
+    
     /**
      Scales the size by the specified factor.
 
@@ -119,26 +120,17 @@ public extension CGSize {
      - Returns: The scaled size that fits within the size while maintaining the aspect ratio.
      */
     func scaled(toFit size: CGSize) -> CGSize {
-        if size.width == -1, size.height == -1 {
+        if (size.width == -1 || size.width == .greatestFiniteMagnitude), (size.height == -1 || size.height == .greatestFiniteMagnitude) {
             return self
-        } else if size.width == -1 {
+        } else if size.width == -1 || size.width == .greatestFiniteMagnitude {
             return scaled(toHeight: size.height)
-        } else if size.height == -1 {
+        } else if size.height == -1 || size.height == .greatestFiniteMagnitude {
             return scaled(toWidth: size.width)
         }
-
-        // the width and height ratios of the rects
         let wRatio = width / size.width
         let hRatio = height / size.height
-
-        // calculate scaling ratio based on the smallest ratio.
         let ratio = (wRatio > hRatio) ? wRatio : hRatio
-
-        // aspect fitted origin and size
-        return CGSize(
-            width: width / ratio,
-            height: height / ratio
-        )
+        return CGSize(width: width / ratio, height: height / ratio)
     }
 
     /**
@@ -163,6 +155,55 @@ public extension CGSize {
             }
         }
       return newSize
+    }
+    
+    /**
+     Clamps the size to the specified minimum size.
+     
+     - Parameter minSize: The minimum size needed.
+     - Returns: The clamped size.
+     */
+    func clamped(minSize: CGSize) -> CGSize {
+        var size = self
+        size.width = size.width.clamped(min: minSize.width)
+        size.height = size.height.clamped(min: minSize.height)
+        return size
+    }
+    
+    /**
+     Clamps the size to the specified maximum size.
+     
+     - Parameter maxSize: The maximum size allowed.
+     - Returns: The clamped size.
+     */
+    func clamped(maxSize: CGSize) -> CGSize {
+        var size = self
+        size.width = size.width.clamped(max: maxSize.width)
+        size.height = size.height.clamped(max: maxSize.height)
+        return size
+    }
+        
+    /**
+     Clamps the size to the specified minimum and maximum values.
+     
+     - Parameters:
+        - minWidth: The minimum width needed.
+        - minHeight: The minimum height needed.
+        - maxWidth: The maximum width allowed.
+        - maxHeight: The maximum height allowed.
+     - Returns: The clamped size.
+     */
+    func clamped(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) -> CGSize {
+        var size = self
+        size.width = size.width.clamped(min: minWidth ?? width)
+        size.height = size.height.clamped(min: minHeight ?? height)
+        if let maxWidth = maxWidth, width > maxWidth {
+            size.width = width.clamped(max: maxWidth)
+        }
+        if let maxHeight = maxHeight, height > maxHeight {
+            size.height = height.clamped(max: maxHeight)
+        }
+        return size
     }
 
     /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.
