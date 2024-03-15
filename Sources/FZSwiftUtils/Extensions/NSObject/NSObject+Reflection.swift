@@ -15,6 +15,14 @@ public extension NSObject {
     static func classReflection(includeSuperclass: Bool = false, excludeReadOnlyProperties: Bool = false) -> [String: Any]? {
         getTypesOfProperties(in: self, includeSuperclass: includeSuperclass, excludeReadOnlyProperties: excludeReadOnlyProperties)
     }
+    
+    static func printClassReflection(includeSuperclass: Bool = false, excludeReadOnlyProperties: Bool = false) {
+        guard let reflection = classReflection(includeSuperclass: includeSuperclass, excludeReadOnlyProperties: excludeReadOnlyProperties) else { return }
+        Swift.print("\(String(describing: self)):")
+        for key in reflection.keys.sorted() {
+            Swift.print("\t\(key):", reflection[key] ?? "nil")
+        }
+    }
 
     static func typeOfProperty(_ propertyName: String) -> Any? {
         typeOf(property: propertyName, in: self)
@@ -26,6 +34,14 @@ public extension NSObject {
 
     func classReflection() -> [String: Any]? {
         getTypesOfProperties(ofObject: self)
+    }
+    
+    func printClassReflection() {
+        guard let reflection = classReflection() else { return }
+        Swift.print("\(type(of: self)):")
+        for key in reflection.keys.sorted() {
+            Swift.print("\t\(key):", reflection[key] ?? "nil")
+        }
     }
 
     func typeOfProperty(named propertyName: String) -> Any? {
