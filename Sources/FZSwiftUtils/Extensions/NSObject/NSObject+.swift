@@ -48,6 +48,16 @@ public extension NSCoding where Self: NSObject {
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
     func archiveBasedCopy<Subclass: NSObject & NSCoding>(_ subclass: Subclass.Type) throws -> Subclass {
+        let data = NSMutableData()
+        let archiver = NSKeyedArchiver(forWritingWith: data)
+        encode(with: archiver)
+        archiver.finishEncoding()
+        let unarchiver = NSKeyedUnarchiver(forReadingWith: data as Data)
+        guard let object = Subclass(coder: unarchiver) else {
+            throw NSCodingError.castingFailed
+        }
+        return object
+        /*
         let data: Data
         let unarchiver: NSKeyedUnarchiver
         if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
@@ -62,6 +72,7 @@ public extension NSCoding where Self: NSObject {
             throw NSCodingError.castingFailed
         }
         return object
+         */
     }
 }
 
