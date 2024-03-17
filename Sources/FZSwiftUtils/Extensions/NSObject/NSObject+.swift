@@ -49,7 +49,28 @@ public extension NSObject {
         guard let keypathString = keypath._kvcKeyPathString else { return }
         removeObserver(observer, forKeyPath: keypathString)
     }
+    
+    /**
+     Returns the value for the property identified by a given key.
 
+     - Parameter key: The key of the property.
+     - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
+     */
+    func value(forKeySafely key: String) -> Any? {
+        guard containsProperty(named: key) else { return nil }
+        return value(forKey: key)
+    }
+    
+    /**
+     Returns the value for the property identified by a given key.
+
+     - Parameter key: The key of the property.
+     - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
+     */
+    func value<Value>(forKey key: String) -> Value? {
+        value(forKeySafely: key) as? Value
+    }
+    
     /**
      Sets the value safely for the specified key, only if the object contains a property with the given key.
 
@@ -61,36 +82,6 @@ public extension NSObject {
         if containsProperty(named: key) {
             setValue(value, forKey: key)
         }
-    }
-    
-    /**
-     Returns the value for the property identified by a given key.
-
-     - Parameters:
-        - value: The value to set.
-        - key: The key of the property.
-
-     - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
-     */
-    func value(forKeySafely key: String) -> Any? {
-        guard containsProperty(named: key) else { return nil }
-        return value(forKey: key)
-    }
-
-    /**
-     Retrieves the value for the specified key, casting it to the specified type, if the object contains a property with the given key.
-
-     - Parameters:
-        - key: The key of the property to retrieve the value for.
-        - type: The type to cast the value to.
-
-     - Returns: The value for the specified key, cast to the specified type, or `nil` if the key is not found or the value cannot be cast.
-     */
-    func value<T>(forKey key: String, type _: T.Type) -> T? {
-        if containsProperty(named: key) {
-            return value(forKey: key) as? T
-        }
-        return nil
     }
 
     /**
