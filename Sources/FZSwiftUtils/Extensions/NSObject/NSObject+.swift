@@ -11,9 +11,13 @@ import Foundation
 public enum NSCodingError: Error {
     /// Unpacking failed.
     case unpacking
+    
+    /// Couldn't cast
+    case castingFailed
 }
 
 public extension NSCoding where Self: NSObject {
+    
     /**
      Creates an archived-based copy of the object.
 
@@ -34,6 +38,30 @@ public extension NSCoding where Self: NSObject {
             throw NSCodingError.unpacking
         }
         return copy
+    }
+    
+    /**
+     Creates an archived-based copy of the object as the specified subclass.
+     
+     - Parameter subclass: The subclass of the copy.
+
+     - Throws: An error if copying fails or the specified class isn't a subclass.
+     */
+    internal func archiveBasedCopy<Subclass: NSObject & NSCoding>(_ subclass: Subclass.Type) throws -> Subclass {
+        let data: Data
+        let unarchiver: NSKeyedUnarchiver
+        if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+            data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
+            unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+        } else {
+            data = NSKeyedArchiver.archivedData(withRootObject: self)
+            unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+        }
+        unarchiver.requiresSecureCoding = false
+        guard let object = Subclass(coder: unarchiver) else {
+            throw NSCodingError.castingFailed
+        }
+        return object
     }
 }
 
