@@ -9,38 +9,33 @@ import Foundation
 
 public extension OptionSet {
     /**
-     A Boolean value indicating whether the option set contains all specified elements.
+     A Boolean value indicating whether the set contains any of the specified elements.
 
-     - Parameter elements: The elements.
-     - Returns: `true` if all elements exist in the option set, or` false` if not.
-     */
-    func contains(all members: [Self.Element]) -> Bool {
-        for member in members {
-            if contains(member) == false {
-                return false
-            }
-        }
-        return true
-    }
-
-    /**
-     A Boolean value indicating whether the option set contains any of the specified elements.
-
-     - Parameter elements: The elements.
-     - Returns: `true` if any of the elements exists in the option set, or` false` if non exist in the option set.
+     - Parameter elements: The elements to look for in the set.
+     - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
      */
     func contains(any members: [Self.Element]) -> Bool {
-        for member in members {
-            if contains(member) {
+        return members.contains(where: { contains($0) })
+    }
+}
+
+public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
+    /**
+     A Boolean value indicating whether the set contains any of the specified elements.
+
+     - Parameter elements: The elements to look for in the set.
+     - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
+     */
+    func contains(any member: Self.Element) -> Bool {
+        for element in member.elements() {
+            if contains(element) {
                 return true
             }
         }
         return false
     }
-}
-
-public extension OptionSet where RawValue: FixedWidthInteger {
-    /// Returns a sequence of all elements included in the option set.
+    
+    /// Returns a sequence of all elements included in the set.
     func elements() -> AnySequence<Self> {
         var remainingBits = rawValue
         var bitMask: RawValue = 1
@@ -57,4 +52,7 @@ public extension OptionSet where RawValue: FixedWidthInteger {
             }
         }
     }
+}
+func ttt() {
+    ImageSource.ImageProperties.Nikon.ShootingMode.continuous.contains(any: [.delay])
 }

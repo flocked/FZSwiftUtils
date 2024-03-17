@@ -16,13 +16,131 @@ private extension String {
     }
 }
 
+/*
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Returns the associated value for the specified  key.
+
+     - Parameters:
+        - key: The key of the associated value.
+     - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
+     */
+    public func getAssociatedValue<T>(key: String) -> T? {
+        FZSwiftUtils.getAssociatedValue(key: key, object: self)
+    }
+    
+    /**
+     Returns the associated value for the specified key and inital value.
+
+     - Parameters:
+        - key: The key of the associated value.
+        - initialValue: The inital value of the associated value.
+     - Returns: The associated value for the object and key.
+     */
+    public func getAssociatedValue<T>(key: String, initialValue: @autoclosure () -> T) -> T {
+        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+    }
+    
+    /**
+     Returns the associated value for the specified key and inital value.
+
+     - Parameters:
+        - key: The key of the associated value.
+        - initialValue: The inital value of the associated value.
+     - Returns: The associated value for the key.
+     */
+    public func getAssociatedValue<T>(key: String, initialValue: () -> T) -> T {
+        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+    }
+    
+    /**
+     Sets an associated value for the specified key.
+
+     - Parameters:
+        - value: The value to set.
+        - key: The key of the associated value.
+     */
+    public func setAssociatedValue<T>(_ value: T?, key: String) {
+        FZSwiftUtils.set(associatedValue: value, key: key, object: self)
+    }
+    
+    /**
+     Sets a weak associated value for the specified key.
+
+     - Parameters:
+        - value: The weak value to set.
+        - key: The key of the associated value.
+     */
+    public func setAssociatedValue<T: AnyObject>(weak value: T?, key: String) {
+        FZSwiftUtils.set(weakAssociatedValue: value, key: key, object: self)
+    }
+    
+    /**
+     Returns the associated value for the specified  key.
+
+     - Parameters:
+        - key: The key of the associated value.
+     - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
+     */
+    public static func getAssociatedValue<T>(key: String) -> T? {
+        FZSwiftUtils.getAssociatedValue(key: key, object: self)
+    }
+    
+    /**
+     Returns the associated value for the specified key and inital value.
+
+     - Parameters:
+        - key: The key of the associated value.
+        - initialValue: The inital value of the associated value.
+     - Returns: The associated value for the object and key.
+     */
+    public static func getAssociatedValue<T>(key: String, initialValue: @autoclosure () -> T) -> T {
+        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+    }
+    
+    /**
+     Returns the associated value for the specified key and inital value.
+
+     - Parameters:
+        - key: The key of the associated value.
+        - initialValue: The inital value of the associated value.
+     - Returns: The associated value for the key.
+     */
+    public static func getAssociatedValue<T>(key: String, initialValue: () -> T) -> T {
+        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+    }
+    
+    /**
+     Sets an associated value for the specified key.
+
+     - Parameters:
+        - value: The value to set.
+        - key: The key of the associated value.
+     */
+    public static func setAssociatedValue<T>(_ value: T?, key: String) {
+        FZSwiftUtils.set(associatedValue: value, key: key, object: self)
+    }
+    
+    /**
+     Sets a weak associated value for the specified key.
+
+     - Parameters:
+        - value: The weak value to set.
+        - key: The key of the associated value.
+     */
+    public static func setAssociatedValue<T: AnyObject>(weak value: T?, key: String) {
+        FZSwiftUtils.set(weakAssociatedValue: value, key: key, object: self)
+    }
+}
+ */
+
 /**
  Returns the associated value for the specified object and key.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
- - Returns: The associated value for the object and key, or `nil` if the value couldn't be found for the key..
+ - Returns: The associated value for the object and key, or `nil` if the value couldn't be found for the key.
  */
 public func getAssociatedValue<T>(key: String, object: AnyObject) -> T? {
     (objc_getAssociatedObject(object, key.address) as? _AssociatedValue)?.value as? T
