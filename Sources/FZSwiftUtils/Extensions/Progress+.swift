@@ -10,9 +10,9 @@ import Foundation
 public extension Progress {
     /// The identifier of the progress.
     var identifier: Any? {
-        get { getAssociatedValue(key: "Progress_identifier", object: self, initialValue: nil) }
+        get { getAssociatedValue("Progress_identifier", initialValue: nil) }
         set {
-            set(associatedValue: newValue, key: "Progress_identifier", object: self)
+            setAssociatedValue(newValue, key: "Progress_identifier")
         }
     }
 
@@ -82,10 +82,10 @@ public extension Progress {
 
     /// A Boolean value indicating whether the progress should auomatically update the estimated time and throughput remaining.
     var autoUpdateEstimatedTimeRemaining: Bool {
-        get { getAssociatedValue(key: "Progress_autoUpdateEstimatedTimeRemaining", object: self, initialValue: false) }
+        get { getAssociatedValue("Progress_autoUpdateEstimatedTimeRemaining", initialValue: false) }
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
-            set(associatedValue: newValue, key: "Progress_autoUpdateEstimatedTimeRemaining", object: self)
+            setAssociatedValue(newValue, key: "Progress_autoUpdateEstimatedTimeRemaining")
             setupEstimatedTimeProgressObserver(newValue)
         }
     }
@@ -138,27 +138,27 @@ public extension Progress {
     #endif
 
     internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
-        get { getAssociatedValue(key: "Progress_estimatedTimeProgressObserver", object: self, initialValue: nil) }
-        set { set(associatedValue: newValue, key: "Progress_estimatedTimeProgressObserver", object: self) }
+        get { getAssociatedValue("Progress_estimatedTimeProgressObserver", initialValue: nil) }
+        set { setAssociatedValue(newValue, key: "Progress_estimatedTimeProgressObserver") }
     }
 
     internal var estimatedTimeStartDate: Date {
-        get { getAssociatedValue(key: "Progress_estimatedTimeStartDate", object: self, initialValue: Date()) }
-        set { set(associatedValue: newValue, key: "Progress_estimatedTimeStartDate", object: self) }
+        get { getAssociatedValue("Progress_estimatedTimeStartDate", initialValue: Date()) }
+        set { setAssociatedValue(newValue, key: "Progress_estimatedTimeStartDate") }
     }
 
     internal var estimatedTimeCompletedUnits: Int64 {
-        get { getAssociatedValue(key: "Progress_estimatedTimeCompletedUnits", object: self, initialValue: completedUnitCount) }
+        get { getAssociatedValue("Progress_estimatedTimeCompletedUnits", initialValue: completedUnitCount) }
         set {
             guard estimatedTimeCompletedUnits != newValue else { return }
-            set(associatedValue: newValue, key: "Progress_estimatedTimeCompletedUnits", object: self)
+            setAssociatedValue(newValue, key: "Progress_estimatedTimeCompletedUnits")
         }
     }
 
     internal var isPublished: Bool {
-        get { getAssociatedValue(key: "isPublished", object: self, initialValue: false) }
+        get { getAssociatedValue("isPublished", initialValue: false) }
         set {
-            set(associatedValue: newValue, key: "isPublished", object: self)
+            setAssociatedValue(newValue, key: "isPublished")
         }
     }
 

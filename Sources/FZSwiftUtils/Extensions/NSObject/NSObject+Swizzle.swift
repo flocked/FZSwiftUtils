@@ -89,8 +89,8 @@ extension NSObject {
     }
     
     var didDeactivateObservations: Bool {
-        get { getAssociatedValue(key: "didDeactivateObservations", object: self, initialValue: false) }
-        set { set(associatedValue: newValue, key: "didDeactivateObservations", object: self) }
+        get { getAssociatedValue("didDeactivateObservations", initialValue: false) }
+        set { setAssociatedValue(newValue, key: "didDeactivateObservations") }
     }
     
     func checkObjectForSwizzling() throws {
@@ -200,13 +200,13 @@ extension NSObject {
     }
     
     var hooks: [Selector: [AnyHook]] {
-        get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
-        set { set(associatedValue: newValue, key: "_hooks", object: self) }
+        get { getAssociatedValue("_hooks", initialValue: [:]) }
+        set { setAssociatedValue(newValue, key: "_hooks") }
     }
     
     static var hooks: [Selector: [AnyHook]] {
-        get { getAssociatedValue(key: "_hooks", object: self, initialValue: [:]) }
-        set { set(associatedValue: newValue, key: "_hooks", object: self) }
+        get { getAssociatedValue("_hooks", initialValue: [:]) }
+        set { setAssociatedValue(newValue, key: "_hooks") }
     }
 }
 
