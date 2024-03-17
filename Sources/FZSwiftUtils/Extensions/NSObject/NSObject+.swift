@@ -47,7 +47,7 @@ public extension NSCoding where Self: NSObject {
 
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
-    internal func archiveBasedCopy<Subclass: NSObject & NSCoding>(_ subclass: Subclass.Type) throws -> Subclass {
+    func archiveBasedCopy<Subclass: NSObject & NSCoding>(_ subclass: Subclass.Type) throws -> Subclass {
         let data: Data
         let unarchiver: NSKeyedUnarchiver
         if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
