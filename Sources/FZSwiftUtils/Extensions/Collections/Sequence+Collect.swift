@@ -33,6 +33,14 @@ public extension Sequence {
             }
         }
     }
+    
+    /// The first element of the sequence.
+    var first: Element? {
+        for element in self {
+            return element
+        }
+        return nil
+    }
 }
 
 public extension AsyncSequence {
