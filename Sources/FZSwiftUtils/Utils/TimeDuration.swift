@@ -509,9 +509,9 @@ extension TimeDuration: CustomStringConvertible {
 
      - Parameters:
         - includingSeconds: A Boolean value indicating whether the string should include seconds.
-        - secondsPrecision: The amount of digits after the seconds decimal separator.
+        - precision: The amount of digits after the seconds decimal separator.
      */
-    public func timecodeString(includingSeconds: Bool = true, secondsPrecision: Int = 0) -> String {
+    public func timecodeString(includingSeconds: Bool = true, precision: Int = 0) -> String {
         let h = Int(seconds) / 3600
         let m = (Int(seconds) % 3600) / 600
         
@@ -523,8 +523,8 @@ extension TimeDuration: CustomStringConvertible {
             return h_ + m_
         }
         
-        if secondsPrecision >= 1 {
-          s_ = String(format: "%0\(secondsPrecision + 3).\(secondsPrecision)f", fmod(seconds, 60))
+        if precision >= 1 {
+          s_ = String(format: "%0\(precision + 3).\(precision)f", fmod(seconds, 60))
         } else {
             let s = (Int(seconds) % 3600) % 60
             s_ = s < 10 ? "0\(s)" : "\(s)"
