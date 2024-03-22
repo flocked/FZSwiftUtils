@@ -206,4 +206,15 @@ extension BinaryFloatingPoint where Self: LosslessStringConvertible {
         formatter.usesGroupingSeparator = groupingSeparator
         return formatter.string(for: self) ?? String(self)
     }
+    
+    /**
+     String representation of the value.
+     
+     - Parameters:
+        - places: The amount of digits after the decimal separator.
+        - groupingSeparator: A Boolean value indicating whether the string should contain grouping separators.
+     */
+    public func string(places: Int, groupingSeparator: Bool = false) -> String {
+        return string(minPlaces: places, maxPlaces: places, groupingSeparator: groupingSeparator)
+    }    
 }

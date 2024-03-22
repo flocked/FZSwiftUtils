@@ -504,6 +504,34 @@ extension TimeDuration: CustomStringConvertible {
         return formatter.string(from: TimeInterval(seconds))!
     }
     
+    /**
+     A timecode string representation of the time duration.
+
+     - Parameters:
+        - includingSeconds: A Boolean value indicating whether the string should include seconds.
+        - secondsPrecision: The amount of digits after the seconds decimal separator.
+     */
+    public func timecodeString(includingSeconds: Bool = true, secondsPrecision: Int = 0) -> String {
+        let h = Int(seconds) / 3600
+        let m = (Int(seconds) % 3600) / 600
+        
+        let h_ = h > 0 ? "\(h):" : ""
+        let m_ = m < 10 ? "0\(m)" : "\(m)"
+        let s_: String
+
+        guard includingSeconds else {
+            return h_ + m_
+        }
+        
+        if secondsPrecision >= 1 {
+          s_ = String(format: "%0\(secondsPrecision + 3).\(secondsPrecision)f", fmod(seconds, 60))
+        } else {
+            let s = (Int(seconds) % 3600) % 60
+            s_ = s < 10 ? "0\(s)" : "\(s)"
+        }
+        return h_ + m_ + ":" + s_
+    }
+    
     var formatter: DateComponentsFormatter {
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = [.hour, .minute, .second]
