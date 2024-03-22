@@ -57,14 +57,19 @@ public class AnyHook {
     /// Apply the interpose hook.
     @discardableResult public func apply() throws -> AnyHook {
         try execute(newState: .interposed) { try replaceImplementation() }
+        isActive = true
         return self
     }
 
     /// Revert the interpose hoook.
     @discardableResult public func revert() throws -> AnyHook {
         try execute(newState: .prepared) { try resetImplementation() }
+        isActive = false
         return self
     }
+    
+    /// A Boolean value indicating whether the hook is applied.
+    public var isActive: Bool = false
 
     /// Validate that the selector exists on the active class.
     @discardableResult func validate(expectedState: State = .prepared) throws -> Method {

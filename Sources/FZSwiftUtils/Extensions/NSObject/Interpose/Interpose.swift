@@ -8,8 +8,8 @@
 import Foundation
 
 final class Interpose {
-    /// Logging uses print and is minimal.
-    static var isLoggingEnabled = false
+    /// A Boolean value indicating whether logging is enabled.
+     static var isLoggingEnabled = false
 
     /// Simple log wrapper for print.
     class func log(_ object: Any) {

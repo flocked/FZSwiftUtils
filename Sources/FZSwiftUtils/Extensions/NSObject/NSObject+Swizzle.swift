@@ -51,6 +51,7 @@ extension NSObject {
             }
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
+    
             _hooks.append(hook)
             hooks[selector] = _hooks
             if didDeactivateObservations {
@@ -67,8 +68,7 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
-            let hook = try Interpose.ClassHook(class: self as AnyClass,
-                                               selector: selector, implementation: implementation).apply()
+            let hook = try Interpose.ClassHook(class: self as AnyClass, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
             _hooks.append(hook)
             hooks[selector] = _hooks
@@ -120,6 +120,30 @@ extension NSObject {
         let id: UUID
         
         init(_ hook: AnyHook) {
+            self.selector = hook.selector
+            self.id = hook.id
+        }
+    }
+    
+    public struct ReplacedMethod<MethodSignature, HookSignature> {
+        public var original: MethodSignature? {
+            hook?.original
+        }
+        /// The selector for the replaced method.
+        public let selector: Selector
+        let id: UUID
+        
+        public func revert() throws {
+           try hook?.revert()
+        }
+        
+        public func apply() throws {
+           try hook?.apply()
+        }
+        
+        weak var hook: TypedHook<MethodSignature, HookSignature>?
+        init(_ hook: TypedHook<MethodSignature, HookSignature>) {
+            self.hook = hook
             self.selector = hook.selector
             self.id = hook.id
         }
