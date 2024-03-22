@@ -30,12 +30,30 @@ public extension Range where Bound: Comparable {
     }
     
     /**
+     Clamps the lower bound to the minimum value.
+
+     - Parameter minValue: The minimum value to clamp the lower bound.
+     */
+   mutating func clamp(min minValue: Bound) {
+       self = clamped(min: minValue)
+    }
+    
+    /**
      Clamps the upper bound to the maximum value.
 
      - Parameter maxValue: The maximum value to clamp the upper bound.
      */
     func clamped(max maxValue: Bound) -> Range {
         lowerBound..<Swift.min(maxValue, upperBound)
+    }
+    
+    /**
+     Clamps the upper bound to the maximum value.
+
+     - Parameter maxValue: The maximum value to clamp the upper bound.
+     */
+    mutating func clamp(max maxValue: Bound)  {
+        self = clamped(max: maxValue)
     }
 }
 
@@ -50,12 +68,30 @@ public extension ClosedRange where Bound: Comparable {
     }
     
     /**
+     Clamps the lower bound to the minimum value.
+
+     - Parameter minValue: The minimum value to clamp the lower bound.
+     */
+   mutating func clamp(min minValue: Bound) {
+       self = clamped(min: minValue)
+    }
+    
+    /**
      Clamps the upper bound to the maximum value.
 
      - Parameter maxValue: The maximum value to clamp the upper bound.
      */
     func clamped(max maxValue: Bound) -> ClosedRange {
         lowerBound...Swift.min(maxValue, upperBound)
+    }
+    
+    /**
+     Clamps the upper bound to the maximum value.
+
+     - Parameter maxValue: The maximum value to clamp the upper bound.
+     */
+    mutating func clamp(max maxValue: Bound)  {
+        self = clamped(max: maxValue)
     }
 }
 
