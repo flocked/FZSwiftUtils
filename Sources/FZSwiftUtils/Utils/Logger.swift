@@ -38,17 +38,18 @@ public struct Logger {
      Writes the textual representations of the given items into the standard output.
      
      - Parameters:
+        - indent: The indent level of the print.
         - items: Zero or more items to print.
         - separator: A string to print between each item. The default is a single space (" ").
         - terminator: The string to print after all items have been printed. The default is a newline ("\n").
      */
-    public static func print(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+    public static func print(indent: Int = 0, _ items: Any..., separator: String = " ", terminator: String = "\n") {
         guard state != .inactive else { return }
         func print() {
             if outputFormat == .normal {
-                Swift.print(items, separator: separator, terminator: terminator)
+                Swift.print(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
             } else {
-                Swift.debugPrint(items, separator: separator, terminator: terminator)
+                Swift.debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
             }
         }
         #if DEBUG
@@ -59,23 +60,25 @@ public struct Logger {
         #endif
     }
     
+    
     /**
      Writes the textual representations of the given items into the given output stream.
      
      - Parameters:
+        - indent: The indent level of the print.
         - items: Zero or more items to print.
         - separator: A string to print between each item. The default is a single space (" ").
         - terminator: The string to print after all items have been printed. The default is a newline ("\n").
         - output: An output stream to receive the text representation of each item.
      */
-    public static func print<Target>(_ items: Any..., separator: String = " ", terminator: String = "\n", to output: inout Target
+    public static func print<Target>(indent: Int = 0, _ items: Any..., separator: String = " ", terminator: String = "\n", to output: inout Target
     ) where Target : TextOutputStream {
         guard state != .inactive else { return }
         func print() {
             if outputFormat == .normal {
-                Swift.print(items, separator: separator, terminator: terminator, to: &output)
+                Swift.print(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator, to: &output)
             } else {
-                Swift.debugPrint(items, separator: separator, terminator: terminator, to: &output)
+                Swift.debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator, to: &output)
             }
         }
         #if DEBUG
