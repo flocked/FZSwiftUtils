@@ -46,14 +46,13 @@ public extension NSRange {
     }
 
     /**
-     Returns a Boolean value indicating whether the given range is contained within the range.
+     A Boolean value indicating whether the given range is contained within the range.
 
      - Parameter range: The range to check for containment.
      - Returns: `true` if range is contained in the range; otherwise, `false`.
      */
     func contains(_ range: NSRange) -> Bool {
-        if location == NSNotFound { return false }
-        if range.location == NSNotFound { return false }
+        guard !isNotFound, !range.isNotFound else { return false }
         return range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
 
@@ -68,7 +67,7 @@ public extension NSRange {
     }
 
     /**
-     Returns a Boolean value indicating whether this range and the given range contain an element in common.
+     A Boolean value indicating whether this range and the given range contain an element in common.
 
      - Parameter other: A range to check for elements in common.
      - Returns: `true` if this range and other have at least one element in common; otherwise, `false`.
@@ -84,11 +83,17 @@ public extension NSRange {
 extension Sequence<NSRange> {
     /// The range that contains all ranges.
     var union: NSRange? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-
-        return NSRange(lowerBound ..< upperBound)
+        guard let min = min, let max = max else { return nil }
+        return NSRange(min..<max)
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Int? {
+        filter({!$0.isNotFound}).map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Int? {
+        filter({!$0.isNotFound}).map(\.upperBound).max()
     }
 }

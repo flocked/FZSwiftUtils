@@ -13,6 +13,7 @@ import AppKit
 import UIKit
 #endif
 
+
 public extension BinaryFloatingPoint {
     /// Converts the value from degrees to radians.
     var degreesToRadians: Self {

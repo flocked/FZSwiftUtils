@@ -7,19 +7,47 @@
 
 import Foundation
 
+
 public extension Range {
     func clamped(to range: ClosedRange<Bound>) -> Range {
         clamped(to: range.lowerBound..<range.upperBound)
     }
-}
+    
+    /**
+     A Boolean value indicating whether the specified range is contained within the range.
 
-public extension ClosedRange {
-    func clamped(to range: Range<Bound>) -> ClosedRange {
-        clamped(to: range.lowerBound...range.upperBound)
+     - Parameter range: The range to check for containment.
+     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: Range) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
     }
-}
+    
+    /**
+     A Boolean value indicating whether the specified range is contained within the range.
 
-public extension Range where Bound: Comparable {
+     - Parameter range: The range to check for containment.
+     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: ClosedRange<Bound>) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given values are contained within the range.
+
+     - Parameter values: The values to check for containment.
+     - Returns: `true` if values are contained in the range; otherwise, `false`.
+     */
+    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
+        for value in values.uniqued() {
+            if contains(value) == false {
+                return false
+            }
+        }
+        return true
+    }
+    
     /**
      Clamps the lower bound to the minimum value.
 
@@ -57,7 +85,46 @@ public extension Range where Bound: Comparable {
     }
 }
 
-public extension ClosedRange where Bound: Comparable {
+public extension ClosedRange  {
+    func clamped(to range: Range<Bound>) -> ClosedRange {
+        clamped(to: range.lowerBound...range.upperBound)
+    }
+    
+    /**
+     A Boolean value indicating whether the specified range is contained within the range.
+
+     - Parameter range: The range to check for containment.
+     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: ClosedRange) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     A Boolean value indicating whether the specified range is contained within the range.
+
+     - Parameter range: The range to check for containment.
+     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
+     */
+    func contains(_ range: Range<Bound>) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns a Boolean value indicating whether the given values are contained within the range.
+
+     - Parameter values: The values to check for containment.
+     - Returns: `true` if values are contained in the range; otherwise, `false`.
+     */
+    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
+        for value in values.uniqued() {
+            if contains(value) == false {
+                return false
+            }
+        }
+        return true
+    }
+    
     /**
      Clamps the lower bound to the minimum value.
 
@@ -105,41 +172,6 @@ public extension ClosedRange where Bound: BinaryInteger {
     func offset(by offset: Bound) -> Self {
         lowerBound + offset ... upperBound + offset
     }
-
-    /**
-     Returns a Boolean value indicating whether the given range is contained within the range.
-
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: ClosedRange<Bound>) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
-    }
-
-    /**
-     Returns a Boolean value indicating whether the given range is contained within the range.
-
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: Range<Bound>) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
-    }
-
-    /**
-     Returns a Boolean value indicating whether the given values are contained within the range.
-
-     - Parameter values: The values to check for containment.
-     - Returns: `true` if values are contained in the range; otherwise, `false`.
-     */
-    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
-        for value in values.uniqued() {
-            if contains(value) == false {
-                return false
-            }
-        }
-        return true
-    }
     
     /// The range as floating range.
     var toFloating: ClosedRange<Float> {
@@ -158,6 +190,23 @@ public extension ClosedRange where Bound: BinaryInteger {
     }
 }
 
+public extension ClosedRange where Bound: BinaryFloatingPoint {
+    /**
+     Shifts the range by the specified offset value.
+
+     - Parameter offset: The offset to shift.
+     - Returns: The new range.
+     */
+    func shfted(by offset: Bound) -> Self {
+        lowerBound + offset ... upperBound + offset
+    }
+    
+    /// `Range` representation of the range.
+    var toRange: Range<Bound> {
+        lowerBound..<(upperBound - 1)
+    }
+}
+
 public extension Range where Bound: BinaryInteger {
     /**
      Shifts the range by the specified offset value.
@@ -167,41 +216,6 @@ public extension Range where Bound: BinaryInteger {
      */
     func shfted(by offset: Bound) -> Self {
         lowerBound + offset ..< upperBound + offset
-    }
-
-    /**
-     Returns a Boolean value indicating whether the given range is contained within the range.
-
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: ClosedRange<Bound>) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
-    }
-
-    /**
-     Returns a Boolean value indicating whether the given range is contained within the range.
-
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: Range<Bound>) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
-    }
-
-    /**
-     Returns a Boolean value indicating whether the given values are contained within the range.
-
-     - Parameter values: The values to check for containment.
-     - Returns: `true` if values are contained in the range; otherwise, `false`.
-     */
-    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
-        for value in values.uniqued() {
-            if contains(value) == false {
-                return false
-            }
-        }
-        return true
     }
     
     /// The range as floating range.
@@ -221,89 +235,163 @@ public extension Range where Bound: BinaryInteger {
     }
 }
 
-extension Sequence<ClosedRange<Int>> {
+public extension Range where Bound: BinaryFloatingPoint {
+    /**
+     Shifts the range by the specified offset value.
+
+     - Parameter offset: The offset to shift.
+     - Returns: The new range.
+     */
+    func shfted(by offset: Bound) -> Self {
+        lowerBound + offset ..< upperBound + offset
+    }
+    
+    /// `ClosedRange` representation of the range.
+    var toClosedRange: ClosedRange<Bound> {
+        lowerBound...(upperBound - 1)
+    }
+}
+
+public extension Sequence<ClosedRange<Int>> {
     /// The range that contains all ranges.
     var union: ClosedRange<Int>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ... upperBound
+        guard let min = min, let max = max else { return nil }
+        return min...max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Int? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Int? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<ClosedRange<Float>> {
+public extension Sequence<ClosedRange<Float>> {
     /// The range that contains all ranges.
     var union: ClosedRange<Float>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ... upperBound
+        guard let min = min, let max = max else { return nil }
+        return min...max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Float? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Float? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<ClosedRange<Double>> {
+public extension Sequence<ClosedRange<Double>> {
     /// The range that contains all ranges.
     var union: ClosedRange<Double>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ... upperBound
+        guard let min = min, let max = max else { return nil }
+        return min...max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Double? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Double? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<ClosedRange<CGFloat>> {
+public extension Sequence<ClosedRange<CGFloat>> {
     /// The range that contains all ranges.
     var union: ClosedRange<CGFloat>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ... upperBound
+        guard let min = min, let max = max else { return nil }
+        return min...max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: CGFloat? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: CGFloat? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<Range<Int>> {
+public extension Sequence<Range<Int>> {
     /// The range that contains all ranges.
     var union: Range<Int>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ..< upperBound
+        guard let min = min, let max = max else { return nil }
+        return min ..< max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Int? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Int? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<Range<Float>> {
+public extension Sequence<Range<Float>> {
     /// The range that contains all ranges.
     var union: Range<Float>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ..< upperBound
+        guard let min = min, let max = max else { return nil }
+        return min ..< max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Float? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Float? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<Range<Double>> {
+public extension Sequence<Range<Double>> {
     /// The range that contains all ranges.
     var union: Range<Double>? {
-        guard
-            let lowerBound = map(\.lowerBound).min(),
-            let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ..< upperBound
+        guard let min = min, let max = max else { return nil }
+        return min ..< max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: Double? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: Double? {
+        map(\.upperBound).min()
     }
 }
 
-extension Sequence<Range<CGFloat>> {
+public extension Sequence<Range<CGFloat>> {
     /// The range that contains all ranges.
     var union: Range<CGFloat>? {
-        guard let lowerBound = map(\.lowerBound).min(),
-              let upperBound = map(\.upperBound).max()
-        else { return nil }
-        return lowerBound ..< upperBound
+        guard let min = min, let max = max else { return nil }
+        return min ..< max
+    }
+    
+    /// Returns the minimum lower bound in the sequence.
+    var min: CGFloat? {
+        map(\.lowerBound).min()
+    }
+    
+    /// Returns the maximum upper bound in the sequence.
+    var max: CGFloat? {
+        map(\.upperBound).min()
     }
 }
