@@ -16,6 +16,28 @@ public extension MutableCollection {
     }
 }
 
+extension Collection {
+    /**
+     Returns a subsequence containing the first elements.
+
+     - Parameter amount: The number of elements to return.
+     */
+    public func first(_ amount: Int) -> Self.SubSequence {
+        guard !isEmpty, amount > 0 else { return dropFirst(count) }
+        return dropLast(count - amount.clamped(max: count))
+    }
+
+    /**
+     Returns a subsequence containing the last elements.
+
+     - Parameter amount: The number of elements to return.
+     */
+    public func last(_ amount: Int) -> Self.SubSequence {
+        guard !isEmpty, amount > 0 else { return dropFirst(count) }
+        return dropFirst(count - amount.clamped(max: count))
+    }
+}
+
 public extension Collection {
     subscript(safe index: Index) -> Element? {
         guard !isEmpty, index >= startIndex, index < count else { return nil }
