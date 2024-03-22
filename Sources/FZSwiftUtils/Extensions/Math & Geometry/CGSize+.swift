@@ -178,8 +178,8 @@ public extension CGSize {
      */
     func clamped(maxSize: CGSize) -> CGSize {
         var size = self
-        size.width = size.width.clamped(max: maxSize.width)
-        size.height = size.height.clamped(max: maxSize.height)
+        size.width = size.width.clamped(to: 0...maxSize.width)
+        size.height = size.height.clamped(to: 0...maxSize.height)
         return size
     }
         
@@ -198,10 +198,10 @@ public extension CGSize {
         size.width = size.width.clamped(min: minWidth ?? width)
         size.height = size.height.clamped(min: minHeight ?? height)
         if let maxWidth = maxWidth, width > maxWidth {
-            size.width = width.clamped(max: maxWidth)
+            size.width = width.clamped(to: 0...maxWidth)
         }
         if let maxHeight = maxHeight, height > maxHeight {
-            size.height = height.clamped(max: maxHeight)
+            size.height = height.clamped(to: 0...maxHeight)
         }
         return size
     }

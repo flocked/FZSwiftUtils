@@ -89,21 +89,64 @@ public extension StringProtocol {
 
 public extension StringProtocol {
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
+    
+    subscript(safe offset: Int) -> Character? {
+        guard let index = index(startIndex, offsetBy: offset, limitedBy: endIndex) else { return nil }
+        return self[index]
+    }
+    
     subscript(range: Range<Int>) -> SubSequence {
-        let range = range.clamped(to: 0 ..< count)
+        let range = range.clamped(to: 0..<count)
         let startIndex = index(startIndex, offsetBy: range.lowerBound)
         return self[startIndex ..< index(startIndex, offsetBy: range.count)]
     }
-
+    
     subscript(range: ClosedRange<Int>) -> SubSequence {
-        let range = range.clamped(to: 0 ... count - 1)
-        let startIndex = index(startIndex, offsetBy: range.lowerBound)
-        return self[startIndex ..< index(startIndex, offsetBy: range.count)]
+        self[range.lowerBound..<range.upperBound+1]
     }
-
+    
+    subscript(safe range: Range<Int>) -> SubSequence? {
+        guard let startIndex = index(startIndex, offsetBy: range.lowerBound, limitedBy: endIndex) else { return nil }
+        guard let endIndex = firstIndex(in: range) else { return nil }
+        return self[startIndex...endIndex]
+    }
+    
+    subscript(safe range: ClosedRange<Int>) -> SubSequence? {
+        self[safe: range.lowerBound..<range.upperBound+1]
+    }
+    
     subscript(range: PartialRangeFrom<Int>) -> SubSequence { self[index(startIndex, offsetBy: range.lowerBound)...] }
     subscript(range: PartialRangeThrough<Int>) -> SubSequence { self[...index(startIndex, offsetBy: range.upperBound)] }
     subscript(range: PartialRangeUpTo<Int>) -> SubSequence { self[..<index(startIndex, offsetBy: range.upperBound)] }
+    
+    subscript(safe range: PartialRangeFrom<Int>) -> SubSequence? {
+        guard let startIndex = index(startIndex, offsetBy: range.lowerBound, limitedBy: endIndex) else { return nil }
+        return self[index(startIndex, offsetBy: range.lowerBound)...]
+    }
+    
+    subscript(safe range: PartialRangeThrough<Int>) -> SubSequence? {
+        guard let endIndex = firstIndex(in: 0..<range.upperBound) else { return nil }
+        return self[...endIndex]
+    }
+    
+    subscript(safe range: PartialRangeUpTo<Int>) -> SubSequence? {
+        guard let endIndex = firstIndex(in: 0..<range.upperBound) else { return nil }
+        return self[..<endIndex]
+    }
+    
+    internal func firstIndex(in range: Range<Int>) -> Index? {
+        var upperBound = range.upperBound
+        var endIndex = index(startIndex, offsetBy: upperBound, limitedBy: endIndex)
+        while endIndex == nil {
+            upperBound -= 1
+            if upperBound <= range.lowerBound {
+                return nil
+            } else {
+                endIndex = index(startIndex, offsetBy: upperBound, limitedBy: self.endIndex)
+            }
+        }
+        return endIndex
+    }
 }
 
 public extension String {

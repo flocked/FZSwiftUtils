@@ -43,7 +43,7 @@ public extension Collection where Index == Int {
      - Returns: Returns an array of chunks.
      */
     func chunked(amount: Int) -> [[Element]] {
-        let amount = amount.clamped(max: count)
+        let amount = amount.clamped(to: 0...count)
         let chunksize = Int((Float(count) / Float(amount)).rounded(.towardZero))
 
         /*

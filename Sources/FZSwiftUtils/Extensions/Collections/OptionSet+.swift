@@ -7,6 +7,28 @@
 
 import Foundation
 
+extension BinaryFloatingPoint where Self: LosslessStringConvertible {
+    func string(minPlaces: Int? = nil, maxPlaces: Int? = nil) {
+        var value = self
+        if let max = maxPlaces {
+            value = value.rounded(.toPlaces(max))
+        }
+        var string = String(value)
+        if let min = minPlaces {
+            let placesCount = value.placesCount
+            let diff = min - placesCount
+            if diff > 0 {
+                if placesCount == 0 {
+                    string = string + "."
+                }
+                (0..<diff).forEach({val in  string = string + "0"})
+            }
+        }
+        
+        
+    }
+}
+
 public extension OptionSet {
     /**
      A Boolean value indicating whether the set contains any of the specified elements.
@@ -52,7 +74,4 @@ public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
             }
         }
     }
-}
-func ttt() {
-    ImageSource.ImageProperties.Nikon.ShootingMode.continuous.contains(any: [.delay])
 }

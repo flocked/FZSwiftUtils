@@ -40,7 +40,7 @@ public extension Collection where Element: Equatable {
         guard amount > 0, isEmpty == false else { return [] }
         var elements: [Element] = Array(self)
         var randomElements = [Element]()
-        let amount = amount.clamped(max: count)
+        let amount = amount.clamped(to: 0...count)
         while randomElements.count < amount, elements.isEmpty == false {
             let index = Int.random(in: 0 ..< elements.count)
             randomElements.append(elements.remove(at: index))

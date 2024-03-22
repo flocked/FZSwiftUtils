@@ -37,6 +37,26 @@ public extension Comparable {
     func clamped(to range: PartialRangeUpTo<Self>) -> Self {
         min(range.upperBound, self)
     }
+    
+    /**
+     Clamps the value to a minimum value.
+
+     - Parameter minValue: The minimum value to clamp the value to.
+     - Returns: The clamped value.
+     */
+    func clamped(min minValue: Self) -> Self {
+        max(minValue, self)
+    }
+    
+    /**
+     Clamps the value to a maximum value.
+
+     - Parameter maxValue: The maximum value to clamp the value to.
+     - Returns: The clamped value.
+     */
+    func clamped(max maxValue: Self) -> Self {
+        min(maxValue, self)
+    }
 
     /**
      Clamps the value to the specified closed range.
@@ -64,30 +84,7 @@ public extension Comparable {
     mutating func clamp(to range: PartialRangeUpTo<Self>) {
         self = min(range.upperBound, self)
     }
-}
-
-public extension Comparable where Self: ExpressibleByIntegerLiteral {
-    /**
-     Clamps the value to a minimum value.
-
-     - Parameter minValue: The minimum value to clamp the value to.
-     - Returns: The clamped value.
-     */
-    func clamped(min minValue: Self) -> Self {
-        max(minValue, self)
-    }
-
-    /**
-     Clamps the value to a maximum value. It uses 0 as minimum value.
-
-     - Parameter maxValue: The maximum value to clamp the value to.
-     - Returns: The clamped value.
-     */
-    func clamped(max maxValue: Self) -> Self {
-        guard maxValue > 0 else { return self }
-        return clamped(to: 0 ... maxValue)
-    }
-
+    
     /**
      Clamps the value to a minimum value.
 
@@ -96,14 +93,13 @@ public extension Comparable where Self: ExpressibleByIntegerLiteral {
     mutating func clamp(min minValue: Self) {
         self = max(minValue, self)
     }
-
+    
     /**
-     Clamps the value to a maximum value. It uses 0 as minimum value.
+     Clamps the value to a maximum value.
 
      - Parameter maxValue: The maximum value to clamp the value to.
      */
     mutating func clamp(max maxValue: Self) {
-        guard maxValue > 0 else { return }
-        self = clamped(to: 0 ... maxValue)
+        self = min(maxValue, self)
     }
 }
