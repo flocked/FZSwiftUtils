@@ -20,7 +20,7 @@ public struct Logger {
     }
     
     /// The activation state.
-    public static var state: State = .inactive
+    public static var state: State = .activeIfDebugging
     
     /**
      Writes the textual representations of the given items into the standard output.
