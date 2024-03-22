@@ -22,14 +22,14 @@ final class Interpose {
 
 extension Interpose {
     static func storeHook<HookType: AnyHook>(hook: HookType, to block: AnyObject) {
-        set(weakAssociatedValue: hook, key: "_hook", object: block)
+        setAssociatedValue(weak: hook, key: "_hook", object: block)
     }
 
     // Finds the hook to a given implementation.
     static func hookForIMP<HookType: AnyHook>(_ imp: IMP) -> HookType? {
         // Get the block that backs our IMP replacement
         guard let block = imp_getBlock(imp) as? AnyObject else { return nil }
-        return getAssociatedValue(key: "_hook", object: block)
+        return getAssociatedValue("_hook", object: block)
     }
 
     // Find the hook above us (not necessarily topmost)

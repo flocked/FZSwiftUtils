@@ -18,8 +18,8 @@ import ObjectiveC.runtime
     - object: The object of the associated value.
  - Returns: The associated value for the object and key, or `nil` if the value couldn't be found for the key.
  */
-public func getAssociatedValue<T>(key: String, object: AnyObject) -> T? {
-    (objc_getAssociatedObject(object, key.address) as? _AssociatedValue)?.value as? T
+public func getAssociatedValue<T>(_ key: String, object: AnyObject) -> T? {
+    (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value as? T
 }
 
 /**
@@ -31,8 +31,8 @@ public func getAssociatedValue<T>(key: String, object: AnyObject) -> T? {
     - initialValue: The inital value of the associated value.
  - Returns: The associated value for the object and key.
  */
-public func getAssociatedValue<T>(key: String, object: AnyObject, initialValue: @autoclosure () -> T) -> T {
-    getAssociatedValue(key: key, object: object) ?? setAndReturn(initialValue: initialValue(), key: key, object: object)
+public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue: @autoclosure () -> T) -> T {
+    getAssociatedValue(key, object: object) ?? setAndReturn(initialValue: initialValue(), key: key, object: object)
 }
 
 /**
@@ -44,13 +44,8 @@ public func getAssociatedValue<T>(key: String, object: AnyObject, initialValue: 
     - initialValue: The inital value of the associated value.
  - Returns: The associated value for the object and key.
  */
-public func getAssociatedValue<T>(key: String, object: AnyObject, initialValue: () -> T) -> T {
-    getAssociatedValue(key: key, object: object) ?? setAndReturn(initialValue: initialValue(), key: key, object: object)
-}
-
-private func setAndReturn<T>(initialValue: T, key: String, object: AnyObject) -> T {
-    set(associatedValue: initialValue, key: key, object: object)
-    return initialValue
+public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue: () -> T) -> T {
+    getAssociatedValue(key, object: object) ?? setAndReturn(initialValue: initialValue(), key: key, object: object)
 }
 
 /**
@@ -61,8 +56,8 @@ private func setAndReturn<T>(initialValue: T, key: String, object: AnyObject) ->
     - key: The key of the associated value.
     - object: The object of the associated value.
  */
-public func set<T>(associatedValue: T?, key: String, object: AnyObject) {
-    set(associatedValue: _AssociatedValue(associatedValue), key: key, object: object)
+public func setAssociatedValue<T>(_ value: T?, key: String, object: AnyObject) {
+    set(associatedValue: AssociatedValue(value), key: key, object: object)
 }
 
 /**
@@ -73,12 +68,17 @@ public func set<T>(associatedValue: T?, key: String, object: AnyObject) {
     - key: The key of the associated value.
     - object: The object of the associated value.
  */
-public func set<T: AnyObject>(weakAssociatedValue: T?, key: String, object: AnyObject) {
-    set(associatedValue: _AssociatedValue(weak: weakAssociatedValue), key: key, object: object)
+public func setAssociatedValue<T: AnyObject>(weak value: T?, key: String, object: AnyObject) {
+    set(associatedValue: AssociatedValue(weak: value), key: key, object: object)
 }
 
-private func set(associatedValue: _AssociatedValue, key: String, object: AnyObject) {
+private func set(associatedValue: AssociatedValue, key: String, object: AnyObject) {
     objc_setAssociatedObject(object, key.address, associatedValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+}
+
+private func setAndReturn<T>(initialValue: T, key: String, object: AnyObject) -> T {
+    setAssociatedValue( initialValue, key: key, object: object)
+    return initialValue
 }
 
 extension NSObjectProtocol where Self: NSObject {
@@ -90,7 +90,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
     public func getAssociatedValue<T>(_ key: String) -> T? {
-        FZSwiftUtils.getAssociatedValue(key: key, object: self)
+        FZSwiftUtils.getAssociatedValue(key, object: self)
     }
     
     /**
@@ -102,7 +102,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
-        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+        FZSwiftUtils.getAssociatedValue(key, object: self, initialValue: initialValue)
     }
     
     /**
@@ -114,7 +114,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T>(_ key: String, initialValue: () -> T) -> T {
-        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+        FZSwiftUtils.getAssociatedValue(key, object: self, initialValue: initialValue)
     }
     
     /**
@@ -125,7 +125,7 @@ extension NSObjectProtocol where Self: NSObject {
         - key: The key of the associated value.
      */
     public func setAssociatedValue<T>(_ value: T?, key: String) {
-        FZSwiftUtils.set(associatedValue: value, key: key, object: self)
+        FZSwiftUtils.setAssociatedValue(value, key: key, object: self)
     }
     
     /**
@@ -136,7 +136,7 @@ extension NSObjectProtocol where Self: NSObject {
         - key: The key of the associated value.
      */
     public func setAssociatedValue<T: AnyObject>(weak value: T?, key: String) {
-        FZSwiftUtils.set(weakAssociatedValue: value, key: key, object: self)
+        FZSwiftUtils.setAssociatedValue(weak: value, key: key, object: self)
     }
     
     /**
@@ -147,7 +147,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
     public static func getAssociatedValue<T>(_ key: String) -> T? {
-        FZSwiftUtils.getAssociatedValue(key: key, object: self)
+        FZSwiftUtils.getAssociatedValue(key, object: self)
     }
     
     /**
@@ -159,7 +159,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The associated value for the object and key.
      */
     public static func getAssociatedValue<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
-        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+        FZSwiftUtils.getAssociatedValue(key, object: self, initialValue: initialValue)
     }
     
     /**
@@ -171,7 +171,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The associated value for the key.
      */
     public static func getAssociatedValue<T>(_ key: String, initialValue: () -> T) -> T {
-        FZSwiftUtils.getAssociatedValue(key: key, object: self, initialValue: initialValue)
+        FZSwiftUtils.getAssociatedValue(key, object: self, initialValue: initialValue)
     }
     
     /**
@@ -182,7 +182,7 @@ extension NSObjectProtocol where Self: NSObject {
         - key: The key of the associated value.
      */
     public static func setAssociatedValue<T>(_ value: T?, key: String) {
-        FZSwiftUtils.set(associatedValue: value, key: key, object: self)
+        FZSwiftUtils.setAssociatedValue(value, key: key, object: self)
     }
     
     /**
@@ -193,12 +193,11 @@ extension NSObjectProtocol where Self: NSObject {
         - key: The key of the associated value.
      */
     public static func setAssociatedValue<T: AnyObject>(weak value: T?, key: String) {
-        FZSwiftUtils.set(weakAssociatedValue: value, key: key, object: self)
+        FZSwiftUtils.setAssociatedValue(weak: value, key: key, object: self)
     }
 }
 
-
-private class _AssociatedValue {
+private class AssociatedValue {
     weak var _weakValue: AnyObject?
     var _value: Any?
 
