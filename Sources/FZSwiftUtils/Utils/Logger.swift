@@ -49,7 +49,7 @@ public struct Logger {
             if outputFormat == .normal {
                 Swift.print(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
             } else {
-                Swift.debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
+                debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
             }
         }
         #if DEBUG
@@ -78,7 +78,7 @@ public struct Logger {
             if outputFormat == .normal {
                 Swift.print(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator, to: &output)
             } else {
-                Swift.debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator, to: &output)
+                debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator, to: &output)
             }
         }
         #if DEBUG

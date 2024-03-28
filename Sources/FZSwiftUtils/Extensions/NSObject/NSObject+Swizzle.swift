@@ -32,7 +32,7 @@ extension NSObject {
         }
      } catch {
         // handle error
-        Swift.debugPrint(error)
+        debugPrint(error)
      }
      ```
      
@@ -155,7 +155,7 @@ extension NSObject {
             do {
                 _ = try hook.revert()
             } catch {
-                Swift.debugPrint(error)
+                debugPrint(error)
             }
         }
         hooks[selector] = nil
@@ -169,7 +169,7 @@ extension NSObject {
                 hooks.remove(at: index)
                 self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
             } catch {
-                Swift.debugPrint(error)
+                debugPrint(error)
             }
         }
     }
@@ -192,7 +192,7 @@ extension NSObject {
             do {
                 _ = try hook.revert()
             } catch {
-                Swift.debugPrint(error)
+                debugPrint(error)
             }
         }
         hooks[selector] = nil
@@ -206,7 +206,7 @@ extension NSObject {
                 hooks.remove(at: index)
                 self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
             } catch {
-                Swift.debugPrint(error)
+                debugPrint(error)
             }
         }
     }
