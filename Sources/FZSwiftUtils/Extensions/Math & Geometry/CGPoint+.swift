@@ -222,3 +222,10 @@ public extension CGPoint {
         l = CGPoint(x: l.x * CGFloat(r), y: l.y * CGFloat(r))
     }
 }
+
+public extension Collection where Element == CGPoint {
+    /// Returns the point with the smallest distance to the specified point.
+    func closed(to point: CGPoint) -> CGPoint? {
+        compactMap({(point: $0, distance: $0.distance(to: point ))}).sorted(by: \.distance, .smallestFirst).first?.point
+    }
+}

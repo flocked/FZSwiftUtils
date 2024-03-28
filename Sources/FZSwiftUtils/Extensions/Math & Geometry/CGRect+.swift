@@ -389,4 +389,44 @@ public extension Collection where Element == CGRect {
     func union() -> CGRect {
         return reduce(CGRect.zero) {$0.union($1)}
     }
+    
+    /// Returns the rect in the center.
+    func centeredRect() -> CGRect? {
+        return centeredRect(in: union().center)
+    }
+    
+    /// Returns the rect in the center of the specified point.
+    func centeredRect(in point: CGPoint) -> CGRect? {
+        guard !isEmpty else { return nil }
+        return compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
+    }
+    
+    /// Returns the rect in the center of the specified rect.
+    func centeredRect(in rect: CGRect) -> CGRect? {
+        return centeredRect(in: rect.center)
+    }
+    
+    /// Returns the index of the rect in the center.
+    func indexOfCenteredRect() -> Index? {
+        if let rect = centeredRect() {
+            return firstIndex(of: rect) ?? nil
+        }
+        return nil
+    }
+    
+    /// Returns the index of the rect in the center of the specified point.
+    func indexOfCenteredRect(in point: CGPoint) -> Index? {
+        if let rect = centeredRect(in: point) {
+            return firstIndex(of: rect) ?? nil
+        }
+        return nil
+    }
+    
+    /// Returns the  index of rect in the center of the specified rect.
+    func indexOfCenteredRect(in rect: CGRect) -> Index? {
+        if let rect = centeredRect(in: rect) {
+            return firstIndex(of: rect) ?? nil
+        }
+        return nil
+    }
 }
