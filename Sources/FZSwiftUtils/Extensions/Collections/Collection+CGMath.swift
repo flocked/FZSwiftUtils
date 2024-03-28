@@ -9,6 +9,13 @@
 import Foundation
 import simd
 
+public extension Collection where Element == CGPoint {
+    /// Returns the point with the smallest distance to the specified point.
+    func closed(to point: CGPoint) -> CGPoint? {
+        compactMap({(point: $0, distance: $0.distance(to: point ))}).sorted(by: \.distance, .smallestFirst).first?.point
+    }
+}
+
 public extension Collection where Element == CGRect {
     /// Returns the rect in the center.
     func centeredRect() -> CGRect? {
@@ -47,6 +54,19 @@ public extension Collection where Element == CGRect {
             return firstIndex(of: rect) ?? nil
         }
         return nil
+    }
+    
+    func centeredRectAlt() -> CGRect? {
+        return centeredRectAlt(in: union().center)
+    }
+    
+    func centeredRectAlt(in point: CGPoint) -> CGRect? {
+        guard !isEmpty else { return nil }
+        return compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
+    }
+    
+    func centeredRectAlt(in rect: CGRect) -> CGRect? {
+        return centeredRectAlt(in: rect.center)
     }
 }
 
