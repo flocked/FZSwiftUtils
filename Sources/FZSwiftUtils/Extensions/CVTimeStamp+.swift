@@ -20,8 +20,8 @@ public extension CVTimeStamp {
     }
 
     /// The frame duration in seconds.
-    var frame: TimeInterval {
-        TimeInterval(videoTime) / TimeInterval(videoRefreshPeriod)
+    var duration: TimeInterval {
+        TimeInterval(videoRefreshPeriod) / TimeInterval(videoTimeScale)
     }
 
     /// The timestamp in seconds.
