@@ -245,7 +245,7 @@ public extension CGRect {
     func expanded(_ amount: CGFloat, to option: ExpansionOptions) -> CGRect {
         var frame = self
         if option.contains([.minXEdge, .maxXEdge]) {
-            frame = CGRect(x: minX - (amount / 2.0), y: minY, width: width + (amount / 2.0), height: height)
+            frame = CGRect(x: minX - (amount / 2.0), y: minY, width: width + amount, height: height)
         } else if option.contains(.minXEdge) {
             frame = CGRect(x: minX - amount, y: minY, width: width + amount, height: height)
         } else if option.contains(.maxXEdge) {
@@ -253,7 +253,7 @@ public extension CGRect {
         }
         
         if option.contains([.minYEdge, .maxYEdge]) {
-            return CGRect(x: frame.minX, y: frame.minY - (amount / 2.0), width: frame.width, height: frame.height + (amount / 2.0))
+            return CGRect(x: frame.minX, y: frame.minY - (amount / 2.0), width: frame.width, height: frame.height + amount)
         } else if option.contains(.minYEdge) {
             return CGRect(x: frame.minX, y: frame.minY - amount, width: frame.width, height: frame.height + amount)
         } else if option.contains(.maxYEdge) {
