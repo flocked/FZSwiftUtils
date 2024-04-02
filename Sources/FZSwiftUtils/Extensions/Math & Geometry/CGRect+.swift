@@ -216,82 +216,63 @@ public extension CGRect {
         get { midY }
         set { origin.y = newValue - height * 0.5 }
     }
+    
+    /**
+     Returns a new rect expanded by the specified amount in the given edge directions.
 
-    /// The edge direction used for expanding a rect.
-    enum ExpandEdge {
-        case minXEdge
-        case maxXEdge
-        case minYEdge
-        case maxYEdge
-        case centerWidth
-        case centerHeight
-        case center
-    }
-    
-    struct ExpansionOptions: OptionSet, Codable {
-        public let rawValue: Int32
-        public init(rawValue: Int32) { self.rawValue = rawValue }
-        
-        public static let minXEdge = ExpansionOptions(rawValue: 1 << 0)
-        public static let maxXEdge = ExpansionOptions(rawValue: 1 << 1)
-        public static let minYEdge = ExpansionOptions(rawValue: 1 << 2)
-        public static let maxYEdge = ExpansionOptions(rawValue: 1 << 3)
-        
-        public static let all: ExpansionOptions = [.minXEdge, .maxXEdge, .minYEdge, .maxYEdge]
-        public static let width: ExpansionOptions = [.minXEdge, .maxXEdge]
-        public static let height: ExpansionOptions = [.minYEdge, .maxYEdge]
-    }
-    
-    func expanded(_ amount: CGFloat, to option: ExpansionOptions) -> CGRect {
+     - Parameters:
+        - amount: The amount by which to expand the rect.
+        - edges: The edge directions in which to expand the rect.
+
+     - Returns: A new rect expanded by the specified amount in the given edge directions.
+     */
+    func expanded(_ amount: CGFloat, to edges: ExpansionEdge) -> CGRect {
         var frame = self
-        if option.contains([.minXEdge, .maxXEdge]) {
+        if edges.contains(.width) {
             frame = CGRect(x: minX - (amount / 2.0), y: minY, width: width + amount, height: height)
-        } else if option.contains(.minXEdge) {
+        } else if edges.contains(.minXEdge) {
             frame = CGRect(x: minX - amount, y: minY, width: width + amount, height: height)
-        } else if option.contains(.maxXEdge) {
+        } else if edges.contains(.maxXEdge) {
             frame = CGRect(x: minX, y: minY, width: width + amount, height: height)
         }
         
-        if option.contains([.minYEdge, .maxYEdge]) {
+        if edges.contains(.height) {
             return CGRect(x: frame.minX, y: frame.minY - (amount / 2.0), width: frame.width, height: frame.height + amount)
-        } else if option.contains(.minYEdge) {
+        } else if edges.contains(.minYEdge) {
             return CGRect(x: frame.minX, y: frame.minY - amount, width: frame.width, height: frame.height + amount)
-        } else if option.contains(.maxYEdge) {
+        } else if edges.contains(.maxYEdge) {
             return CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: frame.height + amount)
         }
         return frame
     }
-
-    /**
-     Returns a new rect expanded by the specified amount in the given edge direction.
-
-     - Parameters:
-        - amount: The amount by which to expand the rect.
-        - edge: The edge direction in which to expand the rect.
-
-     - Returns: A new rect expanded by the specified amount in the given edge direction.
-     */
-    func expanded(_ amount: CGFloat, edge: ExpandEdge) -> CGRect {
-        switch edge {
-        case .minXEdge:
-            return CGRect(x: minX - amount, y: minY, width: width + amount, height: height)
-        case .maxXEdge:
-            return CGRect(x: minX, y: minY, width: width + amount, height: height)
-        case .minYEdge:
-            return CGRect(x: minX, y: minY - amount, width: width, height: height + amount)
-        case .maxYEdge:
-            return CGRect(x: minX, y: minY, width: width, height: height + amount)
-        case .center:
-            let widthAmount = amount / 2.0
-            let heightAmount = amount / 2.0
-            return CGRect(x: minX - widthAmount, y: minY - heightAmount, width: width + widthAmount, height: height + heightAmount)
-        case .centerWidth:
-            let widthAmount = amount / 2.0
-            return CGRect(x: minX - widthAmount, y: minY, width: width + widthAmount, height: height)
-        case .centerHeight:
-            let heightAmount = amount / 2.0
-            return CGRect(x: minX, y: minY - heightAmount, width: width, height: height + heightAmount)
-        }
+    
+    /// The edge directions used for expanding a rect.
+    struct ExpansionEdge: OptionSet, Codable {
+        
+        /// `minX` edge.
+        public static let minXEdge = ExpansionEdge(rawValue: 1 << 0)
+        
+        /// `maxX` edge.
+        public static let maxXEdge = ExpansionEdge(rawValue: 1 << 1)
+        
+        /// `minY` edge.
+        public static let minYEdge = ExpansionEdge(rawValue: 1 << 2)
+        
+        /// `maxY` edge.
+        public static let maxYEdge = ExpansionEdge(rawValue: 1 << 3)
+        
+        /// `minX` & `maxX` edge.
+        public static let width: ExpansionEdge = [.minXEdge, .maxXEdge]
+        
+        /// `minY` & `maxY` edge.
+        public static let height: ExpansionEdge = [.minYEdge, .maxYEdge]
+        
+        /// All edges.
+        public static let all: ExpansionEdge = [.minXEdge, .maxXEdge, .minYEdge, .maxYEdge]
+        
+        public let rawValue: Int32
+        
+        public init(rawValue: Int32) { self.rawValue = rawValue }
     }
 
     /**
