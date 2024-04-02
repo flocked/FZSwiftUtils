@@ -7,6 +7,7 @@
 
 import Foundation
 
+/*
 /// Logging utility that prints textual representations of objects.
 public struct Logger {
     
@@ -89,3 +90,4 @@ public struct Logger {
         #endif
     }
 }
+*/
