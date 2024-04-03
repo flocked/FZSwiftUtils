@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CryptoKit
 
 /**
  An implementation of the OpenSuptitle hash.
@@ -14,109 +15,135 @@ import Foundation
 
  - Note: The file has to be at least 65536 bytes large.
  */
-public struct OSHash {
-    /// OSHash errors.
-    public enum Errors: Error {
-        /// The data / gile is too small.
+public struct OSHash: HashFunction {
+    
+    /// The number of bytes that represents the hash function’s internal state.
+    public static let blockByteCount: Int = 65536
+  
+    /// The number of bytes in a OSHash digest.
+    public static let byteCount = 8
+    
+    /// The digest type for a OSHash hash function.
+    public typealias Digest = OSHashDigest
+    
+    var digest: Data = Data()
+    
+    public enum HashError: Error {
+        /// The data is too small.
         case toSmall
     }
-
-    /// The number of bytes in an OSHash.
-    public static let byteCount: Int = 65536
-    /// The number of bytes that represents the hash function’s internal state.
-    public static let blockByteCount = 8
-
-    /// The hash value.
-    public let value: UInt64
-}
-
-public extension OSHash {
-    /// The hash value.
-    var stringValue: String {
-        String(format: "%qx", arguments: [value])
+    
+    /// Creates a OSHash hash function.
+    public init() {
+        
     }
-
+    
+    /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
+    public mutating func update(bufferPointer: UnsafeRawBufferPointer) {
+        
+    }
+    
     /**
-     Creates a OpenSubtitle hash for the file path.
-
-     - Parameter path: The path to the file for calculating the hash.
-
-     - Returns: The OpenSubtitle hash.
-
+     Computes the OSHash digest for the specified file.
+     
      - Throws: Throws if the file isn't available, can't be accessed or is to small.
      */
-    init(path: String) throws {
-        try self.init(url: URL(fileURLWithPath: path))
-    }
-
-    /**
-     Creates a OpenSubtitle hash for the file at the url.
-
-     - Parameter url: The url to the file for calculating the hash.
-
-     - Returns: The OpenSubtitle hash.
-
-     - Throws: Throws if the file isn't available, can't be accessed or is to small.
-     */
-    init(url: URL) throws {
+    public static func hash(url: URL) throws -> OSHashDigest {
         let fileHandler = try FileHandle(forReadingFrom: url)
-        let startData: Data = fileHandler.readData(ofLength: Self.byteCount) as Data
+        let startData: Data = fileHandler.readData(ofLength: Self.blockByteCount) as Data
 
         fileHandler.seekToEndOfFile()
         let fileSize: UInt64 = fileHandler.offsetInFile
-        guard UInt64(Self.byteCount) <= fileSize else {
+        guard UInt64(Self.blockByteCount) <= fileSize else {
             fileHandler.closeFile()
-            throw Errors.toSmall
+            throw HashError.toSmall
         }
-
-        fileHandler.seek(toFileOffset: max(0, fileSize - UInt64(Self.byteCount)))
-        let endData: Data = fileHandler.readData(ofLength: Self.byteCount)
-
-        try self.init(size: fileSize, startData: startData, endData: endData)
-        fileHandler.closeFile()
+        
+        fileHandler.seek(toFileOffset: max(0, fileSize - UInt64(Self.blockByteCount)))
+        let endData: Data = fileHandler.readData(ofLength: Self.blockByteCount)
+        return hash(size: fileSize, startData: startData, endData: endData)
     }
-
-    /**
-     Creates a OpenSubtitle hash for the data.
-
-     - Parameter data: The data for calculating the hash.
-
-     - Returns: The OpenSubtitle hash.
-
-     - Throws: Throws if the data is to small.
-     */
-    init(data: Data) throws {
+    
+    /// Computes the OSHash digest for the specified data.
+    public static func hash<D>(data: D) -> OSHashDigest where D : DataProtocol {
+        let data = Data(data)
         let size = UInt64(data.count)
-        guard UInt64(Self.byteCount) <= size else {
-            throw Errors.toSmall
-        }
-        let startData = data[0 ..< Self.byteCount]
-        let endData = data[(data.count - 1 - Self.byteCount) ... data.count - 1]
-        try self.init(size: size, startData: startData, endData: endData)
+        let startData = data[0 ..< Self.blockByteCount]
+        let endData = data[(data.count - 1 - Self.blockByteCount) ... data.count - 1]
+        return hash(size: size, startData: startData, endData: endData)
     }
-
-    internal init(size: UInt64, startData: Data, endData: Data) throws {
-        guard UInt64(Self.byteCount) <= startData.count else {
-            throw Errors.toSmall
+    
+    static func hash(size: UInt64, startData: Data, endData: Data) -> OSHashDigest {
+        guard UInt64(Self.blockByteCount) <= size else {
+            return .toSmallDigest
         }
+        
         var hash = size
         startData.withUnsafeBytes { buffer in
             let binded = buffer.bindMemory(to: UInt64.self)
             let data_bytes = UnsafeBufferPointer<UInt64>(
                 start: binded.baseAddress,
-                count: startData.count / Self.blockByteCount
+                count: startData.count / MemoryLayout<UInt64>.size
             )
-            hash = data_bytes.reduce(into: hash) { hash = $0 &+ $1 }
+            hash = data_bytes.reduce(hash,&+)
         }
-
         endData.withUnsafeBytes { buffer in
             let binded = buffer.bindMemory(to: UInt64.self)
             let data_bytes = UnsafeBufferPointer<UInt64>(
                 start: binded.baseAddress,
-                count: endData.count / Self.blockByteCount
+                count: endData.count / MemoryLayout<UInt64>.size
             )
-            hash = data_bytes.reduce(into: hash) { hash = $0 &+ $1 }
+            hash = data_bytes.reduce(hash,&+)
         }
-        self.init(value: hash)
+        return OSHashDigest(digest: hash)
+    }
+    
+    /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+        return try digest.withUnsafeBytes(body)
+    }
+    
+    /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
+    public func finalize() -> OSHashDigest {
+        OSHashDigest(digest: digest)
+    }
+}
+
+/// The output of a OpenSuptitle hash.
+public struct OSHashDigest: Digest {
+    
+    private var digest: Data
+
+    public static var byteCount: Int = 8
+    
+    /// A digest that is returned when a data or file is too small to be hashed by `OSHash`.
+    public static var toSmallDigest = OSHashDigest(digest: Data(Array<UInt8>.init(repeating: 0, count: 8)))
+
+    init(digest: Data) {
+        self.digest = digest
+    }
+    
+    init(digest: UInt64) {
+        let byteArray = Swift.withUnsafeBytes(of: digest.bigEndian) {
+            Array($0)
+        }
+        self.digest = Data(byteArray)
+    }
+    
+    
+    public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
+        try digest.withUnsafeBytes(body)
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(digest)
+    }
+    
+    public var description: String {
+        hexString
+    }
+    
+    public func makeIterator() -> Data.Iterator {
+        digest.makeIterator()
     }
 }
