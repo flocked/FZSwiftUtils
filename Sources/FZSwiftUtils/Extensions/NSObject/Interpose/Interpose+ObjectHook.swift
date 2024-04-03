@@ -189,7 +189,7 @@ extension Interpose {
 #if DEBUG
 extension Interpose.ObjectHook: CustomDebugStringConvertible {
      var debugDescription: String {
-        return "\(selector) of \(object) -> \(String(describing: original))"
+         return "\(selector) of \(String(describing: object)) -> \(String(describing: original))"
     }
 }
 #endif

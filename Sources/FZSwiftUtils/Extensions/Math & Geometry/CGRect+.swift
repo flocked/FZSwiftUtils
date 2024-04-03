@@ -9,6 +9,8 @@ import CoreGraphics
 import Foundation
 #if os(macOS)
     import AppKit
+#elseif canImport(UIKit)
+    import UIKit
 #endif
 
 public extension CGRect {
@@ -215,6 +217,47 @@ public extension CGRect {
     internal var centerY: CGFloat {
         get { midY }
         set { origin.y = newValue - height * 0.5 }
+    }
+
+    #if os(macOS)
+    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
+    func inset(by edgeInsets: NSEdgeInsets) -> CGRect {
+        inset(by: NSDirectionalEdgeInsets.init(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
+    }
+    #elseif canImport(UIKit)
+    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
+    func inset(by edgeInsets: UIEdgeInsets) -> CGRect {
+        inset(by: NSDirectionalEdgeInsets.init(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
+    }
+    #endif
+    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
+    func inset(by edgeInsets: NSDirectionalEdgeInsets) -> CGRect {
+        var result = self
+        result.origin.x += edgeInsets.leading
+        result.origin.y += edgeInsets.bottom
+        result.size.width -= (edgeInsets.leading + edgeInsets.trailing)
+        result.size.height -= (edgeInsets.bottom + edgeInsets.top)
+        return result
+    }
+    
+    /**
+     Returns a rectangle with a width that is smaller or larger than the source rectangle width, with the same center point.
+     
+     - Parameter dx: The x-coordinate value to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
+     - Returns: A rectangle. The origin value is offset in the x-axis by the distance specified by the `dx` parameter, and its width adjusted by `(2*dx)`, relative to the source rectangle. If `dx` is a positive value, then the rectangle’s width is decreased. If `dx` is a negative value, the rectangle’s width is increased.
+     */
+    func insetBy(dx: CGFloat) -> CGRect {
+        insetBy(dx: dx, dy: 0)
+    }
+    
+    /**
+     Returns a rectangle with a height that is smaller or larger than the source rectangle height, with the same center point.
+     
+     - Parameter dy: The y-coordinate value to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
+     - Returns: A rectangle. The origin value is offset in the y-axis by the distance specified by the `dy` parameter, and its height adjusted by `(2*dy)`, relative to the source rectangle. If `dy` is a positive value, then the rectangle’s height is decreased. If `dy` is a negative value, the rectangle’s height is increased.
+     */
+    func insetBy(dy: CGFloat) -> CGRect {
+        insetBy(dx: 0, dy: dy)
     }
     
     /**
