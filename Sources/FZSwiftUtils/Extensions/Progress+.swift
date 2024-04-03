@@ -15,24 +15,22 @@ public extension Progress {
             setAssociatedValue(newValue, key: "Progress_identifier")
         }
     }
+    
+    /// The time interval for calculating the throughput and estimate time remaining via ``updateEstimatedTimeRemaining()``.
+    var estimateTimeEvaluationTimeInterval: TimeInterval {
+        get { getAssociatedValue("progressSamples", initialValue: 10) }
+        set { setAssociatedValue(newValue, key: "progressSamples") }
+    }
 
     /// Updates the estimate time remaining and throughput.
     func updateEstimatedTimeRemaining() {
-        if autoUpdateEstimatedTimeRemaining {
-           // updateEstimatedTimeRemaining(dateStarted: estimatedTimeStartDate)
-            Task {
-                if await progressETA.totalUnitCount != totalUnitCount {
-                    progressETA = ProgressETA(totalUnitCount: totalUnitCount)
-                    await refreshThroughputAndEstimatedTimeRemaining()
-                } else {
-                    await refreshThroughputAndEstimatedTimeRemaining()
-                }
-            }
-        } else {
+        refreshThroughputAndEstimatedTimeRemaining()
+        
+        if !autoUpdateEstimatedTimeRemaining {
             setupEstimatedTimeProgressObserver()
         }
     }
-
+    
     /**
      Updates the estimate time remaining and throughput by providing the start date of the progress.
 
@@ -118,7 +116,7 @@ public extension Progress {
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
             setAssociatedValue(newValue, key: "Progress_autoUpdateEstimatedTimeRemaining")
-            setupEstimatedTimeProgressObserver(newValue)
+            setupEstimatedTimeProgressObserver()
         }
     }
     
@@ -204,8 +202,8 @@ public extension Progress {
         }
     }
 
-    internal func setupEstimatedTimeProgressObserver(_ shouldObserve: Bool = false) {
-        if shouldObserve {
+    internal func setupEstimatedTimeProgressObserver() {
+        if autoUpdateEstimatedTimeRemaining {
             if estimatedTimeProgressObserver == nil {
                 estimatedTimeProgressObserver = KeyValueObserver(self)
                 
@@ -235,71 +233,47 @@ public extension Progress {
 }
 
 extension Progress {
-    var progressETA: ProgressETA {
-        get { getAssociatedValue("progressETA", initialValue: ProgressETA(totalUnitCount: totalUnitCount)) }
-        set { setAssociatedValue(newValue, key: "progressETA") }
+    var progressSamples: [(date: Date, completedUnitCount: Int64)] {
+        get { getAssociatedValue("progressSamples", initialValue: []) }
+        set { setAssociatedValue(newValue, key: "progressSamples") }
+    }
+            
+    func refreshThroughputAndEstimatedTimeRemaining() {
+        let progressSampleLimitTimeInterval: TimeInterval = 10.0
+        let progressSampleLimitCount = 30
+        
+      //  estimateTimeEvaluationTimeInterval
+        
+        progressSamples.append((Date(), completedUnitCount))
+        progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -progressSampleLimitTimeInterval) }).suffix(progressSampleLimitCount)
+        refreshThroughput()
+        refreshEstimatedTimeRemaining()
     }
     
-    func refreshThroughputAndEstimatedTimeRemaining() async {
-        let updatedETA = await progressETA.getUpdatedETA(forCompletedUnitCount: completedUnitCount)
-        self.throughput = updatedETA.throughput
-        self.estimatedTimeRemaining = updatedETA.estimatedTimeRemaining
+    func refreshEstimatedTimeRemaining() {
+        let throughputAsDouble = Double(throughput ?? 0)
+        guard let completedUnitCount = progressSamples.last?.completedUnitCount, throughputAsDouble != 0 else {
+            estimatedTimeRemaining = nil
+            return
+        }
+        let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
+        estimatedTimeRemaining = Double(remainingUnitCount) / throughputAsDouble
     }
     
-    actor ProgressETA {
-        
-        var totalUnitCount: Int64
-        
-        // Internal constants
-        private let sampleLimitTimeInterval: TimeInterval = 10 // Only keep samples received in the last 10 seconds
-        private let sampleLimitNumber = 30
-
-        private var samples = [(date: Date, completedUnitCount: Int64)]()
-        private var throughput: Int = 0
-        private var estimatedTimeRemaining: TimeInterval? // Nil while evaluating
-        
-        init(totalUnitCount: Int64) {
-            self.totalUnitCount = totalUnitCount
+    func refreshThroughput() {
+        guard progressSamples.count > 1 else {
+            throughput = 0
+            return
         }
-        
-        func getUpdatedETA(forCompletedUnitCount completedUnitCount: Int64) -> (throughput: Int?, estimatedTimeRemaining: TimeInterval?) {
-            samples.append((Date(), completedUnitCount))
-            cleanSamples()
-            refreshThroughput()
-            refreshEstimatedTimeRemaining()
-            return (throughput, estimatedTimeRemaining)
+        var throughputs = [Int]()
+        for index in 0..<progressSamples.count-1 {
+            let startSample = progressSamples[index]
+            let endSample = progressSamples[index+1]
+            let completedUnitCount = max(0, endSample.completedUnitCount - startSample.completedUnitCount)
+            let timeInterval = max(Double.leastNonzeroMagnitude, endSample.date.timeIntervalSince(startSample.date))
+            throughputs.append(Int(Double(completedUnitCount) / timeInterval))
         }
-        
-        private func cleanSamples() {
-            samples = samples.filter({ $0.date > Date(timeIntervalSinceNow: -sampleLimitTimeInterval) }).suffix(sampleLimitNumber)
-        }
-
-        private func refreshThroughput() {
-            guard samples.count > 1 else {
-                self.throughput = 0
-                return
-            }
-            var throughputs = [Int]()
-            for index in 0..<samples.count-1 {
-                let startSample = samples[index]
-                let endSample = samples[index+1]
-                let completedUnitCount = max(0, endSample.completedUnitCount - startSample.completedUnitCount)
-                let timeInterval = max(Double.leastNonzeroMagnitude, endSample.date.timeIntervalSince(startSample.date))
-                throughputs.append(Int(Double(completedUnitCount) / timeInterval))
-            }
-            guard throughputs.count > 0 else { return }
-            self.throughput = throughputs.reduce(0, +) / throughputs.count
-        }
-
-        private func refreshEstimatedTimeRemaining() {
-            let throughputAsDouble = Double(throughput)
-            guard let completedUnitCount = samples.last?.completedUnitCount, throughputAsDouble != 0 else {
-                self.estimatedTimeRemaining = nil
-                return
-            }
-            let remainingUnitCount = max(0, Int(self.totalUnitCount - completedUnitCount))
-            self.estimatedTimeRemaining = Double(remainingUnitCount) / throughputAsDouble
-        }
+        guard throughputs.count > 0 else { return }
+        throughput = throughputs.reduce(0, +) / throughputs.count
     }
-
 }
