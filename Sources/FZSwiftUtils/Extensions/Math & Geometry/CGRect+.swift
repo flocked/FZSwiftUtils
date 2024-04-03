@@ -258,12 +258,12 @@ public extension CGRect {
      Returns a new rect expanded by the specified amount in the given edge directions.
 
      - Parameters:
-        - amount: The amount by which to expand the rect.
         - edges: The edge directions in which to expand the rect.
+        - amount: The amount by which to expand the rect.
 
      - Returns: A new rect expanded by the specified amount in the given edge directions.
      */
-    func expanded(_ amount: CGFloat, to edges: ExpansionEdge) -> CGRect {
+    func expand(_ edges: ExpansionEdge, by amount: CGFloat) -> CGRect {
         var frame = self
         if edges.contains(.width) {
             frame = CGRect(x: minX - (amount / 2.0), y: minY, width: width + amount, height: height)
@@ -285,30 +285,22 @@ public extension CGRect {
     
     /// The edge directions used for expanding a rect.
     struct ExpansionEdge: OptionSet, Codable {
-        
         /// `minX` edge.
         public static let minXEdge = ExpansionEdge(rawValue: 1 << 0)
-        
         /// `maxX` edge.
         public static let maxXEdge = ExpansionEdge(rawValue: 1 << 1)
-        
         /// `minY` edge.
         public static let minYEdge = ExpansionEdge(rawValue: 1 << 2)
-        
         /// `maxY` edge.
         public static let maxYEdge = ExpansionEdge(rawValue: 1 << 3)
-        
         /// `minX` & `maxX` edge.
         public static let width: ExpansionEdge = [.minXEdge, .maxXEdge]
-        
         /// `minY` & `maxY` edge.
         public static let height: ExpansionEdge = [.minYEdge, .maxYEdge]
-        
         /// All edges.
-        public static let all: ExpansionEdge = [.minXEdge, .maxXEdge, .minYEdge, .maxYEdge]
+        public static let allEdges: ExpansionEdge = [.minXEdge, .maxXEdge, .minYEdge, .maxYEdge]
         
         public let rawValue: Int32
-        
         public init(rawValue: Int32) { self.rawValue = rawValue }
     }
 
