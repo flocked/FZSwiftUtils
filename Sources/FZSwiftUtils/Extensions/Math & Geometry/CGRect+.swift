@@ -219,17 +219,11 @@ public extension CGRect {
         set { origin.y = newValue - height * 0.5 }
     }
 
-    #if os(macOS)
     /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
-    func inset(by edgeInsets: NSEdgeInsets) -> CGRect {
-        inset(by: NSDirectionalEdgeInsets.init(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
+    func inset(by edgeInsets: NSUIEdgeInsets) -> CGRect {
+        inset(by: NSDirectionalEdgeInsets(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
     }
-    #elseif canImport(UIKit)
-    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
-    func inset(by edgeInsets: UIEdgeInsets) -> CGRect {
-        inset(by: NSDirectionalEdgeInsets.init(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
-    }
-    #endif
+    
     /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
     func inset(by edgeInsets: NSDirectionalEdgeInsets) -> CGRect {
         var result = self
