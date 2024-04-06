@@ -225,10 +225,12 @@ public extension URL {
             let keys = try listExtendedAttributes()
             var values: [String: Any] = [:]
             for key in keys {
-                if let data = extendedAttributeData(for: key),
-                   let value = try? PropertyListSerialization.propertyList(from: data, format: nil)
-                {
-                    values[key] = value
+                if let data = extendedAttributeData(for: key) {
+                   if let value = try? PropertyListSerialization.propertyList(from: data, format: nil) {
+                     values[key] = value
+                   } else {
+                       values[key] = data
+                   }
                 }
             }
             return values
