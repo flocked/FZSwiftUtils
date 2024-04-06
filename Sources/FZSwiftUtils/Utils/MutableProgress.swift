@@ -10,26 +10,50 @@ import Foundation
 
 /// A progress that allows to add and remove children progresses.
 open class MutableProgress: Progress {
+    
+    var isAddingChildren: Bool = false
+    var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
+    
     /// All the current children progresses.
-    public var children: [Progress] {
-        get { self.observedChildren.keys }
+   @objc dynamic open var children: [Progress] {
+        get { observedChildren.keys }
         set {
-            let diff = self.children.difference(to: newValue)
-            diff.removed.forEach { self.removeChild($0) }
-            diff.added.forEach { self.addChild($0) }
+            isAddingChildren = true
+            let diff = children.difference(to: newValue)
+            diff.removed.forEach { removeChild($0) }
+            diff.added.forEach { addChild($0) }
+            isAddingChildren = false
         }
     }
-
-    lazy var _progressState = ProgressState()
     
-    /// The state of the progress.
-    @objc public dynamic var progressState: ProgressState {
-        get { _progressState }
-        set {}
+    /// All the current unfinished children progresses.
+    open var unfinishedChildren: [Progress] {
+        observedChildren.keys.filter({!$0.isCompleted})
     }
-
-    /// All the current tracked children progresses and their observers.
-    private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
+    
+    /// All the current unfinished children progresses.
+    open var finishedChildren: [Progress] {
+        observedChildren.keys.filter({$0.isCompleted})
+    }
+    
+    /// The progress of all children progresses combined.
+    @objc dynamic public let totalProgress = Progress()
+    
+    /// The progress of all unfinished children progresses combined.
+    @objc dynamic public let unfinishedProgress = Progress()
+    
+    func updateProgresses() {
+        let unfinishedChildren = unfinishedChildren
+        unfinishedProgress.totalUnitCount = unfinishedChildren.compactMap({$0.totalUnitCount}).sum()
+        unfinishedProgress.completedUnitCount = unfinishedChildren.compactMap({$0.completedUnitCount}).sum().clamped(to: 0...unfinishedProgress.totalUnitCount)
+        unfinishedProgress.throughput = Int(unfinishedChildren.compactMap({$0.throughput}).average())
+        unfinishedProgress.estimatedTimeRemaining = unfinishedChildren.compactMap({$0.estimatedTimeRemaining}).average()
+        let children = children
+        totalProgress.totalUnitCount = children.compactMap({$0.totalUnitCount}).sum()
+        totalProgress.completedUnitCount = children.compactMap({$0.completedUnitCount}).sum().clamped(to: 0...totalProgress.totalUnitCount)
+        totalProgress.throughput = Int(children.compactMap({$0.throughput}).average())
+        totalProgress.estimatedTimeRemaining = children.compactMap({$0.estimatedTimeRemaining}).average()
+    }
 
     /**
      Adds a new child. Will always use a pending unit count of 1.
@@ -37,65 +61,48 @@ open class MutableProgress: Progress {
      - Parameter child: The child to add.
      */
     open func addChild(_ child: Progress) {
+        guard observedChildren[child] == nil else { return }
+        if !isAddingChildren {
+            willChangeValue(for: \.children)
+        }
+        willChangeValue(for: \.fractionCompleted)
+        willChangeValue(for: \.completedUnitCount)
         willChangeValue(for: \.totalUnitCount)
+        
         let observer = KeyValueObserver(child)
         observedChildren[child] = observer
-        observer.add(\.fractionCompleted, sendInitalValue: true) { [weak self] _, _ in
+        updateProgresses()
+        
+        observer.add(\.totalUnitCount) { [weak self] _, _ in
+            guard let self = self else { return }
+            self.updateProgresses()
+        }
+        
+        observer.add(\.completedUnitCount) { [weak self] _, _ in
+            guard let self = self else { return }
+            self.updateProgresses()
+        }
+        
+        observer.add(\.fractionCompleted) { [weak self] _, _ in
             guard let self = self else { return }
             self.willChangeValue(for: \.fractionCompleted)
             self.didChangeValue(for: \.fractionCompleted)
-            self.updateProgressState()
-            if child.isCompleted {
-                self.willChangeValue(for: \.completedUnitCount)
-                self.didChangeValue(for: \.completedUnitCount)
-            } else if child.isCancelled {
-                self.removeChild(child)
-            }
+            self.updateProgresses()
         }
 
-        observer.add(\.isCancelled) { [weak self] _, new in
+        observer.add(\.isCancelled) { [weak self] _, isCancelled in
             guard let self = self else { return }
-            if new == true {
+            if isCancelled {
                 self.removeChild(child)
+                self.updateProgresses()
             }
         }
-
+        if !isAddingChildren {
+            didChangeValue(for: \.children)
+        }
+        didChangeValue(for: \.fractionCompleted)
+        didChangeValue(for: \.completedUnitCount)
         didChangeValue(for: \.totalUnitCount)
-    }
-
-    func updateProgressState() {
-        willChangeValue(for: \.progressState)
-        willChangeValue(for: \.progressState.unfinished)
-        let unfinished = children.filter { $0.isFinished == false }
-
-        progressState._completedUnitCount = children.compactMap(\.completedUnitCount).sum()
-        progressState._totalUnitCount = children.compactMap(\.totalUnitCount).sum()
-        progressState._fractionCompleted = fractionCompleted
-        progressState.unfinished._completedUnitCount = unfinished.compactMap(\.completedUnitCount).sum()
-        progressState.unfinished._totalUnitCount = unfinished.compactMap(\.totalUnitCount).sum()
-        progressState.unfinished._fractionCompleted = Double(progressState.unfinished.completedUnitCount) / Double(progressState.unfinished.totalUnitCount)
-
-        let timeRemainings = unfinished.compactMap(\.estimatedTimeRemaining)
-        let timeRemaining = timeRemainings.sum()
-        progressState.estimatedTimeRemaining = timeRemaining
-        if timeRemainings.isEmpty == false {
-            progressState.estimatedTimeRemaining = timeRemainings.sum()
-            estimatedTimeRemaining = timeRemainings.sum()
-        } else {
-            progressState.estimatedTimeRemaining = 0
-            estimatedTimeRemaining = nil
-        }
-
-        let throughputs = unfinished.compactMap(\.throughput)
-        let throughput = throughputs.sum()
-        progressState.throughput = throughput
-        if throughputs.isEmpty == false {
-            self.throughput = throughputs.sum()
-        } else {
-            self.throughput = nil
-        }
-        didChangeValue(for: \.progressState)
-        didChangeValue(for: \.progressState.unfinished)
     }
 
     /**
@@ -103,136 +110,58 @@ open class MutableProgress: Progress {
      
      - Parameter child: The child to remove.
      */
-    public func removeChild(_ child: Progress) {
+    open func removeChild(_ child: Progress) {
+        guard observedChildren[child] != nil else { return }
+        if !isAddingChildren {
+            willChangeValue(for: \.children)
+        }
         willChangeValue(for: \.fractionCompleted)
         willChangeValue(for: \.completedUnitCount)
         willChangeValue(for: \.totalUnitCount)
         observedChildren[child] = nil
-        updateProgressState()
+        updateProgresses()
+        if !isAddingChildren {
+            didChangeValue(for: \.children)
+        }
         didChangeValue(for: \.totalUnitCount)
         didChangeValue(for: \.completedUnitCount)
         didChangeValue(for: \.fractionCompleted)
     }
 
-    override public var totalUnitCount: Int64 {
-        get {
-            Int64(observedChildren.count)
-        }
-        set {}
+    override open var totalUnitCount: Int64 {
+        get { Int64(observedChildren.count) }
+        set { }
     }
 
-    override public var completedUnitCount: Int64 {
-        get {
-            Int64(self.children.filter(\.isCompleted).count)
-        }
-        set {}
+    override open var completedUnitCount: Int64 {
+        get { Int64(children.filter(\.isCompleted).count) }
+        set { }
+    }
+    
+    override open var fractionCompleted: Double {
+        children.compactMap({$0.fractionCompleted}).average().clamped(max: 1.0)
     }
 
-    override public var userInfo: [ProgressUserInfoKey: Any] {
+    override open var userInfo: [ProgressUserInfoKey: Any] {
         var userinfo = super.userInfo
-        userinfo[.throughputKey] = self.children.compactMap(\.throughput).sum()
+        if unfinishedChildren.count == 0 {
+            userinfo[.throughputKey] = 0
+            userinfo[.estimatedTimeRemainingKey] = 0.0
+            return userinfo
+        }
+        let throughputs = children.compactMap({$0.throughput})
+        if !throughputs.isEmpty {
+            userinfo[.throughputKey] = Int(throughputs.average())
+        }
+        let estimatedTimeRemainings = children.compactMap({$0.estimatedTimeRemaining})
+        if !estimatedTimeRemainings.isEmpty {
+            userinfo[.estimatedTimeRemainingKey] = estimatedTimeRemainings.average()
+        }
         return userinfo
     }
-
-    override public var fractionCompleted: Double {
-        self.children.map(\.fractionCompleted).reduce(0, +) / Double(totalUnitCount)
-    }
-
-    // MARK: Overriding methods to make sure this class is used correctly.
 
     override public func addChild(_ child: Progress, withPendingUnitCount inUnitCount: Int64) {
         assert(inUnitCount == 1, "Unit count is ignored and is fixed to 1 for MutableProgress")
         addChild(child)
-    }
-}
-
-public extension MutableProgress {
-    /// The state of an mutable progress.
-    class ProgressState: NSObject {
-        var _completedUnitCount: Int64 = 0 {
-            didSet {
-                guard oldValue != _completedUnitCount else { return }
-                completedUnitCount = _completedUnitCount
-            }
-        }
-
-        var _totalUnitCount: Int64 = 0 {
-            didSet {
-                guard oldValue != _totalUnitCount else { return }
-                totalUnitCount = _totalUnitCount
-            }
-        }
-
-        var _fractionCompleted: Double = 0 {
-            didSet {
-                guard oldValue != _fractionCompleted else { return }
-                fractionCompleted = _fractionCompleted
-            }
-        }
-
-        var _throughput: Int = 0 {
-            didSet {
-                guard oldValue != _throughput else { return }
-                throughput = _throughput
-            }
-        }
-
-        var _estimatedTimeRemaining: Double = 0 {
-            didSet {
-                guard oldValue != _estimatedTimeRemaining else { return }
-                estimatedTimeRemaining = _estimatedTimeRemaining
-            }
-        }
-
-        /// The completed unit count of the progress.
-        @objc public fileprivate(set) dynamic var completedUnitCount: Int64 = 0
-
-        /// The total unit count of the progress.
-        @objc public fileprivate(set) dynamic var totalUnitCount: Int64 = 0
-
-        /// The fraction completed of the progress.
-        @objc public fileprivate(set) dynamic var fractionCompleted: Double = 0
-
-        /// The speed of data processing, in bytes per second.
-        @objc public fileprivate(set) dynamic var throughput: Int = 0
-
-        /// The estimated timeremaining until the progress finishes.
-        @objc public fileprivate(set) dynamic var estimatedTimeRemaining: Double = 0
-
-        @objc public fileprivate(set) dynamic var unfinished = UnfinishedProgressState()
-
-        public class UnfinishedProgressState: NSObject {
-            var _completedUnitCount: Int64 = 0 {
-                didSet {
-                    guard oldValue != _completedUnitCount else { return }
-                    completedUnitCount = _completedUnitCount
-                }
-            }
-
-            var _totalUnitCount: Int64 = 0 {
-                didSet {
-                    guard oldValue != _totalUnitCount else { return }
-                    totalUnitCount = _totalUnitCount
-                }
-            }
-
-            var _fractionCompleted: Double = 0 {
-                didSet {
-                    guard oldValue != _fractionCompleted else { return }
-                    fractionCompleted = _fractionCompleted
-                }
-            }
-
-            @objc public fileprivate(set) dynamic var fractionCompleted: Double = 0
-            @objc public fileprivate(set) dynamic var totalUnitCount: Int64 = 0
-            @objc public fileprivate(set) dynamic var completedUnitCount: Int64 = 0
-        }
-    }
-}
-
-extension Progress {
-    var isCompleted: Bool {
-        guard totalUnitCount > 0 else { return false }
-        return completedUnitCount >= totalUnitCount
     }
 }

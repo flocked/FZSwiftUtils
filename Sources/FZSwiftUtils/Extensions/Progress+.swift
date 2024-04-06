@@ -240,4 +240,9 @@ extension Progress {
         guard throughputs.count > 0 else { return }
         throughput = throughputs.reduce(0, +) / throughputs.count
     }
+    
+    var isCompleted: Bool {
+        guard totalUnitCount > 0 else { return false }
+        return completedUnitCount >= totalUnitCount
+    }
 }
