@@ -7,27 +7,36 @@
 
 import Foundation
 
-public extension Progress {
+extension Progress {
+    
     /// The identifier of the progress.
-    var identifier: Any? {
-        get { getAssociatedValue("Progress_identifier", initialValue: nil) }
-        set {
-            setAssociatedValue(newValue, key: "Progress_identifier")
-        }
+    public var identifier: Any? {
+        get { getAssociatedValue("identifier", initialValue: nil) }
+        set { setAssociatedValue(newValue, key: "identifier") }
     }
     
     /// The time interval for calculating the throughput and estimate time remaining via ``updateEstimatedTimeRemaining()``.
-    var estimateTimeEvaluationTimeInterval: TimeInterval {
-        get { getAssociatedValue("progressSamples", initialValue: 10) }
-        set { setAssociatedValue(newValue, key: "progressSamples") }
+    public var estimateTimeEvaluationTimeInterval: TimeInterval {
+        get { getAssociatedValue("estimateTimeInterval", initialValue: 20) }
+        set { setAssociatedValue(newValue.clamped(min: 0.1), key: "estimateTimeInterval") }
     }
 
     /// Updates the estimate time remaining and throughput.
-    func updateEstimatedTimeRemaining() {
-        refreshThroughputAndEstimatedTimeRemaining()
+    public func updateEstimatedTimeRemaining() {
+        let progressSampleLimitCount = 30
+        progressSamples.append((Date(), completedUnitCount))
+        progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
+        refreshThroughput()
+        refreshEstimatedTimeRemaining()
         
-        if !autoUpdateEstimatedTimeRemaining {
-            setupEstimatedTimeProgressObserver()
+        delayedEstimatedTimeRemainingUpdate?.cancel()
+        if autoUpdateEstimatedTimeRemaining, !isCompleted, !isPaused, !isCancelled {
+            let task = DispatchWorkItem { [weak self] in
+                guard let self = self, self.autoUpdateEstimatedTimeRemaining else { return }
+                self.updateEstimatedTimeRemaining()
+            }
+            delayedEstimatedTimeRemainingUpdate = task
+            DispatchQueue.main.asyncAfter(deadline: .now() + estimateTimeEvaluationTimeInterval*0.33, execute: task)
         }
     }
     
@@ -38,7 +47,7 @@ public extension Progress {
         - date: The start date of the progress.
         - completedUnits: The units completed since start.
      */
-    func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnits: Int64? = nil) {
+    public func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnits: Int64? = nil) {
         let elapsedTime = Date().timeIntervalSince(date)
         updateEstimatedTimeRemaining(timeElapsed: elapsedTime, completedUnits: completedUnits)
     }
@@ -50,7 +59,7 @@ public extension Progress {
         - elapsedTime: The time elapsed since the start of the progress.
         - completedUnits: The units completed since start.
      */
-    func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64? = nil) {
+    public func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64? = nil) {
         guard Int64(elapsedTime) > 1 else {
             self.throughput = 0
             estimatedTimeRemaining = TimeInterval.infinity
@@ -87,45 +96,44 @@ public extension Progress {
 
         self.throughput = throughput
         estimatedTimeRemaining = secondsRemaining
-        
-        delayedEstimatedTimeRemainingUpdate?.cancel()
-        if autoUpdateEstimatedTimeRemaining, !isCompleted {
-            let task = DispatchWorkItem { [weak self] in
-                guard let self = self, self.autoUpdateEstimatedTimeRemaining else { return }
-                self.updateEstimatedTimeRemaining()
-            }
-            delayedEstimatedTimeRemainingUpdate = task
-            let lastUpdate = TimeDuration(from: lastUpdate, to: Date())
-            if lastUpdate.minutes > 10 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 120, execute: task)
-            } else if lastUpdate.minutes > 5 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 60, execute: task)
-            } else if lastUpdate.minutes > 3 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 30, execute: task)
-            } else if lastUpdate.minutes > 2 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 20, execute: task)
-            } else {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 10, execute: task)
-            }
-        }
     }
 
     /// A Boolean value indicating whether the progress should auomatically update the estimated time and throughput remaining.
-    var autoUpdateEstimatedTimeRemaining: Bool {
-        get { getAssociatedValue("Progress_autoUpdateEstimatedTimeRemaining", initialValue: false) }
+    public var autoUpdateEstimatedTimeRemaining: Bool {
+        get { getAssociatedValue("autoUpdateEstimatedTimeRemaining", initialValue: false) }
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
-            setAssociatedValue(newValue, key: "Progress_autoUpdateEstimatedTimeRemaining")
-            setupEstimatedTimeProgressObserver()
+            setAssociatedValue(newValue, key: "autoUpdateEstimatedTimeRemaining")
+            if newValue {
+                estimatedTimeProgressObserver = KeyValueObserver(self)
+                estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
+                    guard old != new else { return }
+                    self.estimatedTimeStartDate = Date()
+                    self.estimatedTimeCompletedUnits = self.completedUnitCount
+                    self.updateEstimatedTimeRemaining()
+                }
+                estimatedTimeProgressObserver?.add(\.isCancelled) { old, new in
+                    guard old != new else { return }
+                    self.updateEstimatedTimeRemaining()
+                }
+                estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
+                    guard old != new else { return }
+                    self.lastUpdate = Date()
+                    self.updateEstimatedTimeRemaining()
+                }
+            } else {
+                delayedEstimatedTimeRemainingUpdate?.cancel()
+                estimatedTimeProgressObserver = nil
+            }
         }
     }
     
-    internal var delayedEstimatedTimeRemainingUpdate: DispatchWorkItem? {
+    var delayedEstimatedTimeRemainingUpdate: DispatchWorkItem? {
         get { getAssociatedValue("delayedEstimatedTimeRemainingUpdate", initialValue: nil ) }
         set { setAssociatedValue(newValue, key: "delayedEstimatedTimeRemainingUpdate") }
     }
     
-    internal var lastUpdate: Date {
+    var lastUpdate: Date {
         get { getAssociatedValue("lastUpdate", initialValue: Date() ) }
         set { setAssociatedValue(newValue, key: "lastUpdate") }
     }
@@ -140,7 +148,7 @@ public extension Progress {
 
          - Warning: Don't call this method if the progress is already published.
          */
-        func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
+        public func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
             guard fileURL != url else { return }
             fileURL = url
             fileOperationKind = kind
@@ -165,7 +173,7 @@ public extension Progress {
 
          - Returns: A `Progress` object representing the file progress.
          */
-        static func file(url: URL, kind: Progress.FileOperationKind, completed: DataSize? = nil, size: DataSize? = nil) -> Progress {
+        public static func file(url: URL, kind: Progress.FileOperationKind, completed: DataSize? = nil, size: DataSize? = nil) -> Progress {
             let progress = Progress()
             progress.kind = .file
             progress.fileURL = url
@@ -175,82 +183,38 @@ public extension Progress {
             progress.publish()
             return progress
         }
+    
+    var isPublished: Bool {
+        get { getAssociatedValue("isPublished", initialValue: false) }
+        set { setAssociatedValue(newValue, key: "isPublished") }
+    }
     #endif
 
-    internal var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
-        get { getAssociatedValue("Progress_estimatedTimeProgressObserver", initialValue: nil) }
-        set { setAssociatedValue(newValue, key: "Progress_estimatedTimeProgressObserver") }
+    var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
+        get { getAssociatedValue("estimatedTimeProgressObserver", initialValue: nil) }
+        set { setAssociatedValue(newValue, key: "estimatedTimeProgressObserver") }
     }
 
-    internal var estimatedTimeStartDate: Date {
-        get { getAssociatedValue("Progress_estimatedTimeStartDate", initialValue: Date()) }
-        set { setAssociatedValue(newValue, key: "Progress_estimatedTimeStartDate") }
+    var estimatedTimeStartDate: Date {
+        get { getAssociatedValue("estimatedTimeStartDate", initialValue: Date()) }
+        set { setAssociatedValue(newValue, key: "estimatedTimeStartDate") }
     }
 
-    internal var estimatedTimeCompletedUnits: Int64 {
-        get { getAssociatedValue("Progress_estimatedTimeCompletedUnits", initialValue: completedUnitCount) }
-        set {
-            guard estimatedTimeCompletedUnits != newValue else { return }
-            setAssociatedValue(newValue, key: "Progress_estimatedTimeCompletedUnits")
-        }
+    var estimatedTimeCompletedUnits: Int64 {
+        get { getAssociatedValue("estimatedTimeCompletedUnits", initialValue: completedUnitCount) }
+        set { setAssociatedValue(newValue, key: "estimatedTimeCompletedUnits")  }
     }
-
-    internal var isPublished: Bool {
-        get { getAssociatedValue("isPublished", initialValue: false) }
-        set {
-            setAssociatedValue(newValue, key: "isPublished")
-        }
-    }
-
-    internal func setupEstimatedTimeProgressObserver() {
-        if autoUpdateEstimatedTimeRemaining {
-            if estimatedTimeProgressObserver == nil {
-                estimatedTimeProgressObserver = KeyValueObserver(self)
-                
-                estimatedTimeProgressObserver?.add(\.isPaused) { old, new in
-                    guard old != new else { return }
-                    self.estimatedTimeStartDate = Date()
-                    self.estimatedTimeCompletedUnits = self.completedUnitCount
-                    self.updateEstimatedTimeRemaining()
-                }
-
-                estimatedTimeProgressObserver?.add(\.isCancelled) { old, new in
-                    guard old != new else { return }
-                    self.updateEstimatedTimeRemaining()
-                }
-
-                estimatedTimeProgressObserver?.add(\.fractionCompleted, sendInitalValue: true) { old, new in
-                    guard old != new else { return }
-                    self.lastUpdate = Date()
-                    self.updateEstimatedTimeRemaining()
-                }
-            }
-        } else {
-            delayedEstimatedTimeRemainingUpdate?.cancel()
-            estimatedTimeProgressObserver = nil
-        }
-    }
-}
-
-extension Progress {
+    
     var progressSamples: [(date: Date, completedUnitCount: Int64)] {
         get { getAssociatedValue("progressSamples", initialValue: []) }
         set { setAssociatedValue(newValue, key: "progressSamples") }
     }
-            
-    func refreshThroughputAndEstimatedTimeRemaining() {
-        let progressSampleLimitTimeInterval: TimeInterval = 10.0
-        let progressSampleLimitCount = 30
-        
-      //  estimateTimeEvaluationTimeInterval
-        
-        progressSamples.append((Date(), completedUnitCount))
-        progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -progressSampleLimitTimeInterval) }).suffix(progressSampleLimitCount)
-        refreshThroughput()
-        refreshEstimatedTimeRemaining()
-    }
     
     func refreshEstimatedTimeRemaining() {
+        guard !isCompleted else {
+            estimatedTimeRemaining = 0
+            return
+        }
         let throughputAsDouble = Double(throughput ?? 0)
         guard let completedUnitCount = progressSamples.last?.completedUnitCount, throughputAsDouble != 0 else {
             estimatedTimeRemaining = nil
