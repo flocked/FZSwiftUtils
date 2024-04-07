@@ -544,7 +544,7 @@ extension NSObject {
                 descriptions.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
                 
                 if let typesChars = method?.types, let types = String(cString: typesChars, encoding: .utf8) {
-                    Swift.print(types)
+                    Swift.print(name, types)
 
                 }
                 // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
