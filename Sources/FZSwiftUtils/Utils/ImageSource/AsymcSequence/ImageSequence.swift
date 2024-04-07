@@ -69,7 +69,7 @@ public extension ImageSource {
         }
 
         public static func image(source: ImageSource, options: ImageOptions? = nil, loop _: Bool = false) -> ImageIterator {
-            ImageIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
+            ImageIterator(source: source, type: .image, thumbnailOptions: nil, imageOptions: options)
         }
 
         public init(source: ImageSource, type: ImageType, thumbnailOptions: ThumbnailOptions?, imageOptions: ImageOptions?, loop: Bool = false) {
