@@ -12,6 +12,35 @@
 import Foundation
 
 extension NSObject {
+    /// Reflection of a class.
+    public struct ClassReflection: CustomStringConvertible {
+        /// The type of the class.
+        public let type: NSObject.Type
+        /// The properties of the class.
+        public let properties: [PropertyDescription]
+        /// The methods of the class.
+        public let methods: [String]
+        /// The ivars of the class.
+        public let ivars: [String]
+        
+        public var description: String {
+           var strings =  ["<\(String(describing: type))>("]
+            if !properties.isEmpty {
+                strings.append("\t- Properties:")
+                strings.append(contentsOf: properties.compactMap({"\t\t" + $0.description}))
+            }
+            if !methods.isEmpty {
+                strings.append("\t- Methods:")
+                strings.append(contentsOf: methods.compactMap({"\t\t" + $0}))
+            }
+            if !ivars.isEmpty {
+                strings.append("\t- Ivars:")
+                strings.append(contentsOf: ivars.compactMap({"\t\t" + $0}))
+            }
+            strings.append(")")
+            return strings.joined(separator: "\n")
+        }
+    }
     
     /// Description of a property.
     public struct PropertyDescription: CustomStringConvertible {
@@ -31,6 +60,14 @@ extension NSObject {
             self.type = type
             self.isReadOnly = isReadOnly
         }
+    }
+    
+    /// Returns a reflection of the class.
+    public static func classReflection(includeSuperclass: Bool = false) -> ClassReflection {
+        let properties = propertyReflection(includeSuperclass: includeSuperclass)
+        let methods = methodReflection(includeSuperclass: includeSuperclass)
+        let ivars = ivarReflection(includeSuperclass: includeSuperclass)
+        return ClassReflection(type: self, properties: properties, methods: methods, ivars: ivars)
     }
     
     /**
@@ -241,63 +278,76 @@ private extension String {
     }
 }
 
-/*
- private func getPropertyType(for property: objc_property_t) -> String? {
-     guard
-         let attributesChars = property_getAttributes(property)
-     else { return nil }
-     let attributes = String(validatingUTF8: attributesChars)
-     return attributes
- }
- 
-public func getProtocolSymbols(for protocol: Protocol?) {
-    guard
-        let `protocol`
-    else { return }
-    var count: Int32 = 0
-    let properties = protocol_copyPropertyList(`protocol`, &count)
-    for i in 0..<Int(count) {
-        guard
-            let property = properties?.advanced(by: i).pointee
-        else { continue }
-        let propertyNameChars = property_getName(property)
-        guard
-            let propertyName = String(validatingUTF8: propertyNameChars)
-        else { continue }
-        if let typeInfo = getPropertyType(for: property) {
-            print("\(typeInfo): ", terminator: "")
-        }
-        print(propertyName)
+extension NSObject {
+    /// Protocol reflection for the specified protocol.
+    public static func protocolReclection<Object: NSObjectProtocol>(for protocol: Object.Type) -> ProtocolReflection? {
+        let name = String(describing: Object.self)
+        guard let proto = NSProtocolFromString(name) else { return nil }
+        let methods = protocolMethods(for: proto)
+        let properties = protocolProperties(for: proto)
+        return ProtocolReflection(name: name, methods: methods, properties: properties)
     }
-
-    let variations: [(required: Bool, instance: Bool)] = [
-        (false, false),
-        (false, true),
-        (true, true),
-        (true, false),
-    ]
-
-    for variation in variations {
-        print("required: \(variation.required) instance: \(variation.instance)")
-        let methods = protocol_copyMethodDescriptionList(`protocol`, variation.required, variation.instance, &count)
-        for i in 0..<Int(count) {
-            let method = methods?.advanced(by: i).pointee
-            guard
-                let selector = method?.name
-            else { continue }
-            let name = NSStringFromSelector(selector)
-            print(name, terminator: " ")
-
-            guard
-                let typesChars = method?.types,
-                let types = String(validatingUTF8: typesChars)
-            else {
-                print()
-                continue
-            }
-            print(types)
+    
+    /// Reflection of a protocol.
+    public struct ProtocolReflection {
+        /// The name of the protocol.
+        public let name: String
+        /// The method descriptions of the protocol.
+        public let methods: [MethodDescription]
+        /// The property descriptions of the protocol.
+        public let properties: [PropertyDescription]
+        
+        /// Description of a protocol method.
+        public struct MethodDescription {
+            /// The name of the method.
+            public let name: String
+            /// A Boolean value indicating whether the method is an instance method.
+            public let isInstance: Bool
+            /// A Boolean value indicating whether the method is required.
+            public let isRequired: Bool
         }
-        print()
+    }
+        
+    private static func protocolMethods<Object: NSObjectProtocol>(for protocol: Object.Type) -> [ProtocolReflection.MethodDescription] {
+        guard let proto = NSProtocolFromString(String(describing: Object.self)) else { return [] }
+        return protocolMethods(for: proto)
+    }
+    
+    private static func protocolProperties<Object: NSObjectProtocol>(for protocol: Object.Type) -> [NSObject.PropertyDescription] {
+        guard let proto = NSProtocolFromString(String(describing: Object.self)) else { return [] }
+        return protocolProperties(for: proto)
+    }
+    
+    private static func protocolProperties(for protocol: Protocol) -> [NSObject.PropertyDescription] {
+        var count: Int32 = 0
+        let properties = protocol_copyPropertyList(`protocol`, &count)
+        var names: [NSObject.PropertyDescription] = []
+        for i in 0..<Int(count) {
+            guard let property = properties?.advanced(by: i).pointee else { continue }
+            guard let name = property.name else { continue }
+            let propertyType = property.type
+            let isReadOnly = property.isReadOnly
+            names.append(.init(name, propertyType, isReadOnly))
+        }
+        return names
+    }
+    
+    private static func protocolMethods(for protocol: Protocol) -> [ProtocolReflection.MethodDescription] {
+        var count: Int32 = 0
+        var symbols: [ProtocolReflection.MethodDescription] = []
+        let variations: [(required: Bool, instance: Bool)] = [(false, false), (false, true), (true, true), (true, false)]
+        for variation in variations {
+            let methods = protocol_copyMethodDescriptionList(`protocol`, variation.required, variation.instance, &count)
+            for i in 0..<Int(count) {
+                let method = methods?.advanced(by: i).pointee
+                guard let selector = method?.name else { continue }
+                let name = NSStringFromSelector(selector)
+                symbols.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
+                // Swift.print(name)
+                // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
+                // print(types)
+            }
+        }
+        return symbols
     }
 }
-*/
