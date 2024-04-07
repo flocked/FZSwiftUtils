@@ -92,7 +92,7 @@ public extension ImageSource {
         }
 
         public mutating func next() async -> CGImage? {
-            Swift.print("next", currentFrame, currentFrame >= frameCount ,  await nextImage() != nil, await source.image(at: 0, options: imageOptions) != nil, await source.image(at: 0) != nil)
+            Swift.print("next", currentFrame, currentFrame >= frameCount ,  await nextImage() != nil, await source.image(at: currentFrame, options: imageOptions) != nil)
             if currentFrame >= frameCount {
                 if loop { currentFrame = 0 } else { return nil }
             }
