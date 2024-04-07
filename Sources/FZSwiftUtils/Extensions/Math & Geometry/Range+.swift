@@ -7,8 +7,11 @@
 
 import Foundation
 
-
 public extension Range {
+    init(safe a: Bound,_ b: Bound) {
+        self = Swift.min(a,b)..<Swift.max(a,b)
+    }
+    
     func clamped(to range: ClosedRange<Bound>) -> Range {
         clamped(to: range.lowerBound..<range.upperBound)
     }
@@ -86,6 +89,10 @@ public extension Range {
 }
 
 public extension ClosedRange  {
+    init(safe a: Bound,_ b: Bound) {
+        self = Swift.min(a,b)...Swift.min(a,b)
+    }
+    
     func clamped(to range: Range<Bound>) -> ClosedRange {
         clamped(to: range.lowerBound...range.upperBound)
     }
