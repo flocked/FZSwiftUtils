@@ -102,13 +102,13 @@ public extension String {
      - Returns: An array of `StringMatch` objects representing the matches found.
       */
     func matches(for option: NSTextCheckingResult.CheckingType) -> [StringMatch] {
-        guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
         var option = option
         let checkEmail = option.contains(.emailAddress)
         if checkEmail {
             option.remove(.emailAddress)
             option.insert(.link)
         }
+        guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
         let string = self
         return detector.matches(in: string, range: NSRange(string.startIndex..., in: string)).flatMap({ match in
             (0..<match.numberOfRanges).compactMap {
