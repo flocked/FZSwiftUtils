@@ -364,7 +364,7 @@ private extension objc_property_t {
         let attributes = String(cString: _attributes)
         let slices = String(cString: _attributes).components(separatedBy: "\"")
         if attributes.contains("NSCollectionViewDataSource") {
-            Swift.print("check", slices.count, attributes)
+            Swift.print("check", slices[1], attributes)
         }
         return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
     }
