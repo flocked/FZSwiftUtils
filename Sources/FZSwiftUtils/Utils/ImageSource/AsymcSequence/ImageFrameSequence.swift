@@ -13,162 +13,74 @@ import ImageIO
 
 public struct ImageFrameSequence: AsyncSequence {
     public typealias Element = CGImageFrame
-    public typealias ThumbnailOptions = ImageSource.ThumbnailOptions
-    public typealias ImageOptions = ImageSource.ImageOptions
 
-    public enum ImageType {
+    enum ImageType {
         case image
         case thumbnail
     }
 
-    public let source: ImageSource?
+    let source: ImageSource?
+    let thumbnailOptions: ImageSource.ThumbnailOptions?
+    let imageOptions: ImageSource.ImageOptions?
+    let type: ImageType
+    public let count: Int
     #if os(macOS)
-        public let representation: NSBitmapImageRep?
+    let representation: NSBitmapImageRep?
     #endif
-    public let thumbnailOptions: ThumbnailOptions?
-    public let imageOptions: ImageOptions?
-    public let loop: Bool
-    public let type: ImageType
 
-    public static func thumbnail(_ source: ImageSource, options: ThumbnailOptions? = nil, loop: Bool = false) -> ImageFrameSequence {
-        ImageFrameSequence(source, type: .thumbnail, thumbnailOptions: options, loop: loop)
-    }
-
-    public static func image(_ source: ImageSource, options: ImageOptions? = nil, loop: Bool = false) -> ImageFrameSequence {
-        ImageFrameSequence(source, type: .image, imageOptions: options, loop: loop)
-    }
-
-    public init(_ source: ImageSource, type: ImageType, imageOptions: ImageOptions? = nil, thumbnailOptions: ThumbnailOptions? = .init(), loop: Bool = false) {
+    init(source: ImageSource, type: ImageType, imageOptions: ImageSource.ImageOptions? = nil, thumbnailOptions: ImageSource.ThumbnailOptions? = nil) {
         self.source = source
         self.imageOptions = imageOptions
         self.thumbnailOptions = thumbnailOptions
         self.type = type
-        self.loop = loop
+        self.count = source.count
         #if os(macOS)
             representation = nil
         #endif
     }
 
     #if os(macOS)
-        public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
+        init(_ representation: NSBitmapImageRep) {
             self.representation = representation
             type = .image
             imageOptions = nil
             thumbnailOptions = nil
+            count = representation.frameCount
             source = nil
-            self.loop = loop
         }
     #endif
 
-    public func makeAsyncIterator() -> ImageFrameIterator {
-        #if os(macOS)
-            if let representation = representation {
-                return ImageFrameIterator(representation, loop: loop)
-            }
-        #endif
-        let source = source!
-        switch type {
-        case .image:
-            return ImageFrameIterator.image(source: source, options: imageOptions, loop: loop)
-        case .thumbnail:
-            return ImageFrameIterator.thumbnail(source: source, options: thumbnailOptions, loop: loop)
-        }
+    public func makeAsyncIterator() -> Iterator {
+        Iterator(self)
     }
-}
+    
+    public struct Iterator: AsyncIteratorProtocol {
+        var index = -1
+        let sequence: ImageFrameSequence
 
-public extension ImageFrameSequence {
-    struct ImageFrameIterator: AsyncIteratorProtocol {
-        public let loop: Bool
-        public let frameCount: Int
-        public private(set) var currentFrame: Int
-        public let source: ImageSource?
-        public let type: FrameType
-        #if os(macOS)
-            public let representation: NSBitmapImageRep?
-        #endif
-        public let thumbnailOptions: ThumbnailOptions?
-        public let imageOptions: ImageOptions?
-        public enum FrameType {
-            case image
-            case thumbnail
-        }
-
-        public static func thumbnail(source: ImageSource, options: ThumbnailOptions? = nil, loop _: Bool = false) -> ImageFrameIterator {
-            ImageFrameIterator(source: source, type: .thumbnail, thumbnailOptions: options, imageOptions: nil)
-        }
-
-        public static func image(source: ImageSource, options: ImageOptions? = nil, loop _: Bool = false) -> ImageFrameIterator {
-            ImageFrameIterator(source: source, type: .thumbnail, thumbnailOptions: nil, imageOptions: options)
-        }
-
-        public init(source: ImageSource, type: FrameType, thumbnailOptions: ThumbnailOptions?, imageOptions: ImageOptions?, loop: Bool = false) {
-            self.source = source
-            frameCount = source.count
-            currentFrame = 0
-            self.loop = loop
-            self.type = type
-            self.thumbnailOptions = thumbnailOptions
-            self.imageOptions = imageOptions
-            #if os(macOS)
-                representation = nil
-            #endif
-        }
-
-        #if os(macOS)
-            public init(_ representation: NSBitmapImageRep, loop: Bool = false) {
-                self.representation = representation
-                source = nil
-                frameCount = representation.frameCount
-                type = .image
-                self.loop = loop
-                thumbnailOptions = nil
-                imageOptions = nil
-                currentFrame = 0
-            }
-        #endif
-
-        func nextImage() async -> CGImage? {
-            if let source = source {
-                switch type {
-                case .image:
-                    return await source.image(at: currentFrame, options: imageOptions)
-                case .thumbnail:
-                    return await source.thumbnail(at: currentFrame, options: thumbnailOptions)
-                }
-            }
-            return nil
+        init(_ sequence: ImageFrameSequence) {
+            self.sequence = sequence
         }
 
         public mutating func next() async -> CGImageFrame? {
-            if let source = source {
-                if currentFrame >= frameCount {
-                    if loop { currentFrame = 0 } else { return nil }
+            index += 1
+            guard index < sequence.count else { return nil }
+            if let source = sequence.source {
+                switch sequence.type {
+                case .image:
+                    guard let image = await source.image(at: index, options: sequence.imageOptions) else { return nil }
+                    return CGImageFrame(image, source.properties(at: index)?.delayTime)
+                case .thumbnail:
+                    guard let image = await source.thumbnail(at: index, options: sequence.thumbnailOptions) else { return nil }
+                    return CGImageFrame(image, source.properties(at: index)?.delayTime)
                 }
-                let duration = source.properties(at: currentFrame)?.delayTime
-                let image = await nextImage()
-                currentFrame = currentFrame + 1
-                var imageFrame: CGImageFrame?
-                if let image = image {
-                    imageFrame = CGImageFrame(image, duration)
-                }
-                return imageFrame
             }
             #if os(macOS)
-                if let representation = representation {
-                    if currentFrame >= frameCount {
-                        if loop { currentFrame = 0 } else {
-                            return nil
-                        }
-                    }
-                    var imageFrame: CGImageFrame?
-                    representation.currentFrame = currentFrame
-                    if let image = representation.cgImage {
-                        let duration = representation.currentFrameDuration
-                        imageFrame = CGImageFrame(image, duration)
-                    }
-                    currentFrame = currentFrame + 1
-                    return imageFrame
-                }
+            if let representation = sequence.representation {
+                representation.currentFrame = index
+                guard let image = representation.cgImage else { return nil }
+                return CGImageFrame(image, representation.currentFrameDuration)
+            }
             #endif
             return nil
         }
@@ -176,7 +88,16 @@ public extension ImageFrameSequence {
 }
 
 #if os(macOS)
-    fileprivate extension NSBitmapImageRep {
+    extension NSBitmapImageRep {
+        /// The frames of an animated (e.g. GIF) image.
+        public var frames: ImageFrameSequence {
+            ImageFrameSequence(self)
+        }
+        
+        public func getFrames() -> [CGImageFrame] {
+            (try? frames.collect()) ?? []
+        }
+        
         /// The number of frames in an animated GIF image, or `1` if the image isn't a GIF.
         var frameCount: Int {
             (value(forProperty: .frameCount) as? Int) ?? 1

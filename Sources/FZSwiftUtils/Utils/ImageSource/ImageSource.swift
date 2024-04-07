@@ -152,21 +152,45 @@ public class ImageSource {
             completionHandler(image)
         }
     }
-
+    
+    /// The images of the image source asynchronously.
     public func images(options: ImageOptions? = .init()) -> ImageSequence {
         ImageSequence(source: self, type: .image, imageOptions: options)
     }
+    
+    /// The images of the image source.
+    public func getImages(options: ImageOptions? = .init()) -> [CGImage] {
+        (try? images(options: options).collect()) ?? []
+    }
 
+    /// The thumbnails of the image source asynchronously.
     public func thumbnails(options: ThumbnailOptions? = .init()) -> ImageSequence {
         ImageSequence(source: self, type: .thumbnail, thumbnailOptions: options)
     }
-
-    public func imageFrames(options: ImageOptions? = .init()) -> ImageFrameSequence {
-        ImageFrameSequence.image(self, options: options)
+    
+    /// The thumbnails of the image source.
+    public func getThumbnails(options: ThumbnailOptions? = .init()) -> [CGImage] {
+        (try? thumbnails(options: options).collect()) ?? []
     }
 
+    /// The image frames of the image source asynchronously.
+    public func imageFrames(options: ImageOptions? = .init()) -> ImageFrameSequence {
+        ImageFrameSequence(source: self, type: .image, imageOptions: options)
+    }
+    
+    /// The image frames of the image source.
+    public func getImageFrames(options: ImageOptions? = .init()) -> [CGImageFrame] {
+        (try? imageFrames(options: options).collect()) ?? []
+    }
+
+    /// The thumbnail frames of the image source asynchronously.
     public func thumbnailFrames(options: ThumbnailOptions? = .init()) -> ImageFrameSequence {
-        ImageFrameSequence.thumbnail(self, options: options)
+        ImageFrameSequence(source: self, type: .thumbnail, thumbnailOptions: options)
+    }
+    
+    /// The thumbnail frames of the image source.
+    public func getThumbnailFrames(options: ThumbnailOptions? = .init()) -> [CGImageFrame] {
+        (try? thumbnailFrames(options: options).collect()) ?? []
     }
 
     /**
