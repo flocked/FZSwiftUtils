@@ -12,16 +12,22 @@
 import Foundation
 
 extension NSObject {
-    /// Reflection of a class.
+    /// Reflection of an object.
     public struct ClassReflection: CustomStringConvertible {
-        /// The type of the class.
+        /// The type of the object.
         public let type: NSObject.Type
-        /// The properties of the class.
+        /// The properties of the object.
         public let properties: [PropertyDescription]
-        /// The methods of the class.
+        /// The methods of the object.
         public let methods: [String]
-        /// The ivars of the class.
+        /// The ivars of the object.
         public let ivars: [String]
+        /// The class properties of the object.
+        public let classProperties: [PropertyDescription]
+        /// The class methods of the object.
+        public let classMethods: [String]
+        /// The class ivars of the object.
+        public let classIvars: [String]
         
         public var description: String {
            var strings =  ["<\(String(describing: type))>("]
@@ -36,6 +42,18 @@ extension NSObject {
             if !ivars.isEmpty {
                 strings.append("\tIvars:")
                 strings.append(contentsOf: ivars.compactMap({"\t\t" + $0}))
+            }
+            if !classProperties.isEmpty {
+                strings.append("\tClass Properties:")
+                strings.append(contentsOf: classProperties.compactMap({"\t\t" + $0.description}))
+            }
+            if !classMethods.isEmpty {
+                strings.append("\tClass Methods:")
+                strings.append(contentsOf: classMethods.compactMap({"\t\t" + $0}))
+            }
+            if !classIvars.isEmpty {
+                strings.append("\tClass Ivars:")
+                strings.append(contentsOf: classIvars.compactMap({"\t\t" + $0}))
             }
             strings.append(")")
             return strings.joined(separator: "\n")
@@ -64,10 +82,13 @@ extension NSObject {
     
     /// Returns a reflection of the class.
     public static func classReflection(includeSuperclass: Bool = false) -> ClassReflection {
-        let properties = propertyReflection(includeSuperclass: includeSuperclass)
-        let methods = methodReflection(includeSuperclass: includeSuperclass)
-        let ivars = ivarReflection(includeSuperclass: includeSuperclass)
-        return ClassReflection(type: self, properties: properties, methods: methods, ivars: ivars)
+        let properties = propertiesReflection(includeSuperclass: includeSuperclass)
+        let methods = methodsReflection(includeSuperclass: includeSuperclass)
+        let ivars = ivarsReflection(includeSuperclass: includeSuperclass)
+        let classProperties = classPropertiesReflection(includeSuperclass: includeSuperclass)
+        let classMethods = classMethodsReflection(includeSuperclass: includeSuperclass)
+        let classIvars = classIvarsReflection(includeSuperclass: includeSuperclass)
+        return ClassReflection(type: self, properties: properties, methods: methods, ivars: ivars, classProperties: classProperties, classMethods: classMethods, classIvars: classIvars)
     }
     
     /**
@@ -77,8 +98,8 @@ extension NSObject {
         - excludeReadOnly: A Boolean value indicating whether to exclude `readOnly` properties.
         - includeSuperclass: A Boolean value indicating whether to include properties of the class's `superclass`.
      */
-    public static func propertyReflection(excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
-        propertyReflection(for: self, excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
+    public static func propertiesReflection(excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
+        propertiesReflection(for: self, excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
     }
     
     /**
@@ -86,8 +107,8 @@ extension NSObject {
      
      - Parameter includeSuperclass: A Boolean value indicating whether to include method names of the class's `superclass`.
      */
-    public static func methodReflection(includeSuperclass: Bool = false) -> [String] {
-        methodReflection(for: self, includeSuperclass: includeSuperclass)
+    public static func methodsReflection(includeSuperclass: Bool = false) -> [String] {
+        methodsReflection(for: self, includeSuperclass: includeSuperclass)
     }
     
     /**
@@ -95,8 +116,37 @@ extension NSObject {
      
      - Parameter includeSuperclass: A Boolean value indicating whether to include ivar names of the class's `superclass`.
      */
-    public static func ivarReflection(includeSuperclass: Bool = false) -> [String] {
-        ivarReflection(for: self, includeSuperclass: includeSuperclass)
+    public static func ivarsReflection(includeSuperclass: Bool = false) -> [String] {
+        ivarsReflection(for: self, includeSuperclass: includeSuperclass)
+    }
+    
+    /**
+     Returns all class property descriptions of the class.
+     
+     - Parameters:
+        - excludeReadOnly: A Boolean value indicating whether to exclude `readOnly` properties.
+        - includeSuperclass: A Boolean value indicating whether to include properties of the class's `superclass`.
+     */
+    public static func classPropertiesReflection(excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
+        metaClass?.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass) ?? []
+    }
+    
+    /**
+     Returns all class method names of the class.
+     
+     - Parameter includeSuperclass: A Boolean value indicating whether to include method names of the class's `superclass`.
+     */
+    public static func classMethodsReflection(includeSuperclass: Bool = false) -> [String] {
+        metaClass?.methodsReflection(includeSuperclass: includeSuperclass) ?? []
+    }
+    
+    /**
+     Returns all class ivar names of the class.
+     
+     - Parameter includeSuperclass: A Boolean value indicating whether to include ivar names of the class's `superclass`.
+     */
+    public static func classIvarsReflection(includeSuperclass: Bool = false) -> [String] {
+        metaClass?.ivarsReflection(includeSuperclass: includeSuperclass) ?? []
     }
     
     /**
@@ -116,7 +166,7 @@ extension NSObject {
         - includeSuperclass: A Boolean value indicating whether to also check the properties of the class's `superclass`.
      */
     public static func containsProperty(_ name: String, includeSuperclass: Bool = false) -> Bool {
-        propertyReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name })
+        propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name })
     }
     
     /**
@@ -126,17 +176,21 @@ extension NSObject {
         - name: The name of the property.
         - includeSuperclass: A Boolean value indicating whether to also check the properties of the class's `superclass`.
      */
-    public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertyReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
+    public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertiesReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
     }
     
     static func canGetValue(_ name: String, includeSuperclass: Bool = false) -> Bool {
-        if propertyReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name }) {
+        if propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name }) {
             return true
         }
-        return methodReflection(includeSuperclass: includeSuperclass).contains(name)
+        return methodsReflection(includeSuperclass: includeSuperclass).contains(name)
     }
     
-    private static func methodReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
+    private static var metaClass: NSObject.Type? {
+        objc_getMetaClass(NSStringFromClass(self)) as? NSObject.Type
+    }
+    
+    private static func methodsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var methodCount: UInt32 = 0
         let methods = class_copyMethodList(`class`, &methodCount)
         var names: [String] = []
@@ -148,12 +202,12 @@ extension NSObject {
             names.append(methodName)
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.methodReflection(includeSuperclass: includeSuperclass)
+            names = names + superclass.methodsReflection(includeSuperclass: includeSuperclass)
         }
         return names.uniqued().sorted()
     }
     
-    private static func propertyReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
+    private static func propertiesReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
         var count: Int32 = 0
         let properties = class_copyPropertyList(`class`, &count)
         var names: [PropertyDescription] = []
@@ -166,12 +220,12 @@ extension NSObject {
             names.append(.init(propertyName, propertyType, isReadOnly))
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.propertyReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
+            names = names + superclass.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
         }
         return names.uniqued(by: \.name).sorted(by: \.name)
     }
     
-    private static func ivarReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
+    private static func ivarsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var count: Int32 = 0
         let ivars = class_copyIvarList(`class`, &count)
         var names: [String] = []
@@ -190,7 +244,7 @@ extension NSObject {
             // print("\(ivarEncoding): \(ivarName)")
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.ivarReflection(includeSuperclass: includeSuperclass)
+            names = names + superclass.ivarsReflection(includeSuperclass: includeSuperclass)
         }
         return names.uniqued().sorted()
     }
