@@ -243,9 +243,6 @@ extension NSObject {
         for i in 0..<Int(methodCount) {
             guard let method = methods?.advanced(by: i).pointee else { continue }
             let name = NSStringFromSelector(method_getName(method))
-            if name == "_backgroundColorFillView" {
-                Swift.print("!!!!",method.returnType)
-            }
             let returnType = method.returnType.toType()
             var argumentTypes: [Any] = []
             for index in 0..<method.numberOfArguments {
@@ -290,9 +287,8 @@ extension NSObject {
                 print("missing info on \(ivar)")
                 continue
             }
-            Swift.print(ivarName, ivar.ivarType ?? "nil")
+        //    Swift.print(ivarName, ivar.ivarType ?? "nil")
             names.append(ivarName)
-            // print("\(ivarEncoding): \(ivarName)")
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
             names = names + superclass.ivarsReflection(includeSuperclass: includeSuperclass)
@@ -366,9 +362,6 @@ private extension objc_property_t {
         guard let _attributes = property_getAttributes(self) else { return Any.self }
         let attributes = String(cString: _attributes)
         let slices = String(cString: _attributes).components(separatedBy: "\"")
-        if attributes.contains("NSCollectionViewDataSource") {
-            Swift.print("check", slices[1], attributes)
-        }
         return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
     }
 }
@@ -549,6 +542,15 @@ extension NSObject {
                 guard let selector = method?.name else { continue }
                 let name = NSStringFromSelector(selector)
                 symbols.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
+                var offset = 0
+                var types: [Any] = []
+                while let type = method?.types?.advanced(by: offset) {
+                    types.append(String(cString: type).toType())
+                    offset = offset + 1
+                }
+                if types.isEmpty {
+                    Swift.print("!!!", name, types)
+                }
                 // Swift.print(name)
                 // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
                 // print(types)
@@ -616,3 +618,17 @@ private extension String {
         return String(dropFirst(1).dropLast(1))
     }
 }
+
+/*
+ // Ref: http://nshipster.com/type-encodings/
+             // c: A char                  v: A void
+             // C: An unsigned char        B: A C++ bool or C99 _bool
+             // i: An int                  @: An object (whether statically typed or typed id)
+             // I: An unsigned int         #: A class object
+             // s: A short                 :: A method selector (SEL)
+             // S: An unsigned short       [array type]: An array
+             // l: A long                  {name=type...}: A structure
+             // L: An unsigned long        (name=type...): A union
+             // q: A long long             bnum: A bit field of num bits
+             // Q: An unsigned long long   ^type: A pointer to type
+ */
