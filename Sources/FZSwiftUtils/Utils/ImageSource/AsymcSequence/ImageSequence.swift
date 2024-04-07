@@ -96,6 +96,7 @@ public extension ImageSource {
             if currentFrame >= frameCount {
                 if loop { currentFrame = 0 } else { return nil }
             }
+            Swift.print("next", currentFrame, type == .image, await source.image(at: currentFrame, options: imageOptions) != nil)
             switch type {
             case .image:
                 return await source.image(at: currentFrame, options: imageOptions)
