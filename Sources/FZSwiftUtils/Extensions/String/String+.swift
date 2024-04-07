@@ -56,6 +56,11 @@ public extension String {
         guard range != .notFound, let range = Range(range, in: self) else { return nil }
         return self[range]
     }
+    
+    /// The string as `CFString`.
+    var cfString: CFString {
+        self as CFString
+    }
 }
 
 public extension StringProtocol {
