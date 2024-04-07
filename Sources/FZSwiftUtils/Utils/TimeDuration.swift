@@ -624,6 +624,16 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
     }
 }
 
+extension DispatchTime {
+    public static func + (lhs: Self, rhs: TimeDuration) -> Self {
+        lhs + rhs.seconds
+    }
+    
+    public static func += (lhs: inout Self, rhs: TimeDuration) {
+        lhs = lhs + rhs
+    }
+}
+
 public extension Collection where Element == TimeDuration {
     /**
      The average duration of all durations in the collection.
@@ -741,5 +751,48 @@ public extension Timer {
      */
     static func scheduledTimer(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) -> Timer {
         scheduledTimer(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
+    }
+}
+
+extension TimeDuration: ReferenceConvertible {
+    
+    /// The Objective-C type for the time duration.
+    public typealias ReferenceType = __TimeDurationObjc
+
+    public var debugDescription: String {
+        description
+    }
+
+    public func _bridgeToObjectiveC() -> __TimeDurationObjc {
+        return __TimeDurationObjc(seconds: seconds)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: __TimeDurationObjc, result: inout TimeDuration?) {
+        result = TimeDuration(source.seconds)
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __TimeDurationObjc, result: inout TimeDuration?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __TimeDurationObjc?) -> TimeDuration {
+        if let source = source {
+            var result: TimeDuration?
+            _forceBridgeFromObjectiveC(source, result: &result)
+            return result!
+        }
+        return .zero
+    }
+}
+
+public class __TimeDurationObjc: NSObject, NSCopying {
+    let seconds: Double
+    init(seconds: Double) {
+        self.seconds = seconds
+    }
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        __TimeDurationObjc(seconds: seconds)
     }
 }

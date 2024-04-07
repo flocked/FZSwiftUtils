@@ -152,7 +152,7 @@ open class MutableProgress: Progress {
         }
         let throughputs = unfinishedChildren.compactMap({$0.throughput})
         if !throughputs.isEmpty {
-            userinfo[.throughputKey] = Int(throughputs.average())
+            userinfo[.throughputKey] = throughputs.sum()
         }
         let estimatedTimeRemainings = unfinishedChildren.compactMap({$0.estimatedTimeRemaining})
         if !estimatedTimeRemainings.isEmpty {

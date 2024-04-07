@@ -15,6 +15,12 @@ extension Progress {
         set { setAssociatedValue(newValue, key: "identifier") }
     }
     
+    /// A value that indicates the estimated amount of time remaining to complete the progress.
+    public var estimateDurationRemaining: TimeDuration? {
+        guard let seconds = estimatedTimeRemaining else { return nil }
+        return TimeDuration(seconds)
+    }
+    
     /// The time interval for calculating the throughput and estimate time remaining via ``updateEstimatedTimeRemaining()``.
     public var estimateTimeEvaluationTimeInterval: TimeInterval {
         get { getAssociatedValue("estimateTimeInterval", initialValue: 20) }

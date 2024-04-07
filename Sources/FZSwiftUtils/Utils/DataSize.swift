@@ -7,8 +7,13 @@
 
 import Foundation
 
+class TTT: NSObject {
+    @objc var size: DataSize? = .zero
+}
+
 /// A struct representing a data size.
 public struct DataSize: Hashable, Sendable {
+    
     /// Specifies display of file or storage byte counts.
     public typealias CountStyle = ByteCountFormatter.CountStyle
     
@@ -61,11 +66,7 @@ public struct DataSize: Hashable, Sendable {
 
     /// The size in bytes.
     public var bytes: Int {
-        didSet {
-            if bytes < 0 {
-                bytes = 0
-            }
-        }
+        didSet { bytes = bytes.clamped(min: 0) }
     }
 
     /// The size in kilobytes.
@@ -506,5 +507,52 @@ extension DataSize: Comparable, AdditiveArithmetic {
     /// A Boolean value indicating whether the first data size is larger or equal to the second data size.
     public static func >= (lhs: Self, rhs: Self) -> Bool {
         lhs.bytes >= rhs.bytes
+    }
+}
+
+extension DataSize: ReferenceConvertible {
+
+    /// The Objective-C type for the data size.
+    public typealias ReferenceType = __DataSizeObjc
+
+    public var debugDescription: String {
+        description
+    }
+
+    public func _bridgeToObjectiveC() -> __DataSizeObjc {
+        return __DataSizeObjc(bytes: bytes, countStyle: countStyle)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: __DataSizeObjc, result: inout DataSize?) {
+        result = DataSize(source.bytes, countStyle: source.countStyle)
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __DataSizeObjc, result: inout DataSize?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __DataSizeObjc?) -> DataSize {
+        if let source = source {
+            var result: DataSize?
+            _forceBridgeFromObjectiveC(source, result: &result)
+            return result!
+        }
+        return .zero
+    }
+}
+
+public class __DataSizeObjc: NSObject, NSCopying {
+    
+    let bytes: Int
+    let countStyle: ByteCountFormatter.CountStyle
+    
+    init(bytes: Int, countStyle: ByteCountFormatter.CountStyle) {
+        self.bytes = bytes
+        self.countStyle = countStyle
+    }
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        __DataSizeObjc(bytes: bytes, countStyle: countStyle)
     }
 }
