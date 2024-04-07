@@ -542,9 +542,12 @@ extension NSObject {
                 guard let selector = method?.name else { continue }
                 let name = NSStringFromSelector(selector)
                 descriptions.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
-                
                 if let typesChars = method?.types, let types = String(cString: typesChars, encoding: .utf8) {
-                    Swift.print(name, types)
+                    var _types: [Any] = []
+                    for i in 0..<types.count {
+                        _types.append( String(cString: typesChars.advanced(by: i)).toType())
+                    }
+                    Swift.print(name, _types)
 
                 }
                 // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
