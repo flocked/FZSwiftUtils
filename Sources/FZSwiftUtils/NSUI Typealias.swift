@@ -53,7 +53,6 @@ import SwiftUI
     public typealias NSUIImageSymbolScale = UIImage.SymbolScale
     public typealias NSUIImageSymbolWeight = UIImage.SymbolWeight
     public typealias NSUIRectEdge = UIRectEdge
-    public typealias NSUIRectCorner = UIRectCorner
 #endif
 
 #if os(iOS) || os(tvOS)
