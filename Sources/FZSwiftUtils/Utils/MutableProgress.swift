@@ -144,16 +144,17 @@ open class MutableProgress: Progress {
 
     override open var userInfo: [ProgressUserInfoKey: Any] {
         var userinfo = super.userInfo
+        let unfinishedChildren = unfinishedChildren
         if unfinishedChildren.count == 0 {
             userinfo[.throughputKey] = 0
             userinfo[.estimatedTimeRemainingKey] = 0.0
             return userinfo
         }
-        let throughputs = children.compactMap({$0.throughput})
+        let throughputs = unfinishedChildren.compactMap({$0.throughput})
         if !throughputs.isEmpty {
             userinfo[.throughputKey] = Int(throughputs.average())
         }
-        let estimatedTimeRemainings = children.compactMap({$0.estimatedTimeRemaining})
+        let estimatedTimeRemainings = unfinishedChildren.compactMap({$0.estimatedTimeRemaining})
         if !estimatedTimeRemainings.isEmpty {
             userinfo[.estimatedTimeRemainingKey] = estimatedTimeRemainings.average()
         }
