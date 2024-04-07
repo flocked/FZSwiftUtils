@@ -88,7 +88,6 @@ public extension String {
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
     func matches(regex: String) -> [StringMatch] {
-        let regex = NSRegularExpression.escapedPattern(for: regex)
         guard let regex = try? NSRegularExpression(pattern: regex, options: []) else { return [] }
         let string = self
         return regex.matches(in: string, range: NSRange(string.startIndex..., in: string)).flatMap({ match in
