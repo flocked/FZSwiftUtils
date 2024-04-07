@@ -12,9 +12,14 @@
 import Foundation
 
 extension NSObject {
+    
+    /// Description of a property.
     public struct PropertyDescription: CustomStringConvertible {
+        /// The name of the property.
         public let name: String
+        /// The type of the property.
         public let type: Any
+        /// A Boolean value indicating whether the property is `readOnly`.
         public let isReadOnly: Bool
         
         public var description: String {
@@ -28,26 +33,62 @@ extension NSObject {
         }
     }
     
+    /**
+     Returns all property descriptions of the class.
+     
+     - Parameters:
+        - excludeReadOnly: A Boolean value indicating whether to exclude `readOnly` properties.
+        - includeSuperclass: A Boolean value indicating whether to include properties of the class's `superclass`.
+     */
     public static func propertyReflection(excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
         propertyReflection(for: self, excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
     }
     
+    /**
+     Returns all method names of the class.
+     
+     - Parameter includeSuperclass: A Boolean value indicating whether to include method names of the class's `superclass`.
+     */
     public static func methodReflection(includeSuperclass: Bool = false) -> [String] {
         methodReflection(for: self, includeSuperclass: includeSuperclass)
     }
     
+    /**
+     Returns all ivar names of the class.
+     
+     - Parameter includeSuperclass: A Boolean value indicating whether to include ivar names of the class's `superclass`.
+     */
     public static func ivarReflection(includeSuperclass: Bool = false) -> [String] {
         ivarReflection(for: self, includeSuperclass: includeSuperclass)
     }
     
+    /**
+     Returns all names of the conforming protocols of the class.
+     
+     - Parameter includeSuperclass: A Boolean value indicating whether to include the names of the conforming protocols of the class's `superclass`.
+     */
     public static func protocolConformances(includeSuperclass: Bool = false) -> [String] {
         protocolConformances(for: self, includeSuperclass: includeSuperclass)
     }
     
+    /**
+     A Boolean value indicating whether the class contains a property with the specified name.
+     
+     - Parameters:
+        - name: The name of the property.
+        - includeSuperclass: A Boolean value indicating whether to also check the properties of the class's `superclass`.
+     */
     public static func containsProperty(_ name: String, includeSuperclass: Bool = false) -> Bool {
         propertyReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name })
     }
     
+    /**
+     Returns the value type for the property with the specified name.
+     
+     - Parameters:
+        - name: The name of the property.
+        - includeSuperclass: A Boolean value indicating whether to also check the properties of the class's `superclass`.
+     */
     public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertyReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
     }
     
@@ -58,7 +99,7 @@ extension NSObject {
         return methodReflection(includeSuperclass: includeSuperclass).contains(name)
     }
     
-    static func methodReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
+    private static func methodReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var methodCount: UInt32 = 0
         let methods = class_copyMethodList(`class`, &methodCount)
         var names: [String] = []
@@ -75,7 +116,7 @@ extension NSObject {
         return names.uniqued().sorted()
     }
     
-    static func propertyReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
+    private static func propertyReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
         var count: Int32 = 0
         let properties = class_copyPropertyList(`class`, &count)
         var names: [PropertyDescription] = []
@@ -93,7 +134,7 @@ extension NSObject {
         return names.uniqued(by: \.name).sorted(by: \.name)
     }
     
-    static func ivarReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
+    private static func ivarReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var count: Int32 = 0
         let ivars = class_copyIvarList(`class`, &count)
         var names: [String] = []
@@ -117,7 +158,7 @@ extension NSObject {
         return names.uniqued().sorted()
     }
     
-    static func protocolConformances(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
+    private static func protocolConformances(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var count: Int32 = 0
         let protocols = class_copyProtocolList(`class`, &count)
         var names: [String] = []
