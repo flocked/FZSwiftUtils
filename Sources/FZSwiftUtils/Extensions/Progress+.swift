@@ -240,6 +240,9 @@ extension Progress {
         }
         guard throughputs.count > 0 else { return }
         throughput = Int(throughputs.average())
+        Swift.print("throughputs", Int(throughputs.average()), (throughputs.reduce(0, +) / throughputs.count))
+      //  throughput = throughputs.reduce(0, +) / throughputs.count
+
     }
     
     var isCompleted: Bool {
