@@ -10,26 +10,39 @@
 //
 
 import Foundation
+#if os(macOS)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 extension NSObject {
     /// Reflection of an object.
-    public struct ClassReflection: CustomStringConvertible {
+    public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvertible {
         /// The type of the object.
         public let type: NSObject.Type
         /// The properties of the object.
         public let properties: [PropertyDescription]
         /// The methods of the object.
-        public let methods: [String]
+        public let methods: [MethodDescription]
         /// The ivars of the object.
         public let ivars: [String]
         /// The class properties of the object.
         public let classProperties: [PropertyDescription]
         /// The class methods of the object.
-        public let classMethods: [String]
+        public let classMethods: [MethodDescription]
         /// The class ivars of the object.
         public let classIvars: [String]
         
         public var description: String {
+            description(isDebug: false)
+        }
+        
+        public var debugDescription: String {
+            description(isDebug: true)
+        }
+        
+        func description(isDebug: Bool) -> String {
            var strings =  ["<\(String(describing: type))>("]
             if !properties.isEmpty {
                 strings.append("\tProperties:")
@@ -37,7 +50,7 @@ extension NSObject {
             }
             if !methods.isEmpty {
                 strings.append("\tMethods:")
-                strings.append(contentsOf: methods.compactMap({"\t\t" + $0}))
+                strings.append(contentsOf: methods.compactMap({"\t\t" + (isDebug ? $0.debugDescription : $0.description)}))
             }
             if !ivars.isEmpty {
                 strings.append("\tIvars:")
@@ -49,7 +62,7 @@ extension NSObject {
             }
             if !classMethods.isEmpty {
                 strings.append("\tClass Methods:")
-                strings.append(contentsOf: classMethods.compactMap({"\t\t" + $0}))
+                strings.append(contentsOf: classMethods.compactMap({"\t\t" + (isDebug ? $0.debugDescription : $0.description)}))
             }
             if !classIvars.isEmpty {
                 strings.append("\tClass Ivars:")
@@ -80,6 +93,36 @@ extension NSObject {
         }
     }
     
+    public struct MethodDescription: CustomStringConvertible, CustomDebugStringConvertible {
+        /// The name of the method.
+        public let name: String
+        /// The argument types of the method.
+        public let argumentTypes: [Any]
+        /// The return type of the method.
+        public let returnType: Any
+        
+        public var description: String {
+            name
+        }
+        
+        public var debugDescription: String {
+            var argumentString: String?
+            let argumentTypes = argumentTypes.compactMap({String(describing: $0)})
+            if !argumentTypes.isEmpty {
+                argumentString = "(\(argumentTypes.joined(separator: ", ")))"
+            }
+
+            if let argumentString = argumentString {
+                return "\(name) \(argumentString) -> \(String(describing: returnType))"
+            } else {
+                if returnType is Void.Type {
+                    return name
+                }
+                return "\(name) -> \(String(describing: returnType))"
+            }
+        }
+    }
+    
     /// Returns a reflection of the class.
     public static func classReflection(includeSuperclass: Bool = false) -> ClassReflection {
         let properties = propertiesReflection(includeSuperclass: includeSuperclass)
@@ -107,7 +150,7 @@ extension NSObject {
      
      - Parameter includeSuperclass: A Boolean value indicating whether to include method names of the class's `superclass`.
      */
-    public static func methodsReflection(includeSuperclass: Bool = false) -> [String] {
+    public static func methodsReflection(includeSuperclass: Bool = false) -> [MethodDescription] {
         methodsReflection(for: self, includeSuperclass: includeSuperclass)
     }
     
@@ -136,7 +179,7 @@ extension NSObject {
      
      - Parameter includeSuperclass: A Boolean value indicating whether to include method names of the class's `superclass`.
      */
-    public static func classMethodsReflection(includeSuperclass: Bool = false) -> [String] {
+    public static func classMethodsReflection(includeSuperclass: Bool = false) -> [MethodDescription] {
         metaClass?.methodsReflection(includeSuperclass: includeSuperclass) ?? []
     }
     
@@ -183,30 +226,32 @@ extension NSObject {
         if propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name }) {
             return true
         }
-        return methodsReflection(includeSuperclass: includeSuperclass).contains(name)
+        return methodsReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name})
     }
     
     private static var metaClass: NSObject.Type? {
         objc_getMetaClass(NSStringFromClass(self)) as? NSObject.Type
     }
     
-    private static func methodsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
+    private static func methodsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [MethodDescription] {
         var methodCount: UInt32 = 0
         let methods = class_copyMethodList(`class`, &methodCount)
-        var names: [String] = []
+        var methodDescriptions: [MethodDescription] = []
         for i in 0..<Int(methodCount) {
-            guard
-                let method = methods?.advanced(by: i).pointee
-            else { continue }
-            
-            
-            let methodName = NSStringFromSelector(method_getName(method))
-            names.append(methodName)
+            guard let method = methods?.advanced(by: i).pointee else { continue }
+            let name = NSStringFromSelector(method_getName(method))
+            if name == "_backgroundColorFillView" {
+                Swift.print("!!!!",method.returnType)
+            }
+            let returnType = method.returnType.toType()
+            var argumentTypes: [Any] = []
+            for index in 0..<method.numberOfArguments {
+                argumentTypes.append(method.argumentType(at: index).toType())
+            }
+            let description = MethodDescription(name: name, argumentTypes: argumentTypes, returnType: returnType)
+            methodDescriptions.append(description)
         }
-        if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.methodsReflection(includeSuperclass: includeSuperclass)
-        }
-        return names.uniqued().sorted()
+        return methodDescriptions.sorted(by: \.name)
     }
     
     private static func propertiesReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
@@ -242,6 +287,7 @@ extension NSObject {
                 print("missing info on \(ivar)")
                 continue
             }
+            Swift.print(ivarName, ivar.ivarType ?? "nil")
             names.append(ivarName)
             // print("\(ivarEncoding): \(ivarName)")
         }
@@ -268,9 +314,36 @@ extension NSObject {
     }
 }
 
+extension Ivar {
+    var ivarType: String? {
+        guard let typeEncoding = ObjectiveC.ivar_getTypeEncoding(self) else { return nil }
+        return String(cString: typeEncoding)
+    }
+}
+
 extension Method {
     var methodName: String {
         NSStringFromSelector(method_getName(self))
+    }
+    
+    var numberOfArguments: Int {
+        Int(method_getNumberOfArguments(self)) - 2
+    }
+    
+    
+    func argumentType(at index: Int) -> String {
+        let index = index + 2
+        let len = 3000
+        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+        ObjectiveC.method_getArgumentType(self, UInt32(index), buf, len)
+        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
+    }
+    
+    var returnType: String {
+        let len = 3000
+        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+        ObjectiveC.method_getReturnType(self, buf, len)
+        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
     }
 }
 
@@ -287,35 +360,31 @@ private extension objc_property_t {
     }
     
     var type: Any {
-        guard let prop = property_getAttributes(self), let attributesAsNSString = NSString(utf8String: prop) else { return Any.self }
-        let attributes = attributesAsNSString as String
-        let slices = attributes.components(separatedBy: "\"")
-        guard slices.count > 1 else { return valueType(withAttributes: attributes) }
-        let objectClassNameRaw = slices[1]
-        let objectClassName = objectClassNameRaw.withoutBrackets
-        // method_getReturnType
-        guard let objectClass = NSClassFromString(objectClassName) else {
-            if let nsObjectProtocol = NSProtocolFromString(objectClassName) {
-                return nsObjectProtocol
-            }
-            // debugPrint("Failed to retrieve type from: `\(objectClassName)`")
-            return Unknown.self
-        }
-        return objectClass
+        guard let _attributes = property_getAttributes(self) else { return Any.self }
+        let attributes = String(cString: _attributes)
+        let slices = String(cString: _attributes).components(separatedBy: "\"")
+        return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? Unknown(attributes))
     }
 }
 
-struct Unknown { }
-
-private func valueType(withAttributes attributes: String) -> Any {
-    guard let letter = attributes[safe: 1] else { return Any.self }
-    return valueTypesMap[String(letter)] ?? Any.self
+var valueTypesMap: [String: Any] {
+    #if os(macOS) || canImport(UIKit)
+    _valueTypesMap + 
+    ["CGAffineTransform": CGAffineTransform.self,
+    "{CATransform3D=dddddddddddddddd}": CATransform3D.self,
+    "r^{CGPath=}": CGPath.self,
+    "CATransform3D": CATransform3D.self,
+    "CGPath": CGPath.self,]
+    #else
+     _valueTypesMap
+    #endif
 }
 
-private let valueTypesMap: [String: Any] = [
+private let _valueTypesMap: [String: Any] = [
     "c": Int8.self,
     "s": Int16.self,
     "#": AnyClass.self,
+    ":": Selector.self,
     "i": Int32.self,
     "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
     "S": UInt16.self,
@@ -325,31 +394,22 @@ private let valueTypesMap: [String: Any] = [
     "d": Double.self,
     "f": Float.self,
     "{": Decimal.self,
+    "@?": (()->()).self,
+    "{CGSize=dd}": CGSize.self,
+    "{CGPoint=dd}": CGPoint.self,
+    "{_NSRange=QQ}": _NSRange.self,
+    "{NSEdgeInsets=dddd}": NSEdgeInsets.self,
+    "{CGRect={CGPoint=dd}{CGSize=dd}}": CGRect.self,
+    "{CGAffineTransform=dddddd}": CGAffineTransform.self,
+    "CGSize": CGSize.self,
+    "CGPoint": CGPoint.self,
+    "_NSRange": _NSRange.self,
+    "NSEdgeInsets": NSEdgeInsets.self,
+    "CGRect": CGRect.self,
 ]
 
-private extension String {
-    var withoutOptional: String {
-        guard contains("Optional("), contains(")") else { return self }
-        let afterOpeningParenthesis = components(separatedBy: "(")[1]
-        let wihtoutOptional = afterOpeningParenthesis.components(separatedBy: ")")[0]
-        return wihtoutOptional
-    }
-    
-    var withoutBrackets: String {
-        guard contains("<"), contains(">") else { return self }
-        return String(dropFirst(1).dropLast(1))
-    }
-}
 
 extension NSObject {
-    /// Protocol reflection for the specified protocol.
-    public static func protocolReclection<Object: NSObjectProtocol>(for protocol: Object.Type) -> ProtocolReflection? {
-        let name = String(describing: Object.self)
-        guard let proto = NSProtocolFromString(name) else { return nil }
-        let methods = protocolMethods(for: proto)
-        let properties = protocolProperties(for: proto)
-        return ProtocolReflection(name: name, methods: methods, properties: properties)
-    }
     
     /// Reflection of a protocol.
     public struct ProtocolReflection: CustomStringConvertible {
@@ -362,35 +422,69 @@ extension NSObject {
         
         public var description: String {
             var strings: [String] = ["<\(name)>("]
-            let requiredInstanceMethods = methods.filter({$0.isRequired && $0.isInstance})
-            let instanceMethods = methods.filter({!$0.isRequired && $0.isInstance})
-            let requiredClassMethods = methods.filter({$0.isRequired && !$0.isInstance})
-            let classMethods = methods.filter({!$0.isRequired && !$0.isInstance})
-            if !requiredInstanceMethods.isEmpty {
-                strings.append("\tInstance methods (required):")
-                strings.append(contentsOf: requiredInstanceMethods.compactMap({"\t\t" + $0.name}))
+            var _methods = methods.filter({$0.isRequired && $0.isInstance})
+            if !_methods.isEmpty {
+                strings.append("\tMethods (required):")
+                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
             }
-            if !instanceMethods.isEmpty {
-                strings.append("\tInstance methods (optional):")
-                strings.append(contentsOf: instanceMethods.compactMap({"\t\t" + $0.name}))
+            _methods = methods.filter({!$0.isRequired && $0.isInstance})
+            if !_methods.isEmpty {
+                strings.append("\tMethods (optional):")
+                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
             }
-            if !requiredClassMethods.isEmpty {
-                strings.append("\tClass methods (required):")
-                strings.append(contentsOf: requiredClassMethods.compactMap({"\t\t" + $0.name}))
+            _methods = methods.filter({$0.isRequired && !$0.isInstance})
+            if !_methods.isEmpty {
+                strings.append("\tClass Methods (required):")
+                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
             }
-            if !classMethods.isEmpty {
-                strings.append("\tClass methods (optional):")
-                strings.append(contentsOf: classMethods.compactMap({"\t\t" + $0.name}))
+            _methods = methods.filter({!$0.isRequired && !$0.isInstance})
+            if !_methods.isEmpty {
+                strings.append("\tClass Methods (optional):")
+                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
             }
-            if !properties.isEmpty {
-                strings.append("\t- Properties:")
-                strings.append(contentsOf: properties.compactMap({"\t\t" + $0.description}))
+            var _properties = properties.filter({$0.isRequired && $0.isInstance})
+            if !_properties.isEmpty {
+                strings.append("\tProperties (required):")
+                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.description}))
+            }
+            _properties = properties.filter({!$0.isRequired && $0.isInstance})
+            if !_properties.isEmpty {
+                strings.append("\tProperties (optional):")
+                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.description}))
+            }
+            _properties = properties.filter({$0.isRequired && !$0.isInstance})
+            if !_properties.isEmpty {
+                strings.append("\tClass Properties (required):")
+                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.name}))
+            }
+            _properties = properties.filter({!$0.isRequired && !$0.isInstance})
+            if !_properties.isEmpty {
+                strings.append("\tClass Properties (optional):")
+                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.name}))
             }
             strings.append(")")
             return strings.joined(separator: "\n")
         }
         
-        /// Description of a protocol method.
+        /// Protocol property description.
+        public struct PropertyDescription: CustomStringConvertible {
+            /// The name of the method.
+            public let name: String
+            /// The type of the property.
+            public let type: Any
+            /// A Boolean value indicating whether the property is `readOnly`.
+            public let isReadOnly: Bool
+            /// A Boolean value indicating whether the property is an instance property.
+            public let isInstance: Bool
+            /// A Boolean value indicating whether the property is required.
+            public let isRequired: Bool
+            
+            public var description: String {
+                isReadOnly ? "\(name) [readOnly]: \(type)" : "\(name): \(type)"
+            }
+        }
+        
+        /// Protocol method description.
         public struct MethodDescription {
             /// The name of the method.
             public let name: String
@@ -400,29 +494,42 @@ extension NSObject {
             public let isRequired: Bool
         }
     }
+    
+    /// Protocol reflection for the specified protocol.
+    public static func protocolReclection<Object: NSObjectProtocol>(for protocol: Object.Type) -> ProtocolReflection? {
+        let name = String(describing: Object.self)
+        guard let proto = NSProtocolFromString(name) else { return nil }
+        let methods = protocolMethods(for: proto)
+        let properties = protocolProperties(for: proto)
+        return ProtocolReflection(name: name, methods: methods, properties: properties)
+    }
         
     private static func protocolMethods<Object: NSObjectProtocol>(for protocol: Object.Type) -> [ProtocolReflection.MethodDescription] {
         guard let proto = NSProtocolFromString(String(describing: Object.self)) else { return [] }
         return protocolMethods(for: proto)
     }
     
-    private static func protocolProperties<Object: NSObjectProtocol>(for protocol: Object.Type) -> [NSObject.PropertyDescription] {
+    private static func protocolProperties<Object: NSObjectProtocol>(for protocol: Object.Type) -> [ProtocolReflection.PropertyDescription] {
         guard let proto = NSProtocolFromString(String(describing: Object.self)) else { return [] }
         return protocolProperties(for: proto)
     }
     
-    private static func protocolProperties(for protocol: Protocol) -> [NSObject.PropertyDescription] {
+    private static func protocolProperties(for protocol: Protocol) -> [ProtocolReflection.PropertyDescription] {
         var count: Int32 = 0
-        let properties = protocol_copyPropertyList(`protocol`, &count)
-        var names: [NSObject.PropertyDescription] = []
-        for i in 0..<Int(count) {
-            guard let property = properties?.advanced(by: i).pointee else { continue }
-            guard let name = property.name else { continue }
-            let propertyType = property.type
-            let isReadOnly = property.isReadOnly
-            names.append(.init(name, propertyType, isReadOnly))
+        var propertyDescriptions: [ProtocolReflection.PropertyDescription] = []
+        let variations: [(required: Bool, instance: Bool)] = [(false, false), (false, true), (true, true), (true, false)]
+        for variation in variations {
+            let properties = protocol_copyPropertyList2(`protocol`, &count, variation.required, variation.instance)
+            for i in 0..<Int(count) {
+                guard let property = properties?.advanced(by: i).pointee else { continue }
+                guard let name = property.name else { continue }
+                let propertyType = property.type
+                let isReadOnly = property.isReadOnly
+                let description = ProtocolReflection.PropertyDescription(name: name, type: propertyType, isReadOnly: isReadOnly, isInstance: variation.instance, isRequired: variation.required)
+                propertyDescriptions.append(description)
+            }
         }
-        return names
+        return propertyDescriptions
     }
     
     private static func protocolMethods(for protocol: Protocol) -> [ProtocolReflection.MethodDescription] {
@@ -442,5 +549,64 @@ extension NSObject {
             }
         }
         return symbols
+    }
+}
+
+private struct Unknown: CustomStringConvertible {
+    let type: String
+    init(_ type: String) {
+        self.type = type
+    }
+    var description: String {
+        "Unknown<\(type)>"
+    }
+}
+
+private struct StructType: CustomStringConvertible {
+    public let values: [Any]
+    init(_ string: String) {
+        let string = String(string.dropFirst(3).dropLast(3))
+        let matches = string.matches(regex: #"\{(.*?)=\w+\}"#).compactMap({$0.string}).filter({!$0.hasPrefix("{") && !$0.hasSuffix("}")})
+        values = matches.compactMap({$0.toType()})
+    }
+    
+    var description: String {
+        "Struct[\(values.compactMap({ String(describing: $0) }).joined(separator: ", "))]"
+    }
+}
+
+private extension String {
+    func toType() -> Any {
+        if hasPrefix("{?=") {
+            return StructType(self)
+        } else if self == "@" {
+            return AnyObject.self
+        } else if self == "v" || self == "Vv"{
+            return Void.self
+        } else if let type = valueTypesMap[self] {
+           return type
+        } else if let type = NSClassFromString(self.withoutBrackets) {
+            return type
+        } else if let type = NSProtocolFromString(self) {
+            return type
+        } else {
+            let matches = self.matches(regex: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
+            if matches.count == 2, let match = matches.last {
+                return match.toType()
+            }
+            return Unknown(self)
+        }
+    }
+    
+    var withoutOptional: String {
+        guard contains("Optional("), contains(")") else { return self }
+        let afterOpeningParenthesis = components(separatedBy: "(")[1]
+        let wihtoutOptional = afterOpeningParenthesis.components(separatedBy: ")")[0]
+        return wihtoutOptional
+    }
+    
+    var withoutBrackets: String {
+        guard contains("<"), contains(">") else { return self }
+        return String(dropFirst(1).dropLast(1))
     }
 }
