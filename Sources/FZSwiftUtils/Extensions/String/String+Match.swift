@@ -130,7 +130,7 @@ public extension String {
      */
     func matches(between fromString: String, and toString: String, includingFromTo: Bool = false) -> [StringMatch] {
         let pattern = fromString + "(.*?)" + toString
-        var matches = matches(regex: pattern)
+        let matches = matches(regex: pattern)
         if includingFromTo == false {
             return matches.filter({!$0.string.hasPrefix(fromString) && !$0.string.hasSuffix(toString)})
         }

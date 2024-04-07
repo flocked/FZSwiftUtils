@@ -16,6 +16,8 @@ import AppKit
 import UIKit
 #endif
 
+// MARK: Class Reflection
+
 extension NSObject {
     /// Reflection of an object.
     public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvertible {
@@ -251,7 +253,10 @@ extension NSObject {
             let description = MethodDescription(name: name, argumentTypes: argumentTypes, returnType: returnType)
             methodDescriptions.append(description)
         }
-        return methodDescriptions.sorted(by: \.name)
+        if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
+            methodDescriptions += superclass.methodsReflection(includeSuperclass: includeSuperclass)
+        }
+        return methodDescriptions.uniqued(by: \.name).sorted(by: \.name)
     }
     
     private static func propertiesReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
@@ -267,7 +272,7 @@ extension NSObject {
             names.append(.init(propertyName, propertyType, isReadOnly))
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
+            names += superclass.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
         }
         return names.uniqued(by: \.name).sorted(by: \.name)
     }
@@ -278,20 +283,14 @@ extension NSObject {
         var names: [String] = []
         for i in 0..<Int(count) {
             guard let ivar = ivars?.advanced(by: i).pointee else { continue }
-            guard
-                let ivarNameChars = ivar_getName(ivar),
-                let ivarName = String(validatingUTF8: ivarNameChars)
-                // let ivarEncodingChars = ivar_getTypeEncoding(ivar),
-                // let ivarEncoding = String(validatingUTF8: ivarEncodingChars)
-            else {
-                print("missing info on \(ivar)")
-                continue
-            }
-        //    Swift.print(ivarName, ivar.ivarType ?? "nil")
+            guard let ivarNameChars = ivar_getName(ivar), let ivarName = String(validatingUTF8: ivarNameChars) else { continue }
+            // let ivarEncodingChars = ivar_getTypeEncoding(ivar),
+            // let ivarEncoding = String(validatingUTF8: ivarEncodingChars)
+            // Swift.print(ivarName, ivar.ivarType ?? "nil")
             names.append(ivarName)
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.ivarsReflection(includeSuperclass: includeSuperclass)
+            names += superclass.ivarsReflection(includeSuperclass: includeSuperclass)
         }
         return names.uniqued().sorted()
     }
@@ -307,109 +306,15 @@ extension NSObject {
             names.append(protName)
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names = names + superclass.protocolConformances(includeSuperclass: includeSuperclass)
+            names += superclass.protocolConformances(includeSuperclass: includeSuperclass)
         }
         return names.uniqued().sorted()
     }
 }
 
-extension Ivar {
-    var ivarType: String? {
-        guard let typeEncoding = ObjectiveC.ivar_getTypeEncoding(self) else { return nil }
-        return String(cString: typeEncoding)
-    }
-}
-
-extension Method {
-    var methodName: String {
-        NSStringFromSelector(method_getName(self))
-    }
-    
-    var numberOfArguments: Int {
-        Int(method_getNumberOfArguments(self)) - 2
-    }
-    
-    
-    func argumentType(at index: Int) -> String {
-        let index = index + 2
-        let len = 3000
-        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        ObjectiveC.method_getArgumentType(self, UInt32(index), buf, len)
-        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
-    }
-    
-    var returnType: String {
-        let len = 3000
-        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        ObjectiveC.method_getReturnType(self, buf, len)
-        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
-    }
-}
-
-private extension objc_property_t {
-    var name: String? {
-        guard let name = NSString(utf8String: property_getName(self)) else { return nil }
-        return name as String
-    }
-    
-    var isReadOnly: Bool {
-        guard let prop = property_getAttributes(self), let attributesAsNSString = NSString(utf8String: prop) else { return false }
-        let attributes = attributesAsNSString as String
-        return attributes.contains(",R,")
-    }
-    
-    var type: Any {
-        guard let _attributes = property_getAttributes(self) else { return Any.self }
-        let attributes = String(cString: _attributes)
-        let slices = String(cString: _attributes).components(separatedBy: "\"")
-        return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
-    }
-}
-
-var valueTypesMap: [String: Any] {
-    #if os(macOS) || canImport(UIKit)
-    _valueTypesMap + 
-    ["CGAffineTransform": CGAffineTransform.self,
-    "{CATransform3D=dddddddddddddddd}": CATransform3D.self,
-    "r^{CGPath=}": CGPath.self,
-    "CATransform3D": CATransform3D.self,
-    "CGPath": CGPath.self,]
-    #else
-     _valueTypesMap
-    #endif
-}
-
-private let _valueTypesMap: [String: Any] = [
-    "c": Int8.self,
-    "s": Int16.self,
-    "#": AnyClass.self,
-    ":": Selector.self,
-    "i": Int32.self,
-    "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
-    "S": UInt16.self,
-    "I": UInt32.self,
-    "Q": UInt.self, // also UInt64, only true on 64 bit platforms
-    "B": Bool.self,
-    "d": Double.self,
-    "f": Float.self,
-    "{": Decimal.self,
-    "@?": (()->()).self,
-    "{CGSize=dd}": CGSize.self,
-    "{CGPoint=dd}": CGPoint.self,
-    "{_NSRange=QQ}": _NSRange.self,
-    "{NSEdgeInsets=dddd}": NSEdgeInsets.self,
-    "{CGRect={CGPoint=dd}{CGSize=dd}}": CGRect.self,
-    "{CGAffineTransform=dddddd}": CGAffineTransform.self,
-    "CGSize": CGSize.self,
-    "CGPoint": CGPoint.self,
-    "_NSRange": _NSRange.self,
-    "NSEdgeInsets": NSEdgeInsets.self,
-    "CGRect": CGRect.self,
-]
-
+// MARK: Protocol Reflection
 
 extension NSObject {
-    
     /// Reflection of a protocol.
     public struct ProtocolReflection: CustomStringConvertible {
         /// The name of the protocol.
@@ -542,20 +447,105 @@ extension NSObject {
                 guard let selector = method?.name else { continue }
                 let name = NSStringFromSelector(selector)
                 descriptions.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
-                if let typesChars = method?.types, let types = String(cString: typesChars, encoding: .utf8) {
-                    var _types: [Any] = []
-                    for i in 0..<types.count {
-                        _types.append( String(cString: typesChars.advanced(by: i)).toType())
-                    }
-                    Swift.print(name, _types)
-
-                }
                 // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
             }
         }
         return descriptions
     }
 }
+
+private extension Ivar {
+    var ivarType: String? {
+        guard let typeEncoding = ObjectiveC.ivar_getTypeEncoding(self) else { return nil }
+        return String(cString: typeEncoding)
+    }
+}
+
+private extension Method {
+    var methodName: String {
+        NSStringFromSelector(method_getName(self))
+    }
+    
+    var numberOfArguments: Int {
+        Int(method_getNumberOfArguments(self)) - 2
+    }
+    
+    func argumentType(at index: Int) -> String {
+        let index = index + 2
+        let len = 3000
+        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+        ObjectiveC.method_getArgumentType(self, UInt32(index), buf, len)
+        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
+    }
+    
+    var returnType: String {
+        let len = 3000
+        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
+        ObjectiveC.method_getReturnType(self, buf, len)
+        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
+    }
+}
+
+private extension objc_property_t {
+    var name: String? {
+        guard let name = NSString(utf8String: property_getName(self)) else { return nil }
+        return name as String
+    }
+    
+    var isReadOnly: Bool {
+        guard let prop = property_getAttributes(self), let attributesAsNSString = NSString(utf8String: prop) else { return false }
+        let attributes = attributesAsNSString as String
+        return attributes.contains(",R,")
+    }
+    
+    var type: Any {
+        guard let _attributes = property_getAttributes(self) else { return Any.self }
+        let attributes = String(cString: _attributes)
+        let slices = String(cString: _attributes).components(separatedBy: "\"")
+        return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
+    }
+}
+
+private let valueTypesMap: [String: Any] = {
+    #if os(macOS) || canImport(UIKit)
+    _valueTypesMap + 
+    ["CGAffineTransform": CGAffineTransform.self,
+    "{CATransform3D=dddddddddddddddd}": CATransform3D.self,
+    "r^{CGPath=}": CGPath.self,
+    "CATransform3D": CATransform3D.self,
+    "CGPath": CGPath.self,]
+    #else
+     _valueTypesMap
+    #endif
+}()
+
+private let _valueTypesMap: [String: Any] = [
+    "c": Int8.self,
+    "s": Int16.self,
+    "#": AnyClass.self,
+    ":": Selector.self,
+    "i": Int32.self,
+    "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
+    "S": UInt16.self,
+    "I": UInt32.self,
+    "Q": UInt.self, // also UInt64, only true on 64 bit platforms
+    "B": Bool.self,
+    "d": Double.self,
+    "f": Float.self,
+    "{": Decimal.self,
+    "@?": (()->()).self,
+    "{CGSize=dd}": CGSize.self,
+    "{CGPoint=dd}": CGPoint.self,
+    "{_NSRange=QQ}": _NSRange.self,
+    "{NSEdgeInsets=dddd}": NSEdgeInsets.self,
+    "{CGRect={CGPoint=dd}{CGSize=dd}}": CGRect.self,
+    "{CGAffineTransform=dddddd}": CGAffineTransform.self,
+    "CGSize": CGSize.self,
+    "CGPoint": CGPoint.self,
+    "_NSRange": _NSRange.self,
+    "NSEdgeInsets": NSEdgeInsets.self,
+    "CGRect": CGRect.self,
+]
 
 private struct Unknown: CustomStringConvertible {
     let type: String
