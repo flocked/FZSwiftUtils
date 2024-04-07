@@ -103,6 +103,7 @@ public extension String {
       */
     func matches(for option: NSTextCheckingResult.CheckingType) -> [StringMatch] {
         var option = option
+        let checkLinks = option.contains(.link)
         let checkEmail = option.contains(.emailAddress)
         if checkEmail {
             option.remove(.emailAddress)
@@ -114,6 +115,13 @@ public extension String {
             (0..<match.numberOfRanges).compactMap {
                 let rangeBounds = match.range(at: $0)
                 guard let range = Range(rangeBounds, in: string) else { return nil }
+                if match.resultType == .link, checkEmail {
+                    if checkLinks || match.emailAddress != nil {
+                        return StringMatch(range: range, in: string)
+                    } else {
+                        return nil
+                    }
+                }
                 return StringMatch(range: range, in: string)
             }
         })
