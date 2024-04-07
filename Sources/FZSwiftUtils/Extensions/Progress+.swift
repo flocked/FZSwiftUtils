@@ -240,8 +240,19 @@ extension Progress {
         }
         guard throughputs.count > 0 else { return }
         throughput = Int(throughputs.average())
-        Swift.print("throughputs", Int(throughputs.average()), (throughputs.reduce(0, +) / throughputs.count))
-      //  throughput = throughputs.reduce(0, +) / throughputs.count
+
+        var throughputsAlt = [Int]()
+        for index in 0..<progressSamples.count-1 {
+            let startSample = progressSamples[index]
+            let endSample = progressSamples[index+1]
+            let completedUnitCount = max(0, endSample.completedUnitCount - startSample.completedUnitCount)
+            let timeInterval = max(Double.leastNonzeroMagnitude, endSample.date.timeIntervalSince(startSample.date))
+            throughputsAlt.append(Int(Double(completedUnitCount) / timeInterval))
+        }
+        let throughputsCalc = Int(throughputs.average())
+        let throughputsAltCalc = Int(throughputsAlt.average())
+
+        Swift.print("throughputs", throughputsCalc, throughputsAltCalc, throughputsAltCalc - throughputsCalc,  throughputsAltCalc > totalUnitCount)
 
     }
     
