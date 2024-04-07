@@ -18,9 +18,11 @@ public extension ImageSource.ImageProperties {
         public var shutterSpeed: Double?
         public var isoSpeed: Double?
         public var aperture: Double?
+        public var dateTimeOriginal: Date?
+
+        /*
         public var colorSpaceName: String?
 
-        public var dateTimeOriginal: Date?
 
         public var colorSpace: CGColorSpace? {
             get {
@@ -31,6 +33,7 @@ public extension ImageSource.ImageProperties {
                 colorSpaceName = newValue?.name as String?
             }
         }
+        */
 
         public var focalLength: Double?
         public var focalLength35mm: Double?
@@ -48,7 +51,7 @@ public extension ImageSource.ImageProperties {
             case yDimension = "PixelYDimension"
             case userComment = "UserComment"
             case fNumber = "FNumber"
-            case colorSpaceName = "ColorSpace"
+        //    case colorSpaceName = "ColorSpace"
             case focalLength = "FocalLength"
             case focalLength35mm = "FocalLenIn35mmFilm"
             case exposureCompensation = "ExposureBiasValue"
