@@ -88,11 +88,16 @@ public extension String {
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
     func matches(regex: String) -> [StringMatch] {
+        guard let regex = try? NSRegularExpression(pattern: regex, options: []) else { return [] }
         let string = self
-        let regex = try? NSRegularExpression(pattern: regex, options: [])
-        return regex?.matches(in: string, range: NSRange(string.startIndex..., in: string)).compactMap { 
-            
-            StringMatch($0, source: string) } ?? []
+        return regex.matches(in: string, range: NSRange(string.startIndex..., in: string)).flatMap({ match in
+            (0..<match.numberOfRanges).compactMap {
+                let rangeBounds = match.range(at: $0)
+                guard let range = Range(rangeBounds, in: string) else { return nil }
+                let score = string.distance(from: range.lowerBound, to: range.upperBound)
+                return StringMatch(string: String(string[range]), range: range, score: score)
+            }
+        })
     }
     
     /// All integer values inside the string.
@@ -127,17 +132,9 @@ public extension String {
         let pattern = fromString + "(.*?)" + toString
         var matches = matches(regex: pattern)
         if includingFromTo == false {
-            matches = matches.compactMap { match in
-                let lowerBound = self.index(match.range.lowerBound, offsetBy: fromString.count)
-                let upperBound = self.index(match.range.upperBound, offsetBy: -toString.count)
-                let range = lowerBound ..< upperBound
-                let score = self.distance(from: range.lowerBound, to: range.upperBound)
-                
-                let string = String(match.string.dropFirst(fromString.count).dropLast(toString.count))
-                return StringMatch(string: string, range: range, score: score)
-            }
+            return matches.filter({!$0.string.hasPrefix(fromString) && !$0.string.hasSuffix(toString)})
         }
-        return matches
+        return matches.filter({$0.string.hasPrefix(fromString) && $0.string.hasSuffix(toString)})
     }
 
     /**

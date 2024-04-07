@@ -198,6 +198,8 @@ extension NSObject {
             guard
                 let method = methods?.advanced(by: i).pointee
             else { continue }
+            
+            
             let methodName = NSStringFromSelector(method_getName(method))
             names.append(methodName)
         }
@@ -266,6 +268,12 @@ extension NSObject {
     }
 }
 
+extension Method {
+    var methodName: String {
+        NSStringFromSelector(method_getName(self))
+    }
+}
+
 private extension objc_property_t {
     var name: String? {
         guard let name = NSString(utf8String: property_getName(self)) else { return nil }
@@ -285,7 +293,7 @@ private extension objc_property_t {
         guard slices.count > 1 else { return valueType(withAttributes: attributes) }
         let objectClassNameRaw = slices[1]
         let objectClassName = objectClassNameRaw.withoutBrackets
-
+        // method_getReturnType
         guard let objectClass = NSClassFromString(objectClassName) else {
             if let nsObjectProtocol = NSProtocolFromString(objectClassName) {
                 return nsObjectProtocol
@@ -307,6 +315,7 @@ private func valueType(withAttributes attributes: String) -> Any {
 private let valueTypesMap: [String: Any] = [
     "c": Int8.self,
     "s": Int16.self,
+    "#": AnyClass.self,
     "i": Int32.self,
     "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
     "S": UInt16.self,
