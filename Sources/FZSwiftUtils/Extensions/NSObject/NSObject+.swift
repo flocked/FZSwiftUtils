@@ -80,7 +80,7 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        guard containsProperty(named: key) else { return nil }
+        guard Self.canGetValue(key) else { return nil }
         return value(forKey: key)
     }
     
@@ -102,9 +102,8 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     func setValue(safely value: Any?, forKey key: String) {
-        if containsProperty(named: key) {
-            setValue(value, forKey: key)
-        }
+        guard Self.canGetValue(key) else { return }
+        setValue(value, forKey: key)
     }
 
     /**
