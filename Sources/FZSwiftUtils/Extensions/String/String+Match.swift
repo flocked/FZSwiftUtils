@@ -93,6 +93,26 @@ public extension String {
         })
     }
     
+  
+    
+    /**
+     Finds all matches for the given option using natural language processing.
+
+     - Parameter option: The option for finding matches (e.g. finding phone numbers, quotes, etc.)
+     - Returns: An array of `StringMatch` objects representing the matches found.
+      */
+    func matches(for option: NSTextCheckingResult.CheckingType) -> [StringMatch] {
+        guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
+        let string = self
+        return detector.matches(in: string, range: NSRange(string.startIndex..., in: string)).flatMap({ match in
+            (0..<match.numberOfRanges).compactMap {
+                let rangeBounds = match.range(at: $0)
+                guard let range = Range(rangeBounds, in: string) else { return nil }
+                return StringMatch(range: range, in: string)
+            }
+        })
+    }
+    
     /// All integer values inside the string.
     var integerValues: [Int] {
         matches(regex: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
@@ -146,7 +166,7 @@ public extension String {
         var matches: [StringMatch] = []
         let tagger = NLTagger(tagSchemes: [.nameType])
         tagger.string = self
-
+        
         let tags = tagger.tags(
             in: startIndex ..< endIndex,
             unit: .word,
