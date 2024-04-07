@@ -99,6 +99,16 @@ public struct ImageFrameSequence: AsyncSequence {
             (try? frames.collect()) ?? []
         }
         
+        /// The images of an animated (e.g. GIF) image asynchronously.
+        public var images: ImageSequence {
+            ImageSequence(self)
+        }
+        
+        /// The images of an animated (e.g. GIF) image.
+        public func getImages() -> [CGImage] {
+            (try? images.collect()) ?? []
+        }
+        
         /// The number of frames in an animated GIF image, or `1` if the image isn't a GIF.
         var frameCount: Int {
             (value(forProperty: .frameCount) as? Int) ?? 1
