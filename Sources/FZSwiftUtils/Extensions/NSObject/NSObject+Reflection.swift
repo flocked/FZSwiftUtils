@@ -199,7 +199,7 @@ private extension objc_property_t {
             if let nsObjectProtocol = NSProtocolFromString(objectClassName) {
                 return nsObjectProtocol
             }
-            debugPrint("Failed to retrieve type from: `\(objectClassName)`")
+            // debugPrint("Failed to retrieve type from: `\(objectClassName)`")
             return Unknown.self
         }
         return objectClass
