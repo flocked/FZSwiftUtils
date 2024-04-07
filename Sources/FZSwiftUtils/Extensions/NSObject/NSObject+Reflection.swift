@@ -289,13 +289,43 @@ extension NSObject {
     }
     
     /// Reflection of a protocol.
-    public struct ProtocolReflection {
+    public struct ProtocolReflection: CustomStringConvertible {
         /// The name of the protocol.
         public let name: String
         /// The method descriptions of the protocol.
         public let methods: [MethodDescription]
         /// The property descriptions of the protocol.
         public let properties: [PropertyDescription]
+        
+        public var description: String {
+            var strings: [String] = ["<\(name)>("]
+            let requiredInstanceMethods = methods.filter({$0.isRequired && $0.isInstance})
+            let instanceMethods = methods.filter({!$0.isRequired && $0.isInstance})
+            let requiredClassMethods = methods.filter({$0.isRequired && !$0.isInstance})
+            let classMethods = methods.filter({!$0.isRequired && !$0.isInstance})
+            if !requiredInstanceMethods.isEmpty {
+                strings.append("\t- Instance methods (required):")
+                strings.append(contentsOf: requiredInstanceMethods.compactMap({"\t\t" + $0.name}))
+            }
+            if !instanceMethods.isEmpty {
+                strings.append("\t- Instance methods (optional):")
+                strings.append(contentsOf: instanceMethods.compactMap({"\t\t" + $0.name}))
+            }
+            if !requiredClassMethods.isEmpty {
+                strings.append("\t- Class methods (required):")
+                strings.append(contentsOf: requiredClassMethods.compactMap({"\t\t" + $0.name}))
+            }
+            if !classMethods.isEmpty {
+                strings.append("\t- Class methods (optional):")
+                strings.append(contentsOf: classMethods.compactMap({"\t\t" + $0.name}))
+            }
+            if !properties.isEmpty {
+                strings.append("\t- Properties:")
+                strings.append(contentsOf: properties.compactMap({"\t\t" + $0.description}))
+            }
+            strings.append(")")
+            return strings.joined(separator: "\n")
+        }
         
         /// Description of a protocol method.
         public struct MethodDescription {
