@@ -139,7 +139,7 @@ open class MutableProgress: Progress {
     }
     
     override open var fractionCompleted: Double {
-        children.compactMap({$0.fractionCompleted}).average().clamped(max: 1.0)
+        children.compactMap({$0.fractionCompleted}).average().clamped(max: 100.0)
     }
 
     override open var userInfo: [ProgressUserInfoKey: Any] {
