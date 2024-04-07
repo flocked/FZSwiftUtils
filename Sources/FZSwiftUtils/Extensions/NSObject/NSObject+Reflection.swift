@@ -26,15 +26,15 @@ extension NSObject {
         public var description: String {
            var strings =  ["<\(String(describing: type))>("]
             if !properties.isEmpty {
-                strings.append("\t- Properties:")
+                strings.append("\tProperties:")
                 strings.append(contentsOf: properties.compactMap({"\t\t" + $0.description}))
             }
             if !methods.isEmpty {
-                strings.append("\t- Methods:")
+                strings.append("\tMethods:")
                 strings.append(contentsOf: methods.compactMap({"\t\t" + $0}))
             }
             if !ivars.isEmpty {
-                strings.append("\t- Ivars:")
+                strings.append("\tIvars:")
                 strings.append(contentsOf: ivars.compactMap({"\t\t" + $0}))
             }
             strings.append(")")
