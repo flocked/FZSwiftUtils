@@ -83,7 +83,7 @@ extension NSObject {
         public let isReadOnly: Bool
         
         public var description: String {
-            isReadOnly ? "\(name) [readOnly]: \(type)" : "\(name): \(type)"
+            isReadOnly ? "\(name) [readOnly]: \(String(describing: type))" : "\(name): \(String(describing: type))"
         }
         
         init(_ name: String, _ type: Any, _ isReadOnly: Bool) {
