@@ -590,7 +590,7 @@ private extension String {
            return type
         } else if let type = NSClassFromString(self.withoutBrackets) {
             return type
-        } else if let type = NSProtocolFromString(self) {
+        } else if let type = NSProtocolFromString(self.withoutBrackets) {
             return type
         } else {
             let matches = self.matches(regex: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
