@@ -83,7 +83,10 @@ extension NSObject {
         public let isReadOnly: Bool
         
         public var description: String {
-            isReadOnly ? "\(name) [readOnly]: \(String(describing: type))" : "\(name): \(String(describing: type))"
+            if let type = type as? Protocol {
+                return isReadOnly ? "\(name) [readOnly]: \(NSStringFromProtocol(type))" : "\(name): \(NSStringFromProtocol(type))"
+            }
+            return isReadOnly ? "\(name) [readOnly]: \(String(describing: type))" : "\(name): \(String(describing: type))"
         }
         
         init(_ name: String, _ type: Any, _ isReadOnly: Bool) {
@@ -590,7 +593,7 @@ private extension String {
            return type
         } else if let type = NSClassFromString(self.withoutBrackets) {
             return type
-        } else if let type = NSProtocolFromString(self.withoutBrackets).self {
+        } else if let type = NSProtocolFromString(self.withoutBrackets) {
             return type
         } else {
             let matches = self.matches(regex: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
