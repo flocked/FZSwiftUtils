@@ -154,11 +154,11 @@ public class ImageSource {
     }
 
     public func images(options: ImageOptions? = .init()) -> ImageSequence {
-        ImageSequence.image(self, options: options)
+        ImageSequence(source: self, type: .image, imageOptions: options)
     }
 
     public func thumbnails(options: ThumbnailOptions? = .init()) -> ImageSequence {
-        ImageSequence.thumbnail(self, options: options)
+        ImageSequence(source: self, type: .thumbnail, thumbnailOptions: options)
     }
 
     public func imageFrames(options: ImageOptions? = .init()) -> ImageFrameSequence {
