@@ -17,17 +17,11 @@ public extension String {
         public let range: Range<String.Index>
         /// The score or importance of the match.
         public let score: Int
-
-        init(string: String, range: Range<String.Index>, score: Int) {
-            self.string = string
+        
+        init(range: Range<String.Index>, in string: String) {
+            self.string = String(string[range])
             self.range = range
-            self.score = score
-        }
-
-        init(_ result: NSTextCheckingResult, source: String) {
-            range = Range(result.range, in: source)!
-            string = String(source[range])
-            score = source.distance(from: range.lowerBound, to: range.upperBound)
+            self.score = string.distance(from: range.lowerBound, to: range.upperBound)
         }
     }
 
@@ -94,8 +88,7 @@ public extension String {
             (0..<match.numberOfRanges).compactMap {
                 let rangeBounds = match.range(at: $0)
                 guard let range = Range(rangeBounds, in: string) else { return nil }
-                let score = string.distance(from: range.lowerBound, to: range.upperBound)
-                return StringMatch(string: String(string[range]), range: range, score: score)
+                return StringMatch(range: range, in: string)
             }
         })
     }
@@ -109,14 +102,6 @@ public extension String {
     var doubleValues: [Double] {
         matches(regex: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
     }
-    
-    /*
-    func matchesAlt(regex: String) -> [StringMatch] {
-        let string = self
-        let regex = try? NSRegularExpression(pattern: regex, options: [])
-        return regex?.matches(in: string, range: NSRange(string.startIndex..., in: string)).compactMap { StringMatch($0, source: string) } ?? []
-    }
-     */
 
     /**
      Finds all matches of substrings between the two specified strings.
@@ -145,12 +130,9 @@ public extension String {
      */
     func matches(for option: StringMatchOption) -> [StringMatch] {
         var matches: [StringMatch] = []
-
         enumerateSubstrings(in: startIndex..., options: option.enumerationOptions) { _, range, _, _ in
-            let score = self.distance(from: range.lowerBound, to: range.upperBound)
-            matches.append(StringMatch(string: String(self[range]), range: range, score: score))
+            matches.append(StringMatch(range: range, in: self))
         }
-
         return matches
     }
 
@@ -178,8 +160,7 @@ public extension String {
         )
         for (tag, range) in tags {
             if tag == option {
-                let score = distance(from: range.lowerBound, to: range.upperBound)
-                matches.append(StringMatch(string: String(self[range]), range: range, score: score))
+                matches.append(StringMatch(range: range, in: self))
             }
         }
         return matches
