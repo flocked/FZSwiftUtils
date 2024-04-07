@@ -129,7 +129,7 @@ public extension String {
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
     func matches(between fromString: String, and toString: String, includingFromTo: Bool = false) -> [StringMatch] {
-        let pattern = fromString + "(.*?)" + toString
+        let pattern = NSRegularExpression.escapedPattern(for: fromString) + "(.*?)" + NSRegularExpression.escapedPattern(for: toString)
         let matches = matches(regex: pattern)
         if includingFromTo == false {
             return matches.filter({!$0.string.hasPrefix(fromString) && !$0.string.hasSuffix(toString)})
