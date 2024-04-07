@@ -28,12 +28,12 @@ open class MutableProgress: Progress {
     
     /// All the current unfinished children progresses.
     open var unfinishedChildren: [Progress] {
-        observedChildren.keys.filter({!$0.isCompleted})
+        observedChildren.keys.filter({!$0.isFinished})
     }
     
     /// All the current unfinished children progresses.
     open var finishedChildren: [Progress] {
-        observedChildren.keys.filter({$0.isCompleted})
+        observedChildren.keys.filter({$0.isFinished})
     }
     
     /// The progress of all children progresses combined.
