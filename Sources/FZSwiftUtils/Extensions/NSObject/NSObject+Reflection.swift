@@ -304,19 +304,19 @@ extension NSObject {
             let requiredClassMethods = methods.filter({$0.isRequired && !$0.isInstance})
             let classMethods = methods.filter({!$0.isRequired && !$0.isInstance})
             if !requiredInstanceMethods.isEmpty {
-                strings.append("\t- Instance methods (required):")
+                strings.append("\tInstance methods (required):")
                 strings.append(contentsOf: requiredInstanceMethods.compactMap({"\t\t" + $0.name}))
             }
             if !instanceMethods.isEmpty {
-                strings.append("\t- Instance methods (optional):")
+                strings.append("\tInstance methods (optional):")
                 strings.append(contentsOf: instanceMethods.compactMap({"\t\t" + $0.name}))
             }
             if !requiredClassMethods.isEmpty {
-                strings.append("\t- Class methods (required):")
+                strings.append("\tClass methods (required):")
                 strings.append(contentsOf: requiredClassMethods.compactMap({"\t\t" + $0.name}))
             }
             if !classMethods.isEmpty {
-                strings.append("\t- Class methods (optional):")
+                strings.append("\tClass methods (optional):")
                 strings.append(contentsOf: classMethods.compactMap({"\t\t" + $0.name}))
             }
             if !properties.isEmpty {
