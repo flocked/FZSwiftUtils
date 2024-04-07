@@ -238,7 +238,7 @@ extension Progress {
             throughputs.append(Int(Double(completedUnitCount) / timeInterval))
         }
         guard throughputs.count > 0 else { return }
-        throughput = throughputs.reduce(0, +) / throughputs.count
+        throughput = Int(throughputs.average())
     }
     
     var isCompleted: Bool {
