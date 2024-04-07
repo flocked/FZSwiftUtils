@@ -85,9 +85,9 @@ open class MutableProgress: Progress {
         
         observer.add(\.fractionCompleted) { [weak self] _, _ in
             guard let self = self else { return }
+            self.updateProgresses()
             self.willChangeValue(for: \.fractionCompleted)
             self.didChangeValue(for: \.fractionCompleted)
-            self.updateProgresses()
         }
 
         observer.add(\.isCancelled) { [weak self] _, isCancelled in
