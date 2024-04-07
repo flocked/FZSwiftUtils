@@ -142,8 +142,8 @@ extension NSObject {
             guard let ivar = ivars?.advanced(by: i).pointee else { continue }
             guard
                 let ivarNameChars = ivar_getName(ivar),
-                let ivarEncodingChars = ivar_getTypeEncoding(ivar),
                 let ivarName = String(validatingUTF8: ivarNameChars)
+                // let ivarEncodingChars = ivar_getTypeEncoding(ivar),
                 // let ivarEncoding = String(validatingUTF8: ivarEncodingChars)
             else {
                 print("missing info on \(ivar)")
