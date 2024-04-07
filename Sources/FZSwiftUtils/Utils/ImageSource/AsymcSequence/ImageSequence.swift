@@ -75,7 +75,7 @@ public extension ImageSource {
         public init(source: ImageSource, type: ImageType, thumbnailOptions: ThumbnailOptions?, imageOptions: ImageOptions?, loop: Bool = false) {
             self.source = source
             frameCount = source.count
-            currentFrame = 0
+            currentFrame = -1
             self.loop = loop
             self.type = type
             self.thumbnailOptions = thumbnailOptions
@@ -92,13 +92,16 @@ public extension ImageSource {
         }
 
         public mutating func next() async -> CGImage? {
-            Swift.print("next", currentFrame, currentFrame >= frameCount ,  await nextImage() != nil, await source.image(at: currentFrame, options: imageOptions) != nil)
+            currentFrame = currentFrame + 1
             if currentFrame >= frameCount {
                 if loop { currentFrame = 0 } else { return nil }
             }
-            let image = await nextImage()
-            currentFrame = currentFrame + 1
-            return image
+            switch type {
+            case .image:
+                return await source.image(at: currentFrame, options: imageOptions)
+            case .thumbnail:
+                return await source.thumbnail(at: currentFrame, options: thumbnailOptions)
+            }
         }
     }
 }
