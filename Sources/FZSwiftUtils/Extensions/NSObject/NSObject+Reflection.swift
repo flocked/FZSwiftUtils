@@ -533,7 +533,7 @@ extension NSObject {
     
     private static func protocolMethods(for protocol: Protocol) -> [ProtocolReflection.MethodDescription] {
         var count: Int32 = 0
-        var symbols: [ProtocolReflection.MethodDescription] = []
+        var descriptions: [ProtocolReflection.MethodDescription] = []
         let variations: [(required: Bool, instance: Bool)] = [(false, false), (false, true), (true, true), (true, false)]
         for variation in variations {
             let methods = protocol_copyMethodDescriptionList(`protocol`, variation.required, variation.instance, &count)
@@ -541,13 +541,16 @@ extension NSObject {
                 let method = methods?.advanced(by: i).pointee
                 guard let selector = method?.name else { continue }
                 let name = NSStringFromSelector(selector)
-                symbols.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
+                descriptions.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
+                if let typesChars = method?.types, let types = String(validatingUTF8: typesChars) {
+                    Swift.print(types)
+                }
                 // Swift.print(name)
                 // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
                 // print(types)
             }
         }
-        return symbols
+        return descriptions
     }
 }
 
