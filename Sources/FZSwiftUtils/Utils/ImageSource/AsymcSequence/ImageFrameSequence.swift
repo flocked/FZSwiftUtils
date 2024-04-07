@@ -89,11 +89,12 @@ public struct ImageFrameSequence: AsyncSequence {
 
 #if os(macOS)
     extension NSBitmapImageRep {
-        /// The frames of an animated (e.g. GIF) image.
+        /// The frames of an animated (e.g. GIF) image asynchronously.
         public var frames: ImageFrameSequence {
             ImageFrameSequence(self)
         }
         
+        /// The frames of an animated (e.g. GIF) image.
         public func getFrames() -> [CGImageFrame] {
             (try? frames.collect()) ?? []
         }
