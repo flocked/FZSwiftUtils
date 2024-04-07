@@ -11,7 +11,7 @@ import Foundation
 
 extension NSObjectProtocol where Self: NSObject {
     /**
-     Observes changes for a property identified by the given key path.
+     Observes changes for the specified property.
      
      Example usage:
      
@@ -65,6 +65,31 @@ extension NSObjectProtocol where Self: NSObject {
            return nil
        }
        return KeyValueObservation(observer)
+    }
+    
+    /**
+     Observes will change for the specified property.
+
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.observeWillChange(for: \.stringValue) {
+     oldValue in
+     // handle will change
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - handler: A closure that will be called when the property value changes. It takes the old value.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+        guard let observer = KVObserverPrior(self, keyPath: keyPath, handler: handler) else { return nil }
+        return KeyValueObservation(observer)
     }
     
     /// Deactivates all key value observations of the object.
@@ -142,6 +167,47 @@ public class KeyValueObservation: NSObject {
     
     deinit {
         invalidate()
+    }
+}
+
+class KVObserverPrior<Object: NSObject, Value>: NSObject, KVOObservation {
+    weak var object: Object?
+    var _object: NSObject? { object }
+    let keyPath: KeyPath<Object, Value>
+    var _keyPath: String { keyPath.stringValue }
+    let handler: (_ oldValue: Value) -> Void
+    var observation: NSKeyValueObservation?
+    var isObserving: Bool { object != nil && observation != nil }
+
+    func activate() {
+        guard object != nil, observation == nil else { return }
+        setupObservation()
+    }
+    
+    func deactivate() {
+        observation?.invalidate()
+        observation = nil
+    }
+    
+    func setupObservation() {
+        guard let object = object else { return }
+        observation = object.observe(keyPath, options: [.prior, .old]) { [ weak self] _, change in
+            guard let self = self, change.isPrior, let oldValue = change.oldValue else { return }
+            self.handler(oldValue)
+        }
+    }
+    
+    init?(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
+        guard keyPath._kvcKeyPathString != nil else { return nil }
+        self.object = object
+        self.keyPath = keyPath
+        self.handler = handler
+        super.init()
+        setupObservation()
+    }
+    
+    deinit {
+        deactivate()
     }
 }
 
