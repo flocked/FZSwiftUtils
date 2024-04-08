@@ -11,16 +11,11 @@ import NaturalLanguage
 extension String {
     public func matchesNew(for option: StringMatchingOption) -> [TextCheckingResult] {
         var results: [TextCheckingResult] = []
-        if !option.checkingType.isEmpty {
-            Swift.print("checkingType", option.checkingType.elements())
-            results += self.results(for: option.checkingType)
+        if let checkingType = option.checkingType {
+            results += self.results(for: checkingType)
         }
         if !option.tags.isEmpty {
-            Swift.print("tags", option.tags)
             results += self.results(for: option.tags)
-        }
-        if !option.enumerationOptions.isEmpty {
-            Swift.print("enumerationOptions", option.enumerationOptions)
         }
         results += option.enumerationOptions.flatMap({ self.results(for:$0) })
         results = results.sorted(by: \.range.lowerBound)
@@ -111,16 +106,23 @@ extension String {
             return tags
         }
         
-        var checkingType: NSTextCheckingResult.CheckingType {
-            var checkingType: NSTextCheckingResult.CheckingType = .init()
-            if self.contains(.orthography) { checkingType.insert(.orthography) }
-            if self.contains(.quote) { checkingType.insert(.quote) }
-            if self.contains(.regularExpression) { checkingType.insert(.regularExpression) }
-            if self.contains(.date) { checkingType.insert(.date) }
-            if self.contains(.emailAddress) { checkingType.insert(.emailAddress) }
-            if self.contains(.link) { checkingType.insert(.link) }
-            if self.contains(.phoneNumber) { checkingType.insert(.phoneNumber) }
-            if self.contains(.address) { checkingType.insert(.address) }
+        var checkingType: NSTextCheckingResult.CheckingType? {
+            var checkingType: NSTextCheckingResult.CheckingType?
+            func insert(_ type: NSTextCheckingResult.CheckingType) {
+                if checkingType != nil {
+                    checkingType?.insert(type)
+                } else {
+                    checkingType = type
+                }
+            }
+            if self.contains(.orthography) { insert(.orthography) }
+            if self.contains(.quote) { insert(.quote) }
+            if self.contains(.regularExpression) { insert(.regularExpression) }
+            if self.contains(.date) { insert(.date) }
+            if self.contains(.emailAddress) { insert(.emailAddress) }
+            if self.contains(.link) { insert(.link) }
+            if self.contains(.phoneNumber) { insert(.phoneNumber) }
+            if self.contains(.address) { insert(.address) }
             return checkingType
         }
         
