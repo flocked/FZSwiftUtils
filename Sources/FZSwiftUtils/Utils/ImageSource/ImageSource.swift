@@ -305,7 +305,7 @@ extension ImageSource {
         /**
          Creates an image source that reads from a `NSImage`.
          
-         - Note: Loading an animated image takes time as each image frame is loaded initially. It's recommended to parse the animation properties and frames via the image's `NSBitmapImageRep` representation.
+         - Note: Loading an animated image takes time as each image frame is loaded initially. It's recommended to either use the url to the image if available, or parse the animation properties and frames via the image's `NSBitmapImageRep` representation.
 
          - Parameters:
             - image: The `NSImage` object.
