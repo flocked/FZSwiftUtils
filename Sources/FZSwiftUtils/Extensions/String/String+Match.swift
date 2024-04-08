@@ -90,7 +90,7 @@ public extension String {
      */
     func matches(regex: String) -> [StringMatch] {
         guard let regex = try? NSRegularExpression(pattern: regex, options: []) else { return [] }
-        return regex.matches(in: self, range: nsRange).flatMap({ $0.matches(in: self) })
+        return regex.matches(in: self, range: nsRange).flatMap({ $0.matches(in: self) }).uniqued()
     }
         
     /**

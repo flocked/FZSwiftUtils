@@ -31,7 +31,7 @@ extension String {
                 guard let range = Range(rangeBounds, in: self) else { return nil }
                 return TextCheckingResult(type, string: self, range: range)
             }
-        })
+        }).uniqued()
     }
     
     private func results(for tags: [NLTag]) -> [TextCheckingResult] {
@@ -152,7 +152,7 @@ extension String {
         
         var patterns: [(pattern: String, type: TextCheckingResult.ResultType)] {
             var patterns: [(pattern: String, type: TextCheckingResult.ResultType)] = []
-            if contains(.hashtag) { patterns.append(("(#+[a-zA-Z0-9(_)]{1,})", .hashtag)) }
+            if contains(.hashtag) { patterns.append((#"/(?<=[\s>]|^)#(\w*[A-Za-z_]+\w*)\b(?!;)/"#, .hashtag)) }
             if contains(.reply) { patterns.append(("@[a-z0-9]+", .reply)) }
             return patterns
         }
