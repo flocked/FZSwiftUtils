@@ -42,10 +42,12 @@ extension String {
     private func results(for option: NSTextCheckingResult.CheckingType) -> [TextCheckingResult] {
         var option = option
         let checkOnlyEmail = option.contains(.emailAddress) && !option.contains(.link)
+        /*
         if option.contains(.emailAddress) {
             option.remove(.emailAddress)
             option.insert(.link)
         }
+         */
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
         return detector.matches(in: self, range: nsRange).flatMap({ match in
             (0..<match.numberOfRanges).compactMap {
