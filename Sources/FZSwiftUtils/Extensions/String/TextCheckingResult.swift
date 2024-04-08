@@ -47,12 +47,16 @@ extension String {
             option.insert(.link)
         }
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
-        return detector.matches(in: self, range: nsRange).flatMap({ match in
+        return detector.matches(in: self, range: nsRange).compactMap({ match in
+            guard let range = Range(match.range, in: self) else { return nil }
+            return TextCheckingResult(match.resultType, string: self, range: range)
+            /*
             (0..<match.numberOfRanges).compactMap {
                 if match.resultType == .link, checkOnlyEmail, match.emailAddress == nil { return nil }
                 guard let range = Range(match.range(at: $0), in: self) else { return nil }
                 return TextCheckingResult(match.resultType, string: self, range: range)
             }
+             */
         })
     }
     
