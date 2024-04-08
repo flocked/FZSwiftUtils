@@ -11,8 +11,8 @@ import NaturalLanguage
 extension String {
     public func matchesNew(for option: StringMatchingOption) -> [TextCheckingResult] {
         var results: [TextCheckingResult] = []
-        if let checkingType = option.checkingType {
-            results += self.results(for: checkingType)
+        if let checkingType = option.checkingType?.elements() {
+            results += checkingType.flatMap({ self.results(for: $0) })
         }
         if !option.tags.isEmpty {
             results += self.results(for: option.tags)
