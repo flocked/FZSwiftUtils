@@ -54,6 +54,7 @@ extension String {
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
         return detector.matches(in: self, range: nsRange).flatMap({ match in
             (0..<match.numberOfRanges).compactMap {
+                guard option.contains(match.resultType) else { return nil }
                 if match.resultType == .link, checkOnlyEmail, match.emailAddress == nil { return nil }
                 guard let range = Range(match.range(at: $0), in: self) else { return nil }
                 if match.resultType == .date && match.date == nil { return nil }
@@ -64,7 +65,7 @@ extension String {
                 if match.resultType == .date {
                     Swift.print(String(self[range]), match.date ?? "nil")
                 }
-                Swift.print(match.resultType.rawValue)
+                Swift.print("resultType.rawValue", match.resultType.rawValue)
                 return TextCheckingResult(match.resultType, string: self, range: range)
             }
         })
