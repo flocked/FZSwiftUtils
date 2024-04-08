@@ -112,7 +112,7 @@ extension String {
         }
         
         var checkingType: NSTextCheckingResult.CheckingType {
-            var checkingType: NSTextCheckingResult.CheckingType = []
+            var checkingType: NSTextCheckingResult.CheckingType = .init()
             if self.contains(.orthography) { checkingType.insert(.orthography) }
             if self.contains(.quote) { checkingType.insert(.quote) }
             if self.contains(.regularExpression) { checkingType.insert(.regularExpression) }
