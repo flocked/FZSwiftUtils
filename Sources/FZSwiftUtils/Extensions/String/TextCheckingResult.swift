@@ -52,6 +52,15 @@ extension String {
                 guard option.contains(match.resultType) else { return nil }
                 if match.resultType == .link, checkOnlyEmail, match.emailAddress == nil { return nil }
                 guard let range = Range(match.range(at: $0), in: self) else { return nil }
+                
+                if match.resultType == .date && match.date == nil { return nil }
+                if match.resultType == .link && match.url == nil { return nil }
+                if match.resultType == .phoneNumber && match.phoneNumber == nil { return nil }
+                if match.resultType == .address && match.addressComponents == nil { return nil }
+                if match.resultType == .orthography && match.orthography == nil { return nil }
+                if match.resultType == .date {
+                    Swift.print(String(self[range]), match.date ?? "nil")
+                }
                 return TextCheckingResult(match.resultType, string: self, range: range)
             }
         })
