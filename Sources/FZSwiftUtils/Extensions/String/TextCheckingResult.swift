@@ -56,6 +56,9 @@ extension String {
                 if match.resultType == .phoneNumber && match.phoneNumber == nil { return nil }
                 if match.resultType == .address && match.addressComponents == nil { return nil }
                 if match.resultType == .orthography && match.orthography == nil { return nil }
+                if match.resultType == .date {
+                    Swift.print(String(self[range]), match.date ?? "nil")
+                }
                 return TextCheckingResult(match.resultType, string: self, range: range)
             }
         })
