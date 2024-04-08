@@ -102,8 +102,8 @@ extension String {
         public static let regularExpression = StringMatchingOption(rawValue: 1 << 17)
         public static let orthography = StringMatchingOption(rawValue: 1 << 18)
         public static let address = StringMatchingOption(rawValue: 1 << 19)
-        public static let hashtag = StringMatchingOption(rawValue: 1 << 19)
-        public static let reply = StringMatchingOption(rawValue: 1 << 19)
+        public static let hashtag = StringMatchingOption(rawValue: 1 << 20)
+        public static let reply = StringMatchingOption(rawValue: 1 << 21)
 
         public let rawValue: Int32
         public init(rawValue: Int32) { self.rawValue = rawValue }
