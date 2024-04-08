@@ -9,7 +9,13 @@ import Foundation
 import NaturalLanguage
 
 extension String {
-    public func matchesNew(for option: StringMatchingOption) -> [TextCheckingResult] {
+    /**
+     Finds all matches in the string based on the given option.
+
+     - Parameter option: The option for finding matches.
+     - Returns: An array of `TextCheckingResult` objects representing the matches.
+     */
+    public func matches(for option: StringMatchingOption) -> [TextCheckingResult] {
         var results: [TextCheckingResult] = []
         if let checkingType = option.checkingType {
             results += self.results(for: checkingType)
@@ -53,27 +59,34 @@ extension String {
     
     private func results(for option: NSTextCheckingResult.CheckingType) -> [TextCheckingResult] {
         var option = option
+        let checkEmails = option.contains(.emailAddress)
+        let checkLinks = option.contains(.link)
+
         let checkOnlyEmail = option.contains(.emailAddress) && !option.contains(.link)
-        /*
         if option.contains(.emailAddress) {
             option.remove(.emailAddress)
             option.insert(.link)
         }
-         */
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
         return detector.matches(in: self, range: nsRange).flatMap({ match in
             (0..<match.numberOfRanges).compactMap {
-                guard option.contains(match.resultType) else { return nil }
-                if match.resultType == .link, checkOnlyEmail, match.emailAddress == nil { return nil }
+              //  guard option.contains(match.resultType) else { return nil }
                 guard let range = Range(match.range(at: $0), in: self) else { return nil }
-                
+                /*
                 if match.resultType == .date && match.date == nil { return nil }
                 if match.resultType == .link && match.url == nil { return nil }
                 if match.resultType == .phoneNumber && match.phoneNumber == nil { return nil }
                 if match.resultType == .address && match.addressComponents == nil { return nil }
                 if match.resultType == .orthography && match.orthography == nil { return nil }
-                if match.resultType == .date {
-                    Swift.print(String(self[range]), match.date ?? "nil")
+                 */
+                if match.resultType == .link {
+                    let isEmail = match.emailAddress != nil
+                    if isEmail, checkEmails {
+                        return TextCheckingResult(TextCheckingResult.ResultType.emailAddress, string: self, range: range)
+                    } else if checkLinks {
+                        return TextCheckingResult(TextCheckingResult.ResultType.link, string: self, range: range)
+                    }
+                    return nil
                 }
                 return TextCheckingResult(match.resultType, string: self, range: range)
             }
@@ -153,13 +166,13 @@ extension String {
         var patterns: [(pattern: String, type: TextCheckingResult.ResultType)] {
             var patterns: [(pattern: String, type: TextCheckingResult.ResultType)] = []
             if contains(.hashtag) { patterns.append(("(#+[a-zA-Z0-9(_)]{1,})", .hashtag)) }
-            if contains(.reply) { patterns.append((#"/\B\@([\w\-]+)/gim"#, .reply)) }
+            if contains(.reply) { patterns.append((#"(?<![\w])@[\S]*\b"#, .reply)) }
             return patterns
         }
     }
 }
 
-public struct TextCheckingResult: Hashable {
+public struct TextCheckingResult: Hashable, CustomStringConvertible {
     /// The matched string.
     public let string: String
     /// The range of the matched string within the source string.
@@ -168,6 +181,10 @@ public struct TextCheckingResult: Hashable {
     public let type: ResultType
     /// The score or importance of the match.
     public let score: Int
+    
+    public var description: String {
+        "[\(type.rawValue): \(string)]"
+    }
     
     init(_ type: ResultType, string: String, range: Range<String.Index>) {
         self.type = type
@@ -191,29 +208,51 @@ public struct TextCheckingResult: Hashable {
         self.init(type, string: string, range: range)
     }
     
-    public enum ResultType: Int, Hashable {
+    /// The type of the matched string.
+    public enum ResultType: String, Hashable {
+        /// Adverb.
         case adverb
+        /// Adjective.
         case adjective
+        /// Noun.
         case noun
+        /// Number.
         case number
+        /// Verb.
         case verb
+        /// Characters.
         case characters
+        /// Word.
         case word
+        /// Sentence.
         case sentence
+        /// Line.
         case line
+        /// Paragraph.
         case paragraph
+        /// Date.
         case date
+        /// Personal name.
         case personalName
+        /// Organization name.
         case organizationName
+        /// Place name.
         case placeName
+        /// Phone number.
         case phoneNumber
+        /// Email address.
         case emailAddress
+        /// URL.
         case link
+        /// Regular Expression.
         case regularExpression
-        case quote
+        /// Orthography.
         case orthography
+        /// Address.
         case address
+        /// Hashtag (e.g. `#hashtag`).
         case hashtag
+        /// Reply (e.g. `@username`).
         case reply
             
         init?(enumerationOptions: NSString.EnumerationOptions) {
@@ -245,7 +284,6 @@ public struct TextCheckingResult: Hashable {
         init?(checkingType: NSTextCheckingResult.CheckingType) {
             switch checkingType {
             case .orthography: self = .orthography
-            case .quote: self = .quote
             case .regularExpression: self = .regularExpression
             case .date: self = .date
             case .emailAddress: self = .emailAddress

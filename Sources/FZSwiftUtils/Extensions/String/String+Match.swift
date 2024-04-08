@@ -37,31 +37,13 @@ extension Collection where Element == StringMatch {
 }
 
 public extension String {
-    /// Options for matching strings.
-    enum StringMatchOption: Int, Hashable {
-        /// Characters.
-        case characters = 2
-        /// Words.
-        case words = 3
-        /// Sentences.
-        case sentences = 4
-        /// Lines.
-        case lines = 0
-        /// Paragraphs.
-        case paragraphs = 1
-        
-        var enumerationOptions: NSString.EnumerationOptions {
-            NSString.EnumerationOptions(rawValue: UInt(rawValue))
-        }
-    }
-
     /**
      Returns an array of individual words in the string.
 
      - Returns: An array of words.
      */
     var words: [String] {
-        matches(for: .words).compactMap(\.string)
+        matches(for: .word).compactMap(\.string)
     }
 
     /**
@@ -70,7 +52,7 @@ public extension String {
      - Returns: An array of lines.
      */
     var lines: [String] {
-        matches(for: .lines).compactMap(\.string)
+        matches(for: .line).compactMap(\.string)
     }
 
     /**
@@ -79,7 +61,7 @@ public extension String {
      - Returns: An array of sentences.
      */
     var sentences: [String] {
-        matches(for: .sentences).compactMap(\.string)
+        matches(for: .sentence).compactMap(\.string)
     }
 
     /**
@@ -135,32 +117,6 @@ public extension String {
         return matches.filter({$0.string.hasPrefix(fromString) && $0.string.hasSuffix(toString)})
     }
 
-    /**
-     Finds all matches in the string based on the given option.
-
-     - Parameter option: The option for finding matches.
-     - Returns: An array of `StringMatch` objects representing the matches found.
-     */
-    func matches(for option: StringMatchOption) -> [StringMatch] {
-        var matches: [StringMatch] = []
-        enumerateSubstrings(in: startIndex..., options: option.enumerationOptions) { _, range, _, _ in
-            matches.append(StringMatch(range: range, in: self))
-        }
-        return matches
-    }
-            
-    /**
-     Finds all matches for the given option using natural language processing.
-
-     - Parameter option: The option for finding matches (e.g. for findinge person names, places, nouns, verbs, etc.)
-     - Returns: An array of `StringMatch` objects representing the matches found.
-      */
-    func matches(for option: NLTag) -> [StringMatch] {
-        let tagger = NLTagger(tagSchemes: [.nameType])
-        tagger.string = self
-        let tags = tagger.tags(in: range, unit: .word, scheme: .nameType, options: [.omitPunctuation,.omitWhitespace, .omitOther, .joinNames, .joinContractions ])
-        return tags.filter({$0.0 == option}).compactMap({StringMatch(range: $0.1, in: self)})
-    }
     
     /// All integer values inside the string.
     var integerValues: [Int] {
