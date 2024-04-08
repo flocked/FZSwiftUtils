@@ -139,6 +139,11 @@ public extension StringProtocol {
         return self[..<endIndex]
     }
     
+    subscript(range: NSRange) -> SubSequence? {
+        guard let range = Range<Index>(range, in: self) else { return nil }
+        return self[range]
+    }
+    
     internal func firstIndex(in range: Range<Int>) -> Index? {
         var upperBound = range.upperBound
         var endIndex = index(startIndex, offsetBy: upperBound, limitedBy: endIndex)

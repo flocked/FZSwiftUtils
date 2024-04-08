@@ -309,10 +309,18 @@ extension ImageSource {
             - image: The NSImage object.
          */
         convenience init?(image: NSImage) {
-            guard let data = image.tiffRepresentation else { return nil }
-            self.init(data: data)
+            let images = image.representations.compactMap({$0 as? NSBitmapImageRep}).flatMap({$0.getImages()})
+            guard !images.isEmpty else { return nil }
+            let types = Set(images.compactMap { $0.utType })
+            let outputType = types.count == 1 ? (types.first ?? kUTTypeTIFF) : kUTTypeTIFF
+            guard let mutableData = CFDataCreateMutable(nil, 0), let destination = CGImageDestinationCreateWithData(mutableData, outputType, images.count, nil) else { return nil }
+            images.forEach { CGImageDestinationAddImage(destination, $0, nil) }
+            guard CGImageDestinationFinalize(destination) else { return nil }
+            guard let cgImageSource = CGImageSourceCreateWithData(mutableData, nil) else { return nil }
+            self.init(cgImageSource)
         }
     }
+
 #endif
 
 #if canImport(UIKit)

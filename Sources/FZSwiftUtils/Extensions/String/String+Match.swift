@@ -8,29 +8,98 @@
 import Foundation
 import NaturalLanguage
 
+
+// --progress-template { "progress percentage":"%(progress._percent_str)s","progress total":"%(progress._total_bytes_str)s","speed":"%(progress._speed_str)s","ETA":"%(progress._eta_str)s"
+
+// --progress-template "{\"status\": \"%(progress.status)s}\"}"
+
+
 public extension String {
     /**
      Finds all matches in the string based on the provided regular expression pattern.
 
-     - Parameter regex: The regular expression pattern to search for.
+     - Parameters:
+        - regex: The regular expression pattern to search for.
+        - options: Optional options for matching.
+     
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
-    func matches(regex: String) -> [StringMatch] {
-        results(for: regex, type: .regularExpression)
+    func matches(regex: String, options: NSRegularExpression.Options = []) -> [StringMatch] {
+        results(for: regex, type: .regularExpression, options: options)
+    }
+    
+    /**
+     Returns the first match of the specified regular expression.
+     
+     - Parameters:
+        - regex: The regular expression pattern to search for.
+        - options: Optional options for matching.
+     */
+    func firstMatch(regex: String, options: NSRegularExpression.Options = []) -> StringMatch? {
+        do {
+            let regex = try NSRegularExpression(pattern: regex, options: options)
+            guard let result = regex.firstMatch(in: self, range: nsRange) else { return nil }
+            return StringMatch(result, string: self)
+        } catch {
+            debugPrint(error)
+            return nil
+        }
+    }
+    
+    /**
+     Enumerates the matches for the specified string.
+     
+     - Parameters:
+        - regex: The regular expression pattern to search for.
+        - options: Optional options for matching.
+     */
+    func enumerateMatches(regex: String, options: NSRegularExpression.Options = [], update: ((StringMatch)->(Bool))) {
+        let options: NSRegularExpression.MatchingOptions =  [.reportProgress, .reportCompletion]
+        do {
+            let regex = try NSRegularExpression(pattern: regex, options: [])
+            regex.enumerateMatches(in: self, options: .init(), range: nsRange) { result, flags, stop in
+                guard let result = result, let match = StringMatch(result, string: self) else { return }
+                if update(match) {
+                    stop.pointee = true
+                }
+            }
+        } catch {
+            debugPrint(error)
+        }
+    }
+    
+    /**
+     A Boolean value indicating whether the string is matching the specified regular expression.
+
+     - Parameters:
+        - regex: The regular expression pattern for validating.
+        - options: Optional options for matching.
+     
+     - Returns: `true` if the string is matching the regular expression, or `false` if the string isn't matching or the the expression is invalid.
+     */
+    func isMatching(regex: String, options: NSRegularExpression.Options = []) -> Bool {
+        do {
+            let regex = try NSRegularExpression(pattern: regex, options: [])
+            return regex.firstMatch(in: self, range: nsRange) != nil
+        } catch {
+            debugPrint(error)
+            return false
+        }
     }
     
     /**
      Returns a new string containing matching regular expressions replaced with the template string.
 
      - Parameters:
-        - regex: The regular expression pattern to search for.
+        - pattern: The regular expression pattern to search for.
         - template: The substitution template used when replacing matching instances.
+        - options: Optional options for matching.
      
      - Returns: A string with matching regular expressions replaced by the template string, or `nil`, if the regular expression pattern is invalid.
      */
-    func replace(pattern: String, template: String) -> String? {
+    func replace(pattern: String, template: String, options: NSRegularExpression.Options = []) -> String? {
         do {
-            let regex = try NSRegularExpression(pattern: pattern, options: [])
+            let regex = try NSRegularExpression(pattern: pattern, options: options)
             let replacedString = regex.stringByReplacingMatches(in: self, range: nsRange, withTemplate: template)
             return replacedString
         } catch {
@@ -47,12 +116,13 @@ public extension String {
         - fromString: The starting string to search for.
         - toString: The ending string to search for.
         - includingFromTo: A flag indicating whether to include the starting and ending strings in the results.
+        - options: Optional options for matching.
 
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
-    func matches(between fromString: String, and toString: String, includingFromTo: Bool = false) -> [StringMatch] {
+    func matches(between fromString: String, and toString: String, includingFromTo: Bool = false, options: NSRegularExpression.Options = []) -> [StringMatch] {
         let pattern = fromString.escapedPattern + "(.*?)" + toString.escapedPattern
-        let matches = matches(regex: pattern)
+        let matches = matches(regex: pattern, options: options)
         return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.groups.first})
     }
     
@@ -105,9 +175,9 @@ public extension String {
         NSRegularExpression.escapedPattern(for: self)
     }
     
-    private func results(for pattern: String, type: StringMatch.ResultType) -> [StringMatch] {
+    private func results(for pattern: String, type: StringMatch.ResultType, options: NSRegularExpression.Options = []) -> [StringMatch] {
         do {
-            let regex = try NSRegularExpression(pattern: pattern, options: [])
+            let regex = try NSRegularExpression(pattern: pattern, options: options)
             return regex.matches(in: self, range: nsRange).compactMap({ StringMatch($0, string: self, type: type) }).uniqued()
         } catch {
             Swift.debugPrint(error)
@@ -169,13 +239,67 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     public let type: ResultType
     /// The matched groups of a regular expression string match.
     public let groups: [StringMatch]
+    /// The extracted components.
+    public let components: Components
     
-    /// The matched date.
-    var date: Date?
-    /// The matched url.
-    var url: URL?
-    /// The matched address components.
-    var addressComponents: [NSTextCheckingKey : String]?
+    /// Extracted components.
+    public struct Components: Hashable {
+        /// URL.
+        public let url: URL?
+        /// Date.
+        public let date: Date?
+        /// Time zone.
+        public let timeZone: TimeZone?
+        /// Date Duration.
+        public let duration: TimeInterval
+        /// Address.
+        public let address: Address?
+        /// Transit information, for example, flight information.
+        public let transitInformation: TransitInformation?
+        
+        init(_ result: NSTextCheckingResult? = nil) {
+            self.address = result?.resultType == .address ? Address(result!) : nil
+            self.transitInformation = result?.resultType == .transitInformation ? TransitInformation(result!) : nil
+            self.date = result?.date
+            self.url = result?.url
+            self.timeZone = result?.timeZone
+            self.duration = result?.duration ?? 0
+        }
+        
+        /// Address information.
+        public struct Address: Hashable {
+            public let name: String?
+            public let jobTitle: String?
+            public let street: String?
+            public let city: String?
+            public let state: String?
+            public let zip: String?
+            public let country: String?
+            public let phone: String?
+            
+            init(_ result: NSTextCheckingResult) {
+                self.name = result.addressComponents?[.name]
+                self.jobTitle = result.addressComponents?[.jobTitle]
+                self.street = result.addressComponents?[.street]
+                self.city = result.addressComponents?[.city]
+                self.state = result.addressComponents?[.state]
+                self.zip = result.addressComponents?[.zip]
+                self.country = result.addressComponents?[.country]
+                self.phone = result.addressComponents?[.phone]
+            }
+        }
+        
+        /// Transit information, for example, flight information.
+        public struct TransitInformation: Hashable {
+            public let airline: String?
+            public let flight: String?
+            
+            init(_ result: NSTextCheckingResult) {
+                self.airline = result.addressComponents?[.airline]
+                self.flight = result.addressComponents?[.flight]
+            }
+        }
+    }
     
     public var description: String {
         return "StringMatch(\(type.rawValue): \"\(string)\")"
@@ -190,9 +314,11 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         self.string = String(string[range])
         self.range = range
         self.groups = groups
-        self.url = result?.url
-        self.date = result?.date
-        self.addressComponents = result?.addressComponents
+        if let result = result {
+            self.components = Components(result)
+        } else {
+            self.components = Components()
+        }
     }
     
     init?(_ result: NSTextCheckingResult, string: String, type: ResultType = .regularExpression) {
@@ -221,6 +347,43 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     
     /// The type of the matched string.
     public enum ResultType: String, Hashable {
+        /// Regular Expression.
+        case regularExpression
+        /// URL.
+        case link
+        /// Date.
+        case date
+                
+        /// Personal name.
+        case personalName
+        /// Organization name.
+        case organizationName
+        /// Place name.
+        case placeName
+        /// Phone number.
+        case phoneNumber
+        /// Email address.
+        case emailAddress
+        /// Address.
+        case address
+        /// Transit information, for example, flight information.
+        case transitInformation
+        /// Hashtag (e.g. `#hashtag`).
+        case hashtag
+        /// Reply (e.g. `@username`).
+        case reply
+        
+        /// Character.
+        case character
+        /// Word.
+        case word
+        /// Sentence.
+        case sentence
+        /// Line.
+        case line
+        /// Paragraph.
+        case paragraph
+        
         /// Adverb.
         case adverb
         /// Adjective.
@@ -241,49 +404,12 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         case number
         /// Verb.
         case verb
-        
-        /// Characters.
-        case characters
-        /// Word.
-        case word
-        /// Sentence.
-        case sentence
-        /// Line.
-        case line
-        /// Paragraph.
-        case paragraph
-        
-        /// Regular Expression.
-        case regularExpression
-        /// URL.
-        case link
-        /// Date.
-        case date
-        
-        /// Personal name.
-        case personalName
-        /// Organization name.
-        case organizationName
-        /// Place name.
-        case placeName
-        /// Phone number.
-        case phoneNumber
-        /// Email address.
-        case emailAddress
-        /// Address.
-        case address
-        /// Transit information, for example, flight information.
-        case transitInformation
-        /// Hashtag (e.g. `#hashtag`).
-        case hashtag
-        /// Reply (e.g. `@username`).
-        case reply
             
         init?(enumerationOptions: NSString.EnumerationOptions) {
             switch enumerationOptions {
             case .byWords: self = .word
             case .byLines: self = .line
-            case .byComposedCharacterSequences: self = .characters
+            case .byComposedCharacterSequences: self = .character
             case .byParagraphs: self = .paragraph
             case .bySentences: self = .sentence
             default: return nil
@@ -415,7 +541,6 @@ extension String {
             if contains(.preposition) { tags.append(.preposition) }
             if contains(.conjunction) { tags.append(.conjunction) }
             if contains(.interjection) { tags.append(.interjection) }
-            if contains(.number) { tags.append(.number) }
             return tags
         }
                         
@@ -452,6 +577,7 @@ extension String {
             var patterns: [(pattern: String, type: StringMatch.ResultType)] = []
             if contains(.hashtag) { patterns.append(("(#+[a-zA-Z0-9(_)]{1,})", .hashtag)) }
             if contains(.reply) { patterns.append((#"(?<![\w])@[\S]*\b"#, .reply)) }
+            if contains(.number) { patterns.append((#"\d+(?:\.\d+)?"#, .reply)) }
             return patterns
         }
     }

@@ -339,9 +339,9 @@ public extension URL {
         /// Iterate files with the specified file extensions.
         public static func extensions(_ extensions: [String]) -> Self {
             let extensions = extensions.compactMap { $0.lowercased() }
+            guard !extensions.isEmpty else { return .init({ $0.isFile }) }
             return Self {
-                if extensions.isEmpty { return $0.isFile }
-                return extensions.contains($0.pathExtension.lowercased())
+                extensions.contains($0.pathExtension.lowercased())
             }
         }
 
@@ -357,8 +357,8 @@ public extension URL {
 
         /// Iterate files with the specified file types.
         public static func types(_ types: [FileType]) -> Self {
-            Self {
-                if types.isEmpty { return $0.isFile }
+            guard !types.isEmpty else { return .init({ $0.isFile }) }
+            return Self {
                 if let fileType = $0.fileType, types.contains(fileType) { return true } else { return false }
             }
         }
@@ -377,8 +377,8 @@ public extension URL {
         /// Iterate files with the specified UTTypes.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func contentTypes(_ types: [UTType]) -> Self {
-            Self {
-                if types.isEmpty { return $0.isFile }
+            guard !types.isEmpty else { return .init({ $0.isFile }) }
+            return Self {
                 if let type = $0.contentType, types.contains(type) { return true } else { return false }
             }
         }
@@ -392,8 +392,8 @@ public extension URL {
         /// Iterate files conforming to the specified UTTypes.
         @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public static func conforming(to types: [UTType]) -> Self {
-            Self {
-                if types.isEmpty { return $0.isFile }
+            guard !types.isEmpty else { return .init({ $0.isFile }) }
+            return Self {
                 return $0.contentType?.conforms(toAny: types) ?? false
             }
         }
@@ -517,6 +517,12 @@ public extension URL {
         public static func || (lhs: Self, rhs: Self) -> Self {
             Self {
                 lhs.predicate($0) || rhs.predicate($0)
+            }
+        }
+        
+        public static func && (lhs: Self, rhs: Self) -> Self {
+            Self {
+                lhs.predicate($0) && rhs.predicate($0)
             }
         }
     }
