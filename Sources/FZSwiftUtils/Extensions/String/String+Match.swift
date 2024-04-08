@@ -53,7 +53,7 @@ public extension String {
     func matches(between fromString: String, and toString: String, includingFromTo: Bool = false) -> [StringMatch] {
         let pattern = fromString.escapedPattern + "(.*?)" + toString.escapedPattern
         let matches = matches(regex: pattern)
-        return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.group.first})
+        return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.groups.first})
     }
     
     /**
@@ -116,9 +116,9 @@ public extension String {
     }
     
     private func results(for tags: [NLTag]) -> [StringMatch] {
-        let tagger = NLTagger(tagSchemes: [.nameType])
+        let tagger = NLTagger(tagSchemes: [.lexicalClass])
         tagger.string = self
-        let allTags = tagger.tags(in: range, unit: .word, scheme: .nameType, options: [.omitPunctuation,.omitWhitespace, .omitOther, .joinNames, .joinContractions ])
+        let allTags = tagger.tags(in: range, unit: .word, scheme: .nameTypeOrLexicalClass, options: [.omitPunctuation,.omitWhitespace, .omitOther, .joinNames, .joinContractions])
         return allTags.compactMap({if let tag = $0.0 { (tag, $0.1) } else { nil }}).filter({tags.contains($0.0)}).compactMap({StringMatch($0.0, string: self, range: $0.1)})
     }
     
@@ -159,6 +159,7 @@ public extension String {
     }
 }
 
+/// A value representing a string match, such as a regular expression match.
 public struct StringMatch: Hashable, CustomStringConvertible {
     /// The matched string.
     public let string: String
@@ -166,34 +167,41 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     public let range: Range<String.Index>
     /// The result type.
     public let type: ResultType
-    /// The score or importance of the match.
-    public let score: Int
-    /// The matched groups of a regular expression match.
-    public let group: [StringMatch]
+    /// The matched groups of a regular expression string match.
+    public let groups: [StringMatch]
+    
+    /// The matched date.
+    var date: Date?
+    /// The matched url.
+    var url: URL?
+    /// The matched address components.
+    var addressComponents: [NSTextCheckingKey : String]?
     
     public var description: String {
-        "[\(type.rawValue): \(string)]"
+        return "StringMatch(\(type.rawValue): \"\(string)\")"
     }
     
     var withoutGroup: StringMatch {
         StringMatch(type, string: string, range: range)
     }
     
-    init(_ type: ResultType, string: String, range: Range<String.Index>, group: [StringMatch] = []) {
+    init(_ type: ResultType, string: String, range: Range<String.Index>, groups: [StringMatch] = [], result: NSTextCheckingResult? = nil) {
         self.type = type
         self.string = String(string[range])
         self.range = range
-        self.score = string.distance(from: range.lowerBound, to: range.upperBound)
-        self.group = group
+        self.groups = groups
+        self.url = result?.url
+        self.date = result?.date
+        self.addressComponents = result?.addressComponents
     }
     
     init?(_ result: NSTextCheckingResult, string: String, type: ResultType = .regularExpression) {
-        var matches: [StringMatch] = (0..<result.numberOfRanges).compactMap {
+        let matches: [StringMatch] = (0..<result.numberOfRanges).compactMap {
             guard let range = Range(result.range(at: $0), in: string) else { return nil }
             return StringMatch(type, string: string, range: range)
         }
         guard let first = matches.first else { return nil }
-        self.init(type, string: string, range: first.range, group: Array(matches.dropFirst()))
+        self.init(type, string: string, range: first.range, groups: Array(matches.dropFirst()), result: result)
     }
     
     init?(_ tag: NLTag, string: String, range: Range<String.Index>) {
@@ -219,10 +227,21 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         case adjective
         /// Noun.
         case noun
+        /// Pronoun.
+        case pronoun
+        /// Preposition.
+        case preposition
+        /// Conjunction.
+        case conjunction
+        /// Interjection.
+        case interjection
+        /// Determiner.
+        case determiner
         /// Number.
         case number
         /// Verb.
         case verb
+        
         /// Characters.
         case characters
         /// Word.
@@ -233,8 +252,14 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         case line
         /// Paragraph.
         case paragraph
+        
+        /// Regular Expression.
+        case regularExpression
+        /// URL.
+        case link
         /// Date.
         case date
+        
         /// Personal name.
         case personalName
         /// Organization name.
@@ -245,14 +270,10 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         case phoneNumber
         /// Email address.
         case emailAddress
-        /// URL.
-        case link
-        /// Regular Expression.
-        case regularExpression = "regex"
-        /// Orthography.
-        case orthography
         /// Address.
         case address
+        /// Transit information, for example, flight information.
+        case transitInformation
         /// Hashtag (e.g. `#hashtag`).
         case hashtag
         /// Reply (e.g. `@username`).
@@ -266,7 +287,6 @@ public struct StringMatch: Hashable, CustomStringConvertible {
             case .byParagraphs: self = .paragraph
             case .bySentences: self = .sentence
             default: return nil
-
             }
         }
         
@@ -280,19 +300,23 @@ public struct StringMatch: Hashable, CustomStringConvertible {
             case .noun: self = .noun
             case .adjective: self = .adjective
             case .verb: self = .verb
+            case .pronoun: self = .pronoun
+            case .preposition: self = .preposition
+            case .conjunction: self = .conjunction
+            case .interjection: self = .interjection
+            case .determiner: self = .determiner
             default: return nil
             }
         }
-        
+                
         init?(checkingType: NSTextCheckingResult.CheckingType) {
             switch checkingType {
-            case .orthography: self = .orthography
-            case .regularExpression: self = .regularExpression
             case .date: self = .date
             case .emailAddress: self = .emailAddress
             case .link: self = .link
             case .phoneNumber: self = .phoneNumber
             case .address: self = .address
+            case .transitInformation: self = .transitInformation
             default: return nil
             }
         }
@@ -312,47 +336,89 @@ extension Collection where Element == StringMatch {
 }
 
 extension String {
+    /// Option for finding matches in a string.
     public struct StringMatchingOption: OptionSet, Codable {
+        /// Noun.
+        public static let noun = StringMatchingOption(rawValue: 1 << 0)
+        /// Verb.
+        public static let verb = StringMatchingOption(rawValue: 1 << 1)
+        /// Adjective.
+        public static let adjective = StringMatchingOption(rawValue: 1 << 2)
+        /// Adverb.
+        public static let adverb = StringMatchingOption(rawValue: 1 << 3)
+        /// Pronoun.
+        public static let pronoun = StringMatchingOption(rawValue: 1 << 4)
+        /// Determiner.
+        public static let determiner = StringMatchingOption(rawValue: 1 << 5)
+        /// Preposition.
+        public static let preposition = StringMatchingOption(rawValue: 1 << 6)
+        /// Conjunction.
+        public static let conjunction = StringMatchingOption(rawValue: 1 << 7)
+        /// interjection
+        public static let interjection = StringMatchingOption(rawValue: 1 << 8)
+        /// Number.
+        public static let number = StringMatchingOption(rawValue: 1 << 9)
+        /// All lexical matches.
+        public static var allLexical: StringMatchingOption = [.noun, .verb, .adjective, .adverb, .pronoun, .determiner, .preposition, .conjunction, .interjection, .number]
         
-        public static let adverb = StringMatchingOption(rawValue: 1 << 0)
-        public static let adjective = StringMatchingOption(rawValue: 1 << 1)
-        public static let noun = StringMatchingOption(rawValue: 1 << 2)
-        public static let number = StringMatchingOption(rawValue: 1 << 3)
-        public static let verb = StringMatchingOption(rawValue: 1 << 4)
-        public static let characters = StringMatchingOption(rawValue: 1 << 5)
-        public static let word = StringMatchingOption(rawValue: 1 << 6)
-        public static let sentence = StringMatchingOption(rawValue: 1 << 7)
-        public static let line = StringMatchingOption(rawValue: 1 << 8)
-        public static let paragraph = StringMatchingOption(rawValue: 1 << 9)
-        public static let date = StringMatchingOption(rawValue: 1 << 10)
-        public static let personalName = StringMatchingOption(rawValue: 1 << 11)
-        public static let organizationName = StringMatchingOption(rawValue: 1 << 12)
-        public static let placeName = StringMatchingOption(rawValue: 1 << 13)
-        public static let phoneNumber = StringMatchingOption(rawValue: 1 << 14)
-        public static let emailAddress = StringMatchingOption(rawValue: 1 << 15)
+        /// Characters.
+        public static let character = StringMatchingOption(rawValue: 1 << 10)
+        /// Word.
+        public static let word = StringMatchingOption(rawValue: 1 << 11)
+        /// Sentence.
+        public static let sentence = StringMatchingOption(rawValue: 1 << 12)
+        /// Line.
+        public static let line = StringMatchingOption(rawValue: 1 << 13)
+        /// Paragraph.
+        public static let paragraph = StringMatchingOption(rawValue: 1 << 14)
+        
+        /// Date.
+        public static let date = StringMatchingOption(rawValue: 1 << 15)
+        /// URL.
         public static let link = StringMatchingOption(rawValue: 1 << 16)
-        public static let regularExpression = StringMatchingOption(rawValue: 1 << 17)
-        public static let orthography = StringMatchingOption(rawValue: 1 << 18)
-        public static let address = StringMatchingOption(rawValue: 1 << 19)
-        public static let hashtag = StringMatchingOption(rawValue: 1 << 20)
-        public static let reply = StringMatchingOption(rawValue: 1 << 21)
+        /// Personal name.
+        public static let personalName = StringMatchingOption(rawValue: 1 << 17)
+        /// Organization name.
+        public static let organizationName = StringMatchingOption(rawValue: 1 << 18)
+        /// Place name.
+        public static let placeName = StringMatchingOption(rawValue: 1 << 19)
+        /// Phone Number.
+        public static let phoneNumber = StringMatchingOption(rawValue: 1 << 20)
+        /// Email Address.
+        public static let emailAddress = StringMatchingOption(rawValue: 1 << 21)
+        /// Address.
+        public static let address = StringMatchingOption(rawValue: 1 << 22)
+        /// Transit information, e.g., flight information.
+        public static let transitInformation = StringMatchingOption(rawValue: 1 << 23)
+        /// Hashtag, e.g. "#hashtag".
+        public static let hashtag = StringMatchingOption(rawValue: 1 << 24)
+        /// Reply, e.g. "@username".
+        public static let reply = StringMatchingOption(rawValue: 1 << 25)
+        
+        /// Regular Expression.
+        public static let regularExpression = StringMatchingOption(rawValue: 1 << 26)
 
         public let rawValue: Int32
         public init(rawValue: Int32) { self.rawValue = rawValue }
         
         var tags: [NLTag] {
             var tags: [NLTag] = []
-            if self.contains(.placeName) { tags.append(.placeName) }
-            if self.contains(.personalName) { tags.append(.personalName) }
-            if self.contains(.organizationName) { tags.append(.organizationName) }
-            if self.contains(.number) { tags.append(.number) }
-            if self.contains(.adverb) { tags.append(.adverb) }
-            if self.contains(.noun) { tags.append(.noun) }
-            if self.contains(.adjective) { tags.append(.adjective) }
-            if self.contains(.verb) { tags.append(.verb) }
+            if contains(.placeName) { tags.append(.placeName) }
+            if contains(.personalName) { tags.append(.personalName) }
+            if contains(.organizationName) { tags.append(.organizationName) }
+            if contains(.noun) { tags.append(.noun) }
+            if contains(.verb) { tags.append(.verb) }
+            if contains(.adjective) { tags.append(.adjective) }
+            if contains(.adverb) { tags.append(.adverb) }
+            if contains(.pronoun) { tags.append(.pronoun) }
+            if contains(.determiner) { tags.append(.determiner) }
+            if contains(.preposition) { tags.append(.preposition) }
+            if contains(.conjunction) { tags.append(.conjunction) }
+            if contains(.interjection) { tags.append(.interjection) }
+            if contains(.number) { tags.append(.number) }
             return tags
         }
-        
+                        
         var checkingType: NSTextCheckingResult.CheckingType? {
             var checkingType: NSTextCheckingResult.CheckingType?
             func insert(_ type: NSTextCheckingResult.CheckingType) {
@@ -362,23 +428,23 @@ extension String {
                     checkingType = type
                 }
             }
-            if self.contains(.orthography) { insert(.orthography) }
-            if self.contains(.regularExpression) { insert(.regularExpression) }
-            if self.contains(.date) { insert(.date) }
-            if self.contains(.emailAddress) { insert(.emailAddress) }
-            if self.contains(.link) { insert(.link) }
-            if self.contains(.phoneNumber) { insert(.phoneNumber) }
-            if self.contains(.address) { insert(.address) }
+            if contains(.regularExpression) { insert(.regularExpression) }
+            if contains(.date) { insert(.date) }
+            if contains(.emailAddress) { insert(.emailAddress) }
+            if contains(.link) { insert(.link) }
+            if contains(.phoneNumber) { insert(.phoneNumber) }
+            if contains(.address) { insert(.address) }
+            if contains(.transitInformation) { insert(.transitInformation) }
             return checkingType
         }
         
         var enumerationOptions: [NSString.EnumerationOptions] {
             var options: [NSString.EnumerationOptions] = []
-            if self.contains(.word) { options.append(.byWords) }
-            if self.contains(.line) { options.append(.byLines) }
-            if self.contains(.characters) { options.append(.byComposedCharacterSequences) }
-            if self.contains(.paragraph) { options.append(.byParagraphs) }
-            if self.contains(.sentence) { options.append(.bySentences) }
+            if contains(.word) { options.append(.byWords) }
+            if contains(.line) { options.append(.byLines) }
+            if contains(.character) { options.append(.byComposedCharacterSequences) }
+            if contains(.paragraph) { options.append(.byParagraphs) }
+            if contains(.sentence) { options.append(.bySentences) }
             return options
         }
         
