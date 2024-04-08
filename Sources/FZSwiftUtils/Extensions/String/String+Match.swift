@@ -8,23 +8,23 @@
 import Foundation
 import NaturalLanguage
 
-public extension String {
-    ///  A structure representing a match found in a string.
-    struct StringMatch: Hashable {
-        /// The matched string.
-        public let string: String
-        /// The range of the matched string within the source string.
-        public let range: Range<String.Index>
-        /// The score or importance of the match.
-        public let score: Int
-        
-        init(range: Range<String.Index>, in string: String) {
-            self.string = String(string[range])
-            self.range = range
-            self.score = string.distance(from: range.lowerBound, to: range.upperBound)
-        }
+///  A structure representing a match found in a string.
+public struct StringMatch: Hashable {
+    /// The matched string.
+    public let string: String
+    /// The range of the matched string within the source string.
+    public let range: Range<String.Index>
+    /// The score or importance of the match.
+    public let score: Int
+    
+    init(range: Range<String.Index>, in string: String) {
+        self.string = String(string[range])
+        self.range = range
+        self.score = string.distance(from: range.lowerBound, to: range.upperBound)
     }
+}
 
+public extension String {
     /// Options for matching strings.
     enum StringMatchOption: Int, Hashable {
         /// Characters.
@@ -109,16 +109,6 @@ public extension String {
         })
     }
     
-    /// All integer values inside the string.
-    var integerValues: [Int] {
-        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
-    }
-    
-    /// All double values inside the string.
-    var doubleValues: [Double] {
-        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
-    }
-
     /**
      Finds all matches of substrings between the two specified strings.
 
@@ -181,14 +171,15 @@ public extension String {
         }
         return matches
     }
-}
-
-public extension StringProtocol {
-    /// Returns a new string made by removing all emoji characters.
-    func trimmingEmojis() -> String {
-        unicodeScalars
-            .filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }
-            .reduce(into: "") { $0 += String($1) }
+    
+    /// All integer values inside the string.
+    var integerValues: [Int] {
+        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
+    }
+    
+    /// All double values inside the string.
+    var doubleValues: [Double] {
+        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
     }
 }
 
@@ -219,5 +210,12 @@ public extension StringProtocol {
             }
         }
         return true
+    }
+    
+    /// Returns a new string made by removing all emoji characters.
+    func trimmingEmojis() -> String {
+        unicodeScalars
+            .filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }
+            .reduce(into: "") { $0 += String($1) }
     }
 }

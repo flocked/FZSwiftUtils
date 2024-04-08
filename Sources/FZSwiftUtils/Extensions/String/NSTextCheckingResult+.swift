@@ -18,11 +18,11 @@ extension NSTextCheckingResult {
         return  url.absoluteString.replacingOccurrences(of: "mailto:", with: "")
     }
     
-    public func matches(in string: String) -> [String.StringMatch] {
+    public func matches(in string: String) -> [StringMatch] {
         (0..<numberOfRanges).compactMap {
             let rangeBounds = range(at: $0)
             guard let range = Range(rangeBounds, in: string) else { return nil }
-            return String.StringMatch(range: range, in: string)
+            return StringMatch(range: range, in: string)
         }
     }
 }
