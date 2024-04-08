@@ -169,3 +169,40 @@ public extension Character {
         String(lhs) + rhs
     }
 }
+
+public extension StringProtocol {
+    /**
+     A Boolean value indicating whether the string contains any of the specified strings.
+     - Parameter strings: The strings.
+     - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
+     */
+    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
+        for string in strings {
+            if contains(string) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     A Boolean value indicating whether the string contains all specified strings.
+     - Parameter strings: The strings.
+     - Returns: `true` if all strings exist in the string, or` false` if not.
+     */
+    func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
+        for string in strings {
+            if contains(string) == false {
+                return false
+            }
+        }
+        return true
+    }
+    
+    /// Returns a new string made by removing all emoji characters.
+    func trimmingEmojis() -> String {
+        unicodeScalars
+            .filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }
+            .reduce(into: "") { $0 += String($1) }
+    }
+}
