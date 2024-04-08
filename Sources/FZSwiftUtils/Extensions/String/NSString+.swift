@@ -11,12 +11,16 @@ import Foundation.NSString
 public extension StringProtocol {
     /// Whole range in NSRange.
     var nsRange: NSRange {
-        NSRange(location: 0, length: length)
+        NSRange(startIndex..., in: self)
     }
 
     /// Length of the string.
     var length: Int {
         utf16.count
+    }
+    
+    var range: Range<Index> {
+        startIndex..<endIndex
     }
 }
 

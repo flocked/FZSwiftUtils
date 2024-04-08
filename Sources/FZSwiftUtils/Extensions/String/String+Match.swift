@@ -24,27 +24,34 @@ public struct StringMatch: Hashable {
     }
 }
 
+extension Collection where Element == StringMatch {
+    /// The matched strings.
+    public var strings: [String] {
+        compactMap({$0.string})
+    }
+    
+    /// The ranges of the matched strings.
+    public var ranges: [Range<String.Index>] {
+        compactMap({$0.range})
+    }
+}
+
 public extension String {
     /// Options for matching strings.
     enum StringMatchOption: Int, Hashable {
         /// Characters.
-        case characters
+        case characters = 2
         /// Words.
-        case words
+        case words = 3
         /// Sentences.
-        case sentences
-        /// Paragraphs.
-        case paragraphs
+        case sentences = 4
         /// Lines.
-        case lines
+        case lines = 0
+        /// Paragraphs.
+        case paragraphs = 1
+        
         var enumerationOptions: NSString.EnumerationOptions {
-            switch self {
-            case .lines: return .byLines
-            case .characters: return .byComposedCharacterSequences
-            case .paragraphs: return .byParagraphs
-            case .words: return .byWords
-            case .sentences: return .bySentences
-            }
+            NSString.EnumerationOptions(rawValue: UInt(rawValue))
         }
     }
 
@@ -83,7 +90,7 @@ public extension String {
      */
     func matches(regex: String) -> [StringMatch] {
         guard let regex = try? NSRegularExpression(pattern: regex, options: []) else { return [] }
-        return regex.matches(in: self, range: NSRange(self.startIndex..., in: self)).flatMap({ $0.matches(in: self) })
+        return regex.matches(in: self, range: nsRange).flatMap({ $0.matches(in: self) })
     }
         
     /**
@@ -100,7 +107,7 @@ public extension String {
             option.insert(.link)
         }
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
-        return detector.matches(in: self, range: NSRange(self.startIndex..., in: self)).flatMap({ match in
+        return detector.matches(in: self, range: nsRange).flatMap({ match in
             (0..<match.numberOfRanges).compactMap {
                 if match.resultType == .link, checkOnlyEmail, match.emailAddress == nil { return nil }
                 guard let range = Range(match.range(at: $0), in: self) else { return nil }
@@ -141,7 +148,7 @@ public extension String {
         }
         return matches
     }
-
+            
     /**
      Finds all matches for the given option using natural language processing.
 
@@ -149,27 +156,10 @@ public extension String {
      - Returns: An array of `StringMatch` objects representing the matches found.
       */
     func matches(for option: NLTag) -> [StringMatch] {
-        var matches: [StringMatch] = []
         let tagger = NLTagger(tagSchemes: [.nameType])
         tagger.string = self
-        
-        let tags = tagger.tags(
-            in: startIndex ..< endIndex,
-            unit: .word,
-            scheme: .nameType,
-            options: [
-                .omitPunctuation,
-                .omitWhitespace,
-                .omitOther,
-                .joinNames,
-            ]
-        )
-        for (tag, range) in tags {
-            if tag == option {
-                matches.append(StringMatch(range: range, in: self))
-            }
-        }
-        return matches
+        let tags = tagger.tags(in: range, unit: .word, scheme: .nameType, options: [.omitPunctuation,.omitWhitespace, .omitOther, .joinNames, .joinContractions ])
+        return tags.filter({$0.0 == option}).compactMap({StringMatch(range: $0.1, in: self)})
     }
     
     /// All integer values inside the string.

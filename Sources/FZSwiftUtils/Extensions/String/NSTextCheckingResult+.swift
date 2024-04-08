@@ -26,19 +26,3 @@ extension NSTextCheckingResult {
         }
     }
 }
-
-public struct TextCheckingResult {
-    /// The range of the matched string within the source string.
-    public let range: Range<String.Index>
-    /// The result type.
-    public let type: ResultType
-    
-    public enum ResultType {
-        case emailAddress(String)
-        case url(URL)
-        case phoneNumber(String)
-        case address([NSTextCheckingKey : String])
-        case date(Date)
-        case orthography(NSOrthography)
-    }
-}
