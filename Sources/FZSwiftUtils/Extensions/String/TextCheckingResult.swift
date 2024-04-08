@@ -18,8 +18,20 @@ extension String {
             results += self.results(for: option.tags)
         }
         results += option.enumerationOptions.flatMap({ self.results(for:$0) })
+        results += option.patterns.flatMap({self.results(for: $0.pattern, type: $0.type)})
         results = results.sorted(by: \.range.lowerBound)
         return results
+    }
+    
+    func results(for pattern: String, type: TextCheckingResult.ResultType) -> [TextCheckingResult] {
+        guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else { return [] }
+        return regex.matches(in: self, range: nsRange).flatMap({ match in
+            (0..<match.numberOfRanges).compactMap {
+                let rangeBounds = match.range(at: $0)
+                guard let range = Range(rangeBounds, in: self) else { return nil }
+                return TextCheckingResult(type, string: self, range: range)
+            }
+        })
     }
     
     private func results(for tags: [NLTag]) -> [TextCheckingResult] {
@@ -88,10 +100,11 @@ extension String {
         public static let emailAddress = StringMatchingOption(rawValue: 1 << 15)
         public static let link = StringMatchingOption(rawValue: 1 << 16)
         public static let regularExpression = StringMatchingOption(rawValue: 1 << 17)
-        public static let quote = StringMatchingOption(rawValue: 1 << 18)
-        public static let orthography = StringMatchingOption(rawValue: 1 << 19)
-        public static let address = StringMatchingOption(rawValue: 1 << 20)
-        
+        public static let orthography = StringMatchingOption(rawValue: 1 << 18)
+        public static let address = StringMatchingOption(rawValue: 1 << 19)
+        public static let hashtag = StringMatchingOption(rawValue: 1 << 19)
+        public static let reply = StringMatchingOption(rawValue: 1 << 19)
+
         public let rawValue: Int32
         public init(rawValue: Int32) { self.rawValue = rawValue }
         
@@ -118,7 +131,6 @@ extension String {
                 }
             }
             if self.contains(.orthography) { insert(.orthography) }
-            if self.contains(.quote) { insert(.quote) }
             if self.contains(.regularExpression) { insert(.regularExpression) }
             if self.contains(.date) { insert(.date) }
             if self.contains(.emailAddress) { insert(.emailAddress) }
@@ -137,6 +149,13 @@ extension String {
             if self.contains(.sentence) { options.append(.bySentences) }
             return options
         }
+        
+        var patterns: [(pattern: String, type: TextCheckingResult.ResultType)] {
+            var patterns: [(pattern: String, type: TextCheckingResult.ResultType)] = []
+            if contains(.hashtag) { patterns.append(("#[a-z0-9]+", .hashtag)) }
+            if contains(.reply) { patterns.append(("@[a-z0-9]+", .reply)) }
+            return patterns
+        }
     }
 }
 
@@ -150,28 +169,26 @@ public struct TextCheckingResult: Hashable {
     /// The score or importance of the match.
     public let score: Int
     
-    init?(_ tag: NLTag, string: String, range: Range<String.Index>) {
-        guard let type = ResultType(tag: tag) else { return nil }
+    init(_ type: ResultType, string: String, range: Range<String.Index>) {
         self.type = type
         self.string = String(string[range])
         self.range = range
         self.score = string.distance(from: range.lowerBound, to: range.upperBound)
+    }
+    
+    init?(_ tag: NLTag, string: String, range: Range<String.Index>) {
+        guard let type = ResultType(tag: tag) else { return nil }
+        self.init(type, string: string, range: range)
     }
     
     init?(_ enumerationOptions: NSString.EnumerationOptions, string: String, range: Range<String.Index>) {
         guard let type = ResultType(enumerationOptions: enumerationOptions) else { return nil }
-        self.type = type
-        self.string = String(string[range])
-        self.range = range
-        self.score = string.distance(from: range.lowerBound, to: range.upperBound)
+        self.init(type, string: string, range: range)
     }
     
     init?(_ checkingType: NSTextCheckingResult.CheckingType, string: String, range: Range<String.Index>) {
         guard let type = ResultType(checkingType: checkingType) else { return nil }
-        self.type = type
-        self.string = String(string[range])
-        self.range = range
-        self.score = string.distance(from: range.lowerBound, to: range.upperBound)
+        self.init(type, string: string, range: range)
     }
     
     public enum ResultType: Int, Hashable {
@@ -196,6 +213,8 @@ public struct TextCheckingResult: Hashable {
         case quote
         case orthography
         case address
+        case hashtag
+        case reply
             
         init?(enumerationOptions: NSString.EnumerationOptions) {
             switch enumerationOptions {
