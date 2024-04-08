@@ -116,7 +116,7 @@ public extension String {
     }
     
     private func results(for tags: [NLTag]) -> [StringMatch] {
-        let tagger = NLTagger(tagSchemes: [.lexicalClass])
+        let tagger = NLTagger(tagSchemes: [.nameTypeOrLexicalClass])
         tagger.string = self
         let allTags = tagger.tags(in: range, unit: .word, scheme: .nameTypeOrLexicalClass, options: [.omitPunctuation,.omitWhitespace, .omitOther, .joinNames, .joinContractions])
         return allTags.compactMap({if let tag = $0.0 { (tag, $0.1) } else { nil }}).filter({tags.contains($0.0)}).compactMap({StringMatch($0.0, string: self, range: $0.1)})

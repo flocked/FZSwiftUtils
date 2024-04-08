@@ -7,14 +7,14 @@
 
 import Foundation
 
-extension NSTextCheckingResult.CheckingType {
-    public static var emailAddress = NSTextCheckingResult.CheckingType(rawValue: 1 << 64)
-}
-
 extension NSTextCheckingResult {
     /// The email address of a type checking result.
     public var emailAddress: String? {
         guard let url = url, url.scheme == "mailto" else { return nil }
         return  url.absoluteString.replacingOccurrences(of: "mailto:", with: "")
     }
+}
+
+extension NSTextCheckingResult.CheckingType {
+    static var emailAddress = NSTextCheckingResult.CheckingType(rawValue: 1 << 64)
 }
