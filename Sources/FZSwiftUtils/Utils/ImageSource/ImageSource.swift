@@ -303,10 +303,12 @@ extension ImageSource {
     import AppKit
     public extension ImageSource {
         /**
-         Creates an image source that reads from a NSImage,
+         Creates an image source that reads from a `NSImage`.
+         
+         - Note: Loading an animated image takes time as each image frame is loaded initially. It's recommended to parse the animation properties and frames via the image's `NSBitmapImageRep` representation.
 
          - Parameters:
-            - image: The NSImage object.
+            - image: The `NSImage` object.
          */
         convenience init?(image: NSImage) {
             let images = image.representations.compactMap({$0 as? NSBitmapImageRep}).flatMap({$0.getImages()})
@@ -327,10 +329,10 @@ extension ImageSource {
     import UIKit
     public extension ImageSource {
         /**
-         Creates an image source that reads from a UIImage,
+         Creates an image source that reads from a `UIImage`.
 
          - Parameters:
-            - image: The UIImage object.
+            - image: The `UIImage` object.
          */
         convenience init?(image: UIImage) {
             guard let data = image.pngData() else { return nil }
