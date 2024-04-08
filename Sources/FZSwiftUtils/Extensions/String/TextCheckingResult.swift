@@ -12,10 +12,15 @@ extension String {
     public func matchesNew(for option: StringMatchingOption) -> [TextCheckingResult] {
         var results: [TextCheckingResult] = []
         if !option.checkingType.isEmpty {
+            Swift.print("checkingType", option.checkingType.elements())
             results += self.results(for: option.checkingType)
         }
         if !option.tags.isEmpty {
+            Swift.print("tags", option.tags)
             results += self.results(for: option.tags)
+        }
+        if !option.enumerationOptions.isEmpty {
+            Swift.print("enumerationOptions", option.enumerationOptions)
         }
         results += option.enumerationOptions.flatMap({ self.results(for:$0) })
         results = results.sorted(by: \.range.lowerBound)
@@ -59,6 +64,7 @@ extension String {
                 if match.resultType == .date {
                     Swift.print(String(self[range]), match.date ?? "nil")
                 }
+                Swift.print(match.resultType.rawValue)
                 return TextCheckingResult(match.resultType, string: self, range: range)
             }
         })
