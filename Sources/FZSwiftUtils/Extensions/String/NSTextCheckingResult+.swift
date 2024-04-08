@@ -17,6 +17,14 @@ extension NSTextCheckingResult {
         guard let url = url, url.scheme == "mailto" else { return nil }
         return  url.absoluteString.replacingOccurrences(of: "mailto:", with: "")
     }
+    
+    public func matches(in string: String) -> [String.StringMatch] {
+        (0..<numberOfRanges).compactMap {
+            let rangeBounds = range(at: $0)
+            guard let range = Range(rangeBounds, in: string) else { return nil }
+            return String.StringMatch(range: range, in: string)
+        }
+    }
 }
 
 public struct TextCheckingResult {

@@ -83,18 +83,9 @@ public extension String {
      */
     func matches(regex: String) -> [StringMatch] {
         guard let regex = try? NSRegularExpression(pattern: regex, options: []) else { return [] }
-        let string = self
-        return regex.matches(in: string, range: NSRange(string.startIndex..., in: string)).flatMap({ match in
-            (0..<match.numberOfRanges).compactMap {
-                let rangeBounds = match.range(at: $0)
-                guard let range = Range(rangeBounds, in: string) else { return nil }
-                return StringMatch(range: range, in: string)
-            }
-        })
+        return regex.matches(in: self, range: NSRange(self.startIndex..., in: self)).flatMap({ $0.matches(in: self) })
     }
-    
-  
-    
+        
     /**
      Finds all matches for the given option using natural language processing.
 
@@ -103,26 +94,17 @@ public extension String {
       */
     func matches(for option: NSTextCheckingResult.CheckingType) -> [StringMatch] {
         var option = option
-        let checkLinks = option.contains(.link)
-        let checkEmail = option.contains(.emailAddress)
-        if checkEmail {
+        let checkOnlyEmail = option.contains(.emailAddress) && !option.contains(.link)
+        if option.contains(.emailAddress) {
             option.remove(.emailAddress)
             option.insert(.link)
         }
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
-        let string = self
-        return detector.matches(in: string, range: NSRange(string.startIndex..., in: string)).flatMap({ match in
+        return detector.matches(in: self, range: NSRange(self.startIndex..., in: self)).flatMap({ match in
             (0..<match.numberOfRanges).compactMap {
-                let rangeBounds = match.range(at: $0)
-                guard let range = Range(rangeBounds, in: string) else { return nil }
-                if match.resultType == .link, checkEmail {
-                    if checkLinks || match.emailAddress != nil {
-                        return StringMatch(range: range, in: string)
-                    } else {
-                        return nil
-                    }
-                }
-                return StringMatch(range: range, in: string)
+                if match.resultType == .link, checkOnlyEmail, match.emailAddress == nil { return nil }
+                guard let range = Range(match.range(at: $0), in: self) else { return nil }
+                return StringMatch(range: range, in: self)
             }
         })
     }
