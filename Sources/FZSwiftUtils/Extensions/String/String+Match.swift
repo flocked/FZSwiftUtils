@@ -53,13 +53,14 @@ public extension String {
         - regex: The regular expression pattern to search for.
         - options: Optional options for matching.
      */
-    func enumerateMatches(regex: String, options: NSRegularExpression.Options = [], update: ((StringMatch)->(Bool))) {
-        let options: NSRegularExpression.MatchingOptions =  [.reportProgress, .reportCompletion]
+    func enumerateMatches(regex: String, options: NSRegularExpression.Options = [], update: ((_ match: StringMatch?, _ completed: Bool)->(Bool))) {
+        let matchOptions: NSRegularExpression.MatchingOptions =  [.reportProgress, .reportCompletion]
         do {
-            let regex = try NSRegularExpression(pattern: regex, options: [])
-            regex.enumerateMatches(in: self, options: .init(), range: nsRange) { result, flags, stop in
+            let regex = try NSRegularExpression(pattern: regex, options: options)
+            regex.enumerateMatches(in: self, options: matchOptions, range: nsRange) { result, flags, stop in
                 guard let result = result, let match = StringMatch(result, string: self) else { return }
-                if update(match) {
+                let completed = flags.contains(any: [.requiredEnd, .hitEnd, .internalError])
+                if update(match, completed), !completed {
                     stop.pointee = true
                 }
             }
