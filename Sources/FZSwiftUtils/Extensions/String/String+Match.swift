@@ -355,6 +355,7 @@ public struct StringMatch: Hashable, CustomStringConvertible {
             guard let range = Range(result.range(at: $0), in: string) else { return nil }
             return StringMatch(type, string: string, range: range)
         }
+        Swift.print("check", matches.count, Array(matches.dropFirst()).count, matches.compactMap({$0.string}),  Array(matches.dropFirst()).compactMap({$0.string}))
         guard let first = matches.first else { return nil }
         self.init(type, string: string, range: first.range, groups: Array(matches.dropFirst()), result: result)
     }
