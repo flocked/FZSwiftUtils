@@ -15,10 +15,10 @@ let package = Package(
     dependencies: [
     ],
     targets: [
-        .target(name: "SuperBuilder"),
+        .target(name: "__SuperBuilder"),
         .target(
             name: "FZSwiftUtils",
-            dependencies: ["SuperBuilder"]
+            dependencies: ["__SuperBuilder"]
         ),
     ]
 )

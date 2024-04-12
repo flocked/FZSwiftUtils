@@ -1,5 +1,5 @@
 #if __APPLE__
-#import "SuperBuilder.h"
+#import "__SuperBuilder.h"
 
 @import ObjectiveC.message;
 @import ObjectiveC.runtime;
@@ -39,13 +39,13 @@ static IMP ITKGetTrampolineForTypeEncoding(__unused const char *typeEncoding) {
 // Helper for binding with Swift
 BOOL IKTAddSuperImplementationToClass(Class originalClass, SEL selector, NSError **error);
 BOOL IKTAddSuperImplementationToClass(Class originalClass, SEL selector, NSError **error) {
-    return [SuperBuilder addSuperInstanceMethodToClass:originalClass selector:selector error:error];
+    return [__SuperBuilder addSuperInstanceMethodToClass:originalClass selector:selector error:error];
 }
 
 #define ERROR_AND_RETURN(CODE, STRING)\
 if (error) { *error = [NSError errorWithDomain:SuperBuilderErrorDomain code:CODE userInfo:@{NSLocalizedDescriptionKey: STRING}];} return NO;
 
-@implementation SuperBuilder
+@implementation __SuperBuilder
 
 + (BOOL)isSupportedArchitecure {
 #if defined (__arm64__) || defined (__x86_64__)
