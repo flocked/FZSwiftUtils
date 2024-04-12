@@ -11,8 +11,7 @@ import Foundation
 public enum NSCodingError: Error {
     /// Unpacking failed.
     case unpacking
-    
-    /// Couldn't cast
+    /// Casting failed.
     case castingFailed
 }
 
@@ -43,7 +42,7 @@ public extension NSCoding where Self: NSObject {
     /**
      Creates an archived-based copy of the object as the specified subclass.
      
-     - Parameter subclass: The subclass of the copy.
+     - Parameter subclass: The type of the subclass for the copy.
 
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
