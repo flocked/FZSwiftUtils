@@ -143,9 +143,12 @@ public extension String {
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
     func matches(between fromString: String, and toString: String, includingFromTo: Bool = false, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> [StringMatch] {
-        let pattern = fromString.escapedPattern + "(.*?)" + toString.escapedPattern
-        let matches = matches(pattern: pattern, in: range, options: options)
-        return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.groups.first})
+        let fromString = fromString.escapedPattern
+        let toString = toString.escapedPattern
+
+        let pattern = includingFromTo ? "\(fromString)(.*?)\(toString)" : "(?<=\(fromString))(.*?)(?=\(toString))"
+        return  matches(pattern: pattern, in: range, options: options)
+       // return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.groups.first})
     }
     
     /**
