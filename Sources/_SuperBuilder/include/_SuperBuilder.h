@@ -44,7 +44,7 @@ There are a few important details:
 
 @see https://steipete.com/posts/calling-super-at-runtime/
 */
-@interface __SuperBuilder : NSObject
+@interface _SuperBuilder : NSObject
 
 /// Adds an empty super implementation instance method to originalClass.
 /// If a method already exists, this will return NO and a descriptive error message.
