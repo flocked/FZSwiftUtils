@@ -7,62 +7,57 @@
 
 import Foundation
 
-public extension String {
-    /**
-     Returns a new string in which all occurrences of the target strings are replaced by another given string.
-
-     - Parameters:
-        - strings: An array of target strings to be replaced.
-        - replacement: The replacement string.
-
-     - Returns: A new string with occurrences of target strings replaced by the replacement string.
-     */
-    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
-        var newString = self
-        for string in strings {
-            newString = newString.replacingOccurrences(of: string, with: replacement, options: options, range: range)
-        }
-        return newString
-    }
-
-    /**
-     Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
-
-     - Parameters:
-        - values: A dictionary mapping target strings to their replacement strings.
-
-     - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
-     */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
-        var string = self
-        for value in values {
-            string = string.replacingOccurrences(of: value.key, with: value.value, options: options, range: range)
-        }
-        return string
-    }
-
-    /**
-     Replaces emoji representations of numbers.
-
-     - Returns: A new string with emoji numbers replaced by their corresponding decimal representations.
-     */
-    func replaceEmojiNumbers() -> String {
-        replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
-    }
-    
-    /// Returns the substring for the `NSRange`, or `nil` if the range couldn't be found.
-    func substring(fron range: NSRange) -> Substring? {
-        guard range != .notFound, let range = Range(range, in: self) else { return nil }
-        return self[range]
-    }
-    
-    /// The string as `CFString`.
-    var cfString: CFString {
-        self as CFString
-    }
-}
-
 public extension StringProtocol {
+    /// The range of the whole string as `NSRange`.
+    var nsRange: NSRange {
+        NSRange(startIndex..., in: self)
+    }
+
+    /// The length of the string.
+    var length: Int {
+        utf16.count
+    }
+    
+    /// The range of the whole string.
+    var range: Range<Index> {
+        startIndex..<endIndex
+    }
+    
+    /**
+     A Boolean value indicating whether the string contains any of the specified strings.
+     - Parameter strings: The strings.
+     - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
+     */
+    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
+        for string in strings {
+            if contains(string) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     A Boolean value indicating whether the string contains all specified strings.
+     - Parameter strings: The strings.
+     - Returns: `true` if all strings exist in the string, or` false` if not.
+     */
+    func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
+        for string in strings {
+            if contains(string) == false {
+                return false
+            }
+        }
+        return true
+    }
+    
+    /// Returns a new string made by removing all emoji characters.
+    func trimmingEmojis() -> String {
+        unicodeScalars
+            .filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }
+            .reduce(into: "") { $0 += String($1) }
+    }
+
     /// A representation of the string where the first character is lowercased.
     func lowercasedFirst() -> String {
         if isEmpty { return "" }
@@ -159,6 +154,61 @@ public extension StringProtocol {
 }
 
 public extension String {
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by another given string.
+
+     - Parameters:
+        - strings: An array of target strings to be replaced.
+        - replacement: The replacement string.
+
+     - Returns: A new string with occurrences of target strings replaced by the replacement string.
+     */
+    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
+        var newString = self
+        for string in strings {
+            newString = newString.replacingOccurrences(of: string, with: replacement, options: options, range: range)
+        }
+        return newString
+    }
+
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
+
+     - Parameters:
+        - values: A dictionary mapping target strings to their replacement strings.
+
+     - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
+     */
+    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
+        var string = self
+        for value in values {
+            string = string.replacingOccurrences(of: value.key, with: value.value, options: options, range: range)
+        }
+        return string
+    }
+
+    /**
+     Replaces emoji representations of numbers.
+
+     - Returns: A new string with emoji numbers replaced by their corresponding decimal representations.
+     */
+    func replaceEmojiNumbers() -> String {
+        replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
+    }
+    
+    /// Returns the substring for the `NSRange`, or `nil` if the range couldn't be found.
+    func substring(fron range: NSRange) -> Substring? {
+        guard range != .notFound, let range = Range(range, in: self) else { return nil }
+        return self[range]
+    }
+    
+    /// The string as `CFString`.
+    var cfString: CFString {
+        self as CFString
+    }
+}
+
+public extension String {
     static func += (lhs: inout Self, rhs: Character) {
         lhs += String(rhs)
     }
@@ -174,39 +224,27 @@ public extension Character {
     }
 }
 
-public extension StringProtocol {
-    /**
-     A Boolean value indicating whether the string contains any of the specified strings.
-     - Parameter strings: The strings.
-     - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
-     */
-    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
-        for string in strings {
-            if contains(string) {
-                return true
-            }
-        }
-        return false
+public extension NSString {
+    /// The range of the whole string as `NSRange`.
+    var range: NSRange {
+        NSRange(location: 0, length: length)
     }
+}
 
-    /**
-     A Boolean value indicating whether the string contains all specified strings.
-     - Parameter strings: The strings.
-     - Returns: `true` if all strings exist in the string, or` false` if not.
-     */
-    func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
-        for string in strings {
-            if contains(string) == false {
-                return false
-            }
-        }
-        return true
+public extension unichar {
+    /// The character as `Swift` character.
+    var swift: Character? {
+        guard let scalar = UnicodeScalar(self) else { return nil }
+        return Character(scalar)
     }
     
-    /// Returns a new string made by removing all emoji characters.
-    func trimmingEmojis() -> String {
-        unicodeScalars
-            .filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }
-            .reduce(into: "") { $0 += String($1) }
+    /// A Boolean value indicating whether this character represents a newline
+    var isNewline: Bool {
+        switch self {
+        case 0x000A, 0x000B, 0x000C, 0x000D, 0x0085, 0x2028, 0x2029:
+            return true
+        default:
+            return false
+        }
     }
 }

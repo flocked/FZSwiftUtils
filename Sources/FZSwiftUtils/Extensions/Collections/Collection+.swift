@@ -532,11 +532,6 @@ public extension Collection where Element: BinaryInteger {
         guard !isEmpty else { return .zero }
         return Double(reduce(.zero, +)) / Double(count)
     }
-
-    /// The total sum value of all values in the collection. If the collection is empty, it returns 0.
-    func sum() -> Self.Element {
-        reduce(0, +)
-    }
 }
 
 public extension Collection where Element: FloatingPoint {
@@ -545,10 +540,12 @@ public extension Collection where Element: FloatingPoint {
         guard !isEmpty else { return .zero }
         return reduce(.zero, +) / Element(count)
     }
+}
 
-    /// The total sum value of all values in the collection. If the collection is empty, it returns 0.
+public extension Collection where Element: AdditiveArithmetic {
+    /// The total sum value of all values in the collection. If the collection is empty, it returns `zero`.
     func sum() -> Self.Element {
-        reduce(0, +)
+        reduce(.zero, +)
     }
 }
 
