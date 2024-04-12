@@ -331,7 +331,7 @@ public extension TimeDuration {
 
     /// The time duration units.
     struct Units: OptionSet {
-        public let rawValue: UInt
+        public let rawValue: Int
         /// Nanosecond
         public static let nanoSecond = Units(rawValue: 1 << 0)
         /// Millisecond
@@ -359,7 +359,7 @@ public extension TimeDuration {
         public static let allDetailed: Units = [.second, .minute, .hour, .hour, .day, .week, .month, .year]
 
         /// Creates a units structure with the specified raw value.
-        public init(rawValue: UInt) {
+        public init(rawValue: Int) {
             self.rawValue = rawValue
         }
 

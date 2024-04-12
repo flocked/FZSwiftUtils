@@ -550,8 +550,8 @@ extension String {
         /// Regular Expression.
         public static let regularExpression = StringMatchingOption(rawValue: 1 << 26)
 
-        public let rawValue: Int32
-        public init(rawValue: Int32) { self.rawValue = rawValue }
+        public let rawValue: Int
+        public init(rawValue: Int) { self.rawValue = rawValue }
         
         var nlTags: [NLTag] {
             var tags: [NLTag] = []

@@ -21,8 +21,8 @@ public struct RectEdge: OptionSet, Codable {
     public static var all: RectEdge = [.left, .right, .bottom, .top]
     
     /// Creates an edges structure with the specified raw value.
-    public init(rawValue: Int32) { self.rawValue = rawValue }
-    public let rawValue: Int32
+    public init(rawValue: Int) { self.rawValue = rawValue }
+    public let rawValue: Int
 }
 
 #endif
