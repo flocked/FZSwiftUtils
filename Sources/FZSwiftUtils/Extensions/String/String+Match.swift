@@ -9,36 +9,33 @@ import Foundation
 import NaturalLanguage
 
 
-// --progress-template { "progress percentage":"%(progress._percent_str)s","progress total":"%(progress._total_bytes_str)s","speed":"%(progress._speed_str)s","ETA":"%(progress._eta_str)s"
-
-// --progress-template "{\"status\": \"%(progress.status)s}\"}"
-
-
 public extension String {
     /**
      Finds all matches in the string based on the provided regular expression pattern.
 
      - Parameters:
-        - regex: The regular expression pattern to search for.
-        - options: Optional options for matching.
+        - pattern: The regular expression pattern to search for.
+        - range: The range of the string to search, or `nil` to search everywhere.
+        - options: Options for matching.
      
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
-    func matches(regex: String, options: NSRegularExpression.Options = []) -> [StringMatch] {
-        results(for: regex, type: .regularExpression, options: options)
+    func matches(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> [StringMatch] {
+        results(for: pattern, type: .regularExpression, options: options)
     }
     
     /**
      Returns the first match of the specified regular expression.
      
      - Parameters:
-        - regex: The regular expression pattern to search for.
-        - options: Optional options for matching.
+        - pattern: The regular expression pattern to search for.
+        - range: The range of the string to search, or `nil` to search everywhere.
+        - options: Options for matching.
      */
-    func firstMatch(regex: String, options: NSRegularExpression.Options = []) -> StringMatch? {
+    func firstMatch(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> StringMatch? {
         do {
-            let regex = try NSRegularExpression(pattern: regex, options: options)
-            guard let result = regex.firstMatch(in: self, range: nsRange) else { return nil }
+            let expression = try NSRegularExpression(pattern: pattern, options: options)
+            guard let result = expression.firstMatch(in: self, range: nsRange) else { return nil }
             return StringMatch(result, string: self)
         } catch {
             debugPrint(error)
@@ -50,14 +47,15 @@ public extension String {
      Enumerates the matches for the specified string.
      
      - Parameters:
-        - regex: The regular expression pattern to search for.
-        - options: Optional options for matching.
+        - pattern: The regular expression pattern to search for.
+        - range: The range of the string to search, or `nil` to search everywhere.
+        - options: Options for matching.
      */
-    func enumerateMatches(regex: String, options: NSRegularExpression.Options = [], update: ((_ match: StringMatch?, _ completed: Bool)->(Bool))) {
+    func enumerateMatches(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = [], update: ((_ match: StringMatch?, _ completed: Bool)->(Bool))) {
         let matchOptions: NSRegularExpression.MatchingOptions =  [.reportProgress, .reportCompletion]
         do {
-            let regex = try NSRegularExpression(pattern: regex, options: options)
-            regex.enumerateMatches(in: self, options: matchOptions, range: nsRange) { result, flags, stop in
+            let expression = try NSRegularExpression(pattern: pattern, options: options)
+            expression.enumerateMatches(in: self, options: matchOptions, range: range?.nsRange(in: self) ?? nsRange) { result, flags, stop in
                 guard let result = result, let match = StringMatch(result, string: self) else { return }
                 let completed = flags.contains(any: [.requiredEnd, .hitEnd, .internalError])
                 if update(match, completed), !completed {
@@ -73,19 +71,14 @@ public extension String {
      A Boolean value indicating whether the string is matching the specified regular expression.
 
      - Parameters:
-        - regex: The regular expression pattern for validating.
-        - options: Optional options for matching.
+        - pattern: The regular expression pattern for validating.
+        - range: The range of the string to search, or `nil` to search everywhere.
+        - options: Options for matching.
      
      - Returns: `true` if the string is matching the regular expression, or `false` if the string isn't matching or the the expression is invalid.
      */
-    func isMatching(regex: String, options: NSRegularExpression.Options = []) -> Bool {
-        do {
-            let regex = try NSRegularExpression(pattern: regex, options: [])
-            return regex.firstMatch(in: self, range: nsRange) != nil
-        } catch {
-            debugPrint(error)
-            return false
-        }
+    func isMatching(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> Bool {
+        firstMatch(pattern: pattern, in: range, options: options) != nil
     }
     
     /**
@@ -93,15 +86,16 @@ public extension String {
 
      - Parameters:
         - pattern: The regular expression pattern to search for.
+        - range: The range of the string to search, or `nil` to search everywhere.
         - template: The substitution template used when replacing matching instances.
-        - options: Optional options for matching.
+        - options: Options for matching.
      
      - Returns: A string with matching regular expressions replaced by the template string, or `nil`, if the regular expression pattern is invalid.
      */
-    func replace(pattern: String, template: String, options: NSRegularExpression.Options = []) -> String? {
+    func replace(pattern: String, in range: Range<Index>? = nil, with template: String, options: NSRegularExpression.Options = []) -> String? {
         do {
-            let regex = try NSRegularExpression(pattern: pattern, options: options)
-            let replacedString = regex.stringByReplacingMatches(in: self, range: nsRange, withTemplate: template)
+            let expression = try NSRegularExpression(pattern: pattern, options: options)
+            let replacedString = expression.stringByReplacingMatches(in: self, range: range?.nsRange(in: self) ?? nsRange, withTemplate: template)
             return replacedString
         } catch {
             debugPrint(error)
@@ -117,13 +111,14 @@ public extension String {
         - fromString: The starting string to search for.
         - toString: The ending string to search for.
         - includingFromTo: A flag indicating whether to include the starting and ending strings in the results.
-        - options: Optional options for matching.
+        - range: The range of the string to search, or `nil` to search everywhere.
+        - options: Options for matching.
 
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
-    func matches(between fromString: String, and toString: String, includingFromTo: Bool = false, options: NSRegularExpression.Options = []) -> [StringMatch] {
+    func matches(between fromString: String, and toString: String, includingFromTo: Bool = false, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> [StringMatch] {
         let pattern = fromString.escapedPattern + "(.*?)" + toString.escapedPattern
-        let matches = matches(regex: pattern, options: options)
+        let matches = matches(pattern: pattern, in: range, options: options)
         return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.groups.first})
     }
     
@@ -135,14 +130,14 @@ public extension String {
      */
     func matches(for option: StringMatchingOption) -> [StringMatch] {
         var matches: [StringMatch] = []
-        if let checkingType = option.checkingType {
-            matches += self.results(for: checkingType)
+        if let textCheckingType = option.textCheckingType {
+            matches += self.results(for: textCheckingType)
         }
-        if !option.tags.isEmpty {
-            matches += self.results(for: option.tags)
+        if !option.nlTags.isEmpty {
+            matches += self.results(for: option.nlTags)
         }
         matches += option.enumerationOptions.flatMap({ self.results(for:$0) })
-        matches += option.patterns.flatMap({self.results(for: $0.pattern, type: $0.type)})
+        matches += option.regularExpressions.flatMap({self.results(for: $0.expression, type: $0.type)})
         matches = matches.sorted(by: \.range.lowerBound)
         return matches
     }
@@ -164,22 +159,22 @@ public extension String {
     
     /// All integer values inside the string.
     var integerValues: [Int] {
-        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
+        matches(pattern: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
     }
     
     /// All double values inside the string.
     var doubleValues: [Double] {
-        matches(regex: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
+        matches(pattern: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
     }
     
     private var escapedPattern: String {
         NSRegularExpression.escapedPattern(for: self)
     }
     
-    private func results(for pattern: String, type: StringMatch.ResultType, options: NSRegularExpression.Options = []) -> [StringMatch] {
+    private func results(for pattern: String, in range: Range<Index>? = nil, type: StringMatch.ResultType, options: NSRegularExpression.Options = []) -> [StringMatch] {
         do {
-            let regex = try NSRegularExpression(pattern: pattern, options: options)
-            return regex.matches(in: self, range: nsRange).compactMap({ StringMatch($0, string: self, type: type) }).uniqued()
+            let expression = try NSRegularExpression(pattern: pattern, options: options)
+            return expression.matches(in: self, range: range?.nsRange(in: self) ?? nsRange).compactMap({ StringMatch($0, string: self, type: type) }).uniqued()
         } catch {
             Swift.debugPrint(error)
             return []
@@ -238,10 +233,12 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     public let range: Range<String.Index>
     /// The result type.
     public let type: ResultType
-    /// The matched groups of a regular expression string match.
-    public let groups: [StringMatch]
     /// The extracted components.
     public let components: Components
+    /// The matched groups of a regular expression string match.
+    public let groups: [StringMatch]
+    /// The pattern of a regular expression match.
+    public let regularExpression: String?
     
     /// Extracted components.
     public struct Components: Hashable {
@@ -316,9 +313,11 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         self.range = range
         self.groups = groups
         if let result = result {
-            self.components = Components(result)
+            components = Components(result)
+            regularExpression = result.regularExpression?.pattern
         } else {
-            self.components = Components()
+            components = Components()
+            regularExpression = nil
         }
     }
     
@@ -528,7 +527,7 @@ extension String {
         public let rawValue: Int32
         public init(rawValue: Int32) { self.rawValue = rawValue }
         
-        var tags: [NLTag] {
+        var nlTags: [NLTag] {
             var tags: [NLTag] = []
             if contains(.placeName) { tags.append(.placeName) }
             if contains(.personalName) { tags.append(.personalName) }
@@ -545,7 +544,7 @@ extension String {
             return tags
         }
                         
-        var checkingType: NSTextCheckingResult.CheckingType? {
+        var textCheckingType: NSTextCheckingResult.CheckingType? {
             var checkingType: NSTextCheckingResult.CheckingType?
             func insert(_ type: NSTextCheckingResult.CheckingType) {
                 if checkingType != nil {
@@ -574,11 +573,11 @@ extension String {
             return options
         }
         
-        var patterns: [(pattern: String, type: StringMatch.ResultType)] {
-            var patterns: [(pattern: String, type: StringMatch.ResultType)] = []
+        var regularExpressions: [(expression: String, type: StringMatch.ResultType)] {
+            var patterns: [(expression: String, type: StringMatch.ResultType)] = []
             if contains(.hashtag) { patterns.append(("(#+[a-zA-Z0-9(_)]{1,})", .hashtag)) }
             if contains(.reply) { patterns.append((#"(?<![\w])@[\S]*\b"#, .reply)) }
-            if contains(.number) { patterns.append((#"\d+(?:\.\d+)?"#, .reply)) }
+            if contains(.number) { patterns.append((#"\d+(?:\.\d+)?"#, .number)) }
             return patterns
         }
     }

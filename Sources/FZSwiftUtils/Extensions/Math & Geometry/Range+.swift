@@ -88,6 +88,13 @@ public extension Range {
     }
 }
 
+public extension Range where Bound == String.Index {
+    /// `NSRange` representation of the range.
+    func nsRange<S: StringProtocol>(in string: S) -> NSRange {
+        NSRange(self, in: string)
+    }
+}
+
 public extension ClosedRange  {
     init(safe a: Bound,_ b: Bound) {
         self = Swift.min(a,b)...Swift.min(a,b)

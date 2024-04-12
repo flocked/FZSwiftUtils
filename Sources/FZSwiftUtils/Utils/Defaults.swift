@@ -1,7 +1,7 @@
 //
 //  Defaults.swift
 //
-// Parts taken from:
+//  Parts taken from:
 //  Copyright (c) 2017 - 2018 Nuno Manuel Dias
 //  Created by Florian Zand on 19.01.23.
 //

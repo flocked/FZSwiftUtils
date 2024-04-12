@@ -29,3 +29,8 @@ Sequence+Concurrency
 Swizzle
 - Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
 - https://github.com/MarioIannotta/SwizzleSwift
+
+
+LoremSwiftum
+- Copyright (c) 2014-2021 Lukas Kubanek.
+- https://github.com/lukaskubanek/LoremSwiftum

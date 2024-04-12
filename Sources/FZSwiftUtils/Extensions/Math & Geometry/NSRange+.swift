@@ -80,7 +80,7 @@ public extension NSRange {
     static var zero = NSRange(location: 0, length: 0)
 }
 
-extension Sequence<NSRange> {
+public extension Sequence<NSRange> {
     /// The range that contains all ranges.
     var union: NSRange? {
         guard let min = min, let max = max else { return nil }

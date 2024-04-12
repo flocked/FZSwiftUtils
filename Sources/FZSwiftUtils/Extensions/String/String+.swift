@@ -1,12 +1,11 @@
 //
 //  String+.swift
-//  FZExtensions
+//
 //
 //  Created by Florian Zand on 05.06.22.
 //
 
 import Foundation
-import NaturalLanguage
 
 public extension String {
     /**
@@ -18,10 +17,10 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the replacement string.
      */
-    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
         var newString = self
         for string in strings {
-            newString = newString.replacingOccurrences(of: string, with: replacement)
+            newString = newString.replacingOccurrences(of: string, with: replacement, options: options, range: range)
         }
         return newString
     }
@@ -34,10 +33,10 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
      */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement]) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
         var string = self
         for value in values {
-            string = string.replacingOccurrences(of: value.key, with: value.value)
+            string = string.replacingOccurrences(of: value.key, with: value.value, options: options, range: range)
         }
         return string
     }

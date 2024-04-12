@@ -561,7 +561,7 @@ private struct StructType: CustomStringConvertible {
     public let values: [Any]
     init(_ string: String) {
         let string = String(string.dropFirst(3).dropLast(3))
-        let matches = string.matches(regex: #"\{(.*?)=\w+\}"#).compactMap({$0.string}).filter({!$0.hasPrefix("{") && !$0.hasSuffix("}")})
+        let matches = string.matches(pattern: #"\{(.*?)=\w+\}"#).compactMap({$0.string}).filter({!$0.hasPrefix("{") && !$0.hasSuffix("}")})
         values = matches.compactMap({$0.toType()})
     }
     
@@ -585,7 +585,7 @@ private extension String {
         } else if let type = NSProtocolFromString(self.withoutBrackets) {
             return type
         } else {
-            let matches = self.matches(regex: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
+            let matches = self.matches(pattern: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
             if matches.count == 2, let match = matches.last {
                 return match.toType()
             }

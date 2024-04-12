@@ -59,7 +59,7 @@ public extension URLRequest {
     var bytesRanges: ClosedRange<Int>? {
         get {
             if let string = allHTTPHeaderFields?["Range"] {
-                let matches = string.matches(regex: "bytes=(\\d+)-(\\d+)").compactMap(\.string)
+                let matches = string.matches(pattern: "bytes=(\\d+)-(\\d+)").compactMap(\.string)
                 if matches.count == 2, let from = Int(matches[0]), let to = Int(matches[1]) {
                     return from ... to
                 }
