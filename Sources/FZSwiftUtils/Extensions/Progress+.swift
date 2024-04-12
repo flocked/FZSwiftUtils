@@ -240,8 +240,8 @@ extension Progress {
             let startSample = progressSamples[index]
             let endSample = progressSamples[index+1]
             let completedUnitCount = max(0, endSample.completedUnitCount - startSample.completedUnitCount)
-            let timeInterval = max(Double.leastNonzeroMagnitude, endSample.date.timeIntervalSince(startSample.date))
-        //    throughputs.append(Int(Double(completedUnitCount) / timeInterval))
+            // let timeInterval = max(Double.leastNonzeroMagnitude, endSample.date.timeIntervalSince(startSample.date))
+            // throughputs.append(Int(Double(completedUnitCount) / timeInterval))
             throughputs.append(Int(completedUnitCount))
         }
         guard throughputs.count > 0 else { return }

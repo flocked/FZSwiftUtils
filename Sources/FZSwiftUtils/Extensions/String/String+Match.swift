@@ -16,12 +16,32 @@ public extension String {
      - Parameters:
         - pattern: The regular expression pattern to search for.
         - range: The range of the string to search, or `nil` to search everywhere.
-        - options: Options for matching.
+        - options: The regular expression options that are applied to the expression during matching.
      
-     - Returns: An array of `StringMatch` objects representing the matches found.
+     - Returns: An array of `StringMatch` objects representing the matches found. It returns an empty array, if the pattern is invalid.
      */
     func matches(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> [StringMatch] {
         results(for: pattern, type: .regularExpression, options: options)
+    }
+    
+    /**
+     Returns the number of matches of the regular expression.
+
+     - Parameters:
+        - pattern: The regular expression pattern to search for.
+        - range: The range of the string to search, or `nil` to search everywhere.
+        - options: The regular expression options that are applied to the expression during matching.
+     
+     - Returns: The number of matches of the regular expression. It returns `0`, if the pattern is invalid.
+     */
+    func numberOfMatches(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> Int {
+        do {
+            let expression = try NSRegularExpression(pattern: pattern, options: options)
+            return expression.numberOfMatches(in: self, options: [], range: range?.nsRange(in: self) ?? nsRange)
+        } catch {
+            debugPrint(error)
+            return 0
+        }
     }
     
     /**
@@ -30,12 +50,14 @@ public extension String {
      - Parameters:
         - pattern: The regular expression pattern to search for.
         - range: The range of the string to search, or `nil` to search everywhere.
-        - options: Options for matching.
+        - options: The regular expression options that are applied to the expression during matching.
+     
+     - Returns: The first match for the regular expression. It returns `nil`, if the pattern is invalid.
      */
     func firstMatch(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> StringMatch? {
         do {
             let expression = try NSRegularExpression(pattern: pattern, options: options)
-            guard let result = expression.firstMatch(in: self, range: nsRange) else { return nil }
+            guard let result = expression.firstMatch(in: self, range: range?.nsRange(in: self) ?? nsRange) else { return nil }
             return StringMatch(result, string: self)
         } catch {
             debugPrint(error)
@@ -49,13 +71,17 @@ public extension String {
      - Parameters:
         - pattern: The regular expression pattern to search for.
         - range: The range of the string to search, or `nil` to search everywhere.
-        - options: Options for matching.
+        - options: The regular expression options that are applied to the expression during matching.
+        - reportProgress: A Boolean value indicating whether to report the progress. If `true`, the update handler is periodically called during long-running match operations.
+        - update: The handler that is called whenever a new match is found with the following parameters:
+            - match: The match for the specified pattern.
+            - completed: A Boolean value indicating whether the enumeration completed.
+            - Return: `true` to end enumeration the string for matches, or `false` to keep enumerating it.
      */
-    func enumerateMatches(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = [], update: ((_ match: StringMatch?, _ completed: Bool)->(Bool))) {
-        let matchOptions: NSRegularExpression.MatchingOptions =  [.reportProgress, .reportCompletion]
+    func enumerateMatches(pattern: String, in range: Range<Index>? = nil, options: NSRegularExpression.Options = [], reportProgress: Bool = false, update: ((_ match: StringMatch?, _ completed: Bool)->(Bool))) {
         do {
             let expression = try NSRegularExpression(pattern: pattern, options: options)
-            expression.enumerateMatches(in: self, options: matchOptions, range: range?.nsRange(in: self) ?? nsRange) { result, flags, stop in
+            expression.enumerateMatches(in: self, options: reportProgress ? [.reportCompletion] : [.reportProgress, .reportCompletion], range: range?.nsRange(in: self) ?? nsRange) { result, flags, stop in
                 guard let result = result, let match = StringMatch(result, string: self) else { return }
                 let completed = flags.contains(any: [.requiredEnd, .hitEnd, .internalError])
                 if update(match, completed), !completed {
@@ -73,7 +99,7 @@ public extension String {
      - Parameters:
         - pattern: The regular expression pattern for validating.
         - range: The range of the string to search, or `nil` to search everywhere.
-        - options: Options for matching.
+        - options: The regular expression options that are applied to the expression during matching.
      
      - Returns: `true` if the string is matching the regular expression, or `false` if the string isn't matching or the the expression is invalid.
      */
@@ -88,7 +114,7 @@ public extension String {
         - pattern: The regular expression pattern to search for.
         - range: The range of the string to search, or `nil` to search everywhere.
         - template: The substitution template used when replacing matching instances.
-        - options: Options for matching.
+        - options: The regular expression options that are applied to the expression during matching.
      
      - Returns: A string with matching regular expressions replaced by the template string, or `nil`, if the regular expression pattern is invalid.
      */
@@ -110,9 +136,9 @@ public extension String {
      - Parameters:
         - fromString: The starting string to search for.
         - toString: The ending string to search for.
-        - includingFromTo: A flag indicating whether to include the starting and ending strings in the results.
+        - includingFromTo: A Boolean value indicating whether to include the starting and ending strings in the results.
         - range: The range of the string to search, or `nil` to search everywhere.
-        - options: Options for matching.
+        - options: The regular expression options that are applied to the expression during matching.
 
      - Returns: An array of `StringMatch` objects representing the matches found.
      */
