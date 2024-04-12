@@ -507,16 +507,21 @@ private extension objc_property_t {
 }
 
 private let valueTypesMap: [String: Any] = {
+    var valueTypesMap = _valueTypesMap
     #if os(macOS) || canImport(UIKit)
-    _valueTypesMap + 
-    ["CGAffineTransform": CGAffineTransform.self,
+    valueTypesMap += [
+    "CGAffineTransform": CGAffineTransform.self,
     "{CATransform3D=dddddddddddddddd}": CATransform3D.self,
     "r^{CGPath=}": CGPath.self,
     "CATransform3D": CATransform3D.self,
     "CGPath": CGPath.self,]
-    #else
-     _valueTypesMap
     #endif
+    #if os(macOS)
+    valueTypesMap += [ "{NSEdgeInsets=dddd}": NSUIEdgeInsets.self, "NSEdgeInsets": NSUIEdgeInsets.self]
+    #elseif canImport(UIKit)
+    valueTypesMap += [ "{UIEdgeInsets=dddd}": NSUIEdgeInsets.self, "UIEdgeInsets": NSUIEdgeInsets.self]
+    #endif
+    return valueTypesMap
 }()
 
 private let _valueTypesMap: [String: Any] = [
@@ -537,13 +542,11 @@ private let _valueTypesMap: [String: Any] = [
     "{CGSize=dd}": CGSize.self,
     "{CGPoint=dd}": CGPoint.self,
     "{_NSRange=QQ}": _NSRange.self,
-    "{NSEdgeInsets=dddd}": NSEdgeInsets.self,
     "{CGRect={CGPoint=dd}{CGSize=dd}}": CGRect.self,
     "{CGAffineTransform=dddddd}": CGAffineTransform.self,
     "CGSize": CGSize.self,
     "CGPoint": CGPoint.self,
     "_NSRange": _NSRange.self,
-    "NSEdgeInsets": NSEdgeInsets.self,
     "CGRect": CGRect.self,
 ]
 
