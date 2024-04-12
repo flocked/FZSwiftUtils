@@ -1,5 +1,5 @@
 #if __APPLE__
-#import "ITKSuperBuilder.h"
+#import "SuperBuilder.h"
 
 @import ObjectiveC.message;
 @import ObjectiveC.runtime;
