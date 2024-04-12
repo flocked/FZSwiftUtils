@@ -24,3 +24,9 @@ extension CharacterSet {
         lhs = lhs.subtracting(rhs)
     }
 }
+
+extension Array where Element == CharacterSet {
+    public var union: CharacterSet {
+        reduce(into: CharacterSet()) { $0 += $1 }
+    }
+}
