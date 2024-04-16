@@ -30,7 +30,7 @@ extension Progress {
     /// Updates the estimate time remaining and throughput.
     public func updateEstimatedTimeRemaining() {
         let progressSampleLimitCount = 30
-        progressSamples.append((Date(), completedUnitCount))
+        progressSamples.append((Date(), isPaused ? -1 : completedUnitCount))
         progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
         refreshThroughput()
         refreshEstimatedTimeRemaining()
@@ -237,6 +237,10 @@ extension Progress {
         }
         var throughputs = [Int]()
         for index in 0..<progressSamples.count-1 {
+            guard progressSamples[index].completedUnitCount != -1 else {
+                throughputs.append(0)
+                return
+            }
             let startSample = progressSamples[index]
             let endSample = progressSamples[index+1]
             let completedUnitCount = max(0, endSample.completedUnitCount - startSample.completedUnitCount)

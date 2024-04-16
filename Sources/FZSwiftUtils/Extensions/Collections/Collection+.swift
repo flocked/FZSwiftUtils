@@ -549,6 +549,72 @@ public extension Collection where Element: AdditiveArithmetic {
     }
 }
 
+public extension Collection where Element: BinaryInteger {
+    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    func weightedAverage() -> Double {
+        compactMap({Double($0)}).weightedAverage()
+    }
+    
+    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    func weightedAverage(weights: [Double]) -> Double {
+        compactMap({Double($0)}).weightedAverage(weights: weights)
+    }
+    
+    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    func weightedAverage(weighting: ClosedRange<Double>) -> Double {
+        compactMap({Double($0)}).weightedAverage(weighting: weighting)
+    }
+}
+
+public extension Collection where Element: BinaryFloatingPoint {
+    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    func weightedAverage() -> Element {
+        FZSwiftUtils.weightedAverage(compactMap({$0}))
+    }
+    
+    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    func weightedAverage(weights: [Element]) -> Element {
+        FZSwiftUtils.weightedAverage(compactMap({$0}), weights: weights)
+    }
+    
+    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    func weightedAverage(weighting: ClosedRange<Element>) -> Element {
+        FZSwiftUtils.weightedAverage(compactMap({$0}), range: weighting)
+    }
+}
+
+private func weightedAverage<V: BinaryFloatingPoint>(_ values: [V], weights: [V]) -> V {
+    guard !values.isEmpty, values.count == weights.count else { return .zero }
+    let totalWeight = weights.sum()
+    guard totalWeight > 0 else { return .zero }
+    return zip(values, weights)
+            .map { $0 * $1 }
+            .reduce(.zero, +) / totalWeight
+}
+
+private func weightedAverage<V: BinaryFloatingPoint>(_ values: [V], range: ClosedRange<V>) -> V {
+    var weights: [V] = []
+    let range = range.upperBound-range.lowerBound
+    let divider: V = 1.0/V(values.count)
+    var value: V = 1.0
+    for _ in 0..<values.count {
+        weights.append(range*value)
+        value = value - divider
+    }
+    return weightedAverage(values, weights: weights)
+}
+
+private func weightedAverage<V: BinaryFloatingPoint>(_ values: [V]) -> V {
+    var weights: [V] = []
+    var value: V = 1.0
+    let divider: V = 1.0/V(values.count)
+    for _ in 0..<values.count {
+        weights.append(value)
+        value = value - divider
+    }
+    return weightedAverage(values, weights: weights)
+}
+
 public extension RangeReplaceableCollection {
     /**
      Returns the collection rotated by the specified amount of positions.
