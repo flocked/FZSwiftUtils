@@ -87,58 +87,78 @@ public extension StringProtocol {
 }
 
 public extension StringProtocol {
+    /// Returns the character at the specified offset.
     subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
     
+    /// Returns the character at the specified offset, or `nil` if the offset couldn't be found.
     subscript(safe offset: Int) -> Character? {
         guard let index = index(startIndex, offsetBy: offset, limitedBy: endIndex) else { return nil }
         return self[index]
     }
     
+    /// Returns the substring for the specified range.
     subscript(range: Range<Int>) -> SubSequence {
         let range = range.clamped(to: 0..<count)
         let startIndex = index(startIndex, offsetBy: range.lowerBound)
         return self[startIndex ..< index(startIndex, offsetBy: range.count)]
     }
     
-    subscript(range: ClosedRange<Int>) -> SubSequence {
-        self[range.lowerBound..<range.upperBound+1]
-    }
-    
+    /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: Range<Int>) -> SubSequence? {
         guard let startIndex = index(startIndex, offsetBy: range.lowerBound, limitedBy: endIndex) else { return nil }
         guard let endIndex = firstIndex(in: range) else { return nil }
         return self[startIndex...endIndex]
     }
     
+    /// Returns the substring for the specified range.
+    subscript(range: ClosedRange<Int>) -> SubSequence {
+        self[range.lowerBound..<range.upperBound+1]
+    }
+    
+    /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: ClosedRange<Int>) -> SubSequence? {
         self[safe: range.lowerBound..<range.upperBound+1]
     }
     
-    subscript(range: PartialRangeFrom<Int>) -> SubSequence { self[index(startIndex, offsetBy: range.lowerBound)...] }
-    subscript(range: PartialRangeThrough<Int>) -> SubSequence { self[...index(startIndex, offsetBy: range.upperBound)] }
-    subscript(range: PartialRangeUpTo<Int>) -> SubSequence { self[..<index(startIndex, offsetBy: range.upperBound)] }
+    /// Returns the substring for the specified `NSRange`.
+    subscript(range: NSRange) -> SubSequence {
+        return self[safe: range]!
+    }
     
+    /// Returns the substring for the specified `NSRange`, or `nil` if the range couldn't be found.
+    subscript(safe range: NSRange) -> SubSequence? {
+        guard let range = Range<Index>(range, in: self) else { return nil }
+        return self[range]
+    }
+    
+    /// Returns the substring for the specified range.
+    subscript(range: PartialRangeFrom<Int>) -> SubSequence { self[index(startIndex, offsetBy: range.lowerBound)...] }
+    
+    /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: PartialRangeFrom<Int>) -> SubSequence? {
         guard let startIndex = index(startIndex, offsetBy: range.lowerBound, limitedBy: endIndex) else { return nil }
         return self[index(startIndex, offsetBy: range.lowerBound)...]
     }
     
+    /// Returns the substring for the specified range.
+    subscript(range: PartialRangeThrough<Int>) -> SubSequence { self[...index(startIndex, offsetBy: range.upperBound)] }
+    
+    /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: PartialRangeThrough<Int>) -> SubSequence? {
         guard let endIndex = firstIndex(in: 0..<range.upperBound) else { return nil }
         return self[...endIndex]
     }
     
+    /// Returns the substring for the specified range.
+    subscript(range: PartialRangeUpTo<Int>) -> SubSequence { self[..<index(startIndex, offsetBy: range.upperBound)] }
+    
+    /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: PartialRangeUpTo<Int>) -> SubSequence? {
         guard let endIndex = firstIndex(in: 0..<range.upperBound) else { return nil }
         return self[..<endIndex]
     }
-    
-    subscript(range: NSRange) -> SubSequence? {
-        guard let range = Range<Index>(range, in: self) else { return nil }
-        return self[range]
-    }
-    
-    internal func firstIndex(in range: Range<Int>) -> Index? {
+
+    private func firstIndex(in range: Range<Int>) -> Index? {
         var upperBound = range.upperBound
         var endIndex = index(startIndex, offsetBy: upperBound, limitedBy: endIndex)
         while endIndex == nil {
@@ -160,6 +180,7 @@ public extension String {
      - Parameters:
         - strings: An array of target strings to be replaced.
         - replacement: The replacement string.
+        - options: Options for replacing the string.
 
      - Returns: A new string with occurrences of target strings replaced by the replacement string.
      */
@@ -170,55 +191,31 @@ public extension String {
         }
         return newString
     }
-    
-    /*
-    /**
-     Returns a new string in which all occurrences of the target strings are replaced by another given string.
-
-     - Parameters:
-        - strings: An array of target strings to be replaced.
-        - replacement: The replacement string.
-
-     - Returns: A new string with occurrences of target strings replaced by the replacement string.
-     */
-    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
-        var newString = self
-        for string in strings {
-            newString = newString.replacingOccurrences(of: string, with: replacement, options: options, range: range)
-        }
-        return newString
-    }
-    */
 
     /**
      Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
 
      - Parameters:
         - values: A dictionary mapping target strings to their replacement strings.
+        - options: Options for replacing the string.
 
      - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
      */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
         var string = self
         for value in values {
-            string = string.replacingOccurrences(of: value.key, with: value.value, options: options, range: range)
+            string = string.replacingOccurrences(of: value.key, with: value.value, options: options)
         }
         return string
     }
 
     /**
-     Replaces emoji representations of numbers.
+     Replaces emoji representations of numbers (e.g. "4️⃣3️⃣" to "43").
 
      - Returns: A new string with emoji numbers replaced by their corresponding decimal representations.
      */
     func replaceEmojiNumbers() -> String {
         replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
-    }
-    
-    /// Returns the substring for the `NSRange`, or `nil` if the range couldn't be found.
-    func substring(fron range: NSRange) -> Substring? {
-        guard range != .notFound, let range = Range(range, in: self) else { return nil }
-        return self[range]
     }
     
     /// The string as `CFString`.
