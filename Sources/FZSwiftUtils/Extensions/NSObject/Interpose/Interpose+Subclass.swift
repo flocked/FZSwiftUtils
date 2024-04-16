@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import _SuperBuilder
 
 class InterposeSubclass {
 
@@ -98,7 +99,7 @@ class InterposeSubclass {
 
     class var supportsSuperTrampolines: Bool {
         
-        Swift.print("supportsSuperTrampolines", NSClassFromString("SuperBuilder") != nil, NSClassFromString("SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false)
+        Swift.print("supportsSuperTrampolines", _SuperBuilder.isSupportedArchitecure, NSClassFromString("SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false)
        return NSClassFromString("SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false
     }
 
