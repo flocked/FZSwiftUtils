@@ -163,6 +163,24 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the replacement string.
      */
+    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
+        var newString = self
+        for string in strings {
+            newString = newString.replacingOccurrences(of: string, with: replacement, options: options)
+        }
+        return newString
+    }
+    
+    /*
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by another given string.
+
+     - Parameters:
+        - strings: An array of target strings to be replaced.
+        - replacement: The replacement string.
+
+     - Returns: A new string with occurrences of target strings replaced by the replacement string.
+     */
     func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol, Replacement: StringProtocol {
         var newString = self
         for string in strings {
@@ -170,6 +188,7 @@ public extension String {
         }
         return newString
     }
+    */
 
     /**
      Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
