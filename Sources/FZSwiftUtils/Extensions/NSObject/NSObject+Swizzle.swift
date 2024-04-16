@@ -47,7 +47,7 @@ extension NSObject {
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
             if hooks.isEmpty {
-               // try checkObjectForSwizzling()
+                try checkObjectForSwizzling()
             }
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
