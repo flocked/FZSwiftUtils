@@ -30,7 +30,11 @@ extension Progress {
     /// Updates the estimate time remaining and throughput.
     public func updateEstimatedTimeRemaining() {
         let progressSampleLimitCount = 30
-        progressSamples.append((Date(), isPaused ? -1 : completedUnitCount))
+        // progressSamples.append((Date(), isPaused ? -1 : completedUnitCount))
+        
+        let changed = completedUnitCount - (progressSamples.last?.completed ?? completedUnitCount)
+        progressSamples.append((Date(), changed, completedUnitCount))
+
         progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
         refreshThroughput()
         refreshEstimatedTimeRemaining()
@@ -211,7 +215,7 @@ extension Progress {
         set { setAssociatedValue(newValue, key: "estimatedTimeCompletedUnits")  }
     }
     
-    var progressSamples: [(date: Date, completedUnitCount: Int64)] {
+    var progressSamples: [(date: Date, changed: Int64, completed: Int64)] {
         get { getAssociatedValue("progressSamples", initialValue: []) }
         set { setAssociatedValue(newValue, key: "progressSamples") }
     }
@@ -221,20 +225,23 @@ extension Progress {
             estimatedTimeRemaining = 0
             return
         }
-        let throughputAsDouble = Double(throughput ?? 0)
-        guard let completedUnitCount = progressSamples.last?.completedUnitCount, throughputAsDouble != 0 else {
+        let throughput = Double(throughput ?? 0)
+        guard let completedUnitCount = progressSamples.last?.completed, throughput != 0 else {
             estimatedTimeRemaining = nil
             return
         }
         let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
-        estimatedTimeRemaining = Double(remainingUnitCount) / throughputAsDouble
+        estimatedTimeRemaining = Double(remainingUnitCount) / throughput
     }
     
     func refreshThroughput() {
+        throughput = Int(progressSamples.compactMap({$0.changed}).average())
+        /*
         guard progressSamples.count > 1 else {
             throughput = 0
             return
         }
+        
         var throughputs = [Int]()
         for index in 0..<progressSamples.count-1 {
             guard progressSamples[index].completedUnitCount != -1 else {
@@ -250,6 +257,7 @@ extension Progress {
         }
         guard throughputs.count > 0 else { return }
         throughput = Int(throughputs.average())
+         */
     }
     
     var isCompleted: Bool {
