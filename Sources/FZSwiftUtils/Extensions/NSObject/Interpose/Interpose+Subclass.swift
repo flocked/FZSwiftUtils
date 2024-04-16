@@ -98,7 +98,7 @@ class InterposeSubclass {
 
     class var supportsSuperTrampolines: Bool {
         
-        Swift.print("supportsSuperTrampolines", NSClassFromString("SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false)
+        Swift.print("supportsSuperTrampolines", NSClassFromString("SuperBuilder") != nil, NSClassFromString("SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false)
        return NSClassFromString("SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false
     }
 
