@@ -104,7 +104,7 @@ extension NSObject {
                 activateAllObservations()
                 throw SwizzleError.keyValueObservationDetected(self)
             } else {
-              //  throw SwizzleError.objectPosingAsDifferentClass(self, actualClass: actualClass)
+                throw SwizzleError.objectPosingAsDifferentClass(self, actualClass: actualClass)
             }
         }
     }

@@ -98,9 +98,7 @@ class InterposeSubclass {
     }
 
     class var supportsSuperTrampolines: Bool {
-        
-        Swift.print("supportsSuperTrampolines", _SuperBuilder.isSupportedArchitecure, NSClassFromString("_SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false)
-       return NSClassFromString("_SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false
+        _SuperBuilder.isSupportedArchitecure
     }
 
     private lazy var addSuperImpl: @convention(c) (AnyClass, Selector, NSErrorPointer) -> Bool = {
