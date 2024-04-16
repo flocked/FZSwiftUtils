@@ -8,7 +8,7 @@
 import Foundation
 
 public extension PartialKeyPath {
-    /// The name of the key path, if it's a @objc property, else the hash value.
+    /// The name of the key path, if it's a `ObjcC` property, else the hash value.
     var stringValue: String {
         if let string = _kvcKeyPathString {
             return string
