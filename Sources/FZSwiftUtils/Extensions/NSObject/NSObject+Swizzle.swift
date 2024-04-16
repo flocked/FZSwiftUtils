@@ -35,8 +35,10 @@ extension NSObject {
         debugPrint(error)
      }
      ```
+          
+     To reset the replaced method, use `resetMethod(_:)`.
      
-     To reset the replaced method, use `replaceMethod(_:)`.
+     You can only replace methods of objects that are KVO observed, if you observe them using `observeChanges(for:handler:)` or ``KeyValueObserver``.
      
      - Returns: The token for resetting the replaced method.
      */
@@ -117,33 +119,10 @@ extension NSObject {
     public struct ReplacedMethodToken {
         /// The selector for the replaced method.
         public let selector: Selector
-        let id: UUID
+        /// The id of the token.
+        public let id: UUID
         
         init(_ hook: AnyHook) {
-            self.selector = hook.selector
-            self.id = hook.id
-        }
-    }
-    
-    public struct ReplacedMethod<MethodSignature, HookSignature> {
-        public var original: MethodSignature? {
-            hook?.original
-        }
-        /// The selector for the replaced method.
-        public let selector: Selector
-        let id: UUID
-        
-        public func revert() throws {
-           try hook?.revert()
-        }
-        
-        public func apply() throws {
-           try hook?.apply()
-        }
-        
-        weak var hook: TypedHook<MethodSignature, HookSignature>?
-        init(_ hook: TypedHook<MethodSignature, HookSignature>) {
-            self.hook = hook
             self.selector = hook.selector
             self.id = hook.id
         }
@@ -231,6 +210,24 @@ extension NSObject {
     static var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue("_hooks", initialValue: [:]) }
         set { setAssociatedValue(newValue, key: "_hooks") }
+    }
+    
+    /// All replaced instance methods.
+    public var replacedMethods: [ReplacedMethodToken] {
+        hooks.flatMap({$0.value}).compactMap({ReplacedMethodToken($0)})
+    }
+    
+    /// All replaced class methods.
+    public static var replacedMethods: [ReplacedMethodToken] {
+        hooks.flatMap({$0.value}).compactMap({ReplacedMethodToken($0)})
+    }
+    
+    /// A Boolean value indicating whether the object is being key value observed.
+    public var isKeyValueObserved: Bool {
+        if let actualClass = checkObjectPosingAsDifferentClass() {
+            return isKVORuntimeGeneratedClass(actualClass)
+        }
+        return false
     }
 }
 
