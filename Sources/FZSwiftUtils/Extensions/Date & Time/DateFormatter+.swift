@@ -54,84 +54,72 @@ public extension DateFormatter {
     }
     
     /// Sets the time style.
-    @discardableResult
     func style(_ style: Style) -> Self {
         dateStyle = style
         return self
     }
     
     /// Sets the date style.
-    @discardableResult
     func timeStyle(_ style: Style) -> Self {
         timeStyle = style
         return self
     }
     
     /// Sets the date format string
-    @discardableResult
     func format(_ format: String) -> Self {
         dateFormat = format
         return self
     }
     
     /// Sets the calendar.
-    @discardableResult
     func calendar(_ calendar: Calendar) -> Self {
         self.calendar = calendar
         return self
     }
     
     /// Sets the default date.
-    @discardableResult
     func defaultDate(_ date: Date?) -> Self {
         defaultDate = date
         return self
     }
     
     /// Sets the locale.
-    @discardableResult
     func locale(_ locale: Locale) -> Self {
         self.locale = locale
         return self
     }
     
     /// Sets the time zone.
-    @discardableResult
     func timeZone(_ timeZone: TimeZone) -> Self {
         self.timeZone = timeZone
         return self
     }
     
     /// Sets the earliest date that can be denoted by a two-digit year specifier.
-    @discardableResult
     func twoDigitStartDate(_ date: Date?) -> Self {
         twoDigitStartDate = date
         return self
     }
     
     /// Sets the start date of the Gregorian calendar.
-    @discardableResult
     func gregorianStartDate(_ date: Date?) -> Self {
         gregorianStartDate = date
         return self
     }
     
     /// Sets the formatter behavior.
-    @discardableResult
     func formatterBehavior(_ behavior: Behavior) -> Self {
         formatterBehavior = behavior
         return self
     }
     
     /// Sets the Boolean value that indicates whether the formatter uses heuristics when parsing a string.
-    @discardableResult
     func isLenient(_ isLenient: Bool) -> Self {
         self.isLenient = isLenient
         return self
     }
     
     /// Sets the Boolean value that indicates whether the formatter uses phrases such as “today” and “tomorrow” for the date component.
-    @discardableResult
     func doesRelativeDateFormatting(_ doesRelativeDateFormatting: Bool) -> Self {
         self.doesRelativeDateFormatting = doesRelativeDateFormatting
         return self
