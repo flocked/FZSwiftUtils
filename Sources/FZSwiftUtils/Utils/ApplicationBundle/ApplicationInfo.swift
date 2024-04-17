@@ -7,25 +7,44 @@
 
 #if os(macOS)
 
-    import AppKit
     import Foundation
-    import SwiftUI
     import UniformTypeIdentifiers
 
-    struct ApplicationInfo: Codable {
-        var identifier: String
-        var executable: String
+    /// The application info, constructed from the bundle’s `Info.plist` file.
+    public struct ApplicationInfo: Codable {
+        /// The url of the `info.plist`.
+        public private(set) var url: URL?
+        
+        /// The bundle identifier.
+        public let bundleIdentifier: String
+        
+        /// The bundle name.
+        public let bundleName: String?
+        
+        /// The name of the executable.
+        public let executable: String
 
-        var name: String?
-        var displayName: String?
-        var iconFile: String?
-        var iconName: String?
-        var version: String?
-        var shortVersion: String?
-        let minimumSystemVersion: String?
-        var supportedFileTypes: [FileTypeDefinition]
-
-        var url: URL?
+        /// The display name.
+        public let displayName: String?
+        
+        /// The version.
+        public let version: String?
+        
+        /// The short version.
+        public let shortVersion: String?
+        
+        /// The minimum version.
+        public let minimumSystemVersion: String?
+        
+        /// The supported file types.
+        public let supportedFileTypes: [FileTypeDefinition]
+        
+        /// The name of the icon file.
+        public let iconFile: String?
+        
+        /// The name of the icon.
+        public let iconName: String?
+        
         init?(url: URL) {
             do {
                 let data = try Data(contentsOf: url)
@@ -37,15 +56,11 @@
             }
         }
 
-        init?(path: String) {
-            self.init(url: URL(fileURLWithPath: path))
-        }
-
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            name = try container.decodeIfPresent(String.self, forKey: .name)
+            bundleName = try container.decodeIfPresent(String.self, forKey: .bundleName)
             displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
-            identifier = try container.decode(String.self, forKey: .identifier)
+            bundleIdentifier = try container.decode(String.self, forKey: .bundleIdentifier)
             iconFile = try container.decodeIfPresent(String.self, forKey: .iconFile)
             iconName = try container.decodeIfPresent(String.self, forKey: .iconName)
             executable = try container.decode(String.self, forKey: .executable)
@@ -62,20 +77,10 @@
             self.supportedFileTypes = supportedFileTypes
         }
 
-        init?(dic: [String: Any]) {
-            do {
-                let data = try JSONSerialization.data(withJSONObject: dic, options: .init())
-                let info = try JSONDecoder().decode(ApplicationInfo.self, from: data)
-                self = info
-            } catch {
-                return nil
-            }
-        }
-
         private enum CodingKeys: String, CodingKey {
-            case name = "CFBundleName"
+            case bundleName = "CFBundleName"
             case displayName = "CFBundleDisplayName"
-            case identifier = "CFBundleIdentifier"
+            case bundleIdentifier = "CFBundleIdentifier"
             case iconFile = "CFBundleIconFile"
             case iconName = "CFBundleIconName"
             case executable = "CFBundleExecutable"

@@ -9,26 +9,27 @@
     import AppKit
     import UniformTypeIdentifiers
 
+    @available(macOS 12.0, *)
     public extension NSWorkspace {
-        @available(macOS 12.0, *)
-        func applications(toOpen fileExtension: String) -> [ApplicationBundle] {
+        /// Applications that can open the specified file extension.
+        func applications(toOpen fileExtension: String) -> [Bundle] {
             if let uttype = UTType(filenameExtension: fileExtension.lowercased()) {
                 return applications(toOpen: uttype)
             }
             return []
         }
 
-        @available(macOS 12.0, *)
-        func applications(toOpen uttype: UTType) -> [ApplicationBundle] {
-            urlsForApplications(toOpen: uttype).compactMap { ApplicationBundle(url: $0) }
+        /// Applications that can open the specified content type.
+        func applications(toOpen uttype: UTType) -> [Bundle] {
+            urlsForApplications(toOpen: uttype).compactMap { Bundle(url: $0) }
         }
 
-        @available(macOS 12.0, *)
+        /// File definitions for the specified file extension.
         func fileDefinitions(for fileExtension: String) -> [FileTypeDefinition] {
             UTType(filenameExtension: fileExtension.lowercased())?.definitions ?? []
         }
 
-        @available(macOS 12.0, *)
+        /// File definitions for the specified content type.
         func fileDefinitions(for uttype: UTType) -> [FileTypeDefinition] {
             uttype.definitions
         }

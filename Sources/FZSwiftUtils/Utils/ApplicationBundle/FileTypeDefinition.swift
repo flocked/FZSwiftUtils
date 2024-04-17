@@ -22,9 +22,9 @@
             contentTypeIdentifiers.compactMap { UTType($0) }
         }
 
-        public var application: ApplicationBundle? {
+        public var application: Bundle? {
             if let applicationURL = applicationURL {
-                return ApplicationBundle(url: applicationURL)
+                return Bundle(url: applicationURL)
             } else {
                 return nil
             }

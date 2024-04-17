@@ -78,27 +78,19 @@
 
         @available(macOS 12.0, *)
         public extension UTType {
-            /**
-             An array of URLs to applications that support opening the `UTType`.
-              */
+            /// An array of URLs to applications that support opening the `UTType`.
             var supportedApplicationURLs: [URL] {
                 NSWorkspace.shared.urlsForApplications(toOpen: self)
             }
 
             /// An array of applications that support opening the `UTType`.
-            var supportedApplications: [ApplicationBundle] {
-                NSWorkspace.shared.urlsForApplications(toOpen: self).compactMap { ApplicationBundle(url: $0) }
+            var supportedApplications: [Bundle] {
+                NSWorkspace.shared.applications(toOpen: self)
             }
 
             /// An array of all file definitions for the `UTType`.
             var definitions: [FileTypeDefinition] {
-                var allDefinitions = [FileTypeDefinition]()
-                for appBunle in supportedApplications {
-                    if let definition = appBunle.fileTypeDefinition(for: self) {
-                        allDefinitions.append(definition)
-                    }
-                }
-                return allDefinitions
+                supportedApplications.compactMap({ $0.fileTypeDefinition(for: self) })
             }
         }
     #endif
