@@ -118,7 +118,7 @@ public class ImageSource {
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func getThumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) -> CGImage? {
-        CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toCFDictionary())
+        CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toDictionary().cfDictionary)
     }
 
     /**
@@ -148,7 +148,7 @@ public class ImageSource {
      */
     public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.global(qos: .userInteractive).async {
-            let image = CGImageSourceCreateThumbnailAtIndex(self.cgImageSource, index, options?.toCFDictionary())
+            let image = CGImageSourceCreateThumbnailAtIndex(self.cgImageSource, index, options?.toDictionary().cfDictionary)
             completionHandler(image)
         }
     }

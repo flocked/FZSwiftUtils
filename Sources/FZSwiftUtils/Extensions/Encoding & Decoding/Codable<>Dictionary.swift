@@ -9,28 +9,19 @@ import Foundation
 
 public extension Encodable {
     /**
-     Converts the encodable object to a CFDictionary.
+     Converts the encodable type to a dictionary.
 
-     - Returns: A `CFDictionary` representation of the encodable object.
-     */
-    func toCFDictionary() -> CFDictionary {
-        (toDictionary(encoder: .init()) as [CFString: Any]) as CFDictionary
-    }
-
-    /**
-     Converts the encodable object to a dictionary.
-
-     - Returns: A `[String: Any]` representation of the encodable object.
+     - Returns: A `[String: Any]` representation of the encodable type.
      */
     func toDictionary() -> [String: Any] {
         toDictionary(encoder: .init())
     }
 
     /**
-     Converts the encodable object to a dictionary using the specified JSON encoder.
+     Converts the encodable type to a dictionary using the specified JSON encoder.
 
-     - Parameter encoder: The JSON encoder to use for encoding the object. Default is a new instance of `JSONEncoder`.
-     - Returns: A `[String: Any]` representation of the encodable object.
+     - Parameter encoder: The JSON encoder to use for encoding the type. Default is a new instance of `JSONEncoder`.
+     - Returns: A `[String: Any]` representation of the encodable type.
      */
     func toDictionary(encoder: JSONEncoder) -> [String: Any] {
         do {
@@ -45,57 +36,27 @@ public extension Encodable {
     }
 }
 
-public extension CFDictionary {
-    /**
-     Converts the dictionary to a model object of the specified type.
-
-     - Parameter type: The type of the model object to decode. Default is inferred from the context.
-     - Parameter decoder: The JSON decoder to use for decoding the data. Default is a new instance of `JSONDecoder`.
-     - Returns: A model object of the specified type, or `nil` if the decoding fails.
-     */
-    func toModel<T: Codable>() -> T? {
-        toModel(T.self, decoder: .init())
-    }
-
-    /**
-     Converts the dictionary to a model object of the specified type using the specified JSON decoder.
-
-     - Parameter type: The type of the model object to decode. Default is inferred from the context.
-     - Parameter decoder: The JSON decoder to use for decoding the data.
-     - Returns: A model object of the specified type, or `nil` if the decoding fails.
-     */
-    func toModel<T: Codable>(_ type: T.Type = T.self, decoder: JSONDecoder) -> T? {
-        do {
-            let data = try JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
-            let obj = try decoder.decode(type, from: data)
-            return obj
-        } catch {
-            debugPrint(error)
-            return nil
-        }
-    }
-}
-
 public extension Dictionary {
     /**
-     Converts the dictionary to a model object of the specified type.
+     Converts the dictionary to a model object of the specified decodable type.
 
      - Parameter type: The type of the model object to decode. Default is inferred from the context.
      - Parameter decoder: The JSON decoder to use for decoding the data. Default is a new instance of `JSONDecoder`.
      - Returns: A model object of the specified type, or `nil` if the decoding fails.
      */
-    func toModel<T: Codable>() -> T? {
+    func toModel<T: Decodable>() -> T? {
         toModel(T.self, decoder: .init())
     }
 
     /**
-     Converts the dictionary to a model object of the specified type using the specified JSON decoder.
+     Converts the dictionary to a model object of the specified decodable type using the specified JSON decoder.
 
-     - Parameter type: The type of the model object to decode. Default is inferred from the context.
-     - Parameter decoder: The JSON decoder to use for decoding the data. Default is a new instance of `JSONDecoder`.
+     - Parameters:
+        - type: The type of the model object to decode. Default is inferred from the context.
+        - decoder: The JSON decoder to use for decoding the data. Default is a new instance of `JSONDecoder`.
      - Returns: A model object of the specified type, or `nil` if the decoding fails.
      */
-    func toModel<T: Codable>(_ type: T.Type = T.self, decoder: JSONDecoder = .init()) -> T? {
+    func toModel<T: Decodable>(_ type: T.Type = T.self, decoder: JSONDecoder = .init()) -> T? {
         do {
             let data = try JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
             let obj = try decoder.decode(type, from: data)
