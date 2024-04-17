@@ -7,20 +7,14 @@
 
 import Foundation
 
-extension JSONEncoder.DateEncodingStrategy: ExpressibleByStringLiteral {
+extension JSONEncoder.DateEncodingStrategy {
     /**
      Creates a date encoding strategy using the specified date format.
 
-     - Parameter format: The string format used to encode the dates.
-     - Returns: A `JSONEncoder.DateEncodingStrategy` that formats dates using the specified format.
+     - Parameter format: The format used to encode the dates.
      */
     public static func formatted(_ format: String) -> JSONEncoder.DateEncodingStrategy {
         .formatted(DateFormatter(format))
-    }
-    
-    /// Creates a date encoding strategy using the string as date format.
-    public init(stringLiteral value: String) {
-        self = .formatted(value)
     }
 }
 
@@ -46,20 +40,14 @@ public extension JSONEncoder {
     }
 }
 
-extension JSONDecoder.DateDecodingStrategy: ExpressibleByStringLiteral {
+extension JSONDecoder.DateDecodingStrategy {
     /**
      Creates a date decoding strategy using the specified date format.
 
-     - Parameter format: The string format used to decoding the dates.
-     - Returns: A `JSONEncoder.DateDecodingStrategy` that formats dates using the specified format.
+     - Parameter format: The format used to decoding the dates.
      */
     public static func formatted(_ format: String) -> JSONDecoder.DateDecodingStrategy {
         .formatted(DateFormatter(format))
-    }
-    
-    /// Creates a date decoding strategy using the string as date format.
-    public init(stringLiteral value: String) {
-        self = .formatted(value)
     }
 }
 

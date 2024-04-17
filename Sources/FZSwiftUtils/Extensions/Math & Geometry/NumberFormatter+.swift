@@ -40,11 +40,12 @@ public extension NumberFormatter {
      - Parameters:
         - minValue: The minimum number.
         - maxValue: The maximum number.
+        - locale: The local of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for integer formatting.
      */
-    static func integer(minValue: Int? = nil, maxValue: Int? = nil) -> NumberFormatter {
-        NumberFormatter(style: .none, minValue: minValue != nil ? Double(minValue!) : nil, maxValue: maxValue != nil ? Double(maxValue!) : nil)
+    static func integer(minValue: Int? = nil, maxValue: Int? = nil, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .none, minValue: minValue != nil ? Double(minValue!) : nil, maxValue: maxValue != nil ? Double(maxValue!) : nil, locale: locale)
     }
     
     /**
@@ -55,11 +56,12 @@ public extension NumberFormatter {
         - maxValue: The maximum number.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
+        - locale: The local of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for decimal formatting.
      */
-    static func decimal(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) -> NumberFormatter {
-        NumberFormatter(style: .decimal, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction)
+    static func decimal(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .decimal, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, locale: locale)
     }
     
     /**
@@ -70,11 +72,12 @@ public extension NumberFormatter {
         - maxValue: The maximum number.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
+        - locale: The local of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for percent formatting.
      */
-    static func percent(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) -> NumberFormatter {
-        NumberFormatter(style: .percent, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction)
+    static func percent(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .percent, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, locale: locale)
     }
     
     /**
@@ -85,11 +88,12 @@ public extension NumberFormatter {
         - maxValue: The maximum number.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
+        - locale: The local of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for currency formatting.
      */
-    static func currency(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) -> NumberFormatter {
-        NumberFormatter(style: .currency, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction)
+    static func currency(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .currency, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, locale: locale)
     }
     
     /**
@@ -101,12 +105,14 @@ public extension NumberFormatter {
         - maxValue: The maximum number.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
+        - locale: The local of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for currency formatting.
      */
-    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil) {
+    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) {
         self.init()
         self.numberStyle = style
+        self.locale = locale
         minimumValue = minValue
         maximumValue = maxValue
         minimumFractionDigits = minFraction ?? 0
@@ -116,48 +122,12 @@ public extension NumberFormatter {
     }
 
     /**
-     Creates a number formatter for an integer value with the specified format, number of digits and locale.
-
-     - Parameters:
-        - format: The format string used to format the number. The default value is `"#,###"`.
-        - numberOfDigits: The number of digits to display. The default value is `0`.
-        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-     */
-    static func forInteger(with format: String = "#,###", numberOfDigits: Int = 0, locale: Locale? = nil) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale ?? Locale.current
-        formatter.positiveFormat = format
-        formatter.negativeFormat = "-\(format)"
-        formatter.minimumIntegerDigits = numberOfDigits
-        formatter.usesGroupingSeparator = false
-        return formatter
-    }
-
-    /**
-     Creates a number formatter for a floating point value with the specified format, number of digits and locale.
-
-     - Parameters:
-        - format: The format string used to format the number. The default value is `"#,###"`.
-        - numberOfDigits: The number of digits to display. The default value is `1`.
-        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-     */
-    static func forFloatingPoint(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> NumberFormatter {
-        let formatter = NumberFormatter()
-        formatter.locale = locale ?? Locale.current
-        formatter.maximumFractionDigits = numberOfDigits
-        formatter.positiveFormat = format
-        formatter.negativeFormat = "-\(format)"
-
-        return formatter
-    }
-
-    /**
      Returns a string representation of the specified value value.
 
      - Parameter value: The value for the string representation.
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
-    func string(from value: CChar) -> String? { string(from: NSNumber(value: value)) }
+    func string(from value: CChar) -> String? { string(from: NSNumber(value: value)) } 
 
     /**
      Returns a string representation of the specified value value.
@@ -186,51 +156,43 @@ public extension NumberFormatter {
 
 public extension BinaryInteger {
     /**
-     Returns a localized string representation of the integer value using the specified format, number of digits, and locale.
+     Returns a localized string representation of the integer with the specified locale.
 
-     - Parameters:
-        - format: The format string used to format the number. The default value is `"#,###"`.
-        - numberOfDigits: The number of digits to display. The default value is `0`.
-        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
-
+     - Parameter locale: The locale of the string
      - Returns: A localized string representation of the integer value.
      */
-    func localizedString(with format: String = "#,###", numberOfDigits: Int = 0, locale: Locale? = nil) -> String {
-        let formatter = NumberFormatter.forInteger(with: format, numberOfDigits: numberOfDigits, locale: locale)
-        return formatter.string(from: NSNumber(self)) ?? "\(self)"
+    func localizedString(locale: Locale = .current) -> String {
+        NumberFormatter.integer(locale: locale).string(for: self) ?? String(self)
     }
 }
 
 public extension BinaryFloatingPoint {
     /**
-     Returns a localized string representation of the float value using the specified format, number of digits, and locale.
-
+     Returns a localized string representation of the value with the specified locale.
      - Parameters:
-        - format: The format string used to format the number. The default value is `"#.#"`.
-        - numberOfDigits: The number of digits to display. The default value is `1`.
-        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
+        - minFraction: The minimum number of digits after the decimal separator.
+        - maxFraction: The maximum number of digits after the decimal separator.
+        - locale: The locale of the string.
 
-     - Returns: A localized string representation of the float value.
+     - Returns: A localized string representation of the value.
      */
-    func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {
-        let formatter = NumberFormatter.forFloatingPoint(with: format, numberOfDigits: numberOfDigits, locale: locale)
-        return formatter.string(from: NSNumber(self)) ?? "\(self)"
+    func localizedString(minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> String {
+        NumberFormatter.decimal(minFraction: minFraction, maxFraction: maxFraction, locale: locale).string(for: self) ?? String(Double(self))
     }
 }
 
 public extension CGFloat {
     /**
-     Returns a localized string representation of the CGFloat value using the specified format, number of digits, and locale.
+     Returns a localized string representation of the value with the specified locale.
 
      - Parameters:
-        - format: The format string used to format the number. The default value is `"#.#"`.
-        - numberOfDigits: The number of digits to display. The default value is `1`.
-        - locale: The locale to use for formatting the number. The default value is `nil`, which uses the current locale.
+        - minFraction: The minimum number of digits after the decimal separator.
+        - maxFraction: The maximum number of digits after the decimal separator.
+        - locale: The locale of the string.
 
-     - Returns: A localized string representation of the CGFloat value.
+     - Returns: A localized string representation of the value.
      */
-    func localizedString(with format: String = "#.#", numberOfDigits: Int = 1, locale: Locale? = nil) -> String {
-        let formatter = NumberFormatter.forFloatingPoint(with: format, numberOfDigits: numberOfDigits, locale: locale)
-        return formatter.string(from: NSNumber(self)) ?? "\(self)"
+    func localizedString(minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> String {
+        NumberFormatter.decimal(minFraction: minFraction, maxFraction: maxFraction, locale: locale).string(for: self) ?? String(Double(self))
     }
 }

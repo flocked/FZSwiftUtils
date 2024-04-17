@@ -39,9 +39,8 @@ public extension NumberFormatter {
      - Returns: The extracted `Int` value, or `nil` if the extraction fails.
      */
     func intValue(from string: String) -> Int? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.intValue ?? Int(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.intValue ?? Int(str)
     }
 
     /**
@@ -51,9 +50,8 @@ public extension NumberFormatter {
      - Returns: The extracted `Int8` value, or `nil` if the extraction fails.
      */
     func int8Value(from string: String) -> Int8? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.int8Value ?? Int8(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.int8Value ?? Int8(str)
     }
 
     /**
@@ -63,9 +61,8 @@ public extension NumberFormatter {
      - Returns: The extracted `Int16` value, or `nil` if the extraction fails.
      */
     func int16Value(from string: String) -> Int16? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.int16Value ?? Int16(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.int16Value ?? Int16(str)
     }
 
     /**
@@ -75,9 +72,8 @@ public extension NumberFormatter {
      - Returns: The extracted `Int32` value, or `nil` if the extraction fails.
      */
     func int32Value(from string: String) -> Int32? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.int32Value ?? Int32(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.int32Value ?? Int32(str)
     }
 
     /**
@@ -87,9 +83,8 @@ public extension NumberFormatter {
      - Returns: The extracted `Int64` value, or `nil` if the extraction fails.
      */
     func int64Value(from string: String) -> Int64? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.int64Value ?? Int64(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.int64Value ?? Int64(str)
     }
 
     /**
@@ -99,9 +94,8 @@ public extension NumberFormatter {
      - Returns: The extracted `UInt` value, or `nil` if the extraction fails.
      */
     func uintValue(from string: String) -> UInt? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.uintValue ?? UInt(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.uintValue ?? UInt(str)
     }
 
     /**
@@ -111,9 +105,8 @@ public extension NumberFormatter {
      - Returns: The extracted `UInt8` value, or `nil` if the extraction fails.
      */
     func uint8Value(from string: String) -> UInt8? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.uint8Value ?? UInt8(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.uint8Value ?? UInt8(str)
     }
 
     /**
@@ -123,9 +116,8 @@ public extension NumberFormatter {
      - Returns: The extracted `UInt16` value, or `nil` if the extraction fails.
      */
     func uint16Value(from string: String) -> UInt16? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.uint16Value ?? UInt16(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.uint16Value ?? UInt16(str)
     }
 
     /**
@@ -135,9 +127,8 @@ public extension NumberFormatter {
      - Returns: The extracted `UInt32` value, or `nil` if the extraction fails.
      */
     func uint32Value(from string: String) -> UInt32? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.uint32Value ?? UInt32(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.uint32Value ?? UInt32(str)
     }
 
     /**
@@ -147,9 +138,8 @@ public extension NumberFormatter {
      - Returns: The extracted `UInt64` value, or `nil` if the extraction fails.
      */
     func uint64Value(from string: String) -> UInt64? {
-        let str = strippingNonNumericCharacters(from: string)
-        let formatter = NumberFormatter.forInteger()
-        return formatter.number(from: str)?.uint64Value ?? UInt64(str)
+        let str = string.strippingNonNumericCharacters
+        return NumberFormatter.integer().number(from: str)?.uint64Value ?? UInt64(str)
     }
 
     /**
@@ -159,7 +149,7 @@ public extension NumberFormatter {
      - Returns: The extracted `Float` value, or `nil` if the extraction fails.
      */
     func floatValue(from string: String) -> Float? {
-        let str = strippingNonNumericCharacters(from: string)
+        let str = string.strippingNonNumericCharacters
         return floatingValue(Float.self, from: str) ?? number(from: str)?.floatValue ?? Float(str)
     }
 
@@ -170,7 +160,7 @@ public extension NumberFormatter {
      - Returns: The extracted `Double` value, or `nil` if the extraction fails.
      */
     func doubleValue(from string: String) -> Double? {
-        let str = strippingNonNumericCharacters(from: string)
+        let str = string.strippingNonNumericCharacters
         return floatingValue(Double.self, from: str) ?? number(from: str)?.doubleValue ?? Double(str)
     }
 
@@ -235,11 +225,6 @@ public extension NumberFormatter {
         return timeInterval
     }
 
-    internal func strippingNonNumericCharacters(from string: String) -> String {
-        let numericCharacters = Set("0123456789.,+-")
-        return string.filter { numericCharacters.contains($0) }
-    }
-
     internal func floatingValue<F: FloatingPoint>(_: F.Type, from string: String) -> F? {
         switch string {
         case ".inf", ".Inf", ".INF", "+.inf", "+.Inf", "+.INF":
@@ -251,5 +236,12 @@ public extension NumberFormatter {
         default:
             return nil
         }
+    }
+}
+
+extension String {
+    internal var strippingNonNumericCharacters: String {
+        let numericCharacters = Set("0123456789.,+-")
+        return filter { numericCharacters.contains($0) }.replacingOccurrences(of: ",", with: ".")
     }
 }
