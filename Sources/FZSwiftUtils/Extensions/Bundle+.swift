@@ -57,7 +57,7 @@
             if platform == .macOS {
                 return bundleURL.appendingPathComponent("Contents")
             } else {
-                return executableURL?.deletingLastPathComponent().deletingLastPathComponent()
+                return executableURL
             }
         }
 
