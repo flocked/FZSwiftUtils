@@ -19,6 +19,62 @@ public extension ByteCountFormatter {
         self.allowedUnits = allowedUnits
         self.countStyle = countStyle
     }
+    
+    /// Specify the units that can be used in the output.
+    @discardableResult
+    func allowedUnits(_ units: Units) -> Self {
+        allowedUnits = units
+        return self
+    }
+    
+    /// Sets the number of bytes to be used for kilobytes.
+    @discardableResult
+    func countStyle(_ style: CountStyle) -> Self {
+        countStyle = style
+        return self
+    }
+    
+    /// Sets the Boolean value indicating whether to allow more natural display of some values.
+    @discardableResult
+    func allowsNonnumericFormatting(_ allows: Bool) -> Self {
+        allowsNonnumericFormatting = allows
+        return self
+    }
+    
+    /// Sets the Boolean value indicating whether to include the number of bytes after the formatted string.
+    @discardableResult
+    func includesActualByteCount(_ includes: Bool) -> Self {
+        includesActualByteCount = includes
+        return self
+    }
+    
+    /// Sets the Boolean value indicating the display style of the size representation.
+    @discardableResult
+    func isAdaptive(_ isAdaptive: Bool) -> Self {
+        self.isAdaptive = isAdaptive
+        return self
+    }
+    
+    /// Sets the Boolean value indicating whether to include the count in the resulting formatted string.
+    @discardableResult
+    func includesCount(_ includes: Bool) -> Self {
+        includesCount = includes
+        return self
+    }
+    
+    /// Sets the Boolean value indicating whether to include the units in the resulting formatted string.
+    @discardableResult
+    func includesUnit(_ includes: Bool) -> Self {
+        includesUnit = includes
+        return self
+    }
+    
+    /// Sets the Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
+    @discardableResult
+    func zeroPadsFractionDigits(_ zeroPadsFractionDigits: Bool) -> Self {
+        self.zeroPadsFractionDigits = zeroPadsFractionDigits
+        return self
+    }
 
     /**
      Returns the localized string representation of the given `Measurement` object.

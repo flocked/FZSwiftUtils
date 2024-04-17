@@ -14,35 +14,35 @@ import Foundation
 #endif
 
 public extension CGRect {
-    /// Creates a rect with the specified values.
+    /// Creates a rectangle with the specified values.
     init(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) {
         self.init(x: x, y: y, width: width, height: height)
     }
     
-    /// Creates a rect with the specified origin and size.
+    /// Creates a rectangle with the specified origin and size.
     init(_ origin: CGPoint, _ size: CGSize) {
         self.init(origin: origin, size: size)
     }
 
-    /// Creates a rect with the specified size.
+    /// Creates a rectangle with the specified size.
     init(size: CGSize) {
         self.init(x: 0, y: 0, width: size.width, height: size.height)
     }
 
-    /// Creates a rect with the specified size.
+    /// Creates a rectangle with the specified size.
     init(size: CGFloat) {
         self.init(x: 0, y: 0, width: size, height: size)
     }
 
     /**
-     Initializes a CGRect with the specified point and size.
+     Initializes a rectangle with the specified point and size.
 
      - Parameters:
         - point: The center point of the rectangle.
         - size: The size of the rectangle.
-        - integralized: A Boolean value indicating whether the resulting CGRect should have integral values. The default value is `false`.
+        - integralized: A Boolean value indicating whether the resulting rectangle should have integral values.
 
-     - Returns: A new CGRect initialized with the specified parameters.
+     - Returns: A new rectangle initialized with the specified parameters.
      */
     init(aroundPoint point: CGPoint, size: CGSize, integralized: Bool = false) {
         let unintegralizedRect = CGRect(x: point.x - size.width / 2.0, y: point.y - size.height / 2.0, width: size.width, height: size.height)
@@ -51,11 +51,11 @@ public extension CGRect {
     }
 
     /**
-     Returns the scaled integral rect based on the current rect.
+     Returns the scaled integral rectangle based on the current rectangle.
      
      The origin and size values are scaled based on the current device's screen scale.
 
-     - Returns: The scaled integral rect.
+     - Returns: The scaled integral rectangle.
      */
     var scaledIntegral: CGRect {
         CGRect(
@@ -68,12 +68,12 @@ public extension CGRect {
     
     #if os(macOS)
     /**
-     Returns the scaled integral rect based on the current rect for the specfied screen.
+     Returns the scaled integral rectangle based on the current rectangle for the specfied screen.
      
      The origin and size values are scaled based on the screen scale.
 
      - Parameter screen: The screen for scale.
-     - Returns: The scaled integral rect.
+     - Returns: The scaled integral rectangle.
      */
     func scaledIntegral(for screen: NSScreen) -> CGRect {
         CGRect(
@@ -255,13 +255,13 @@ public extension CGRect {
     }
     
     /**
-     Returns a new rect expanded by the specified amount in the given edge directions.
+     Returns a new rectangle expanded by the specified amount in the given edge directions.
 
      - Parameters:
-        - edges: The edge directions in which to expand the rect.
-        - amount: The amount by which to expand the rect.
+        - edges: The edge directions in which to expand the rectangle.
+        - amount: The amount by which to expand the rectangle.
 
-     - Returns: A new rect expanded by the specified amount in the given edge directions.
+     - Returns: A new rectangle expanded by the specified amount in the given edge directions.
      */
     func expand(_ edges: NSUIRectEdge, by amount: CGFloat) -> CGRect {
         var frame = self
@@ -292,13 +292,13 @@ public extension CGRect {
     }
     
     /**
-     Returns a new rect scaled by the specified factor.
+     Returns a new rectangle scaled by the specified factor.
 
      - Parameters:
-        - factor: The scaling factor to apply to the rect.
+        - factor: The scaling factor to apply to the rectangle.
         - centered: A Boolean value indicating whether the scaling should be centered around the CGRect's center point. The default value is `true`.
 
-     - Returns: A new rect scaled by the specified factor.
+     - Returns: A new rectangle scaled by the specified factor.
      */
     func scaled(byFactor factor: CGFloat, centered: Bool = true) -> CGRect {
         var rect = self
@@ -310,13 +310,13 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled by the specified factor, anchored at the specified point.
+     Returns a new rectangle scaled by the specified factor, anchored at the specified point.
 
      - Parameters:
-        - factor: The scaling factor to apply to the rect.
+        - factor: The scaling factor to apply to the rectangle.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
 
-     - Returns: A new rect scaled by the specified factor, anchored at the specified point.
+     - Returns: A new rectangle scaled by the specified factor, anchored at the specified point.
      */
     func scaled(byFactor factor: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = size.scaled(byFactor: factor)
@@ -324,13 +324,13 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled to the specified size, anchored at the specified point.
+     Returns a new rectangle scaled to the specified size, anchored at the specified point.
 
      - Parameters:
-        - size: The target size for scaling the rect.
+        - size: The target size for scaling the rectangle.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
 
-     - Returns: A new rect scaled to the specified size, anchored at the specified point.
+     - Returns: A new rectangle scaled to the specified size, anchored at the specified point.
      */
     func scaled(to size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = CGSize(width: size.width - width, height: size.height - height)
@@ -340,13 +340,13 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled to fit the specified size, anchored at the specified point.
+     Returns a new rectangle scaled to fit the specified size, anchored at the specified point.
 
      - Parameters:
-        - size: The target size for scaling the rect to fit.
+        - size: The target size for scaling the rectangle to fit.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
 
-     - Returns: A new rect scaled to fit the specified size, anchored at the specified point.
+     - Returns: A new rectangle scaled to fit the specified size, anchored at the specified point.
      */
     func scaled(toFit size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = self.size.scaled(toFit: size)
@@ -354,13 +354,13 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled to fill the specified size, anchored at the specified point.
+     Returns a new rectangle scaled to fill the specified size, anchored at the specified point.
 
      - Parameters:
-        - size: The target size for scaling the rect to fill.
+        - size: The target size for scaling the rectangle to fill.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
 
-     - Returns: A new rect scaled to fill the specified size, anchored at the specified point.
+     - Returns: A new rectangle scaled to fill the specified size, anchored at the specified point.
      */
     func scaled(toFill size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = self.size.scaled(toFill: size)
@@ -368,13 +368,13 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled to the specified width, anchored at the specified point.
+     Returns a new rectangle scaled to the specified width, anchored at the specified point.
 
      - Parameters:
-        - width: The target width for scaling the rect.
+        - width: The target width for scaling the rectangle.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
 
-     - Returns: A new rect scaled to the specified width, anchored at the specified point.
+     - Returns: A new rectangle scaled to the specified width, anchored at the specified point.
      */
     func scaled(toWidth width: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = size.scaled(toWidth: width)
@@ -382,13 +382,13 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect scaled to the specified height, anchored at the specified point.
+     Returns a new rectangle scaled to the specified height, anchored at the specified point.
 
      - Parameters:
-        - height: The target height for scaling the rect.
+        - height: The target height for scaling the rectangle.
         - anchor: The anchor point for scaling. The default value is `CGPoint(x: 0.5, y: 0.5)`.
 
-     - Returns: A new rect scaled to the specified height, anchored at the specified point.
+     - Returns: A new rectangle scaled to the specified height, anchored at the specified point.
      */
     func scaled(toHeight height: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
         let sizeDelta = size.scaled(toHeight: height)
@@ -396,16 +396,40 @@ public extension CGRect {
     }
 
     /**
-     Returns a new rect with rounded coordinates according to the specified rounding rule.
+     Returns a new rectangle with rounded coordinates according to the specified rounding rule.
 
      - Parameters:
         - rule: The rounding rule to apply to the coordinates. The default value is `.toNearestOrAwayFromZero`.
 
-     - Returns: A new rect with rounded coordinates according to the specified rounding rule.
+     - Returns: A new rectangle with rounded coordinates according to the specified rounding rule.
      */
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGRect {
         CGRect(x: x.rounded(rule), y: y.rounded(rule), width: width.rounded(rule), height: height.rounded(rule))
     }
+    
+    /// Clamps the rectangle to the specified minimum size.
+    func clamped(minSize: CGSize) -> CGRect {
+        CGRect(origin, size.clamped(minSize: minSize))
+    }
+    
+    /// Clamps the rectangle to the specified maximum size.
+    func clamped(maxSize: CGSize) -> CGRect {
+        CGRect(origin, size.clamped(maxSize: maxSize))
+    }
+    
+    /**
+     Clamps the rectangle to the specified minimum and maximum values.
+     
+     - Parameters:
+        - minWidth: The minimum width needed.
+        - minHeight: The minimum height needed.
+        - maxWidth: The maximum width allowed.
+        - maxHeight: The maximum height allowed.
+     */
+    func clamped(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) -> CGRect {
+        CGRect(origin, size.clamped(minWidth: minWidth, minHeight: minHeight, maxWidth: maxWidth, maxHeight: maxHeight))
+    }
+
 }
 
 extension CGRect: Hashable {
@@ -421,23 +445,23 @@ public extension Collection where Element == CGRect {
         return reduce(CGRect.zero) {$0.union($1)}
     }
     
-    /// Returns the rect in the center.
+    /// Returns the rectangle in the center.
     func centeredRect() -> CGRect? {
         return centeredRect(in: union().center)
     }
     
-    /// Returns the rect in the center of the specified point.
+    /// Returns the rectangle in the center of the specified point.
     func centeredRect(in point: CGPoint) -> CGRect? {
         guard !isEmpty else { return nil }
         return compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
     }
     
-    /// Returns the rect in the center of the specified rect.
+    /// Returns the rectangle in the center of the specified rect.
     func centeredRect(in rect: CGRect) -> CGRect? {
         return centeredRect(in: rect.center)
     }
     
-    /// Returns the index of the rect in the center.
+    /// Returns the index of the rectangle in the center.
     func indexOfCenteredRect() -> Index? {
         if let rect = centeredRect() {
             return firstIndex(of: rect) ?? nil
@@ -445,7 +469,7 @@ public extension Collection where Element == CGRect {
         return nil
     }
     
-    /// Returns the index of the rect in the center of the specified point.
+    /// Returns the index of the rectangle in the center of the specified point.
     func indexOfCenteredRect(in point: CGPoint) -> Index? {
         if let rect = centeredRect(in: point) {
             return firstIndex(of: rect) ?? nil
@@ -453,7 +477,7 @@ public extension Collection where Element == CGRect {
         return nil
     }
     
-    /// Returns the  index of rect in the center of the specified rect.
+    /// Returns the  index of rectangle in the center of the specified rect.
     func indexOfCenteredRect(in rect: CGRect) -> Index? {
         if let rect = centeredRect(in: rect) {
             return firstIndex(of: rect) ?? nil

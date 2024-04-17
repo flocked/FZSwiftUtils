@@ -18,4 +18,25 @@ public extension OperationQueue {
         self.init()
         self.maxConcurrentOperationCount = maxConcurrentOperationCount
     }
+    
+    /// Sets the maximum number of queued operations that can run at the same time.
+    @discardableResult
+    func maxConcurrentOperationCount(_ value: Int) -> Self {
+        maxConcurrentOperationCount = value
+        return self
+    }
+    
+    /// Sets the default service level to apply to operations that the queue invokes.
+    @discardableResult
+    func qualityOfService(_ qualityOfService: QualityOfService) -> Self {
+        self.qualityOfService = qualityOfService
+        return self
+    }
+        
+    /// Sets the name of the operation queue.
+    @discardableResult
+    func name(_ name: String?) -> Self {
+        self.name = name
+        return self
+    }
 }
