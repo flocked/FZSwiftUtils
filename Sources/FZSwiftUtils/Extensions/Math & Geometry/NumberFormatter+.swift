@@ -10,7 +10,7 @@ import Foundation
 
 public extension NumberFormatter {
     
-    /// The lowest number allowed as input by the receiver.
+    /// The lowest number allowed as input by a text field with the formatter.
     var minimumValue: Double? {
         get { minimum?.doubleValue }
         set {
@@ -22,7 +22,7 @@ public extension NumberFormatter {
         }
     }
     
-    /// The highest number allowed as input by the receiver.
+    /// The highest number allowed as input by a text field with the formatter.
     var maximumValue: Double? {
         get { maximum?.doubleValue }
         set {
@@ -38,96 +38,100 @@ public extension NumberFormatter {
      Creates an integer number formatter.
 
      - Parameters:
-        - minValue: The minimum number.
-        - maxValue: The maximum number.
-        - locale: The local of the formatter.
+        - minValue: The lowest number allowed as input by a text field with the formatter.
+        - maxValue: The highest number allowed as input by a text field with the formatter.
+        - roundingMode: The rounding mode.
+        - locale: The locale of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for integer formatting.
      */
-    static func integer(minValue: Int? = nil, maxValue: Int? = nil, locale: Locale = .current) -> NumberFormatter {
-        NumberFormatter(style: .none, minValue: minValue != nil ? Double(minValue!) : nil, maxValue: maxValue != nil ? Double(maxValue!) : nil, locale: locale)
+    static func integer(minValue: Int? = nil, maxValue: Int? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .none, minValue: minValue != nil ? Double(minValue!) : nil, maxValue: maxValue != nil ? Double(maxValue!) : nil, roundingMode: roundingMode, usesGroupingSeparator: usesGroupingSeparator, locale: locale)
     }
     
     /**
      Creates a decimal number formatter.
 
      - Parameters:
-        - minValue: The minimum number.
-        - maxValue: The maximum number.
+        - minValue: The lowest number allowed as input by a text field with the formatter.
+        - maxValue: The highest number allowed as input by a text field with the formatter.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
-        - locale: The local of the formatter.
+        - roundingMode: The rounding mode.
+        - usesGroupingSeparator: A Boolean value indicating whether to display a group separator.
+        - locale: The locale of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for decimal formatting.
      */
-    static func decimal(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> NumberFormatter {
-        NumberFormatter(style: .decimal, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, locale: locale)
+    static func decimal(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .decimal, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, roundingMode: roundingMode, usesGroupingSeparator: usesGroupingSeparator, locale: locale)
     }
     
     /**
      Creates a percent number formatter.
 
      - Parameters:
-        - minValue: The minimum number.
-        - maxValue: The maximum number.
+        - minValue: The lowest number allowed as input by a text field with the formatter.
+        - maxValue: The highest number allowed as input by a text field with the formatter.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
-        - locale: The local of the formatter.
+        - roundingMode: The rounding mode.
+        - usesGroupingSeparator: A Boolean value indicating whether to display a group separator.
+        - locale: The locale of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for percent formatting.
      */
-    static func percent(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> NumberFormatter {
-        NumberFormatter(style: .percent, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, locale: locale)
+    static func percent(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .percent, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, roundingMode: roundingMode, usesGroupingSeparator: usesGroupingSeparator, locale: locale)
     }
     
     /**
      Creates a currency number formatter.
 
      - Parameters:
-        - minValue: The minimum number.
-        - maxValue: The maximum number.
+        - minValue: The lowest number allowed as input by a text field with the formatter.
+        - maxValue: The highest number allowed as input by a text field with the formatter.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
-        - locale: The local of the formatter.
+        - roundingMode: The rounding mode.
+        - usesGroupingSeparator: A Boolean value indicating whether to display a group separator.
+        - locale: The locale of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for currency formatting.
      */
-    static func currency(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> NumberFormatter {
-        NumberFormatter(style: .currency, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, locale: locale)
+    static func currency(minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) -> NumberFormatter {
+        NumberFormatter(style: .currency, minValue: minValue, maxValue: maxValue, minFraction: minFraction, maxFraction: maxFraction, roundingMode: roundingMode, usesGroupingSeparator: usesGroupingSeparator, locale: locale)
     }
     
     /**
      Creates a currency number formatter with the specified style.
 
      - Parameters:
-        - minValue: The formatting style.
-        - minValue: The minimum number.
-        - maxValue: The maximum number.
+        - style: The formatting style.
+        - minValue: The lowest number allowed as input by a text field with the formatter.
+        - maxValue: The highest number allowed as input by a text field with the formatter.
         - minFraction: The minimum number of digits after the decimal separator.
         - maxFraction: The maximum number of digits after the decimal separator.
-        - locale: The local of the formatter.
+        - roundingMode: The rounding mode.
+        - usesGroupingSeparator: A Boolean value indicating whether to display a group separator.
+        - locale: The locale of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for currency formatting.
      */
-    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) {
+    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) {
         self.init()
-        self.numberStyle = style
         self.locale = locale
+        self.roundingMode = roundingMode
+        self.usesGroupingSeparator = usesGroupingSeparator
+        numberStyle = style
         minimumValue = minValue
         maximumValue = maxValue
         minimumFractionDigits = minFraction ?? 0
         maximumFractionDigits = maxFraction ?? 200000
         allowsFloats = true
         isLenient = true
+        usesSignificantDigits = style != .none
     }
-
-    /**
-     Returns a string representation of the specified value value.
-
-     - Parameter value: The value for the string representation.
-     - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
-     */
-    func string(from value: CChar) -> String? { string(from: NSNumber(value: value)) } 
 
     /**
      Returns a string representation of the specified value value.
@@ -152,47 +156,4 @@ public extension NumberFormatter {
      - Returns: The string representation of the specified value, or `nil` if the string doesn't contain a value.
      */
     func string<Value>(from value: Value) -> String? where Value: BinaryFloatingPoint { string(from: NSNumber(value)) }
-}
-
-public extension BinaryInteger {
-    /**
-     Returns a localized string representation of the integer with the specified locale.
-
-     - Parameter locale: The locale of the string
-     - Returns: A localized string representation of the integer value.
-     */
-    func localizedString(locale: Locale = .current) -> String {
-        NumberFormatter.integer(locale: locale).string(for: self) ?? String(self)
-    }
-}
-
-public extension BinaryFloatingPoint {
-    /**
-     Returns a localized string representation of the value with the specified locale.
-     - Parameters:
-        - minFraction: The minimum number of digits after the decimal separator.
-        - maxFraction: The maximum number of digits after the decimal separator.
-        - locale: The locale of the string.
-
-     - Returns: A localized string representation of the value.
-     */
-    func localizedString(minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> String {
-        NumberFormatter.decimal(minFraction: minFraction, maxFraction: maxFraction, locale: locale).string(for: self) ?? String(Double(self))
-    }
-}
-
-public extension CGFloat {
-    /**
-     Returns a localized string representation of the value with the specified locale.
-
-     - Parameters:
-        - minFraction: The minimum number of digits after the decimal separator.
-        - maxFraction: The maximum number of digits after the decimal separator.
-        - locale: The locale of the string.
-
-     - Returns: A localized string representation of the value.
-     */
-    func localizedString(minFraction: Int? = nil, maxFraction: Int? = nil, locale: Locale = .current) -> String {
-        NumberFormatter.decimal(minFraction: minFraction, maxFraction: maxFraction, locale: locale).string(for: self) ?? String(Double(self))
-    }
 }

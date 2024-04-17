@@ -240,7 +240,7 @@ public extension NumberFormatter {
 }
 
 extension String {
-    internal var strippingNonNumericCharacters: String {
+    var strippingNonNumericCharacters: String {
         let numericCharacters = Set("0123456789.,+-")
         return filter { numericCharacters.contains($0) }.replacingOccurrences(of: ",", with: ".")
     }

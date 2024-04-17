@@ -10,32 +10,45 @@ import Foundation
 public extension BinaryInteger {
     /// The value as `String`.
     var string: String {
-        String(self)
+        localizedString()
+    }
+    
+    /**
+     Returns a localized string representation of the integer with the specified locale.
+
+     - Parameter locale: The locale of the string
+     - Returns: A localized string representation of the integer value.
+     */
+    func localizedString(locale: Locale = .current) -> String {
+        NumberFormatter.integer(locale: locale).string(for: self) ?? String(self)
     }
 }
 
 public extension BinaryFloatingPoint {
     /// The value as `String`.
     var string: String {
-        String(Double(self))
+        localizedString()
     }
-}
-
-public extension CGFloat {
-    /// The value as `String`.
-    var string: String {
-        String(Float(self))
+    
+    /**
+     Returns a localized string representation of the value with the specified locale.
+     
+     - Parameter locale: The locale of the string.
+     - Returns: A localized string representation of the value.
+     */
+    func localizedString(locale: Locale = .current) -> String {
+        NumberFormatter.decimal(locale: locale).string(for: self) ?? String(Double(self))
     }
 }
 
 public extension NSNumber {
-    /// The value as Integer `String`.
+    /// The value as Integer string.
     var intString: String {
-        String(Int(truncating: self))
+        Int(truncating: self).localizedString()
     }
 
-    /// The value as Float `String`.
+    /// The value as Float string.
     var string: String {
-        String(Float(truncating: self))
+        Float(truncating: self).localizedString()
     }
 }
