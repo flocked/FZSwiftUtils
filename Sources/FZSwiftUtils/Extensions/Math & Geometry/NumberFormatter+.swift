@@ -148,6 +148,20 @@ public extension NumberFormatter {
         return self
     }
     
+    /// Sets the format to display negative values.
+    @discardableResult
+    func negativeFormat(_ format: String?) -> Self {
+        negativeFormat = format
+        return self
+    }
+    
+    /// Sets the format to display positive values.
+    @discardableResult
+    func positiveFormat(_ format: String?) -> Self {
+        positiveFormat = format
+        return self
+    }
+    
     /// Sets the minimum number allowed as input by a text field with the formatter.
     @discardableResult
     func minimum(_ value: Double?) -> Self {
