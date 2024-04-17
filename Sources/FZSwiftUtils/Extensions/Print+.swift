@@ -17,7 +17,7 @@ import Foundation
     - terminator: The string to print after all items have been printed. The default is a newline ("\n").
  */
 public func print(indent: Int, _ items: Any..., separator: String = " ", terminator: String = "\n") {
-    print(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
+    print([Array(repeating: "\t", count: indent).joined()] + items, separator: separator, terminator: terminator)
 }
 
 
@@ -31,5 +31,5 @@ public func print(indent: Int, _ items: Any..., separator: String = " ", termina
     - terminator: The string to print after all items have been printed. The default is a newline ("\n").
  */
 public func debugPrint(indent: Int, _ items: Any..., separator: String = " ", terminator: String = "\n") {
-    debugPrint(Array(repeating: "\t", count: indent).joined(), items, separator: separator, terminator: terminator)
+    debugPrint([Array(repeating: "\t", count: indent).joined()] + items, separator: separator, terminator: terminator)
 }

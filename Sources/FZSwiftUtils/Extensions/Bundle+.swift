@@ -65,5 +65,20 @@
         var infoURL: URL? {
             contentsDirectoryURL?.appendingPathComponent("Info.plist")
         }
+        
+        /// The copyright string .
+        var copyrightString: String? {
+            object(forInfoDictionaryKey: "NSHumanReadableCopyright") as? String
+        }
+
+        /// The version string if available (e.g. 1.0.0)
+        var versionString: String? {
+            object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        }
+
+        /// The build string if available (e.g. 123)
+        var buildString: String? {
+            object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        }
     }
 #endif
