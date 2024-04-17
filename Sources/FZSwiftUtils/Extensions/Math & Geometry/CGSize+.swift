@@ -210,6 +210,16 @@ public extension CGSize {
     var point: CGPoint {
         CGPoint(width, height)
     }
+    
+    /// Returns the size with the specified width.
+    func width(_ value: CGFloat) -> CGSize {
+        CGSize(value, height)
+    }
+    
+    /// Returns the size with the specified height.
+    func height(_ value: CGFloat) -> CGSize {
+        CGSize(width, value)
+    }
 }
 
 public extension CGSize {

@@ -128,6 +128,16 @@ public extension CGPoint {
     var size: CGSize {
         CGSize(x, y)
     }
+    
+    /// Returns the point with the specified x-coordinate value.
+    func xValue(_ value: CGFloat) -> CGPoint {
+        CGPoint(value, y)
+    }
+    
+    /// Returns the point with the specified y-coordinate value.
+    func yValue(_ value: CGFloat) -> CGPoint {
+        CGPoint(x, value)
+    }
 }
 
 extension CGPoint: Hashable {

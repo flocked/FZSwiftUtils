@@ -218,6 +218,97 @@ public extension CGRect {
         get { midY }
         set { origin.y = newValue - height * 0.5 }
     }
+    
+    /// Returns the rectangle with the specified x-coordinate value.
+    func xValue(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.x)
+    }
+    
+    /// Returns the rectangle with the specified y-coordinate value.
+    func yValue(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.y)
+    }
+    
+    /// Returns the rectangle with the specified width.
+    func width(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.size.width)
+    }
+    
+    /// Returns the rectangle with the specified height.
+    func height(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.size.height)
+    }
+    
+    /// Returns the rectangle with the specified left value.
+    func left(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.left)
+    }
+    
+    /// Returns the rectangle with the right value.
+    func right(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.right)
+    }
+    
+    /// Returns the rectangle with the specified top value.
+    func top(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.top)
+    }
+    
+    /// Returns the rectangle with the specified bottom value.
+    func bottom(_ value: CGFloat) -> CGRect {
+        apply(value, to: \.bottom)
+    }
+    
+    /// Returns the rectangle with the specified top-left point.
+    func topLeft(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.topLeft)
+    }
+    
+    /// Returns the rectangle with the specified top-center point.
+    func topCenter(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.topCenter)
+    }
+    
+    /// Returns the rectangle with the specified top-right point.
+    func topRight(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.topRight)
+    }
+    
+    /// Returns the rectangle with the specified center-left point.
+    func centerLeft(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.centerLeft)
+    }
+    
+    /// Returns the rectangle with the specified center point
+    func center(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.center)
+    }
+    
+    /// Returns the rectangle with the specified center-right point.
+    func centerRight(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.centerRight)
+    }
+    
+    /// Returns the rectangle with the specified bottom-left point.
+    func bottomLeft(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.bottomLeft)
+    }
+    
+    /// Returns the rectangle with the specified bottom-center point.
+    func bottomCenter(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.bottomCenter)
+    }
+    
+    /// Returns the rectangle with the specified bottom-right point.
+    func bottomRight(_ value: CGPoint) -> CGRect {
+        apply(value, to: \.bottomRight)
+    }
+    
+    internal func apply<Value>(_ value: Value, to keyPath: WritableKeyPath<CGRect, Value>) -> Self {
+        var rect = self
+        rect[keyPath: keyPath] = value
+        return rect
+    }
 
     /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
     func inset(by edgeInsets: NSUIEdgeInsets) -> CGRect {
