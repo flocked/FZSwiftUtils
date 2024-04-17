@@ -8,12 +8,6 @@
 import Foundation
 
 public extension FileManager {
-    /// An enumeration of file manager errors.
-    enum Errors: Error {
-        /// An error that occures if a file coudnl't be moved to trash.
-        case failedToMoveToTrash
-    }
-
     /**
      Creates a temporary directory inside the file system's default temporary directory.
      - Throws: Throws if the temporary directory couldn't be created.
@@ -31,7 +25,7 @@ public extension FileManager {
         return folderURL
     }
 
-    #if os(macOS) || os(iOS)
+        #if os(macOS) || os(iOS)
         /**
          Moves an item to the trash.
 
@@ -50,7 +44,13 @@ public extension FileManager {
             }
             return fileURL
         }
-    #endif
+    
+        /// An enumeration of file manager errors.
+        enum Errors: Error {
+            /// An error that occures if a file coudnl't be moved to trash.
+            case failedToMoveToTrash
+        }
+        #endif
 
     #if os(macOS)
         /// The type of appliction support directory.
@@ -69,17 +69,17 @@ public extension FileManager {
             - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist. The default value is `false`.
          */
         func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
-            if let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first, let pathComponent = (type == .name) ? Bundle.main.bundleName : Bundle.main.bundleIdentifier {
-                let directoryURL = appSupportURL.appendingPathComponent(pathComponent)
-                if directoryExists(at: directoryURL) {
+            guard let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+            guard let name = type == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
+            let directoryURL = appSupportURL.appendingPathComponent(name)
+            if FileManager.default.directoryExists(at: directoryURL) {
+                return directoryURL
+            } else if createIfNeeded {
+                do {
+                    try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
                     return directoryURL
-                } else if createIfNeeded {
-                    do {
-                        try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-                        return directoryURL
-                    } catch {
-                        debugPrint(error)
-                    }
+                } catch {
+                    debugPrint(error)
                 }
             }
             return nil

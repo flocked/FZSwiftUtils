@@ -101,45 +101,33 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
 
     /// Returns the type for the specified file extension.
     public init?(fileExtension: String) {
+        let fileExtension = fileExtension.lowercased()
         if fileExtension == "" {
             self = .folder
-            return
-        }
-
-        if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
+        } else if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
             if let contentType = UTType(filenameExtension: fileExtension), let fileType = FileType(contentType: contentType) {
                 self = fileType
-                return
+            } else {
+                return nil
             }
-        }
-
-        let fileExtension = fileExtension.lowercased()
-        if let fileType = FileType.allCases.first(where: { $0.commonExtensions.contains(fileExtension) }) {
+        } else if let fileType = FileType.allCases.first(where: { $0.commonExtensions.contains(fileExtension) }) {
             self = fileType
-            return
         } else {
             return nil
         }
     }
 
-    #if canImport(UniformTypeIdentifiers)
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        /// Returns the type for the specified content type.
-        public init?(contentType: UTType) {
-            if let fileType = FileType.allCases.first(where: {
-                if let allContentType = $0.contentType, contentType.conforms(to: allContentType) {
-                    return true
-                }
-                return false
-            }) {
-                self = fileType
-            } else if let pathExtension = contentType.preferredFilenameExtension {
-                self = .other(pathExtension)
-            } else {
-                return nil
-            }
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    /// Returns the type for the specified content type.
+    public init?(contentType: UTType) {
+        if let fileType = FileType.allCases.filter({$0.contentType != nil}).first(where: {contentType.conforms(to: $0.contentType!)}) {
+            self = fileType
+        } else if let fileExtension = contentType.preferredFilenameExtension {
+            self = FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension)}) ?? .other(fileExtension)
+        } else {
+            return nil
         }
-    #endif
+    }
 }
 
 @available(macOS, deprecated: 11.0, message: "Use contentType instead")
@@ -188,19 +176,24 @@ public extension FileType {
         case .text: return "public.text"
         case .document: return "public.composite-content"
         case let .other(pathExtension):
-            guard pathExtension != "" else {
-                return "public.folder"
-            }
-            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
-                if let identifier = UTType(filenameExtension: pathExtension)?.identifier {
-                    return identifier
-                }
+            if pathExtension == "" { return "public.folder" }
+            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *), let identifier = UTType(filenameExtension: pathExtension)?.identifier {
+                return identifier
             }
             if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue(), let mimeIdentifier = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
                 return mimeIdentifier as String
             }
             return nil
         }
+    }
+    
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    /// The content type of the file type.
+    var contentType: UTType? {
+        if let identifier = identifier {
+            return UTType(identifier)
+        }
+        return nil
     }
 
     /// The most common file extensions of the file type.
@@ -254,28 +247,22 @@ public extension FileType {
 
     /// A Boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
     var isMultimedia: Bool {
-        self == .video || self == .audio || self == .gif || self == .image
+        Self.multimediaTypes.contains(self)
+    }
+    
+    /// A Boolean value indicating whether the file type is an image type (either `image` or `gif`).
+    var isImageType: Bool {
+        Self.imageTypes.contains(self)
     }
 
-    /// An array of all file types.
+    /// All file types.
     static let allCases: [FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio, .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
 
-    /// An array of all multimedia file types (`audio`, `video`, `image` and `gif`).
-    static var multimediaTypes: [FileType] = [.gif, .image, .video]
+    /// All multimedia file types (`audio`, `video`, `image` and `gif`).
+    static var multimediaTypes: [FileType] = [.gif, .image, .video, .audio]
 
-    /// An array of all image file types (`image` and `gif`).
+    /// All image file types (`image` and `gif`).
     static var imageTypes: [FileType] = [.gif, .image]
-
-    #if canImport(UniformTypeIdentifiers)
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        /// The content type of the file type.
-        var contentType: UTType? {
-            if let identifier = identifier {
-                return UTType(identifier)
-            }
-            return nil
-        }
-    #endif
 
     internal var predicate: NSPredicate {
         let key: NSExpression
@@ -315,6 +302,7 @@ public extension FileType {
         default:
             modifier = .direct
         }
+        
         return NSComparisonPredicate(leftExpression: key, rightExpression: value, modifier: modifier, type: type)
     }
 }

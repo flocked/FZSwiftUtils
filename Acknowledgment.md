@@ -2,6 +2,10 @@ AssociatedValues
 - Copyright (c) 2014 Skyvive <brad.hilton.nw@gmail.com>
 - http://github.com/bradhilton/AssociatedValues
 
+ApproximateEquatable
+- Copyright (c) 2020, Adam Bell
+- https://github.com/b3ll/Motion
+
 DateFormatComponents
 - Copyright (c) 2021 Yurii Lysytsia.
 - https://github.com/yurii-lysytsia/AirKit
@@ -32,5 +36,5 @@ Swizzle
 
 
 LoremSwiftum
-- Copyright (c) 2014-2021 Lukas Kubanek.
+- Copyright (c) 2014-2021 Lukas Kubanek
 - https://github.com/lukaskubanek/LoremSwiftum
