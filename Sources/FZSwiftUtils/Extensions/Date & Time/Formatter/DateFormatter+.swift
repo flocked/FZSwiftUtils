@@ -186,7 +186,7 @@ public extension DateFormatter {
         public static var yearShort = Component("yy")
         
         /// Quarter of the year (e.g. `04`)
-        public static var quartal = Component("Q")
+        public static var quartal = Component("QQ")
         /// Quarter of the year (e.g. `4`)
         public static var quartalShort = Component("Q")
         /// Quarter of the year including `Q` (e.g. `Q4`)
@@ -216,21 +216,6 @@ public extension DateFormatter {
 
         public static func +(lhs: Self, rhs: Self) -> Self {
             Component(lhs.format + rhs.format)
-        }
-    }
-}
-
-
-public extension DateComponentsFormatter {
-    /**
-     An array of allowed calendar components for formatting.
-     */
-    var allowedComponents: [Calendar.Component] {
-        get { allowedUnits.components }
-        set {
-            var unit: NSCalendar.Unit = []
-            newValue.compactMap(\.nsUnit).forEach { unit.insert($0) }
-            allowedUnits = unit
         }
     }
 }
