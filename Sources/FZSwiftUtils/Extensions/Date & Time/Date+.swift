@@ -168,6 +168,10 @@ public extension Date {
         DateFormatter(format).string(from: self)
     }
     
+    func sdsd() {
+        string(using: .zulu)
+    }
+    
     /**
      Returns a string representation of the date that the system formats using the formatter.
      
