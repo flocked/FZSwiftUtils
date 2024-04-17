@@ -141,12 +141,14 @@ public extension NumberFormatter {
         return self
     }
     
+    #if os(macOS)
     /// Sets the format.
     @discardableResult
     func format(_ format: String) -> Self {
         self.format = format
         return self
     }
+    #endif
     
     /// Sets the format to display negative values.
     @discardableResult

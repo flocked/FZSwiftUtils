@@ -44,11 +44,13 @@ public extension DateFormatter {
         return self
     }
     
+    #if os(macOS)
     /// Sets the date format string
     func format(_ format: String) -> Self {
         dateFormat = format
         return self
     }
+    #endif
     
     /// Sets the calendar.
     func calendar(_ calendar: Calendar) -> Self {
