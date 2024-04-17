@@ -26,7 +26,7 @@ extension Progress {
         let changed = completedUnitCount - (progressSamples.last?.completed ?? completedUnitCount)
         progressSamples.append((Date(), changed, completedUnitCount))
         progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
-        throughput = Int(progressSamples.compactMap({$0.changed}).average())
+        throughput = isCompleted ? 0 : Int(progressSamples.compactMap({$0.changed}).average())
         refreshEstimatedTimeRemaining()
         
         delayedEstimatedTimeRemainingUpdate?.cancel()
@@ -46,12 +46,24 @@ extension Progress {
             return
         }
         let throughput = Double(throughput ?? 0)
-        guard let completedUnitCount = progressSamples.last?.completed, throughput != 0 else {
+        guard !isCancelled, let completedUnitCount = progressSamples.last?.completed, throughput != 0 else {
             estimatedTimeRemaining = nil
             return
         }
         let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
         estimatedTimeRemaining = Double(remainingUnitCount) / throughput
+    }
+    
+    func refreshEstimatedTimeRemainingAlt() -> TimeInterval? {
+        guard !isCompleted else {
+            return 0
+        }
+        let throughput = Double(throughput ?? 0)
+        guard !isCancelled, let completedUnitCount = progressSamples.last?.completed, throughput != 0 else {
+            return nil
+        }
+        let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
+        return Double(remainingUnitCount) / throughput
     }
     
     /**
@@ -61,7 +73,7 @@ extension Progress {
         - date: The start date of the progress.
         - completedUnits: The units completed since start.
      */
-    public func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnits: Int64? = nil) {
+    public func updateEstimatedTimeRemaining(dateStarted date: Date, completedUnits: Int64) {
         let elapsedTime = Date().timeIntervalSince(date)
         updateEstimatedTimeRemaining(timeElapsed: elapsedTime, completedUnits: completedUnits)
     }
@@ -73,43 +85,26 @@ extension Progress {
         - elapsedTime: The time elapsed since the start of the progress.
         - completedUnits: The units completed since start.
      */
-    public func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64? = nil) {
-        guard Int64(elapsedTime) > 1 else {
-            self.throughput = 0
-            estimatedTimeRemaining = TimeInterval.infinity
-            return
-        }
-
-        guard self.completedUnitCount != self.totalUnitCount else {
-            self.throughput = 0
+    public func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64) {
+        guard !isCompleted else {
+            throughput = 0
             estimatedTimeRemaining = 0.0
             return
         }
-        estimatedTimeCompletedUnits = completedUnits ?? estimatedTimeCompletedUnits
-        var completedUnitCount = completedUnitCount - estimatedTimeCompletedUnits
-        var totalUnitCount = totalUnitCount - (completedUnits ?? 0)
-
-        if completedUnitCount < 0 {
-            completedUnitCount = 0
-        }
-        if totalUnitCount < 0 {
-            totalUnitCount = 0
-        }
-
-        let unitsPerSecond = Double(completedUnitCount) / elapsedTime
-        let throughput = Int(unitsPerSecond)
-        let unitsRemaining = totalUnitCount - completedUnitCount
-
-        guard unitsPerSecond > 0 else {
-            self.throughput = throughput
-            estimatedTimeRemaining = TimeInterval.infinity
+        
+        guard elapsedTime >= 1 else {
+            throughput = 0
+            estimatedTimeRemaining = nil
             return
         }
-
-        let secondsRemaining = Double(unitsRemaining) / unitsPerSecond
-
-        self.throughput = throughput
-        estimatedTimeRemaining = secondsRemaining
+        
+        let completedUnitCount = (completedUnitCount - completedUnits).clamped(min: 0)
+        let totalUnitCount = (totalUnitCount - completedUnits).clamped(min: 0)
+        let unitsPerSecond = Double(completedUnitCount) / elapsedTime
+        let unitsRemaining = totalUnitCount - completedUnitCount
+        
+        throughput = Int(unitsPerSecond)
+        estimatedTimeRemaining = unitsPerSecond == 0 ? nil : (Double(unitsRemaining) / unitsPerSecond)
     }
 
     /// A Boolean value indicating whether the progress should auomatically update the estimated time remaining and throughput.
@@ -142,20 +137,10 @@ extension Progress {
         }
     }
     
-    /// The time interval for calculating the throughput and estimate time remaining via ``updateEstimatedTimeRemaining()``.
+    /// The time interval for calculating the estimate time remaining and throughput via ``updateEstimatedTimeRemaining()``.
     public var estimateTimeEvaluationTimeInterval: TimeInterval {
         get { getAssociatedValue("estimateTimeInterval", initialValue: 30) }
         set { setAssociatedValue(newValue.clamped(min: 0.1), key: "estimateTimeInterval") }
-    }
-    
-    var estimatedTimeStartDate: Date {
-        get { getAssociatedValue("estimatedTimeStartDate", initialValue: Date()) }
-        set { setAssociatedValue(newValue, key: "estimatedTimeStartDate") }
-    }
-
-    var estimatedTimeCompletedUnits: Int64 {
-        get { getAssociatedValue("estimatedTimeCompletedUnits", initialValue: completedUnitCount) }
-        set { setAssociatedValue(newValue, key: "estimatedTimeCompletedUnits")  }
     }
     
     var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
@@ -168,13 +153,13 @@ extension Progress {
         set { setAssociatedValue(newValue, key: "delayedEstimatedTimeRemainingUpdate") }
     }
     
-    /// etaSamples, delayedETAUpdate, etaSampleLimitCount
+    /// ETA progress samples.
     var progressSamples: [(date: Date, changed: Int64, completed: Int64)] {
         get { getAssociatedValue("progressSamples", initialValue: []) }
         set { setAssociatedValue(newValue, key: "progressSamples") }
     }
     
-    /// The maximum amount of samples.
+    /// The maximum amount of ETA progress samples.
     var progressSampleLimitCount: Int {
         30
     }
@@ -188,9 +173,9 @@ extension Progress {
         4
     }
     
+    /// A Boolean value that indicates whether progress is completed.
     var isCompleted: Bool {
-        guard totalUnitCount > 0 else { return false }
-        return completedUnitCount >= totalUnitCount
+        fractionCompleted == 1.0
     }
 
     #if os(macOS)
