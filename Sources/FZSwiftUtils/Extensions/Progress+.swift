@@ -164,16 +164,14 @@ extension Progress {
 
     #if os(macOS)
         /**
-         The progress will be shown as a progress bar in the Finder for the given url.
+         The progress will be shown as a progress bar in the Finder for the specified file url.
 
          - Parameters:
             -   url: The URL of the file.
-            - kind: The kind of the file operation.
-
-         - Warning: Don't call this method if the progress is already published.
+            - kind: The file operation kind.
          */
         public func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
-            guard fileURL != url else { return }
+            guard fileURL != url, !isCompleted, !isCancelled else { return }
             fileURL = url
             fileOperationKind = kind
             self.kind = .file
@@ -184,27 +182,21 @@ extension Progress {
         }
 
         /**
-         Creates a file progress.
-
-         A file progress will show a progress bar in the Finder. If `cancellationHandler` is provided, the user will be able to cancel the progress. If `pauseHandler` is provided, the user will be able to pause the progress.
+         Creates a file progress that shows a progress bar in the Finder for the specified file url.
 
          - Parameters:
             - url: The URL of the file.
-            - kind: The kind of the file operation.
-            - size: The size of the file in `DataSize` format.
-            - pauseHandler: The block to invoke when pausing progress. If a handler is provided, the progress will be pausable.
-            - cancellationHandler: he block to invoke when canceling progress. If a handler is provided, the progress will be cancellable.
+            - kind: The file operation kind.
+            - completed: The completed size of the file.
+            - size: The size of the file.
 
          - Returns: A `Progress` object representing the file progress.
          */
         public static func file(url: URL, kind: Progress.FileOperationKind, completed: DataSize? = nil, size: DataSize? = nil) -> Progress {
             let progress = Progress()
-            progress.kind = .file
-            progress.fileURL = url
-            progress.fileOperationKind = kind
             progress.totalUnitCount = Int64(size?.bytes ?? 0)
-            progress.completedUnitCount = Int64(completed?.bytes ?? Int(progress.completedUnitCount))
-            progress.publish()
+            progress.completedUnitCount = Int64(completed?.bytes ?? 0)
+            progress.addFileProgress(url: url, kind: kind)
             return progress
         }
     
