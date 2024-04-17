@@ -40,7 +40,7 @@ public extension NumberFormatter {
      */
     func intValue(from string: String) -> Int? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.intValue ?? Int(str)
+        return NumberFormatter.integer.number(from: str)?.intValue ?? Int(str)
     }
 
     /**
@@ -51,7 +51,7 @@ public extension NumberFormatter {
      */
     func int8Value(from string: String) -> Int8? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.int8Value ?? Int8(str)
+        return NumberFormatter.integer.number(from: str)?.int8Value ?? Int8(str)
     }
 
     /**
@@ -62,7 +62,7 @@ public extension NumberFormatter {
      */
     func int16Value(from string: String) -> Int16? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.int16Value ?? Int16(str)
+        return NumberFormatter.integer.number(from: str)?.int16Value ?? Int16(str)
     }
 
     /**
@@ -73,7 +73,7 @@ public extension NumberFormatter {
      */
     func int32Value(from string: String) -> Int32? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.int32Value ?? Int32(str)
+        return NumberFormatter.integer.number(from: str)?.int32Value ?? Int32(str)
     }
 
     /**
@@ -84,7 +84,7 @@ public extension NumberFormatter {
      */
     func int64Value(from string: String) -> Int64? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.int64Value ?? Int64(str)
+        return NumberFormatter.integer.number(from: str)?.int64Value ?? Int64(str)
     }
 
     /**
@@ -95,7 +95,7 @@ public extension NumberFormatter {
      */
     func uintValue(from string: String) -> UInt? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.uintValue ?? UInt(str)
+        return NumberFormatter.integer.number(from: str)?.uintValue ?? UInt(str)
     }
 
     /**
@@ -106,7 +106,7 @@ public extension NumberFormatter {
      */
     func uint8Value(from string: String) -> UInt8? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.uint8Value ?? UInt8(str)
+        return NumberFormatter.integer.number(from: str)?.uint8Value ?? UInt8(str)
     }
 
     /**
@@ -117,7 +117,7 @@ public extension NumberFormatter {
      */
     func uint16Value(from string: String) -> UInt16? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.uint16Value ?? UInt16(str)
+        return NumberFormatter.integer.number(from: str)?.uint16Value ?? UInt16(str)
     }
 
     /**
@@ -128,7 +128,7 @@ public extension NumberFormatter {
      */
     func uint32Value(from string: String) -> UInt32? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.uint32Value ?? UInt32(str)
+        return NumberFormatter.integer.number(from: str)?.uint32Value ?? UInt32(str)
     }
 
     /**
@@ -139,7 +139,7 @@ public extension NumberFormatter {
      */
     func uint64Value(from string: String) -> UInt64? {
         let str = string.strippingNonNumericCharacters
-        return NumberFormatter.integer().number(from: str)?.uint64Value ?? UInt64(str)
+        return NumberFormatter.integer.number(from: str)?.uint64Value ?? UInt64(str)
     }
 
     /**

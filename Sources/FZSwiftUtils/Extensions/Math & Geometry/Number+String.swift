@@ -20,7 +20,7 @@ public extension BinaryInteger {
      - Returns: A localized string representation of the integer value.
      */
     func localizedString(locale: Locale = .current) -> String {
-        NumberFormatter.integer(locale: locale).string(for: self) ?? String(self)
+        NumberFormatter.integer.locale(locale).string(for: self) ?? String(self)
     }
 }
 
@@ -37,7 +37,7 @@ public extension BinaryFloatingPoint {
      - Returns: A localized string representation of the value.
      */
     func localizedString(locale: Locale = .current) -> String {
-        NumberFormatter.decimal(locale: locale).string(for: self) ?? String(Double(self))
+        NumberFormatter.decimal.locale(locale).string(for: self) ?? String(Double(self))
     }
 }
 
