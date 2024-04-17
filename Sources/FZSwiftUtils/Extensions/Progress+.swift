@@ -22,7 +22,7 @@ extension Progress {
     }
 
     /// Updates the estimate time remaining and throughput.
-    private func updateEstimatedTimeRemaining() {
+    public func updateEstimatedTimeRemaining() {
         let changed = completedUnitCount - (progressSamples.last?.completed ?? completedUnitCount)
         progressSamples.append((Date(), changed, completedUnitCount))
         progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
