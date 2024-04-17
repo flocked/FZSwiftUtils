@@ -159,24 +159,27 @@ public extension Date {
     }
     
     /**
-     Returns a string representation of the date that the system formats using the date format string.
+     Returns a string representation of the date from the specified date format string.
      
      - Parameter formatter: The date format string.
-     - Returns: A string representation of the date.
      */
     func string(using format: String) -> String {
         DateFormatter(format).string(from: self)
     }
     
-    func sdsd() {
-        string(using: .zulu)
+    /**
+     Returns a string representation from the specified date formatter components.
+     
+     - Parameter components: The date formatter components.
+     */
+    func string(components: DateFormatter.Component...) -> String {
+        DateFormatter(components: components).string(from: self)
     }
     
     /**
      Returns a string representation of the date that the system formats using the formatter.
      
      - Parameter formatter: The date formatter.
-     - Returns: A string representation of the date.
      */
     func string(using formatter: DateFormatter) -> String {
         formatter.string(from: self)
