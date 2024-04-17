@@ -1,6 +1,6 @@
 //
 //  Sequence+Identifable.swift
-//  FZCollection
+//  
 //
 //  Created by Florian Zand on 03.05.22.
 //
