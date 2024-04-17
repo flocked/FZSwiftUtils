@@ -22,7 +22,7 @@ extension Progress {
     }
 
     /// Updates the estimate time remaining and throughput.
-    public func updateEstimatedTimeRemaining() {
+    private func updateEstimatedTimeRemaining() {
         let changed = completedUnitCount - (progressSamples.last?.completed ?? completedUnitCount)
         progressSamples.append((Date(), changed, completedUnitCount))
         progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
@@ -40,7 +40,7 @@ extension Progress {
         }
     }
     
-    func refreshEstimatedTimeRemaining() {
+    private func refreshEstimatedTimeRemaining() {
         guard !isCompleted else {
             estimatedTimeRemaining = 0
             return
@@ -52,18 +52,6 @@ extension Progress {
         }
         let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
         estimatedTimeRemaining = Double(remainingUnitCount) / throughput
-    }
-    
-    func refreshEstimatedTimeRemainingAlt() -> TimeInterval? {
-        guard !isCompleted else {
-            return 0
-        }
-        let throughput = Double(throughput ?? 0)
-        guard !isCancelled, let completedUnitCount = progressSamples.last?.completed, throughput != 0 else {
-            return nil
-        }
-        let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
-        return Double(remainingUnitCount) / throughput
     }
     
     /**
@@ -136,42 +124,38 @@ extension Progress {
             }
         }
     }
-    
+
     /// The time interval for calculating the estimate time remaining and throughput via ``updateEstimatedTimeRemaining()``.
     public var estimateTimeEvaluationTimeInterval: TimeInterval {
         get { getAssociatedValue("estimateTimeInterval", initialValue: 30) }
         set { setAssociatedValue(newValue.clamped(min: 0.1), key: "estimateTimeInterval") }
     }
     
-    var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
+    private var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
         get { getAssociatedValue("estimatedTimeProgressObserver", initialValue: nil) }
         set { setAssociatedValue(newValue, key: "estimatedTimeProgressObserver") }
     }
     
-    var delayedEstimatedTimeRemainingUpdate: DispatchWorkItem? {
+    private var delayedEstimatedTimeRemainingUpdate: DispatchWorkItem? {
         get { getAssociatedValue("delayedEstimatedTimeRemainingUpdate", initialValue: nil ) }
         set { setAssociatedValue(newValue, key: "delayedEstimatedTimeRemainingUpdate") }
     }
     
     /// ETA progress samples.
-    var progressSamples: [(date: Date, changed: Int64, completed: Int64)] {
+    private var progressSamples: [(date: Date, changed: Int64, completed: Int64)] {
         get { getAssociatedValue("progressSamples", initialValue: []) }
         set { setAssociatedValue(newValue, key: "progressSamples") }
     }
     
     /// The maximum amount of ETA progress samples.
-    var progressSampleLimitCount: Int {
-        30
-    }
+    private var progressSampleLimitCount: Int { 30 }
     
-    var estimateTimeUpdateCount: Int {
+    private var estimateTimeUpdateCount: Int {
         get { getAssociatedValue("estimateTimeUpdateCount", initialValue: 0) }
         set { setAssociatedValue(newValue, key: "estimateTimeUpdateCount") }
     }
     
-    var maxEstimateTimeUpdateCount: Int {
-        4
-    }
+    private var maxEstimateTimeUpdateCount: Int { 4 }
     
     /// A Boolean value that indicates whether progress is completed.
     var isCompleted: Bool {
@@ -224,7 +208,7 @@ extension Progress {
             return progress
         }
     
-    var isPublished: Bool {
+    private var isPublished: Bool {
         get { getAssociatedValue("isPublished", initialValue: false) }
         set { setAssociatedValue(newValue, key: "isPublished") }
     }
