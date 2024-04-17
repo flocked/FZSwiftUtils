@@ -183,7 +183,7 @@ public final class Defaults {
         - handler: The handler to be called whenever the key value changes.
      */
     public func observeChanges<Value>(_ key: String, type _: Value, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        observer.add(key, sendInitalValue: sendInitalValue) { old, new, _ in
+        observer.add(key, initial: sendInitalValue) { old, new, _ in
             let old = old as! Value
             let new = new as! Value
             handler(old, new)
@@ -200,7 +200,7 @@ public final class Defaults {
         - handler: The handler to be called whenever the key value changes.
      */
     public func observeChanges<Value: Equatable>(_ key: String, type _: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        observer.add(key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
+        observer.add(key, initial: sendInitalValue, unique: uniqueValues) { old, new, inital in
             let old = old as! Value
             let new = new as! Value
             if uniqueValues {
@@ -371,7 +371,7 @@ extension Defaults {
         - handler: The handler to be called whenever the key value changes.
      */
     func observeChanges<Value>(for key: Key<Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        observer.add(key._key, sendInitalValue: sendInitalValue) { old, new, _ in
+        observer.add(key._key, initial: sendInitalValue) { old, new, _ in
             let old = old as! Value
             let new = new as! Value
             handler(old, new)
@@ -388,7 +388,7 @@ extension Defaults {
         - handler: The handler to be called whenever the key value changes.
      */
     func observeChanges<Value: Equatable>(for key: Key<Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        observer.add(key._key, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { old, new, inital in
+        observer.add(key._key, initial: sendInitalValue, unique: uniqueValues) { old, new, inital in
             let old = old as! Value
             let new = new as! Value
             if uniqueValues {
