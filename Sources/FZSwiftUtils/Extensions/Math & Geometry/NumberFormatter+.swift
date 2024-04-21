@@ -187,30 +187,42 @@ public extension NumberFormatter {
     
     /// Sets the minimum number of digits after the decimal separator.
     @discardableResult
-    func minFractions(_ value: Int) -> Self {
+    func minFraction(_ value: Int) -> Self {
         minimumFractionDigits = value
         return self
     }
     
     /// Sets the maximum number of digits after the decimal separator.
     @discardableResult
-    func maxFractions(_ value: Int) -> Self {
+    func maxFraction(_ value: Int) -> Self {
         maximumFractionDigits = value
         return self
     }
     
+    /// Sets the range of digits after the decimal separator.
+    @discardableResult
+    func fractions(_ range: ClosedRange<Int>) -> Self {
+        self.minFraction(range.lowerBound).maxFraction(range.upperBound)
+    }
+    
     /// Sets the minimum number of digits before the decimal separator.
     @discardableResult
-    func minIntegers(_ value: Int) -> Self {
+    func minInteger(_ value: Int) -> Self {
         minimumIntegerDigits = value
         return self
     }
     
     /// Sets the maximum number of digits before the decimal separator.
     @discardableResult
-    func maxIntegers(_ value: Int) -> Self {
+    func maxInteger(_ value: Int) -> Self {
         maximumIntegerDigits = value
         return self
+    }
+    
+    /// Sets the range of digits before the decimal separator.
+    @discardableResult
+    func integers(_ range: ClosedRange<Int>) -> Self {
+         self.minInteger(range.lowerBound).maxInteger(range.upperBound)
     }
     
     @discardableResult
