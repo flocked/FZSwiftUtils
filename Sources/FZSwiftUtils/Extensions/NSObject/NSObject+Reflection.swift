@@ -252,6 +252,9 @@ extension NSObject {
             let name = NSStringFromSelector(method_getName(method))
             let returnType = method.returnType.toType()
             var argumentTypes: [Any] = []
+            if 0 >= method.numberOfArguments {
+                Swift.print(method.numberOfArguments, name)
+            }
             for index in 0..<method.numberOfArguments {
                 argumentTypes.append(method.argumentType(at: index).toType())
             }
