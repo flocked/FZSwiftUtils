@@ -126,7 +126,6 @@ public extension Sequence {
 }
 
 public extension Sequence {
-    /*
     /**
      Returns the elements of the sequence, sorted using given keyPaths as comparison between elements.
 
@@ -173,38 +172,6 @@ public extension Sequence {
             return false
         }
     }
-    */
-    
-    
-    func test() {
-        var array: [Test] = []
-        array.sorted(by: {
-            [\.integer]
-            [\.integer]
-        })
-    }
-    
-    func sorted(@PartialSortingKeyPath<Element>.Builder by keyPaths: () -> [PartialSortingKeyPath<Element>]) -> [Element] {
-        let keyPaths = keyPaths()
-        return sorted { a, b in
-            for kp in keyPaths {
-                let order = kp.order
-                
-                for keyPath in kp.subKeyPaths {
-                    if let val1 = a[keyPath: keyPath.keyPath] as? any Comparable, let val2 = b[keyPath: keyPath.keyPath] as? any Comparable {
-                        return (order == .ascending) ? val1.isLessThan(val2) : !val1.isLessThan(val2)
-                    } else if let valus1 = a[keyPath: keyPath.keyPath] as? (any Comparable)?, let value2 = b[keyPath: keyPath.keyPath] as? (any Comparable)? {
-                        guard value2 != nil else { return true }
-                        guard valus1 != nil else { return false }
-                        return (order == .ascending) ? (valus1?.isLessThan(value2) ?? false) : !(valus1?.isLessThan(value2) ?? false)
-                    } else {
-                        return false
-                    }
-                }
-            }
-            return false
-        }
-    }
 
     /**
      Returns the elements of the sequence, sorted using given keypaths as comparison between elements.
@@ -231,8 +198,8 @@ public prefix func << <Root>(keyPath: PartialKeyPath<Root>) -> PartialSortingKey
 }
 
 /// Returns a keypath used for sorting a sequence in an ascending order.
-public prefix func << <Root>(keyPaths: [PartialKeyPath<Root>]) -> [PartialSortingKeyPath<Root>] {
-    keyPaths.compactMap({.ascending($0)})
+public prefix func << <Root>(keyPaths: [PartialKeyPath<Root>]) -> PartialSortingKeyPath<Root> {
+    .ascending(keyPaths)
 }
 
 /// Returns a keypath used for sorting a sequence in a descending order.
@@ -241,150 +208,102 @@ public prefix func >> <Root>(keyPath: PartialKeyPath<Root>) -> PartialSortingKey
 }
 
 /// Returns a keypath used for sorting a sequence in a descending order.
-public prefix func >> <Root>(keyPaths: [PartialKeyPath<Root>]) -> [PartialSortingKeyPath<Root>] {
-    keyPaths.compactMap({.descending($0)})
-
+public prefix func >> <Root>(keyPaths: [PartialKeyPath<Root>]) -> PartialSortingKeyPath<Root> {
+    .descending(keyPaths)
 }
 
 /// A keypath that is used for sorting a sequence.
 public struct PartialSortingKeyPath<Root> {
-    let keyPath: PartialKeyPath<Root>
-    let subKeyPaths: [PartialSortingKeyPath<Root>]
+    let keyPaths: [PartialKeyPath<Root>]
     let order: SequenceSortOrder
 
     init(_ keyPath: PartialKeyPath<Root>, order: SequenceSortOrder = .ascending) {
-        self.keyPath = keyPath
-        subKeyPaths = []
+        keyPaths = [keyPath]
         self.order = order
     }
 
-    init(_ keyPath: PartialKeyPath<Root>, subKeyPaths: [PartialSortingKeyPath<Root>], order: SequenceSortOrder = .ascending) {
-        self.keyPath = keyPath
-        self.subKeyPaths = subKeyPaths
+    init(_ keyPaths: [PartialKeyPath<Root>], order: SequenceSortOrder = .ascending) {
+        self.keyPaths = keyPaths
         self.order = order
     }
-    
-    init(_ keyPath: PartialKeyPath<Root>, order: SequenceSortOrder = .ascending, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) {
-        self.keyPath = keyPath
-        self.subKeyPaths = subKeyPaths()
-        self.order = order
-    }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func ascending(_ keyPath: PartialKeyPath<Root>) -> Self {
-        Self(keyPath)
+    public static func ascending(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        Self(keyPath, order: .ascending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func ascending(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, subKeyPaths: subKeyPaths)
+    public static func ascending(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .ascending)
     }
-    
-    /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func oldestFirst(_ keyPath: PartialKeyPath<Root>) -> Self {
-        Self(keyPath)
-    }
-    
-    /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func oldestFirst(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, subKeyPaths: subKeyPaths)
-    }
-    
-    /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func smallestFirst(_ keyPath: PartialKeyPath<Root>) -> Self {
-        Self(keyPath)
-    }
-    
-    /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func smallestFirst(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, subKeyPaths: subKeyPaths)
-    }
-    
-    /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func shortestFirst(_ keyPath: PartialKeyPath<Root>) -> Self {
-        Self(keyPath)
-    }
-    
-    /// Returns a keypath used for sorting a sequence in an ascending order.
-    public static func shortestFirst(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, subKeyPaths: subKeyPaths)
-    }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func descending(_ keyPath: PartialKeyPath<Root>) -> Self {
+    public static func descending(_ keyPath: PartialKeyPath<Root>...) -> Self {
         Self(keyPath, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func descending(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, order: .descending, subKeyPaths: subKeyPaths)
+    public static func descending(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .descending)
     }
-    
+
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func oldestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        Self(keyPath, order: .ascending)
+    }
+
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func oldestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .ascending)
+    }
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func newestFirst(_ keyPath: PartialKeyPath<Root>) -> Self {
+    public static func newestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         Self(keyPath, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func newestFirst(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, order: .descending, subKeyPaths: subKeyPaths)
+    public static func newestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .descending)
     }
-    
+
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func smallestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        Self(keyPath, order: .ascending)
+    }
+
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func smallestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .ascending)
+    }
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func largestFirst(_ keyPath: PartialKeyPath<Root>) -> Self {
+    public static func largestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         Self(keyPath, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func largestFirst(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, order: .descending, subKeyPaths: subKeyPaths)
+    public static func largestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .descending)
+    }
+
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func shortestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
+        Self(keyPath, order: .ascending)
+    }
+
+    /// Returns a keypath used for sorting a sequence in an ascending order.
+    public static func shortestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .ascending)
     }
 
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func longestFirst(_ keyPath: PartialKeyPath<Root>) -> Self {
+    public static func longestFirst(_ keyPath: PartialKeyPath<Root>...) -> Self {
         Self(keyPath, order: .descending)
     }
-    
+
     /// Returns a keypath used for sorting a sequence in a descending order.
-    public static func longestFirst(_ keyPath: PartialKeyPath<Root>, @Builder subKeyPaths: () -> [PartialSortingKeyPath<Root>]) -> Self {
-        Self(keyPath, order: .descending, subKeyPaths: subKeyPaths)
+    public static func longestFirst(_ keyPaths: [PartialKeyPath<Root>]) -> Self {
+        Self(keyPaths, order: .descending)
     }
-    
-    /// A function builder type that produces an array of menu items.
-    @resultBuilder
-    public enum Builder {
-        public static func buildBlock(_ block: [PartialSortingKeyPath]...) -> [PartialSortingKeyPath] {
-            block.flatMap { $0 }
-        }
-
-        public static func buildArray(_ components: [[PartialSortingKeyPath]]) -> [PartialSortingKeyPath] {
-            components.flatMap { $0 }
-        }
-
-        public static func buildExpression(_ expr: [PartialSortingKeyPath]?) -> [PartialSortingKeyPath] {
-            expr ?? []
-        }
-        
-        public static func buildExpression(_ expr: [PartialSortingKeyPath]) -> [PartialSortingKeyPath] {
-            expr
-        }
-
-        public static func buildExpression(_ expr: PartialSortingKeyPath?) -> [PartialSortingKeyPath] {
-            expr.map { [$0] } ?? []
-        }
-        
-        public static func buildExpression(_ expr: PartialKeyPath<Root>?) -> [PartialSortingKeyPath] {
-            expr != nil ? [PartialSortingKeyPath(expr!)] : []
-        }
-        
-        public static func buildExpression(_ expr: [PartialKeyPath<Root>]?) -> [PartialSortingKeyPath] {
-            expr?.compactMap({PartialSortingKeyPath($0)}) ?? []
-        }
-    }
-}
-
-struct Test: Hashable {
-    var string: String = ""
-    var integer: Int = 4
-    var test: String = ""
 }
