@@ -30,6 +30,17 @@ public enum SequenceSortOrder: Int, Hashable {
     public static let longestFirst = SequenceSortOrder.descending
 }
 
+public extension Sequence where Element: Comparable {
+    /**
+     Returns the elements of the sequence, sorted.
+     
+     - Parameter order: The order of sorting.
+     */
+    func sorted(_ order: SequenceSortOrder) -> [Element] {
+        order == .ascending ? sorted() : sorted().reversed()
+    }
+}
+
 public extension Sequence {
     /**
      An array of the elements sorted by the given predicate.
