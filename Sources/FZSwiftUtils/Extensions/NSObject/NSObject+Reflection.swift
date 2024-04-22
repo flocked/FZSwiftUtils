@@ -139,6 +139,11 @@ extension NSObject {
         return ClassReflection(type: self, properties: properties, methods: methods, ivars: ivars, classProperties: classProperties, classMethods: classMethods, classIvars: classIvars)
     }
     
+    /// Returns a reflection of the class with the specified name.
+    public static func classReflection(for className: String, includeSuperclass: Bool = false) -> ClassReflection? {
+        (NSClassFromString(className) as? NSObject.Type)?.classReflection(includeSuperclass: includeSuperclass)
+    }
+    
     /**
      Returns all property descriptions of the class.
      
