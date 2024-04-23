@@ -310,10 +310,12 @@ public extension CGRect {
         return rect
     }
 
+    #if os(macOS)
     /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
     func inset(by edgeInsets: NSUIEdgeInsets) -> CGRect {
         inset(by: NSDirectionalEdgeInsets(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
     }
+    #endif
     
     /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
     func inset(by edgeInsets: NSDirectionalEdgeInsets) -> CGRect {
