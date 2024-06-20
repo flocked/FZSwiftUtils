@@ -429,6 +429,20 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
     }
 
     /**
+     Replaces all appearances of the specified element with another.
+
+     - Parameters:
+        - element: The element to replace.
+        - another: The replacing element.
+     */
+    mutating func replace(_ element: Element, with another: Element) {
+        for index in indexes(of: element) {
+            remove(at: index)
+            insert(another, at: index)
+        }
+    }
+    
+    /**
      Replaces the first appearance of the specified element with other elements.
 
      - Parameters:
@@ -441,20 +455,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
             insert(contentsOf: newElements, at: index)
         }
     }
-
-    /**
-     Replaces all appearances of the specified element with another.
-
-     - Parameters:
-        - element: The element to replace.
-        - another: The replacing element.
-     */
-    mutating func replace(_ element: Element, with another: Element) {
-        guard let index = firstIndex(of: element) else { return }
-        remove(element)
-        insert(another, at: index)
-    }
-
+    
     /**
      Replaces all appearance of the specified element with other elements.
 
@@ -463,8 +464,38 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
         - newElements: The replacing elements.
      */
     mutating func replace<C>(_ element: Element, with newElements: C) where C: Collection, Self.Element == C.Element {
-        replace(first: element, with: newElements)
-        remove(element)
+        for index in indexes(of: element) {
+            remove(at: index)
+            insert(contentsOf: newElements, at: index)
+        }
+    }
+    
+    /**
+     Replaces all appearances of the specified elements with another.
+
+     - Parameters:
+        - elements: The elements to replace.
+        - another: The replacing element.
+     */
+    mutating func replace<C: Sequence<Element>>(_ elements: C, with another: Element) {
+        for index in indexes(for: elements) {
+            remove(at: index)
+            insert(another, at: index)
+        }
+    }
+    
+    /**
+     Replaces all appearances of the specified elements with another.
+
+     - Parameters:
+        - elements: The elements to replace.
+        - newElements: The replacing elements.
+     */
+    mutating func replace<C: Collection<Element>, R: Collection<Element>>(_ elements: C, with newElements: R) {
+        for index in indexes(for: elements) {
+            remove(at: index)
+            insert(contentsOf: newElements, at: index)
+        }
     }
 }
 

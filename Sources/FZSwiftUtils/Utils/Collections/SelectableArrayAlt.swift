@@ -1,5 +1,5 @@
 //
-//  SelectableArrayNew.swift
+//  SelectableArrayAlt.swift
 //
 //
 //  Created by Florian Zand on 15.10.21.
@@ -7,7 +7,9 @@
 
 import Foundation
 
-public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
+/*
+
+public struct SelectableArrayAlt<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
     struct SelectableElement {
         let element: Element
         var isSelected: Bool
@@ -235,20 +237,20 @@ public struct SelectableArrayNew<Element>: MutableCollection, RangeReplaceableCo
     }
 }
 
-extension SelectableArrayNew: ExpressibleByArrayLiteral {}
-extension SelectableArrayNew: Sendable where Element: Sendable {}
-extension SelectableArrayNew.SelectableElement: Encodable where Element: Encodable {}
-extension SelectableArrayNew.SelectableElement: Decodable where Element: Decodable {}
-extension SelectableArrayNew: Encodable where Element: Encodable {}
-extension SelectableArrayNew: Decodable where Element: Decodable {}
+extension SelectableArrayAlt: ExpressibleByArrayLiteral {}
+extension SelectableArrayAlt: Sendable where Element: Sendable {}
+extension SelectableArrayAlt.SelectableElement: Encodable where Element: Encodable {}
+extension SelectableArrayAlt.SelectableElement: Decodable where Element: Decodable {}
+extension SelectableArrayAlt: Encodable where Element: Encodable {}
+extension SelectableArrayAlt: Decodable where Element: Decodable {}
 
-extension SelectableArrayNew: CVarArg {
+extension SelectableArrayAlt: CVarArg {
     public var _cVarArgEncoding: [Int] {
         elements._cVarArgEncoding
     }
 }
 
-extension SelectableArrayNew: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+extension SelectableArrayAlt: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
         elements.customMirror
     }
@@ -262,23 +264,25 @@ extension SelectableArrayNew: CustomStringConvertible, CustomDebugStringConverti
     }
 }
 
-extension SelectableArrayNew.SelectableElement: Equatable where Element: Equatable {}
-extension SelectableArrayNew.SelectableElement: Hashable where Element: Hashable {}
+extension SelectableArrayAlt.SelectableElement: Equatable where Element: Equatable {}
+extension SelectableArrayAlt.SelectableElement: Hashable where Element: Hashable {}
 
-extension SelectableArrayNew: Hashable where Element: Hashable {
+extension SelectableArrayAlt: Hashable where Element: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(elements)
     }
 }
 
-extension SelectableArrayNew: ContiguousBytes {
+extension SelectableArrayAlt: ContiguousBytes {
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         try elements.withUnsafeBytes(body)
     }
 }
 
-extension SelectableArrayNew: Equatable where Element: Equatable {
-    public static func == (lhs: SelectableArrayNew<Element>, rhs: SelectableArrayNew<Element>) -> Bool {
+extension SelectableArrayAlt: Equatable where Element: Equatable {
+    public static func == (lhs: SelectableArrayAlt<Element>, rhs: SelectableArrayAlt<Element>) -> Bool {
         lhs.elements == rhs.elements
     }
 }
+
+*/
