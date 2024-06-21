@@ -100,20 +100,15 @@ class InterposeSubclass {
     class var supportsSuperTrampolines: Bool {
         _SuperBuilder.isSupportedArchitecure
     }
-
-    private lazy var addSuperImpl: @convention(c) (AnyClass, Selector, NSErrorPointer) -> Bool = {
-        let handle = dlopen(nil, RTLD_LAZY)
-        let imp = dlsym(handle, "IKTAddSuperImplementationToClass")
-        return unsafeBitCast(imp, to: (@convention(c) (AnyClass, Selector, NSErrorPointer) -> Bool).self)
-    }()
-
+    
     func addSuperTrampoline(selector: Selector) {
-        var error: NSError?
-        if addSuperImpl(dynamicClass, selector, &error) == false {
-            Interpose.log("Failed to add super implementation to -[\(dynamicClass).\(selector)]: \(error!)")
-        } else {
+        do {
+            try _SuperBuilder.addSuperInstanceMethod(to: dynamicClass, selector: selector)
+
             let imp = class_getMethodImplementation(dynamicClass, selector)!
             Interpose.log("Added super for -[\(dynamicClass).\(selector)]: \(imp)")
+        } catch {
+            Interpose.log("Failed to add super implementation to -[\(dynamicClass).\(selector)]: \(error)")
         }
     }
     #else
