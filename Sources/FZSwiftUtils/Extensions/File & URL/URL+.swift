@@ -79,6 +79,35 @@ public extension URL {
         let droppedScheme = String(absoluteString.dropFirst(2))
         return URL(string: droppedScheme)
     }
+    
+    /// A Boolean value indicating whether the url is a parent of the other url.
+    func isParent(of url: URL) -> Bool {
+        url.isChild(of: self)
+    }
+    
+    /// A Boolean value indicating whether the url is a child of the other url.
+    func isChild(of url: URL) -> Bool {
+        childDepth(in: url) ?? 0 > 0
+    }
+    
+    /// The child depth of the url inside the other url, or `nil` if the url isn't a child.
+    func childDepth(in url: URL) -> Int? {
+        let comp1 = url.canonicalized.pathComponents
+        let comp2 = canonicalized.pathComponents
+        let depth = comp2.count - comp1.count
+        guard !zip(comp1, comp2).contains(where: !=), depth >= 0 else { return nil }
+        return depth
+    }
+    
+    /**
+     The url as a canonical absolute file system url.
+     
+     If the `isFileURL is false, this method returns self.
+     */
+    internal var canonicalized: URL {
+        standardizedFileURL.resolvingSymlinksInPath()
+    }
+    
 }
 
 @available(macOS, deprecated: 11.0, message: "Use contentType instead")
