@@ -45,3 +45,10 @@ extension Array: Comparable where Element: Comparable {
         return lhs.count < rhs.count
     }
 }
+
+public extension ArraySlice {
+    /// Array representation of the slice.
+    var array: [Element] {
+        Array(self)
+    }
+}
