@@ -159,6 +159,69 @@ public extension Collection where Index == Int {
     subscript(indexes: IndexSet) -> [Element] { indexes.compactMap { self[safe: $0] } }
 }
 
+public extension RangeReplaceableCollection {
+    /// Adds the specified optional `Element`.
+    static func += (lhs: inout Self, rhs: Element?) {
+        if let rhs = rhs {
+            lhs.append(rhs)
+        }
+    }
+
+    /// Adds the specified optional `Element`.
+    static func + (lhs: Self, rhs: Element?) -> Self {
+        var copy = lhs
+        if let rhs = rhs {
+            copy.append(rhs)
+        }
+        return copy
+    }
+
+    static func + (lhs: Element?, rhs: Self) -> Self {
+        if let lhs = lhs {
+            return [lhs] + rhs
+        }
+        return rhs
+    }
+    
+    /**
+     Adds a new element at the start of the collection.
+     
+     Use this method to prepend a single element to the start of a mutable collection.
+     
+     ```swift
+     var numbers = [1, 2, 3, 4, 5]
+     numbers.prepend(100)
+     print(numbers)
+     // Prints "[100, 1, 2, 3, 4, 5]"
+     ```
+     
+     - Parameter newElement: The element to prepend to the collection.
+     */
+    mutating func prepend(_ newElement: Element) {
+        self = [newElement] + self
+    }
+    
+    /**
+     Adds the elements of a sequence or collection to the start of this collection.
+
+     The collection being appended to allocates any additional necessary storage to hold the new elements.
+     
+     The following example prepends the elements of a Range<Int> instance to an array of integers:
+     
+     ```swift
+     var numbers = [1, 2, 3, 4, 5]
+     numbers.prepend(contentsOf: 10...15)
+     print(numbers)
+     // Prints "[10, 11, 12, 13, 14, 15, 1, 2, 3, 4, 5]"
+     ```
+     
+     - Parameter newElements: The elements to prepend to the collection.
+     */
+    mutating func prepend<S>(contentsOf newElements: S) where Element == S.Element, S : Sequence {
+        self = newElements + self
+    }
+}
+
 public extension RangeReplaceableCollection where Index == Int {
     /**
      Accesses a contiguous subrange of the collection’s elements.
@@ -503,10 +566,10 @@ public extension RangeReplaceableCollection where Element: Equatable {
     /**
      Inserts a new element before the specified element.
 
-     The new element is inserted before the specified element. If the element doesn't exist in the array, the new element won't be inserted.
+     The new element is inserted before the specified element. If the element doesn't exist in the collection, the new element won't be inserted.
 
      - Parameters:
-        - newElement: The new element to insert into the array.
+        - newElement: The new element to insert into the collection.
         - before: The element before which to insert the new element.
      */
     mutating func insert(_ newElement: Element, before: Element) {
@@ -517,10 +580,10 @@ public extension RangeReplaceableCollection where Element: Equatable {
     /**
      Inserts a new element after the specified element.
 
-     The new element is inserted after the specified element. If the element doesn't exist in the array, the new element won't be inserted.
+     The new element is inserted after the specified element. If the element doesn't exist in the collection, the new element won't be inserted.
 
      - Parameters:
-        - newElement: The new element to insert into the array.
+        - newElement: The new element to insert into the collection.
         - after: The element after which to insert the new element.
      */
     mutating func insert(_ newElement: Element, after: Element) {
@@ -531,10 +594,10 @@ public extension RangeReplaceableCollection where Element: Equatable {
     /**
      Inserts the new elements before the specified element.
 
-     The new elements are inserted before the specified element. If the element doesn't exist in the array, the new elements won't be inserted.
+     The new elements are inserted before the specified element. If the element doesn't exist in the collection, the new elements won't be inserted.
 
      - Parameters:
-        - newElements: The new elements to insert into the array.
+        - newElements: The new elements to insert into the collection.
         - before: The element before which to insert the new elements.
      */
     mutating func insert<C>(_ newElements: C, before: Element) where C: Collection<Element> {
@@ -545,10 +608,10 @@ public extension RangeReplaceableCollection where Element: Equatable {
     /**
      Inserts the new elements after the specified element.
 
-     The new elements are inserted after the specified element. If the element doesn't exist in the array, the new elements won't be inserted.
+     The new elements are inserted after the specified element. If the element doesn't exist in the collection, the new elements won't be inserted.
 
      - Parameters:
-        - newElements: The new elements to insert into the array.
+        - newElements: The new elements to insert into the collection.
         - after: The element after which to insert the new elements.
      */
     mutating func insert<C>(_ newElements: C, after: Element) where C: Collection<Element> {
