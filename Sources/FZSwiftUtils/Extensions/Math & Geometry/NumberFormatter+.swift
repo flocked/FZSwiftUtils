@@ -299,4 +299,18 @@ public extension NumberFormatter {
         currencySymbol = symbol
         return self
     }
+    
+    /// Sets the string used for the suffix for positive values..
+    @discardableResult
+    func positiveSuffix(_ suffix: String?) -> Self {
+        positiveSuffix = suffix ?? ""
+        return self
+    }
+    
+    /// Sets the string used for the suffix for negative values..
+    @discardableResult
+    func negativeSuffix(_ suffix: String?) -> Self {
+        negativeSuffix = suffix ?? ""
+        return self
+    }
 }
