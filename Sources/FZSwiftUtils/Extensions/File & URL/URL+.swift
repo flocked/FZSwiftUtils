@@ -9,14 +9,86 @@ import Foundation
 
 public extension URL {
     /**
+     Creates a URL with the specified path components.
+
+     - Parameter pathComponents: The path components of the URL
+     */
+    init(pathComponents: [String]) {
+        self.init(fileURLWithPath: "/" + pathComponents.joined(separator: "/"))
+    }
+    
+    /**
      Creates a file URL that references the local file or directory at path.
 
      If the path is an empty string, the system interprets it as “.”.
 
-     - parameter path: The location in the file system.
+     - Parameter path: The location in the file system.
      */
     static func file(_ path: String) -> URL {
         URL(fileURLWithPath: path)
+    }
+    
+    /**
+     Creates a file URL that references the local file or directory at path, relative to a base URL.
+
+     If the path is an empty string, the system interprets it as “.”.
+
+     - Parameters:
+        - path: The location in the file system.
+        - base: A URL that provides a file system location that the path extends.
+     */
+    static func file(_ path: String, relativeTo base: URL?) -> URL {
+        URL(fileURLWithPath: path, relativeTo: base)
+    }
+    
+    /**
+     Creates a URL instance from the provided string.
+     
+     - Parameter string: A URL location.
+     */
+    static func string(_ string: String) -> URL? {
+        URL(string: string)
+    }
+    
+    /**
+     Creates a URL instance from the provided string, relative to another URL.
+     
+     - Parameters:
+        - string: A URL location.
+        - url: A URL that provides a base location that the string extends.
+     */
+    static func string(_ string: String, relativeTo url: URL?) -> URL? {
+        URL(string: string, relativeTo: url)
+    }
+    
+    /**
+     Creates a URL that refers to the location specified by resolving an alias file.
+     
+     If the url argument doesn’t refer to an alias file (as defined by the isAliasFileKey property), the returned URL is the same as the url argument.
+     
+     This method doesn’t support the withSecurityScope option.
+     
+     - Parameters:
+        - url: URL to the alias file.
+        - options: Options for resolving the url.
+     - Throws: If the url argument is unreachable, the original file or directory is unknown or unreachable or the original file or directory is on a volume that the system can’t locate or can’t mount.
+     */
+    static func aliasFile(at url: URL, options: URL.BookmarkResolutionOptions = []) throws -> URL {
+        try URL(resolvingAliasFileAt: url, options: options)
+    }
+    
+    /**
+     Creates a URL that refers to a location specified by resolving bookmark data.
+     
+     - Parameters:
+        - url: The bookmark data used to construct a URL.
+        - options: Options taken into account when resolving the bookmark data. To resolve a security-scoped bookmark to support App Sandbox, include the `withSecurityScope option.
+        - url: The base URL that the bookmark data is relative to. If you’re resolving a security-scoped bookmark to obtain a security-scoped URL, use this parameter as follows: To resolve an app-scoped bookmark, use a value of nil. To resolve a document-scoped bookmark, use the absolute path (despite this parameter’s name) to the document from which you retrieved the bookmark.
+     App Sandbox doesn’t restrict which URL values you can pass to this parameter.
+        - bookmarkDataIsStale: On return, if `true`, the bookmark data is stale. Your app should create a new bookmark using the returned URL and use it in place of any stored copies of the existing bookmark.
+     */
+    static func bookmarkData(_ data: Data, options: URL.BookmarkResolutionOptions = [], relativeTo url: URL? = nil, bookmarkDataIsStale: inout Bool) throws -> URL {
+        try URL(resolvingBookmarkData: data, options: options, relativeTo: url, bookmarkDataIsStale: &bookmarkDataIsStale)
     }
 
     ///  A Boolean value indicating whether the resource is a directory.
