@@ -8,35 +8,6 @@
 import Foundation
 
 public extension Dictionary {
-    /// The keys of the values that are different to the other dictionary.
-    func difference(to dictionary: [Key : Value]) -> (removed: [Key], added: [Key], changed: [Key])  {
-        let added: [Key] = self.keys.filter({ dictionary[$0] == nil })
-        let removed: [Key] = dictionary.keys.filter({ self[$0] == nil })
-        var changed: [Key] = []
-        for val in dictionary {
-            if let old = dictionary[val.key] as? (any Equatable), let new = self[val.key] as? (any Equatable), !old.isEqual(new) {
-                changed.append(val.key)
-            }
-        }
-        return (removed, added, changed)
-    }
-    
-    /// The keys of the values that are different to the other dictionary.
-    func keyDifference(to dictionary: [Key : Value]) -> [Key] {
-        let added: [Key:Value] = self.filter({ dictionary[$0.key] == nil })
-        let removed: [Key:Value] = dictionary.filter({ self[$0.key] == nil })
-        
-        var keys: [Key] = keys.filter({ dictionary[$0] == nil })
-        keys += dictionary.keys.filter({ self[$0] == nil })
-
-        for val in dictionary {
-            if let old = dictionary[val.key] as? (any Equatable), let new = self[val.key] as? (any Equatable), !old.isEqual(new) {
-                keys.append(val.key)
-            }
-        }
-        return keys
-    }
-    
     /// Edits all values.
     mutating func editEach(_ body: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
         for keyVal in self {
@@ -89,6 +60,34 @@ public extension Dictionary {
             }
         )
     }
+    
+    /// The keys of the values that are different to the other dictionary.
+    func difference(to dictionary: [Key : Value]) -> (removed: [Key], added: [Key], changed: [Key])  {
+        let added: [Key] = self.keys.filter({ dictionary[$0] == nil })
+        let removed: [Key] = dictionary.keys.filter({ self[$0] == nil })
+        var changed: [Key] = []
+        for val in dictionary {
+            if let old = dictionary[val.key] as? (any Equatable), let new = self[val.key] as? (any Equatable), !old.isEqual(new) {
+                changed.append(val.key)
+            }
+        }
+        return (removed, added, changed)
+    }
+}
+
+public extension Dictionary where Value: Equatable {
+    /// The keys of the values that are different to the other dictionary.
+    func difference(to dictionary: [Key : Value]) -> (removed: [Key], added: [Key], changed: [Key]) {
+        let added: [Key] = self.keys.filter({ dictionary[$0] == nil })
+        let removed: [Key] = dictionary.keys.filter({ self[$0] == nil })
+        var changed: [Key] = []
+        for val in dictionary {
+            if let old = dictionary[val.key], let new = self[val.key], old != new {
+                changed.append(val.key)
+            }
+        }
+        return (removed, added, changed)
+    }
 }
 
 public extension Dictionary {
@@ -100,20 +99,6 @@ public extension Dictionary {
     /// The dictionary as `NSDictionary`.
     var nsDictionary: NSDictionary {
         self as NSDictionary
-    }
-}
-
-public extension Dictionary where Value : Equatable {
-    /// The keys of the values that are different to the other dictionary.
-    func keyDifference(to other: [Key : Value]) -> [Key] {
-        var keys: [Key] = keys.filter({ other[$0] == nil })
-        keys += other.keys.filter({ self[$0] == nil })
-        for val in other {
-            if let old = other[val.key], let new = self[val.key], old != new {
-                keys.append(val.key)
-            }
-        }
-        return keys
     }
 }
 
