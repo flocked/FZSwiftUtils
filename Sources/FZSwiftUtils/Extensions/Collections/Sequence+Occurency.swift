@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension Sequence where Element: Comparable & Hashable {
+public extension Sequence where Element: Equatable & Hashable {
     /// A dictionary for the occurences of the elements keyed by count.
     func numberOfOccurences() -> [Int: [Element]] {
         var occurences: [Int: [Element]] = [:]
@@ -28,19 +28,11 @@ public extension Sequence where Element: Comparable & Hashable {
             currentResult[element, default: 0] += 1
         }
     }
+}
 
-    /**
-     An array of elements sorted by number of occurences.
-
-     - Parameter order: The order of the sorting.
-     */
-    func sortedByOccurences(order: SequenceSortOrder = .ascending) -> [Element] {
-        let numberOfOccurences = numberOfOccurencesByElement()
-        let values = sorted(by: { current, next in numberOfOccurences[current]! < numberOfOccurences[next]! })
-        if order == .ascending {
-            return values
-        } else {
-            return values.reversed()
-        }
+public extension Dictionary  {
+    /// A dictionary for the occurences of the elements keyed by count.
+    init<S>(grouping values: S, by keyForValue: PartialKeyPath<S.Element>) where S: Sequence, S.Element: Equatable & Hashable, Value == [S.Element], S : Sequence, Key == Int {
+            self = values.numberOfOccurences()
     }
 }
