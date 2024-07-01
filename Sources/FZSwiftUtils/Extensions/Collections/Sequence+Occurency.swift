@@ -30,9 +30,11 @@ public extension Sequence where Element: Equatable & Hashable {
     }
 }
 
+/*
 public extension Dictionary  {
     /// A dictionary for the occurences of the elements keyed by count.
     init<S>(grouping values: S, by keyForValue: PartialKeyPath<S.Element>) where S: Sequence, S.Element: Equatable & Hashable, Value == [S.Element], S : Sequence, Key == Int {
             self = values.numberOfOccurences()
     }
 }
+*/
