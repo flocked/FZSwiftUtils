@@ -88,6 +88,14 @@ extension URLComponents {
         return self
     }
     
+    /// Sets the host subcomponent, encoded.
+    @discardableResult
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    public mutating func encodedHost(_ host: String?) -> Self {
+        self.encodedHost = host
+        return self
+    }
+    
     /// Sets the fragment subcomponent, percent-encoded.
     @discardableResult
     public mutating func percentEncodedFragment(_ fragment: String?) -> Self {
