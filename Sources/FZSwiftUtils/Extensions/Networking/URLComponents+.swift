@@ -8,12 +8,12 @@
 import Foundation
 
 extension URLComponents {
-    public init?(string: String, @Builder _ items: () -> [URLQueryItem]) {
+    public init?(string: String, @Builder items: () -> [URLQueryItem]) {
         self.init(string: string)
         queryItems = items()
     }
     
-    public init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @Builder _ items: () -> [URLQueryItem]) {
+    public init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @Builder items: () -> [URLQueryItem]) {
         self.init(url: url, resolvingAgainstBaseURL: resolve)
         queryItems = items()
     }
