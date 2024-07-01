@@ -13,6 +13,11 @@ extension URLComponents {
         queryItems = items()
     }
     
+    public init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @Builder _ items: () -> [URLQueryItem]) {
+        self.init(url: url, resolvingAgainstBaseURL: resolve)
+        queryItems = items()
+    }
+    
     /// Sets the host subcomponent.
     @discardableResult
     public mutating func host(_ host: String?) -> Self {
