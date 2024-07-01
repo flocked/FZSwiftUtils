@@ -8,14 +8,14 @@
 import Foundation
 
 extension URLComponents {
-    public init?(string: String, @Builder items: () -> [URLQueryItem]) {
+    public init?(string: String, @Builder queryItems: () -> [URLQueryItem]) {
         self.init(string: string)
-        queryItems = items()
+        self.queryItems = queryItems()
     }
     
-    public init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @Builder items: () -> [URLQueryItem]) {
+    public init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @Builder queryItems: () -> [URLQueryItem]) {
         self.init(url: url, resolvingAgainstBaseURL: resolve)
-        queryItems = items()
+        self.queryItems = queryItems()
     }
     
     /// Sets the host subcomponent.
