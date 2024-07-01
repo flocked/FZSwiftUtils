@@ -114,17 +114,17 @@ public extension URLRequest {
     }
 
     /// A dictionary containing all of the HTTP header fields for a request.
-    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String]? {
+    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String] {
         get {
-            guard let allHTTPHeaderFields = allHTTPHeaderFields else { return nil }
-            var dic: [HTTPRequestHeaderFieldKey: String] = [:]
+            guard let allHTTPHeaderFields = allHTTPHeaderFields else { return [:] }
+            var mapped: [HTTPRequestHeaderFieldKey: String] = [:]
             for key in allHTTPHeaderFields.keys.compactMap({ HTTPRequestHeaderFieldKey(rawValue: $0) }) {
-                dic[key] = allHTTPHeaderFields[key.rawValue]
+                mapped[key] = allHTTPHeaderFields[key.rawValue]
             }
-            return dic
+            return mapped
         }
         set {
-            guard let newValue = newValue else {
+            guard !newValue.isEmpty else {
                 allHTTPHeaderFields = nil
                 return
             }

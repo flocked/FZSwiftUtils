@@ -9,20 +9,20 @@ import Foundation
 
 public extension URLSessionConfiguration {
     /// A dictionary of additional headers to send with requests.
-    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String]? {
+    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: Any] {
         get {
-            guard let allHTTPHeaderFields = httpAdditionalHeaders else { return nil }
-            var dic: [HTTPRequestHeaderFieldKey: String] = [:]
+            guard let allHTTPHeaderFields = httpAdditionalHeaders else { return [:] }
+            var mapped: [HTTPRequestHeaderFieldKey: Any] = [:]
             for value in allHTTPHeaderFields {
                 if let rawValue = value.key as? String {
                     let key = HTTPRequestHeaderFieldKey(rawValue: rawValue)
-                    dic[key] = allHTTPHeaderFields[value.key] as? String
+                    mapped[key] = allHTTPHeaderFields[value.key]
                 }
             }
-            return dic
+            return mapped
         }
         set {
-            guard let newValue = newValue else {
+            guard !newValue.isEmpty else {
                 httpAdditionalHeaders = nil
                 return
             }

@@ -8,9 +8,14 @@
 import Foundation
 
 public extension URLResponse {
+    /// The `HTTP` response, or `nil` if the reponse isn't `HTTP`.
+    var http: HTTPURLResponse? {
+        self as? HTTPURLResponse
+    }
+    
     /// The validator which identifies the current state of the resource on the server.
     var validator: String? {
-        guard let response = self as? HTTPURLResponse,
+        guard let response = http,
               response.statusCode == 200 /* OK */ || response.statusCode == 206, /* Partial Content */
               let acceptRanges = response.allHeaderFields["Accept-Ranges"] as? String,
               acceptRanges.lowercased() == "bytes" else { return nil }
@@ -39,7 +44,7 @@ public extension URLResponse {
                 fileExtension = String(_extension)
             }
             if fileExtension == nil {
-                if let httpResponse = self as? HTTPURLResponse {
+                if let httpResponse = http {
                     let contentType = httpResponse.allHeaderFields["Content-Type"] as? String
                     if let range = contentType?.range(of: "/.+;", options: .regularExpression),
                        let _extension = contentType?[range].dropFirst().dropLast()
