@@ -11,7 +11,7 @@ public extension URL {
     /**
      Creates a URL with the specified path components.
 
-     - Parameter pathComponents: The path components of the URL
+     - Parameter pathComponents: The path components of the URL.
      */
     init(pathComponents: [String]) {
         self.init(fileURLWithPath: "/" + pathComponents.joined(separator: "/"))
@@ -48,6 +48,15 @@ public extension URL {
      */
     static func string(_ string: String) -> URL? {
         URL(string: string)
+    }
+    
+    /**
+     Creates a URL with the specified path components.
+
+     - Parameter components: The path components of the URL.
+     */
+    static func pathComponents(_ components: [String]) -> URL {
+        URL(pathComponents: components)
     }
     
     /**
@@ -96,7 +105,7 @@ public extension URL {
         resources.isDirectory
     }
 
-    ///  A Boolean value indicating whether the resource is a file.
+    ///  A Boolean value indicating whether the resource is a regular file rather than a directory or a symbolic link.
     var isFile: Bool {
         resources.isRegularFile
     }
@@ -106,11 +115,7 @@ public extension URL {
         (try? checkResourceIsReachable()) == true
     }
 
-    internal func resourceValues(for key: URLResourceKey) throws -> URLResourceValues {
-        try resourceValues(forKeys: [key])
-    }
-
-    /// The parent directory of the url.
+    /// The parent directory of the url, or `nil` if there isn't any parent.
     var parent: URL? {
         let parent = deletingLastPathComponent()
         if parent.path != path {
@@ -171,15 +176,29 @@ public extension URL {
         return depth
     }
     
+    #if os(macOS) || os(iOS)
+    /// A Boolean value indicating whether the file is in the trash.
+    var isInTrash: Bool {
+        if #available(macOS 13.0, iOS 16.0, *) {
+            return self.path.contains(Self.trashDirectory.path)
+        }
+         guard let trashURL = try? FileManager.default.url(for:.trashDirectory, in:.userDomainMask, appropriateFor:self, create:false) else { return false }
+         return self.path.contains(trashURL.path)
+     }
+    #endif
+    
     /**
      The url as a canonical absolute file system url.
      
-     If the `isFileURL is false, this method returns self.
+     If the `isFile` is `false`, this method returns itself.
      */
     internal var canonicalized: URL {
         standardizedFileURL.resolvingSymlinksInPath()
     }
     
+    internal func resourceValues(for key: URLResourceKey) throws -> URLResourceValues {
+        try resourceValues(forKeys: [key])
+    }
 }
 
 @available(macOS, deprecated: 11.0, message: "Use contentType instead")
