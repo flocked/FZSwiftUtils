@@ -76,6 +76,11 @@ public extension NSRange {
         intersection(other) != nil
     }
     
+    /// `Array` representation of the range.
+    var array: [Int] {
+        return (location..<location+length).array
+    }
+    
     /// The zero range.
     static var zero = NSRange(location: 0, length: 0)
 }

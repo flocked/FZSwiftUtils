@@ -176,6 +176,13 @@ public extension ClosedRange  {
     }
 }
 
+public extension Range where Bound: BinaryInteger, Bound.Stride: SignedInteger {
+    /// `Array` representation of the range.
+    var array: [Bound] {
+        return compactMap({$0})
+    }
+}
+
 public extension ClosedRange where Bound: BinaryInteger {
     /**
      Offsets the range by the specified value.
@@ -201,6 +208,13 @@ public extension ClosedRange where Bound: BinaryInteger {
     var nsRange: NSRange {
         let length = upperBound - lowerBound - 1
         return NSRange(location: Int(lowerBound), length: Int(length))
+    }
+}
+
+public extension ClosedRange where Bound: BinaryInteger, Bound.Stride: SignedInteger {
+    /// `Array` representation of the range.
+    var array: [Bound] {
+        return compactMap({$0})
     }
 }
 
