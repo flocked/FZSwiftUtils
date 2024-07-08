@@ -62,69 +62,6 @@ public extension MutableCollection {
     }
 }
 
-public extension Collection where Element: Equatable {
-    /**
-     A Boolean value indicating whether the collection contains any of the specified elements.
-
-     - Parameter elements: The elements.
-     - Returns: `true` if any of the elements exists in the collection, or` false` if non exist in the option set.
-     */
-    func contains<S>(any elements: S) -> Bool where S: Sequence, Element == S.Element {
-        for element in elements {
-            if contains(element) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     A Boolean value indicating whether the collection contains all specified elements.
-
-     - Parameter elements: The elements.
-     - Returns: `true` if all elements exist in the collection, or` false` if not.
-     */
-    func contains<S>(all elements: S) -> Bool where S: Sequence, Element == S.Element {
-        for element in elements {
-            if contains(element) == false {
-                return false
-            }
-        }
-        return true
-    }
-}
-
-public extension Collection {
-    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
-    func grouped<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: [Element]] {
-        try Dictionary(grouping: self, by: keyForValue)
-    }
-
-    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
-    func grouped<Key>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
-        Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
-    }
-
-    /// Splits the collection by the specified keypath and values that are returned for each keypath.
-    func split<Key>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] where Key: Equatable {
-        split(by: { $0[keyPath: keyPath] })
-    }
-
-    /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
-    func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
-        var output: [(key: Key, values: [Element])] = []
-        for value in self {
-            let key = try keyForValue(value)
-            if let index = output.firstIndex(where: { $0.key == key }) {
-                output[index].values.append(value)
-            } else {
-                output.append((key, [value]))
-            }
-        }
-        return output
-    }
-}
-
 public extension Collection where Index == Int {
     /**
      Accesses a contiguous subrange of the collection’s elements.
@@ -745,5 +682,49 @@ public extension RangeReplaceableCollection {
             removeSubrange(..<index)
             insert(contentsOf: self[..<index], at: endIndex)
         }
+    }
+}
+
+public extension RangeReplaceableCollection {
+    /**
+     Removes and returns the first element of the collection safetly.
+     
+     - Returns: The removed element, or `nil` if the collection is empty.
+     */
+    mutating func removeFirstSafetly() -> Element? {
+        guard !isEmpty else { return nil }
+        return removeFirst()
+    }
+    
+    /**
+     Removes the specified number of elements from the beginning of the collection.
+     
+     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to zero and must not exceed the number of elements in the collection.
+     */
+    mutating func removeFirstSafetly(_ k: Int) {
+        guard !isEmpty else { return }
+        removeFirst(Swift.min(count, self.count))
+    }
+    
+    /**
+     Removes and returns the last element of the collection safetly.
+     
+     - Returns: The last element of the collection, or `nil` if the collection is empty.
+     */
+    mutating func removeLastSafetly() -> Element? where Self: BidirectionalCollection {
+        var testArray = [0, 1]
+        print(testArray.removeLast())
+        guard !isEmpty else { return nil }
+        return removeLast()
+    }
+    
+    /**
+     Removes the specified number of elements from the end of the collection.
+     
+     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to zero and must not exceed the number of elements in the collection.
+     */
+    mutating func removeLastSafetly(_ k: Int) where Self: BidirectionalCollection {
+        guard !isEmpty else { return }
+        removeLast(Swift.min(count, self.count))
     }
 }

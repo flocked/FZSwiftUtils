@@ -7,21 +7,21 @@
 
 import Foundation
 
-public extension Collection where Element: Collection {
+public extension Sequence where Element: Collection {
     /// Returns a flattened array of all collection elements.
     func flattened() -> [Element.Element] {
         flatMap { $0 }
     }
 }
 
-public extension Collection where Element: OptionalProtocol {
+public extension Sequence where Element: OptionalProtocol {
     /// Returns a flattened array of all collection elements.
     func flattened<V>() -> [V] where Element.Wrapped: Collection<V> {
         compactMap(\.optional).flattened()
     }
 }
 
-public extension Collection where Element: Any {
+public extension Sequence where Element: Any {
     /// Returns a flattened array of all elements.
     func anyFlattened() -> [Any] {
         flatMap { x -> [Any] in
@@ -33,7 +33,7 @@ public extension Collection where Element: Any {
     }
 }
 
-public extension Collection where Element: OptionalProtocol, Element.Wrapped: Any {
+public extension Sequence where Element: OptionalProtocol, Element.Wrapped: Any {
     /// Returns a flattened array of all elements.
     func anyFlattened() -> [Any] where Element.Wrapped: Any {
         compactMap(\.optional).anyFlattened()

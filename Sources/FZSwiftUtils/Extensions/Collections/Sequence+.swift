@@ -11,7 +11,7 @@ public extension Sequence {
     /**
      Returns indexes of elements that satisfies the given predicate.
 
-     - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element is a match.
+     - Parameter predicate: A closure that takes an element of the collection as its argument and returns a Boolean value indicating whether the element is a match.
 
      - Returns: The indexes of the elements that satisfies the given predicate.
      */
@@ -23,6 +23,34 @@ public extension Sequence {
             }
         }
         return indexes
+    }
+}
+
+public extension Sequence where Element: Equatable {
+    /**
+     A Boolean value indicating whether the sequence contains any of the given elements.
+
+     - Parameter elements: The elements to find in the sequence.
+     - Returns: `true` if any of the elements was found in the sequence; otherwise, `false`.
+     */
+    func contains<S>(any elements: S) -> Bool where S: Sequence, Element == S.Element {
+        elements.contains(where: { contains($0) })
+    }
+    
+    /**
+     A Boolean value indicating whether the sequence contains all given elements.
+
+     - Parameters:
+        - elements: The elements to find in the sequence.
+        - inSameOrder: A Boolean value indicating whether the elements to find need to appear in the same order.
+     - Returns: `true` if all elements were found in the sequence; otherwise, `false`.
+     */
+    func contains<S: Sequence<Element>>(all elements: S, inSameOrder: Bool = false) -> Bool {
+        if !inSameOrder {
+            return !elements.contains(where: { !contains($0) })
+        } else {
+            return elements.allSatisfy(AnyIterator(makeIterator()).contains)
+        }
     }
 }
 
@@ -50,6 +78,52 @@ public extension Sequence where Element: Equatable {
     }
 }
 
+public extension Sequence {
+    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+    func grouped<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: [Element]] {
+        try Dictionary(grouping: self, by: keyForValue)
+    }
+
+    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+    func grouped<Key>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
+        Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
+    }
+
+    /// Splits the collection by the specified keypath and values that are returned for each keypath.
+    func split<Key>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] where Key: Equatable {
+        split(by: { $0[keyPath: keyPath] })
+    }
+
+    /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
+    func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
+        var output: [(key: Key, values: [Element])] = []
+        for value in self {
+            let key = try keyForValue(value)
+            if let index = output.firstIndex(where: { $0.key == key }) {
+                output[index].values.append(value)
+            } else {
+                output.append((key, [value]))
+            }
+        }
+        return output
+    }
+}
+
+public extension Sequence where Element: OptionalProtocol {
+    /// Returns an array of all non optional elements of the collection.
+    var nonNil: [Element.Wrapped] {
+        compactMap(\.optional)
+    }
+}
+
+public extension Sequence where Element: Hashable {
+    /// The collection as `Set`.
+    var asSet: Set<Element> {
+        Set(self)
+    }
+}
+
+
 public extension Sequence where Element: RawRepresentable {
     /// An array of corresponding values of the raw type.
     func rawValues() -> [Element.RawValue] {
@@ -59,11 +133,11 @@ public extension Sequence where Element: RawRepresentable {
 
 public extension Sequence where Element: RawRepresentable, Element.RawValue: Equatable {
     /**
-     Returns the first element of the sequence that satisfies the  raw value.
+     Returns the first element of the collection that satisfies the  raw value.
 
      - Parameter rawValue: The raw value.
 
-     - Returns: The first element of the sequence that matches the raw value.
+     - Returns: The first element of the collection that matches the raw value.
      */
     func first(rawValue: Element.RawValue) -> Element? {
         first(where: { $0.rawValue == rawValue })
@@ -75,51 +149,5 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
 
     subscript(firstRawValue rawValue: Element.RawValue) -> Element? {
         first(where: { $0.rawValue == rawValue })
-    }
-}
-
-public extension Sequence where Element: Equatable {
-    /**
-     A Boolean value indicating whether the sequence contains any of the specified elements.
-
-     - Parameter elements: The elements.
-     - Returns: `true` if any of the elements exists in the sequence, or` false` if non exist in the sequence.
-     */
-    func contains<S: Sequence<Element>>(any elements: S) -> Bool {
-        for element in elements {
-            if contains(element) {
-                return true
-            }
-        }
-        return false
-    }
-
-    /**
-     A Boolean value indicating whether the sequence contains all specified elements.
-
-     - Parameter elements: The elements.
-     - Returns: `true` if all elements exist in the sequence, or` false` if not.
-     */
-    func contains<S: Sequence<Element>>(all elements: S) -> Bool {
-        for checkElement in elements {
-            if contains(checkElement) == false {
-                return false
-            }
-        }
-        return true
-    }
-}
-
-public extension Sequence where Element: OptionalProtocol {
-    /// Returns an array of non optional elemenets.
-    var nonNil: [Element.Wrapped] {
-        compactMap(\.optional)
-    }
-}
-
-public extension Sequence where Element: Hashable {
-    /// The collection as `Set`.
-    var asSet: Set<Element> {
-        Set(self)
     }
 }
