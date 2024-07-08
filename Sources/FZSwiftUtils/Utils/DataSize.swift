@@ -313,6 +313,18 @@ public extension DataSize {
     }
 }
 
+public extension Sequence where Element == DataSize {
+    /**
+     The total size of all data sizes in the sequence.
+
+     - Returns: A `DataSize` instance representing the total size. If the sequence is empty, it returns `zero`.
+     */
+    func sum() -> DataSize {
+        let bytes = compactMap(\.bytes).sum()
+        return DataSize(bytes)
+    }
+}
+
 public extension Collection where Element == DataSize {
     /**
      The average size of all data sizes in the collection.
@@ -323,17 +335,6 @@ public extension Collection where Element == DataSize {
         guard !isEmpty else { return .zero }
         let average = Int(compactMap(\.bytes).average().rounded(.down))
         return DataSize(average)
-    }
-
-    /**
-     The total size of all data sizes in the collection.
-
-     - Returns: A `DataSize` instance representing the total size. If the collection is empty, it returns `zero`.
-     */
-    func sum() -> DataSize {
-        guard !isEmpty else { return .zero }
-        let sum = compactMap(\.bytes).sum()
-        return DataSize(sum)
     }
 }
 

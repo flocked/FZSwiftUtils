@@ -634,6 +634,18 @@ extension DispatchTime {
     }
 }
 
+public extension Sequence where Element == TimeDuration {
+    /**
+     The total duration of all durations in the sequence.
+
+     - Returns: A `TimeDuration` instance representing the total duration. If the sequence is empty, it returns `zero`.
+     */
+    func sum() -> TimeDuration {
+        let sum = compactMap(\.seconds).sum()
+        return TimeDuration(sum)
+    }
+}
+
 public extension Collection where Element == TimeDuration {
     /**
      The average duration of all durations in the collection.
@@ -644,17 +656,6 @@ public extension Collection where Element == TimeDuration {
         guard !isEmpty else { return .zero }
         let average = compactMap(\.seconds).average().rounded(.down)
         return TimeDuration(average)
-    }
-
-    /**
-     The total duration of all durations in the collection.
-
-     - Returns: A `TimeDuration` instance representing the total duration. If the collection is empty, it returns `zero`.
-     */
-    func sum() -> TimeDuration {
-        guard !isEmpty else { return .zero }
-        let sum = compactMap(\.seconds).sum()
-        return TimeDuration(sum)
     }
 }
 

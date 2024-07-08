@@ -563,24 +563,7 @@ public extension Collection where Element: BinaryInteger {
         guard !isEmpty else { return .zero }
         return Double(reduce(.zero, +)) / Double(count)
     }
-}
-
-public extension Collection where Element: FloatingPoint {
-    /// The average value of all values in the collection. If the collection is empty, it returns 0.
-    func average() -> Element {
-        guard !isEmpty else { return .zero }
-        return reduce(.zero, +) / Element(count)
-    }
-}
-
-public extension Collection where Element: AdditiveArithmetic {
-    /// The total sum value of all values in the collection. If the collection is empty, it returns `zero`.
-    func sum() -> Self.Element {
-        reduce(.zero, +)
-    }
-}
-
-public extension Collection where Element: BinaryInteger {
+    
     /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
     func weightedAverage() -> Double {
         compactMap({Double($0)}).weightedAverage()
@@ -597,53 +580,49 @@ public extension Collection where Element: BinaryInteger {
     }
 }
 
+public extension Collection where Element: FloatingPoint {
+    /// The average value of all values in the collection. If the collection is empty, it returns 0.
+    func average() -> Element {
+        guard !isEmpty else { return .zero }
+        return reduce(.zero, +) / Element(count)
+    }
+}
+
 public extension Collection where Element: BinaryFloatingPoint {
     /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
     func weightedAverage() -> Element {
-        FZSwiftUtils.weightedAverage(compactMap({$0}))
+        var weights: [Element] = []
+        var value: Element = 1.0
+        let divider: Element = 1.0/Element(count)
+        for _ in 0..<count {
+            weights.append(value)
+            value = value - divider
+        }
+        return weightedAverage(weights: weights)
     }
     
     /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
     func weightedAverage(weights: [Element]) -> Element {
-        FZSwiftUtils.weightedAverage(compactMap({$0}), weights: weights)
+        guard !isEmpty, count == weights.count else { return .zero }
+        let totalWeight = weights.sum()
+        guard totalWeight > 0 else { return .zero }
+        return zip(self, weights)
+                .map { $0 * $1 }
+                .reduce(.zero, +) / totalWeight
     }
     
     /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
     func weightedAverage(weighting: ClosedRange<Element>) -> Element {
-        FZSwiftUtils.weightedAverage(compactMap({$0}), range: weighting)
+        var weights: [Element] = []
+        let range = weighting.upperBound-weighting.lowerBound
+        let divider: Element = 1.0/Element(count)
+        var value: Element = 1.0
+        for _ in 0..<count {
+            weights.append(range*value)
+            value = value - divider
+        }
+        return weightedAverage(weights: weights)
     }
-}
-
-private func weightedAverage<V: BinaryFloatingPoint>(_ values: [V], weights: [V]) -> V {
-    guard !values.isEmpty, values.count == weights.count else { return .zero }
-    let totalWeight = weights.sum()
-    guard totalWeight > 0 else { return .zero }
-    return zip(values, weights)
-            .map { $0 * $1 }
-            .reduce(.zero, +) / totalWeight
-}
-
-private func weightedAverage<V: BinaryFloatingPoint>(_ values: [V], range: ClosedRange<V>) -> V {
-    var weights: [V] = []
-    let range = range.upperBound-range.lowerBound
-    let divider: V = 1.0/V(values.count)
-    var value: V = 1.0
-    for _ in 0..<values.count {
-        weights.append(range*value)
-        value = value - divider
-    }
-    return weightedAverage(values, weights: weights)
-}
-
-private func weightedAverage<V: BinaryFloatingPoint>(_ values: [V]) -> V {
-    var weights: [V] = []
-    var value: V = 1.0
-    let divider: V = 1.0/V(values.count)
-    for _ in 0..<values.count {
-        weights.append(value)
-        value = value - divider
-    }
-    return weightedAverage(values, weights: weights)
 }
 
 public extension RangeReplaceableCollection {
@@ -699,7 +678,7 @@ public extension RangeReplaceableCollection {
     /**
      Removes the specified number of elements from the beginning of the collection.
      
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to zero and must not exceed the number of elements in the collection.
+     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.`
      */
     mutating func removeFirstSafetly(_ k: Int) {
         guard !isEmpty else { return }
@@ -720,8 +699,8 @@ public extension RangeReplaceableCollection {
     
     /**
      Removes the specified number of elements from the end of the collection.
-     
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to zero and must not exceed the number of elements in the collection.
+          
+     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
      */
     mutating func removeLastSafetly(_ k: Int) where Self: BidirectionalCollection {
         guard !isEmpty else { return }

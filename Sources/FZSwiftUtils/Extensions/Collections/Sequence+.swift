@@ -26,6 +26,14 @@ public extension Sequence {
     }
 }
 
+
+public extension Sequence where Element: AdditiveArithmetic {
+    /// The total sum value of all values in the sequence. If the sequence is empty, it returns `zero`.
+    func sum() -> Self.Element {
+        reduce(.zero, +)
+    }
+}
+
 public extension Sequence where Element: Equatable {
     /**
      A Boolean value indicating whether the sequence contains any of the given elements.
