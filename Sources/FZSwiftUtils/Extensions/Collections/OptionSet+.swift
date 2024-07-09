@@ -17,6 +17,18 @@ public extension OptionSet {
     func contains(any members: [Self.Element]) -> Bool {
         return members.contains(where: { contains($0) })
     }
+    
+    /// A Boolean value indicating whether the set contains the specified element.
+    subscript (_ element: Element) -> Bool {
+        get { contains(element) }
+        set {
+            if newValue {
+                insert(element)
+            } else {
+                remove(element)
+            }
+        }
+    }
 }
 
 public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
