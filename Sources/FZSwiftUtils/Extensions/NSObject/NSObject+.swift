@@ -25,15 +25,10 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: The object.
      */
     @discardableResult
-    public func setValue<Value>(_ value: Value, for keyPath: ReferenceWritableKeyPath<Self, Value>) -> Self {
-        apply {
-            $0[keyPath: keyPath] = value
-        }
-    }
-    
-    func apply(_ modifier: @escaping (Self) -> Void) -> Self {
-        modifier(self)
-        return self
+    public func setValue<Value>(_ value: Value, for keyPath: WritableKeyPath<Self, Value>) -> Self {
+        var _self = self
+        _self[keyPath: keyPath] = value
+        return _self
     }
 }
 
