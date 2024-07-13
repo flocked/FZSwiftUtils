@@ -15,6 +15,22 @@ public enum NSCodingError: Error {
     case castingFailed
 }
 
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Sets the value of the property at the specified key path.
+     
+     - Parameters:
+        - value: The value of the property.
+        - keyPath: The key path to the property.
+     - Returns: The object.
+     */
+    @discardableResult
+    public func setValue<Value>(_ value: Value, for keyPath: ReferenceWritableKeyPath<Self, Value>) -> Self {
+        self[keyPath: keyPath] = value
+        return self
+    }
+}
+
 public extension NSCoding where Self: NSObject {
     
     /**
