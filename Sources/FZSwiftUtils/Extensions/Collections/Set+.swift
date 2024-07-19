@@ -54,11 +54,23 @@ extension Set {
 }
 
 public extension Set where Element: Hashable {
+    static func + (lhs: Set<Element>, rhs: Element) -> Set<Element> {
+        var lhs = lhs
+        lhs += rhs
+        return lhs
+    }
+    
+    static func + <Collection: Sequence<Element>>(lhs: Set<Element>, rhs: Collection) -> Set<Element> {
+        var lhs = lhs
+        lhs += rhs
+        return lhs
+    }
+    
     static func += (lhs: inout Set<Element>, rhs: Element) {
         lhs.insert(rhs)
     }
-
-    static func += (lhs: inout Set<Element>, rhs: Set<Element>) {
+    
+    static func += <Collection: Sequence<Element>>(lhs: inout Set<Element>, rhs: Collection) {
         for element in rhs {
             lhs.insert(element)
         }
