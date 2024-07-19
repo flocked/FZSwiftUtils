@@ -7,6 +7,13 @@
 
 import Foundation
 
+extension NSObjectProtocol where Self: NSObject {
+    /// The type of the object.
+    public var classType: Self.Type {
+        return type(of: self)
+    }
+}
+
 /// `NSCoding` errors.
 public enum NSCodingError: Error {
     /// Unpacking failed.
