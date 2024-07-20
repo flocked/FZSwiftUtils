@@ -57,11 +57,23 @@ public extension NotificationCenter {
 
      - Returns: A `NotificationToken` that represents the observer. You can use this token to remove the observer later.
      */
-    func observe(_ name: NSNotification.Name?, object: Any?,
-                 queue: OperationQueue? = nil, using block: @escaping (Notification) -> Void)
-        -> NotificationToken
-    {
+    func observe(_ name: NSNotification.Name?, object: Any?, queue: OperationQueue? = nil, using block: @escaping (Notification) -> Void)  -> NotificationToken {
         let token = addObserver(forName: name, object: object, queue: queue, using: block)
+        return NotificationToken(notificationCenter: self, token: token, name: name)
+    }
+    
+    /**
+     Adds an observer for the specified notification name, queue, and block.
+
+     - Parameters:
+       - name: The name of the notification to observe. Pass `nil` to receive notifications for all names.
+       - queue: The operation queue on which to execute the block. The default value is `nil` which uses the default queue.
+       - block: The block to execute when the notification is received. The block takes a single parameter of type `Notification`.
+
+     - Returns: A `NotificationToken` that represents the observer. You can use this token to remove the observer later.
+     */
+    func observe(_ name: NSNotification.Name?, queue: OperationQueue? = nil, using block: @escaping (Notification) -> Void)  -> NotificationToken {
+        let token = addObserver(forName: name, object: nil, queue: queue, using: block)
         return NotificationToken(notificationCenter: self, token: token, name: name)
     }
 }
