@@ -175,6 +175,30 @@ public extension StringProtocol {
 
 public extension String {
     /**
+     Replaces the speficied suffix with a string.
+     
+     - Parameters:
+        - suffix: The suffix to replace.
+        - string: The replacement string.
+     */
+    mutating func replaceSuffix(_ suffix: String, with string: String) {
+        guard hasSuffix(suffix) else { return }
+        replaceSubrange(index(endIndex, offsetBy: -suffix.count)..<endIndex, with: string)
+    }
+    
+    /**
+     Replaces the speficied prefix with a string.
+     
+     - Parameters:
+        - prefix: The prefix to replace.
+        - string: The replacement string.
+     */
+    mutating func replacePrefix(_ prefix: String, with string: String) {
+        guard hasPrefix(prefix) else { return }
+        replaceSubrange(startIndex..<index(startIndex, offsetBy: prefix.count), with: string)
+    }
+    
+    /**
      Returns a new string in which all occurrences of the target strings are replaced by another given string.
 
      - Parameters:
