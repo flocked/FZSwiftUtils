@@ -174,28 +174,40 @@ public extension StringProtocol {
 }
 
 public extension String {
-    /**
-     Replaces the speficied suffix with a string.
-     
-     - Parameters:
-        - suffix: The suffix to replace.
-        - string: The replacement string.
-     */
-    mutating func replaceSuffix(_ suffix: String, with string: String) {
-        guard hasSuffix(suffix) else { return }
-        replaceSubrange(index(endIndex, offsetBy: -suffix.count)..<endIndex, with: string)
+    /// The range of the specified prefix, or `nil` if it doesn't exist.
+    func rangeOfPrefix(_ prefix: String) -> Range<Index>? {
+        guard hasPrefix(prefix) else { return nil }
+        return startIndex..<index(startIndex, offsetBy: prefix.count)
     }
     
     /**
-     Replaces the speficied prefix with a string.
+     Replaces the specified prefix with a string.
      
      - Parameters:
         - prefix: The prefix to replace.
         - string: The replacement string.
      */
     mutating func replacePrefix(_ prefix: String, with string: String) {
-        guard hasPrefix(prefix) else { return }
-        replaceSubrange(startIndex..<index(startIndex, offsetBy: prefix.count), with: string)
+        guard let range = rangeOfPrefix(prefix) else { return }
+        replaceSubrange(range, with: string)
+    }
+    
+    /// The range of the specified suffix, or `nil` if it doesn't exist.
+    func rangeOfSuffix(_ suffix: String) -> Range<Index>? {
+        guard hasSuffix(suffix) else { return nil }
+        return index(endIndex, offsetBy: -suffix.count)..<endIndex
+    }
+    
+    /**
+     Replaces the specified suffix with a string.
+     
+     - Parameters:
+        - suffix: The suffix to replace.
+        - string: The replacement string.
+     */
+    mutating func replaceSuffix(_ suffix: String, with string: String) {
+        guard let range = rangeOfSuffix(suffix) else { return }
+        replaceSubrange(range, with: string)
     }
     
     /**
