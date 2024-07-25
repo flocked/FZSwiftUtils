@@ -161,7 +161,7 @@ Swift Foundation extensions and useful classes & utilities.
 - ``Foundation/AttributedStringProtocol``
 - ``Foundation/AttributedSubstring``
 - ``Foundation/NSAttributedString``
-- ``loremIpsum``
+- ``LoremIpsum``
 
 ### Threading
 

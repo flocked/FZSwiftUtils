@@ -70,7 +70,7 @@ public extension String {
 }
 
 /// A lorem ipsum generator.
-public enum loremIpsum {
+public enum LoremIpsum {
     
     /// Generates a single word.
     public static var word: String {
