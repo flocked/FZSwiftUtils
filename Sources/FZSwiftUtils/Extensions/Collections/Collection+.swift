@@ -49,6 +49,20 @@ public extension Collection {
     }
 }
 
+public extension RangeReplaceableCollection where Self: MutableCollection {
+    /// Removes all the elements at the specified range.
+    mutating func remove(at range: ClosedRange<Int>) {
+        let range = range.clamped(to: 0...count - 1)
+        remove(atOffsets: IndexSet(range))
+    }
+    
+    /// Removes all the elements at the specified range.
+    mutating func remove(at range: Range<Int>) {
+        let range = range.clamped(to: 0..<count)
+        remove(atOffsets: IndexSet(range))
+    }
+}
+
 public extension MutableCollection {
     subscript(safe index: Index) -> Element? {
         get {
@@ -66,24 +80,24 @@ public extension Collection where Index == Int {
     /**
      Accesses a contiguous subrange of the collection’s elements.
 
-     - Parameter bounds: A range of integers.
+     - Parameter range: A range of integers.
      - Returns: The available elements of the collection at the range.
      */
-    subscript(safe bounds: Range<Index>) -> [Element] {
+    subscript(safe range: Range<Index>) -> [Element] {
         guard !isEmpty else { return [] }
-        let range = bounds.clamped(to: 0 ..< count)
+        let range = range.clamped(to: 0..<count)
         return range.compactMap { self[safe: $0] }
     }
 
     /**
      Accesses a contiguous subrange of the collection’s elements.
 
-     - Parameter bounds: A range of integers.
+     - Parameter range: A range of integers.
      - Returns: The available elements of the collection at the range.
      */
-    subscript(safe bounds: ClosedRange<Int>) -> [Element] {
+    subscript(safe range: ClosedRange<Int>) -> [Element] {
         guard !isEmpty else { return [] }
-        let range = bounds.clamped(to: 0 ... count - 1)
+        let range = range.clamped(to: 0...count - 1)
         return range.compactMap { self[safe: $0] }
     }
 
