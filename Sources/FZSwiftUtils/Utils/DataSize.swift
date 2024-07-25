@@ -511,6 +511,13 @@ extension DataSize: Comparable, AdditiveArithmetic {
     }
 }
 
+extension Data {
+    /// The size of the data.
+    public var size: DataSize {
+        DataSize(count)
+    }
+}
+
 extension DataSize: ReferenceConvertible {
 
     /// The Objective-C type for the data size.
