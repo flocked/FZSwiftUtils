@@ -32,6 +32,17 @@ public extension Sequence where Element: Equatable {
         }
         return elements
     }
+    
+    /// An array of unique elements.
+    func uniqued() -> [Element] where Element: Comparable {
+        var indexedElements: [(index: Int, element: Element)] = []
+        for (index, element) in enumerated().sorted(by: \.element) {
+            if indexedElements.last?.element != element {
+                indexedElements.append((index, element))
+            }
+        }
+        return indexedElements.sorted(by: \.index).compactMap({$0.element})
+    }
 }
 
 public extension Sequence {
