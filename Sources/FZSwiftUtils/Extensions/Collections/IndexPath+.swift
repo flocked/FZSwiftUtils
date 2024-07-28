@@ -23,6 +23,13 @@ public extension IndexPath {
     #endif
 }
 
+public extension Sequence where Element == IndexPath {
+    /// The sections of the index paths.
+    var sections: [Int] {
+        self.compactMap({$0.section}).uniqued().sorted()
+    }
+}
+
 #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
     public extension NSIndexPath {
         /// `IndexPath` representation of the value.
