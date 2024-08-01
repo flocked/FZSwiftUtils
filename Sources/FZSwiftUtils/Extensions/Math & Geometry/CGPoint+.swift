@@ -57,7 +57,7 @@ public extension CGPoint {
      - Parameter y: The value to be added to the y-coordinate of the current point.
      */
     func offset(y: CGFloat) -> CGPoint {
-        CGPoint(x: x, y: y + y)
+        CGPoint(x: x, y: self.y + y)
     }
 
     /**
@@ -94,7 +94,7 @@ public extension CGPoint {
 
      - Returns: The scaled integral CGPoint.
      */
-    var scaledIntegral: CGPoint {
+    var scaledIntegralhs: CGPoint {
         CGPoint(x: x.scaledIntegral, y: y.scaledIntegral)
     }
     
@@ -148,88 +148,88 @@ extension CGPoint: Hashable {
 }
 
 public extension CGPoint {
-    static func + (l: CGPoint, r: CGPoint) -> CGPoint {
-        CGPoint(l.x + r.x, l.y + r.y)
+    static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+        CGPoint(lhs.x + rhs.x, lhs.y + rhs.y)
     }
 
-    static func + (l: CGPoint, r: CGFloat) -> CGPoint {
-        CGPoint(l.x + r, l.y + r)
+    static func + (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+        CGPoint(lhs.x + rhs, lhs.y + rhs)
     }
 
-    static func + (l: CGPoint, r: Double) -> CGPoint {
-        CGPoint(l.x + r, l.y + r)
+    static func + (lhs: CGPoint, rhs: Double) -> CGPoint {
+        CGPoint(lhs.x + rhs, lhs.y + rhs)
     }
 
-    static func - (l: CGPoint, r: CGPoint) -> CGPoint {
-        CGPoint(l.x - r.x, l.y - r.y)
+    static func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+        CGPoint(lhs.x - rhs.x, lhs.y - rhs.y)
     }
 
-    static func - (l: CGPoint, r: CGFloat) -> CGPoint {
-        CGPoint(l.x - r, l.y - r)
+    static func - (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+        CGPoint(lhs.x - rhs, lhs.y - rhs)
     }
 
-    static func - (l: CGPoint, r: Double) -> CGPoint {
-        CGPoint(l.x - r, l.y - r)
+    static func - (lhs: CGPoint, rhs: Double) -> CGPoint {
+        CGPoint(lhs.x - rhs, lhs.y - rhs)
     }
 
-    static func * (l: CGPoint, r: CGFloat) -> CGPoint {
-        CGPoint(x: l.x * r, y: l.y * r)
+    static func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+        CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
     }
 
-    static func * (l: CGFloat, r: CGPoint) -> CGPoint {
-        CGPoint(x: l * r.x, y: l * r.y)
+    static func * (l: CGFloat, rhs: CGPoint) -> CGPoint {
+        CGPoint(x: l * rhs.x, y: l * rhs.y)
     }
 
-    static func * (l: CGPoint, r: Double) -> CGPoint {
-        CGPoint(x: l.x * CGFloat(r), y: l.y * CGFloat(r))
+    static func * (lhs: CGPoint, rhs: Double) -> CGPoint {
+        CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
     }
 
-    static func * (l: Double, r: CGPoint) -> CGPoint {
-        CGPoint(x: CGFloat(l) * r.x, y: CGFloat(l) * r.y)
+    static func * (lhs: Double, rhs: CGPoint) -> CGPoint {
+        CGPoint(x: lhs * rhs.x, y: lhs * rhs.y)
     }
 
-    static func * (l: CGPoint, r: CGPoint) -> CGFloat {
-        l.x * r.x + l.y * r.y
+    static func * (lhs: CGPoint, rhs: CGPoint) -> CGFloat {
+        lhs.x * rhs.x + lhs.y * rhs.y
     }
 
-    static func / (l: CGPoint, r: CGFloat) -> CGPoint {
-        CGPoint(x: l.x / r, y: l.y / r)
+    static func / (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+        CGPoint(x: lhs.x / rhs, y: lhs.y / rhs)
     }
 
-    static func / (l: CGPoint, r: Double) -> CGPoint {
-        CGPoint(x: l.x / CGFloat(r), y: l.y / CGFloat(r))
+    static func / (lhs: CGPoint, rhs: Double) -> CGPoint {
+        CGPoint(x: lhs.x / rhs, y: lhs.y / rhs)
     }
 
-    static func += (l: inout CGPoint, r: CGPoint) {
-        l = CGPoint(x: l.x + r.x, y: l.y + r.y)
+    static func += (lhs: inout CGPoint, rhs: CGPoint) {
+        lhs = CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
     }
 
-    static func += (l: inout CGPoint, r: Double) {
-        l = CGPoint(x: l.x + r, y: l.y + r)
+    static func += (lhs: inout CGPoint, rhs: Double) {
+        lhs = CGPoint(x: lhs.x + rhs, y: lhs.y + rhs)
     }
 
-    static func += (l: inout CGPoint, r: CGFloat) {
-        l = CGPoint(x: l.x + r, y: l.y + r)
+    static func += (lhs: inout CGPoint, rhs: CGFloat) {
+        lhs = CGPoint(x: lhs.x + rhs, y: lhs.y + rhs)
     }
 
-    static func -= (l: inout CGPoint, r: CGPoint) {
-        l = CGPoint(x: l.x - r.x, y: l.y - r.y)
+    static func -= (lhs: inout CGPoint, rhs: CGPoint) {
+        lhs = CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
     }
 
-    static func -= (l: inout CGPoint, r: Double) {
-        l = CGPoint(x: l.x - r, y: l.y - r)
+    static func -= (lhs: inout CGPoint, rhs: Double) {
+        lhs = CGPoint(x: lhs.x - rhs, y: lhs.y - rhs)
     }
 
-    static func -= (l: inout CGPoint, r: CGFloat) {
-        l = CGPoint(x: l.x - r, y: l.y - r)
+    static func -= (lhs: inout CGPoint, rhs: CGFloat) {
+        lhs = CGPoint(x: lhs.x - rhs, y: lhs.y - rhs)
     }
 
-    static func *= (l: inout CGPoint, r: CGFloat) {
-        l = CGPoint(x: l.x * r, y: l.y * r)
+    static func *= (lhs: inout CGPoint, rhs: CGFloat) {
+        lhs = CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
     }
 
-    static func *= (l: inout CGPoint, r: Double) {
-        l = CGPoint(x: l.x * CGFloat(r), y: l.y * CGFloat(r))
+    static func *= (lhs: inout CGPoint, rhs: Double) {
+        lhs = CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
     }
 }
 

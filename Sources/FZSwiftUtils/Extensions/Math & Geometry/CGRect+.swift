@@ -88,21 +88,13 @@ public extension CGRect {
     /// The x-coordinate of the origin of the rectangle.
     var x: CGFloat {
         get { origin.x }
-        set {
-            var origin = origin
-            origin.x = newValue
-            self.origin = origin
-        }
+        set { origin = origin.xValue(newValue) }
     }
 
     /// The y-coordinate of the origin of the rectangle.
     var y: CGFloat {
         get { origin.y }
-        set {
-            var origin = origin
-            origin.y = newValue
-            self.origin = origin
-        }
+        set { origin = origin.yValue(newValue) }
     }
 
     /// A size centered that specifies the height and width of the rectangle. Changing this value keeps the rectangle centered.
@@ -311,19 +303,29 @@ public extension CGRect {
     }
 
     #if os(macOS)
-    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
-    func inset(by edgeInsets: NSUIEdgeInsets) -> CGRect {
-        inset(by: NSDirectionalEdgeInsets(top: edgeInsets.top, leading: edgeInsets.left, bottom: edgeInsets.bottom, trailing: edgeInsets.right))
+    /**
+     Adjusts a rectangle by the given edge insets.
+     
+     - Parameter insets: The edge insets to be applied to the adjustment.
+     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSEdgeInsets` structure.
+     */
+    func inset(by insets: NSUIEdgeInsets) -> CGRect {
+        inset(by: NSDirectionalEdgeInsets(top: insets.top, leading: insets.left, bottom: insets.bottom, trailing: insets.right))
     }
     #endif
     
-    /// Returns a rectangle that is smaller or larger than the source rectangle, with the same center point.
-    func inset(by edgeInsets: NSDirectionalEdgeInsets) -> CGRect {
+    /**
+     Adjusts a rectangle by the given edge insets.
+     
+     - Parameter insets: The edge insets to be applied to the adjustment.
+     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSDirectionalEdgeInsets` structure.
+     */
+    func inset(by insets: NSDirectionalEdgeInsets) -> CGRect {
         var result = self
-        result.origin.x += edgeInsets.leading
-        result.origin.y += edgeInsets.bottom
-        result.size.width -= (edgeInsets.leading + edgeInsets.trailing)
-        result.size.height -= (edgeInsets.bottom + edgeInsets.top)
+        result.origin.x += insets.leading
+        result.origin.y += insets.bottom
+        result.size.width -= (insets.leading + insets.trailing)
+        result.size.height -= (insets.bottom + insets.top)
         return result
     }
     
@@ -331,7 +333,6 @@ public extension CGRect {
      Returns a rectangle with a width that is smaller or larger than the source rectangle width, with the same center point.
      
      - Parameter dx: The x-coordinate value to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
-     - Returns: A rectangle. The origin value is offset in the x-axis by the distance specified by the `dx` parameter, and its width adjusted by `(2*dx)`, relative to the source rectangle. If `dx` is a positive value, then the rectangle’s width is decreased. If `dx` is a negative value, the rectangle’s width is increased.
      */
     func insetBy(dx: CGFloat) -> CGRect {
         insetBy(dx: dx, dy: 0)
@@ -341,10 +342,27 @@ public extension CGRect {
      Returns a rectangle with a height that is smaller or larger than the source rectangle height, with the same center point.
      
      - Parameter dy: The y-coordinate value to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
-     - Returns: A rectangle. The origin value is offset in the y-axis by the distance specified by the `dy` parameter, and its height adjusted by `(2*dy)`, relative to the source rectangle. If `dy` is a positive value, then the rectangle’s height is decreased. If `dy` is a negative value, the rectangle’s height is increased.
      */
     func insetBy(dy: CGFloat) -> CGRect {
         insetBy(dx: 0, dy: dy)
+    }
+    
+    /**
+     Returns a rectangle with an origin that is offset from that of the source rectangle.
+     
+     - Parameter dx: The offset value for the x-coordinate.
+     */
+    func offsetBy(dx: CGFloat) -> CGRect {
+        offsetBy(dx: dx, dy: 0)
+    }
+    
+    /**
+     Returns a rectangle with an origin that is offset from that of the source rectangle.
+     
+     - Parameter dy: The offset value for the y-coordinate.
+     */
+    func offsetBy(dy: CGFloat) -> CGRect {
+        offsetBy(dx: 0, dy: dy)
     }
     
     /**

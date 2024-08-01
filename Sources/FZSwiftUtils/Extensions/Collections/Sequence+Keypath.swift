@@ -24,17 +24,17 @@ public extension Sequence {
      - Parameter keyPath: The keypath to the element that can be optional.
      - Returns: An array of the non-`nil` results of the keypath elements.
      */
-    func compactMap<T>(_ keyPath: KeyPath<Element, T?>) -> [T] {
+    func compactMap<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
         compactMap { $0[keyPath: keyPath] }
     }
-
+    
     /**
      Returns an array containing the non-`nil` results of mapping the given keypath element.
 
      - Parameter keyPath: The keypath to the element that can be optional.
      - Returns: An array of the non-`nil` results of the keypath elements.
      */
-    func compactMap<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
+    func compactMap<T>(_ keyPath: KeyPath<Element, T?>) -> [T] {
         compactMap { $0[keyPath: keyPath] }
     }
 
@@ -98,6 +98,19 @@ public extension Sequence {
      */
     func indexes<T>(of keyPath: KeyPath<Element, T?>) -> IndexSet {
         indexes(where: { $0[keyPath: keyPath] != nil })
+    }
+    
+    /**
+     - Assigns the specified values to the property at the specified key path.
+
+     - Parameters:
+        - values: values to assign to the property.
+        - keyPath: The keypath to the property.
+     */
+    func assign<T, S: Sequence<T>>(_ values: S, to keyPath: ReferenceWritableKeyPath<Element, T>) {
+        zip(self, values).forEach({
+            $0.0[keyPath: keyPath] = $0.1
+        })
     }
 }
 

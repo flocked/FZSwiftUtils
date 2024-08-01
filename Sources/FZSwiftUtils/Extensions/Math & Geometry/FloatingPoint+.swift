@@ -111,12 +111,12 @@ public extension CGFloat {
     /**
      Creates a new instance from the given string.
      
-     - Parameter description: An input string to convert to a `CGFloat` instance.
+     - Parameter text: An input string to convert to a `CGFloat` instance.
      - Returns: The value of the text, or `nil` if the string doesn't contain a numeric value.
      */
     init?<S>(_ text: S) where S: StringProtocol {
-        if let doubleValue = Double(text) {
-            self = CGFloat(doubleValue)
+        if let value = Double(text) {
+            self = value
         } else {
             return nil
         }
