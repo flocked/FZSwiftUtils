@@ -104,7 +104,7 @@ public extension Sequence {
      - Maps the specified values to the property at the specified key path.
 
      - Parameters:
-        - values: values to map to the property.
+        - values: Values to map to the property.
         - keyPath: The keypath to the property.
      */
     func map<T, S: Sequence<T>>(_ values: S, to keyPath: ReferenceWritableKeyPath<Element, T>) {
