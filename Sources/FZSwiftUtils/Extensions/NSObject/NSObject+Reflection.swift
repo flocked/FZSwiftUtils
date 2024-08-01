@@ -232,7 +232,7 @@ extension NSObject {
     public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertiesReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
     }
     
-    static func canGetValue(_ name: String, includeSuperclass: Bool = false) -> Bool {
+    static func hasValue(_ name: String, includeSuperclass: Bool = false) -> Bool {
         if propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name }) {
             return true
         }

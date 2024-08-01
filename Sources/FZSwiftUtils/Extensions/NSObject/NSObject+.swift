@@ -54,11 +54,16 @@ public extension NSCoding where Self: NSObject {
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
     func archiveBasedCopy<Subclass: NSObject & NSCoding>(as subclass: Subclass.Type) throws -> Subclass {
-        let data = NSMutableData()
-        let archiver = NSKeyedArchiver(forWritingWith: data)
-        encode(with: archiver)
-        archiver.finishEncoding()
-        let unarchiver = NSKeyedUnarchiver(forReadingWith: data as Data)
+        let data: Data
+        let unarchiver: NSKeyedUnarchiver
+        if #available(macOS 10.13, iOS 11.0, tvOS 11.0, watchOS 4.0, *) {
+            data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
+            unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+        } else {
+            data = NSKeyedArchiver.archivedData(withRootObject: self)
+            unarchiver = NSKeyedUnarchiver(forReadingWith: data)
+        }
+        unarchiver.requiresSecureCoding = false
         guard let object = Subclass(coder: unarchiver) else {
             throw NSCodingError.castingFailed
         }
@@ -86,7 +91,7 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        guard Self.canGetValue(key) else { return nil }
+        guard Self.hasValue(key) else { return nil }
         return value(forKey: key)
     }
     
@@ -108,7 +113,7 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     func setValue(safely value: Any?, forKey key: String) {
-        guard Self.canGetValue(key) else { return }
+        guard Self.hasValue(key) else { return }
         setValue(value, forKey: key)
     }
 

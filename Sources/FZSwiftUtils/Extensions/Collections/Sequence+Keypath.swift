@@ -101,13 +101,13 @@ public extension Sequence {
     }
     
     /**
-     - Assigns the specified values to the property at the specified key path.
+     - Maps the specified values to the property at the specified key path.
 
      - Parameters:
-        - values: values to assign to the property.
+        - values: values to map to the property.
         - keyPath: The keypath to the property.
      */
-    func assign<T, S: Sequence<T>>(_ values: S, to keyPath: ReferenceWritableKeyPath<Element, T>) {
+    func map<T, S: Sequence<T>>(_ values: S, to keyPath: ReferenceWritableKeyPath<Element, T>) {
         zip(self, values).forEach({
             $0.0[keyPath: keyPath] = $0.1
         })
