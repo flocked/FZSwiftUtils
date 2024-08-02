@@ -9,7 +9,7 @@
 
 import Foundation
 
-extension NSObjectProtocol where Self: NSObject {
+extension NSObjectProtocol where Self: NSObject {    
     /**
      Observes changes for the specified property.
      
@@ -32,10 +32,32 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
     public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        guard let observer = KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler) else {
-            return nil
-        }
-        return KeyValueObservation(observer)
+        KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)?.keyValueObservation
+    }
+    
+    /**
+     Observes changes for the specified property.
+     
+     Example usage:
+     
+     ```swift
+     let textField = NSTextField()
+     
+     let stringValueObservation = textField.observeChanges(for: \.stringValue) {
+     oldValue, newValue in
+     // handle changed value
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        observeChanges(for: keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -60,11 +82,8 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? where Value: Equatable {
-       guard let observer = KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler) else {
-           return nil
-       }
-       return KeyValueObservation(observer)
+    public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)?.keyValueObservation
     }
     
     /**
@@ -88,8 +107,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
     public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
-        guard let observer = KVObserverPrior(self, keyPath: keyPath, handler: handler) else { return nil }
-        return KeyValueObservation(observer)
+        KVObserverPrior(self, keyPath: keyPath, handler: handler)?.keyValueObservation
     }
     
     /// Deactivates all key value observations of the object.
@@ -273,6 +291,12 @@ protocol KVOObservation: NSObject {
     var _object: NSObject? { get }
     var _keyPath: String { get }
     var isObserving: Bool { get }
+}
+
+extension KVOObservation {
+    var keyValueObservation: KeyValueObservation {
+        KeyValueObservation(self)
+    }
 }
 
 public extension NSObjectProtocol where Self: NSObject {
