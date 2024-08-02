@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Set {
+public extension Set {
     /**
      Removes the specified elements from the set.
 
