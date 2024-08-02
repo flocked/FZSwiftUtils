@@ -421,7 +421,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled by the specified factor.
      */
-    func scaled(byFactor factor: CGFloat, centered: Bool = true) -> CGRect {
+    func scaled(byFactor factor: CGFloat, centered: Bool) -> CGRect {
         var rect = self
         rect.size = rect.size.scaled(byFactor: factor)
         if centered {
