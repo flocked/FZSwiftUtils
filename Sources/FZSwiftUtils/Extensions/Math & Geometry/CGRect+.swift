@@ -296,6 +296,16 @@ public extension CGRect {
         apply(value, to: \.bottomRight)
     }
     
+    /// Returns the rectangle with the specified origin.
+    func origin(_ origin: CGPoint) -> CGRect {
+        apply(origin, to: \.origin)
+    }
+    
+    /// Returns the rectangle with the specified size.
+    func size(_ size: CGSize) -> CGRect {
+        apply(size, to: \.size)
+    }
+    
     internal func apply<Value>(_ value: Value, to keyPath: WritableKeyPath<CGRect, Value>) -> Self {
         var rect = self
         rect[keyPath: keyPath] = value
