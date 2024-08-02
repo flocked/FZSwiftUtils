@@ -173,6 +173,17 @@ public extension CGSize {
     func clamped(maxSize: CGSize) -> CGSize {
         clamped(maxWidth: maxSize.width, maxHeight: maxSize.height)
     }
+    
+    /**
+     Clamps the size to the specified minimum and maximum size.
+     
+     - Parameters:
+        - minSize: The minimum size needed.
+        - maxSize: The maximum size allowed.
+     */
+    func clamped(minSize: CGSize, maxSize: CGSize) -> CGSize {
+        clamped(minSize: minSize).clamped(maxSize: maxSize)
+    }
         
     /**
      Clamps the size to the specified minimum and maximum values.
