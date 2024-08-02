@@ -160,34 +160,18 @@ public extension CGSize {
      Clamps the size to the specified minimum size.
      
      - Parameter minSize: The minimum size needed.
-     - Returns: The clamped size.
      */
     func clamped(minSize: CGSize) -> CGSize {
-        var size = self
-        if minSize.width != 3.4028234663852886e+38 {
-            size.width = size.width.clamped(min: minSize.width)
-        }
-        if minSize.height != 3.4028234663852886e+38 {
-            size.height = size.height.clamped(min: minSize.height)
-        }
-        return size
+        clamped(minWidth: minSize.width, minHeight: minSize.height)
     }
     
     /**
      Clamps the size to the specified maximum size.
      
      - Parameter maxSize: The maximum size allowed.
-     - Returns: The clamped size.
      */
     func clamped(maxSize: CGSize) -> CGSize {
-        var size = self
-        if maxSize.width != 3.4028234663852886e+38 {
-            size.width = size.width.clamped(to: 0...maxSize.width)
-        }
-        if maxSize.height != 3.4028234663852886e+38 {
-            size.height = size.height.clamped(to: 0...maxSize.height)
-        }
-        return size
+        clamped(maxWidth: maxSize.width, maxHeight: maxSize.height)
     }
         
     /**
@@ -198,17 +182,20 @@ public extension CGSize {
         - minHeight: The minimum height needed.
         - maxWidth: The maximum width allowed.
         - maxHeight: The maximum height allowed.
-     - Returns: The clamped size.
      */
     func clamped(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) -> CGSize {
         var size = self
-        size.width = size.width.clamped(min: minWidth ?? width)
-        size.height = size.height.clamped(min: minHeight ?? height)
-        if let maxWidth = maxWidth, width > maxWidth {
-            size.width = width.clamped(to: 0...maxWidth)
+        if let minWidth = minWidth, minWidth != 3.4028234663852886e+38 {
+            size.width = size.width.clamped(min: minWidth)
         }
-        if let maxHeight = maxHeight, height > maxHeight {
-            size.height = height.clamped(to: 0...maxHeight)
+        if let minHeight = minHeight, minHeight != 3.4028234663852886e+38 {
+            size.height = size.height.clamped(min: minHeight)
+        }
+        if let maxWidth = maxWidth, maxWidth != 3.4028234663852886e+38 {
+            size.width = size.width.clamped(min: maxWidth)
+        }
+        if let maxHeight = maxHeight, maxHeight != 3.4028234663852886e+38 {
+            size.height = size.height.clamped(min: maxHeight)
         }
         return size
     }
