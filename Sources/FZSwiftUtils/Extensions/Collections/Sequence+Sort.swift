@@ -233,28 +233,51 @@ public struct ElementSortComparator<Element>: Hashable, SortComparator {
     public func compare(_ lhs: Element, _ rhs: Element) -> ComparisonResult {
         comperator.compare(lhs, rhs)
     }
-    
-    /// Sorts the elements of a sequence by the specified key path in an ascending order.
+    /// A key path comparator that sorts in an ascending order.
     public static func ascending<T: Comparable>(_ keyPath: KeyPath<Element, T>) -> ElementSortComparator {
         .init(KeyPathComparator(keyPath, order: .forward))
     }
     
-    /// Sorts the elements of a sequence by the specified key path in an ascending order.
+    /// A key path comparator that sorts in an ascending order.
     public static func ascending<T: Comparable>(_ keyPath: KeyPath<Element, T?>) -> ElementSortComparator {
         .init(KeyPathComparator(keyPath, order: .forward))
     }
     
-    /// Sorts the elements of a sequence by the specified key path in a descending order.
+    /// A key path comparator that sorts in an ascending order.
+    @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
+    public static func ascending(_ keyPath: KeyPath<Element, String>, comparator: String.StandardComparator = .localizedStandard) -> ElementSortComparator {
+        .init(SortDescriptor(keyPath, comparator: comparator, order: .ascending))
+    }
+    
+    /// A key path comparator that sorts in an ascending order.
+    @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
+    public static func ascending(_ keyPath: KeyPath<Element, String?>, comparator: String.StandardComparator = .localizedStandard) -> ElementSortComparator {
+        .init(SortDescriptor(keyPath, comparator: comparator, order: .ascending))
+    }
+    
+    /// A key path comparator that sorts in a descending order.
     public static func descending<T: Comparable>(_ keyPath: KeyPath<Element, T>) -> ElementSortComparator {
         .init(KeyPathComparator(keyPath, order: .reverse))
     }
     
-    /// Sorts the elements of a sequence by the specified key path in a descending order.
+    /// A key path comparator that sorts in a descending order.
     public static func descending<T: Comparable>(_ keyPath: KeyPath<Element, T?>) -> ElementSortComparator {
         .init(KeyPathComparator(keyPath, order: .reverse))
     }
     
-    /// Sorts the elements of a sequence by the specified comparison.
+    /// A key path comparator that sorts in a descending order.
+    @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
+    public static func descending(_ keyPath: KeyPath<Element, String>, comparator: String.StandardComparator = .localizedStandard) -> ElementSortComparator {
+        .init(SortDescriptor(keyPath, comparator: comparator, order: .reverse))
+    }
+    
+    /// A key path comparator that sorts in a descending order.
+    @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
+    public static func descending(_ keyPath: KeyPath<Element, String?>, comparator: String.StandardComparator = .localizedStandard) -> ElementSortComparator {
+        .init(SortDescriptor(keyPath, comparator: comparator, order: .reverse))
+    }
+    
+    /// A comparator that sorts by the specified compare block.
     public static func compare(_ compare: @escaping ((Element, Element) -> ComparisonResult)) -> ElementSortComparator {
         .init(HandlerComparator(handler: compare))
     }
@@ -276,36 +299,36 @@ public struct ElementSortComparator<Element>: Hashable, SortComparator {
 
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 extension ElementSortComparator where Element: Comparable {
-    /// Sorts the elements of a sequence in an ascending order.
+    /// A comparator that sorts in an ascending order.
     public static var ascending: ElementSortComparator {
         ElementSortComparator(_ComparableComparator(order: .forward))
     }
     
-    /// Sorts the elements of a sequence in a descending order.
+    /// A comparator that sorts in a descending order.
     public static var descending: ElementSortComparator {
         ElementSortComparator(_ComparableComparator<Element>(order: .reverse))
     }
 }
 
-/// Sorts the elements of a sequence by the specified key path in an ascending order.
+/// A key path sort comparator that sorts in an ascending order.
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public prefix func << <Element, T: Comparable>(keyPath: KeyPath<Element, T>) -> ElementSortComparator<Element> {
     .ascending(keyPath)
 }
 
-/// Sorts the elements of a sequence by the specified key path in an ascending order.
+/// A key path sort comparator that sorts in an ascending order.
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public prefix func << <Element, T: Comparable>(keyPath: KeyPath<Element, T?>) -> ElementSortComparator<Element> {
     .ascending(keyPath)
 }
 
-/// Sorts the elements of a sequence by the specified key path in a descending order.
+/// A key path sort comparator that sorts in a descending order.
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public prefix func >> <Element, T: Comparable>(keyPath: KeyPath<Element, T>) -> ElementSortComparator<Element> {
     .descending(keyPath)
 }
 
-/// Sorts the elements of a sequence by the specified key path in a descending order.
+/// A key path sort comparator that sorts in a descending order.
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public prefix func >> <Element, T: Comparable>(keyPath: KeyPath<Element, T?>) -> ElementSortComparator<Element> {
     .descending(keyPath)

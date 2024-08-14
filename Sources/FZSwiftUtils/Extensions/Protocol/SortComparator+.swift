@@ -63,7 +63,7 @@ struct HandlerComparator<Compared>: SortComparator {
     }
 }
 
-@available(macOS 12.0, *)
+@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 extension SortOrder {
     /// An ascending sorting order.
     static let ascending = SortOrder.forward
