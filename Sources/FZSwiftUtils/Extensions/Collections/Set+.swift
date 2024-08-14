@@ -51,6 +51,13 @@ public extension Set {
     var asArray: [Element] {
         Array(self)
     }
+    
+    /// Edits the elements.
+    mutating func editEach(_ body: (inout Element) throws -> Void) rethrows {
+        var elements = Array(self)
+        try elements.editEach(body)
+        self = .init(elements)
+    }
 }
 
 public extension Set where Element: Hashable {
