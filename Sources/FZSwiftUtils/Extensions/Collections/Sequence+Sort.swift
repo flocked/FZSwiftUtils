@@ -118,8 +118,8 @@ extension Sequence {
      Example usage:
      
      ```swift
-     images.sorted(by: .ascending(\.pixelSize), .descending(\.creationDate]
-     images.sorted(by: <<\.pixelSize, >>\.creationDate
+     files.sorted(by: [.ascending(\.creationDate), .descending(\.fileSize)])
+     files.sorted(by: [<<\.creationDate, >>\.fileSize])
      ```
 
      - Parameters:
@@ -149,8 +149,8 @@ extension Sequence {
      Example usage:
      
      ```swift
-     images.sorted(by: .ascending(\.pixelSize), .descending(\.creationDate]
-     images.sorted(by: <<\.pixelSize, >>\.creationDate
+     files.sorted(by: .ascending(\.creationDate), .descending(\.fileSize))
+     files.sorted(by: <<\.creationDate, >>\.fileSize)
      ```
 
      - Parameters:
