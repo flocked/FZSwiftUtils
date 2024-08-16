@@ -119,16 +119,14 @@ public extension CGSize {
      - Returns: The scaled size that fits within the size while maintaining the aspect ratio.
      */
     func scaled(toFit size: CGSize) -> CGSize {
-        if (size.width == -1 || size.width == .greatestFiniteMagnitude), (size.height == -1 || size.height == .greatestFiniteMagnitude) {
-            return self
-        } else if size.width == -1 || size.width == .greatestFiniteMagnitude {
-            return scaled(toHeight: size.height)
-        } else if size.height == -1 || size.height == .greatestFiniteMagnitude {
-            return scaled(toWidth: size.width)
+        var size = size
+        if size.width == -1 || size.width == .greatestFiniteMagnitude || size.width == 0 {
+            size.width = width
         }
-        let wRatio = width / size.width
-        let hRatio = height / size.height
-        let ratio = (wRatio > hRatio) ? wRatio : hRatio
+        if size.height == -1 || size.height == .greatestFiniteMagnitude || size.height == 0 {
+            size.height = height
+        }
+        let ratio = max(width / size.width, height / size.height)
         return CGSize(width: width / ratio, height: height / ratio)
     }
 
