@@ -112,12 +112,6 @@ public extension Sequence {
 }
 
 extension Sequence {
-    /// Returns the elements of the sequence, sorted using the given comparator to compare elements.
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-    public func sorted(by comparator: SortingComparator<Element>) -> [Element] {
-        return sorted(by: [comparator])
-    }
-    
     /**
      Returns the elements, sorted using the given comparators to compare elements.
 
@@ -288,7 +282,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
 /**
  A comparison algorithm for a specified type.
  
- To sort a sequence, use ``Swift/Sequence/sorted(by:)`` or ``Swift/Sequence/sorted(by:order:)-9dbx0``.
+ To sort a sequence, use ``Swift/Sequence/sorted(by:order:)-9dbx0``.
  */
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public struct SortingComparator<Element>: Hashable, SortComparator {
