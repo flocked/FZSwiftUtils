@@ -84,9 +84,7 @@ public extension Collection where Index == Int {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: Range<Index>) -> [Element] {
-        guard !isEmpty else { return [] }
-        let range = range.clamped(to: 0..<count)
-        return range.compactMap { self[safe: $0] }
+        Array(self[Swift.min(range.lowerBound, count)..<Swift.min(range.upperBound, count)])
     }
 
     /**
@@ -96,9 +94,7 @@ public extension Collection where Index == Int {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: ClosedRange<Int>) -> [Element] {
-        guard !isEmpty else { return [] }
-        let range = range.clamped(to: 0...count - 1)
-        return range.compactMap { self[safe: $0] }
+        self[safe: range.lowerBound..<range.upperBound+1]
     }
 
     /**
