@@ -7,23 +7,26 @@
 
 import Foundation
 
-/**
- Meassures the time executing a block.
- */
+///  Meassures the time executing a block.
 public struct MeasureTime {
+    
     /**
-     Meassures the time executing a block and printing it's result.
+     Meassures the time executing a block and prints the result.
      
      - Parameters:
         - operation: The block to meassure.
         - title: The title used for printing.
      */
     @discardableResult
-    public static func printTimeElapsed(title: String, running operation: () -> Void) -> TimeDuration {
+    public static func printTimeElapsed(title: String? = nil, running operation: () -> Void) -> TimeDuration {
         let startTime = CFAbsoluteTimeGetCurrent()
         operation()
         let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-        print("Time elapsed for \(title): \(timeElapsed) s.")
+        if let title = title {
+            print("Time elapsed for \(title): \(timeElapsed) s.")
+        } else {
+            print("Time elapsed: \(timeElapsed) s.")
+        }
         return TimeDuration(Double(timeElapsed))
     }
 
