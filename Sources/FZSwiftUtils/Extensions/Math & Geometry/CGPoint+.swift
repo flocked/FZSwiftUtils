@@ -201,35 +201,43 @@ public extension CGPoint {
     }
 
     static func += (lhs: inout CGPoint, rhs: CGPoint) {
-        lhs = CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+        lhs = lhs + rhs
     }
 
     static func += (lhs: inout CGPoint, rhs: Double) {
-        lhs = CGPoint(x: lhs.x + rhs, y: lhs.y + rhs)
+        lhs = lhs + rhs
     }
 
     static func += (lhs: inout CGPoint, rhs: CGFloat) {
-        lhs = CGPoint(x: lhs.x + rhs, y: lhs.y + rhs)
+        lhs = lhs + rhs
     }
 
     static func -= (lhs: inout CGPoint, rhs: CGPoint) {
-        lhs = CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+        lhs = lhs - rhs
     }
 
     static func -= (lhs: inout CGPoint, rhs: Double) {
-        lhs = CGPoint(x: lhs.x - rhs, y: lhs.y - rhs)
+        lhs = lhs - rhs
     }
 
     static func -= (lhs: inout CGPoint, rhs: CGFloat) {
-        lhs = CGPoint(x: lhs.x - rhs, y: lhs.y - rhs)
+        lhs = lhs - rhs
     }
 
     static func *= (lhs: inout CGPoint, rhs: CGFloat) {
-        lhs = CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
+        lhs = lhs * rhs
     }
 
     static func *= (lhs: inout CGPoint, rhs: Double) {
-        lhs = CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
+        lhs = lhs * rhs
+    }
+    
+    static func /= (lhs: inout CGPoint, rhs: CGFloat) {
+        lhs = lhs / rhs
+    }
+
+    static func /= (lhs: inout CGPoint, rhs: Double) {
+        lhs = lhs / rhs
     }
 }
 
