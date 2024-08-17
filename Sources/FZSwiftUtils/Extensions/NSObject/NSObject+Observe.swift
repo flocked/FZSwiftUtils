@@ -143,7 +143,7 @@ public class KeyValueObservation: NSObject {
 
     /// Invalidates the observation.
     public func invalidate() {
-        observer.deactivate()
+        observer.isActive = false
         tokens.removeAll()
     }
     
@@ -154,7 +154,7 @@ public class KeyValueObservation: NSObject {
     
     ///  A Boolean value indicating whether the observation is active.
     public var isObserving: Bool {
-        observer.isObserving
+        observer.isActive
     }
     
     let observer: KVOObservation
@@ -163,14 +163,14 @@ public class KeyValueObservation: NSObject {
     func setupNotifications() {
         tokens.append(NotificationCenter.default.observe(Self.activateObservation, object: observer._object, using: { [weak self] notification in
             guard let self = self else { return }
-            self.observer.activate()
+            self.observer.isActive = true
             if self.observer._object == nil {
                 self.invalidate()
             }
         }))
         tokens.append(NotificationCenter.default.observe(Self.deactivateObservation, object: observer._object, using: { [weak self] notification in
             guard let self = self else { return }
-            self.observer.deactivate()
+            self.observer.isActive = false
             if self.observer._object == nil {
                 self.invalidate()
             }
@@ -195,20 +195,9 @@ class KVObserverPrior<Object: NSObject, Value>: NSObject, KVOObservation {
     var _keyPath: String { keyPath.stringValue }
     let handler: (_ oldValue: Value) -> Void
     var observation: NSKeyValueObservation?
-    var isObserving: Bool { object != nil && observation != nil }
-
-    func activate() {
-        guard object != nil, observation == nil else { return }
-        setupObservation()
-    }
     
-    func deactivate() {
-        observation?.invalidate()
-        observation = nil
-    }
-    
-    func setupObservation() {
-        guard let object = object else { return }
+    func setupObservation(sendInital: Bool = false) {
+        guard let object = object, observation == nil else { return }
         observation = object.observe(keyPath, options: [.prior, .old]) { [ weak self] _, change in
             guard let self = self, change.isPrior, let oldValue = change.oldValue else { return }
             self.handler(oldValue)
@@ -225,37 +214,28 @@ class KVObserverPrior<Object: NSObject, Value>: NSObject, KVOObservation {
     }
     
     deinit {
-        deactivate()
+        isActive = false
     }
 }
 
 class KVObserver<Object: NSObject, Value>: NSObject, KVOObservation {
-    
     weak var object: Object?
     var _object: NSObject? { object }
     let keyPath: KeyPath<Object, Value>
     var _keyPath: String { keyPath.stringValue }
-    let handler: (_ oldValue: Value, _ newValue: Value) -> Void
+    let handler: (_ oldValue: Value, _ newValue: Value, _ inital: Bool) -> Void
     var observation: NSKeyValueObservation?
-    var isObserving: Bool { object != nil && observation != nil }
-
-    func activate() {
-        guard object != nil, observation == nil else { return }
-        setupObservation()
-    }
-    
-    func deactivate() {
-        observation?.invalidate()
-        observation = nil
-    }
     
     func setupObservation(sendInital: Bool = false) {
-        guard let object = object else { return }
-        let options: NSKeyValueObservingOptions = sendInital ? [.old, .new, .initial] : [.old, .new]
-        observation = object.observe(keyPath, options: options) { [ weak self] _, change in
+        guard let object = object, observation == nil else { return }
+        observation = object.observe(keyPath, options: sendInital ? [.old, .new, .initial] : [.old, .new]) { [ weak self] _, change in
             guard let self = self else { return }
             guard let newValue = change.newValue else { return }
-            self.handler(change.oldValue ?? newValue, newValue)
+            if let oldValue = change.oldValue {
+                self.handler(oldValue, newValue, false)
+            } else {
+                self.handler(newValue, newValue, true)
+            }
         }
     }
     
@@ -263,7 +243,7 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVOObservation {
         guard keyPath._kvcKeyPathString != nil else { return nil }
         self.object = object
         self.keyPath = keyPath
-        self.handler = handler
+        self.handler = { old, new, _ in handler(old, new) }
         super.init()
         setupObservation(sendInital: sendInitalValue)
     }
@@ -272,8 +252,8 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVOObservation {
         guard keyPath._kvcKeyPathString != nil else { return nil }
         self.object = object
         self.keyPath = keyPath
-        self.handler = !uniqueValues ? handler : { old, new in
-            guard old != new else { return }
+        self.handler =  !uniqueValues ? { old, new, _ in handler(old, new) } : { old, new, inital in
+            guard old != new || inital else { return }
             handler(old, new)
         }
         super.init()
@@ -281,16 +261,29 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVOObservation {
     }
     
     deinit {
-        deactivate()
+        isActive = false
     }
 }
 
 protocol KVOObservation: NSObject {
-    func activate()
-    func deactivate()
     var _object: NSObject? { get }
     var _keyPath: String { get }
-    var isObserving: Bool { get }
+    var observation: NSKeyValueObservation? { get set }
+    func setupObservation(sendInital: Bool)
+}
+
+extension KVOObservation {
+    var isActive: Bool {
+        get { _object != nil && observation != nil }
+        set {
+            if newValue {
+                setupObservation(sendInital: false)
+            } else {
+                observation?.invalidate()
+                observation = nil
+            }
+        }
+    }
 }
 
 extension KVOObservation {
