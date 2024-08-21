@@ -20,13 +20,6 @@ public extension Sequence where Element: Equatable {
     }
 }
 
-extension Sequence where Element: Hashable {
-    /// An array of the elements that are duplicates.
-    func duplicates() -> [Element] {
-        Array(Dictionary(grouping: self, by: {$0}).filter {$1.count > 1}.keys)
-    }
-}
-
 public extension Sequence {
     /**
      An array of elements by filtering the keypath for unique values.
@@ -78,6 +71,13 @@ public extension Sequence {
                 $0.append($1)
             }
         }.sorted(by: \.index).compactMap({$0.element})
+    }
+}
+
+extension Sequence where Element: Hashable {
+    /// An array of the elements that are duplicates.
+    func duplicates() -> [Element] {
+        Array(Dictionary(grouping: self, by: {$0}).filter {$1.count > 1}.keys)
     }
 }
 
