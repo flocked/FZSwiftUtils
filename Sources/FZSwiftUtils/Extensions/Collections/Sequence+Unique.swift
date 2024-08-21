@@ -8,22 +8,8 @@
 import Foundation
 
 public extension Sequence where Element: Equatable {
-    /**
-     Returns a random element of the collection excluding any of the specified elements.
-
-     - Parameter excluding: The elements excluded for the returned element.
-     - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
-     */
-    func randomElement(excluding: [Element]) -> Element? {
-        let elements = filter { excluding.contains($0) == false }
-        guard elements.isEmpty == false else { return nil }
-        return elements.randomElement()
-    }
-}
-
-public extension Sequence {
     /// An array of unique elements.
-    func uniqued() -> [Element] where Element: Equatable {
+    func uniqued() -> [Element] {
         var elements: [Element] = []
         for element in self {
             if !elements.contains(element) {
@@ -31,6 +17,13 @@ public extension Sequence {
             }
         }
         return elements
+    }
+}
+
+extension Sequence where Element: Hashable {
+    /// An array of the elements that are duplicates.
+    func duplicates() -> [Element] {
+        Array(Dictionary(grouping: self, by: {$0}).filter {$1.count > 1}.keys)
     }
 }
 
@@ -85,5 +78,17 @@ public extension Sequence {
                 $0.append($1)
             }
         }.sorted(by: \.index).compactMap({$0.element})
+    }
+}
+
+public extension Sequence where Element: Equatable {
+    /**
+     Returns a random element of the collection excluding any of the specified elements.
+
+     - Parameter excluding: The elements excluded for the returned element.
+     - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
+     */
+    func randomElement(excluding: [Element]) -> Element? {
+        filter { !excluding.contains($0) }.randomElement()
     }
 }
