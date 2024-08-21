@@ -21,27 +21,16 @@ public extension Sequence where Element: Equatable {
     }
 }
 
-public extension Sequence where Element: Equatable {
+public extension Sequence {
     /// An array of unique elements.
-    func uniqued() -> [Element] {
+    func uniqued() -> [Element] where Element: Equatable {
         var elements: [Element] = []
         for element in self {
-            if elements.contains(element) == false {
+            if !elements.contains(element) {
                 elements.append(element)
             }
         }
         return elements
-    }
-    
-    /// An array of unique elements.
-    func uniqued() -> [Element] where Element: Comparable {
-        var indexedElements: [(index: Int, element: Element)] = []
-        for (index, element) in enumerated().sorted(by: \.element) {
-            if indexedElements.last?.element != element {
-                indexedElements.append((index, element))
-            }
-        }
-        return indexedElements.sorted(by: \.index).compactMap({$0.element})
     }
 }
 
@@ -52,6 +41,15 @@ public extension Sequence {
      - Parameter keyPath: The keypath for filtering the object.
      */
     func uniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+        uniqued(by: { $0[keyPath: keyPath] })
+    }
+    
+    /**
+     An array of elements by filtering the keypath for unique values.
+
+     - Parameter keyPath: The keypath for filtering the object.
+     */
+    func uniqued<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
         uniqued(by: { $0[keyPath: keyPath] })
     }
 
@@ -65,11 +63,27 @@ public extension Sequence {
         var ordered: [Element] = []
         for element in self {
             let check = map(element)
-            if uniqueElements.contains(check) == false {
+            if !uniqueElements.contains(check) {
                 uniqueElements.append(check)
                 ordered.append(element)
             }
         }
         return ordered
+    }
+    
+    /**
+     An array of unique elements.
+
+     - Parameter map: A mapping closure. map accepts an element of this sequence as its parameter and returns a value of the same or of a different type.
+     */
+    func uniqued<T: Comparable>(by map: (Element) -> T) -> [Element] {
+        let elements = reduce(into: [(index: Int, element: Element, compare: T)]()) {
+            $0 += ($0.count, $1, map($1))
+        }.sorted(by: \.compare)
+        return elements.reduce(into: [(index: Int, element: Element, compare: T)]()) {
+            if $0.last?.compare != $1.compare {
+                $0.append($1)
+            }
+        }.sorted(by: \.index).compactMap({$0.element})
     }
 }

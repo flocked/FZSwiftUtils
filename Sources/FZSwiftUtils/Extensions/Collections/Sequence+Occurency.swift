@@ -24,17 +24,14 @@ public extension Sequence where Element: Equatable & Hashable {
 
     /// A dictionary for the occurences of the elements keyed by element value.
     func numberOfOccurencesByElement() -> [Element: Int] {
-        reduce(into: [Element: Int]()) { currentResult, element in
+        return reduce(into: [Element: Int]()) { currentResult, element in
             currentResult[element, default: 0] += 1
         }
     }
-}
-
-/*
-public extension Dictionary  {
-    /// A dictionary for the occurences of the elements keyed by count.
-    init<S>(grouping values: S, by keyForValue: PartialKeyPath<S.Element>) where S: Sequence, S.Element: Equatable & Hashable, Value == [S.Element], S : Sequence, Key == Int {
-            self = values.numberOfOccurences()
+    
+    func numberOfOccurences<Value: Hashable>(of keyPath: KeyPath<Element, Value>) -> [Value: [Element]] {
+        return reduce(into: [Value: [Element]]()) { currentResult, element in
+            currentResult[element[keyPath: keyPath], default: []] += element
+        }
     }
 }
-*/

@@ -65,7 +65,8 @@ public extension Collection where Index == Int {
         return chunked(size: chunksize)
     }
 
-    /** Splits the collection into arrays for each specified unique keypath value.
+    /** 
+     Splits the collection into arrays for each specified unique keypath value.
 
      - Parameter keyPath: The keyPath of the value.
      - Returns: Returns an array of chunks for each unique keypath value.

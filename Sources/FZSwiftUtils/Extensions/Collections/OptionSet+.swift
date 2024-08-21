@@ -14,8 +14,8 @@ public extension OptionSet {
      - Parameter elements: The elements to look for in the set.
      - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
      */
-    func contains(any members: [Self.Element]) -> Bool {
-        return members.contains(where: { contains($0) })
+    func contains(any members: [Element]) -> Bool {
+        members.contains(where: { contains($0) })
     }
     
     /// A Boolean value indicating whether the set contains the specified element.
@@ -38,13 +38,8 @@ public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
      - Parameter elements: The elements to look for in the set.
      - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
      */
-    func contains(any member: Self.Element) -> Bool {
-        for element in member.elements() {
-            if contains(element) {
-                return true
-            }
-        }
-        return false
+    func contains(any member: Self) -> Bool {
+        member.elements().contains(where: { contains($0) })
     }
     
     /// Returns a sequence of all elements included in the set.

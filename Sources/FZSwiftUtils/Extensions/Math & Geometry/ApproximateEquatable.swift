@@ -42,6 +42,7 @@ extension CGFloat: ApproximateEquatable {
 
 extension Array: ApproximateEquatable where Element: FloatingPointInitializable {
     public func isApproximatelyEqual(to other: Self, epsilon: Element) -> Bool {
+        guard count == other.count else { return false }
         for i in 0 ..< indices.count {
             if !self[i].isApproximatelyEqual(to: other[i], absoluteTolerance: epsilon) {
                 return false
@@ -53,20 +54,12 @@ extension Array: ApproximateEquatable where Element: FloatingPointInitializable 
 
 extension Set: ApproximateEquatable where Element: FloatingPointInitializable {
     public func isApproximatelyEqual(to other: Self, epsilon: Element) -> Bool {
-        let check = Array(self)
-        let other = Array(other)
-
-        for i in 0 ..< indices.count {
-            if !check[i].isApproximatelyEqual(to: other[i], absoluteTolerance: epsilon) {
-                return false
-            }
-        }
-        return true
+        Array(self).isApproximatelyEqual(to: Array(other), epsilon: epsilon)
     }
 }
 
 extension AnimatablePair: ApproximateEquatable where First: ApproximateEquatable, Second: ApproximateEquatable {
-    public func isApproximatelyEqual(to other: AnimatablePair<First, Second>, epsilon: Double) -> Bool {
+    public func isApproximatelyEqual(to other: Self, epsilon: Double) -> Bool {
         first.isApproximatelyEqual(to: other.first, epsilon: First.Epsilon(epsilon)) && second.isApproximatelyEqual(to: other.second, epsilon: Second.Epsilon(epsilon))
     }
 }
@@ -113,10 +106,10 @@ public extension AdditiveArithmetic {
      A Boolean value that indicates whether the value and the specified `other` value are approximately equal.
 
      - Parameters:
-     - other: The value to which `self` is compared.
-     - absoluteTolerance: The absolute tolerance to use in the comparison.
-     - relativeTolerance: The relative tolerance to use in the comparison. Defaults to `0`.
-     - norm: The norm to use for the comparison. Defaults is `\.magnitude`.
+        - other: The value to which `self` is compared.
+        - absoluteTolerance: The absolute tolerance to use in the comparison.
+        - relativeTolerance: The relative tolerance to use in the comparison. Defaults to `0`.
+        - norm: The norm to use for the comparison. Defaults is `\.magnitude`.
      */
     @inlinable
     func isApproximatelyEqual<Magnitude>(

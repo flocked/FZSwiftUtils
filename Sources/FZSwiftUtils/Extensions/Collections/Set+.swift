@@ -8,6 +8,17 @@
 import Foundation
 
 public extension Set {
+    subscript (_ element: Element) -> Bool {
+        get { contains(element) }
+        set {
+            if newValue {
+                insert(element)
+            } else {
+                remove(element)
+            }
+        }
+    }
+    
     /**
      Removes the specified elements from the set.
 
