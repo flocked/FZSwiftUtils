@@ -13,33 +13,20 @@ import Foundation
  The notification is observed until you deallocate the token.
  */
 public class NotificationToken: NSObject {
-    /// The `NotificationCenter` instance associated with the observer.
-    let notificationCenter: NotificationCenter
-
-    /// The token that identifies the observer.
-    let token: Any
     
     /// The name of the observed notification.
     public let name: NSNotification.Name?
+    
+    let notificationCenter: NotificationCenter
 
-    /**
-     Initializes a new `NotificationToken` instance with the specified `NotificationCenter` and token.
+    let token: Any
 
-     - Parameters:
-       - notificationCenter: The `NotificationCenter` instance associated with the observer. The default value is `.default`.
-       - token: The token that identifies the observer.
-     */
-    public init(notificationCenter: NotificationCenter = .default, token: Any, name: NSNotification.Name?) {
+    init(notificationCenter: NotificationCenter, token: Any, name: NSNotification.Name?) {
         self.notificationCenter = notificationCenter
         self.token = token
         self.name = name
     }
 
-    /**
-     Removes the observer from the associated `NotificationCenter`.
-
-     This method is automatically called when the `NotificationToken` instance is deallocated.
-     */
     deinit {
         notificationCenter.removeObserver(token)
     }
