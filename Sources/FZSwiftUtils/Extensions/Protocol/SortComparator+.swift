@@ -63,6 +63,42 @@ struct HandlerComparator<Compared>: SortComparator {
     }
 }
 
+/// A comparator that uses another sort comparator to provide the comparison of values at a key path.
+@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+struct PartialKeyPathComparator<Compared>: SortComparator {
+    /// The sort order that the comparator uses to compare properties.
+    public var order: SortOrder
+    
+    /// The key path that the comparator uses to compare properties.
+    public let keyPath: PartialKeyPath<Compared>
+    
+    /// Creates a comparator using a key path.
+    public init(_ keyPath: PartialKeyPath<Compared>, order: SortOrder) {
+        self.order = order
+        self.keyPath = keyPath
+    }
+    
+    /**
+     Provides the relative ordering of two items according to the ordering of the properties that the comparator’s key path references.
+     
+     - Parameters:
+     - lhs: The first property to compare.
+     - rhs: The second property to compare.
+     
+     - Returns: The method returns flipped comparisons if the sort order is `reverse.
+     */
+    public func compare(_ lhs: Compared, _ rhs: Compared) -> ComparisonResult {
+        guard let lhs = lhs[keyPath: keyPath] as? any Comparable, let rhs = rhs[keyPath: keyPath] as? any Comparable else { return .orderedAscending }
+        if lhs.isEqual(rhs) {
+            return .orderedSame
+        } else if lhs.isLessThan(rhs) {
+            return order == .ascending ? .orderedAscending : .orderedDescending
+        } else {
+            return order == .ascending ? .orderedDescending : .orderedAscending
+        }
+    }
+}
+
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 extension SortOrder {
     /// An ascending sorting order.
