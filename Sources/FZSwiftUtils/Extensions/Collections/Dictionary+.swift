@@ -73,6 +73,22 @@ public extension Dictionary {
         }
         return (removed, added, changed)
     }
+    
+    /// Removes the values of the specified keys.
+    mutating func remove<S: Sequence<Key>>(_ keys: S) {
+        setValue(nil, for: keys)
+    }
+    
+    /**
+     Sets the value of the specified keys.
+     
+     - Parameters:
+        - value: The new value.
+        - keys: The keys.
+     */
+    mutating func setValue<S: Sequence<Key>>(_ value: Value?, for keys: S) {
+        keys.forEach({ self[$0] = value })
+    }
 }
 
 public extension Dictionary where Value: Equatable {

@@ -64,3 +64,27 @@ public extension NotificationCenter {
         return NotificationToken(notificationCenter: self, token: token, name: name)
     }
 }
+
+/// A notification token that combines multiple notification tokens.
+class CombinedNotificationToken: NotificationToken {
+    let tokens: [Any]
+    
+    init?(_ tokens: [NotificationToken]) {
+        guard !tokens.isEmpty, tokens.compactMap({$0.notificationCenter}).uniqued().count == 1 else { return nil }
+        var tokens = tokens
+        let token = tokens.removeFirst()
+        self.tokens = tokens.compactMap({$0.token})
+        super.init(notificationCenter: token.notificationCenter, token: token.token, name: token.name)
+    }
+    
+    deinit {
+        (tokens + token).forEach({ notificationCenter.removeObserver($0) })
+    }
+}
+
+public extension Collection where Element: NotificationToken {
+    /// Returns a combined notification token for the tokens of the sequence.
+    var notificationToken: NotificationToken? {
+        count == 1 ? first : CombinedNotificationToken(Array(self))
+    }
+}
