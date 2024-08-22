@@ -67,18 +67,17 @@ public extension NotificationCenter {
 
 /// A notification token that combines multiple notification tokens.
 class CombinedNotificationToken: NotificationToken {
-    let tokens: [Any]
+    let tokens: [NotificationToken]
     
     init?(_ tokens: [NotificationToken]) {
         guard !tokens.isEmpty, tokens.compactMap({$0.notificationCenter}).uniqued().count == 1 else { return nil }
-        var tokens = tokens
-        let token = tokens.removeFirst()
-        self.tokens = tokens.compactMap({$0.token})
+        let token = tokens.first!
+        self.tokens = tokens
         super.init(notificationCenter: token.notificationCenter, token: token.token, name: token.name)
     }
     
     deinit {
-        (tokens + token).forEach({ notificationCenter.removeObserver($0) })
+        
     }
 }
 
