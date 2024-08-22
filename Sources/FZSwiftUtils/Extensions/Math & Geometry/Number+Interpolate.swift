@@ -18,26 +18,24 @@ extension BinaryInteger {
      - Returns: The interpolated value within the target range.
      */
     func interpolated(from: ClosedRange<Self>, to: ClosedRange<Self>) -> Self {
-        interpolated(from: from.lowerBound, from.upperBound, to: to.lowerBound, to.upperBound)
+        interpolated(from: (from.lowerBound, from.upperBound), to: (to.lowerBound, to.upperBound))
     }
     
     /**
      Interpolates the value from one range to another range.
 
      - Parameters:
-        - fromLower: The source lower bound value.
-        - fromUpper: The source upper bound value.
-        - toLower: The target lower bound value.
-        - toUpper: The target upper bound value.
+        - from: The source range.
+        - to: The target range.
 
      - Returns: The interpolated value within the target range.
      */
-    func interpolated(from fromLower: Self, _ fromUpper: Self, to toLower: Self, _ toUpper: Self) -> Self {
-        Self(Float(self).interpolated(from: Float(fromLower), Float(fromUpper), to: Float(toLower), Float(toUpper)).rounded(.towardZero))
+    func interpolated(from: (lower: Self, upper: Self), to: (lower: Self, upper: Self)) -> Self {
+        Self(Float(self).interpolated(from: (Float(from.lower), Float(from.upper)), to: (Float(to.lower), Float(to.upper))).rounded(.towardZero))
     }
 }
 
-public extension BinaryFloatingPoint {
+public extension BinaryFloatingPoint {    
     /**
      Interpolates the value from one range to another range.
 
@@ -48,23 +46,21 @@ public extension BinaryFloatingPoint {
      - Returns: The interpolated value within the target range.
      */
     func interpolated(from: ClosedRange<Self>, to: ClosedRange<Self>) -> Self {
-        interpolated(from: from.lowerBound, from.upperBound, to: to.lowerBound, to.upperBound)
+        interpolated(from: (from.lowerBound, from.upperBound), to: (to.lowerBound, to.upperBound))
     }
     
     /**
      Interpolates the value from one range to another range.
 
      - Parameters:
-        - fromLower: The source lower bound value.
-        - fromUpper: The source upper bound value.
-        - toLower: The target lower bound value.
-        - toUpper: The target upper bound value.
+        - from: The source range.
+        - to: The target range.
 
      - Returns: The interpolated value within the target range.
      */
-    func interpolated(from fromLower: Self, _ fromUpper: Self, to toLower: Self, _ toUpper: Self) -> Self {
-        let positionInRange = (self - fromLower) / (fromUpper - fromLower)
-        return (positionInRange * (toUpper - toLower)) + toLower
+    func interpolated(from: (lower: Self, upper: Self), to: (lower: Self, upper: Self)) -> Self {
+        let positionInRange = (self - from.lower) / (from.upper - from.lower)
+        return (positionInRange * (to.upper - to.lower)) + to.lower
     }
 }
 
@@ -86,15 +82,13 @@ public extension Sequence where Element: BinaryInteger {
      Interpolates the elements of the sequence from one range to another range.
 
      - Parameters:
-        - fromLower: The source lower bound value.
-        - fromUpper: The source upper bound value.
-        - toLower: The target lower bound value.
-        - toUpper: The target upper bound value.
+        - from: The source range.
+        - to: The target range.
 
      - Returns: An array of the interpolated values within the target range.
      */
-    func interpolated(from fromLower: Element, _ fromUpper: Element, to toLower: Element, _ toUpper: Element) -> [Element] {
-        compactMap({ $0.interpolated(from: fromLower, fromUpper, to: toLower, toUpper) })
+    func interpolated(from: (lower: Element, upper: Element), to: (lower: Element, upper: Element)) -> [Element] {
+        compactMap({ $0.interpolated(from: from, to: to) })
     }
 
     /**
@@ -127,15 +121,13 @@ public extension Sequence where Element: BinaryFloatingPoint {
      Interpolates the elements of the sequence from one range to another range.
 
      - Parameters:
-        - fromLower: The source lower bound value.
-        - fromUpper: The source upper bound value.
-        - toLower: The target lower bound value.
-        - toUpper: The target upper bound value.
+        - from: The source range.
+        - to: The target range.
 
      - Returns: An array of the interpolated values within the target range.
      */
-    func interpolated(from fromLower: Element, _ fromUpper: Element, to toLower: Element, _ toUpper: Element) -> [Element] {
-        compactMap({ $0.interpolated(from: fromLower, fromUpper, to: toLower, toUpper) })
+    func interpolated(from: (lower: Element, upper: Element), to: (lower: Element, upper: Element)) -> [Element] {
+        compactMap({ $0.interpolated(from: from, to: to) })
     }
 
     /**
