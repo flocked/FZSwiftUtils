@@ -26,15 +26,10 @@ public struct OSHash: HashFunction {
     /// The digest type for a OSHash hash function.
     public typealias Digest = OSHashDigest
     
-    var digest: Data = Data()
+    let digest: Data = Data()
     
     /// Creates a OSHash hash function.
     public init() {
-        
-    }
-    
-    /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
-    public mutating func update(bufferPointer: UnsafeRawBufferPointer) {
         
     }
     
@@ -95,6 +90,11 @@ public struct OSHash: HashFunction {
     }
     
     /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
+    public mutating func update(bufferPointer: UnsafeRawBufferPointer) {
+        
+    }
+    
+    /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
         try digest.withUnsafeBytes(body)
     }
@@ -108,7 +108,7 @@ public struct OSHash: HashFunction {
 /// The output of a OpenSuptitle hash.
 public struct OSHashDigest: Digest {
     
-    private var digest: Data
+    private let digest: Data
 
     public static var byteCount: Int = 8
 

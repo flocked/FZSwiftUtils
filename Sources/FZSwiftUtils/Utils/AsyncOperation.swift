@@ -10,22 +10,25 @@ import Foundation
 /// An asynchronous, pausable operation.
 open class AsyncOperation: Operation, Pausable {
     /// The state of the operation.
-    public enum State: String, Hashable {
-        /// The operation is waiting to start.
-        case waiting = "isWaiting"
-
+    public enum State: String, Hashable, CustomStringConvertible {
+        public var description: String {
+            switch self {
+            case .ready: return "ready"
+            case .executing: return "executing"
+            case .finished: return "finished"
+            case .cancelled: return "cancelled"
+            case .paused: return "paused"
+            }
+        }
+        
         /// The operation is ready to start.
         case ready = "isReady"
-
         /// The operation is executing.
         case executing = "isExecuting"
-
         /// The operation is finished.
         case finished = "isFinished"
-
         /// The operation is cancelled.
         case cancelled = "isCancelled"
-
         /// The operation is paused.
         case paused = "isPaused"
     }
@@ -37,77 +40,46 @@ open class AsyncOperation: Operation, Pausable {
     open var error: Error?
 
     /// The state of the operation.
-    open var state: State = .waiting {
+    open var state: State = .ready {
         willSet {
-            willChangeValue(forKey: State.ready.rawValue)
-            willChangeValue(forKey: State.executing.rawValue)
-            willChangeValue(forKey: State.finished.rawValue)
-            willChangeValue(forKey: State.cancelled.rawValue)
+            willChangeValue(for: \.state)
         }
         didSet {
-            switch self.state {
-            case .waiting:
-                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(self.state)")
-            case .ready:
-                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(self.state)")
+            switch state {
             case .executing:
-                assert(
-                    oldValue == .ready || oldValue == .waiting || oldValue == .paused,
-                    "Invalid change from \(oldValue) to \(self.state)"
-                )
+                assert(oldValue == .ready || oldValue == .paused, "Invalid change from \(oldValue) to \(state)")
             case .finished:
-                assert(oldValue != .cancelled, "Invalid change from \(oldValue) to \(self.state)")
-            case .cancelled:
-                break
+                assert(oldValue != .cancelled, "Invalid change from \(oldValue) to \(state)")
             case .paused:
-                assert(oldValue == .executing, "Invalid change from \(oldValue) to \(self.state)")
+                assert(oldValue == .executing, "Invalid change from \(oldValue) to \(state)")
+            default: break
             }
-
-            didChangeValue(forKey: State.cancelled.rawValue)
-            didChangeValue(forKey: State.finished.rawValue)
-            didChangeValue(forKey: State.executing.rawValue)
-            didChangeValue(forKey: State.ready.rawValue)
-            if oldValue != self.state {
-                self.onStateChange?(self.state)
+            didChangeValue(for: \.state)
+            if oldValue != state {
+                onStateChange?(state)
             }
         }
     }
 
     override open var isReady: Bool {
-        if self.state == .waiting {
-            return super.isReady
-        } else {
-            return self.state == .ready
-        }
+        state == .ready
     }
 
     override open var isExecuting: Bool {
-        if self.state == .waiting {
-            return super.isExecuting
-        } else {
-            return self.state == .executing || self.state == .paused
-        }
+        state == .executing || state == .paused
     }
 
     override open var isFinished: Bool {
-        if self.state == .waiting {
-            return super.isFinished
-        } else {
-            return self.state == .finished
-        }
+        state == .finished
     }
 
     override open var isCancelled: Bool {
-        if self.state == .waiting {
-            return super.isCancelled
-        } else {
-            return self.state == .cancelled
-        }
+        state == .cancelled
     }
 
     /// A Boolean value indicating whether the operation has been paused.
     open var isPaused: Bool {
-        self.state == .paused
+        state == .paused
     }
 
     /// Resumes the operation, if it's paused.
