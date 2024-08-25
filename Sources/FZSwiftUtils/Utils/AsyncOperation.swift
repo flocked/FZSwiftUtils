@@ -13,19 +13,14 @@ open class AsyncOperation: Operation, Pausable {
     public enum State: String, Hashable {
         /// The operation is waiting to start.
         case waiting = "isWaiting"
-
         /// The operation is ready to start.
         case ready = "isReady"
-
         /// The operation is executing.
         case executing = "isExecuting"
-
         /// The operation is finished.
         case finished = "isFinished"
-
         /// The operation is cancelled.
         case cancelled = "isCancelled"
-
         /// The operation is paused.
         case paused = "isPaused"
     }
@@ -38,12 +33,14 @@ open class AsyncOperation: Operation, Pausable {
 
     /// The state of the operation.
     open var state: State = .waiting {
+        /*
         willSet {
             willChangeValue(forKey: State.ready.rawValue)
             willChangeValue(forKey: State.executing.rawValue)
             willChangeValue(forKey: State.finished.rawValue)
             willChangeValue(forKey: State.cancelled.rawValue)
         }
+         */
         didSet {
             switch self.state {
             case .waiting:
@@ -62,11 +59,12 @@ open class AsyncOperation: Operation, Pausable {
             case .paused:
                 assert(oldValue == .executing, "Invalid change from \(oldValue) to \(self.state)")
             }
-
+/*
             didChangeValue(forKey: State.cancelled.rawValue)
             didChangeValue(forKey: State.finished.rawValue)
             didChangeValue(forKey: State.executing.rawValue)
             didChangeValue(forKey: State.ready.rawValue)
+ */
             if oldValue != self.state {
                 self.onStateChange?(self.state)
             }
