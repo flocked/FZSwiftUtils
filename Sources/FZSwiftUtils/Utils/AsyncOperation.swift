@@ -42,7 +42,10 @@ open class AsyncOperation: Operation, Pausable {
     /// The state of the operation.
     open var state: State = .ready {
         willSet {
-            willChangeValue(for: \.state)
+            didChangeValue(forKey: State.cancelled.rawValue)
+            didChangeValue(forKey: State.finished.rawValue)
+            didChangeValue(forKey: State.executing.rawValue)
+            didChangeValue(forKey: State.ready.rawValue)
         }
         didSet {
             switch state {
@@ -54,7 +57,10 @@ open class AsyncOperation: Operation, Pausable {
                 assert(oldValue == .executing, "Invalid change from \(oldValue) to \(state)")
             default: break
             }
-            didChangeValue(for: \.state)
+            didChangeValue(forKey: State.cancelled.rawValue)
+            didChangeValue(forKey: State.finished.rawValue)
+            didChangeValue(forKey: State.executing.rawValue)
+            didChangeValue(forKey: State.ready.rawValue)
             if oldValue != state {
                 onStateChange?(state)
             }
