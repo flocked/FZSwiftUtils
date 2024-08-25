@@ -25,114 +25,81 @@ open class AsyncOperation: Operation, Pausable {
         case paused = "isPaused"
     }
 
-    /// The handler that gets called when the state changes.
-    open var onStateChange: ((State) -> Void)?
-
     /// The error, if the operation failed.
     open var error: Error?
 
     /// The state of the operation.
     open var state: State = .waiting {
-        /*
         willSet {
             willChangeValue(forKey: State.ready.rawValue)
             willChangeValue(forKey: State.executing.rawValue)
             willChangeValue(forKey: State.finished.rawValue)
             willChangeValue(forKey: State.cancelled.rawValue)
         }
-         */
         didSet {
-            switch self.state {
+            switch state {
             case .waiting:
-                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(self.state)")
+                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(state)")
             case .ready:
-                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(self.state)")
+                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(state)")
             case .executing:
-                assert(
-                    oldValue == .ready || oldValue == .waiting || oldValue == .paused,
-                    "Invalid change from \(oldValue) to \(self.state)"
-                )
+                assert( oldValue == .ready || oldValue == .waiting || oldValue == .paused, "Invalid change from \(oldValue) to \(state)")
             case .finished:
-                assert(oldValue != .cancelled, "Invalid change from \(oldValue) to \(self.state)")
+                assert(oldValue != .cancelled, "Invalid change from \(oldValue) to \(state)")
             case .cancelled:
                 break
             case .paused:
-                assert(oldValue == .executing, "Invalid change from \(oldValue) to \(self.state)")
+                assert(oldValue == .executing, "Invalid change from \(oldValue) to \(state)")
             }
-/*
             didChangeValue(forKey: State.cancelled.rawValue)
             didChangeValue(forKey: State.finished.rawValue)
             didChangeValue(forKey: State.executing.rawValue)
             didChangeValue(forKey: State.ready.rawValue)
- */
-            if oldValue != self.state {
-                self.onStateChange?(self.state)
-            }
         }
     }
 
     override open var isReady: Bool {
-        if self.state == .waiting {
-            return super.isReady
-        } else {
-            return self.state == .ready
-        }
+        state == .waiting ? super.isReady : state == .ready
     }
 
     override open var isExecuting: Bool {
-        if self.state == .waiting {
-            return super.isExecuting
-        } else {
-            return self.state == .executing || self.state == .paused
-        }
+        state == .waiting ? super.isExecuting : state == .executing || state == .paused
     }
 
     override open var isFinished: Bool {
-        if self.state == .waiting {
-            return super.isFinished
-        } else {
-            return self.state == .finished
-        }
+        state == .waiting ? super.isFinished : state == .finished
     }
 
     override open var isCancelled: Bool {
-        if self.state == .waiting {
-            return super.isCancelled
-        } else {
-            return self.state == .cancelled
-        }
+        state == .waiting ? super.isCancelled : state == .cancelled
     }
 
     /// A Boolean value indicating whether the operation has been paused.
     open var isPaused: Bool {
-        self.state == .paused
+        state == .paused
     }
 
     /// Resumes the operation, if it's paused.
     open func resume() {
-        if isExecuting, state == .paused {
-            state = .executing
-        }
+        guard isExecuting, state == .paused else { return }
+        state = .executing
     }
 
     /// Pauses the operation.
     open func pause() {
-        if isExecuting, state != .paused {
-            state = .paused
-        }
+        guard isExecuting, state != .paused else { return }
+        state = .paused
     }
 
     /// Finishes executing the operation.
     open func finish() {
-        if isExecuting {
-            state = .finished
-        }
+        guard isExecuting else { return }
+        state = .finished
     }
 
     override open func cancel() {
-        if isExecuting {
-            state = .cancelled
-        }
+        guard isExecuting else { return }
+        state = .cancelled
     }
 
     override open var isAsynchronous: Bool {
@@ -157,7 +124,14 @@ open class AsyncBlockOperation: AsyncOperation {
 
     override open func start() {
         super.start()
-        guard isExecuting else { return }
+        guard isExecuting, !isPaused else { return }
         closure(self)
+        state = .finished
+    }
+    
+    open override func resume() {
+        super.resume()
+        guard isExecuting, !isPaused else { return }
+        start()
     }
 }

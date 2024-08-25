@@ -17,12 +17,6 @@ public protocol Pausable {
     var isPaused: Bool { get }
 }
 
-/// A operation that provides a progress.
-public protocol ProgressOperation: Operation {
-    /// The progress of the operation.
-    var progress: Progress { get }
-}
-
 /// A pausable queue that regulates the execution of operations.
 open class PausableOperationQueue: OperationQueue {
     /// The operations currently in the queue.
@@ -39,17 +33,24 @@ open class PausableOperationQueue: OperationQueue {
     }
 
     override open func addOperations(_ ops: [Operation], waitUntilFinished wait: Bool) {
-        let progressOperations = ops.compactMap({ $0 as? ProgressOperation })
-        for operation in progressOperations {
-            _progress.addChild(operation.progress)
-            let completionBlock = operation.completionBlock
-            operation.completionBlock = {
-                self._progress.removeChild(operation.progress)
+        for operation in ops {
+            if let operation = operation as? ProgressReporting & Operation {
+                _progress.addChild(operation.progress)
+            } else {
+                progress.totalUnitCount += 1
+                let completionBlock = operation.completionBlock
+                operation.completionBlock = {
+                    if operation.isCancelled {
+                        self.progress.totalUnitCount -= 1
+                    } else {
+                        self.progress.completedUnitCount += 1
+                    }
+                    completionBlock?()
+                }
             }
         }
         
-        let pausableOperations = ops.compactMap { $0 as? (Pausable & Operation) }
-        pausableOperations.forEach { operation in
+        ops.compactMap { $0 as? (Pausable & Operation) }.forEach { operation in
             let completionBlock = operation.completionBlock
             operation.completionBlock = {
                 self.sequentialOperationQueue.addOperation {
@@ -59,9 +60,9 @@ open class PausableOperationQueue: OperationQueue {
                 }
                 completionBlock?()
             }
-        }
-        sequentialOperationQueue.addOperation {
-            self.pausableOperations.append(contentsOf: pausableOperations)
+            sequentialOperationQueue.addOperation {
+                self.pausableOperations.append(operation)
+            }
         }
         super.addOperations(ops, waitUntilFinished: wait)
     }
