@@ -28,11 +28,6 @@ public struct OSHash: HashFunction {
     
     var digest: Data = Data()
     
-    public enum HashError: Error {
-        /// The data is too small.
-        case toSmall
-    }
-    
     /// Creates a OSHash hash function.
     public init() {
         
@@ -54,9 +49,10 @@ public struct OSHash: HashFunction {
 
         fileHandler.seekToEndOfFile()
         let fileSize: UInt64 = fileHandler.offsetInFile
+        
         guard UInt64(Self.blockByteCount) <= fileSize else {
             fileHandler.closeFile()
-            throw HashError.toSmall
+            return OSHashDigest(digest: fileSize)
         }
         
         fileHandler.seek(toFileOffset: max(0, fileSize - UInt64(Self.blockByteCount)))
@@ -74,11 +70,11 @@ public struct OSHash: HashFunction {
     }
     
     static func hash(size: UInt64, startData: Data, endData: Data) -> OSHashDigest {
+        var hash = size
         guard UInt64(Self.blockByteCount) <= size else {
-            return .toSmallDigest
+            return OSHashDigest(digest: hash)
         }
         
-        var hash = size
         startData.withUnsafeBytes { buffer in
             let binded = buffer.bindMemory(to: UInt64.self)
             let data_bytes = UnsafeBufferPointer<UInt64>(
@@ -100,7 +96,7 @@ public struct OSHash: HashFunction {
     
     /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
     public func withUnsafeBytes<R>(_ body: (UnsafeRawBufferPointer) throws -> R) rethrows -> R {
-        return try digest.withUnsafeBytes(body)
+        try digest.withUnsafeBytes(body)
     }
     
     /// Not implemented. Use either ``hash(data:)`` or ``hash(url:)``.
@@ -115,9 +111,6 @@ public struct OSHashDigest: Digest {
     private var digest: Data
 
     public static var byteCount: Int = 8
-    
-    /// A digest that is returned when a data or file is too small to be hashed by `OSHash`.
-    public static var toSmallDigest = OSHashDigest(digest: Data(Array<UInt8>.init(repeating: 0, count: 8)))
 
     init(digest: Data) {
         self.digest = digest
