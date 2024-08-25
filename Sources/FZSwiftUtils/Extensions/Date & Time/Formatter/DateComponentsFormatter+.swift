@@ -11,10 +11,6 @@ public extension DateComponentsFormatter {
     /// The allowed calendar components for formatting.
     var allowedComponents: [Calendar.Component] {
         get { allowedUnits.components }
-        set {
-            var unit: NSCalendar.Unit = []
-            newValue.compactMap(\.nsUnit).forEach { unit.insert($0) }
-            allowedUnits = unit
-        }
+        set { allowedUnits = NSCalendar.Unit(newValue.compactMap(\.nsUnit)) }
     }
 }

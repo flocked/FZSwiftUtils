@@ -498,7 +498,7 @@ extension TimeDuration: CustomStringConvertible {
      */
     public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
         let allowedUnits = allowedUnits.units(for: self)
-        let formatter = formatter
+        let formatter = DateComponentsFormatter()
         formatter.allowedComponents = allowedUnits.compactMap(\.calendarComponent).uniqued()
         formatter.unitsStyle = style
         return formatter.string(from: TimeInterval(seconds))!
@@ -530,12 +530,6 @@ extension TimeDuration: CustomStringConvertible {
             s_ = s < 10 ? "0\(s)" : "\(s)"
         }
         return h_ + m_ + ":" + s_
-    }
-    
-    var formatter: DateComponentsFormatter {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedUnits = [.hour, .minute, .second]
-        return formatter
     }
 
     func allCurrentUnits() -> [Unit] {
@@ -758,26 +752,26 @@ public extension Timer {
 extension TimeDuration: ReferenceConvertible {
     
     /// The Objective-C type for the time duration.
-    public typealias ReferenceType = __TimeDurationObjc
+    public typealias ReferenceType = __TimeDuration
 
     public var debugDescription: String {
         description
     }
 
-    public func _bridgeToObjectiveC() -> __TimeDurationObjc {
-        return __TimeDurationObjc(seconds: seconds)
+    public func _bridgeToObjectiveC() -> __TimeDuration {
+        return __TimeDuration(seconds: seconds)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: __TimeDurationObjc, result: inout TimeDuration?) {
+    public static func _forceBridgeFromObjectiveC(_ source: __TimeDuration, result: inout TimeDuration?) {
         result = TimeDuration(source.seconds)
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: __TimeDurationObjc, result: inout TimeDuration?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __TimeDuration, result: inout TimeDuration?) -> Bool {
         _forceBridgeFromObjectiveC(source, result: &result)
         return true
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: __TimeDurationObjc?) -> TimeDuration {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __TimeDuration?) -> TimeDuration {
         if let source = source {
             var result: TimeDuration?
             _forceBridgeFromObjectiveC(source, result: &result)
@@ -787,13 +781,15 @@ extension TimeDuration: ReferenceConvertible {
     }
 }
 
-public class __TimeDurationObjc: NSObject, NSCopying {
+/// The Objective-C type for `TimeDuration`.
+public class __TimeDuration: NSObject, NSCopying {
     let seconds: Double
+    
     init(seconds: Double) {
         self.seconds = seconds
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __TimeDurationObjc(seconds: seconds)
+        __TimeDuration(seconds: seconds)
     }
 }

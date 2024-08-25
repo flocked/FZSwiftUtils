@@ -7,10 +7,6 @@
 
 import Foundation
 
-class TTT: NSObject {
-    @objc var size: DataSize? = .zero
-}
-
 /// A struct representing a data size.
 public struct DataSize: Hashable, Sendable {
     
@@ -33,18 +29,18 @@ public struct DataSize: Hashable, Sendable {
      Initializes a `DataSize` instance with the specified sizes in various units and count style.
 
      - Parameters:
-        - yottabytes: The yottabytes. The default value is `0`.
-        - zettabytes: The zettabytes. The default value is `0`.
-        - exabytes: The exabytes. The default value is `0`.
-        - petabytes: The petabytes. The default value is `0`.
-        - terabytes: The terabytes. The default value is `0`.
-        - gigabytes: The gigabytes. The default value is `0`.
-        - megabytes: The megabytes. The default value is `0`.
-        - kilobytes: The kilobytes. The default value is `0`.
         - bytes: The bytes. The default value is `0`.
+        - kilobytes: The kilobytes. The default value is `0`.
+        - megabytes: The megabytes. The default value is `0`.
+        - gigabytes: The gigabytes. The default value is `0`.
+        - terabytes: The terabytes. The default value is `0`.
+        - petabytes: The petabytes. The default value is `0`.
+        - exabytes: The exabytes. The default value is `0`.
+        - zettabytes: The zettabytes. The default value is `0`.
+        - yottabytes: The yottabytes. The default value is `0`.
         - countStyle: The number of bytes to be used for ``kilobytes``. The default value is `file`.
      */
-    public init(yottabytes: Double = 0, zettabytes: Double = 0, exabytes: Double = 0, petabytes: Double = 0, terabytes: Double = 0, gigabytes: Double = 0, megabytes: Double = 0, kilobytes: Double = 0, bytes: Int = 0, countStyle: CountStyle = .file) {
+    public init(bytes: Int = 0, kilobytes: Double = 0, megabytes: Double = 0, gigabytes: Double = 0, terabytes: Double = 0, petabytes: Double = 0, exabytes: Double = 0, zettabytes: Double = 0, yottabytes: Double = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
         self.countStyle = countStyle
         self.bytes += self.bytes(for: kilobytes, .kilobyte)
@@ -56,7 +52,7 @@ public struct DataSize: Hashable, Sendable {
         self.bytes += self.bytes(for: zettabytes, .zettabyte)
         self.bytes += self.bytes(for: yottabytes, .yottabyte)
     }
-    
+
     /**
      Specify the number of bytes to be used for kilobytes.
      
@@ -241,17 +237,18 @@ extension DataSize: Codable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: Self.CodingKeys.self)
         try container.encode(bytes, forKey: .bytes)
-        try container.encode(countStyle.rawValue, forKey: .countStyle)
+        try container.encode(countStyle, forKey: .countStyle)
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let bytes = try container.decode(Int.self, forKey: .bytes)
-        let countStyleRaw = try container.decode(Int.self, forKey: .countStyle)
-        let countStyle = CountStyle(rawValue: countStyleRaw)!
+        let countStyle = try container.decode(CountStyle.self, forKey: .countStyle)
         self.init(bytes, countStyle: countStyle)
     }
 }
+
+extension ByteCountFormatter.CountStyle: Codable { }
 
 extension DataSize: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: Int) {
@@ -341,9 +338,7 @@ public extension Collection where Element == DataSize {
 extension DataSize: CustomStringConvertible {
     /// A string representation of the data size.
     public var description: String {
-        let formatter = formatter
-        formatter.includesActualByteCount = true
-        return formatter.string(fromByteCount: Int64(bytes))
+        string(includesActualByteCount: true)
     }
 
     /**
@@ -445,17 +440,12 @@ extension DataSize: CustomStringConvertible {
      - Returns: A string representation of the data size.
      */
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false) -> String {
-        let formatter = formatter
+        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
         formatter.allowedUnits = allowedUnits
         formatter.includesUnit = includesUnit
         formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
         return formatter.string(fromByteCount: Int64(bytes))
-    }
-    
-    /// A byte count formatter configured with the data size's count style.
-    var formatter: ByteCountFormatter {
-        ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
     }
 }
 
@@ -521,26 +511,26 @@ extension Data {
 extension DataSize: ReferenceConvertible {
 
     /// The Objective-C type for the data size.
-    public typealias ReferenceType = __DataSizeObjc
+    public typealias ReferenceType = __DataSize
 
     public var debugDescription: String {
         description
     }
 
-    public func _bridgeToObjectiveC() -> __DataSizeObjc {
-        return __DataSizeObjc(bytes: bytes, countStyle: countStyle)
+    public func _bridgeToObjectiveC() -> __DataSize {
+        return __DataSize(bytes: bytes, countStyle: countStyle)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: __DataSizeObjc, result: inout DataSize?) {
+    public static func _forceBridgeFromObjectiveC(_ source: __DataSize, result: inout DataSize?) {
         result = DataSize(source.bytes, countStyle: source.countStyle)
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: __DataSizeObjc, result: inout DataSize?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __DataSize, result: inout DataSize?) -> Bool {
         _forceBridgeFromObjectiveC(source, result: &result)
         return true
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: __DataSizeObjc?) -> DataSize {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __DataSize?) -> DataSize {
         if let source = source {
             var result: DataSize?
             _forceBridgeFromObjectiveC(source, result: &result)
@@ -550,7 +540,8 @@ extension DataSize: ReferenceConvertible {
     }
 }
 
-public class __DataSizeObjc: NSObject, NSCopying {
+/// The Objective-C type for `DataSize`.
+public class __DataSize: NSObject, NSCopying {
     
     let bytes: Int
     let countStyle: ByteCountFormatter.CountStyle
@@ -561,6 +552,6 @@ public class __DataSizeObjc: NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __DataSizeObjc(bytes: bytes, countStyle: countStyle)
+        __DataSize(bytes: bytes, countStyle: countStyle)
     }
 }
