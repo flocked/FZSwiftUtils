@@ -9,27 +9,13 @@ import Foundation
 
 public extension URLSessionConfiguration {
     /// A dictionary of additional headers to send with requests.
-    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: Any] {
+    var httpAdditionalHeadersMapped: [HTTPRequestHeaderFieldKey: Any] {
         get {
-            guard let allHTTPHeaderFields = httpAdditionalHeaders else { return [:] }
-            var mapped: [HTTPRequestHeaderFieldKey: Any] = [:]
-            for value in allHTTPHeaderFields {
-                if let rawValue = value.key as? String {
-                    let key = HTTPRequestHeaderFieldKey(rawValue: rawValue)
-                    mapped[key] = allHTTPHeaderFields[value.key]
-                }
-            }
-            return mapped
+            httpAdditionalHeaders?.reduce(into: [HTTPRequestHeaderFieldKey:Any](), { partialResult, value in
+                guard let key = value.key as? String else { return }
+                partialResult[HTTPRequestHeaderFieldKey(rawValue: key)] = value.value
+            }) ?? [:]
         }
-        set {
-            guard !newValue.isEmpty else {
-                httpAdditionalHeaders = nil
-                return
-            }
-            httpAdditionalHeaders = [:]
-            for key in newValue.keys {
-                httpAdditionalHeaders?[key.rawValue] = newValue[key]
-            }
-        }
+        set { httpAdditionalHeaders = newValue.mapKeys({ $0.rawValue as AnyHashable }) }
     }
 }

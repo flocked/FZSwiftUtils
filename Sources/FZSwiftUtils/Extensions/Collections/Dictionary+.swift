@@ -25,9 +25,7 @@ public extension Dictionary {
      - Note: The collection of transformed keys must not contain duplicates.
      */
     func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed) rethrows -> [Transformed: Value] {
-        try .init(
-            uniqueKeysWithValues: map { try (transform($0.key), $0.value) }
-        )
+        try .init(uniqueKeysWithValues: map { try (transform($0.key), $0.value) })
     }
 
     /**

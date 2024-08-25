@@ -9,7 +9,7 @@ import Foundation
 
 open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
-    /// The observedd object.
+    /// The observed object.
     public fileprivate(set) weak var observedObject: Object?
     
     private var observations: [String: Observation] = [:]
@@ -42,7 +42,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     // MARK: - Observation
         
     /**
-     Adds an observer for the property at the specified key path which calls the specified handler.
+     Adds an observer for the property at the specified key path.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
@@ -61,9 +61,11 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified key path which calls the specified handler.
+     Adds an observer for the property at the specified key path.
      
-     The handler is called whenever the value of the property at the key path changes to a new value that isn't equal to the previous. If you want the handler to be called on all changes, use ``add(_:sendInitalValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
+     The handler is called whenever the value of the property changes to a new value that isn't equal to it's previous. 
+     
+     If you want the handler to be called on all changes, use ``add(_:sendInitalValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
@@ -77,7 +79,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified key path which calls the specified handler.
+     Adds an observer for the property at the specified key path.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
@@ -104,7 +106,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds an observer for the property at the specified key path which calls the specified handler.
+     Adds an observer for the property at the specified key path.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
@@ -158,7 +160,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     open func remove(_ keyPath: String) {
         guard var observation = observations[keyPath] else { return }
         observation.handler = nil
-        observation.options.remove([.new, .initial])
         addObservation(observation)
     }
     
@@ -167,7 +168,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     /**
      Observes for changes to the specified property and calls the hand
      
-     Adds a willChange observer for the property at the specified key path which calls the specified handler.
+     Adds a willChange observer for the property at the specified key path.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
@@ -185,7 +186,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
-     Adds a willChange observer for the property at the specified key path which calls the specified handler.
+     Adds a willChange observer for the property at the specified key path.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
@@ -194,7 +195,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     open func addWillChange(_ keyPath: String, handler: @escaping ((Any) -> Void)) {
         var observation = observations[keyPath] ?? Observation(keyPath)
         observation.willChange = handler
-        observation.options.insert(.prior)
         addObservation(observation)
     }
     
@@ -216,7 +216,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     open func removeWillChange(_ keyPath: String) {
         guard var observation = observations[keyPath] else { return }
         observation.willChange = nil
-        observation.options.remove(.prior)
         addObservation(observation)
     }
         
@@ -282,10 +281,10 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         observations[keyPath] != nil
     }
     
-    func add(_ keyPath: String, initial: Bool, handler: @escaping (_ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void) {
+    private func add(_ keyPath: String, initial: Bool, handler: @escaping (_ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void) {
         var observation = observations[keyPath] ?? Observation(keyPath)
         observation.handler = handler
-        observation.options.insert(initial ? [.old, .new, .initial] : [.old, .new])
+        observation.inital = initial
         addObservation(observation)
     }
     
@@ -322,17 +321,26 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     private func setupActivationTokens() {
         actionvationTokens = [
             NotificationCenter.default.observe(Self.activateObservation, object: observedObject, using: { [weak self] notification in
-                self?.isActive = true }),
+                guard let self = self else { return }
+                self.isActive = true }),
             NotificationCenter.default.observe(Self.deactivateObservation, object: observedObject, using: { [weak self] notification in
-                self?.isActive = false })]
+                guard let self = self else { return }
+                self.isActive = false })]
     }
     
-    private struct Observation: Identifiable {
+    private struct Observation {
         let keyPath: String
-        var id: String { keyPath }
-        var options: NSKeyValueObservingOptions = [.old]
         var handler: ((_ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void)?
         var willChange: ((Any)->Void)?
+        var inital = false
+        
+        var options: NSKeyValueObservingOptions {
+            var options: NSKeyValueObservingOptions = [.old]
+            options[.new] = handler != nil
+            options[.initial] = handler != nil && inital
+            options[.prior] = willChange != nil
+            return options
+        }
         
         init(_ keyPath: String) {
             self.keyPath = keyPath

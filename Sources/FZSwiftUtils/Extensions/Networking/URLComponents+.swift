@@ -69,6 +69,13 @@ extension URLComponents {
     
     /// Sets the query items for the URL in the order in which they appear in the original query string.
     @discardableResult
+    public mutating func queryItems(_ items: [String:String?]) -> Self {
+        self.queryItems = items.map({ URLQueryItem(name: $0, value: $1) })
+        return self
+    }
+    
+    /// Sets the query items for the URL in the order in which they appear in the original query string.
+    @discardableResult
     public mutating func queryItems(@Builder _ items: () -> [URLQueryItem]) -> Self {
         self.queryItems = items()
         return self
@@ -153,6 +160,10 @@ extension URLComponents {
         
         public static func buildExpression(_ expression: URLQueryItem) -> [URLQueryItem] {
             [expression]
+        }
+        
+        public static func buildExpression(_ expression: [String : String]) -> [URLQueryItem] {
+            expression.map({ URLQueryItem(name: $0, value: $1) })
         }
 
         public static func buildExpression(_ expression: [URLQueryItem]) -> [URLQueryItem] {

@@ -114,25 +114,9 @@ public extension URLRequest {
     }
 
     /// A dictionary containing all of the HTTP header fields for a request.
-    var allHTTPHeaderFieldsMapped: [HTTPRequestHeaderFieldKey: String] {
-        get {
-            guard let allHTTPHeaderFields = allHTTPHeaderFields else { return [:] }
-            var mapped: [HTTPRequestHeaderFieldKey: String] = [:]
-            for key in allHTTPHeaderFields.keys.compactMap({ HTTPRequestHeaderFieldKey(rawValue: $0) }) {
-                mapped[key] = allHTTPHeaderFields[key.rawValue]
-            }
-            return mapped
-        }
-        set {
-            guard !newValue.isEmpty else {
-                allHTTPHeaderFields = nil
-                return
-            }
-            allHTTPHeaderFields = [:]
-            for key in newValue.keys {
-                allHTTPHeaderFields?[key.rawValue] = newValue[key]
-            }
-        }
+    var httpHeaderFields: [HTTPRequestHeaderFieldKey: String] {
+        get { allHTTPHeaderFields?.mapKeys({ HTTPRequestHeaderFieldKey(rawValue: $0) }) ?? [:] }
+        set { allHTTPHeaderFields = newValue.mapKeys({$0.rawValue}) }
     }
 }
 
@@ -171,13 +155,9 @@ public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable,
     case via
     case warning
     case custom(String)
-
+    
     public init(stringLiteral value: String) {
-        if let first = Self.allCases.first(where: { $0.rawValue == value }) {
-            self = first
-        } else {
-            self = .custom(value)
-        }
+        self = .init(rawValue: value)
     }
 
     public init(rawValue: String) {
