@@ -31,8 +31,6 @@ public extension MultiplicativeArithmetic {
 
 extension Double: MultiplicativeArithmetic {}
 extension Float: MultiplicativeArithmetic {}
-@available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
-extension Float16: MultiplicativeArithmetic {}
 extension CGFloat: MultiplicativeArithmetic {}
 extension Int: MultiplicativeArithmetic {}
 extension Int8: MultiplicativeArithmetic {}
