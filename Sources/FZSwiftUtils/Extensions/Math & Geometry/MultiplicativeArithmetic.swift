@@ -42,3 +42,7 @@ extension UInt8: MultiplicativeArithmetic {}
 extension UInt16: MultiplicativeArithmetic {}
 extension UInt32: MultiplicativeArithmetic {}
 extension UInt64: MultiplicativeArithmetic {}
+#if arch(arm64)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+extension Float16: MultiplicativeArithmetic {}
+#endif
