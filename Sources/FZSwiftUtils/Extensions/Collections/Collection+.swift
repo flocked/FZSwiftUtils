@@ -643,6 +643,7 @@ public extension RangeReplaceableCollection {
      - Returns: The rotated collection.
      */
     func rotated(by positions: Int) -> Self {
+        guard !isEmpty else { return self }
         let positions = positions.quotientAndRemainder(dividingBy: count).remainder
         guard positions != .zero else { return self }
         let index: Index
