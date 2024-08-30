@@ -582,7 +582,7 @@ public extension Collection where Element: BinaryInteger {
     /**
      The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
      
-     - Parameter weights: The weight of each element in the sequence.
+     - Parameter weights: The weight for each element in the collection.
      
      - Note: `weights` needs to have the same number of elements as the collection.
      */
@@ -626,7 +626,7 @@ public extension Collection where Element: BinaryFloatingPoint {
     /**
      The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
      
-     - Parameter weights: The weight of each element in the sequence.
+     - Parameter weights: The weight for each element in the collection.
      
      - Note: `weights` needs to have the same number of elements as the collection.
      */
