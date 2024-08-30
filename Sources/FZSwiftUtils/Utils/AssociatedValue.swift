@@ -57,7 +57,7 @@ public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue
     - object: The object of the associated value.
  */
 public func setAssociatedValue<T>(_ value: T?, key: String, object: AnyObject) {
-    set(associatedValue: AssociatedValue(value), key: key, object: object)
+    setAssociatedValue(AssociatedValue(value), key: key, object: object)
 }
 
 /**
@@ -69,11 +69,11 @@ public func setAssociatedValue<T>(_ value: T?, key: String, object: AnyObject) {
     - object: The object of the associated value.
  */
 public func setAssociatedValue<T: AnyObject>(weak value: T?, key: String, object: AnyObject) {
-    set(associatedValue: AssociatedValue(weak: value), key: key, object: object)
+    setAssociatedValue(AssociatedValue(weak: value), key: key, object: object)
 }
 
-private func set(associatedValue: AssociatedValue, key: String, object: AnyObject) {
-    objc_setAssociatedObject(object, key.address, associatedValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+private func setAssociatedValue(_ value: AssociatedValue, key: String, object: AnyObject) {
+    objc_setAssociatedObject(object, key.address, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
 }
 
 private func setAndReturn<T>(initialValue: T, key: String, object: AnyObject) -> T {
