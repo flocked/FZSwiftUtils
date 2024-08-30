@@ -568,30 +568,42 @@ public extension RangeReplaceableCollection where Element: Equatable {
 }
 
 public extension Collection where Element: BinaryInteger {
-    /// The average value of all values in the collection. If the collection is empty, it returns 0.
+    /// The average value of all values in the collection. If the collection is empty, it returns `0`.
     func average() -> Double {
         guard !isEmpty else { return .zero }
         return Double(reduce(.zero, +)) / Double(count)
     }
     
-    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    /// The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
     func weightedAverage() -> Double {
         compactMap({Double($0)}).weightedAverage()
     }
     
-    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    /**
+     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
+     
+     - Parameter weights: The weight of each element in the sequence.
+     
+     - Note: `weights` needs to have the same number of elements as the collection.
+     */
     func weightedAverage(weights: [Double]) -> Double {
         compactMap({Double($0)}).weightedAverage(weights: weights)
     }
     
-    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    /**
+     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
+     
+     The first value of the collection is weighted by the upper bound value of the range and the last value by the lower bound value of the range.
+     
+     - Parameter weighting: The range of the weights.
+     */
     func weightedAverage(weighting: ClosedRange<Double>) -> Double {
         compactMap({Double($0)}).weightedAverage(weighting: weighting)
     }
 }
 
 public extension Collection where Element: FloatingPoint {
-    /// The average value of all values in the collection. If the collection is empty, it returns 0.
+    /// The average value of all values in the collection. If the collection is empty, it returns `0`.
     func average() -> Element {
         guard !isEmpty else { return .zero }
         return reduce(.zero, +) / Element(count)
@@ -599,7 +611,7 @@ public extension Collection where Element: FloatingPoint {
 }
 
 public extension Collection where Element: BinaryFloatingPoint {
-    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    /// The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
     func weightedAverage() -> Element {
         var weights: [Element] = []
         var value: Element = 1.0
@@ -611,24 +623,34 @@ public extension Collection where Element: BinaryFloatingPoint {
         return weightedAverage(weights: weights)
     }
     
-    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    /**
+     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
+     
+     - Parameter weights: The weight of each element in the sequence.
+     
+     - Note: `weights` needs to have the same number of elements as the collection.
+     */
     func weightedAverage(weights: [Element]) -> Element {
         guard !isEmpty, count == weights.count else { return .zero }
         let totalWeight = weights.sum()
         guard totalWeight > 0 else { return .zero }
-        return zip(self, weights)
-                .map { $0 * $1 }
-                .reduce(.zero, +) / totalWeight
+        return zip(self, weights).map { $0 * $1 }.reduce(.zero, +) / totalWeight
     }
     
-    /// Weighted average value of all values in the collection. If the collection is empty, it returns 0.
+    /**
+     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
+          
+     The first value of the collection is weighted by the upper bound value of the range and the last value by the lower bound value of the range.
+
+     - Parameter weighting: The range of the weights.
+     */
     func weightedAverage(weighting: ClosedRange<Element>) -> Element {
         var weights: [Element] = []
         let range = weighting.upperBound-weighting.lowerBound
-        let divider: Element = 1.0/Element(count)
+        let divider: Element = 1.0/Element(count-1)
         var value: Element = 1.0
         for _ in 0..<count {
-            weights.append(range*value)
+            weights.append((range*value)+weighting.lowerBound)
             value = value - divider
         }
         return weightedAverage(weights: weights)
@@ -638,6 +660,13 @@ public extension Collection where Element: BinaryFloatingPoint {
 public extension RangeReplaceableCollection {
     /**
      Returns the collection rotated by the specified amount of positions.
+     
+     Example:
+     
+     ```swift
+     let values = [1, 2, 3, 4, 5]
+     print(values.rotated(by: 1)) // [5, 1, 2, 3, 4]
+     ```
 
      - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
      - Returns: The rotated collection.
@@ -657,6 +686,14 @@ public extension RangeReplaceableCollection {
 
     /**
      Rotates the collection by the specified amount of positions.
+     
+     Example:
+     
+     ```swift
+     var values = [1, 2, 3, 4, 5]
+     values.rotate(by: 1)
+     print(values) // [5, 1, 2, 3, 4]
+     ```
 
      - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
      */
