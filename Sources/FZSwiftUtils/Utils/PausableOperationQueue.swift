@@ -36,6 +36,7 @@ open class PausableOperationQueue: OperationQueue {
         for operation in ops {
             if let operation = operation as? ProgressReporting & Operation {
                 _progress.addChild(operation.progress)
+                operation.progress.autoUpdateEstimatedTimeRemaining = true
             } else {
                 progress.totalUnitCount += 1
                 let completionBlock = operation.completionBlock

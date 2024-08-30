@@ -31,7 +31,7 @@ extension Progress {
         
         delayedEstimatedTimeRemainingUpdate?.cancel()
         if autoUpdateEstimatedTimeRemaining, !isCompleted, !isPaused, !isCancelled, estimateTimeUpdateCount != maxEstimateTimeUpdateCount {
-            let delay = estimateTimeEvaluationTimeInterval*(1.0/Double(maxEstimateTimeUpdateCount))
+            let delay = estimateTimeEvaluationTimeInterval/Double(maxEstimateTimeUpdateCount)
             delayedEstimatedTimeRemainingUpdate = DispatchWorkItem { [weak self] in
                 guard let self = self, self.autoUpdateEstimatedTimeRemaining else { return }
                 self.estimateTimeUpdateCount += 1
