@@ -83,7 +83,7 @@ private func setAndReturn<T>(initialValue: T, key: String, object: AnyObject) ->
 
 extension NSObjectProtocol where Self: NSObject {
     /**
-     Returns the associated value for the specified  key.
+     Returns the associated value for the specified key.
 
      - Parameters:
         - key: The key of the associated value.
@@ -194,6 +194,30 @@ extension NSObjectProtocol where Self: NSObject {
      */
     public static func setAssociatedValue<T: AnyObject>(weak value: T?, key: String) {
         FZSwiftUtils.setAssociatedValue(weak: value, key: key, object: self)
+    }
+    
+    /// Returns the associated value for the specified key.
+    public subscript<T>(associatedValue key: String) -> T? {
+        get { getAssociatedValue(key) }
+        set { setAssociatedValue(newValue, key: key) }
+    }
+    
+    /// Returns the associated value for the specified key.
+    public subscript<T>(associatedValue key: String, initial: T?) -> T? {
+        get { getAssociatedValue(key, initialValue: initial) }
+        set { setAssociatedValue(newValue, key: key) }
+    }
+    
+    /// Returns the associated value for the specified key.
+    public static subscript<T>(associatedValue key: String) -> T? {
+        get { getAssociatedValue(key) }
+        set { setAssociatedValue(newValue, key: key) }
+    }
+    
+    /// Returns the associated value for the specified key.
+    public static subscript<T>(associatedValue key: String, initial: T?) -> T? {
+        get { getAssociatedValue(key, initialValue: initial) }
+        set { setAssociatedValue(newValue, key: key) }
     }
 }
 
