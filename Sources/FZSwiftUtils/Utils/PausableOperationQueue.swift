@@ -17,7 +17,15 @@ public protocol Pausable {
     var isPaused: Bool { get }
 }
 
-/// A pausable queue that regulates the execution of operations.
+extension Pausable where Self: Operation {
+    
+}
+
+/**
+ A pausable queue that regulates the execution of operations.
+ 
+ Operations conforming to ``Pausable`` can be paused by pausing the operation queue via ``pause()``.
+ */
 open class PausableOperationQueue: OperationQueue {
     /// The operations currently in the queue.
     open private(set) var pausableOperations: [Pausable & Operation] = []
@@ -26,6 +34,11 @@ open class PausableOperationQueue: OperationQueue {
 
     let _progress = MutableProgress()
 
+    /**
+     An object that represents the total progress of the operations executing in the queue.
+     
+     Returns a ``MutableProgress``.
+     */
     override open var progress: Progress { _progress }
 
     override open func addOperation(_ op: Operation) {
