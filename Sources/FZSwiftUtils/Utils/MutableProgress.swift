@@ -145,7 +145,7 @@ open class MutableProgress: Progress {
     }
 
     override open var completedUnitCount: Int64 {
-        get { Int64(children.filter(\.isCompleted).count) }
+        get { Int64(children.filter(\.isFinished).count) }
         set { }
     }
     

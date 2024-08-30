@@ -23,14 +23,12 @@ extension Progress {
 
     /// Updates the estimate time remaining and throughput.
     public func updateEstimatedTimeRemaining() {
-        let changed = completedUnitCount - (progressSamples.last?.completed ?? completedUnitCount)
-        progressSamples.append((Date(), changed, completedUnitCount))
-        progressSamples = progressSamples.filter({ $0.date > Date(timeIntervalSinceNow: -estimateTimeEvaluationTimeInterval) }).suffix(progressSampleLimitCount)
-        throughput = isCompleted ? 0 : Int(progressSamples.compactMap({$0.changed}).average())
-        refreshEstimatedTimeRemaining()
+        eta.addSample(completedUnitCount)
+        throughput = isCancelled ? nil : isFinished ? 0 : Int(eta.samples.compactMap({$0.changed}).weightedAverage())
+        estimatedTimeRemaining = isCancelled ? nil : isFinished || throughput == 0 ? 0 : Double(totalUnitCount - completedUnitCount) / Double(throughput ?? 0)
         
         delayedEstimatedTimeRemainingUpdate?.cancel()
-        if autoUpdateEstimatedTimeRemaining, !isCompleted, !isPaused, !isCancelled, estimateTimeUpdateCount != maxEstimateTimeUpdateCount {
+        if autoUpdateEstimatedTimeRemaining, !isFinished, !isPaused, !isCancelled, estimateTimeUpdateCount != maxEstimateTimeUpdateCount {
             let delay = estimateTimeEvaluationTimeInterval/Double(maxEstimateTimeUpdateCount)
             delayedEstimatedTimeRemainingUpdate = DispatchWorkItem { [weak self] in
                 guard let self = self, self.autoUpdateEstimatedTimeRemaining else { return }
@@ -38,20 +36,6 @@ extension Progress {
                 self.updateEstimatedTimeRemaining()
             }.perform(after: delay)
         }
-    }
-    
-    private func refreshEstimatedTimeRemaining() {
-        guard !isCompleted else {
-            estimatedTimeRemaining = 0
-            return
-        }
-        let throughput = Double(throughput ?? 0)
-        guard !isCancelled, let completedUnitCount = progressSamples.last?.completed, throughput != 0 else {
-            estimatedTimeRemaining = nil
-            return
-        }
-        let remainingUnitCount = max(0, Int(totalUnitCount - completedUnitCount))
-        estimatedTimeRemaining = Double(remainingUnitCount) / throughput
     }
     
     /**
@@ -74,7 +58,7 @@ extension Progress {
         - completedUnits: The units completed since start.
      */
     public func updateEstimatedTimeRemaining(timeElapsed elapsedTime: TimeInterval, completedUnits: Int64) {
-        guard !isCompleted else {
+        guard !isFinished else {
             throughput = 0
             estimatedTimeRemaining = 0.0
             return
@@ -127,8 +111,8 @@ extension Progress {
 
     /// The time interval for calculating the estimate time remaining and throughput via ``updateEstimatedTimeRemaining()``.
     public var estimateTimeEvaluationTimeInterval: TimeInterval {
-        get { getAssociatedValue("estimateTimeInterval", initialValue: 30) }
-        set { setAssociatedValue(newValue.clamped(min: 0.1), key: "estimateTimeInterval") }
+        get { eta.evaluationTimeInterval }
+        set { eta.evaluationTimeInterval = newValue }
     }
     
     private var estimatedTimeProgressObserver: KeyValueObserver<Progress>? {
@@ -141,14 +125,21 @@ extension Progress {
         set { setAssociatedValue(newValue, key: "delayedEstimatedTimeRemainingUpdate") }
     }
     
-    /// ETA progress samples.
-    private var progressSamples: [(date: Date, changed: Int64, completed: Int64)] {
-        get { getAssociatedValue("progressSamples", initialValue: []) }
-        set { setAssociatedValue(newValue, key: "progressSamples") }
+    var eta: ETA {
+        get { getAssociatedValue("ETA", initialValue: ETA()) }
+        set { setAssociatedValue(newValue, key: "ETA") }
     }
     
-    /// The maximum amount of ETA progress samples.
-    private var progressSampleLimitCount: Int { 30 }
+    struct ETA {
+        var samples: [(date: Date, completed: Int64, changed: Int64)] = []
+        var limit = 30
+        var evaluationTimeInterval: TimeInterval = 30
+        mutating func addSample(_ completed: Int64) {
+            samples += (Date(), completed, completed - (samples.last?.completed ?? completed))
+            samples = samples.filter({ $0.date > Date(timeIntervalSinceNow: -evaluationTimeInterval) }).suffix(limit)
+        }
+        var throughput: Int { Int(samples.compactMap({$0.changed}).weightedAverage()) }
+    }
     
     private var estimateTimeUpdateCount: Int {
         get { getAssociatedValue("estimateTimeUpdateCount", initialValue: 0) }
@@ -156,11 +147,6 @@ extension Progress {
     }
     
     private var maxEstimateTimeUpdateCount: Int { 4 }
-    
-    /// A Boolean value that indicates whether progress is completed.
-    var isCompleted: Bool {
-        fractionCompleted == 1.0
-    }
 
     #if os(macOS)
         /**
@@ -171,7 +157,7 @@ extension Progress {
             - kind: The file operation kind.
          */
         public func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
-            guard fileURL != url, !isCompleted, !isCancelled else { return }
+            guard fileURL != url, !isFinished, !isCancelled else { return }
             fileURL = url
             fileOperationKind = kind
             self.kind = .file
