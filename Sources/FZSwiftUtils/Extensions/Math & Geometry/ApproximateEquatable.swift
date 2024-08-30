@@ -13,7 +13,7 @@ import SwiftUI
 public protocol ApproximateEquatable {
     associatedtype Epsilon: FloatingPointInitializable
     /**
-     A Boolean value that indicates whether `self` and the specified `other` value are approximately equal.
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to compare.
@@ -66,7 +66,7 @@ extension AnimatablePair: ApproximateEquatable where First: ApproximateEquatable
 
 public extension Numeric where Magnitude: FloatingPoint {
     /**
-     A Boolean value that indicates whether the value and the specified `other` value are approximately equal.
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to which `self` is compared.
@@ -78,7 +78,7 @@ public extension Numeric where Magnitude: FloatingPoint {
     }
 
     /**
-     A Boolean value that indicates whether the value and the specified `other` value are approximately equal.
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to which `self` is compared.
@@ -103,7 +103,7 @@ public extension Numeric where Magnitude: FloatingPoint {
 
 public extension AdditiveArithmetic {
     /**
-     A Boolean value that indicates whether the value and the specified `other` value are approximately equal.
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to which `self` is compared.
@@ -137,16 +137,37 @@ public extension AdditiveArithmetic {
 }
 
 public extension ApproximateEquatable {
+    /**
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+
+     - Parameters:
+        - other: The value to compare.
+        - epsilon: The margin by which both values can differ and still be considered the same value.
+     */
     func isApproximatelyEqual(toAny other: any ApproximateEquatable, epsilon: Double) -> Bool {
         guard let other = other as? Self else { return false }
         return self.isApproximatelyEqual(to: other, epsilon: Epsilon(epsilon))
     }
     
+    /**
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+
+     - Parameters:
+        - other: The value to compare.
+        - epsilon: The margin by which both values can differ and still be considered the same value.
+     */
     func isApproximatelyEqual(toAny other: any ApproximateEquatable, epsilon: Float) -> Bool {
         guard let other = other as? Self else { return false }
         return self.isApproximatelyEqual(to: other, epsilon: Epsilon(epsilon))
     }
     
+    /**
+     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+
+     - Parameters:
+        - other: The value to compare.
+        - epsilon: The margin by which both values can differ and still be considered the same value.
+     */
     func isApproximatelyEqual(toAny other: any ApproximateEquatable, epsilon: CGFloat) -> Bool {
         guard let other = other as? Self else { return false }
         return self.isApproximatelyEqual(to: other, epsilon: Epsilon(epsilon))

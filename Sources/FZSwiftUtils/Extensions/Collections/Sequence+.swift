@@ -41,7 +41,7 @@ public extension Sequence where Element: Equatable {
      - Parameter elements: The elements to find in the sequence.
      - Returns: `true` if any of the elements was found in the sequence; otherwise, `false`.
      */
-    func contains<S>(any elements: S) -> Bool where S: Sequence, Element == S.Element {
+    func contains<S>(any elements: S) -> Bool where S: Sequence<Element> {
         elements.contains(where: { contains($0) })
     }
     
@@ -53,7 +53,7 @@ public extension Sequence where Element: Equatable {
         - inSameOrder: A Boolean value indicating whether the elements to find need to appear in the same order.
      - Returns: `true` if all elements were found in the sequence; otherwise, `false`.
      */
-    func contains<S: Sequence<Element>>(all elements: S, inSameOrder: Bool = false) -> Bool {
+    func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where S: Sequence<Element> {
         if !inSameOrder {
             return !elements.contains(where: { !contains($0) })
         } else {
@@ -81,7 +81,7 @@ public extension Sequence where Element: Equatable {
 
      - Returns: The indexes of the elements.
      */
-    func indexes<S: Sequence<Element>>(for elements: S) -> IndexSet {
+    func indexes<S>(for elements: S) -> IndexSet where S: Sequence<Element> {
         indexes(where: { elements.contains($0) })
     }
 }

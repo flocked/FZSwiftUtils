@@ -317,7 +317,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      */
     @discardableResult
     mutating func move(_ element: Element, to destinationIndex: Self.Indices.Element) -> Bool {
-        let indexes = indexes(for: [element])
+        let indexes = indexes(of: element)
         return move(from: indexes, to: destinationIndex)
     }
 
@@ -347,7 +347,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      */
     @discardableResult
     mutating func move(_ element: Element, before beforeElement: Element) -> Bool {
-        let indexes = indexes(for: [element])
+        let indexes = indexes(of: element)
         guard let destinationIndex = firstIndex(of: beforeElement) else { return false }
         return move(from: indexes, to: destinationIndex)
     }
@@ -639,13 +639,13 @@ public extension RangeReplaceableCollection {
     /**
      Returns the collection rotated by the specified amount of positions.
 
-     - Parameter positions: The amount of positions to rotate. A value larger than 0 rotates the collection to the right, a value smaller than 0 left.
+     - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
      - Returns: The rotated collection.
      */
-    func rotated(positions: Int) -> Self {
-        guard positions != 0 else { return self }
+    func rotated(by positions: Int) -> Self {
+        let positions = positions.quotientAndRemainder(dividingBy: count).remainder
+        guard positions != .zero else { return self }
         let index: Index
-        let positions = -positions
         if positions > 0 {
             index = self.index(endIndex, offsetBy: -positions, limitedBy: startIndex) ?? startIndex
         } else {
@@ -657,20 +657,10 @@ public extension RangeReplaceableCollection {
     /**
      Rotates the collection by the specified amount of positions.
 
-     - Parameter positions: The amount of positions to rotate. A value larger than 0 rotates the collection to the right, a value smaller than 0 left.
+     - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
      */
-    mutating func rotate(positions: Int) {
-        guard positions != 0 else { return }
-        let positions = -positions
-        if positions > 0 {
-            let index = index(endIndex, offsetBy: -positions, limitedBy: startIndex) ?? startIndex
-            removeSubrange(index...)
-            insert(contentsOf: self[index...], at: startIndex)
-        } else {
-            let index = index(startIndex, offsetBy: -positions, limitedBy: endIndex) ?? endIndex
-            removeSubrange(..<index)
-            insert(contentsOf: self[..<index], at: endIndex)
-        }
+    mutating func rotate(by positions: Int) {
+        self = self.rotated(by: positions)
     }
 }
 
@@ -692,7 +682,21 @@ public extension RangeReplaceableCollection {
      */
     mutating func removeFirstSafetly(_ k: Int) {
         guard !isEmpty else { return }
-        removeFirst(Swift.min(count, self.count))
+        removeFirst(Swift.min(k, count))
+    }
+    
+    /**
+     Removes and returns the specified number of elements from the beginning of the collection.
+     
+     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.`
+     - Returns: The removed elements.
+     */
+    @discardableResult
+    mutating func removeFirstSafetly(_ k: Int) -> [Element] where Index == Int {
+        guard !isEmpty else { return [] }
+        let values = self[safe: 0..<k]
+        removeFirst(Swift.min(k, count))
+        return values
     }
     
     /**
@@ -701,8 +705,6 @@ public extension RangeReplaceableCollection {
      - Returns: The last element of the collection, or `nil` if the collection is empty.
      */
     mutating func removeLastSafetly() -> Element? where Self: BidirectionalCollection {
-        var testArray = [0, 1]
-        print(testArray.removeLast())
         guard !isEmpty else { return nil }
         return removeLast()
     }
@@ -714,6 +716,19 @@ public extension RangeReplaceableCollection {
      */
     mutating func removeLastSafetly(_ k: Int) where Self: BidirectionalCollection {
         guard !isEmpty else { return }
-        removeLast(Swift.min(count, self.count))
+        removeLast(Swift.min(k, count))
+    }
+    
+    /**
+     Removes and returns the specified number of elements from the end of the collection.
+          
+     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
+     */
+    @discardableResult
+    mutating func removeLastSafetly(_ k: Int) -> [Element] where Index == Int {
+        guard !isEmpty else { return [] }
+        let values = self[safe: Swift.max(count-k, 0)..<count]
+        removeFirst(Swift.min(k, count))
+        return values
     }
 }
