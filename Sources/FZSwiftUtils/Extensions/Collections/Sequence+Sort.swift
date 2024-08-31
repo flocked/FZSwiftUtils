@@ -185,18 +185,6 @@ extension Sequence {
             return false
         }
     }
-    
-    /**
-     Returns the elements, sorted using the given comparators to compare elements.
-
-     - Parameters:
-        - comparators: The sort comparators used to compare elements.
-        - order: The order of sorting. The default value is `forward`.
-     */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
-    public func sorted(by comparators: any SortComparator<Element>..., order: SortOrder = .forward) -> [Element] {
-        sorted(by: comparators, order: order)
-    }
 }
 
 public extension MutableCollection where Self: RandomAccessCollection & RangeReplaceableCollection {
@@ -263,6 +251,18 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
      */
     @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
     mutating func sort(by comparators: [any SortComparator<Element>], order: SortOrder = .forward) {
+        self = Self(sorted(by: comparators, order: order))
+    }
+    
+    /**
+     Sorts the collection using the given comparators to compare elements.
+
+     - Parameters:
+        - comparators: The sort comparators used to compare elements.
+        - order: The order of sorting. The default value is `forward`.
+     */
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    mutating func sort(by comparators: any SortComparator<Element>..., order: SortOrder = .forward) {
         self = Self(sorted(by: comparators, order: order))
     }
 }
