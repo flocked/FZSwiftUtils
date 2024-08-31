@@ -146,25 +146,6 @@ extension Sequence {
     /**
      Returns the elements, sorted using the given comparators to compare elements.
 
-     Example usage:
-     
-     ```swift
-     files.sorted(by: .ascending(\.creationDate), .descending(\.fileSize))
-     files.sorted(by: <<\.creationDate, >>\.fileSize)
-     ```
-
-     - Parameters:
-        - comparators: The sort comparators used to compare elements.
-        - order: The order of sorting. The default value is `ascending`.
-     */
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-    public func sorted(by comparators: SortingComparator<Element>..., order: SequenceSortOrder = .ascending) -> [Element] {
-        sorted(by: comparators, order: order)
-    }
-    
-    /**
-     Returns the elements, sorted using the given comparators to compare elements.
-
      - Parameters:
         - comparators: The sort comparators used to compare elements.
         - order: The order of sorting. The default value is `forward`.
