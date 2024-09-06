@@ -22,11 +22,6 @@ extension CharacterSet {
     public static var letters: CharacterSet {
         .lowercaseLetters + .uppercaseLetters
     }
-    
-    /// Returns a character set containing decimal digits, lowercase and uppercase characters.
-    public static var alphanumerics: CharacterSet {
-        .lowercaseLetters + .uppercaseLetters + .decimalDigits
-    }
         
     public static func + (lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
         lhs.union(rhs)
