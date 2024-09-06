@@ -27,17 +27,18 @@
             - url:The file url.
          */
         init?(url: URL) {
-            if url.resources.isAliasFile == true {
-                self.init(UTType.aliasFile.identifier)
-            } else if url.resources.isSymbolicLink == true {
-                self.init(UTType.symbolicLink.identifier)
-            } else if url.isDirectory {
-                self.init(UTType.directory.identifier)
-            } else if let contentType = url.resources.contentType {
-                self.init(contentType.identifier)
-            } else {
-                return nil
+            if FileManager.default.fileExists(at: url) {
+                if url.resources.isAliasFile {
+                    self.init(UTType.aliasFile.identifier)
+                } else if url.resources.isSymbolicLink {
+                    self.init(UTType.symbolicLink.identifier)
+                } else if url.isDirectory {
+                    self.init(UTType.directory.identifier)
+                } else if let contentType = url.resources.contentType {
+                    self.init(contentType.identifier)
+                }
             }
+            self.init(filenameExtension: url.pathExtension)
         }
 
         var fileType: FileType? {

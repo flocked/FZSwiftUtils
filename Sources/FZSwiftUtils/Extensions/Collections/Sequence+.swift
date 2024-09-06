@@ -16,20 +16,14 @@ public extension Sequence {
      - Returns: The indexes of the elements that satisfies the given predicate.
      */
     func indexes(where predicate: (Element) throws -> Bool) rethrows -> IndexSet {
-        var indexes = IndexSet()
-        for (index, element) in enumerated() {
-            if try (predicate(element) == true) {
-                indexes.insert(index)
-            }
-        }
-        return indexes
+        IndexSet(try enumerated().filter({ try predicate($0.element) }).compactMap({$0.offset}))
     }
 }
 
 
 public extension Sequence where Element: AdditiveArithmetic {
     /// The total sum value of all values in the sequence. If the sequence is empty, it returns `zero`.
-    func sum() -> Self.Element {
+    func sum() -> Element {
         reduce(.zero, +)
     }
 }
@@ -115,7 +109,47 @@ public extension Sequence {
         }
         return output
     }
+    
+    /**
+     Creates a new Dictionary from the elements of `self`, keyed by the results returned by the given `keyForValue` closure.
+     
+     If the key derived for a new element collides with an existing key from a previous element, the latest value will be kept.
+     
+     - Parameter keyForValue: A closure that returns a key for each element in `self`.
+     */
+    @inlinable
+    func keyed<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: Element] {
+      return try self.keyed(by: keyForValue, resolvingConflictsWith: { _, old, new in new })
+    }
+    
+    /**
+     Creates a new Dictionary from the elements of the sequence, keyed by the
+     results returned by the given `keyForValue` closure. As the dictionary is
+     built, the initializer calls the `resolve` closure with the current and
+     new values for any duplicate keys. Pass a closure as `resolve` that
+     returns the value to use in the resulting dictionary: The closure can
+     choose between the two values, combine them to produce a new value, or
+     even throw an error.
+     
+     - Parameters:
+       - keyForValue: A closure that returns a key for each element in `self`.
+       - resolve: A closure that is called with the values for any duplicate
+         keys that are encountered. The closure returns the desired value for
+         the final dictionary.
+     */
+    func keyed<Key>(by keyForValue: (Element) throws -> Key, resolvingConflictsWith resolve: (Key, Element, Element) throws -> Element) rethrows -> [Key: Element] {
+      var result = [Key: Element]()
+      for element in self {
+        let key = try keyForValue(element)
+        if let oldValue = result.updateValue(element, forKey: key) {
+          let valueToKeep = try resolve(key, oldValue, element)
+          result[key] = valueToKeep
+        }
+      }
+      return result
+    }
 }
+
 
 public extension Sequence where Element: OptionalProtocol {
     /// Returns an array of all non optional elements of the collection.

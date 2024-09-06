@@ -324,3 +324,28 @@ public extension Date {
         return lhs.isBetween(from, to)
     }
 }
+
+public func > (lhs: Date?, rhs: Date) -> Bool {
+    guard let lhs = lhs else { return false }
+    return lhs > rhs
+}
+
+public func >= (lhs: Date?, rhs: Date) -> Bool {
+    guard let lhs = lhs else { return false }
+    return lhs >= rhs
+}
+
+public func <= (lhs: Date?, rhs: Date) -> Bool {
+    guard let lhs = lhs else { return false }
+    return lhs <= rhs
+}
+
+public func < (lhs: Date?, rhs: Date) -> Bool {
+    guard let lhs = lhs else { return false }
+    return lhs < rhs
+}
+
+public func == (lhs: Date?, rhs: Date) -> Bool {
+    guard let lhs = lhs else { return false }
+    return lhs == rhs
+}

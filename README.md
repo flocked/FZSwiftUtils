@@ -98,7 +98,15 @@ Addition `URL` methods for iterating the content of file system directories.
  }
  ```
  
- - Iterate files by file extensions, file types or by predicate
+ - Iterate files recursively, including the files of the folders and include hidden files.
+ 
+  ```swift
+ for fileURL in downloadsDirectory.iterateFiles().recursive.includingHidden {
+     
+ }
+ ```
+ 
+ - Iterate files by file extensions, file types or by predicate.
  
  ```swift
  // Iterates files with .txt extension

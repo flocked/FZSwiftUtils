@@ -11,519 +11,290 @@ import Foundation
     import UniformTypeIdentifiers
 #endif
 
-extension FileManager.DirectoryEnumerationOptions {
-    init(_ options: Set<URL.DirectoryEnumerationOption>) {
-        var opt: FileManager.DirectoryEnumerationOptions = []
-        if !options.contains(.includeHiddenFiles) { opt.insert(.skipsHiddenFiles) }
-        if !options.contains(.includeSubdirectoryDescendants) { opt.insert(.skipsSubdirectoryDescendants) }
-        if !options.contains(.includePackageDescendants) { opt.insert(.skipsPackageDescendants) }
-        self = opt
-    }
-}
-
 public extension URL {
-    /// Options for enumerating the contents of directories.
-    enum DirectoryEnumerationOption: Hashable {
-        /// An option to treat packages like files and descend into their contents.
-        case includePackageDescendants
+    func iterate() -> URLSequence {
+        URLSequence(url: self, predicate: { _ in true })
+    }
 
-        /// An option to perform a shallow enumeration that descend into directories.
-        case includeSubdirectoryDescendants
+    /**
+     Iterate files and folders that satisfy the given predicate.
+     
+     Example:
+     ```swift
+     for url in folder.iterate { $0.lastPathComponent.contains("data_") } {
+         
+     }
+     ```
 
-        /// An option to include hidden files.
-        case includeHiddenFiles
+     - Parameter predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
+     */
+    func iterate(predicate: @escaping ((URL) -> Bool)) -> URLSequence {
+        URLSequence(url: self, predicate: predicate)
+    }
+    
+    /**
+     Iterate files.
+     
+     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
+     
+     Example usage:
+     
+     ````swift
+     for file in folder.iterateFiles().recursive {
+     
+     }
+     ````
+     */
+    func iterateFiles() -> URLSequence {
+        iterate { $0.isFile }
+    }
 
-        /// An option that specified the depth of enumation.
-        case maxDepth(Int)
+    /**
+     Iterate files with the specified file types.
+     
+     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
+     
+     Example usage:
+     
+     ````swift
+     for file in folder.iterateFiles(types: [.video, .image]).recursive {
+     
+     }
+     ````
 
-        var depth: Int? {
-            switch self {
-            case let .maxDepth(value): return value
-            default: return nil
-            }
+     - Parameter types: The file types to enumerate.
+     */
+    func iterateFiles(types: [FileType]) -> URLSequence {
+        types.isEmpty ? iterateFiles() : iterate {
+            if let fileType = $0.fileType, types.contains(fileType) { return true } else { return false }
         }
     }
 
+    /**
+     Iterate files with the specified file UTTypes.
+     
+     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
+     
+     Example usage:
+     
+     ````swift
+     for file in folder.iterateFiles(contentTypes: [.video, .image]).recursive {
+     
+     }
+     ````
+
+     - Parameter contentTypes: The file content types to enumerate.
+     */
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    func iterateFiles(contentTypes: [UTType]) -> URLSequence {
+        contentTypes.isEmpty ? iterateFiles() : iterate {
+            if let type = $0.contentType, contentTypes.contains(type) || type.conforms(toAny: contentTypes) { return true } else { return false }
+        }
+    }
+
+    /**
+     Iterate files with the specified file extensions.
+     
+     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
+     
+     Example usage:
+     
+     ````swift
+     for file in folder.iterateFiles(extensions: ["pdf", "doc"]).recursive {
+     
+     }
+     ````
+
+     - Parameter extensions: The file extensions to enumerate.
+     */
+    func iterateFiles(extensions: [String]) -> URLSequence {
+        guard !extensions.isEmpty else { return iterateFiles() }
+        let extensions = extensions.compactMap { $0.lowercased() }
+        return iterate { extensions.contains($0.pathExtension.lowercased()) }
+    }
+
+    /**
+     Iterate folders.
+     
+     To include folders inside folders use ``URLSequence/recursive`` and to include hidden folders use ``URLSequence/includingHidden``.
+     
+     Example usage:
+     
+     ````swift
+     for url in folder.iterateFolders().recursive {
+     
+     }
+     ````
+     */
+    func iterateFolders() -> URLSequence {
+        iterate { $0.isDirectory == true }
+    }
+    
     /// A sequence of urls.
     struct URLSequence: Sequence {
-        public typealias Predicate = DirectoryIterator.Predicate
-        public typealias Options = Set<DirectoryEnumerationOption>
-
-        private var url: URL
-        private var options: Options
-        private var predicate: Predicate
-
-        public init(url: URL, options: Options, predicate: @escaping Predicate) {
+        
+        let url: URL
+        let predicate: (URL) -> Bool
+        var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
+        var maxDepth: Int? = nil
+        
+        
+        
+        public init(url: URL, predicate: @escaping (URL) -> Bool) {
             self.url = url
-            self.options = options
             self.predicate = predicate
         }
 
-        public func makeIterator() -> DirectoryIterator {
-            DirectoryIterator(url: url, options: options, predicate: predicate)
+        public func makeIterator() -> Iterator {
+            Iterator(self)
         }
-    }
-
-    /// A iterator of a directory.
-    struct DirectoryIterator: IteratorProtocol {
-        public typealias Element = URL
-        public typealias Predicate = (Self.Element) -> Bool
-        public typealias Options = Set<DirectoryEnumerationOption>
-
-        let url: URL
-        let predicate: Predicate
-        let directoryEnumerator: FileManager.DirectoryEnumerator?
-        let maxLevel: Int?
-
-        init(url: URL, options: Options = [], predicate: Predicate? = nil) {
-            self.url = url
-            self.predicate = predicate ?? { _ in true }
-            maxLevel = options.compactMap(\.depth).first
-            var options = FileManager.DirectoryEnumerationOptions(options)
-            if maxLevel != nil {
-                options.remove(.skipsSubdirectoryDescendants)
+        
+        /// Iterator of a url sequence.
+        public struct Iterator: IteratorProtocol {
+            let predicate: (URL) -> Bool
+            let directoryEnumerator: FileManager.DirectoryEnumerator?
+            let maxLevel: Int?
+            let levelCount = LevelCount()
+            
+            class LevelCount {
+                var level = 0 { didSet { if oldValue > level { level = oldValue } } }
             }
-            directoryEnumerator = FileManager.default.enumerator(at: url, includingPropertiesForKeys: nil, options: options)
-        }
 
-        public func next() -> URL? {
-            if let directoryEnumerator = directoryEnumerator {
+            init(_ sequence: URLSequence) {
+                predicate = sequence.predicate
+                maxLevel = sequence.maxDepth
+                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: nil, options: sequence.options)
+            }
+
+            public func next() -> URL? {
+                guard let directoryEnumerator = directoryEnumerator else { return nil }
                 while let nextURL = directoryEnumerator.nextObject() as? URL {
                     if let maxLevel = maxLevel, directoryEnumerator.level > maxLevel {
                         directoryEnumerator.skipDescendants()
                     } else if predicate(nextURL) == true {
+                        self.levelCount.level = level
                         return nextURL
                     }
                 }
+                return nil
             }
-            return nil
+
+            /// Skip recursion into the most recently obtained subdirectory.
+            public func skipDescendants() {
+                directoryEnumerator?.skipDescendants()
+            }
+
+            /// The number of levels deep the iterator is in the directory hierarchy being enumerated.
+            public var level: Int {
+                directoryEnumerator?.level ?? 0
+            }
         }
-
-        /// Skip recursion into the most recently obtained subdirectory.
-        public func skipDescendants() {
-            directoryEnumerator?.skipDescendants()
-        }
-
-        public var level: Int? {
-            directoryEnumerator?.level
-        }
-    }
-
-    /**
-     Iterate items with the specified enumeration options.
-
-     - Parameters:
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterate(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        URLSequence(url: self, options: options, predicate: { _ in true })
-    }
-
-    /**
-     Iterate items with the specified enumeration options.
-
-     - Parameters:
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterate(_ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterate(options: Set(options))
-    }
-
-    /**
-     Iterate items that satisfies the given predicate.
-
-     - Parameters:
-        - predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterate(options: Set<DirectoryEnumerationOption> = [], predicate: ((URL) -> Bool)? = nil) -> URLSequence {
-        let predicate = predicate ?? { _ in true }
-        return URLSequence(url: self, options: options, predicate: predicate)
-    }
-
-    /**
-     Iterate items that satisfies the given predicate.
-
-     - Parameters:
-        - predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterate( _ options: DirectoryEnumerationOption..., predicate: ((URL) -> Bool)? = nil) -> URLSequence {
-        iterate(options: Set(options), predicate: predicate)
-    }
-
-    /**
-     Iterate files with the specified enumeration options.
-
-     - Parameter options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(options: options, predicate: {
-            $0.isFile
-        })
-    }
-
-    /**
-     Iterate files with the specified enumeration options.
-
-     - Parameter options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(_ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterateFiles(options: Set(options))
-    }
-
-    /**
-     Iterate files with the specified file types.
-
-     - Parameters:
-        - types: The file types to enumerate.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(types: [FileType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(options: options, predicate: {
-            if types.isEmpty { return $0.isFile }
-            if let fileType = $0.fileType, types.contains(fileType) { return true } else { return false }
-        })
-    }
-
-    /**
-     Iterate files with the specified file types.
-
-     - Parameters:
-        - types: The file types to enumerate.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(types: [FileType], _ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterateFiles(types: types, options: Set(options))
-    }
-
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /**
-     Iterate files with the specified file UTTypes.
-
-     - Parameters:
-        - contentTypes: The file content types to enumerate.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(contentTypes: [UTType], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(options: options, predicate: {
-            if contentTypes.isEmpty { return $0.isFile }
-            if let type = $0.contentType, contentTypes.contains(type) || type.conforms(toAny: contentTypes) {
-                return true
-            } else { return false }
-        })
-    }
-
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /**
-     Iterate files with the specified file UTTypes.
-
-     - Parameters:
-        - contentTypes: The file content types to enumerate.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(contentTypes: [UTType], _ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterateFiles(contentTypes: contentTypes, options: Set(options))
-    }
-
-    /**
-     Iterate files with the specified file extensions.
-
-     - Parameters:
-        - extensions: The file extensions to enumerate.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(extensions: [String], options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        let extensions = extensions.compactMap { $0.lowercased() }
-        return iterate(options: options, predicate: {
-            if extensions.isEmpty { return $0.isFile }
-            return extensions.contains($0.pathExtension.lowercased())
-        })
-    }
-
-    /**
-     Iterate files with the specified file extensions.
-
-     - Parameters:
-        - extensions: The file extensions to enumerate.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(extensions: [String], options: DirectoryEnumerationOption...) -> URLSequence {
-        iterateFiles(extensions: extensions, options: Set(options))
-    }
-
-    /**
-     Iterate directories with the specified enumeration options.
-
-     - Parameter options: Options for enumerating the contents of directories.
-     */
-    func iterateDirectories(options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(options: options, predicate: { $0.isDirectory == true })
-    }
-
-    /**
-     Iterate directories with the specified enumeration options.
-
-     - Parameter options: Options for enumerating the contents of directories.
-     */
-    func iterateDirectories(_ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterateDirectories(options: Set(options))
     }
 }
 
-extension FileManager.DirectoryEnumerationOptions {
-    static var `default`: FileManager.DirectoryEnumerationOptions {
-        [.skipsHiddenFiles, .skipsPackageDescendants]
+extension URL.URLSequence {
+    /// The number of urls in the sequence.
+    public var count: Int {
+        reduce(0) { count, _ in count + 1 }
+    }
+    
+    public var depth: Int {
+        let iterator = makeIterator()
+        var depth = 0
+        while iterator.next() != nil {
+            depth = iterator.levelCount.level
+        }
+        return depth
+    }
+    
+    /// Returns a new instance of the sequence that'll traverse the folder's contents recursively.
+    public var recursive: Self {
+        recursive(true)
+    }
+            
+    /**
+     Returns a new instance of the sequence that'll traverse the folder's contents recursively up to the specified maximum depth.
+     
+     - Parameter maxDepth: The maximum depth of enumeration.
+     */
+    public func recursive(maxDepth: Int) -> Self {
+        var sequence = self
+        sequence.maxDepth = maxDepth.clamped(min: 0)
+        sequence.options[.skipsSubdirectoryDescendants] = false
+        return sequence
     }
 
-    static var defaultSkippingSubdirectories: FileManager.DirectoryEnumerationOptions {
-        [.skipsHiddenFiles, .skipsPackageDescendants, .skipsSubdirectoryDescendants]
+    /// Returns a new instance of the sequence that'll include all hidden all hidden (dot) files/folders.
+    public var includingHidden: Self {
+        includingHidden(true)
+    }
+    
+    /// Returns a new instance of the sequence that'll treat packages like folders and will traverse their contents.
+    public var includingPackageDescendants: Self {
+        includingPackageDescendants(true)
+    }
+    
+    /// Returns a new instance of the sequence that'll traverse the folder's contents recursively.
+    public func recursive(_ recursive: Bool) -> Self {
+        var sequence = self
+        sequence.options[.skipsSubdirectoryDescendants] = !recursive
+        return sequence
+    }
+    
+    /// Returns a new instance of the sequence that'll include all hidden all hidden (dot) files/folders.
+    public func includingHidden(_ include: Bool) -> Self {
+        var sequence = self
+        sequence.options[.skipsHiddenFiles] = !include
+        return sequence
+    }
+    
+    /// Returns a new instance of the sequence that'll treat packages like folders and will traverse their contents.
+    public func includingPackageDescendants(_ include: Bool) -> Self {
+        var sequence = self
+        sequence.options[.skipsPackageDescendants] = !include
+        return sequence
     }
 }
 
-extension Dictionary where Key == FileAttributeKey {
-    var fileType: FileAttributeType? {
-        if let typeString = self[.type] as? String {
-            return FileAttributeType(rawValue: typeString)
-        }
-        return nil
-    }
-
-    var isDirectory: Bool? {
-        fileType == .typeDirectory
-    }
-
-    var isRegularFile: Bool? {
-        fileType == .typeRegular
-    }
-}
-
-public extension URL {
-    /**
-     Iterate files with the specified file enumeration.
-
-     - Parameters:
-        - fileEnumation: The file enumeration. To combine file enumerations use `||` as OR.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(by fileEnumation: FileEnumerationOption, options: Set<DirectoryEnumerationOption> = []) -> URLSequence {
-        iterate(options: options, predicate: fileEnumation.predicate)
-    }
-
-    /**
-     Iterate files with the specified file enumeration.
-
-     - Parameters:
-        - fileEnumation: The file enumeration. To combine file enumerations use `||` as OR.
-        - options: Options for enumerating the contents of directories.
-     */
-    func iterateFiles(by fileEnumation: FileEnumerationOption, _ options: DirectoryEnumerationOption...) -> URLSequence {
-        iterate(options: Set(options), predicate: fileEnumation.predicate)
-    }
-
-    /**
-     Options for iterating files. To combine file enumerations use `||` as OR.
-
-     Example:
-
-     ```swift
-     url.iterateFiles(by: .type(.document) || .extension("ctf"))
-     ```
-     */
-    struct FileEnumerationOption {
-        /// Iterate files with the specified file extension.
-        public static func `extension`(_ value: String) -> Self {
-            extensions([value])
-        }
-
-        /// Iterate files with the specified file extensions.
-        public static func extensions(_ extensions: [String]) -> Self {
-            let extensions = extensions.compactMap { $0.lowercased() }
-            guard !extensions.isEmpty else { return .init({ $0.isFile }) }
-            return Self {
-                extensions.contains($0.pathExtension.lowercased())
-            }
-        }
-
-        /// Iterate files with the specified file extensions.
-        public static func extensions(_ extensions: String...) -> Self {
-            self.extensions(extensions)
-        }
-
-        /// Iterate files with the specified file type.
-        public static func type(_ type: FileType) -> Self {
-            types([type])
-        }
-
-        /// Iterate files with the specified file types.
-        public static func types(_ types: [FileType]) -> Self {
-            guard !types.isEmpty else { return .init({ $0.isFile }) }
-            return Self {
-                if let fileType = $0.fileType, types.contains(fileType) { return true } else { return false }
-            }
-        }
-
-        /// Iterate files with the specified file types.
-        public static func types(_ types: FileType...) -> Self {
-            self.types(types)
-        }
-
-        /// Iterate files with the specified UTType.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        public static func contentType(_ type: UTType) -> Self {
-            contentTypes([type])
-        }
-
-        /// Iterate files with the specified UTTypes.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        public static func contentTypes(_ types: [UTType]) -> Self {
-            guard !types.isEmpty else { return .init({ $0.isFile }) }
-            return Self {
-                if let type = $0.contentType, types.contains(type) { return true } else { return false }
-            }
-        }
-
-        /// Iterate files with the specified UTTypes.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        public static func contentTypes(_ types: UTType...) -> Self {
-            contentTypes(types)
-        }
-
-        /// Iterate files conforming to the specified UTTypes.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        public static func conforming(to types: [UTType]) -> Self {
-            guard !types.isEmpty else { return .init({ $0.isFile }) }
-            return Self {
-                return $0.contentType?.conforms(toAny: types) ?? false
-            }
-        }
-
-        /// Iterate files conforming to the specified UTTypes.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-        public static func conforming(to types: UTType...) -> Self {
-            conforming(to: types)
-        }
-
-        /// Iterate files which file names contain the specified string.
-        public static func name(contains string: String) -> Self {
-            Self {
-                $0.lastPathComponent.contains(string)
-            }
-        }
-
-        /// Iterate files which file names begin with the specified string.
-        public static func name(beginsWith string: String) -> Self {
-            Self {
-                $0.lastPathComponent.hasPrefix(string)
-            }
-        }
-
-        /// Iterate files which file names end with the specified string.
-        public static func name(endsWith string: String) -> Self {
-            Self {
-                $0.deletingPathExtension().lastPathComponent.hasSuffix(string)
-            }
-        }
-
-        /// Iterate files whose file sizes are larger or equal than the specified file size.
-        public static func fileSize(isLargerOrEqualTo size: DataSize) -> Self {
-            Self {
-                $0.resources.fileSize ?? .zero >= size
-            }
-        }
-
-        /// Iterate files whose file sizes are larger or equal than the specified file size.
-        public static func fileSize(isLessOrEqualTo size: DataSize) -> Self {
-            Self {
-                $0.resources.fileSize ?? .zero <= size
-            }
-        }
-
-        /// Iterate files whose file sizes are larger or equal than the specified file size.
-        public static func fileSize(isBetween range: ClosedRange<DataSize>) -> Self {
-            Self {
-                $0.resources.fileSize ?? .zero <= range.upperBound && $0.resources.fileSize ?? .zero >= range.lowerBound
-            }
-        }
-
-        /// Iterate files whose creation date was before the specified date.
-        public static func creationDate(before date: Date) -> Self {
-            Self {
-                $0.resources.creationDate ?? .distantFuture < date
-            }
-        }
-
-        /// Iterate files whose creation date was after the specified date.
-        public static func creationDate(after date: Date) -> Self {
-            Self {
-                $0.resources.creationDate ?? .distantFuture > date
-            }
-        }
-
-        /// Iterate files whose creation date is between the specified date internval.
-        public static func creationDate(between interval: DateInterval) -> Self {
-            Self {
-                interval.contains($0.resources.creationDate ?? .distantFuture)
-            }
-        }
-
-        /// Iterate files whose content modification date was before the specified date.
-        public static func contentModificationDate(before date: Date) -> Self {
-            Self {
-                $0.resources.contentModificationDate ?? .distantFuture < date
-            }
-        }
-
-        /// Iterate files whose content modification date was after the specified date.
-        public static func contentModificationDate(after date: Date) -> Self {
-            Self {
-                $0.resources.contentModificationDate ?? .distantFuture > date
-            }
-        }
-
-        /// Iterate files whose content modification date is between the specified date internval.
-        public static func contentModificationDate(between interval: DateInterval) -> Self {
-            Self {
-                interval.contains($0.resources.contentModificationDate ?? .distantFuture)
-            }
-        }
-
-        /// Iterate files which content access date was before the specified date.
-        public static func contentAccessDate(before date: Date) -> Self {
-            Self {
-                $0.resources.contentAccessDate ?? .distantFuture < date
-            }
-        }
-
-        /// Iterate files which content access date was after the specified date.
-        public static func contentAccessDate(after date: Date) -> Self {
-            Self {
-                $0.resources.contentAccessDate ?? .distantFuture > date
-            }
-        }
-
-        /// Iterate files whose content access date is between the specified date internval.
-        public static func contentAccessDate(between interval: DateInterval) -> Self {
-            Self {
-                interval.contains($0.resources.contentAccessDate ?? .distantFuture)
-            }
-        }
-
-        let predicate: (URL) -> Bool
-        init(_ predicate: @escaping (URL) -> Bool) {
-            self.predicate = predicate
-        }
-
-        public static func || (lhs: Self, rhs: Self) -> Self {
-            Self {
-                lhs.predicate($0) || rhs.predicate($0)
+extension URL.URLSequence {
+    /// Enumeration options.
+    public enum EnumerationOptions: Hashable {
+        /// Include hidden files/folders.
+        case includingHidden
+        ///  Treat packages like folders and will traverse their contents.
+        case includingPackageDescendants
+        /// Traverse the folder's contents recursively up to the specified maximum depth.
+        case recursive(maxDepth: Int?)
+        /// Traverse the folder's contents recursively.
+        public static var recursive: EnumerationOptions { .recursive(maxDepth: nil) }
+        
+        var depth: Int? {
+            switch self {
+            case .recursive(let value): return value
+            default: return nil
             }
         }
         
-        public static func && (lhs: Self, rhs: Self) -> Self {
-            Self {
-                lhs.predicate($0) && rhs.predicate($0)
+        var recursive: Bool {
+            switch self {
+            case .recursive: return true
+            default: return false
             }
         }
+    }
+    
+    /// Returns a new instance of the sequence with the specified enumeration options.
+    public func options(_ options: Set<EnumerationOptions>) -> Self {
+        var sequence = self
+        sequence.options[.skipsHiddenFiles] = !options.contains(.includingHidden)
+        sequence.options[.skipsPackageDescendants] = !options.contains(.includingPackageDescendants)
+        sequence.options[.skipsSubdirectoryDescendants] = !options.contains(where: {$0.recursive == true })
+        sequence.maxDepth = options.compactMap({$0.depth}).first
+        return sequence
+    }
+    
+    /// Returns a new instance of the sequence with the specified enumeration options.
+    public func options(_ options: EnumerationOptions...) -> Self {
+        self.options(Set(options))
     }
 }

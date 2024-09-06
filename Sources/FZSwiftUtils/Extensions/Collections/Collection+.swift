@@ -683,6 +683,16 @@ public extension RangeReplaceableCollection {
         }
         return Self(self[index...] + self[..<index])
     }
+    
+    /**
+     Returns the collection rotated to start at the specified index.
+     
+     - Parameter index: The index of the element that should be at the start after rotating.
+    */
+    func rotated(toStartAt index: Int) -> Self {
+        guard index >= 0, index < count else { return self }
+        return rotated(by: -index)
+    }
 
     /**
      Rotates the collection by the specified amount of positions.
@@ -698,7 +708,17 @@ public extension RangeReplaceableCollection {
      - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
      */
     mutating func rotate(by positions: Int) {
-        self = self.rotated(by: positions)
+        self = rotated(by: positions)
+    }
+    
+    /**
+     Returns the collection rotated to start at the specified index.
+     
+     - Parameter index: The index of the element that should be at the start after rotating.
+    */
+    mutating func rotate(toStartAt index: Int) {
+        guard index >= 0, index < count else { return }
+        rotate(by: -index)
     }
 }
 

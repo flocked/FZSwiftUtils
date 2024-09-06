@@ -42,6 +42,7 @@ public extension URL {
     }
 }
 
+
 /// The type of a file.
 public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     /// Alias
@@ -79,21 +80,10 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
 
     /// Returns the type for the file at the specified url.
     public init?(url: URL) {
-        /*    if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
-         if let uttype = UTType(url: url), let fileType = FileType(uttype: uttype) {
-         self = fileType
-         return
-         }
-         } else { */
-        if let fileType = FileType(fileExtension: url.pathExtension) {
+        if url.pathExtension != "" || url.absoluteString.hasSuffix("/"), let fileType = FileType(fileExtension: url.pathExtension) {
             self = fileType
-            return
-        } else if let contentTypeIdentifier = url.contentTypeIdentifier, let fileType = FileType(contentTypeIdentifier: contentTypeIdentifier) {
-            self = fileType
-            return
         } else if let fileType = FileType(contentTypeTree: url.contentTypeIdentifierTree) {
             self = fileType
-            return
         } else {
             return nil
         }
@@ -146,10 +136,9 @@ public extension FileType {
 
     /// Returns the type for the specified content type tree.
     init?(contentTypeTree: [String]) {
-        let allIdentifiers = FileType.allCases.compactMap(\.identifier)
-        if let identifier = contentTypeTree.first(where: { allIdentifiers.contains($0) }), let fileType = FileType(contentTypeIdentifier: identifier) {
+        let identifiers = FileType.allCases.compactMap(\.identifier)
+        if let identifier = contentTypeTree.first(where: { identifiers.contains($0) }), let fileType = FileType(contentTypeIdentifier: identifier) {
             self = fileType
-            return
         } else {
             return nil
         }
@@ -176,7 +165,6 @@ public extension FileType {
         case .text: return "public.text"
         case .document: return "public.composite-content"
         case let .other(pathExtension):
-            if pathExtension == "" { return "public.folder" }
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *), let identifier = UTType(filenameExtension: pathExtension)?.identifier {
                 return identifier
             }
@@ -200,24 +188,29 @@ public extension FileType {
     var commonExtensions: [String] {
         switch self {
         case .image:
-            return ["png", "gif", "jpeg", "jpg", "heic", "tiff", "tif", "heif", "pnj"]
+            return ["jpg", "jpeg", "png", "heic", "tiff", "heif", "tif", "webp", "svg", "ico", "raw"]
         case .video:
-            return ["m4v", "mov", "mp4", "ts", "avi", "mpeg", "mpg", "qt", "gifv", "flv", "webm", "m2ts", "wmv", "mts", "mkv"]
-        case .gif: return ["gif"]
+            return ["mp4", "mov", "m4v", "avi", "mkv", "wmv", "flv", "webm", "ts", "mpeg", "mpg", "qt", "gifv", "m2ts", "mts", "3gp", "3g2", "mxf"]
+        case .gif:
+            return ["gif"]
         case .audio:
-            return ["mp3", "wav", "wave", "flac", "ogg", "alac", "m4a", "aiff", "wma", "oga", "aac", "mka"]
+            return ["mp3", "m4a", "aac", "wav", "flac", "alac", "ogg", "aiff", "wma", "oga", "mka", "wave", "opus", "amr"]
         case .pdf:
             return ["pdf"]
         case .text:
-            return ["txt"]
+            return ["txt", "md", "csv", "rtf", "log", "tex"]
         case .archive:
-            return ["zip", "rar"]
+            return ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lzma", "cab"]
         case .document:
-            return ["pages", "word"]
+            return ["docx", "doc", "pages", "odt", "rtf", "word", "xlsx", "xls", "csv", "pptx", "ppt", "html", "htm"]
         case .presentation:
-            return ["keynote", "powerpoint"]
+            return ["pptx", "powerpoint", "keynote", "odp", "ppt", "prezi"]
         case .application:
-            return ["app"]
+            return ["app", "exe", "apk", "bat", "msi"]
+        case .diskImage:
+            return ["iso", "dmg", "vmdk", "vhd", "img"]
+        case .executable:
+            return ["exe", "sh", "bat", "com", "bin"]
         default:
             return []
         }
@@ -229,19 +222,19 @@ public extension FileType {
         case .aliasFile: return "AliasFile"
         case .application: return "Application"
         case .archive: return "Archive"
-        case .audio: return "Music"
+        case .audio: return "Audio"
         case .diskImage: return "DiskImage"
         case .document: return "Document"
         case .executable: return "Executable"
         case .folder: return "Folder"
         case .gif: return "GIF"
         case .image: return "Image"
-        case let .other(value): return "File (.\(value))"
+        case let .other(value): return value == "" ? "Other" : "Other(.\(value))"
         case .pdf: return "PDF"
-        case .presentation: return "Application"
+        case .presentation: return "Presentation"
         case .symbolicLink: return "SymbolicLink"
         case .text: return "Text"
-        case .video: return "Movie"
+        case .video: return "Video"
         }
     }
 
