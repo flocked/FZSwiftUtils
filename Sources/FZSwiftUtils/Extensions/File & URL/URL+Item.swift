@@ -42,11 +42,13 @@ extension URL {
             try FileManager.default.removeItem(at: url)
         }
         
+        #if os(macOS) || os(iOS)
         /// Moves the item to the trash.
         @discardableResult
         public func moveToTrash() throws -> URL {
             try FileManager.default.trashItem(at: url)
         }
+        #endif
         
         /// Reads the data of the file.
         public func read() throws -> Data {
