@@ -9,12 +9,12 @@ import Foundation
 
 public extension URL {
     /**
-     Creates a URL with the specified path components.
+     Creates a file URL with the specified path components.
 
      - Parameter pathComponents: The path components of the URL.
      */
-    init(pathComponents: [String]) {
-        self.init(fileURLWithPath: "/" + pathComponents.joined(separator: "/"))
+    init(fileURLWithComponents pathComponents: [String]) {
+        self.init(fileURLWithPath: pathComponents.joined(separator: "/"))
     }
     
     /**
@@ -42,21 +42,21 @@ public extension URL {
     }
     
     /**
+     Creates a file URL with the specified path components.
+
+     - Parameter pathComponents: The path components of the URL.
+     */
+    static func file(_ pathComponents: [String]) -> URL {
+        URL(fileURLWithComponents: pathComponents)
+    }
+    
+    /**
      Creates a URL instance from the provided string.
      
      - Parameter string: A URL location.
      */
     static func string(_ string: String) -> URL? {
         URL(string: string)
-    }
-    
-    /**
-     Creates a URL with the specified path components.
-
-     - Parameter components: The path components of the URL.
-     */
-    static func pathComponents(_ components: [String]) -> URL {
-        URL(pathComponents: components)
     }
     
     /**
@@ -109,6 +109,44 @@ public extension URL {
     var isFile: Bool {
         resources.isRegularFile
     }
+    
+    /**
+     Returns a URL constructed by removing the last path components of self.
+     
+     If the URL has an empty path (e.g., http://www.example.com), then this function will return the URL unchanged.
+     
+     - Parameter amount: The number of path components to remove.
+     */
+    func deletingLastPathComponents(amount: Int) -> URL {
+        var url = self
+        for _ in 0..<amount {
+            url = url.deletingLastPathComponent()
+        }
+        return url
+    }
+    
+    /**
+     Returns a URL constructed by removing the last path components of self.
+     
+     If the URL has an empty path (e.g., http://www.example.com), then this function will return the URL unchanged.
+     
+     - Parameter amount: The number of path components to remove.
+     */
+    mutating func deleteLastPathComponents(amount: Int) {
+        for _ in 0..<amount {
+            deleteLastPathComponent()
+        }
+    }
+    
+    /// The name of the url (`lastPathComponent`).
+    var name: String {
+        lastPathComponent
+    }
+    
+    /// The name of the url (`lastPathComponent`) excluding the path extension.
+    var nameExludingExtension: String {
+        deletingPathExtension().lastPathComponent
+    }
 
     /// A Boolean value indicating whether the URL’s resource exists and is reachable.
     var isReachable: Bool {
@@ -125,7 +163,7 @@ public extension URL {
     }
 
     ///  A Boolean value indicating whether the resource exist.
-    var fileExists: Bool {
+    var exists: Bool {
         FileManager.default.fileExists(atPath: path)
     }
 
