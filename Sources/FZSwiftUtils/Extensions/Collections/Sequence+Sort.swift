@@ -38,10 +38,7 @@ public extension Sequence {
          - order: The order of sorting. The default value is `ascending`.
       */
     func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
-            return sorted(using: KeyPathComparator(keyPath, order: order.sortOrder))
-        }
-        return order == .ascending ? sorted(by: keyPath, using: <) : sorted(by: keyPath, using: >)
+        compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
     }
 
     /**
@@ -52,62 +49,7 @@ public extension Sequence {
          - order: The order of sorting. The default value is `ascending`.
       */
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
-            return sorted(using: KeyPathComparator(keyPath, order: order.sortOrder))
-        }
-        return order == .ascending ? sorted(by: keyPath, using: <) : sorted(by: keyPath, using: >)
-    }
-    
-    /**
-     An array of the elements sorted by the given predicate.
-
-      - Parameters:
-         - compare: The closure to compare the elements.
-         - order: The order of sorting. The default value is `ascending`.
-      */
-    internal func sorted<Value>(by compare: (Element) -> Value, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if order == .ascending {
-            return sorted { compare($0) < compare($1) }
-        } else {
-            return sorted { compare($0) > compare($1) }
-        }
-    }
-
-    /**
-     An array of the elements sorted by the given predicate.
-
-      - Parameters:
-         - compare: The closure to compare the elements.
-         - order: The order of sorting. The default value is `ascending`.
-      */
-    internal func sorted<Value>(by compare: (Element) -> Value?, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if order == .ascending {
-            return sorted(by: compare, using: <)
-        } else {
-            return sorted(by: compare, using: >)
-        }
-    }
-
-    internal func sorted<Value>(by compare: (Element) -> Value?, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
-        sorted { a, b in
-            guard let b = compare(b) else { return true }
-            guard let a = compare(a) else { return false }
-            return comparator(a, b)
-        }
-    }
-
-    internal func sorted<Value>(by keyPath: KeyPath<Element, Value>, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
-        sorted { a, b in
-            comparator(a[keyPath: keyPath], b[keyPath: keyPath])
-        }
-    }
-
-    internal func sorted<Value>(by keyPath: KeyPath<Element, Value?>, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
-        sorted { a, b in
-            guard let b = b[keyPath: keyPath] else { return true }
-            guard let a = a[keyPath: keyPath] else { return false }
-            return comparator(a, b)
-        }
+        compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
     }
 }
 
@@ -467,29 +409,3 @@ struct ComparableElement<Element, Compare: Comparable>: Comparable {
         return lhs < rhs
     }
 }
-
-/*
- public extension Sequence {
-     /**
-      An array of the elements sorted by the given keypath.
-
-       - Parameters:
-          - keyPath: The keypath to compare the elements.
-          - order: The order of sorting. The default value is `ascending`.
-       */
-     func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-         compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
-     }
-
-     /**
-      An array of the elements sorted by the given keypath.
-
-       - Parameters:
-          - compare: The keypath to compare the elements.
-          - order: The order of sorting. The default value is `ascending`.
-       */
-     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-         compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
-     }
- }
- */
