@@ -51,6 +51,28 @@ public extension Sequence {
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
     }
+    
+    /**
+     An array of the elements sorted by the given predicate.
+
+      - Parameters:
+         - compare: The closure to compare the elements.
+         - order: The order of sorting. The default value is `ascending`.
+      */
+    private func sorted<Value>(by compare: (Element) -> Value, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
+        compactMap({ ComparableElement($0, compare($0)) }).sorted(order).compactMap({$0.element})
+    }
+
+    /**
+     An array of the elements sorted by the given predicate.
+
+      - Parameters:
+         - compare: The closure to compare the elements.
+         - order: The order of sorting. The default value is `ascending`.
+      */
+    private func sorted<Value>(by compare: (Element) -> Value?, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
+        compactMap({ ComparableElement($0, compare($0)) }).sorted(order).compactMap({$0.element})
+    }
 }
 
 extension Sequence {
