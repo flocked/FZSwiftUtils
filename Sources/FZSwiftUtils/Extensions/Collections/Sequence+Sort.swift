@@ -38,10 +38,7 @@ public extension Sequence {
          - order: The order of sorting. The default value is `ascending`.
       */
     func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
-            return sorted(using: KeyPathComparator(keyPath, order: order.sortOrder))
-        }
-        return order == .ascending ? sorted(by: keyPath, using: <) : sorted(by: keyPath, using: >)
+        compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
     }
 
     /**
@@ -52,62 +49,7 @@ public extension Sequence {
          - order: The order of sorting. The default value is `ascending`.
       */
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
-            return sorted(using: KeyPathComparator(keyPath, order: order.sortOrder))
-        }
-        return order == .ascending ? sorted(by: keyPath, using: <) : sorted(by: keyPath, using: >)
-    }
-    
-    /**
-     An array of the elements sorted by the given predicate.
-
-      - Parameters:
-         - compare: The closure to compare the elements.
-         - order: The order of sorting. The default value is `ascending`.
-      */
-    internal func sorted<Value>(by compare: (Element) -> Value, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if order == .ascending {
-            return sorted { compare($0) < compare($1) }
-        } else {
-            return sorted { compare($0) > compare($1) }
-        }
-    }
-
-    /**
-     An array of the elements sorted by the given predicate.
-
-      - Parameters:
-         - compare: The closure to compare the elements.
-         - order: The order of sorting. The default value is `ascending`.
-      */
-    internal func sorted<Value>(by compare: (Element) -> Value?, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        if order == .ascending {
-            return sorted(by: compare, using: <)
-        } else {
-            return sorted(by: compare, using: >)
-        }
-    }
-
-    internal func sorted<Value>(by compare: (Element) -> Value?, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
-        sorted { a, b in
-            guard let b = compare(b) else { return true }
-            guard let a = compare(a) else { return false }
-            return comparator(a, b)
-        }
-    }
-
-    internal func sorted<Value>(by keyPath: KeyPath<Element, Value>, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
-        sorted { a, b in
-            comparator(a[keyPath: keyPath], b[keyPath: keyPath])
-        }
-    }
-
-    internal func sorted<Value>(by keyPath: KeyPath<Element, Value?>, using comparator: (Value, Value) -> Bool) -> [Element] where Value: Comparable {
-        sorted { a, b in
-            guard let b = b[keyPath: keyPath] else { return true }
-            guard let a = a[keyPath: keyPath] else { return false }
-            return comparator(a, b)
-        }
+        compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
     }
 }
 
@@ -441,4 +383,29 @@ public enum SequenceSortOrder: Int, Hashable {
     public static let shortestFirst = SequenceSortOrder.ascending
     /// A descending sorting order.
     public static let longestFirst = SequenceSortOrder.descending
+}
+
+struct ComparableElement<Element, Compare: Comparable>: Comparable {
+    let element: Element
+    let compare: Compare?
+    
+    init(_ element: Element, _ compare: Compare) {
+        self.element = element
+        self.compare = compare
+    }
+    
+    init(_ element: Element, _ compare: Compare?) {
+        self.element = element
+        self.compare = compare
+    }
+    
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.compare == rhs.compare
+    }
+    
+    static func < (lhs: Self, rhs: Self) -> Bool {
+        guard let rhs = rhs.compare else { return true }
+        guard let lhs = lhs.compare else { return false }
+        return lhs < rhs
+    }
 }
