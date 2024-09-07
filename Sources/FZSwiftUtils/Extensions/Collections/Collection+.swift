@@ -762,6 +762,7 @@ public extension RangeReplaceableCollection {
      
      - Returns: The last element of the collection, or `nil` if the collection is empty.
      */
+    @discardableResult
     mutating func removeLastSafetly() -> Element? where Self: BidirectionalCollection {
         guard !isEmpty else { return nil }
         return removeLast()
