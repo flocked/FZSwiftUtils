@@ -17,7 +17,7 @@ public extension Sequence {
     func map<T>(_ keyPath: KeyPath<Element, T>) -> [T] {
         map { $0[keyPath: keyPath] }
     }
-
+    
     /**
      Returns an array containing the non-`nil` results of mapping the given keypath element.
 
@@ -49,6 +49,18 @@ public extension Sequence {
     func flatMap<T, S: Sequence<T>>(_ keyPath: KeyPath<Element, S>) -> [T] {
         flatMap { $0[keyPath: keyPath] }
     }
+    
+    /**
+     Returns an array containing the concatenated results of mapping each element of the keypath's sequence.
+
+     Returns an array containing the non-`nil` results of mapping the given keypath element.
+
+     - Parameter keyPath: The keypath to the sequence.
+     - Returns: The resulting flattened array.
+     */
+    func flatMap<T, S: Sequence<T>>(_ keyPath: KeyPath<Element, S?>) -> [T] {
+        compactMap({ $0[keyPath: keyPath] }).flatMap({ $0 })
+    }
 
     /**
      Returns an array containing, in order, the elements of the sequence that contain the keypath element.
@@ -58,6 +70,16 @@ public extension Sequence {
      */
     func filter<T>(contains keyPath: KeyPath<Element, T?>) -> [Element] {
         filter { $0[keyPath: keyPath] != nil }
+    }
+    
+    /**
+     Returns an array containing, in order, the elements of the sequence that contain the keypath element.
+
+     - Parameter keyPath: The keypath to the element.
+     - Returns: An array containing, in order, the elements of the sequence that doesn't contain the keypath element.
+     */
+    func filter<T>(containsNot keyPath: KeyPath<Element, T?>) -> [Element] {
+        filter { $0[keyPath: keyPath] == nil }
     }
 
     /**

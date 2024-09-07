@@ -81,14 +81,22 @@ public extension Sequence where Element: Equatable {
 }
 
 public extension Sequence {
-    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+    /**
+     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+     
+     - Parameter keyForValue: A closure that returns a key for each element in the sequence.
+     */
     func grouped<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: [Element]] {
         try Dictionary(grouping: self, by: keyForValue)
     }
-
-    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
-    func grouped<Key>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
-        Dictionary(grouping: self, by: { $0[keyPath: keyPath] })
+    
+    /**
+     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+     
+     - Parameter keyForValue: A closure that returns a potential key for each element in the sequence.
+     */
+    func grouped<Key>(byNonNil keyForValue: (Element) throws -> Key?) rethrows -> [Key: [Element]] {
+        try Dictionary(grouping: self, byNonNil: keyForValue)
     }
 
     /// Splits the collection by the specified keypath and values that are returned for each keypath.
@@ -98,16 +106,14 @@ public extension Sequence {
 
     /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
     func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
-        var output: [(key: Key, values: [Element])] = []
-        for value in self {
+        try reduce(into: [(key: Key, values: [Element])]()) { values, value in
             let key = try keyForValue(value)
-            if let index = output.firstIndex(where: { $0.key == key }) {
-                output[index].values.append(value)
+            if let index = values.firstIndex(where: { $0.key == key }) {
+                values[index].values.append(value)
             } else {
-                output.append((key, [value]))
+                values.append((key, [value]))
             }
         }
-        return output
     }
     
     /**
@@ -138,15 +144,13 @@ public extension Sequence {
          the final dictionary.
      */
     func keyed<Key>(by keyForValue: (Element) throws -> Key, resolvingConflictsWith resolve: (Key, Element, Element) throws -> Element) rethrows -> [Key: Element] {
-      var result = [Key: Element]()
-      for element in self {
-        let key = try keyForValue(element)
-        if let oldValue = result.updateValue(element, forKey: key) {
-          let valueToKeep = try resolve(key, oldValue, element)
-          result[key] = valueToKeep
+        try reduce(into: [Key: Element]()) { result, element in
+            let key = try keyForValue(element)
+            if let oldValue = result.updateValue(element, forKey: key) {
+              let valueToKeep = try resolve(key, oldValue, element)
+              result[key] = valueToKeep
+            }
         }
-      }
-      return result
     }
 }
 
@@ -164,7 +168,6 @@ public extension Sequence where Element: Hashable {
         Set(self)
     }
 }
-
 
 public extension Sequence where Element: RawRepresentable {
     /// An array of corresponding values of the raw type.

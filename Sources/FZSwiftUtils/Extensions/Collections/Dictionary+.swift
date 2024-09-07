@@ -176,6 +176,22 @@ public extension Dictionary {
     mutating func remove<S>(_ keys: S) where S: Sequence<Key>  {
         setValue(nil, for: keys)
     }
+    
+    /**
+     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+     
+     - Parameters:
+        - values: A sequence of values to group into a dictionary.
+        - keyForValue: A closure that returns a potential key for each element in `values`.
+     */
+    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?
+    ) rethrows where Value == [S.Element], S : Sequence {
+        self = try values.reduce(into: [Key:Value]()) { dic, value in
+            if let key = try keyForValue(value) {
+                dic[key, default: []].append(value)
+            }
+        }
+    }
 }
 
 public extension Dictionary where Value: Equatable {
