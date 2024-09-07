@@ -59,89 +59,19 @@ public extension Comparable {
         }
         return self <= other
     }
-    
-    /**
-     A Boolean value indicating whether the value is more than another value.
 
-     - Parameter other: A value conforming to Comparable.
-     - Returns: Returns `true` if the value is more than the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
-     */
-    func isMoreThan(_ other: any Comparable) -> Bool {
-        guard let other = other as? Self else {
-            return false
-        }
-        return self > other
-    }
-
-    /**
-     A Boolean value indicating whether the value is more than another value.
-
-     - Parameter other: A value conforming to Comparable.
-     - Returns: Returns `true` if the value is more than the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
-     */
-    func isMoreThan(_ other: (any Comparable)?) -> Bool {
-        guard let other = other as? Self else {
-            return false
-        }
-        return self > other
-    }
-
-    /**
-     A Boolean value indicating whether the value is more or equal to another value.
-
-     - Parameter other: A value conforming to Comparable.
-     - Returns: Returns `true` if the value is more than or equal to the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
-     */
-    func isMoreThanOrEqual(_ other: any Comparable) -> Bool {
-        guard let other = other as? Self else {
-            return false
-        }
-        return self >= other
-    }
-
-    /**
-     A Boolean value indicating whether the value is more or equal to another value.
-
-     - Parameter other: A value conforming to Comparable.
-     - Returns: Returns `true` if the value is more than or equal to the other value; or `false` if it isn't or if the other value isn't the same Comparable type.
-     */
-    func isMoreThanOrEqual(_ other: (any Comparable)?) -> Bool {
-        guard let other = other as? Self else {
-            return false
-        }
-        return self >= other
-    }
-    
     static func < (lhs: Self, other: any Comparable) -> Bool {
-        lhs.isLessThan(other)
+        guard let other = other as? Self else {
+            return false
+        }
+        return lhs < other
     }
 
     static func < (lhs: Self, other: (any Comparable)?) -> Bool {
-        lhs.isLessThan(other)
-    }
-    
-    static func <= (lhs: Self, other: any Comparable) -> Bool {
-        lhs.isLessThanOrEqual(other)
-    }
-
-    static func <= (lhs: Self, other: (any Comparable)?) -> Bool {
-        lhs.isLessThanOrEqual(other)
-    }
-
-    static func > (lhs: Self, other: any Comparable) -> Bool {
-        lhs.isMoreThan(other)
-    }
-
-    static func > (lhs: Self, other: (any Comparable)?) -> Bool {
-        lhs.isMoreThan(other)
-    }
-    
-    static func >= (lhs: Self, other: any Comparable) -> Bool {
-        lhs.isMoreThanOrEqual(other)
-    }
-
-    static func >= (lhs: Self, other: (any Comparable)?) -> Bool {
-        lhs.isMoreThanOrEqual(other)
+        guard let other = other as? Self else {
+            return false
+        }
+        return lhs < other
     }
 }
 
@@ -204,13 +134,3 @@ public extension PartialKeyPath {
         return a.isLessThanOrEqual(b)
     }
 }
-
-/*
-extension Optional: Comparable where Wrapped: Comparable {
-    public static func < (lhs: Self, rhs: Self) -> Bool {
-        guard let lhs = lhs else { return false }
-        guard let rhs = rhs else { return false }
-        return lhs < rhs
-    }
-}
-*/
