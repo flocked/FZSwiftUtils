@@ -23,24 +23,21 @@ public extension CGSize {
     }
 
     /**
-     Returns the scaled integral size of the size.
+     Returns the scaled integral of the size.
      
      The width and height values are scaled based on the current device's screen scale.
-
-     - Returns: The scaled integral size of the size.
      */
-    var scaledIntegralhs: CGSize {
+    var scaledIntegral: CGSize {
         CGSize(width: width.scaledIntegral, height: height.scaledIntegral)
     }
     
     #if os(macOS)
     /**
-     Returns the scaled integral size of the size for the specified screen.
+     Returns the scaled integral of the size for the specified screen.
      
      The width and height values are scaled based on the screen scale.
 
      - Parameter screen: The screen for the scale.
-     - Returns: The scaled integral size of the size.
      */
     func scaledIntegral(for screen: NSScreen) -> CGSize {
         CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
@@ -49,9 +46,8 @@ public extension CGSize {
 
     /**
      Returns the aspect ratio of the size.
-     The aspect ratio is calculated as the width divided by the height.
-
-     - Returns: The aspect ratio of the size.
+     
+     The aspect ratio is calculated as the `width` divided by the `height`.
      */
     var aspectRatio: CGFloat {
         if height == 0 { return 1 }
@@ -59,10 +55,9 @@ public extension CGSize {
     }
 
     /**
-     Rounds the width and height values of the size using the specified rounding rule.
+     Rounds the width and height values using the specified rounding rule.
 
-     - Parameters:
-        - rule: The rounding rule to be applied. The default value is `.toNearestOrAwayFromZero`.
+     - Parameter rule: The rounding rule to be applied. The default value is `.toNearestOrAwayFromZero`.
 
      - Returns: The size with rounded width and height values.
      */
@@ -73,10 +68,7 @@ public extension CGSize {
     /**
      Scales the size to the specified width while maintaining the aspect ratio.
 
-     - Parameters:
-        - newWidth: The target width for scaling.
-
-     - Returns: The scaled size with the new width and height calculated based on the aspect ratio.
+     - Parameter newWidth: The target width for scaling.
      */
     func scaled(toWidth newWidth: CGFloat) -> CGSize {
         let scale = newWidth / width
@@ -87,10 +79,7 @@ public extension CGSize {
     /**
      Scales the size to the specified height while maintaining the aspect ratio.
 
-     - Parameters:
-        - newHeight: The target height for scaling.
-
-     - Returns: The scaled size with the new width and height calculated based on the aspect ratio.
+     - Parameter newHeight: The target height for scaling.
      */
     func scaled(toHeight newHeight: CGFloat) -> CGSize {
         let scale = newHeight / height
@@ -101,8 +90,7 @@ public extension CGSize {
     /**
      Scales the size by the specified factor.
 
-     - Parameters:
-        - factor: The scaling factor.
+     - Parameter factor: The scaling factor.
 
      - Returns: The scaled size with the width and height multiplied by the factor.
      */
@@ -113,10 +101,7 @@ public extension CGSize {
     /**
      Scales the size to fit within the specified size while maintaining the aspect ratio.
 
-     - Parameters:
-        - size: The target size to fit the size within.
-
-     - Returns: The scaled size that fits within the size while maintaining the aspect ratio.
+     - Parameter size: The target size to fit the size within.
      */
     func scaled(toFit size: CGSize) -> CGSize {
         var size = size
@@ -133,10 +118,7 @@ public extension CGSize {
     /**
      Scales the size to fill the specified size while maintaining the aspect ratio.
 
-     - Parameters:
-        - size: The target size to fill the size within.
-
-     - Returns: The scaled size that fills the specified size while maintaining the aspect ratio.
+     - Parameter size: The target size to fill the size within.
      */
     func scaled(toFill size: CGSize) -> CGSize {
         var newSize = self
@@ -223,6 +205,11 @@ public extension CGSize {
     func height(_ height: CGFloat) -> CGSize {
         CGSize(width, height)
     }
+    
+    /// The area of the size.
+    var area: CGFloat {
+        width * height
+    }
 }
 
 public extension CGSize {
@@ -308,20 +295,8 @@ public extension CGSize {
 }
 
 extension CGSize: Comparable {
-    public static func > (lhs: CGSize, rhs: CGSize) -> Bool {
-        lhs.width * lhs.height > rhs.width * rhs.height
-    }
-
-    public static func >= (lhs: CGSize, rhs: CGSize) -> Bool {
-        lhs.width * lhs.height >= rhs.width * rhs.height
-    }
-
     public static func < (lhs: CGSize, rhs: CGSize) -> Bool {
-        lhs.width * lhs.height < rhs.width * rhs.height
-    }
-
-    public static func <= (lhs: CGSize, rhs: CGSize) -> Bool {
-        lhs.width * lhs.height <= rhs.width * rhs.height
+        lhs.area < rhs.area
     }
 }
 
