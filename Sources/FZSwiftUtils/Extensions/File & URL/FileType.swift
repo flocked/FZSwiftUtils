@@ -53,6 +53,10 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     case archive
     /// Audio
     case audio
+    /// Calender event
+    case calender
+    /// Contact
+    case contact
     /// Disk image
     case diskImage
     /// Document
@@ -61,6 +65,8 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     case executable
     /// Folder
     case folder
+    /// FOnt
+    case font
     /// GIF
     case gif
     /// Image
@@ -155,8 +161,11 @@ public extension FileType {
         case .application: return "com.apple.application"
         case .archive: return "public.archive"
         case .audio: return "public.audio"
+        case .calender: return "public.calendar-event"
+        case .contact: return "public.contact"
         case .diskImage: return "public.disk-image"
         case .executable: return "public.executable"
+        case .font: return "public.font"
         case .video: return "public.movie"
         case .gif: return "com.compuserve.gif"
         case .image: return "public.image"
@@ -223,9 +232,12 @@ public extension FileType {
         case .application: return "Application"
         case .archive: return "Archive"
         case .audio: return "Audio"
+        case .calender: return "Calendar"
+        case .contact: return "Contact"
         case .diskImage: return "DiskImage"
         case .document: return "Document"
         case .executable: return "Executable"
+        case .font: return "Font"
         case .folder: return "Folder"
         case .gif: return "GIF"
         case .image: return "Image"
@@ -249,7 +261,7 @@ public extension FileType {
     }
 
     /// All file types.
-    static let allCases: [FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio, .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text]
+    static let allCases: [FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio, .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text, .font, .calender, .contact]
 
     /// All multimedia file types (`audio`, `video`, `image` and `gif`).
     static var multimediaTypes: [FileType] = [.gif, .image, .video, .audio]
@@ -261,7 +273,7 @@ public extension FileType {
         let key: NSExpression
         let type: NSComparisonPredicate.Operator
         switch self {
-        case .executable, .folder, .image, .video, .audio, .pdf, .presentation:
+        case .executable, .font, .folder, .image, .video, .audio, .pdf, .presentation, .calender, .contact:
             key = NSExpression(forKeyPath: "_kMDItemGroupId")
             type = .equalTo
         case .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other:
@@ -279,9 +291,12 @@ public extension FileType {
         case .presentation: value = NSExpression(format: "%i", 12)
         case .application: value = NSExpression(format: "%@", "com.apple.application")
         case .archive: value = NSExpression(format: "%@", "com.apple.public.archive")
+        case .calender: value = NSExpression(format: "%@", "public.calendar-event")
+        case .contact: value = NSExpression(format: "%@", "public.contact")
         case .diskImage: value = NSExpression(format: "%@", "public.disk-image")
         case .gif: value = NSExpression(format: "%@", "com.compuserve.gif")
         case .document: value = NSExpression(format: "%@", "public.content")
+        case .font: value = NSExpression(format: "%@", "public.font")
         case .text: value = NSExpression(format: "%@", "public.text")
         case .aliasFile: value = NSExpression(format: "%@", "com.apple.alias-file")
         case .symbolicLink: value = NSExpression(format: "%@", "public.symlink")
