@@ -265,10 +265,29 @@ public extension Date {
 
      - Parameter another: The date with which to compare this one.
      - Returns: The interval between this date and the another date. If this date is earlier than the other date, the return value is a time duration with 0 seconds.
-
      */
     func timeDurationSince(_ another: Date) -> TimeDuration {
         TimeDuration(timeIntervalSince(another))
+    }
+    
+    /// Creates a new date value by adding a time duration to this date.
+    static func + (lhs: Date, rhs: TimeDuration) -> Date {
+        lhs.addingTimeInterval(rhs.seconds)
+    }
+    
+    /// Adds a time duration to this date.
+    static func += (lhs: inout Date, rhs: TimeDuration) {
+        lhs.addTimeInterval(rhs.seconds)
+    }
+    
+    /// Creates a new date value by subtracting a time duration to this date.
+    static func - (lhs: Date, rhs: TimeDuration) -> Date {
+        lhs.addingTimeInterval(-rhs.seconds)
+    }
+    
+    /// Subtracts a time duration to this date.
+    static func -= (lhs: inout Date, rhs: TimeDuration) {
+        lhs.addTimeInterval(-rhs.seconds)
     }
 }
 
