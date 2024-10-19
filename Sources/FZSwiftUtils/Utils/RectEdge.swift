@@ -8,7 +8,7 @@
 #if os(macOS)
 import Foundation
 
-public struct RectEdge: OptionSet, Codable {
+public struct RectEdge: OptionSet {
     /// The top edge of the rectangle.
     public static var top = RectEdge(rawValue: 1 << 0)
     /// The left edge of the rectangle.

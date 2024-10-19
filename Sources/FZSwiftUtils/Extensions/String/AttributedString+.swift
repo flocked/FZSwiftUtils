@@ -114,9 +114,7 @@ public extension AttributeContainer {
      Modifying the underlinedLink property will update the link and underlineStyle properties of the AttributeContainer.
      */
     var underlinedLink: URL? {
-        get {
-            self.link
-        }
+        get { self.link }
         set {
             if let newValue = newValue {
                 self.link = newValue
@@ -137,9 +135,7 @@ public extension AttributedStringProtocol {
      Modifying the underlinedLink property will update the link and underlineStyle properties of the attributed string.
      */
     var underlinedLink: URL? {
-        get {
-            self.link
-        }
+        get { self.link }
         set {
             if let newValue = newValue {
                 self.link = newValue

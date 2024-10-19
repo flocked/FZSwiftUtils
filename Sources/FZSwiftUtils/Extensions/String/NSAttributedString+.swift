@@ -11,8 +11,7 @@ public extension NSAttributedString {
     /**
      Applies the specified attributes to the attributed string.
 
-     - Parameters:
-        - attributes: The attributes to apply to the attributed string.
+     - Parameter attributes: The attributes to apply to the attributed string.
 
      - Returns: A new attributed string with the specified attributes applied.
      */
@@ -44,32 +43,49 @@ public extension NSAttributedString {
     /**
      Applies the specified color to the sttributed string.
 
-     - Parameters:
-        - color: The color to apply.
+     - Parameter color: The color to apply.
 
      - Returns: A new sttributed string with the specified color applied.
      */
-    func color(_ color: NSUIColor) -> NSAttributedString {
-        applyingAttributes([.foregroundColor: color])
+    func color(_ color: NSUIColor?) -> NSAttributedString {
+        if let color = color {
+            return applyingAttributes([.foregroundColor: color])
+        }
+        return removingAttributes([.foregroundColor])
+    }
+    
+    /**
+     Applies the specified color to the sttributed string.
+
+     - Parameter color: The color to apply.
+
+     - Returns: A new sttributed string with the specified color applied.
+     */
+    func backgroundColor(_ color: NSUIColor?) -> NSAttributedString {
+        if let color = color {
+            return applyingAttributes([.backgroundColor: color])
+        }
+        return removingAttributes([.backgroundColor])
     }
 
     /**
      Applies the specified link to the sttributed string.
 
-     - Parameters:
-        - link: The link to apply.
+     - Parameter link: The link to apply.
 
      - Returns: A new sttributed string with the specified link applied.
      */
-    func link(_ url: URL) -> NSAttributedString {
-        applyingAttributes([.link: url])
+    func link(_ url: URL?) -> NSAttributedString {
+        if let url = url {
+            return applyingAttributes([.link: url])
+        }
+        return removingAttributes([.link])
     }
 
     /**
      Applies the specified font to the sttributed string.
 
-     - Parameters:
-        - font: The font to apply.
+     - Parameter font: The font to apply.
 
      - Returns: A new sttributed string with the specified font applied.
      */
