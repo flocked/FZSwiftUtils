@@ -113,6 +113,12 @@ public extension SynchronizedArray {
             self.array.count
         }
     }
+    
+    func firstIndex(of element: Element) -> Int? where Element: Equatable {
+        queue.sync {
+            self.array.firstIndex(of: element)
+        }
+    }
 
     func append(_ element: Element) {
         queue.async(flags: .barrier) {
