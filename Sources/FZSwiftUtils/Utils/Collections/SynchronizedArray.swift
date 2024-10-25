@@ -138,6 +138,27 @@ public extension SynchronizedArray {
             DispatchQueue.main.async { completion?(element) }
         }
     }
+    
+    func removeFirst(completion: ((Element) -> Void)? = nil) {
+        queue.async(flags: .barrier) {
+            let element = self.array.removeFirst()
+            DispatchQueue.main.async { completion?(element) }
+        }
+    }
+    
+    func removeLast(completion: ((Element) -> Void)? = nil) {
+        queue.async(flags: .barrier) {
+            let element = self.array.removeLast()
+            DispatchQueue.main.async { completion?(element) }
+        }
+    }
+    
+    func remove(_ files: [Element], completion: (([Element])->())? = nil) where Element: Equatable {
+        queue.async(flags: .barrier) {
+            let elements = self.array.remove(files)
+            DispatchQueue.main.async { completion?(elements) }
+        }
+    }
 
     func remove(where predicate: @escaping (Element) -> Bool, completion: (([Element]) -> Void)? = nil) {
         queue.async(flags: .barrier) {

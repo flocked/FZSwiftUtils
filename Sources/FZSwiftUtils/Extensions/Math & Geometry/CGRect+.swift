@@ -573,8 +573,15 @@ public extension Collection where Element == CGRect {
     
     /// Returns the rectangle in the center of the specified point.
     func centeredRect(in point: CGPoint) -> CGRect? {
-        guard !isEmpty else { return nil }
         return compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
+    }
+    
+    func closedRect(to point: CGPoint) -> CGRect? {
+        compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
+    }
+        
+    func closedRects(to point: CGPoint, amount: Int) -> [CGRect] {
+        compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst)[safe: 0..<amount].compactMap({$0.rect})
     }
     
     /// Returns the rectangle in the center of the specified rect.
