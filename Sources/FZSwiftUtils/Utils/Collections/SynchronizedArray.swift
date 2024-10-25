@@ -119,6 +119,12 @@ public extension SynchronizedArray {
             self.array.firstIndex(of: element)
         }
     }
+    
+    func firstIndex(where predicate: (Element) throws -> Bool) rethrows -> Int? {
+        try queue.sync {
+            try self.array.firstIndex(where: predicate)
+        }
+    }
 
     func append(_ element: Element) {
         queue.async(flags: .barrier) {
