@@ -137,6 +137,12 @@ public extension SynchronizedArray {
             self.array.insert(element, at: index)
         }
     }
+    
+    func insert<C>(contentsOf newElements: C, at index: Int) where C: Collection<Element> {
+        queue.async(flags: .barrier) {
+            self.array.insert(contentsOf: newElements, at: index)
+        }
+    }
 
     func remove(at index: Int, completion: ((Element) -> Void)? = nil) {
         queue.async(flags: .barrier) {
@@ -159,9 +165,9 @@ public extension SynchronizedArray {
         }
     }
     
-    func remove(_ files: [Element], completion: (([Element])->())? = nil) where Element: Equatable {
+    func remove<C>(_ elements: C, completion: (([Element])->())? = nil) where Element: Equatable, C: Collection<Element> {
         queue.async(flags: .barrier) {
-            let elements = self.array.remove(files)
+            let elements = self.array.remove(elements)
             DispatchQueue.main.async { completion?(elements) }
         }
     }
@@ -169,11 +175,9 @@ public extension SynchronizedArray {
     func remove(where predicate: @escaping (Element) -> Bool, completion: (([Element]) -> Void)? = nil) {
         queue.async(flags: .barrier) {
             var elements = [Element]()
-
             while let index = self.array.firstIndex(where: predicate) {
                 elements.append(self.array.remove(at: index))
             }
-
             DispatchQueue.main.async { completion?(elements) }
         }
     }
