@@ -61,6 +61,18 @@ public extension RangeReplaceableCollection where Self: MutableCollection {
         let range = range.clamped(to: 0..<count)
         remove(atOffsets: IndexSet(range))
     }
+    
+    /**
+     Removes the first element that satisfy the given predicate.
+     
+     - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the collection.
+     
+     - Returns: The removed element for which predicate returns `true`. If no elements in the collection satisfy the given predicate, returns `nil`.
+     */
+    mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        guard let index = try firstIndex(where: predicate) else { return nil }
+        return remove(at: index)
+    }
 }
 
 public extension MutableCollection {
