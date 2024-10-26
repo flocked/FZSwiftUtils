@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension Sequence {
+public extension Collection {
     /**
      Returns indexes of elements that satisfies the given predicate.
 
@@ -15,8 +15,8 @@ public extension Sequence {
 
      - Returns: The indexes of the elements that satisfies the given predicate.
      */
-    func indexes(where predicate: (Element) throws -> Bool) rethrows -> IndexSet {
-        IndexSet(try enumerated().filter({ try predicate($0.element) }).compactMap({$0.offset}))
+    func indexes(where predicate: (Element) throws -> Bool) rethrows -> [Index] {
+        try indices.filter({ try predicate(self[$0]) })
     }
 }
 
@@ -56,7 +56,7 @@ public extension Sequence where Element: Equatable {
     }
 }
 
-public extension Sequence where Element: Equatable {
+public extension Collection where Element: Equatable {
     /**
      Returns indexes of the specified element.
 
@@ -64,7 +64,7 @@ public extension Sequence where Element: Equatable {
 
      - Returns: The indexes of the element.
      */
-    func indexes(of element: Element) -> IndexSet {
+    func indexes(of element: Element) -> [Index] {
         indexes(where: { $0 == element })
     }
 
@@ -75,7 +75,7 @@ public extension Sequence where Element: Equatable {
 
      - Returns: The indexes of the elements.
      */
-    func indexes<S>(for elements: S) -> IndexSet where S: Sequence<Element> {
+    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
         indexes(where: { elements.contains($0) })
     }
 }

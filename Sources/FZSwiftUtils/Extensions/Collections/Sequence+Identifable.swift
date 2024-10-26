@@ -13,14 +13,12 @@ public extension Sequence where Element: Identifiable {
         compactMap(\.id)
     }
 
-    subscript(firstID id: Element.ID) -> Element? {
-        first { $0.id == id }
-    }
-
+    /// The element with the specified identifier, or `nil` if the sequence doesn't contain an element with the identifier.
     subscript(id id: Element.ID) -> Element? {
         first(where: { $0.id == id })
     }
 
+    /// The elements with the specified identifiers.
     subscript<S: Sequence<Element.ID>>(ids ids: S) -> [Element] {
         filter { ids.contains($0.id) }
     }
@@ -31,8 +29,7 @@ public extension Collection where Element: Identifiable {
      Returns the first index of the specified element.
 
      - Parameter element: The element for returning the index.
-     - Returns: The first index of the element, or `nil` if no index could be found.
-
+     - Returns: The first index of the element, or `nil` if the collection doesn't contain the element.
      */
     func index(of element: Element) -> Self.Index? {
         firstIndex(where: { $0.id == element.id })
@@ -43,9 +40,8 @@ public extension Collection where Element: Identifiable {
 
      - Parameter elements: The elements for returning the indexes.
      - Returns: An array of indexes for the specified elements.
-
      */
     func indexes<S: Sequence<Element>>(of elements: S) -> [Self.Index] {
-        elements.compactMap { self.index(of: $0) }
+        elements.compactMap { index(of: $0) }
     }
 }

@@ -55,71 +55,33 @@ public extension Collection where Element: Equatable, Index == Int {
      - Returns: The advanced index for the current element.
      */
     func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {
-        var excluding = excluding
-        if let current = current {
-            excluding.append(current)
-        }
-        if let current = current, var index = firstIndex(of: current) {
+        if let current = current, let index = firstIndex(of: current) {
+            let excluding = (excluding.compactMap({ firstIndex(of: $0) }) + index).sorted()
             switch type {
             case .next:
-                for _ in 0 ..< count - 1 {
-                    index = index + 1
-                    if index < count {
-                        if excluding.contains(self[index]) == false {
-                            return index
-                        }
-                    }
-                }
+                return indices[0..<count-1-index].first(where: { !excluding.contains(index+$0+1) })
             case .previous:
-                for _ in 0 ..< count - 1 {
-                    index = index - 1
-                    if index >= 0 {
-                        if excluding.contains(self[index]) == false {
-                            return index
-                        }
-                    }
-                }
+                return indices[0..<index].first(where: { !excluding.contains(index-$0-1) })
             case .nextLooping:
-                for _ in 0 ..< count - 1 {
-                    index = index + 1
-                    if index >= count {
-                        index = 0
-                    }
-                    if excluding.contains(self[index]) == false {
-                        return index
-                    }
-                }
+                return indices.first(where: { !excluding.contains(index+1+$0 >= count ? -count+$0+index+1 : index+1+$0) })
             case .previousLooping:
-                for _ in 0 ..< count - 1 {
-                    index = index - 1
-                    if index < 0 {
-                        index = count - 1
-                    }
-                    if excluding.contains(self[index]) == false {
-                        return index
-                    }
-                }
+                return indices.first(where: { !excluding.contains(index-1-$0 < 0 ? count-$0+index-1 : index-1-$0) })
             case .first:
-                return (isEmpty == false) ? 0 : nil
+                return indices.first(where: { !excluding.contains($0) })
             case .last:
-                return (isEmpty == false) ? count - 1 : nil
+                return indices.reversed().first(where: { !excluding.contains($0) })
             case .random:
-                for (idx, ele) in shuffled().enumerated() {
-                    if excluding.contains(ele) == false {
-                        return idx
-                    }
-                }
+                return indices.shuffled().first(where: { !excluding.contains($0) })
             }
         } else {
             switch type {
             case .first, .next, .previous, .nextLooping, .previousLooping:
-                return (isEmpty == false) ? 0 : nil
+                return !isEmpty ? 0 : nil
             case .last:
-                return (isEmpty == false) ? count - 1 : nil
+                return !isEmpty ? count-1 : nil
             case .random:
-                return (isEmpty == false) ? Int.random(in: 0 ... count - 1) : nil
+                return indices.randomElement()
             }
         }
-        return nil
     }
 }

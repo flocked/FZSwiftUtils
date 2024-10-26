@@ -111,16 +111,6 @@ public extension Sequence {
     func count<T>(of keyPath: KeyPath<Element, T?>) -> Int {
         filter { $0[keyPath: keyPath] != nil }.count
     }
-
-    /**
-     The indexes of an element at a keypath.
-
-     - Parameter keyPath: The keypath to the element.
-     - Returns: The indexes of the element at the keypath.
-     */
-    func indexes<T>(of keyPath: KeyPath<Element, T?>) -> IndexSet {
-        indexes(where: { $0[keyPath: keyPath] != nil })
-    }
     
     /**
      - Maps the specified values to the property at the specified key path.
@@ -136,13 +126,34 @@ public extension Sequence {
     }
 }
 
+public extension Collection {
+    /**
+     The indexes of an element at a keypath.
+
+     - Parameter keyPath: The keypath to the element.
+     - Returns: The indexes of the element at the keypath.
+     */
+    func indexes<T>(of keyPath: KeyPath<Element, T?>) -> [Index] {
+        indexes(where: { $0[keyPath: keyPath] != nil })
+    }
+}
+
 public extension RangeReplaceableCollection {
     /**
-     Removes all elements that satisfy the contain a value at the given keypath.
+     Removes all elements that have a value for the specified optional property.
 
-     - Parameter keypath: The keypath.
+     - Parameter keypath: The keypath to the optional property.
      */
-    mutating func removeAll<Value>(containing keypath: KeyPath<Element, Value?>) {
+    mutating func removeAll<Value>(with keypath: KeyPath<Element, Value?>) {
         removeAll(where: { $0[keyPath: keypath] != nil })
+    }
+    
+    /**
+     Removes all elements without a value for the specified optional property.
+
+     - Parameter keypath: The keypath to the optional property.
+     */
+    mutating func removeAll<Value>(without keypath: KeyPath<Element, Value?>) {
+        removeAll(where: { $0[keyPath: keypath] == nil })        
     }
 }

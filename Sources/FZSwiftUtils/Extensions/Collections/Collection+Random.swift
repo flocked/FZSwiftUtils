@@ -14,6 +14,7 @@ public extension Collection {
      - Parameter amount: The amount of random elements.
      */
     func randomElements(amount: Int) -> [Element] {
+        
         var randomElements = [Element]()
         for _ in 0 ... amount {
             if let randomElement = randomElement() {
@@ -51,13 +52,10 @@ public extension Collection where Element: Equatable {
     /**
      Returns a random element of the collection excluding the specified elements.
 
-     - Parameters:
-        - excluding: The elements of the collection to be excluded from returning.
+     - Parameter excluding: The elements of the collection to be excluded from returning.
      */
     func randomElement(excluding: [Element]) -> Element? {
-        let elements: [Element] = filter { excluding.contains($0) == false }
-        guard elements.isEmpty == false else { return nil }
-        return elements.randomElement()
+        filter { !excluding.contains($0) }.randomElement()
     }
 
     /**
