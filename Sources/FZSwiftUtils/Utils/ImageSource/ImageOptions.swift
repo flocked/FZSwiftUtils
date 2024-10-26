@@ -9,18 +9,18 @@ import Foundation
 
 public extension ImageSource {
     /// Options for creating images.
-    struct ImageOptions: Codable {
+    struct ImageOptions: Codable, Hashable {
         /// A Boolean value that indicates whether to cache the decoded image.
-        public var shouldCache: Bool? = true
+        public var shouldCache: Bool = true
         /// A Boolean value that indicates whether image decoding and caching happens at image creation time.
-        public var shouldDecodeImmediately: Bool?
+        public var shouldDecodeImmediately: Bool = false
         /// The factor by which to scale down any returned images.
         public var subsampleFactor: SubsampleFactor?
         /// A Boolean that indicates whether to use floating-point values in returned images.
-        public var shouldAllowFloat: Bool? = false
+        public var shouldAllowFloat: Bool = false
 
         /// The factor by which to scale down returned images.
-        public enum SubsampleFactor: Int, Codable {
+        public enum SubsampleFactor: Int, Codable, Hashable {
             /// Factor 2
             case factor2 = 2
             /// Factor 4
@@ -32,9 +32,22 @@ public extension ImageSource {
         var dic: CFDictionary {
             toDictionary() as CFDictionary
         }
-
-        /// Returns new image options.
-        public init() {}
+        
+        /**
+         Returns the options for generating images.
+         
+         - Parameters:
+            - shouldCache: A Boolean value that indicates whether to cache the decoded image.
+            - shouldDecodeImmediately: A Boolean value that indicates whether image decoding and caching happens at image creation time.
+            - shouldAllowFloat: A Boolean that indicates whether to use floating-point values in returned images.
+            - subsampleFactor: The factor by which to scale down any returned images.
+         */
+        public init(shouldCache: Bool = true, shouldDecodeImmediately: Bool = false, shouldAllowFloat: Bool = false, subsampleFactor: SubsampleFactor? = nil) {
+            self.shouldCache = shouldCache
+            self.shouldDecodeImmediately = shouldDecodeImmediately
+            self.shouldAllowFloat = shouldAllowFloat
+            self.subsampleFactor = subsampleFactor
+        }
 
         public enum CodingKeys: String, CodingKey {
             case shouldAllowFloat = "kCGImageSourceShouldAllowFloat"
@@ -45,34 +58,34 @@ public extension ImageSource {
     }
 
     /// Options for creating thumbnails.
-    struct ThumbnailOptions: Codable {
+    struct ThumbnailOptions: Codable, Hashable {
         /// A Boolean value that indicates whether to cache the decoded image.
-        public var shouldCache: Bool? = true
+        public var shouldCache: Bool = true
         /// A Boolean value that indicates whether image decoding and caching happens at image creation time.
-        public var shouldDecodeImmediately: Bool? = true
+        public var shouldDecodeImmediately: Bool = true
         /// The factor by which to scale down any returned images.
         public var subsampleFactor: SubsampleFactor?
         /// A Boolean that indicates whether to use floating-point values in returned images.
-        public var shouldAllowFloat: Bool? = false
-        /// The maximum size of a thumbnail image, specified in pixels.
+        public var shouldAllowFloat: Bool = false
+        /// The maximum size of a thumbnail image, specified in pixels, or `nil` to use the original image size.
         public var maxSize: Int?
         /// A Boolean value that indicates whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
-        public var shouldTransform: Bool?
-        var createIfAbsent: Bool?
-        var createAlways: Bool? = true
+        public var shouldTransform: Bool = false
+        
+        var createAlways: Bool = true
+        var createIfAbsent: Bool = false
 
         /// Option when a thumbnail should be created.
         public var createOption: CreateOption {
-            get { if createAlways == true { return .always } else if createIfAbsent == true { return .ifAbsent }
-                return .never
-            }
-            set { createAlways = (newValue == .always) ? true : nil
-                createIfAbsent = (newValue == .ifAbsent) ? true : nil
+            get { createAlways ? .always : createIfAbsent ? .ifAbsent : .never }
+            set {
+                createAlways = newValue == .always ? true : false
+                createIfAbsent = newValue == .ifAbsent ? true : false
             }
         }
 
         /// The factor by which to scale down returned images.
-        public enum SubsampleFactor: Int, Codable {
+        public enum SubsampleFactor: Int, Codable, Hashable {
             /// Factor 2
             case factor2 = 2
             /// Factor 4
@@ -95,24 +108,32 @@ public extension ImageSource {
             toDictionary() as CFDictionary
         }
 
-        /// Returns new thumbnail options.
-        public init() {}
-
         /**
-         Returns new thumbnail options with the specified maximum thumbnail size.
-         - Parameter maxSize: The maximum size for the thumbnails.
-         - Returns:New thumbnail options.
+         Returns the options for generating thumbnails.
+         
+         - Parameters:
+            - create: Option when a thumbnail should be created.
+            - maxSize: The maximum size of a thumbnail image, specified in pixels, or `nil` to use the original image size.
+            - shouldCache: A Boolean value that indicates whether to cache the decoded image.
+            - shouldDecodeImmediately: A Boolean value that indicates whether image decoding and caching happens at image creation time.
+            - shouldAllowFloat: A Boolean that indicates whether to use floating-point values in returned images.
+            - shouldTransform:A Boolean value that indicates whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
+            - subsampleFactor: The factor by which to scale down any returned images.
          */
-        public static func maxSize(_ maxSize: CGSize) -> ThumbnailOptions {
-            var options = ThumbnailOptions()
-            options.maxSize = Int(max(maxSize.width, maxSize.height))
-            return options
+        public init(create: CreateOption = .always, maxSize: Int? = nil, shouldCache: Bool = true, shouldDecodeImmediately: Bool = true, shouldAllowFloat: Bool = false, shouldTransform: Bool = false, subsampleFactor: SubsampleFactor? = nil) {
+            self.maxSize = maxSize
+            self.shouldCache = shouldCache
+            self.shouldDecodeImmediately = shouldDecodeImmediately
+            self.shouldAllowFloat = shouldAllowFloat
+            self.shouldTransform = shouldTransform
+            self.subsampleFactor = subsampleFactor
+            self.createOption = create
         }
 
         /**
-         Returns new thumbnail options with the specified maximum thumbnail size.
+         Returns options for generating thumbnails with the specified maximum thumbnail size.
+         
          - Parameter maxSize: The maximum size for the thumbnails.
-         - Returns:New thumbnail options.
          */
         public static func maxSize(_ maxSize: Int) -> ThumbnailOptions {
             var options = ThumbnailOptions()
@@ -121,9 +142,9 @@ public extension ImageSource {
         }
 
         /**
-         Returns new thumbnail options with the specified subsample factor.
+         Returns options for generating thumbnails with the specified subsample factor.
+
          - Parameter subsampleFactor: The factor by which to scale down returned images.
-         - Returns:New thumbnail options.
          */
         public static func subsampleFactor(_ subsampleFactor: SubsampleFactor) -> ThumbnailOptions {
             var options = ThumbnailOptions()
