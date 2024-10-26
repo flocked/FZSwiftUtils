@@ -51,6 +51,13 @@ public extension Collection {
     }
 }
 
+public extension Collection where Index == Int {
+    /// Returns the available elements at the specified indexes.
+    subscript(indexes: IndexSet) -> [Element] {
+        indexes.compactMap { self[safe: $0] }
+    }
+}
+
 public extension RangeReplaceableCollection where Self: MutableCollection {
     /// Removes all the elements at the specified range.
     mutating func remove(at range: ClosedRange<Int>) {
