@@ -9,7 +9,7 @@
 import Foundation
 
 /// Advance option used to advance collections.
-public enum AdvanceOption {
+public enum AdvanceOption: Int, Hashable {
     /// Next element.
     case next
     /// Previous element.
