@@ -386,48 +386,45 @@ public extension CGRect {
      */
     func expand(_ edges: NSUIRectEdge, by amount: CGFloat) -> CGRect {
         var frame = self
-        if edges.contains([.left, .right]) {
-            frame = CGRect(x: minX - (amount / 2.0), y: minY, width: width + amount, height: height)
-        } else if edges.contains(.left) {
-            frame = CGRect(x: minX - amount, y: minY, width: width + amount, height: height)
-        } else if edges.contains(.right) {
-            frame = CGRect(x: minX, y: minY, width: width + amount, height: height)
+        if edges.contains(.left) {
+            frame.x -= amount
+            frame.size.width += amount
+        }
+        if edges.contains(.right) {
+            frame.size.width += amount
         }
         
-        if edges.contains(.height) {
-            return CGRect(x: frame.minX, y: frame.minY - (amount / 2.0), width: frame.width, height: frame.height + amount)
-        } else if edges.contains(.bottom) {
+        if edges.contains(.bottom) {
+            frame.size.height += amount
             #if os(macOS)
-            return CGRect(x: frame.minX, y: frame.minY - amount, width: frame.width, height: frame.height + amount)
-            #else
-            return CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: frame.height + amount)
+            frame.y -= amount
             #endif
-        } else if edges.contains(.top) {
-            #if os(macOS)
-            return CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: frame.height + amount)
-            #else
-            return CGRect(x: frame.minX, y: frame.minY - amount, width: frame.width, height: frame.height + amount)
+        }
+        if edges.contains(.top) {
+            frame.size.height += amount
+            #if !os(macOS)
+            frame.y -= amount
             #endif
         }
         return frame
     }
     
     /**
-     Returns a new rectangle scaled by the specified factor.
-
+     Divides the rectangle into rectangles by the specified amount and edge.
+     
      - Parameters:
-        - factor: The scaling factor to apply to the rectangle.
-        - centered: A Boolean value indicating whether the scaling should be centered around the CGRect's center point. The default value is `true`.
-
-     - Returns: A new rectangle scaled by the specified factor.
+     - count:The amount of rects
+     - edge: The side of the rectangle from which to divide the rectangle.
      */
-    func scaled(byFactor factor: CGFloat, centered: Bool) -> CGRect {
-        var rect = self
-        rect.size = rect.size.scaled(byFactor: factor)
-        if centered {
-            rect.center = center
-        }
-        return rect
+    func divided(count: Int, from edge: CGRectEdge) -> [CGRect] {
+        guard count > 0 else { return [] }
+        var copy = self
+        let dimension = (edge == .minYEdge || edge == .maxYEdge ? height : width) / CGFloat(count)
+        return (1...count).map({ _ in
+            let (slice, remainder) = copy.divided(atDistance: dimension, from: edge)
+            copy = remainder
+            return slice
+        })
     }
 
     /**
@@ -612,4 +609,22 @@ public extension Collection where Element == CGRect {
         }
         return nil
     }
+}
+
+public extension CGRectEdge {
+    /// The left edge of the rectangle.
+    static let left = CGRectEdge.minYEdge
+    /// The right edge of the rectangle.
+    static let right = CGRectEdge.maxYEdge
+    #if os(macOS)
+    /// The bottom edge of the rectangle.
+    static let bottom = CGRectEdge.minXEdge
+    /// The top edge of the rectangle.
+    static let top = CGRectEdge.maxXEdge
+    #else
+    /// The bottom edge of the rectangle.
+    static let bottom = CGRectEdge.maxXEdge
+    /// The top edge of the rectangle.
+    static let top = CGRectEdge.minXEdge
+    #endif
 }

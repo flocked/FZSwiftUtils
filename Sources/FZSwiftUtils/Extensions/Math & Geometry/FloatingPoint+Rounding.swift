@@ -33,71 +33,70 @@ public extension BinaryFloatingPoint {
      Rounds the value by the specified rounding factor.
      
      - Parameters:
-     - roundingFactor: The rounding factor.
-     - rule: The rounding rule to apply. The default value is `up`.
+        - rule: The rounding rule.
+        - factor: The rounding factor.
      
      - Returns: The rounded value.
      */
-    func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
-        (self / roundingFactor).rounded(rule) * roundingFactor
+    func rounded(toMultipleOf factor: Self, rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
+        switch rule {
+        case .toNearestOrEven:
+            return self - self.remainder(dividingBy: factor)
+        case .toNearestOrAwayFromZero:
+            let x = self >= 0 ? self + factor/2 : self - factor/2
+            return x - x.truncatingRemainder(dividingBy: factor)
+        case .awayFromZero:
+            let x = rounded(toMultipleOf: factor, rule: .towardZero)
+            if self == x {
+                return self
+            } else {
+                return self >= 0 ? x + factor : x - factor
+            }
+        case .towardZero:
+            return self - self.truncatingRemainder(dividingBy: factor)
+        case .down:
+            return rounded(toMultipleOf: factor, rule: self < 0 ? .awayFromZero : .towardZero)
+        case .up:
+            return rounded(toMultipleOf: factor, rule: self >= 0 ? .awayFromZero : .towardZero)
+        default:
+            return rounded(toMultipleOf: factor, rule: .toNearestOrEven)
+        }
     }
     
     /**
      Rounds the value by the specified rounding factor.
      
      - Parameters:
-     - roundingFactor: The rounding factor.
-     - rule: The rounding rule to apply. The default value is `up`.
+        - rule: The rounding rule.
+        - factor: The rounding factor.
      */
-    mutating func round(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
-        self = (self / roundingFactor).rounded(rule) * roundingFactor
-    }
-}
-
-public extension CGFloat {
-    /**
-     Rounds the value using the specified rounding rule.
-     
-     - Parameter rule: The rounding rule to apply.
-     - Returns: The rounded value.
-     */
-    func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
-        let divisor = Self(rule.divisor)
-        return (self * divisor).rounded(rule.rounding) / divisor
+    mutating func round(toMultipleOf factor: Self, rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
+        self = rounded(toMultipleOf: factor, rule: rule)
     }
     
     /**
-     Rounds the value using the specified rounding rule.
-     
-     - Parameter rule: The rounding rule to apply.
-     */
-    mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
-        let divisor = Self(rule.divisor)
-        self = (self * divisor).rounded(rule.rounding) / divisor
-    }
-    
-    /**
-     Rounds the value by the specified rounding factor.
+     Rounds the value to the specified amount of places.
      
      - Parameters:
-     - roundingFactor: The rounding factor.
-     - rule: The rounding rule to apply. The default value is `up`.
+        - places: The amount of places.
+        - rule: The rounding rule.
      
      - Returns: The rounded value.
      */
-    func rounded(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
-        (self / roundingFactor).rounded(rule) * roundingFactor
+    func rounded(toPlaces places: Int, rule: FloatingPointRoundingRule = .toNearestOrEven) -> Self {
+        let factor = Self(pow(10.0, Double(Swift.max(0, places))))
+        return (self * factor).rounded(rule) / factor
     }
     
     /**
-     Rounds the value by the specified rounding factor.
+     Rounds the value to the specified amount of places.
      
      - Parameters:
-     - roundingFactor: The rounding factor.
-     - rule: The rounding rule to apply. The default value is `up`.
+        - places: The amount of places.
+        - rule: The rounding rule.
      */
-    mutating func round(toNearest roundingFactor: Self, _ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
-        self = (self / roundingFactor).rounded(rule) * roundingFactor
+    mutating func round(toPlaces places: Int, rule: FloatingPointRoundingRule = .toNearestOrEven) {
+        self = rounded(toPlaces: places, rule: rule)
     }
 }
 
@@ -149,45 +148,6 @@ public enum FloatingPointPlacesRoundingRule {
             return .toNearestOrAwayFromZero
         case .toPlacesTowardZero:
             return .towardZero
-        }
-    }
-}
-
-/// A rule for rounding a floating-point number by a rounding factor.
-public enum FloatingPointFactorRoundingRule {
-    /**
-     Round to the closest allowed value that is greater than or equal to the source.
-     
-     The following example shows the results of rounding numbers using this rule:
-     
-     ```swift
-     (0.75).rounded(toNearest: 0.5, .up)
-     // 1.0
-     
-     (0.5).rounded(toNearest: 0.2, .down)
-     // 0.6
-     ```
-     */
-    case up
-    /**
-     Round to the closest allowed value that is less than or equal to the source.
-     
-     The following example shows the results of rounding numbers using this rule:
-     
-     ```swift
-     (0.75).rounded(toNearest: 0.5, .down)
-     // 0.5
-     
-     (0.5).rounded(toNearest: 0.2, .down)
-     // 0.4
-     ```
-     */
-    case down
-    
-    var rounding: FloatingPointRoundingRule {
-        switch self {
-        case .up: return .toNearestOrAwayFromZero
-        case .down: return .towardZero
         }
     }
 }

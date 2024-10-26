@@ -104,40 +104,12 @@ public extension Collection where Element: Equatable, Index == Int {
             switch type {
             case .next:
                 return indices[index+1..<count].first(where: { !excluding.contains($0) })
-                for _ in 0..<count-index {
-                    index = index + 1
-                    if index < count {
-                        if !excluding.contains(index) {
-                            return index
-                        }
-                    }
-                }
             case .previous:
                 return indices[0..<index].reversed().first(where: { !excluding.contains($0) })
-                for _ in 0..<index {
-                    index = index - 1
-                    if index >= 0 {
-                        if !excluding.contains(index) {
-                            return index
-                        }
-                    }
-                }
             case .nextLooping:
                 return (indices[safe: index+1..<count] + indices[safe: 0..<index]).first(where: { !excluding.contains($0) })
-                for _ in indices {
-                    index = index + 1 >= count ? 0 : index + 1
-                    if !excluding.contains(index) {
-                        return index
-                    }
-                }
             case .previousLooping:
                 return (indices[0..<index].reversed() + indices[safe: index+1..<count].reversed()).first(where: { !excluding.contains($0) })
-                for _ in indices {
-                    index = index-1 < 0 ? count-1 : index-1
-                    if !excluding.contains(index) {
-                        return index
-                    }
-                }
             case .first:
                 return indices.filter({ !excluding.contains($0) }).first
             case .last:
