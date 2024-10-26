@@ -44,7 +44,7 @@ public extension BinaryFloatingPoint {
 #else
         let scale: Self = 1.0
 #endif
-        return rounded(toMultipleOf: 1.0 / scale)
+        return rounded(toMultiple: 1.0 / scale)
     }
     
 #if os(macOS)
@@ -56,7 +56,7 @@ public extension BinaryFloatingPoint {
      - Parameter screen: The screen for the scale factor.
      */
     func scaledIntegral(for screen: NSScreen) -> Self {
-        rounded(toMultipleOf: 1.0 / Self(screen.backingScaleFactor))
+        rounded(toMultiple: 1.0 / Self(screen.backingScaleFactor))
     }
 #endif
 }
@@ -76,7 +76,7 @@ public extension CGFloat {
 #else
         let scale = 1.0
 #endif
-        return rounded(toMultipleOf: 1.0 / scale)
+        return rounded(toMultiple: 1.0 / scale)
     }
     
 #if os(macOS)
@@ -88,7 +88,7 @@ public extension CGFloat {
      - Parameter screen: The screen for the scale factor.
      */
     func scaledIntegral(for screen: NSScreen) -> Self {
-        rounded(toMultipleOf: 1.0 / screen.backingScaleFactor)
+        rounded(toMultiple: 1.0 / screen.backingScaleFactor)
     }
 #endif
     

@@ -30,15 +30,15 @@ public extension BinaryFloatingPoint {
     }
     
     /**
-     Rounds the value by the specified rounding factor.
+     Rounds the value to the multiple of the specified value.
      
      - Parameters:
-        - rule: The rounding rule.
         - factor: The rounding factor.
+        - rule: The rounding rule.
      
      - Returns: The rounded value.
      */
-    func rounded(toMultipleOf factor: Self, rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
+    func rounded(toMultiple factor: Self, rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> Self {
         switch rule {
         case .toNearestOrEven:
             return self - self.remainder(dividingBy: factor)
@@ -46,7 +46,7 @@ public extension BinaryFloatingPoint {
             let x = self >= 0 ? self + factor/2 : self - factor/2
             return x - x.truncatingRemainder(dividingBy: factor)
         case .awayFromZero:
-            let x = rounded(toMultipleOf: factor, rule: .towardZero)
+            let x = rounded(toMultiple: factor, rule: .towardZero)
             if self == x {
                 return self
             } else {
@@ -55,23 +55,23 @@ public extension BinaryFloatingPoint {
         case .towardZero:
             return self - self.truncatingRemainder(dividingBy: factor)
         case .down:
-            return rounded(toMultipleOf: factor, rule: self < 0 ? .awayFromZero : .towardZero)
+            return rounded(toMultiple: factor, rule: self < 0 ? .awayFromZero : .towardZero)
         case .up:
-            return rounded(toMultipleOf: factor, rule: self >= 0 ? .awayFromZero : .towardZero)
+            return rounded(toMultiple: factor, rule: self >= 0 ? .awayFromZero : .towardZero)
         default:
-            return rounded(toMultipleOf: factor, rule: .toNearestOrEven)
+            return rounded(toMultiple: factor, rule: .toNearestOrEven)
         }
     }
     
     /**
-     Rounds the value by the specified rounding factor.
-     
+     Rounds the value to the multiple of the specified value.
+
      - Parameters:
-        - rule: The rounding rule.
         - factor: The rounding factor.
+        - rule: The rounding rule.
      */
-    mutating func round(toMultipleOf factor: Self, rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
-        self = rounded(toMultipleOf: factor, rule: rule)
+    mutating func round(toMultiple factor: Self, rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) {
+        self = rounded(toMultiple: factor, rule: rule)
     }
     
     /**
