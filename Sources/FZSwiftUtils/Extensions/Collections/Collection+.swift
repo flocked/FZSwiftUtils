@@ -182,12 +182,12 @@ public extension RangeReplaceableCollection {
     /// Adds the specified optional `Element`.
     static func + (lhs: Self, rhs: Element?) -> Self {
         guard let rhs = rhs else { return lhs }
-        return lhs + rhs
+        return lhs + [rhs]
     }
 
     static func + (lhs: Element?, rhs: Self) -> Self {
         guard let lhs = lhs else { return rhs }
-        return lhs + rhs
+        return [lhs] + rhs
     }
     
     /**
