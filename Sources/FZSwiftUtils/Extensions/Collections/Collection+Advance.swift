@@ -44,6 +44,7 @@ public extension Collection where Element: Equatable, Index == Int {
         return nil
     }
 
+    /*
     /**
      Returns the advanced index for the specified current element and advance type.
 
@@ -79,6 +80,77 @@ public extension Collection where Element: Equatable, Index == Int {
                 return !isEmpty ? 0 : nil
             case .last:
                 return !isEmpty ? count-1 : nil
+            case .random:
+                return indices.randomElement()
+            }
+        }
+    }
+     */
+
+    /**
+     Returns the advanced index for the specified current element and advance type.
+
+     - Parameters:
+        - type: The advance type.
+        - current: The current element used to advance the index.
+        - excluding: Elements to exclude from advancing.
+
+     - Returns: The advanced index for the current element.
+     */
+    func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {
+        guard !isEmpty else { return nil }
+        if let current = current, var index = firstIndex(of: current) {
+            let excluding = excluding.compactMap({ firstIndex(of: $0) }) + index
+            switch type {
+            case .next:
+                return indices[index+1..<count].first(where: { !excluding.contains($0) })
+                for _ in 0..<count-index {
+                    index = index + 1
+                    if index < count {
+                        if !excluding.contains(index) {
+                            return index
+                        }
+                    }
+                }
+            case .previous:
+                return indices[0..<index].reversed().first(where: { !excluding.contains($0) })
+                for _ in 0..<index {
+                    index = index - 1
+                    if index >= 0 {
+                        if !excluding.contains(index) {
+                            return index
+                        }
+                    }
+                }
+            case .nextLooping:
+                return (indices[safe: index+1..<count] + indices[safe: 0..<index]).first(where: { !excluding.contains($0) })
+                for _ in indices {
+                    index = index + 1 >= count ? 0 : index + 1
+                    if !excluding.contains(index) {
+                        return index
+                    }
+                }
+            case .previousLooping:
+                return (indices[0..<index].reversed() + indices[safe: index+1..<count].reversed()).first(where: { !excluding.contains($0) })
+                for _ in indices {
+                    index = index-1 < 0 ? count-1 : index-1
+                    if !excluding.contains(index) {
+                        return index
+                    }
+                }
+            case .first:
+                return indices.filter({ !excluding.contains($0) }).first
+            case .last:
+                return indices.filter({ !excluding.contains($0) }).last
+            case .random:
+                return indices.randomElement(excluding: excluding)
+            }
+        } else {
+            switch type {
+            case .first, .next, .previous, .nextLooping, .previousLooping:
+                return !isEmpty ? 0 : nil
+            case .last:
+                return !isEmpty ? count - 1 : nil
             case .random:
                 return indices.randomElement()
             }
