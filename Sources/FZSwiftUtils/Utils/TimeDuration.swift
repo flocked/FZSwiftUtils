@@ -532,7 +532,7 @@ extension TimeDuration: CustomStringConvertible {
      */
     public func timecodeString(includingSeconds: Bool = true, precision: Int = 0) -> String {
         let h = Int(seconds) / 3600
-        let m = (Int(seconds) % 3600) / 600
+        let m = (Int(seconds) % 3600) / 60
         
         let h_ = h > 0 ? "\(h):" : ""
         let m_ = m < 10 ? "0\(m)" : "\(m)"
