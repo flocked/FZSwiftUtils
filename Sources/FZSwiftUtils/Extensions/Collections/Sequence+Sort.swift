@@ -49,7 +49,20 @@ public extension Sequence {
          - order: The order of sorting. The default value is `ascending`.
       */
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
+        sorted { (a, b) -> Bool in
+                    let aValue = a[keyPath: keyPath]
+                    let bValue = b[keyPath: keyPath]
+                    switch (aValue, bValue) {
+                    case (nil, nil):
+                        return false
+                    case (nil, _):
+                        return false
+                    case (_, nil):
+                        return true
+                    case let (a?, b?):
+                        return order == .ascending ? a < b : a > b
+                    }
+                }
     }
     
     /**

@@ -420,6 +420,12 @@ public extension SynchronizedArray where Element: Comparable {
             self.array.firstIndex(where: { $0 == element })
         }
     }
+    
+    func sorted() {
+        queue.async(flags: .barrier) {
+            self.array = self.array.sorted()
+        }
+    }
 }
 
 extension SynchronizedArray: Equatable where Element: Equatable {
