@@ -319,13 +319,13 @@ public struct SortingComparator<Element>: Hashable, SortComparator {
     
     /// A key path comparator that sorts in a descending order.
     @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
-    public static func descending(_ keyPath: KeyPath<Element, String>, comparator: String.StandardComparator = .localizedStandard) -> SortingComparator {
+    public static func descending(_ keyPath: KeyPath<Element, String>, comparator: String.StandardComparator) -> SortingComparator {
         .init(SortDescriptor(keyPath, comparator: comparator, order: .reverse), keyPath)
     }
     
     /// A key path comparator that sorts in a descending order.
     @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
-    public static func descending(_ keyPath: KeyPath<Element, String?>, comparator: String.StandardComparator = .localizedStandard) -> SortingComparator {
+    public static func descending(_ keyPath: KeyPath<Element, String?>, comparator: String.StandardComparator) -> SortingComparator {
         .init(SortDescriptor(keyPath, comparator: comparator, order: .reverse), keyPath)
     }
     
@@ -335,7 +335,7 @@ public struct SortingComparator<Element>: Hashable, SortComparator {
     }
     
     /// A key path comparator that sorts by partial key paths.
-    public static func partialKeyPath(_ keyPath: PartialKeyPath<Element>, order: SortOrder) -> SortingComparator {
+    static func partialKeyPath(_ keyPath: PartialKeyPath<Element>, order: SortOrder) -> SortingComparator {
         .init(PartialKeyPathComparator(keyPath, order: order), keyPath)
     }
         
