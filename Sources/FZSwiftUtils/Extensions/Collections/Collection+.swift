@@ -78,6 +78,7 @@ public extension RangeReplaceableCollection where Self: MutableCollection {
      
      - Returns: The removed element for which predicate returns `true`. If no elements in the collection satisfy the given predicate, returns `nil`.
      */
+    @discardableResult
     mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows -> Element? {
         guard let index = try firstIndex(where: predicate) else { return nil }
         return remove(at: index)
@@ -847,6 +848,7 @@ public extension RangeReplaceableCollection {
      
      - Returns: The removed element, or `nil` if the collection is empty.
      */
+    @discardableResult
     mutating func removeFirstSafetly() -> Element? {
         !isEmpty ? removeFirst() : nil
     }
@@ -892,15 +894,5 @@ public extension RangeReplaceableCollection {
     mutating func removeLastSafetly(_ k: Int) -> [Element] where Index == Int {
         guard !isEmpty else { return [] }
         return ((count-k).clamped(min: 0)..<count).compactMap({ remove(at: $0) })
-    }
-    
-    mutating func clamp(max: Int) where Index == Int {
-        guard max >= 0 else { return }
-        self.removeLastSafetly(count - count.clamped(max: max))
-    }
-    
-    func clamped(max: Int) -> Self {
-        guard max >= 0 else { return self }
-        return .init(Array(self)[safe: 0..<max])
     }
 }

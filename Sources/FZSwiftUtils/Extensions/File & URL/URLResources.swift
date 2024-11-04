@@ -80,8 +80,8 @@ public class URLResources {
         set { try? setValue(newValue, for: \.isPackage) }
     }
 
-    @available(macOS 10.11, iOS 9.0, *)
     /// A Boolean value indicating if the resource is an application.
+    @available(macOS 10.11, iOS 9.0, watchOS 2.0, tvOS 9.0, *)
     public var isApplication: Bool { (try? value(for: \.isApplication)) ?? false }
 
     /// A Boolean value indicating if the resource is system-immutable.
@@ -147,8 +147,8 @@ public class URLResources {
     /// The user-visible label text of the resource.
     public var labelLocalizedName: String? { try? value(for: \.localizedLabel) }
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// A value APFS assigns that identifies a file’s content data stream.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var fileContentIdentifier: Int64? { try? value(for: \.fileContentIdentifier) }
 
     /// The optimal block size when reading or writing this file’s data, or `nil` if not available.
@@ -177,39 +177,39 @@ public class URLResources {
     /// File system path to the resource.
     public var path: String? { try? value(for: \.path) }
 
-    @available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)
     /// The resource’s path as a canonical absolute file system path.
+    @available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)
     public var canonicalPath: String? { try? value(for: \.canonicalPath) }
 
     /// A Boolean value indicating whether the resource is a file system trigger directory.
     public var isMountTrigger: Bool? { try? value(for: \.isMountTrigger) }
 
-    @available(macOS 10.10, iOS 8.0, *)
     /**
      An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
 
      For resources which refer to the same file inode, the generation identifier will change when the data in the file’s data fork is changed (changes to extended attributes or other file system metadata do not change the generation identifier). For resources which refer to the same directory inode, the generation identifier will change when direct children of that directory are added, removed or renamed (changes to the data of the direct children of that directory will not change the generation identifier). The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
+    @available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
     public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { try? value(for: \.generationIdentifier) }
 
-    @available(macOS 10.10, iOS 8.0, *)
     /// A value that the kernel assigns to identify a document.
+    @available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
     public var documentIdentifier: Int? { try? value(for: \.documentIdentifier) }
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// A Boolean value indicating whether the file may have extended attributes.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var mayHaveExtendedAttributes: Bool { (try? value(for: \.mayHaveExtendedAttributes)) ?? false }
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// A Boolean value indicating whether the file system can delete the file when the system needs to free space.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var isPurgeable: Bool { (try? value(for: \.isPurgeable)) ?? false }
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// A Boolean value indicating whether the file has sparse regions.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var isSparse: Bool { (try? value(for: \.isSparse)) ?? false }
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// A Boolean value that indicates whether the cloned files and their original files may share data blocks.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var mayShareFileContent: Bool { (try? value(for: \.mayShareFileContent)) ?? false }
 
     /// The type of the fresource.
@@ -233,8 +233,8 @@ public class URLResources {
     /// The download status of the resource.
     public var ubiquitousItemDownloadingStatus: URLUbiquitousItemDownloadingStatus? { try? value(for: \.ubiquitousItemDownloadingStatus) }
 
-    @available(macOS 11.0, iOS 9.0, *)
     /// The protection level for the resource.
+    @available(macOS 11.0, iOS 9.0, *)
     public var fileProtection: URLFileProtection? { try? value(for: \.fileProtection) }
 
     /// The total file size.
@@ -269,9 +269,9 @@ public class URLResources {
     public var isAliasFile: Bool { (try? value(for: \.isAliasFile)) ?? false }
 
     #if canImport(UniformTypeIdentifiers)
-        @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
-        /// A content type of the resource.
-        public var contentType: UTType? { try? value(for: \.contentType) }
+    /// A content type of the resource.
+    @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
+    public var contentType: UTType? { try? value(for: \.contentType) }
     #endif
 }
 
@@ -285,10 +285,9 @@ extension URLResources {
     public var contentTypeIdentifier: String? { try? value(for: \.typeIdentifier) }
 
     /// A content type identifier tree of the resource.
-    public var contentTypeIdentifierTree: [String] { if let identifier = contentTypeIdentifier {
+    public var contentTypeIdentifierTree: [String] {
+        guard let identifier = contentTypeIdentifier else { return [] }
         return [identifier] + getSupertypes(for: identifier)
-    }
-    return []
     }
 
     func getSupertypes(for identifier: String) -> [String] {
@@ -307,14 +306,14 @@ extension URLResources {
         @available(macOS 10.11, *)
         var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
 
-        @available(macOS 12.0, *)
         /// URLs to applications that support opening the file.
+        @available(macOS 12.0, *)
         var supportedApplicationURLs: [URL]? {
             contentType?.supportedApplicationURLs
         }
 
-        @available(macOS 10.10, *)
         /// The quarantine properties of the resource.
+        @available(macOS 10.10, *)
         var quarantineProperties: [String: Any]? {
             get { try? value(for: \.quarantineProperties) }
             set { try? setValue(newValue, for: \.quarantineProperties) }

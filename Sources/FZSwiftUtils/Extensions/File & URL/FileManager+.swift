@@ -47,14 +47,16 @@ public extension FileManager {
     
         /// An enumeration of file manager errors.
         enum Errors: Error {
-            /// An error that occures if a file coudnl't be moved to trash.
+            /// The file couldn't be moved to the trash.
             case failedToMoveToTrash
+            /// The file doesn't exist.
+            case fileNotExisting
         }
         #endif
 
     #if os(macOS)
         /// The type of appliction support directory.
-        enum ApplicationSupportDirectoryType {
+        enum AppSupportDirectoryType {
             /// Uses the application identifier.
             case identifier
             /// Uses the application name.
@@ -62,14 +64,20 @@ public extension FileManager {
         }
 
         /**
-         Returns the application support directory for the specified type.
-
+         Returns the application support directory for the current app.
+         
          - Parameters:
             - type: The type of application support directory (either identifier or name).
-            - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist. The default value is `false`.
+            - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist.
          */
-        func applicationSupportDirectory(using type: ApplicationSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
-            guard let appSupportURL = urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+        func appSupportDirectory(using type: AppSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
+            let appSupportURL: URL
+            if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
+                appSupportURL = .applicationSupportDirectory
+            } else {
+                guard let url = urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+                appSupportURL = url
+            }
             guard let name = type == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
             let directoryURL = appSupportURL.appendingPathComponent(name)
             if FileManager.default.directoryExists(at: directoryURL) {
@@ -114,5 +122,19 @@ public extension FileManager {
      */
     func directoryExists(at url: URL) -> Bool {
         directoryExists(atPath: url.path)
+    }
+    
+    /**
+     Returns a Boolean value that indicates whether the files or directories in specified paths have the same contents.
+     
+     - Parameters:
+        - url1: The url of a file or directory to compare with the contents of `url2`.
+        - url2: The url of a file or directory to compare with the contents of `url1`.
+     - Returns: `true` if file or directory specified in `url1` has the same contents as that specified in `url2`, otherwise `false`.
+     
+     If `url1` and `url2` are directories, the contents are the list of files and subdirectories each contains—contents of subdirectories are also compared. For files, this method checks to see if they’re the same file, then compares their size, and finally compares their contents. This method does not traverse symbolic links, but compares the links themselves.
+     */
+    func contentsEqual(at url1: URL, and url2: URL) -> Bool {
+        contentsEqual(atPath: url1.path, andPath: url2.path)
     }
 }
