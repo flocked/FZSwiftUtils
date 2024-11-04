@@ -335,7 +335,7 @@ public struct SortingComparator<Element>: Hashable, SortComparator {
     }
     
     /// A key path comparator that sorts by partial key paths.
-    static func partialKeyPath(_ keyPath: PartialKeyPath<Element>, order: SortOrder) -> SortingComparator {
+    public static func partialKeyPath(_ keyPath: PartialKeyPath<Element>, order: SortOrder) -> SortingComparator {
         .init(PartialKeyPathComparator(keyPath, order: order), keyPath)
     }
         
