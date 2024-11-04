@@ -401,6 +401,14 @@ public extension URLResources {
         /// A Boolean value indicating whether the volume is removable.
         public var isRemovable: Bool { (try? _url.resourceValues(for: .volumeIsRemovableKey).volumeIsRemovable) ?? false
         }
+        
+        /// A Boolean value indicating whether the volume is stored on a local device.
+        public var isLocal: Bool { (try? _url.resourceValues(for: .volumeIsLocalKey).volumeIsLocal) ?? false
+        }
+        
+        /// A Boolean value that indicates whether the volume’s device is connected to an internal bus, or nil if not available.
+        public var isInternal: Bool { (try? _url.resourceValues(for: .volumeIsInternalKey).volumeIsInternal) ?? false
+        }
 
         /// A Boolean value indicating whether the volume is ejectable.
         public var isEjectable: Bool { (try? _url.resourceValues(for: .volumeIsEjectableKey).volumeIsEjectable) ?? false
@@ -413,6 +421,22 @@ public extension URLResources {
         /// The available capacity of the volume.
         public var availableCapacity: DataSize? {
             if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityKey).volumeAvailableCapacity {
+                return DataSize(bytes)
+            }
+            return nil
+        }
+        
+        /// The volume’s available capacity for storing nonessential resources, in bytes.
+        public var availableCapacityForImportantUisage: DataSize? {
+            if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityForImportantUsageKey).volumeAvailableCapacityForImportantUsage {
+                return DataSize(bytes)
+            }
+            return nil
+        }
+        
+        /// The available capacity of the volume.
+        public var volumeAvailableCapacityForOpportunisticUsage: DataSize? {
+            if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityForOpportunisticUsageKey).volumeAvailableCapacityForOpportunisticUsage {
                 return DataSize(bytes)
             }
             return nil
