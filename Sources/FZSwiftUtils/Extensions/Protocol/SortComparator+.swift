@@ -82,19 +82,27 @@ struct PartialKeyPathComparator<Compared>: SortComparator {
      Provides the relative ordering of two items according to the ordering of the properties that the comparator’s key path references.
      
      - Parameters:
-     - lhs: The first property to compare.
-     - rhs: The second property to compare.
+        - lhs: The first property to compare.
+        - rhs: The second property to compare.
      
      - Returns: The method returns flipped comparisons if the sort order is `reverse.
      */
     public func compare(_ lhs: Compared, _ rhs: Compared) -> ComparisonResult {
-        guard let lhs = lhs[keyPath: keyPath] as? any Comparable, let rhs = rhs[keyPath: keyPath] as? any Comparable else { return .orderedAscending }
-        if lhs.isEqual(rhs) {
+        let aValue = lhs[keyPath: keyPath] as? any Comparable
+        let bValue = rhs[keyPath: keyPath] as? any Comparable
+        switch (aValue, bValue) {
+        case (nil, nil):
             return .orderedSame
-        } else if lhs.isLessThan(rhs) {
-            return order == .ascending ? .orderedAscending : .orderedDescending
-        } else {
-            return order == .ascending ? .orderedDescending : .orderedAscending
+        case (nil, _):
+            return .orderedAscending
+        case (_, nil):
+            return .orderedDescending
+        case let (lhs?, rhs?):
+            if lhs.isEqual(rhs) {
+                return .orderedSame
+            }
+            let result: ComparisonResult = lhs.isLessThan(rhs) ? .orderedAscending : .orderedDescending
+            return order == .forward ? result : result.reversed
         }
     }
 }
