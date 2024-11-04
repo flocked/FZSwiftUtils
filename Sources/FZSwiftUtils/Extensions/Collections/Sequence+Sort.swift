@@ -297,13 +297,13 @@ public struct SortingComparator<Element>: Hashable, SortComparator {
     
     /// A key path comparator that sorts in an ascending order.
     @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
-    public static func ascending(_ keyPath: KeyPath<Element, String>, comparator: String.StandardComparator = .localizedStandard) -> SortingComparator {
+    public static func ascending(_ keyPath: KeyPath<Element, String>, comparator: String.StandardComparator) -> SortingComparator {
         .init(SortDescriptor(keyPath, comparator: comparator, order: .ascending), keyPath)
     }
     
     /// A key path comparator that sorts in an ascending order.
     @available(macOS 14, iOS 17, tvOS 17, watchOS 10, *)
-    public static func ascending(_ keyPath: KeyPath<Element, String?>, comparator: String.StandardComparator = .localizedStandard) -> SortingComparator {
+    public static func ascending(_ keyPath: KeyPath<Element, String?>, comparator: String.StandardComparator) -> SortingComparator {
         .init(SortDescriptor(keyPath, comparator: comparator, order: .ascending), keyPath)
     }
     
