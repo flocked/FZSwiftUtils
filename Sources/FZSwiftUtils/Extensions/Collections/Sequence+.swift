@@ -160,6 +160,37 @@ public extension Sequence where Element: OptionalProtocol {
     var nonNil: [Element.Wrapped] {
         compactMap(\.optional)
     }
+    
+    var firstNonNil: Element.Wrapped? {
+        first(where: { $0.optional != nil })?.optional
+    }
+    
+    /**
+     Returns the first non-`nil` result obtained from applying the given
+     transformation to the elements of the sequence.
+     
+     Example:
+     ```swift
+         let strings = ["three", "3.14", "-5", "2"]
+         if let firstInt = strings.firstNonNil({ Int($0) }) {
+             print(firstInt)
+             // -5
+         }
+     ```
+
+     - Parameter transform: A closure that takes an element of the sequence as
+       its argument and returns an optional transformed value.
+     - Returns: The first non-`nil` return value of the transformation, or
+       `nil` if no transformation is successful.
+    */
+    func firstNonNil<Result>( _ transform: (Element) throws -> Result?) rethrows -> Result? {
+      for value in self { 
+          if let value = try transform(value) {
+          return value
+        }
+      }
+      return nil
+    }
 }
 
 public extension Sequence where Element: Hashable {
