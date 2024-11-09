@@ -99,7 +99,7 @@ public extension Collection where Element: Equatable, Index == Int {
      */
     func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {
         guard !isEmpty else { return nil }
-        if let current = current, var index = firstIndex(of: current) {
+        if let current = current, let index = firstIndex(of: current) {
             let excluding = excluding.compactMap({ firstIndex(of: $0) }) + index
             switch type {
             case .next:

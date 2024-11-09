@@ -6,6 +6,10 @@ ApproximateEquatable
 - Copyright (c) 2020, Adam Bell
 - https://github.com/b3ll/Motion
 
+Collection+Indexed
+- Copyright (c) 2020 Apple Inc.
+- https://github.com/apple/swift-algorithms/
+
 DateFormatComponents
 - Copyright (c) 2021 Yurii Lysytsia.
 - https://github.com/yurii-lysytsia/AirKit

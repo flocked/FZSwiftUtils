@@ -60,7 +60,7 @@ extension URL {
          */
         @discardableResult
         public func rename(to name: String, includesExtension: Bool = false) throws -> URL {
-            var newURL = url.deletingLastPathComponent().appendingPathComponent(name)
+            let newURL = url.deletingLastPathComponent().appendingPathComponent(name)
             return try move(to: includesExtension ? newURL : newURL.appendingPathExtension(url.pathExtension))
         }
         

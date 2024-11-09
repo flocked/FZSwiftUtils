@@ -17,6 +17,17 @@ public extension Comparable {
     func clamped(to range: ClosedRange<Self>) -> Self {
         max(range.lowerBound, min(self, range.upperBound))
     }
+    
+    /**
+     Clamps the value to the specified range.
+
+     - Parameter range: The closed range to clamp the value to.
+     - Returns: The clamped value.
+     */
+
+    func clamped(to range: Range<Self>) -> Self where Self: BinaryInteger {
+        max(range.lowerBound, min(self, range.upperBound-1))
+    }
 
     /**
      Clamps the value to the specified partial range.
