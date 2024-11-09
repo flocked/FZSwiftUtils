@@ -220,7 +220,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
 
     public var selectedElements: [Element] {
         var selectedElements: [Element] = []
-        for (index, i) in isSelected.enumerated() {
+        for (index, i) in isSelected.indexed() {
             if i == true {
                 selectedElements.append(elements[index])
             }
@@ -230,7 +230,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
 
     public var selectedIndexes: [Int] {
         var selectedIndexes: [Int] = []
-        for (index, i) in isSelected.enumerated() {
+        for (index, i) in isSelected.indexed() {
             if i == true {
                 selectedIndexes.append(index)
             }

@@ -25,7 +25,7 @@ public extension Sequence where Element: Equatable {
             }
         }
 
-        let added = other.filter { self.contains($0) == false }
+        let added = other.filter { contains($0) == false }
         return (removed, added, unchanged)
     }
     
@@ -39,7 +39,7 @@ public extension Sequence where Element: Equatable {
         var removed: [Element] = []
         var changed: [Element] = []
         var unchanged: [Element] = []
-        for (index, element) in self.enumerated() {
+        for (index, element) in enumerated() {
             if let otherIndex = other.firstIndex(of: element) {
                 if index == otherIndex {
                     unchanged.append(element)
@@ -51,7 +51,7 @@ public extension Sequence where Element: Equatable {
             }
         }
 
-        let added = other.filter { self.contains($0) == false }
+        let added = other.filter { contains($0) == false }
         return (removed, added, changed, unchanged)
     }
 }

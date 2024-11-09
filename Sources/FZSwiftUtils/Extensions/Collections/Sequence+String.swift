@@ -20,7 +20,7 @@ public extension Sequence where Element == String {
             strings = strings.compactMap { prefix + $0 }
         }
         if option.isNumeric {
-            strings = strings.enumerated().compactMap { "\($0.offset + 1)\($0.element)" }
+            strings = strings.indexed().compactMap { "\($0.index + 1)\($0.element)" }
         }
         if let lastSeperator = option.lastSeperator, strings.count >= 2 {
             let lastString = strings.removeLast()

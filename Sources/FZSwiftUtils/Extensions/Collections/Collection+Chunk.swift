@@ -105,3 +105,32 @@ public extension Collection where Index == Int {
         return elements
     }
 }
+
+public extension Collection {
+    /**
+     Splits the collection into array, chunked by the given predicate.
+
+     - Parameter belongInSameGroup: A closure that takes two adjacent elements of the collection and returns whether or not they belong in the same group.
+    */
+    func chunked(by belongInSameGroup: (Element, Element) throws -> Bool) rethrows -> [[Element]] {
+      guard !isEmpty else { return [] }
+      var result: [[Element]] = []
+      
+      var start = startIndex
+      var current = self[start]
+      
+      for (index, element) in indexed().dropFirst() {
+        if try !belongInSameGroup(current, element) {
+          result.append(Array(self[start..<index]))
+          start = index
+        }
+        current = element
+      }
+      
+      if start != endIndex {
+        result.append(Array((self[start...])))
+      }
+      
+      return result
+    }
+}

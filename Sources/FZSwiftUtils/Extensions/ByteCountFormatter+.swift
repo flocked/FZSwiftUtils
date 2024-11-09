@@ -127,7 +127,7 @@ public extension ByteCountFormatter {
         if includesUnit {
             let englishDescriptions = localizedDescriptions(for: locale)
             let localizedDescriptions = localizedDescriptions(for: locale)
-            for (index, description) in localizedDescriptions.enumerated() {
+            for (index, description) in localizedDescriptions.indexed() {
                 string = string.replacingOccurrences(of: englishDescriptions[index], with: description)
             }
         }

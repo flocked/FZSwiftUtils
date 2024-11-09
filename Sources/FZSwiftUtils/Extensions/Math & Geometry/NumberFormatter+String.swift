@@ -192,7 +192,7 @@ public extension NumberFormatter {
         let components = string.components(separatedBy: " ")
         var timeInterval: TimeInterval?
 
-        for (index, component) in components.enumerated() {
+        for (index, component) in components.indexed() {
             var found = false
             for unitString in allUnitStrings {
                 if component.lowercased().contains(unitString) {

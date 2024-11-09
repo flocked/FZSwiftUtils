@@ -41,7 +41,7 @@ public extension OutlineItem {
     }
 
     func indexPath(of item: Self) -> IndexPath? {
-        for (idx, child) in children.enumerated() {
+        for (idx, child) in children.indexed() {
             if child == item {
                 return IndexPath(indexes: [idx])
             } else if let childIP = child.indexPath(of: item) {
@@ -88,7 +88,7 @@ public extension ExpandingOutlineItem {
     }
 
     func indexPath(of item: Self) -> IndexPath? {
-        for (idx, child) in children.enumerated() {
+        for (idx, child) in children.indexed() {
             if child == item {
                 return IndexPath(indexes: [idx])
             } else if let childIP = child.indexPath(of: item) {

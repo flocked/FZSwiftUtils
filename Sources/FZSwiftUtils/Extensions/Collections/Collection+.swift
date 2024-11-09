@@ -331,7 +331,7 @@ public extension RangeReplaceableCollection {
      */
     @discardableResult
     mutating func remove(at indexes: [Index]) -> [Element] {
-        indexes.filter({$0 >= startIndex && $0 < endIndex}).enumerated().compactMap({ remove(at: self.index($0.element, offsetBy: -$0.offset) ) })
+        indexes.filter({$0 >= startIndex && $0 < endIndex}).indexed().compactMap({ remove(at: self.index($0.element, offsetBy: -$0.index) ) })
     }
     
     /**
