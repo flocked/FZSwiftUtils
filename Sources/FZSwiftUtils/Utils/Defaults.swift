@@ -314,6 +314,7 @@ public final class Defaults {
     }
         
     func postNotification(_ key: String, oldValue: Any?, value: Any?) {
+        Swift.print("postNotification", oldValue ?? "nil", value ?? "nil")
         var userInfo: [AnyHashable : Any] = [:]
         if let oldValue = oldValue {
             userInfo["oldValue"] = oldValue
