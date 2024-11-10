@@ -200,7 +200,7 @@ public final class Defaults {
      
      - Returns: An `DefaultsKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value: Codable>(for key: String, type _: Value, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation {
+    public func observeChanges<Value: Codable>(for key: String, type _: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation {
         if sendInitalValue {
             if let value: Value = get(key) {
                 handler(value, value)
@@ -231,7 +231,7 @@ public final class Defaults {
      
      - Returns: An `DefaultsKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value: Codable>(for key: String, type _: Value, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value: Equatable {
+    public func observeChanges<Value: Codable>(for key: String, type _: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value: Equatable {
         if sendInitalValue {
             if let value: Value = get(key) {
                 handler(value, value)
@@ -261,7 +261,7 @@ public final class Defaults {
      
      - Returns: An `DefaultsKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value: RawRepresentable>(for key: String, type _: Value, sendInitalValue: Bool = false,  handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value.RawValue: Codable {
+    public func observeChanges<Value: RawRepresentable>(for key: String, type _: Value.Type, sendInitalValue: Bool = false,  handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value.RawValue: Codable {
         if sendInitalValue {
             if let value: Value = get(key) {
                 handler(value, value)
@@ -293,7 +293,7 @@ public final class Defaults {
      - Returns: An `DefaultsKeyValueObservation` object representing the observation.
      */
 
-    public func observeChanges<Value: RawRepresentable>(for key: String, type _: Value, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value.RawValue: Codable, Value: Equatable {
+    public func observeChanges<Value: RawRepresentable>(for key: String, type _: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value.RawValue: Codable, Value: Equatable {
         if sendInitalValue {
             if let value: Value = get(key) {
                 handler(value, value)
