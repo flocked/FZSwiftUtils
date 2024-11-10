@@ -23,8 +23,9 @@ import Foundation
  - Note: These should not be used to store sensitive information that could compromise the application or the user's security and privacy.
  */
 public final class Defaults {
+    let id = UUID()
     var userDefaults: UserDefaults
-    var observations: [String: (Any?, Any?)->()] = [:]
+    var notificationKeys: [String: NotificationKey] = [:]
 
     /// Shared instance of `Defaults`, used for ad-hoc access to the user's defaults database throughout the app.
     public static let shared = Defaults()
@@ -43,11 +44,21 @@ public final class Defaults {
         set { set(newValue, for: key) }
     }
     
-    public subscript<T: Codable>(key: String, initalValue: T) -> T? {
+    public subscript<T: Codable>(key: String, initalValue initalValue: T) -> T {
         get { get(key, initalValue: initalValue) }
         set { set(newValue, for: key) }
     }
 
+    public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
+        get { get(key) }
+        set { set(newValue, for: key) }
+    }
+    
+    public subscript<T: RawRepresentable>(key: String, initialValue initialValue: T) -> T where T.RawValue: Codable {
+        get { get(key, initalValue: initialValue) }
+        set { set(newValue, for: key) }
+    }
+    
     public subscript(key: String) -> Any? {
         get { userDefaults.value(forKey: key) }
         set {
@@ -56,16 +67,6 @@ public final class Defaults {
                 userDefaults.synchronize()
             }
         }
-    }
-
-    public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
-        get { get(key) }
-        set { set(newValue, for: key) }
-    }
-    
-    public subscript<T: RawRepresentable>(key: String, initialValue: T) -> T? where T.RawValue: Codable {
-        get { get(key, initalValue: initialValue) }
-        set { set(newValue, for: key) }
     }
 
     /**
@@ -148,8 +149,10 @@ public final class Defaults {
      - Parameter key: The key.
      */
     public func clear(_ key: String) {
+        let oldValue = userDefaults.value(forKey: key)
         userDefaults.set(nil, forKey: key)
         userDefaults.synchronize()
+        postNotification(key, oldValue: oldValue, value: nil)
     }
 
     /**
@@ -167,68 +170,167 @@ public final class Defaults {
      - Parameter type: Bundle.
      */
     public func removeAll(bundle: Bundle = Bundle.main) {
+        var oldValues: [String: Any] = [:]
+        for key in userDefaults.dictionaryRepresentation().keys {
+            oldValues[key] = userDefaults.value(forKey: key)
+        }
         guard let name = bundle.bundleIdentifier else { return }
         userDefaults.removePersistentDomain(forName: name)
-    }
-
-    /**
-     Adds an observer for the value at the specified key which calls the handler.
-
-     - Parameters:
-        - key: The key to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
-        - handler: The handler to be called whenever the key value changes.
-     */
-    public func observeChanges<Value>(_ key: String, type _: Value, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) {
-        observations[key] = { old, new in
-            handler(old as? Value, new as? Value)
+        for oldValue in oldValues {
+            postNotification(oldValue.key, oldValue: oldValue.value, value: nil)
         }
     }
     
     /**
-     Adds an observer for the value at the specified key which calls the handler.
-
+     Observes changes for the value with specified key.
+     
+     Example usage:
+     
+     ```swift
+     Defaults.shared.observeChanges(for: "DownloadFolder", type: URL.self) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
      - Parameters:
-        - key: The key to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
-        - handler: The handler to be called whenever the key value changes.
+        - key: The key of the property to observe.
+        - type: The type of the observed value.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `DefaultsKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(_ key: String, type _: Value, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) {
-        observeChanges(key, type: Value.self, uniqueValues: true, handler: handler)
-    }
-
-    /**
-     Adds an observer for the value at the specified key which calls the handler.
-
-     - Parameters:
-        - key: The key to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
-        - uniqueValues: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
-        - handler: The handler to be called whenever the key value changes.
-     */
-    public func observeChanges<Value: Equatable>(_ key: String, type _: Value.Type, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) {
-        observations[key] = { old, new in
-            if uniqueValues {
-                if old == nil && new == nil { return }
-                if let old = old as? Value, let new = new as? Value {
-                    guard new != old else { return }
-                    handler(old, new)
-                } else {
-                    handler(old as? Value, new as? Value)
-                }
+    public func observeChanges<Value: Codable>(for key: String, type _: Value, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation {
+        if sendInitalValue {
+            if let value: Value = get(key) {
+                handler(value, value)
             } else {
-                handler(old as? Value, new as? Value)
+                handler(nil, nil)
             }
         }
+        return DefaultsKeyValueObservation(notificationKey(for: key), handler: handler)
     }
-
+    
     /**
-     Stops observation for the specified key.
-
-     - Parameter key: The key to stop observing.
+     Observes changes for the value with specified key.
+     
+     Example usage:
+     
+     ```swift
+     Defaults.shared.observeChanges(for: "DownloadFolder", type: URL.self) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
+     - Parameters:
+        - key: The key of the property to observe.
+        - type: The type of the observed value.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `DefaultsKeyValueObservation` object representing the observation.
      */
-    public func stopObserving(_ key: String) {
-        observations[key] = nil
+    public func observeChanges<Value: Codable>(for key: String, type _: Value, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value: Equatable {
+        if sendInitalValue {
+            if let value: Value = get(key) {
+                handler(value, value)
+            } else {
+                handler(nil, nil)
+            }
+        }
+        return DefaultsKeyValueObservation(notificationKey(for: key), unique: uniqueValues, handler: handler)
+    }
+    
+    /**
+     Observes changes for the value with specified key.
+     
+     Example usage:
+     
+     ```swift
+     Defaults.shared.observeChanges(for: "DownloadFolder", type: URL.self) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
+     - Parameters:
+        - key: The key of the property to observe.
+        - type: The type of the observed value.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `DefaultsKeyValueObservation` object representing the observation.
+     */
+    public func observeChanges<Value: RawRepresentable>(for key: String, type _: Value, sendInitalValue: Bool = false,  handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value.RawValue: Codable {
+        if sendInitalValue {
+            if let value: Value = get(key) {
+                handler(value, value)
+            } else {
+                handler(nil, nil)
+            }
+        }
+        return DefaultsKeyValueObservation(notificationKey(for: key), handler: handler)
+    }
+    
+    /**
+     Observes changes for the value with specified key.
+     
+     Example usage:
+     
+     ```swift
+     Defaults.shared.observeChanges(for: "DownloadFolder", type: URL.self) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
+     - Parameters:
+        - key: The key of the property to observe.
+        - type: The type of the observed value.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `DefaultsKeyValueObservation` object representing the observation.
+     */
+
+    public func observeChanges<Value: RawRepresentable>(for key: String, type _: Value, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value?, _ newValue: Value?) -> Void)) -> DefaultsKeyValueObservation where Value.RawValue: Codable, Value: Equatable {
+        if sendInitalValue {
+            if let value: Value = get(key) {
+                handler(value, value)
+            } else {
+                handler(nil, nil)
+            }
+        }
+        return DefaultsKeyValueObservation(notificationKey(for: key), unique: uniqueValues, handler: handler)
+    }
+    
+    class NotificationKey {
+        let key: String
+        let defaultsID: UUID
+        init(_ key: String, defaultsID: UUID) {
+            self.key = key
+            self.defaultsID = defaultsID
+        }
+    }
+        
+    func postNotification(_ key: String, oldValue: Any?, value: Any?) {
+        var userInfo: [AnyHashable : Any] = [:]
+        if let oldValue = oldValue {
+            userInfo["oldValue"] = oldValue
+        }
+        if let value = value {
+            userInfo["value"] = value
+        }
+        NotificationCenter.default.post(name: .defaultsValueChanged, object: notificationKey(for: key), userInfo: userInfo)
+    }
+    
+    func notificationKey(for key: String) -> NotificationKey {
+        if let notificationKey =  notificationKeys[key] {
+            return notificationKey
+        }
+        let notificationKey = NotificationKey(key, defaultsID: id)
+        notificationKeys[key] = notificationKey
+        return notificationKey
     }
 
     func isSwiftCodableType<Value>(_ type: Value.Type) -> Bool {
@@ -321,27 +423,20 @@ extension Defaults {
         - key: The key.
      */
     func set<Value>(_ value: Value?, for key: Key<Value>) {
+        let oldValue: Value? = get(key)
         if isSwiftCodableType(Value.self) || isFoundationCodableType(Value.self) {
-            if let oldValue: Value = get(key) {
-                observations[key._key]?(oldValue, value as Any)
-            } else {
-                observations[key._key]?(nil, value as Any)
-            }
             userDefaults.set(value, forKey: key._key)
             userDefaults.synchronize()
+            postNotification(key._key, oldValue: oldValue, value: value)
             return
         }
 
         do {
             let encoder = JSONEncoder()
             let encoded = try encoder.encode(value)
-            if let oldValue: Value = get(key) {
-                observations[key._key]?(oldValue, value as Any)
-            } else {
-                observations[key._key]?(nil, value as Any)
-            }
             userDefaults.set(encoded, forKey: key._key)
             userDefaults.synchronize()
+            postNotification(key._key, oldValue: oldValue, value: value)
         } catch {
             #if DEBUG
                 print(error)
@@ -367,9 +462,6 @@ extension Defaults {
      - Parameter key: The key.
      */
     func clear<Value>(_ key: Key<Value>) {
-        if let oldValue: Value = get(key) {
-            observations[key._key]?(oldValue, nil)
-        }
         clear(key._key)
     }
 
@@ -381,13 +473,73 @@ extension Defaults {
     func has<Value>(_ key: Key<Value>) -> Bool {
         userDefaults.value(forKey: key._key) != nil
     }
+}
 
+extension Notification.Name {
+    static let defaultsValueChanged = Notification.Name("defaultsValueChanged")
+}
+
+extension Defaults {
     /**
-     Stops observation for the specified key.
-
-     - Parameter key: The key to stop observing.
+     An object that observes a `Defaults` value.
+     
+     To observe the value of a property use ``Defaults/observeChanges(for:type:sendInitalValue:handler:)-3q8ou``
+     
+     ```swift
+     Defaults.shared.observeChanges(for: "DownloadFolder", type: URL.self) {
+        oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
+     To stop the observation of the property, either call ``invalidate()```, or deinitalize the object.
      */
-    func stopObserving<Value>(_ key: Key<Value>) {
-        observations[key._key] = nil
+    public class DefaultsKeyValueObservation {
+        
+        /// The key of the observed property.
+        public let key: String
+        
+        /// Invalidates the observation.
+        public func invalidate() {
+            token = nil
+        }
+        
+        var token: NotificationToken?
+        
+        init<Value: RawRepresentable>(_ key: NotificationKey, handler: @escaping (Value?, Value?) -> Void) where Value.RawValue: Codable {
+            self.key = key.key
+            self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
+                handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["Value"] as? Value)
+            }
+        }
+        
+        init<Value: RawRepresentable>(_ key: NotificationKey, unique: Bool, handler: @escaping (Value?, Value?) -> Void) where Value.RawValue: Codable, Value: Equatable {
+            self.key = key.key
+            self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
+                let oldValue = notification.userInfo?["oldValue"] as? Value
+                let value = notification.userInfo?["Value"] as? Value
+                if !unique || (unique && oldValue != value) {
+                    handler(oldValue, value)
+                }
+            }
+        }
+        
+        init<Value: Codable>(_ key: NotificationKey, handler: @escaping (Value?, Value?) -> Void) {
+            self.key = key.key
+            self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
+                handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["Value"] as? Value)
+            }
+        }
+        
+        init<Value: Codable>(_ key: NotificationKey, unique: Bool, handler: @escaping (Value?, Value?) -> Void) where Value: Equatable {
+            self.key = key.key
+            self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
+                let oldValue = notification.userInfo?["oldValue"] as? Value
+                let value = notification.userInfo?["Value"] as? Value
+                if !unique || (unique && oldValue != value) {
+                    handler(oldValue, value)
+                }
+            }
+        }
     }
 }
