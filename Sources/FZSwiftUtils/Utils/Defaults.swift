@@ -241,11 +241,9 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        let token = NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
             handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["value"] as? Value)
         }
-        // DefaultsKeyValueObservation(key, token: token)
-        return token
     }
     
     /**
@@ -301,15 +299,13 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        let token = NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
             let oldValue = notification.userInfo?["oldValue"] as? Value
             let value = notification.userInfo?["value"] as? Value
             if !uniqueValues || (uniqueValues && oldValue != value) {
                 handler(oldValue, value)
             }
         }
-        // DefaultsKeyValueObservation(key, token: token)
-        return token
     }
     
     /**
@@ -340,11 +336,9 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        let token = NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
             handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["value"] as? Value)
         }
-        // DefaultsKeyValueObservation(key, token: token)
-        return token
     }
     
     /**
@@ -400,15 +394,13 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        let token = NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
             let oldValue = notification.userInfo?["oldValue"] as? Value
             let value = notification.userInfo?["value"] as? Value
             if !uniqueValues || (uniqueValues && oldValue != value) {
                 handler(oldValue, value)
             }
         }
-        // DefaultsKeyValueObservation(key, token: token)
-        return token
     }
         
     func postNotification(_ key: String, oldValue: Any?, value: Any?) {
@@ -462,37 +454,3 @@ public final class Defaults {
     
     static let _valueUpdatedNotification = Notification.Name("_valueUpdatedNotification")
 }
-
-/*
-/**
- An object that observes a `Defaults` value.
- 
- To observe the value of a property use ``Defaults/observeChanges(for:type:sendInitalValue:handler:)-3q8ou``
- 
- ```swift
- Defaults.shared.observeChanges(for: "DownloadFolder", type: URL.self) {
-    oldValue, newValue in
-    // handle changed value
- }
- ```
- 
- To stop the observation of the property, either call ``invalidate()```, or deinitalize the object.
- */
-public class DefaultsKeyValueObservation: NSObject {
-    
-    /// The key of the observed property.
-    public let key: String
-    
-    /// Invalidates the observation.
-    public func invalidate() {
-        token = nil
-    }
-    
-    var token: NotificationToken?
-    
-    init(_ key: String, token: NotificationToken) {
-        self.key = key
-        self.token = token
-    }
-}
-*/
