@@ -314,7 +314,6 @@ public final class Defaults {
     }
         
     func postNotification(_ key: String, oldValue: Any?, value: Any?) {
-        Swift.print("postNotification", oldValue ?? "nil", value ?? "nil")
         var userInfo: [AnyHashable : Any] = [:]
         if let oldValue = oldValue {
             userInfo["oldValue"] = oldValue
@@ -510,7 +509,7 @@ extension Defaults {
         init<Value: RawRepresentable>(_ key: NotificationKey, handler: @escaping (Value?, Value?) -> Void) where Value.RawValue: Codable {
             self.key = key.key
             self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
-                handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["Value"] as? Value)
+                handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["value"] as? Value)
             }
         }
         
@@ -518,7 +517,7 @@ extension Defaults {
             self.key = key.key
             self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
                 let oldValue = notification.userInfo?["oldValue"] as? Value
-                let value = notification.userInfo?["Value"] as? Value
+                let value = notification.userInfo?["value"] as? Value
                 if !unique || (unique && oldValue != value) {
                     handler(oldValue, value)
                 }
@@ -528,7 +527,7 @@ extension Defaults {
         init<Value: Codable>(_ key: NotificationKey, handler: @escaping (Value?, Value?) -> Void) {
             self.key = key.key
             self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
-                handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["Value"] as? Value)
+                handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["value"] as? Value)
             }
         }
         
@@ -536,7 +535,7 @@ extension Defaults {
             self.key = key.key
             self.token = NotificationCenter.default.observe(.defaultsValueChanged, object: key) { notification in
                 let oldValue = notification.userInfo?["oldValue"] as? Value
-                let value = notification.userInfo?["Value"] as? Value
+                let value = notification.userInfo?["value"] as? Value
                 if !unique || (unique && oldValue != value) {
                     handler(oldValue, value)
                 }
