@@ -36,12 +36,12 @@ extension Collection {
 extension Collection where Element: Comparable {
     /// Returns the index of the minimum element in the collection or `nil` if the collection is empty.
     public var minIndex: Index? {
-        indexed().min(by: { $0.element < $1.element })?.index
+        indexed().min(by: \.element)?.index
     }
     
     /// Returns the index of the maximum element in the collection or `nil` if the collection is empty.
     public var maxIndex: Index? {
-        indexed().max(by: { $0.element < $1.element })?.index
+        indexed().max(by: \.element)?.index
     }
 }
 
