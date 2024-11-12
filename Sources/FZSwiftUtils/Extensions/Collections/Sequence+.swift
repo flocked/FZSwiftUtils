@@ -227,3 +227,25 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
         first(where: { $0.rawValue == rawValue })
     }
 }
+
+extension Sequence {
+    /**
+     Returns the minimum element in the sequence, using the given value of the key path as the comparison between elements.
+     
+     - Parameter keyPath: The key path to the comparable value.
+     - Returns: The sequence’s minimum element. If the sequence has no elements, returns `nil`.
+     */
+    public func min<Value: Comparable>(by keyPath: KeyPath<Element, Value>) -> Element? {
+        self.min(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
+    }
+    
+    /**
+     Returns the maximum element in the sequence, using the given value of the key path as the comparison between elements.
+     
+     - Parameter keyPath: The key path to the comparable value.
+     - Returns: The sequence’s maximum element. If the sequence has no elements, returns `nil`.
+     */
+    public func max<Value: Comparable>(by keyPath: KeyPath<Element, Value>) -> Element? {
+        self.max(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
+    }
+}
