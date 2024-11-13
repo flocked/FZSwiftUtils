@@ -273,6 +273,31 @@ public class URLResources {
     @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
     public var contentType: UTType? { try? value(for: \.contentType) }
     #endif
+    
+    #if macOS
+    /// The Finder tags of the resource.
+    var finderTags: [String] {
+        get { (try? value(for: \.tagNames)) ?? [] }
+        set {
+            do {
+                try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
+            } catch {
+                debugPrint(error)
+                let newTags = newValue.compactMap({ (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }).uniqued()
+                url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+            }
+        }
+    }
+    #else
+    /// macOS Finder tags of the resource.
+    var finderTags: [String] {
+        get {
+            let tags: [String] = url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] ?? []
+            return tags.compactMap { $0.replacingOccurrences(of: "\n6", with: "") }
+        }
+        set { url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newValue.compactMap({ (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }).uniqued() }
+    }
+    #endif
 }
 
 @available(macOS, deprecated: 11.0, message: "Use contentType instead")
@@ -317,20 +342,6 @@ extension URLResources {
         var quarantineProperties: [String: Any]? {
             get { try? value(for: \.quarantineProperties) }
             set { try? setValue(newValue, for: \.quarantineProperties) }
-        }
-
-        /// The finder tags of the resource.
-        var finderTags: [String] {
-            get { (try? value(for: \.tagNames)) ?? [] }
-            set {
-                do {
-                    try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
-                } catch {
-                    debugPrint(error)
-                    let newTags = newValue.compactMap { (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }
-                    url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
-                }
-            }
         }
 
         /// The icon stored with the resource.

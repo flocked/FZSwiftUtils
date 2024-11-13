@@ -133,25 +133,21 @@ public extension URL {
         func getExtendedAttribute<T>(for key: Key) -> T? {
             guard let data = extendedAttributeData(for: key) else { return nil }
 
-            if let codableType = T.self as? Codable.Type {
-                if let value = try? JSONDecoder().decode(codableType.self, from: data) {
+            if let codableType = T.self as? Decodable.Type, let value = try? JSONDecoder().decode(codableType.self, from: data) {
                     return value as? T
-                }
             }
-            if let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
-               let value = any as? T
-            {
+            if let value = try? PropertyListSerialization.propertyList(from: data, format: nil) as? T {
                 return value
             }
             return nil
         }
 
         func setExtendedAttributeExplicit<T>(_ value: T?, for key: Key) throws {
-            if isCodable(for: value, key: key) == true {
+            if isCodable(for: value, key: key) {
                 if let codable = value as? Codable {
                     try setExtendedAttribute(codable, for: key)
                 }
-            } else if isNonCodable(for: value, key: key) == true {
+            } else if isNonCodable(for: value, key: key) {
                 try setExtendedAttribute(value, for: key)
             } else {
                 if let codable = value as? Codable {
@@ -162,33 +158,18 @@ public extension URL {
             }
         }
 
-        func isNonCodable<T>(for _: T, key: Key) -> Bool? {
+        func isNonCodable<T>(for _: T, key: Key) -> Bool {
             if let data = extendedAttributeData(for: key) {
-                if ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true {
-                    return true
-                }
-
-                if let codableType = T.self as? Codable.Type {
-                    if (try? JSONDecoder().decode(codableType.self, from: data)) != nil {
-                        return false
-                    }
-                }
+                return ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true
             }
-            return nil
+            return false
         }
 
-        func isCodable<T>(for _: T, key: Key) -> Bool? {
-            if let data = extendedAttributeData(for: key) {
-                if let codableType = T.self as? Codable.Type {
-                    if (try? JSONDecoder().decode(codableType.self, from: data)) != nil {
-                        return true
-                    }
-                }
-                if ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true {
-                    return false
-                }
+        func isCodable<T>(for _: T, key: Key) -> Bool {
+            if let type = T.self as? Codable.Type, let data = extendedAttributeData(for: key) {
+                return (try? JSONDecoder().decode(type.self, from: data)) != nil
             }
-            return nil
+            return false
         }
 
         /**
@@ -229,7 +210,7 @@ public extension URL {
                    if let value = try? PropertyListSerialization.propertyList(from: data, format: nil) {
                      values[key] = value
                    } else {
-                       values[key] = data
+                    values[key] = data
                    }
                 }
             }
@@ -267,7 +248,7 @@ public extension URL {
             return list
         }
 
-        private func extendedAttributeData(for key: Key) -> Data? {
+        public func extendedAttributeData(for key: Key) -> Data? {
             let data = try? url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in
 
@@ -294,7 +275,7 @@ public extension URL {
             return data
         }
 
-        private func setExtendedAttributeData(_ data: Data, for key: Key) throws {
+        public func setExtendedAttributeData(_ data: Data, for key: Key) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = data.withUnsafeBytes {
                     setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
