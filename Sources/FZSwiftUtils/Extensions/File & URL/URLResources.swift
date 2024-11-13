@@ -276,7 +276,7 @@ public class URLResources {
     
     #if macOS
     /// The Finder tags of the resource.
-    var finderTags: [String] {
+    public var finderTags: [String] {
         get { (try? value(for: \.tagNames)) ?? [] }
         set {
             do {
@@ -290,7 +290,7 @@ public class URLResources {
     }
     #else
     /// macOS Finder tags of the resource.
-    var finderTags: [String] {
+    public var finderTags: [String] {
         get {
             let tags: [String] = url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] ?? []
             return tags.compactMap { $0.replacingOccurrences(of: "\n6", with: "") }
