@@ -84,7 +84,7 @@ public extension Comparable {
      - Parameter range: The partial range to clamp the value to.
      */
     mutating func clamp(to range: PartialRangeFrom<Self>) {
-        self = max(range.lowerBound, self)
+        self = clamped(to: range)
     }
 
     /**
@@ -93,7 +93,7 @@ public extension Comparable {
      - Parameter range: The partial range to clamp the value to.
      */
     mutating func clamp(to range: PartialRangeUpTo<Self>) {
-        self = min(range.upperBound, self)
+        self = clamped(to: range)
     }
     
     /**
@@ -102,7 +102,7 @@ public extension Comparable {
      - Parameter minValue: The minimum value to clamp the value to.
      */
     mutating func clamp(min minValue: Self) {
-        self = max(minValue, self)
+        self = clamped(min: minValue)
     }
     
     /**
@@ -111,6 +111,6 @@ public extension Comparable {
      - Parameter maxValue: The maximum value to clamp the value to.
      */
     mutating func clamp(max maxValue: Self) {
-        self = min(maxValue, self)
+        self = clamped(max: maxValue)
     }
 }

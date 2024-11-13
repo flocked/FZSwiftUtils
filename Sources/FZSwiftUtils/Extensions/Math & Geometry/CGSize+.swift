@@ -141,8 +141,17 @@ public extension CGSize {
      
      - Parameter minSize: The minimum size needed.
      */
-    func clamped(minSize: CGSize) -> CGSize {
+    func clamped(min minSize: CGSize) -> CGSize {
         clamped(minWidth: minSize.width, minHeight: minSize.height)
+    }
+    
+    /**
+     Clamps the size to the specified minimum size.
+     
+     - Parameter minSize: The minimum size needed.
+     */
+    mutating func clamp(min minSize: CGSize) {
+        self = clamped(min: minSize)
     }
     
     /**
@@ -150,19 +159,35 @@ public extension CGSize {
      
      - Parameter maxSize: The maximum size allowed.
      */
-    func clamped(maxSize: CGSize) -> CGSize {
+    func clamped(max maxSize: CGSize) -> CGSize {
         clamped(maxWidth: maxSize.width, maxHeight: maxSize.height)
+    }
+    
+    /**
+     Clamps the size to the specified maximum size.
+     
+     - Parameter maxSize: The maximum size allowed.
+     */
+    mutating func clamp(max maxSize: CGSize) {
+        self = clamped(max: maxSize)
     }
     
     /**
      Clamps the size to the specified minimum and maximum size.
      
-     - Parameters:
-        - minSize: The minimum size needed.
-        - maxSize: The maximum size allowed.
+     - Parameter sizeRange: The size range to clamp the value to.
      */
-    func clamped(minSize: CGSize, maxSize: CGSize) -> CGSize {
-        clamped(minSize: minSize).clamped(maxSize: maxSize)
+    func clamped(to sizeRange: ClosedRange<CGSize>) -> CGSize {
+        clamped(min: sizeRange.lowerBound).clamped(max: sizeRange.upperBound)
+    }
+    
+    /**
+     Clamps the size to the specified minimum and maximum size.
+     
+     - Parameter sizeRange: The size range to clamp the value to.
+     */
+    mutating func clamp(to range: ClosedRange<CGSize>) {
+        self = clamped(to: range)
     }
         
     /**
@@ -189,6 +214,19 @@ public extension CGSize {
             size.height = size.height.clamped(min: maxHeight)
         }
         return size
+    }
+    
+    /**
+     Clamps the size to the specified minimum and maximum values.
+     
+     - Parameters:
+        - minWidth: The minimum width needed.
+        - minHeight: The minimum height needed.
+        - maxWidth: The maximum width allowed.
+        - maxHeight: The maximum height allowed.
+     */
+  mutating func clamp(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) {
+      self = clamped(minWidth: minWidth, minHeight: minHeight, maxWidth: maxWidth, maxHeight: maxHeight)
     }
 
     /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.

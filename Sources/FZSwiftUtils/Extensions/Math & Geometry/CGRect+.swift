@@ -527,12 +527,12 @@ public extension CGRect {
     
     /// Clamps the rectangle to the specified minimum size.
     func clamped(minSize: CGSize) -> CGRect {
-        CGRect(origin, size.clamped(minSize: minSize))
+        CGRect(origin, size.clamped(min: minSize))
     }
     
     /// Clamps the rectangle to the specified maximum size.
     func clamped(maxSize: CGSize) -> CGRect {
-        CGRect(origin, size.clamped(maxSize: maxSize))
+        CGRect(origin, size.clamped(max: maxSize))
     }
     
     /**
@@ -547,7 +547,6 @@ public extension CGRect {
     func clamped(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) -> CGRect {
         CGRect(origin, size.clamped(minWidth: minWidth, minHeight: minHeight, maxWidth: maxWidth, maxHeight: maxHeight))
     }
-
 }
 
 extension CGRect: Hashable {
