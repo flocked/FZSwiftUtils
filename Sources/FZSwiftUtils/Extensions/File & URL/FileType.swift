@@ -117,8 +117,8 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
         }
     }
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// Returns the type for the specified content type.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public init?(contentType: UTType) {
         if let fileType = FileType.allCases.filter({$0.contentType != nil}).first(where: {contentType.conforms(to: $0.contentType!)}) {
             self = fileType
@@ -295,7 +295,7 @@ public extension FileType {
         let key: NSExpression
         let type: NSComparisonPredicate.Operator
         switch self {
-        case .executable, .font, .folder, .image, .video, .audio, .pdf, .presentation, .calender, .contact, .spreadsheet:
+        case .executable, .folder, .image, .video, .audio, .pdf, .presentation:
             key = NSExpression(forKeyPath: "_kMDItemGroupId")
             type = .equalTo
         default:
