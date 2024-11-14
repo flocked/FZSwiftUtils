@@ -45,46 +45,48 @@ public extension URL {
 
 /// The type of a file.
 public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
-    /// Alias
-    case aliasFile
-    /// Application
-    case application
-    /// Archive
-    case archive
     /// Audio
     case audio
-    /// Calender event
-    case calender
-    /// Contact
-    case contact
-    /// Disk image
-    case diskImage
+    /// Video
+    case video
+    /// Image
+    case image
+    /// PDF
+    case pdf
     /// Document
     case document
     /// Spreadsheet
     case spreadsheet
-    /// Executable
-    case executable
-    /// Folder
-    case folder
-    /// FOnt
-    case font
-    /// GIF
-    case gif
-    /// Image
-    case image
-    /// Other
-    case other(_ pathExtension: String)
-    /// PDF
-    case pdf
     /// Presentation
     case presentation
-    /// Symbolic Link
-    case symbolicLink
     /// Text
     case text
-    /// Video
-    case video
+    /// Archive
+    case archive
+    /// Alias
+    case aliasFile
+    /// Symbolic Link
+    case symbolicLink
+    /// Folder
+    case folder
+    /// Application
+    case application
+    /// Executable
+    case executable
+    /// Disk image
+    case diskImage
+    /// Font
+    case font
+    /// Contact
+    case contact
+    /// Calendar event
+    case calender
+    /// Source Code
+    case sourceCode
+    /// GIF
+    case gif
+    /// Other
+    case unknown(_ pathExtension: String)
 
     /// Returns the type for the file at the specified url.
     public init?(url: URL) {
@@ -121,7 +123,7 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
         if let fileType = FileType.allCases.filter({$0.contentType != nil}).first(where: {contentType.conforms(to: $0.contentType!)}) {
             self = fileType
         } else if let fileExtension = contentType.preferredFilenameExtension {
-            self = FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension)}) ?? .other(fileExtension)
+            self = FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension)}) ?? .unknown(fileExtension)
         } else {
             return nil
         }
@@ -176,7 +178,8 @@ public extension FileType {
         case .presentation: return "public.presentation"
         case .text: return "public.text"
         case .document: return "public.composite-content"
-        case let .other(pathExtension):
+        case .sourceCode: return "public.source-code"
+        case let .unknown(pathExtension):
             if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *), let identifier = UTType(filenameExtension: pathExtension)?.identifier {
                 return identifier
             }
@@ -212,7 +215,7 @@ public extension FileType {
         case .text:
             return ["txt", "md", "csv", "rtf", "log", "tex"]
         case .archive:
-            return ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lzma", "cab"]
+            return ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lzma", "cab", "tgz"]
         case .document:
             return ["docx", "doc", "pages", "odt", "rtf", "word", "txt", "xml", "md"]
         case .spreadsheet:
@@ -226,9 +229,13 @@ public extension FileType {
         case .executable:
             return ["exe", "sh", "bat", "com", "bin"]
         case .calender:
-            return ["ics"]
+            return ["ics", "ifb"]
         case .contact:
-            return ["vcard"]
+            return ["vcf", "vcard", "abbu"]
+        case .font:
+            return ["ttf", "otf", "woff", "woff2", "eot", "pfb", "pfm"]
+        case .sourceCode:
+            return ["js", "py", "rb", "pl", "php", "java", "swift", "c", "cpp", "cs"]
         default:
             return []
         }
@@ -251,12 +258,13 @@ public extension FileType {
         case .folder: return "Folder"
         case .gif: return "GIF"
         case .image: return "Image"
-        case let .other(value): return value == "" ? "Other" : "Other(.\(value))"
         case .pdf: return "PDF"
         case .presentation: return "Presentation"
         case .symbolicLink: return "SymbolicLink"
         case .text: return "Text"
         case .video: return "Video"
+        case .sourceCode: return "Source Code"
+        case let .unknown(value): return value == "" ? "Unknown" : "unknown(.\(value))"
         }
     }
 
@@ -271,7 +279,11 @@ public extension FileType {
     }
 
     /// All file types.
-    static let allCases: [FileType] = [.aliasFile, .symbolicLink, .folder, .application, .executable, .video, .audio, .gif, .image, .archive, .diskImage, .document, .pdf, .presentation, .text, .font, .calender, .contact]
+    static let allCases: [FileType] = [
+        .audio, .video, .image, .pdf, .document, .spreadsheet, .presentation, .text,
+        .archive, .aliasFile, .symbolicLink, .folder, .application, .executable,
+        .diskImage, .font, .contact, .calender, .sourceCode, .gif
+    ]
 
     /// All multimedia file types (`audio`, `video`, `image` and `gif`).
     static var multimediaTypes: [FileType] = [.gif, .image, .video, .audio]
@@ -286,7 +298,7 @@ public extension FileType {
         case .executable, .font, .folder, .image, .video, .audio, .pdf, .presentation, .calender, .contact, .spreadsheet:
             key = NSExpression(forKeyPath: "_kMDItemGroupId")
             type = .equalTo
-        case .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other:
+        default:
             key = NSExpression(forKeyPath: "kMDItemContentTypeTree")
             type = .like
         }
@@ -299,13 +311,13 @@ public extension FileType {
         case .audio: value = NSExpression(format: "%i", 10)
         case .pdf: value = NSExpression(format: "%i", 11)
         case .presentation: value = NSExpression(format: "%i", 12)
-        case let .other(oValue): value = NSExpression(format: "%@", oValue)
+        case let .unknown(oValue): value = NSExpression(format: "%@", oValue)
         default: value = NSExpression(format: "%@", identifier ?? "")
         }
 
         let modifier: NSComparisonPredicate.Modifier
         switch self {
-        case .application, .archive, .text, .document, .other:
+        case .application, .archive, .text, .document, .unknown:
             modifier = .any
         default:
             modifier = .direct
