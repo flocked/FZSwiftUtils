@@ -61,6 +61,8 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     case diskImage
     /// Document
     case document
+    /// Spreadsheet
+    case spreadsheet
     /// Executable
     case executable
     /// Folder
@@ -160,6 +162,7 @@ public extension FileType {
         case .folder: return "public.folder"
         case .application: return "com.apple.application"
         case .archive: return "public.archive"
+        case .spreadsheet: return "public.spreadsheet"
         case .audio: return "public.audio"
         case .calender: return "public.calendar-event"
         case .contact: return "public.contact"
@@ -211,7 +214,9 @@ public extension FileType {
         case .archive:
             return ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "lzma", "cab"]
         case .document:
-            return ["docx", "doc", "pages", "odt", "rtf", "word", "xlsx", "xls", "csv", "pptx", "ppt", "html", "htm"]
+            return ["docx", "doc", "pages", "odt", "rtf", "word", "txt", "xml", "md"]
+        case .spreadsheet:
+            return ["xlsx", "xls", "ods", "csv", "tsv", "xlsm", "xlsb"]
         case .presentation:
             return ["pptx", "powerpoint", "keynote", "odp", "ppt", "prezi"]
         case .application:
@@ -220,6 +225,10 @@ public extension FileType {
             return ["iso", "dmg", "vmdk", "vhd", "img"]
         case .executable:
             return ["exe", "sh", "bat", "com", "bin"]
+        case .calender:
+            return ["ics"]
+        case .contact:
+            return ["vcard"]
         default:
             return []
         }
@@ -236,6 +245,7 @@ public extension FileType {
         case .contact: return "Contact"
         case .diskImage: return "DiskImage"
         case .document: return "Document"
+        case .spreadsheet: return "Spreadsheet"
         case .executable: return "Executable"
         case .font: return "Font"
         case .folder: return "Folder"
@@ -273,7 +283,7 @@ public extension FileType {
         let key: NSExpression
         let type: NSComparisonPredicate.Operator
         switch self {
-        case .executable, .font, .folder, .image, .video, .audio, .pdf, .presentation, .calender, .contact:
+        case .executable, .font, .folder, .image, .video, .audio, .pdf, .presentation, .calender, .contact, .spreadsheet:
             key = NSExpression(forKeyPath: "_kMDItemGroupId")
             type = .equalTo
         case .aliasFile, .application, .archive, .diskImage, .text, .gif, .document, .symbolicLink, .other:
@@ -289,18 +299,8 @@ public extension FileType {
         case .audio: value = NSExpression(format: "%i", 10)
         case .pdf: value = NSExpression(format: "%i", 11)
         case .presentation: value = NSExpression(format: "%i", 12)
-        case .application: value = NSExpression(format: "%@", "com.apple.application")
-        case .archive: value = NSExpression(format: "%@", "com.apple.public.archive")
-        case .calender: value = NSExpression(format: "%@", "public.calendar-event")
-        case .contact: value = NSExpression(format: "%@", "public.contact")
-        case .diskImage: value = NSExpression(format: "%@", "public.disk-image")
-        case .gif: value = NSExpression(format: "%@", "com.compuserve.gif")
-        case .document: value = NSExpression(format: "%@", "public.content")
-        case .font: value = NSExpression(format: "%@", "public.font")
-        case .text: value = NSExpression(format: "%@", "public.text")
-        case .aliasFile: value = NSExpression(format: "%@", "com.apple.alias-file")
-        case .symbolicLink: value = NSExpression(format: "%@", "public.symlink")
         case let .other(oValue): value = NSExpression(format: "%@", oValue)
+        default: value = NSExpression(format: "%@", identifier ?? "")
         }
 
         let modifier: NSComparisonPredicate.Modifier
