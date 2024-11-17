@@ -108,8 +108,8 @@ public extension URL {
      - Parameter extensions: The file extensions to enumerate.
      */
     func iterateFiles(extensions: [String]) -> URLSequence {
+        let extensions = extensions.compactMap { $0.lowercased() }.uniqued()
         guard !extensions.isEmpty else { return iterateFiles() }
-        let extensions = extensions.compactMap { $0.lowercased() }
         return iterate { extensions.contains($0.pathExtension.lowercased()) }
     }
 
@@ -127,7 +127,7 @@ public extension URL {
      ````
      */
     func iterateFolders() -> URLSequence {
-        iterate { $0.isDirectory == true }
+        iterate { $0.isDirectory }
     }
     
     /// A sequence of urls.
@@ -136,6 +136,7 @@ public extension URL {
         let predicate: (URL) -> Bool
         var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         var maxDepth: Int? = nil
+        var resourceKeys: [URLResourceKey]? = nil
         
         init(url: URL, predicate: @escaping (URL) -> Bool) {
             self.url = url
@@ -156,7 +157,7 @@ public extension URL {
             init(_ sequence: URLSequence) {
                 predicate = sequence.predicate
                 maxLevel = sequence.maxDepth
-                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: nil, options: sequence.options)
+                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: sequence.resourceKeys, options: sequence.options)
             }
 
             public mutating func next() -> URL? {
@@ -210,6 +211,14 @@ extension URL.URLSequence {
     /// Includes the contents of packages.
     public var includingPackageDescendants: Self {
         includingPackageDescendants(true)
+    }
+    
+    /// Returns a new instance of the sequence that'll that will pre-fetch the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
+    public func includingProperties(for keys: [URLResourceKey]) -> Self {
+        var sequence = self
+        let keys = keys.uniqued()
+        sequence.resourceKeys = keys.isEmpty ? nil : keys
+        return sequence
     }
     
     /// Returns a new instance of the sequence that'll traverse the folder's contents recursively.
