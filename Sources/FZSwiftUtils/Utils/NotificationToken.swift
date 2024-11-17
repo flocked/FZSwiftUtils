@@ -65,25 +65,14 @@ public extension NotificationCenter {
     }
 }
 
-/// A notification token that combines multiple notification tokens.
-class CombinedNotificationToken: NotificationToken {
-    let tokens: [NotificationToken]
-    
-    init?(_ tokens: [NotificationToken]) {
-        guard !tokens.isEmpty, tokens.compactMap({$0.notificationCenter}).uniqued().count == 1 else { return nil }
-        let token = tokens.first!
-        self.tokens = tokens
-        super.init(notificationCenter: token.notificationCenter, token: token.token, name: token.name)
-    }
-    
-    deinit {
-        
-    }
-}
 
-public extension Collection where Element: NotificationToken {
-    /// Returns a combined notification token for the tokens of the sequence.
-    var notificationToken: NotificationToken? {
-        count == 1 ? first : CombinedNotificationToken(Array(self))
+public extension Array where Element: NotificationToken {
+    mutating func remove(_ name: Notification.Name) {
+        self.removeAll(where: { $0.name == name })
     }
+    
+    mutating func remove<S>(_ names: S) where S: Sequence<Notification.Name> {
+        self.removeAll(where: { if let name = $0.name { return names.contains(name) } else { return false } })
+    }
+
 }
