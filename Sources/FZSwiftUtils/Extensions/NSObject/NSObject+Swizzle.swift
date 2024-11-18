@@ -190,4 +190,65 @@ extension NSObject {
             self.id = hook.id
         }
     }
+    
+    /*
+    public struct ReplacedMethodTokenAlt {
+        /// The selector for the replaced method.
+        public let selector: Selector
+        
+        /// The id of the token.
+        public let id: UUID
+        
+        /// The id of the token.
+        let hook: AnyHook
+        
+        weak var object: NSObject?
+        var _class: NSObject.Type?
+        
+        var hooks: [Selector: [AnyHook]]? {
+            get { object?.hooks ?? _class?.hooks }
+            set {
+                guard let newValue = newValue else { return }
+                object?.hooks = newValue
+                _class?.hooks = newValue
+            }
+        }
+        
+        /// A Boolean value indicating whether the replaced method is active.
+        public var isActive: Bool {
+            get {
+                guard let hooks = hooks else { return false }
+                return hooks[selector, default: []].contains(where: {$0.id == hook.id })
+            }
+            set {
+                guard var hooks = hooks, newValue != isActive else { return }
+                do {
+                    try hook.revert()
+                    if newValue {
+                        hooks[selector, default: []].append(hook)
+                    } else {
+                        hooks[selector, default: []].removeFirst(where: {$0.id == hook.id })
+                    }
+                    self.hooks = hooks
+                } catch {
+                    Swift.debugPrint(error)
+                }
+            }
+        }
+        
+        init(_ hook: AnyHook, _ object: NSObject) {
+            self.selector = hook.selector
+            self.id = hook.id
+            self.hook = hook
+            self.object = object
+        }
+        
+        init(_ hook: AnyHook, _ classType: NSObject.Type) {
+            self.selector = hook.selector
+            self.id = hook.id
+            self.hook = hook
+            self._class = classType
+        }
+    }
+    */
 }

@@ -350,6 +350,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     deinit {
-        isActive = false
+        removeAll()
     }
 }
