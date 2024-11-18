@@ -35,11 +35,9 @@ extension NSObject {
         debugPrint(error)
      }
      ```
+     
+     To reset the replaced method, use `resetMethod(_:)` with the selector or replacement token.
           
-     To reset the replaced method, use `resetMethod(_:)`.
-     
-     You can only replace methods of objects that are KVO observed, if you observe them using `observeChanges(for:handler:)` or ``KeyValueObserver``.
-     
      - Returns: The token for resetting the replaced method.
      */
     @discardableResult
@@ -60,7 +58,14 @@ extension NSObject {
             }
     }
 
-    /// Replace an `@objc dynamic` class method of the current class.
+    /**
+     Replace an `@objc dynamic` class method of the current class.
+     
+     To reset the replaced method, use `resetMethod(_:)` with the selector or replacement token.
+          
+     - Returns: The token for resetting the replaced method.
+     */
+    @discardableResult
     public class func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
