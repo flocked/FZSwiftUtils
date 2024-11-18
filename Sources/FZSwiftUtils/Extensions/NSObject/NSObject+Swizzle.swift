@@ -48,18 +48,13 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
-            if hooks.isEmpty {
-                try checkObjectForSwizzling()
-            }
+            deactivateAllObservations()
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
             var _hooks = hooks[selector] ?? []
     
             _hooks.append(hook)
             hooks[selector] = _hooks
-            if didDeactivateObservations {
-                activateAllObservations()
-                didDeactivateObservations = false
-            }
+            activateAllObservations()
             return ReplacedMethodToken(hook)
         }
     
