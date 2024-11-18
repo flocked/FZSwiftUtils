@@ -293,7 +293,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         guard observation.willChange != nil || observation.handler != nil else { return }
         observations[observation.keyPath] = observation
         if isActive {
-            Swift.print("addObservation", observation.keyPath)
             observedObject?.addObserver(self, forKeyPath: observation.keyPath, options: observation.options, context: nil)
         }
     }
