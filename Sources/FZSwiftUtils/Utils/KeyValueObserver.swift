@@ -15,7 +15,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     private var observations: [String: Observation] = [:]
     private var actionvationTokens: [NotificationToken] = []
     
-    public var isActive: Bool = true {
+    var isActive: Bool = true {
         didSet {
             guard oldValue != isActive, let observedObject = observedObject else { return }
             if isActive {
