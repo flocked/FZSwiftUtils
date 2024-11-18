@@ -321,9 +321,11 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     private func setupActivationTokens() {
         actionvationTokens = [
             NotificationCenter.default.observe(Self.activateObservation, object: observedObject, using: { [weak self] notification in
+                Swift.print("activate KeyObserver")
                 guard let self = self else { return }
                 self.isActive = true }),
             NotificationCenter.default.observe(Self.deactivateObservation, object: observedObject, using: { [weak self] notification in
+                Swift.print("deactivate KeyObserver")
                 guard let self = self else { return }
                 self.isActive = false })]
     }
