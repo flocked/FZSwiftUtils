@@ -78,7 +78,7 @@ extension NSObject {
         }
     
     func checkObjectPosingAsDifferentClass() -> AnyClass? {
-        Swift.print("checkDifferentClass", type(of: self), object_getClass(self)!, type(of: self) == object_getClass(self)!)
+        Swift.print("checkDifferentClass", NSStringFromClass(type(of: self)), NSStringFromClass(object_getClass(self)!), type(of: self) == object_getClass(self)!)
          let perceivedClass: AnyClass = type(of: self)
          let actualClass: AnyClass = object_getClass(self)!
          if actualClass != perceivedClass {
