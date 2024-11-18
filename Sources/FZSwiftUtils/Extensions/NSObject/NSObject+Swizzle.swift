@@ -48,10 +48,16 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
-
-            let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
-            hooks[selector, default: []].append(hook)
-            return .init(hook)
+            deactivateAllObservations()
+            do {
+                let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
+                hooks[selector, default: []].append(hook)
+                activateAllObservations()
+                return .init(hook)
+            } catch {
+                activateAllObservations()
+                throw error
+            }
     }
 
     /// Replace an `@objc dynamic` class method of the current class.
