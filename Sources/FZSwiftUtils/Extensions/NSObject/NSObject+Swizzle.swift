@@ -85,34 +85,46 @@ extension NSObject {
     
     /// Resets an replaced instance method of the object to it's original state.
     public func resetMethod(_ selector: Selector) {
-        for hook in hooks[selector] ?? [] {
+        deactivateAllObservations()
+        _resetMethod(selector)
+       activateAllObservations()
+    }
+    
+    func _resetMethod(_ selector: Selector) {
+        let all = hooks[selector] ?? []
+        for hook in all {
             do {
                 _ = try hook.revert()
+                hooks[selector, default: []].removeFirst(where: {$0.id == hook.id })
             } catch {
                 debugPrint(error)
             }
         }
-        hooks[selector] = nil
     }
     
     /// Resets an replaced instance method of the object to it's original state.
     public func resetMethod(_ token: ReplacedMethodToken) {
         if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
             do {
+                deactivateAllObservations()
                 try hooks[index].revert()
                 hooks.remove(at: index)
                 self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
+                activateAllObservations()
             } catch {
                 debugPrint(error)
+                activateAllObservations()
             }
         }
     }
     
     /// Resets all replaced instance methods on the current object to their original state.
     public func resetAllMethods() {
+        deactivateAllObservations()
         for selector in hooks.keys {
-            resetMethod(selector)
+            _resetMethod(selector)
         }
+        activateAllObservations()
     }
     
     /// A Boolean value indicating whether the class method for the selector is replaced.
