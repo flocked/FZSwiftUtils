@@ -437,7 +437,7 @@ public extension URLResources {
             return nil
         }
         
-        #if os(macOS) || os(iOS) || os(tvOS)
+        #if os(macOS) || os(iOS)
         /// The volume’s available capacity for storing nonessential resources, in bytes.
         public var availableCapacityForImportantUisage: DataSize? {
             if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityForImportantUsageKey).volumeAvailableCapacityForImportantUsage {
