@@ -346,4 +346,8 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
             self.keyPath = keyPath
         }
     }
+    
+    deinit {
+        isActive = false
+    }
 }
