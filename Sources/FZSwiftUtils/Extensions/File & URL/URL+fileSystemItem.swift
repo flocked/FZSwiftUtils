@@ -1,10 +1,11 @@
 //
-//  File.swift
-//  
+//  URL+fileSystemItem.swift
+//
 //
 //  Created by Florian Zand on 03.11.24.
 //
 
+/*
 import Foundation
 
 #if os(macOS)
@@ -374,3 +375,4 @@ extension URL {
         }
     }
 }
+*/
