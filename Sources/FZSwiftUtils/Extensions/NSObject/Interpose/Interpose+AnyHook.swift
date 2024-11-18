@@ -1,10 +1,3 @@
-//
-//  Interpose+Anyhook.swift
-//
-//  Copyright (c) 2020 Peter Steinberger
-//  InterposeKit - https://github.com/steipete/InterposeKit/
-//
-
 import Foundation
 
 /// Base class, represents a hook to exactly one method.
@@ -14,11 +7,11 @@ public class AnyHook {
 
     /// The selector this hook interposes.
     public let selector: Selector
-    
-    let id = UUID()
 
     /// The current state of the hook.
     public internal(set) var state = State.prepared
+    
+    let id = UUID()
 
     // else we validate init order
     var replacementIMP: IMP!
@@ -57,26 +50,21 @@ public class AnyHook {
     /// Apply the interpose hook.
     @discardableResult public func apply() throws -> AnyHook {
         try execute(newState: .interposed) { try replaceImplementation() }
-        isActive = true
         return self
     }
 
     /// Revert the interpose hoook.
     @discardableResult public func revert() throws -> AnyHook {
         try execute(newState: .prepared) { try resetImplementation() }
-        isActive = false
         return self
     }
-    
-    /// A Boolean value indicating whether the hook is applied.
-    public var isActive: Bool = false
 
     /// Validate that the selector exists on the active class.
     @discardableResult func validate(expectedState: State = .prepared) throws -> Method {
         guard let method = class_getInstanceMethod(`class`, selector) else {
             throw NSObject.SwizzleError.methodNotFound(`class`, selector)
         }
-        guard state == expectedState else { throw NSObject.SwizzleError.invalidState(expectedState: expectedState) }
+        guard state == expectedState else { throw NSObject.SwizzleError.invalidState(expectedState: expectedState.description) }
         return method
     }
 
@@ -100,6 +88,16 @@ public class AnyHook {
             Interpose.log("Keeping -[\(`class`).\(selector)] IMP: \(replacementIMP!)")
         case let .error(error):
             Interpose.log("Leaking -[\(`class`).\(selector)] IMP: \(replacementIMP!) due to error: \(error)")
+        }
+    }
+}
+
+extension AnyHook.State {
+    var description: String {
+        switch self {
+        case .prepared: return "prepared"
+        case .interposed: return "interposed"
+        case .error(let swizzleError): return "error: \(swizzleError)"
         }
     }
 }

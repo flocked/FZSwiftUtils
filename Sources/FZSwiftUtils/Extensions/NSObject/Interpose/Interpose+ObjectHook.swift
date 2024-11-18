@@ -1,21 +1,14 @@
-//
-//  Interpose+ObjectHook.swift
-//
-//  Copyright (c) 2020 Peter Steinberger
-//  InterposeKit - https://github.com/steipete/InterposeKit/
-//
-
 import Foundation
 
 extension Interpose {
 
     /// A hook to an instance method of a single object, stores both the original and new implementation.
     /// Think about: Multiple hooks for one object
-    final class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
+    final public class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
 
         /// The object that is being hooked.
-        weak var object: AnyObject?
-        
+        public let object: AnyObject
+
         /// Subclass that we create on the fly
         var interposeSubclass: InterposeSubclass?
 
@@ -90,10 +83,6 @@ extension Interpose {
 
         override func replaceImplementation() throws {
             let method = try validate()
-            
-            guard let object = object else {
-                throw NSObject.SwizzleError.objectDoesntExistAnymore
-            }
 
             // Check if there's an existing subclass we can reuse.
             // Create one at runtime if there is none.
@@ -188,8 +177,8 @@ extension Interpose {
 
 #if DEBUG
 extension Interpose.ObjectHook: CustomDebugStringConvertible {
-     var debugDescription: String {
-         return "\(selector) of \(String(describing: object)) -> \(String(describing: original))"
+    public var debugDescription: String {
+        return "\(selector) of \(object) -> \(String(describing: original))"
     }
 }
 #endif

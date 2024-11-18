@@ -1,53 +1,152 @@
-//
-//  Interpose.swift
-//
-//  Copyright (c) 2020 Peter Steinberger
-//  InterposeKit - https://github.com/steipete/InterposeKit/
-//
-
 import Foundation
 
+/// Interpose is a modern library to swizzle elegantly in Swift.
+///
+/// Methods are hooked via replacing the implementation, instead of the usual exchange.
+/// Supports both swizzling classes and individual objects.
 final class Interpose {
-    /// A Boolean value indicating whether logging is enabled.
-     static var isLoggingEnabled = false
+    /// Stores swizzle hooks and executes them at once.
+    public let `class`: AnyClass
+    /// Lists all hooks for the current interpose class object.
+    public private(set) var hooks: [AnyHook] = []
+
+    /// If Interposing is object-based, this is set.
+    public let object: AnyObject?
+
+    // Checks if a object is posing as a different class
+    // via implementing 'class' and returning something else.
+    private func checkObjectPosingAsDifferentClass(_ object: AnyObject) -> AnyClass? {
+        Swift.print("check!!!", NSStringFromClass(type(of: object)), NSStringFromClass(object_getClass(object)!), type(of: object) == object_getClass(object)!)
+
+        let perceivedClass: AnyClass = type(of: object)
+        let actualClass: AnyClass = object_getClass(object)!
+        if actualClass != perceivedClass {
+            return actualClass
+        }
+        return nil
+    }
+
+    // This is based on observation, there is no documented way
+    private func isKVORuntimeGeneratedClass(_ klass: AnyClass) -> Bool {
+        NSStringFromClass(klass).hasPrefix("NSKVO")
+    }
+
+    /// Initializes an instance of Interpose for a specific class.
+    /// If `builder` is present, `apply()` is automatically called.
+    public init(_ `class`: AnyClass, builder: ((Interpose) throws -> Void)? = nil) throws {
+        self.class = `class`
+        self.object = nil
+
+        // Only apply if a builder is present
+        if let builder = builder {
+            try apply(builder)
+        }
+    }
+
+    /// Initialize with a single object to interpose.
+    public init(_ object: NSObject, builder: ((Interpose) throws -> Void)? = nil) throws {
+        self.object = object
+        self.class = type(of: object)
+        
+        if let actualClass = checkObjectPosingAsDifferentClass(object) {
+            if isKVORuntimeGeneratedClass(actualClass) {
+                throw NSObject.SwizzleError.keyValueObservationDetected(object)
+            } else {
+                throw NSObject.SwizzleError.objectPosingAsDifferentClass(object, actualClass: actualClass)
+            }
+        }
+
+        // Only apply if a builder is present
+        if let builder = builder {
+            try apply(builder)
+        }
+    }
+
+    deinit {
+        hooks.forEach({ $0.cleanup() })
+    }
+
+    /// Hook an `@objc dynamic` instance method via selector name on the current class.
+    @discardableResult public func hook<MethodSignature, HookSignature>(
+        _ selName: String,
+        methodSignature: MethodSignature.Type = MethodSignature.self,
+        hookSignature: HookSignature.Type = HookSignature.self,
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?)
+        throws -> TypedHook<MethodSignature, HookSignature> {
+        try hook(NSSelectorFromString(selName),
+            methodSignature: methodSignature, hookSignature: hookSignature, implementation)
+    }
+
+    /// Hook an `@objc dynamic` instance method via selector  on the current class.
+    @discardableResult public func hook<MethodSignature, HookSignature> (
+        _ selector: Selector,
+        methodSignature: MethodSignature.Type = MethodSignature.self,
+        hookSignature: HookSignature.Type = HookSignature.self,
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?)
+        throws -> TypedHook<MethodSignature, HookSignature> {
+            let hook = try prepareHook(selector, methodSignature: methodSignature,
+                                       hookSignature: hookSignature, implementation)
+            try hook.apply()
+            return hook
+
+    }
+
+    /// Prepares a hook, but does not call apply immediately.
+    @discardableResult public func prepareHook<MethodSignature, HookSignature> (
+        _ selector: Selector,
+        methodSignature: MethodSignature.Type = MethodSignature.self,
+        hookSignature: HookSignature.Type = HookSignature.self,
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?)
+        throws -> TypedHook<MethodSignature, HookSignature> {
+            var hook: TypedHook<MethodSignature, HookSignature>
+            if let object = self.object {
+                hook = try ObjectHook(object: object, selector: selector, implementation: implementation)
+            } else {
+                hook = try ClassHook(class: `class`, selector: selector, implementation: implementation)
+            }
+            hooks.append(hook)
+            return hook
+    }
+
+    /// Apply all stored hooks.
+    @discardableResult public func apply(_ hook: ((Interpose) throws -> Void)? = nil) throws -> Interpose {
+        try execute(hook) { try $0.apply() }
+    }
+
+    /// Revert all stored hooks.
+    @discardableResult public func revert(_ hook: ((Interpose) throws -> Void)? = nil) throws -> Interpose {
+        try execute(hook, expectedState: .interposed) { try $0.revert() }
+    }
+
+    private func execute(_ task: ((Interpose) throws -> Void)? = nil,
+                         expectedState: AnyHook.State = .prepared,
+                         executor: ((AnyHook) throws -> Void)) throws -> Interpose {
+        // Run pre-apply code first
+        if let task = task {
+            try task(self)
+        }
+        // Validate all tasks, stop if anything is not valid
+        guard hooks.allSatisfy({
+            (try? $0.validate(expectedState: expectedState)) != nil
+        }) else {
+            throw NSObject.SwizzleError.invalidState(expectedState: expectedState.description)
+        }
+        // Execute all tasks
+        try hooks.forEach(executor)
+        return self
+    }
+}
+
+// MARK: Logging
+
+extension Interpose {
+    /// Logging uses print and is minimal.
+    public static var isLoggingEnabled = false
 
     /// Simple log wrapper for print.
     class func log(_ object: Any) {
         if isLoggingEnabled {
             print("[Interposer] \(object)")
         }
-    }
-}
-
-
-extension Interpose {
-    static func storeHook<HookType: AnyHook>(hook: HookType, to block: AnyObject) {
-        setAssociatedValue(weak: hook, key: "_hook", object: block)
-    }
-
-    // Finds the hook to a given implementation.
-    static func hookForIMP<HookType: AnyHook>(_ imp: IMP) -> HookType? {
-        // Get the block that backs our IMP replacement
-        guard let block = imp_getBlock(imp) as? AnyObject else { return nil }
-        return getAssociatedValue("_hook", object: block)
-    }
-
-    // Find the hook above us (not necessarily topmost)
-    static func findNextHook<HookType: AnyHook>(selfHook: HookType, topmostIMP: IMP) -> HookType? {
-        // We are not topmost hook, so find the hook above us!
-        var impl: IMP? = topmostIMP
-        var currentHook: HookType?
-        repeat {
-            // get topmost hook
-            let hook: HookType? = Interpose.hookForIMP(impl!)
-            if hook === selfHook {
-                // return parent
-                return currentHook
-            }
-            // crawl down the chain until we find ourselves
-            currentHook = hook
-            impl = hook?.origIMP
-        } while impl != nil
-        return nil
     }
 }

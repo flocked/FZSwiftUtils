@@ -1,14 +1,7 @@
-//
-//  NSObject+SwizzleError.swift
-//
-//  Copyright (c) 2020 Peter Steinberger
-//  InterposeKit - https://github.com/steipete/InterposeKit/
-//
-
 import Foundation
 
 extension NSObject {
-    /// The list of errors while swizzling a method.
+    /// The list of errors while hooking a method.
     public enum SwizzleError: LocalizedError {
         /// The method couldn't be found. Usually happens for when you use stringified selectors that do not exist.
         case methodNotFound(AnyClass, Selector)
@@ -40,14 +33,13 @@ extension NSObject {
         case objectPosingAsDifferentClass(AnyObject, actualClass: AnyClass)
         
         /// Can't revert or apply if already done so.
-        case invalidState(expectedState: AnyHook.State)
+        case invalidState(expectedState: String)
         
         /// Unable to remove hook.
         case resetUnsupported(_ reason: String)
         
         /// Generic failure
         case unknownError(_ reason: String)
-        
         case objectDoesntExistAnymore
     }
 }
@@ -78,10 +70,10 @@ extension NSObject.SwizzleError: Equatable {
             return "Invalid State. Expected: \(expectedState)"
         case .resetUnsupported(let reason):
             return "Reset Unsupported: \(reason)"
+        case .objectDoesntExistAnymore:
+            return "Object doesnt exist anymore"
         case .unknownError(let reason):
             return reason
-        case .objectDoesntExistAnymore:
-            return "The object for swizzling doesn't exist anymore."
         }
     }
 

@@ -48,80 +48,28 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
-            deactivateAllObservations()
+
             let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
-            var _hooks = hooks[selector] ?? []
-    
-            _hooks.append(hook)
-            hooks[selector] = _hooks
-            activateAllObservations()
-            return ReplacedMethodToken(hook)
-        }
-    
+            hooks[selector, default: []].append(hook)
+            return .init(hook)
+    }
+
     /// Replace an `@objc dynamic` class method of the current class.
-    @discardableResult
-    public static func replaceMethod<MethodSignature, HookSignature> (
+    public class func replaceMethod<MethodSignature, HookSignature> (
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
-            let hook = try Interpose.ClassHook(class: self as AnyClass, selector: selector, implementation: implementation).apply()
-            var _hooks = hooks[selector] ?? []
-            _hooks.append(hook)
-            hooks[selector] = _hooks
-            return ReplacedMethodToken(hook)
-        }
-    
-    func checkObjectPosingAsDifferentClass() -> AnyClass? {
-        Swift.print("checkDifferentClass", NSStringFromClass(type(of: self)), NSStringFromClass(object_getClass(self)!), type(of: self) == object_getClass(self)!)
-         let perceivedClass: AnyClass = type(of: self)
-         let actualClass: AnyClass = object_getClass(self)!
-         if actualClass != perceivedClass {
-             return actualClass
-         }
-         return nil
-     }
-    
-    func isKVORuntimeGeneratedClass(_ klass: AnyClass) -> Bool {
-        NSStringFromClass(klass).hasPrefix("NSKVO")
+        let hook = try Interpose.ClassHook(class: self as AnyClass,
+                                       selector: selector, implementation: implementation).apply()
+            
+        hooks[selector, default: []].append(hook)
+            return .init(hook)
     }
     
-    var didDeactivateObservations: Bool {
-        get { getAssociatedValue("didDeactivateObservations", initialValue: false) }
-        set { setAssociatedValue(newValue, key: "didDeactivateObservations") }
-    }
-    
-    func checkObjectForSwizzling() throws {
-        if let actualClass = checkObjectPosingAsDifferentClass() {
-            if isKVORuntimeGeneratedClass(actualClass) {
-                if didDeactivateObservations == false {
-                    deactivateAllObservations()
-                    didDeactivateObservations = true
-                    return try checkObjectForSwizzling()
-                }
-                activateAllObservations()
-                throw SwizzleError.keyValueObservationDetected(self)
-            } else {
-                throw SwizzleError.objectPosingAsDifferentClass(self, actualClass: actualClass)
-            }
-        }
-    }
-    
-    /**
-     The token for resetting a replaced method.
-     
-     To reset a replaced method of an object, use the token on the object's `resetMethod(:_)`.
-     */
-    public struct ReplacedMethodToken {
-        /// The selector for the replaced method.
-        public let selector: Selector
-        /// The id of the token.
-        public let id: UUID
-        
-        init(_ hook: AnyHook) {
-            self.selector = hook.selector
-            self.id = hook.id
-        }
+    /// A Boolean value indicating whether the instance method for the specified selector is replaced.
+    public func isMethodReplaced(_ selector: Selector) -> Bool {
+        (hooks[selector] ?? []).isEmpty == false
     }
     
     /// Resets an replaced instance method of the object to it's original state.
@@ -140,7 +88,7 @@ extension NSObject {
     public func resetMethod(_ token: ReplacedMethodToken) {
         if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
             do {
-                try hooks[safe: index]?.revert()
+                try hooks[index].revert()
                 hooks.remove(at: index)
                 self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
             } catch {
@@ -156,8 +104,8 @@ extension NSObject {
         }
     }
     
-    /// A Boolean value indicating whether the instance method for the specified selector is replaced.
-    public func isMethodReplaced(_ selector: Selector) -> Bool {
+    /// A Boolean value indicating whether the class method for the selector is replaced.
+    public static func isMethodReplaced(_ selector: Selector) -> Bool {
         (hooks[selector] ?? []).isEmpty == false
     }
     
@@ -177,7 +125,7 @@ extension NSObject {
     public static func resetMethod(_ token: ReplacedMethodToken) {
         if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
             do {
-                try hooks[safe: index]?.revert()
+                try hooks[index].revert()
                 hooks.remove(at: index)
                 self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
             } catch {
@@ -193,11 +141,6 @@ extension NSObject {
         }
     }
     
-    /// A Boolean value indicating whether the class method for the selector is replaced.
-    public static func isMethodReplaced(_ selector: Selector) -> Bool {
-        (hooks[selector] ?? []).isEmpty == false
-    }
-    
     var hooks: [Selector: [AnyHook]] {
         get { getAssociatedValue("_hooks", initialValue: [:]) }
         set { setAssociatedValue(newValue, key: "_hooks") }
@@ -208,22 +151,20 @@ extension NSObject {
         set { setAssociatedValue(newValue, key: "_hooks") }
     }
     
-    /// All replaced instance methods.
-    public var replacedMethods: [ReplacedMethodToken] {
-        hooks.flatMap({$0.value}).compactMap({ReplacedMethodToken($0)})
-    }
-    
-    /// All replaced class methods.
-    public static var replacedMethods: [ReplacedMethodToken] {
-        hooks.flatMap({$0.value}).compactMap({ReplacedMethodToken($0)})
-    }
-    
-    /// A Boolean value indicating whether the object is being key value observed.
-    public var isKeyValueObserved: Bool {
-        if let actualClass = checkObjectPosingAsDifferentClass() {
-            return isKVORuntimeGeneratedClass(actualClass)
+    /**
+     The token for resetting a replaced method.
+     
+     To reset a replaced method of an object, use the token on the object's `resetMethod(:_)`.
+     */
+    public struct ReplacedMethodToken {
+        /// The selector for the replaced method.
+        public let selector: Selector
+        /// The id of the token.
+        public let id: UUID
+        
+        init(_ hook: AnyHook) {
+            self.selector = hook.selector
+            self.id = hook.id
         }
-        return false
     }
 }
-

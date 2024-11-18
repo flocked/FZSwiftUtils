@@ -47,6 +47,7 @@ class InterposeSubclass {
         guard let object = object else {
             throw NSObject.SwizzleError.objectDoesntExistAnymore
         }
+        
         let perceivedClass: AnyClass = type(of: object)
         let actualClass: AnyClass = object_getClass(object)!
 
