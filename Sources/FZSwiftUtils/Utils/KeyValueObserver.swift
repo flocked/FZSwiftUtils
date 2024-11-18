@@ -318,7 +318,20 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
+    @objc func activate(_ notification: Notification) {
+        Swift.print("activate KeyObserver")
+        self.isActive = true
+    }
+    
+    @objc func deactivate(_ notification: Notification) {
+        Swift.print("deactivate KeyObserver")
+        self.isActive = false
+    }
+    
     private func setupActivationTokens() {
+        NotificationCenter.default.addObserver(self, selector: #selector(activate), name: Self.activateObservation, object: observedObject)
+        NotificationCenter.default.addObserver(self, selector: #selector(deactivate), name: Self.deactivateObservation, object: observedObject)
+/*
         actionvationTokens = [
             NotificationCenter.default.observe(Self.activateObservation, object: observedObject, using: { [weak self] notification in
                 Swift.print("activate KeyObserver")
@@ -328,6 +341,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
                 Swift.print("deactivate KeyObserver")
                 guard let self = self else { return }
                 self.isActive = false })]
+ */
     }
     
     private struct Observation {
