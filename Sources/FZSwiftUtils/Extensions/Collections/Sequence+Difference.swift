@@ -55,3 +55,28 @@ public extension Sequence where Element: Equatable {
         return (removed, added, changed, unchanged)
     }
 }
+
+public extension Sequence where Element: Hashable {
+    /**
+     Returns the difference needed to produce this collection’s ordered elements from the given collection.
+
+     - Parameter other: The other collection to compare.
+     - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
+     */
+    func difference<C: Sequence>(to other: C) -> (removed: [Element], added: [Element], unchanged: [Element]) where C.Element == Element {
+        let selfSet = Set(self)
+        let otherSet = Set(other)
+
+        // Calculate differences using set operations
+        let removed = selfSet.subtracting(otherSet)
+        let added = otherSet.subtracting(selfSet)
+        let unchanged = selfSet.intersection(otherSet)
+
+        // Preserve the order of elements
+        let removedOrdered = filter { removed.contains($0) }
+        let unchangedOrdered = filter { unchanged.contains($0) }
+        let addedOrdered = other.filter { added.contains($0) }
+
+        return (removedOrdered, addedOrdered, unchangedOrdered)
+    }
+}

@@ -240,7 +240,7 @@ public extension NSDictionary {
     }
 }
 
-extension Dictionary where Key: Equatable, Value == Any {
+extension Dictionary where Value == Any {
     /**
      A Boolean value indicating whether the dictionary is equatable to another dictionary.
 
@@ -248,10 +248,12 @@ extension Dictionary where Key: Equatable, Value == Any {
      - Returns: Returns `true` if the dictionary is equal to the other dictionary; or `false` if it isn't equal.
      */
     public func isEqual(to other: Self) -> Bool {
-        let keys = keys
         guard keys.count == other.keys.count, Set(keys) == Set(other.keys) else { return false }
         for key in keys {
-            guard let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), val1.isEqual(val2) else {
+            if let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), !val1.isEqual(val2) {
+                return false
+            }
+            if let val1 = self[key] as? AnyObject, let val2 = other[key] as? AnyObject, val1 !== val2 {
                 return false
             }
         }
@@ -264,10 +266,12 @@ extension Dictionary where Key: Equatable, Value == Any {
         var changed: [Key] = []
         for key in diff.unchanged {
             if let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), val1.isEqual(val2) {
-                
-            } else {
-                changed.append(key)
+                continue
             }
+            if let val1 = self[key] as? AnyObject, let val2 = other[key] as? AnyObject, val1 === val2 {
+                continue
+            }
+            changed.append(key)
         }
         return (diff.added, diff.removed, changed)
     }
