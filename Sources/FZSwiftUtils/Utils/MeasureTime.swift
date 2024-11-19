@@ -40,4 +40,20 @@ public struct MeasureTime {
         let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
         return TimeDuration(Double(timeElapsed))
     }
+    
+    private static var timingStack = [(startTime:Double,name:String,reported:Bool)]()
+    
+    public static func startMeasurement(_ name: String) {
+        timingStack.append((CFAbsoluteTimeGetCurrent(), name, false))
+    }
+    
+    @discardableResult
+    public static func stopMeasurement(_ executionDetails: String?) -> TimeDuration {
+        guard !timingStack.isEmpty else { return .zero }
+        let beginning = timingStack.removeLast()
+        let timeElapsed = CFAbsoluteTimeGetCurrent() - beginning.startTime
+        let duration = TimeDuration(Double(timeElapsed))
+        print("\(String(repeating: "\t", count: timingStack.count))\(beginning.name) took: \(timeElapsed)" + (executionDetails == nil ? "" : " (\(executionDetails!))"))
+        return duration
+    }
 }

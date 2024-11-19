@@ -35,7 +35,7 @@ public extension Sequence where Element: Equatable {
      - Parameter other: The other collection to compare.
      - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
      */
-    func difference<C: Collection<Element>>(to other: C) -> (removed: [Element], added: [Element], changed: [Element], unchanged: [Element]) where C.Index: BinaryInteger {
+    func differenceIndexed<C: Collection<Element>>(to other: C) -> (removed: [Element], added: [Element], changed: [Element], unchanged: [Element]) where C.Index: BinaryInteger {
         var removed: [Element] = []
         var changed: [Element] = []
         var unchanged: [Element] = []

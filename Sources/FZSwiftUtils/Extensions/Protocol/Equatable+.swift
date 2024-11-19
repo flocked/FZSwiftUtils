@@ -12,7 +12,7 @@ public extension Equatable {
      A Boolean value indicating whether the value is equatable to another value.
 
      - Parameter other: A value conforming to Equatable.
-     - Returns: Returns `true` if the value is equal to the other value; or `false if it isn't equal or if isn't the same Equatable type.
+     - Returns: Returns `true` if the value is equal to the other value; or `false` if it isn't equal or if isn't the same Equatable type.
      */
     func isEqual(_ other: any Equatable) -> Bool {
         guard let other = other as? Self else {

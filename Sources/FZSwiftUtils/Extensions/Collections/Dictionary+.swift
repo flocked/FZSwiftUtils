@@ -239,3 +239,36 @@ public extension NSDictionary {
         self as CFDictionary
     }
 }
+
+extension Dictionary where Key: Equatable, Value == Any {
+    /**
+     A Boolean value indicating whether the dictionary is equatable to another dictionary.
+
+     - Parameter other: The dictionary to compare.
+     - Returns: Returns `true` if the dictionary is equal to the other dictionary; or `false` if it isn't equal.
+     */
+    public func isEqual(to other: Self) -> Bool {
+        let keys = keys
+        guard keys.count == other.keys.count, Set(keys) == Set(other.keys) else { return false }
+        for key in keys {
+            guard let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), val1.isEqual(val2) else {
+                return false
+            }
+        }
+        return true
+    }
+    
+    /// The keys of tha values that where added, removed and changed from the other dictionary.
+    public func keysChanged(from other: Self) -> (added: [Key], removed: [Key], changed: [Key]) {
+        let diff = keys.difference(to: other.keys)
+        var changed: [Key] = []
+        for key in diff.unchanged {
+            if let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), val1.isEqual(val2) {
+                
+            } else {
+                changed.append(key)
+            }
+        }
+        return (diff.added, diff.removed, changed)
+    }
+}
