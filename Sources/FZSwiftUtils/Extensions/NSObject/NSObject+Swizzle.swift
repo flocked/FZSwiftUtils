@@ -36,7 +36,7 @@ extension NSObject {
      }
      ```
      
-     To reset the replaced method, use `resetMethod(_:)` with the selector or replacement token.
+     To reset the replaced method, use `resetMethod(_:)` with the selector or set tokens `isActive` to false.
           
      - Returns: The token for resetting the replaced method.
      */
@@ -51,7 +51,7 @@ extension NSObject {
                 let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
                 hooks[selector, default: []].append(hook)
                 activateAllObservations()
-                return .init(hook)
+                return .init(hook, self)
             } catch {
                 activateAllObservations()
                 throw error
@@ -61,8 +61,8 @@ extension NSObject {
     /**
      Replace an `@objc dynamic` class method of the current class.
      
-     To reset the replaced method, use `resetMethod(_:)` with the selector or replacement token.
-          
+     To reset the replaced method, use `resetMethod(_:)` with the selector or set tokens `isActive` to false.
+
      - Returns: The token for resetting the replaced method.
      */
     @discardableResult
@@ -73,9 +73,8 @@ extension NSObject {
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
         let hook = try Interpose.ClassHook(class: self as AnyClass,
                                        selector: selector, implementation: implementation).apply()
-            
         hooks[selector, default: []].append(hook)
-            return .init(hook)
+        return .init(hook, self)
     }
     
     /// A Boolean value indicating whether the instance method for the specified selector is replaced.
@@ -98,22 +97,6 @@ extension NSObject {
                 hooks[selector, default: []].removeFirst(where: {$0.id == hook.id })
             } catch {
                 debugPrint(error)
-            }
-        }
-    }
-    
-    /// Resets an replaced instance method of the object to it's original state.
-    public func resetMethod(_ token: ReplacedMethodToken) {
-        if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
-            do {
-                deactivateAllObservations()
-                try hooks[index].revert()
-                hooks.remove(at: index)
-                self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
-                activateAllObservations()
-            } catch {
-                debugPrint(error)
-                activateAllObservations()
             }
         }
     }
@@ -144,19 +127,6 @@ extension NSObject {
         hooks[selector] = nil
     }
     
-    /// Resets an replaced class method of the class to it's original state.
-    public static func resetMethod(_ token: ReplacedMethodToken) {
-        if var hooks = hooks[token.selector], let index = hooks.firstIndex(where: {$0.id == token.id}) {
-            do {
-                try hooks[index].revert()
-                hooks.remove(at: index)
-                self.hooks[token.selector] = hooks.isEmpty ? nil : hooks
-            } catch {
-                debugPrint(error)
-            }
-        }
-    }
-    
     /// Resets all replaced class methods of the class to their original state.
     public static func resetAllMethods() {
         for selector in hooks.keys {
@@ -173,82 +143,57 @@ extension NSObject {
         get { getAssociatedValue("_hooks", initialValue: [:]) }
         set { setAssociatedValue(newValue, key: "_hooks") }
     }
-    
+        
     /**
-     The token for resetting a replaced method.
+     The token for a replaced method.
      
-     To reset a replaced method of an object, use the token on the object's `resetMethod(:_)`.
+     To reset or activate a replaced method, use ``isActive``.
      */
-    public struct ReplacedMethodToken {
-        /// The selector for the replaced method.
-        public let selector: Selector
-        /// The id of the token.
-        public let id: UUID
+    public class ReplacedMethodToken {
         
-        init(_ hook: AnyHook) {
-            self.selector = hook.selector
-            self.id = hook.id
-        }
-    }
-    
-    /*
-    public struct ReplacedMethodTokenAlt {
         /// The selector for the replaced method.
         public let selector: Selector
         
-        /// The id of the token.
-        public let id: UUID
-        
-        /// The id of the token.
-        let hook: AnyHook
-        
-        weak var object: NSObject?
-        var _class: NSObject.Type?
-        
-        var hooks: [Selector: [AnyHook]]? {
-            get { object?.hooks ?? _class?.hooks }
-            set {
-                guard let newValue = newValue else { return }
-                object?.hooks = newValue
-                _class?.hooks = newValue
-            }
-        }
-        
+        /// The class for the replaced method.
+        public let `class`: AnyClass
+                
         /// A Boolean value indicating whether the replaced method is active.
         public var isActive: Bool {
-            get {
-                guard let hooks = hooks else { return false }
-                return hooks[selector, default: []].contains(where: {$0.id == hook.id })
-            }
+            get { hook?.state == .interposed }
             set {
-                guard var hooks = hooks, newValue != isActive else { return }
+                guard newValue != isActive, let hook = hook else { return }
                 do {
-                    try hook.revert()
                     if newValue {
-                        hooks[selector, default: []].append(hook)
+                        try hook.apply()
+                        object?.hooks[selector, default: []].append(hook)
+                        _class?.hooks[selector, default: []].append(hook)
                     } else {
-                        hooks[selector, default: []].removeFirst(where: {$0.id == hook.id })
+                        try hook.revert()
+                        object?.hooks[selector, default: []].removeFirst(where: {$0.id == hook.id })
+                        _class?.hooks[selector, default: []].removeFirst(where: {$0.id == hook.id })
                     }
-                    self.hooks = hooks
                 } catch {
-                    Swift.debugPrint(error)
+                    debugPrint(error)
                 }
             }
         }
         
+        weak var hook: AnyHook?
+        weak var object: NSObject?
+        var _class: NSObject.Type?
+        
         init(_ hook: AnyHook, _ object: NSObject) {
             self.selector = hook.selector
-            self.id = hook.id
             self.hook = hook
             self.object = object
+            self.class = hook.class
         }
         
         init(_ hook: AnyHook, _ classType: NSObject.Type) {
             self.selector = hook.selector
-            self.id = hook.id
             self.hook = hook
             self._class = classType
+            self.class = hook.class
         }
     }
-    */
 }
