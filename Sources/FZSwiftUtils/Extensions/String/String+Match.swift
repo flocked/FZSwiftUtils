@@ -145,10 +145,8 @@ public extension String {
     func matches(between fromString: String, and toString: String, includingFromTo: Bool = false, in range: Range<Index>? = nil, options: NSRegularExpression.Options = []) -> [StringMatch] {
         let fromString = fromString.escapedPattern
         let toString = toString.escapedPattern
-
         let pattern = includingFromTo ? "\(fromString)(.*?)\(toString)" : "(?<=\(fromString))(.*?)(?=\(toString))"
         return  matches(pattern: pattern, in: range, options: options)
-       // return includingFromTo ? matches.compactMap({$0.withoutGroup}) : matches.compactMap({$0.groups.first})
     }
     
     /**
@@ -269,6 +267,22 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     /// The pattern of a regular expression match.
     public let regularExpression: String?
     
+    /// The matched group with the specified name of a regular expression string match.
+    public func group(named name: String) -> StringMatch? {
+        guard let nsRange = textCheckingResult?.range(withName: name), let range = Range(nsRange, in: string) else { return nil }
+        if self.range == range {
+            return self
+        }
+        return groups.first(where: { $0.range == range })
+    }
+    
+    /// The matched group with the specified name of a regular expression string match.
+    public subscript(_ name: String) -> StringMatch? {
+        return group(named: name)
+    }
+    
+    var textCheckingResult: NSTextCheckingResult?
+    
     /// Extracted components.
     public struct Components: Hashable {
         /// URL.
@@ -332,15 +346,12 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         return "StringMatch(\(type.rawValue): \"\(string)\")"
     }
     
-    var withoutGroup: StringMatch {
-        StringMatch(type, string: string, range: range)
-    }
-    
     init(_ type: ResultType, string: String, range: Range<String.Index>, groups: [StringMatch] = [], result: NSTextCheckingResult? = nil) {
         self.type = type
         self.string = String(string[range])
         self.range = range
         self.groups = groups
+        self.textCheckingResult = result
         if let result = result {
             components = Components(result)
             regularExpression = result.regularExpression?.pattern

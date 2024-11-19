@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension NSRegularExpression {
+extension NSRegularExpression {    
     /**
      Returns an array containing all the matches of the regular expression in the string.
      
@@ -30,5 +30,19 @@ extension NSRegularExpression {
      */
     public func matches(in string: String, options: MatchingOptions) -> [NSTextCheckingResult] {
         matches(in: string, options: options, range: string.nsRange)
+    }
+    
+    /// The names of the capture groups.
+    public var captureGroupNames: [String] {
+        if let names = _captureGroupNames {
+            return names
+        }
+        _captureGroupNames = pattern.matches(pattern: "\\(\\?P<([a-zA-Z_][a-zA-Z0-9_]*)\\>").compactMap({$0.string})
+        return _captureGroupNames ?? []
+    }
+    
+    var _captureGroupNames: [String]? {
+        get { getAssociatedValue("_captureGroupNames") }
+        set { setAssociatedValue(newValue, key: "_captureGroupNames") }
     }
 }
