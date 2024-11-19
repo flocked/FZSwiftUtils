@@ -78,7 +78,7 @@ open class AsyncOperation: Operation, Pausable {
     }
 
     override open var isFinished: Bool {
-        state == .waiting ? super.isFinished : state == .finished
+        state == .waiting ? super.isFinished : state == .finished || state == .cancelled
     }
 
     override open var isCancelled: Bool {
