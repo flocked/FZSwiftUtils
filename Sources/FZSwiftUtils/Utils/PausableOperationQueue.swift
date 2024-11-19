@@ -17,10 +17,6 @@ public protocol Pausable {
     var isPaused: Bool { get }
 }
 
-extension Pausable where Self: Operation {
-    
-}
-
 /**
  A pausable queue that regulates the execution of operations.
  

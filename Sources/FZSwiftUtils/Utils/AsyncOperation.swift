@@ -27,34 +27,45 @@ open class AsyncOperation: Operation, Pausable {
 
     /// The error, if the operation failed.
     open var error: Error?
+    
+    open var startHandler: (()->())? = nil
+    
+    private let pauseSemaphore = DispatchSemaphore(value: 0) // Semaphore to pause/resume
 
     /// The state of the operation.
-    open var state: State = .waiting {
-        willSet {
-            willChangeValue(forKey: State.ready.rawValue)
-            willChangeValue(forKey: State.executing.rawValue)
-            willChangeValue(forKey: State.finished.rawValue)
-            willChangeValue(forKey: State.cancelled.rawValue)
-        }
-        didSet {
-            switch state {
-            case .waiting:
-                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(state)")
-            case .ready:
-                assert(oldValue == .waiting, "Invalid change from \(oldValue) to \(state)")
-            case .executing:
-                assert( oldValue == .ready || oldValue == .waiting || oldValue == .paused, "Invalid change from \(oldValue) to \(state)")
-            case .finished:
-                assert(oldValue != .cancelled, "Invalid change from \(oldValue) to \(state)")
-            case .cancelled:
-                break
-            case .paused:
-                assert(oldValue == .executing, "Invalid change from \(oldValue) to \(state)")
+    open var state: State {
+        get { _state }
+        set {
+            guard newValue != state else { return }
+            if validateState(newValue) {
+                willChangeValue(for: \.isReady)
+                willChangeValue(for: \.isExecuting)
+                willChangeValue(for: \.isFinished)
+                willChangeValue(for: \.isCancelled)
+                _state = newValue
+                didChangeValue(for: \.isReady)
+                didChangeValue(for: \.isExecuting)
+                didChangeValue(for: \.isFinished)
+                didChangeValue(for: \.isCancelled)
+            } else {
+                debugPrint("Invalid change from \(_state) to \(newValue)")
             }
-            didChangeValue(forKey: State.cancelled.rawValue)
-            didChangeValue(forKey: State.finished.rawValue)
-            didChangeValue(forKey: State.executing.rawValue)
-            didChangeValue(forKey: State.ready.rawValue)
+        }
+    }
+    var _state: State = .waiting
+        
+    func validateState(_ newState: State) -> Bool {
+        switch newState {
+        case .waiting, .ready:
+            return state == .waiting
+        case .executing:
+            return state == .ready || state == .waiting || state == .paused
+        case .finished:
+            return state != .cancelled
+        case .cancelled:
+            return true
+        case .paused:
+            return state != .cancelled && state != .finished
         }
     }
 
@@ -78,6 +89,21 @@ open class AsyncOperation: Operation, Pausable {
     open var isPaused: Bool {
         state == .paused
     }
+    
+    open override func start() {
+        guard !isCancelled, !isExecuting, !isFinished else { return }
+        state = .executing
+        startHandler?()
+        main()
+    }
+    
+    override open func cancel() {
+        guard isExecuting else { return }
+        if isPaused {
+            pauseSemaphore.signal()
+        }
+        state = .cancelled
+    }
 
     /// Resumes the operation, if it's paused.
     open func resume() {
@@ -90,16 +116,15 @@ open class AsyncOperation: Operation, Pausable {
         guard isExecuting, state != .paused else { return }
         state = .paused
     }
-
-    /// Finishes executing the operation.
-    open func finish() {
-        guard isExecuting else { return }
-        state = .finished
-    }
-
-    override open func cancel() {
-        guard isExecuting else { return }
-        state = .cancelled
+    
+    /**
+     Pauses the current execution if the operation is paused.
+     
+     Use it in your `main()` method to stop the remaining execution, if the operation is paused.
+     */
+    open func pauseExecutionIfPaused() {
+        guard isPaused else { return }
+        pauseSemaphore.wait()
     }
 
     override open var isAsynchronous: Bool {
