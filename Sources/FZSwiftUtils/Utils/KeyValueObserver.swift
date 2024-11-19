@@ -7,13 +7,12 @@
 
 import Foundation
 
-open class KeyValueObserver<Object>: NSObject where Object: NSObject {
+open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObject {
     
     /// The observed object.
     public fileprivate(set) weak var observedObject: Object?
     
     private var observations: [String: Observation] = [:]
-    private var actionvationTokens: [NotificationToken] = []
     
     var isActive: Bool = true {
         didSet {
@@ -36,7 +35,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     public init(_ observedObject: Object) {
         self.observedObject = observedObject
         super.init()
-        setupActivationTokens()
+        observedObject.kvoObservers.append(.init(self))
     }
     
     // MARK: - Observation
@@ -227,8 +226,8 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      */
     public func removeObservedObject() {
         isActive = false
+        observedObject?.kvoObservers.removeFirst(where: { $0.object == self })
         observedObject = nil
-        actionvationTokens = []
     }
     
     /**
@@ -239,7 +238,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     public func replaceObservedObject(with object: Object) {
         removeObservedObject()
         observedObject = object
-        setupActivationTokens()
+        object.kvoObservers.append(.init(self))
         isActive = true
     }
     
@@ -318,16 +317,6 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
-    private func setupActivationTokens() {
-        actionvationTokens = [
-            NotificationCenter.default.observe(Self.activateObservation, object: observedObject, using: { [weak self] notification in
-                guard let self = self else { return }
-                self.isActive = true }),
-            NotificationCenter.default.observe(Self.deactivateObservation, object: observedObject, using: { [weak self] notification in
-                guard let self = self else { return }
-                self.isActive = false })]
-    }
-    
     private struct Observation {
         let keyPath: String
         var handler: ((_ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void)?
@@ -349,5 +338,34 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     deinit {
         removeAll()
+        observedObject?.kvoObservers.removeFirst(where: { $0.object == self })
+    }
+}
+
+protocol KVObservation: NSObject {
+    var isActive: Bool { get set }
+}
+
+extension NSObject {
+    var kvoObservers: [WeakKVObservation] {
+        get { getAssociatedValue("kvoObservers") ?? [] }
+        set { setAssociatedValue(newValue.filter({$0.object != nil}), key: "kvoObservers") }
+    }
+}
+
+class WeakKVObservation: NSObject {
+    private weak var _object: KVObservation?
+
+    var isActive: Bool {
+        get { object?.isActive ?? false }
+        set { object?.isActive = true }
+    }
+    
+    var object: KVObservation? {
+        _object
+    }
+    
+    init(_ object: KVObservation?) {
+        _object = object
     }
 }

@@ -109,16 +109,6 @@ extension NSObjectProtocol where Self: NSObject {
     public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
         KVObserverPrior(self, keyPath: keyPath, handler: handler)?.keyValueObservation
     }
-    
-    /// Deactivates all key value observations of the object.
-    public func deactivateAllObservations() {
-        NotificationCenter.default.post(name: Self.deactivateObservation, object: self)
-    }
-    
-    /// Activates all inactive key value observations of the object.
-    public func activateAllObservations() {
-        NotificationCenter.default.post(name: Self.activateObservation, object: self)
-    }
 }
 
 extension NSObject {
@@ -139,11 +129,12 @@ extension NSObject {
  ```
  To stop the observation of the property, either call ``invalidate()```, or deinitalize the object.
  */
-public class KeyValueObservation: NSObject {
+public class KeyValueObservation: NSObject, KVObservation {
 
     /// Invalidates the observation.
     public func invalidate() {
         observer.isActive = false
+        observer._object?.kvoObservers.removeFirst(where: {$0.object == self })
         tokens.removeAll()
     }
     
@@ -160,27 +151,15 @@ public class KeyValueObservation: NSObject {
     let observer: KVOObservation
     var tokens: [NotificationToken] = []
     
-    func setupNotifications() {
-        tokens.append(NotificationCenter.default.observe(Self.activateObservation, object: observer._object, using: { [weak self] notification in
-            guard let self = self else { return }
-            self.observer.isActive = true
-            if self.observer._object == nil {
-                self.invalidate()
-            }
-        }))
-        tokens.append(NotificationCenter.default.observe(Self.deactivateObservation, object: observer._object, using: { [weak self] notification in
-            guard let self = self else { return }
-            self.observer.isActive = false
-            if self.observer._object == nil {
-                self.invalidate()
-            }
-        }))
+    var isActive: Bool {
+        get { observer.isActive }
+        set { observer.isActive = newValue }
     }
-    
+        
     init(_ observer: KVOObservation) {
         self.observer = observer
         super.init()
-        setupNotifications()
+        observer._object?.kvoObservers.append(.init(self))
     }
     
     deinit {
