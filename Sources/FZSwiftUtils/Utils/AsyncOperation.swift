@@ -9,6 +9,7 @@ import Foundation
 
 /// An asynchronous, pausable operation.
 open class AsyncOperation: Operation, Pausable {
+    
     /// The state of the operation.
     public enum State: String, Hashable {
         /// The operation is waiting to start.
@@ -54,7 +55,7 @@ open class AsyncOperation: Operation, Pausable {
     }
     var _state: State = .waiting
         
-    func validateState(_ newState: State) -> Bool {
+    private func validateState(_ newState: State) -> Bool {
         switch newState {
         case .waiting, .ready:
             return state == .waiting
@@ -90,7 +91,7 @@ open class AsyncOperation: Operation, Pausable {
         state == .paused
     }
     
-    open override func start() {
+    override open func start() {
         guard !isCancelled, !isExecuting, !isFinished else { return }
         state = .executing
         startHandler?()
@@ -145,17 +146,9 @@ open class AsyncBlockOperation: AsyncOperation {
     public init(closure: @escaping ((AsyncBlockOperation) -> Void)) {
         self.closure = closure
     }
-
-    override open func start() {
-        super.start()
-        guard isExecuting, !isPaused else { return }
+    
+    override open func main() {
         closure(self)
         state = .finished
-    }
-    
-    open override func resume() {
-        super.resume()
-        guard isExecuting, !isPaused else { return }
-        start()
     }
 }
