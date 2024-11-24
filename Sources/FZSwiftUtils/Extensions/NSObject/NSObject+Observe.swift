@@ -213,12 +213,23 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         self.options = [.old, .new]
         self.handler = { change in
             guard let new = change.newValue else { return }
+            if let old = change.oldValue {
+                if !uniqueValues {
+                    handler(old, new)
+                } else if old != new {
+                    handler(old, new)
+                }
+            } else {
+                handler(new, new)
+            }
+            /*
             if let old = change.oldValue, (!uniqueValues || old != new) {
                 Swift.print("here", uniqueValues, old != new, (!uniqueValues || old != new))
                 handler(old, new)
             } else {
                 handler(new, new)
             }
+             */
         }
         super.init()
         if sendInitalValue {
