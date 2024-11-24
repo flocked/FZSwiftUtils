@@ -214,22 +214,12 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         self.handler = { change in
             guard let new = change.newValue else { return }
             if let old = change.oldValue {
-                if !uniqueValues {
-                    handler(old, new)
-                } else if old != new {
+                if !uniqueValues || old != new {
                     handler(old, new)
                 }
             } else {
                 handler(new, new)
             }
-            /*
-            if let old = change.oldValue, (!uniqueValues || old != new) {
-                Swift.print("here", uniqueValues, old != new, (!uniqueValues || old != new))
-                handler(old, new)
-            } else {
-                handler(new, new)
-            }
-             */
         }
         super.init()
         if sendInitalValue {
@@ -245,6 +235,7 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         self.keyPath = keyPath
         self.options = [.old, .prior]
         self.handler = { change in
+            Swift.print("check", change.isPrior, change.oldValue != nil, change.newValue != nil)
             guard change.isPrior, let oldValue = change.oldValue else { return }
             handler(oldValue)
         }
