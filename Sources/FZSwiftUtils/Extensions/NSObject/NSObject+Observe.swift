@@ -172,7 +172,7 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         get { object != nil && observation != nil }
         set {
             if newValue {
-                observation = object?.observe(keyPath, options: [.old, .new]) { [ weak self] _, change in
+                observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                     guard let self = self else { return }
                     self.handler(change)
                 }
@@ -235,7 +235,6 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         self.keyPath = keyPath
         self.options = [.old, .prior]
         self.handler = { change in
-            Swift.print("check", change.isPrior, change.oldValue != nil, change.newValue != nil)
             guard change.isPrior, let oldValue = change.oldValue else { return }
             handler(oldValue)
         }
