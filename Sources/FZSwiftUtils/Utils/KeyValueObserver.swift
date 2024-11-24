@@ -351,21 +351,21 @@ extension NSObject {
         get { getAssociatedValue("kvoObservers") ?? [] }
         set { setAssociatedValue(newValue.filter({$0.object != nil}), key: "kvoObservers") }
     }
-}
-
-class WeakKVObservation {
-    private weak var _object: KVObservation?
-
-    var isActive: Bool {
-        get { object?.isActive ?? false }
-        set { object?.isActive = true }
-    }
     
-    var object: KVObservation? {
-        _object
-    }
-    
-    init(_ object: KVObservation?) {
-        _object = object
+    class WeakKVObservation {
+        private weak var _object: KVObservation?
+
+        var isActive: Bool {
+            get { object?.isActive ?? false }
+            set { object?.isActive = true }
+        }
+        
+        var object: KVObservation? {
+            _object
+        }
+        
+        init(_ object: KVObservation?) {
+            _object = object
+        }
     }
 }
