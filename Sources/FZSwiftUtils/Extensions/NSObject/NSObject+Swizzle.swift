@@ -46,6 +46,7 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
+            let kvoObservers = kvoObservers
             kvoObservers.forEach({ $0.isActive = false })
             do {
                 let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
@@ -84,6 +85,7 @@ extension NSObject {
     
     /// Resets an replaced instance method of the object to it's original state.
     public func resetMethod(_ selector: Selector) {
+        let kvoObservers = kvoObservers
         kvoObservers.forEach({ $0.isActive = false })
         _resetMethod(selector)
         kvoObservers.forEach({ $0.isActive = true })
@@ -103,6 +105,7 @@ extension NSObject {
     
     /// Resets all replaced instance methods on the current object to their original state.
     public func resetAllMethods() {
+        let kvoObservers = kvoObservers
         kvoObservers.forEach({ $0.isActive = false })
         for selector in hooks.keys {
             _resetMethod(selector)

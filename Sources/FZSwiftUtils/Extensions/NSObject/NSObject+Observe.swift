@@ -173,11 +173,11 @@ extension NSObject {
                         guard let self = self else { return }
                         self.handler(change)
                     }
-                    object?.kvoObservers.append(.init(self))
+                    object?.addKVObservation(self)
                 } else {
                     observation?.invalidate()
                     observation = nil
-                    object?.kvoObservers.removeFirst(where: {$0.object == self })
+                    object?.removeKVObservation(self)
                 }
             }
         }
