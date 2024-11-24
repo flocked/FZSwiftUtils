@@ -353,7 +353,7 @@ extension NSObject {
     }
 }
 
-struct WeakKVObservation {
+class WeakKVObservation {
     private weak var _object: KVObservation?
 
     var isActive: Bool {
