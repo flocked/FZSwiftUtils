@@ -156,94 +156,96 @@ public class KeyValueObservation: NSObject {
     }
 }
 
-class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
-    weak var object: Object?
-    let keyPath: KeyPath<Object, Value>
-    var _keyPath: String { keyPath.stringValue }
-    var observation: NSKeyValueObservation?
-    let handler: ((NSKeyValueObservedChange<Value>) -> Void)
-    let options: NSKeyValueObservingOptions
-    
-    var isActive: Bool {
-        get { object != nil && observation != nil }
-        set {
-            if newValue {
-                observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
-                    guard let self = self else { return }
-                    self.handler(change)
+extension NSObject {
+    class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
+        weak var object: Object?
+        let keyPath: KeyPath<Object, Value>
+        var _keyPath: String { keyPath.stringValue }
+        var observation: NSKeyValueObservation?
+        let handler: ((NSKeyValueObservedChange<Value>) -> Void)
+        let options: NSKeyValueObservingOptions
+        
+        var isActive: Bool {
+            get { object != nil && observation != nil }
+            set {
+                if newValue {
+                    observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
+                        guard let self = self else { return }
+                        self.handler(change)
+                    }
+                    object?.kvoObservers.append(.init(self))
+                } else {
+                    observation?.invalidate()
+                    observation = nil
+                    object?.kvoObservers.removeFirst(where: {$0.object == self })
                 }
-                object?.kvoObservers.append(.init(self))
-            } else {
-                observation?.invalidate()
-                observation = nil
-                object?.kvoObservers.removeFirst(where: {$0.object == self })
             }
         }
-    }
-    
-    init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        guard keyPath._kvcKeyPathString != nil else { return nil }
-        self.object = object
-        self.keyPath = keyPath
-        self.options = [.old, .new]
-        self.handler = { change in
-            guard let new = change.newValue else { return }
-            if let old = change.oldValue {
-                handler(old, new)
-            } else {
-                handler(new, new)
-            }
-        }
-        super.init()
-        if sendInitalValue {
-            let value = object[keyPath: keyPath]
-            handler(value, value)
-        }
-        self.isActive = true
-    }
-    
-    init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) where Value: Equatable {
-        guard keyPath._kvcKeyPathString != nil else { return nil }
-        self.object = object
-        self.keyPath = keyPath
-        self.options = [.old, .new]
-        self.handler = { change in
-            guard let new = change.newValue else { return }
-            if let old = change.oldValue {
-                if !uniqueValues || old != new {
+        
+        init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
+            guard keyPath._kvcKeyPathString != nil else { return nil }
+            self.object = object
+            self.keyPath = keyPath
+            self.options = [.old, .new]
+            self.handler = { change in
+                guard let new = change.newValue else { return }
+                if let old = change.oldValue {
                     handler(old, new)
+                } else {
+                    handler(new, new)
                 }
-            } else {
-                handler(new, new)
             }
+            super.init()
+            if sendInitalValue {
+                let value = object[keyPath: keyPath]
+                handler(value, value)
+            }
+            self.isActive = true
         }
-        super.init()
-        if sendInitalValue {
-            let value = object[keyPath: keyPath]
-            handler(value, value)
+        
+        init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) where Value: Equatable {
+            guard keyPath._kvcKeyPathString != nil else { return nil }
+            self.object = object
+            self.keyPath = keyPath
+            self.options = [.old, .new]
+            self.handler = { change in
+                guard let new = change.newValue else { return }
+                if let old = change.oldValue {
+                    if !uniqueValues || old != new {
+                        handler(old, new)
+                    }
+                } else {
+                    handler(new, new)
+                }
+            }
+            super.init()
+            if sendInitalValue {
+                let value = object[keyPath: keyPath]
+                handler(value, value)
+            }
+            self.isActive = true
         }
-        self.isActive = true
-    }
-    
-    init?(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
-        guard keyPath._kvcKeyPathString != nil else { return nil }
-        self.object = object
-        self.keyPath = keyPath
-        self.options = [.old, .prior]
-        self.handler = { change in
-            guard change.isPrior, let oldValue = change.oldValue else { return }
-            handler(oldValue)
+        
+        init?(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
+            guard keyPath._kvcKeyPathString != nil else { return nil }
+            self.object = object
+            self.keyPath = keyPath
+            self.options = [.old, .prior]
+            self.handler = { change in
+                guard change.isPrior, let oldValue = change.oldValue else { return }
+                handler(oldValue)
+            }
+            super.init()
+            self.isActive = true
         }
-        super.init()
-        self.isActive = true
-    }
-    
-    deinit {
-        isActive = false
-    }
-    
-    var keyValueObservation: KeyValueObservation {
-        KeyValueObservation(self)
+        
+        deinit {
+            isActive = false
+        }
+        
+        var keyValueObservation: KeyValueObservation {
+            KeyValueObservation(self)
+        }
     }
 }
 
@@ -588,6 +590,31 @@ extension NSObject {
                     .debounce(for: interval, scheduler: DispatchQueue.main)
                     .sink(receiveValue: handler)
             }
+        }
+        
+        /**
+         Observes changes to a property identified by the given key path using Combine publishers.
+
+         Example usage:
+
+         ```swift
+         let textField = NSTextField()
+
+         let stringValueObservation = textField.onPriorChange(\.stringValue) {
+            oldValue in
+            // handle
+         }
+         ```
+
+         - Parameters:
+            - keypath: The key path of the property to observe.
+            - handler: A closure that will be called before the property value changes.
+
+         - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
+         */
+        func onPriorChange<Value>(_ keypath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> AnyCancellable? {
+            publisher(for: keypath, options: [.old, .prior])
+                .sink(receiveValue: handler)
         }
     }
 #endif
