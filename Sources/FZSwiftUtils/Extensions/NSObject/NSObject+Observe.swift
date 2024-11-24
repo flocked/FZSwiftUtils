@@ -355,7 +355,7 @@ extension NSObject {
                     .sink(receiveValue: handler)
             }
         }
-
+/*
         /**
          Observes changes in to optional property identified by the given key path using Combine publishers.
 
@@ -389,6 +389,7 @@ extension NSObject {
                     .sink(receiveValue: handler)
             }
         }
+        */
 
         /**
          Observes changes to a property identified by the given key path using Combine publishers.
@@ -417,6 +418,7 @@ extension NSObject {
                 .sink(receiveValue: handler)
         }
 
+        /*
         /**
          Observes changes to an optional property identified by the given key path using Combine publishers.
 
@@ -443,6 +445,7 @@ extension NSObject {
             return publisher(for: keypath, options: options)
                 .sink(receiveValue: handler)
         }
+         */
 
         /**
          Observes changes to a property identified by the given key path using Combine publishers with throttling.
