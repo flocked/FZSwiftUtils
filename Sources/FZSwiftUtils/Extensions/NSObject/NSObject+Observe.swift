@@ -154,10 +154,6 @@ public class KeyValueObservation: NSObject {
         self.observer = observer
         super.init()
     }
-    
-    deinit {
-        invalidate()
-    }
 }
 
 class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
