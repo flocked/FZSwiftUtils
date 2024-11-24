@@ -178,6 +178,7 @@ class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
                 }
                 object?.kvoObservers.append(.init(self))
             } else {
+                Swift.print("deactivate")
                 observation?.invalidate()
                 observation = nil
                 object?.kvoObservers.removeFirst(where: {$0.object == self })
