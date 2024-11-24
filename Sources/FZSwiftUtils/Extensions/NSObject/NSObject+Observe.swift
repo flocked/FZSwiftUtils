@@ -344,7 +344,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
             let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
             if uniqueValues {
                 return publisher(for: keypath, options: options)
@@ -377,7 +377,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
             let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
             return publisher(for: keypath, options: options)
                 .sink(receiveValue: handler)
@@ -406,7 +406,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
             publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
                 .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
                 .sink(receiveValue: handler)
@@ -435,7 +435,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
             let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
             if uniqueValues {
                 return publisher(for: keypath, options: options)
@@ -472,7 +472,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
             publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
                 .debounce(for: interval, scheduler: DispatchQueue.main)
                 .sink(receiveValue: handler)
@@ -501,7 +501,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable? {
+        func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
             let options: NSKeyValueObservingOptions = sendInitalValue ? [.new, .initial] : [.new]
             if uniqueValues {
                 return publisher(for: keypath, options: options)
@@ -535,7 +535,7 @@ extension NSObject {
 
          - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
          */
-        func onPriorChange<Value>(_ keypath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> AnyCancellable? {
+        func onPriorChange<Value>(_ keypath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> AnyCancellable {
             publisher(for: keypath, options: [.old, .prior])
                 .sink(receiveValue: handler)
         }
