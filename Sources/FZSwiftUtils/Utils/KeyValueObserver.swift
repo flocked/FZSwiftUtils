@@ -346,6 +346,10 @@ protocol KVObservation: NSObject {
     var isActive: Bool { get set }
 }
 
+extension KVObservation {
+    var _keyPath: String { "" }
+}
+
 extension NSObject {
     var kvoObservers: [WeakKVObservation] {
         get { getAssociatedValue("kvoObservers") ?? [] }
