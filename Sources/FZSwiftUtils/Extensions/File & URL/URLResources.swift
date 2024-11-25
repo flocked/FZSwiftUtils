@@ -274,7 +274,7 @@ public class URLResources {
     public var contentType: UTType? { try? value(for: \.contentType) }
     #endif
     
-    #if macOS
+    #if os(macOS)
     /// The Finder tags of the resource.
     public var finderTags: [String] {
         get { (try? value(for: \.tagNames)) ?? [] }
