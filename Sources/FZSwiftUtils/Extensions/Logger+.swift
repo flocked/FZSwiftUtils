@@ -8,7 +8,6 @@
 import Foundation
 import os
 
-
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 extension Logger {
     static let subsystem = Bundle.main.bundleIdentifier!
@@ -20,42 +19,82 @@ extension Logger {
     public static let presentation = Logger(subsystem: subsystem, category: "Presentation")
     
     /// Writes a message to the log with the specified items using the default log type.
-    public func notice(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func notice(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        notice(indent: indent, items, separator: separator)
+    }
+        
+    /// Writes a message to the log with the specified items using the default log type.
+    public func notice(indent: Int = 0, _ items: [Any], separator: String = " ") {
         notice("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a debug message to the log with the specified items.
-    public func debug(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func debug(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        debug(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes a debug message to the log with the specified items.
+    public func debug(indent: Int = 0, _ items: [Any], separator: String = " ") {
         debug("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a trace message to the log with the specified items.
-    public func trace(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func trace(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        trace(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes a trace message to the log with the specified items.
+    public func trace(indent: Int = 0, _ items: [Any], separator: String = " ") {
         trace("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes an informative message to the log with the specified items.
-    public func info(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func info(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        info(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes an informative message to the log with the specified items.
+    public func info(indent: Int = 0, _ items: [Any], separator: String = " ") {
         info("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes information about an error to the log with the specified items.
-    public func error(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func error(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        error(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes information about an error to the log with the specified items.
+    public func error(indent: Int = 0, _ items: [Any], separator: String = " ") {
         error("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes information about a warning to the log with the specified items.
-    public func warning(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func warning(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        warning(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes information about a warning to the log with the specified items.
+    public func warning(indent: Int = 0, _ items: [Any], separator: String = " ") {
         warning("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a message to the log with the specified items about a bug that occurs when your app executes.
-    public func fault(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func fault(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        fault(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes a message to the log with the specified items about a bug that occurs when your app executes.
+    public func fault(indent: Int = 0, _ items: [Any], separator: String = " ") {
         fault("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a message to the log with the specified items about a critical event in your app’s execution.
-    public func critical(indent: Int = 0, items: Any..., separator: String = " ") {
+    public func critical(indent: Int = 0, _ items: Any..., separator: String = " ") {
+        critical(indent: indent, items, separator: separator)
+    }
+    
+    /// Writes a message to the log with the specified items about a critical event in your app’s execution.
+    public func critical(indent: Int = 0, _ items: [Any], separator: String = " ") {
         critical("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
 }
