@@ -37,17 +37,17 @@ public extension BinaryFloatingPoint {
      The value is scaled based on the current device's screen scale.
      */
     var scaledIntegral: Self {
-#if os(macOS)
+        #if os(macOS)
         let scale = Self(NSScreen.main?.backingScaleFactor ?? 1.0)
-#elseif os(iOS) || os(tvOS)
+        #elseif os(iOS) || os(tvOS)
         let scale = Self(UIScreen.main.scale)
-#else
+        #else
         let scale: Self = 1.0
-#endif
+        #endif
         return rounded(toMultiple: 1.0 / scale)
     }
     
-#if os(macOS)
+    #if os(macOS)
     /**
      Returns the scaled integral value of the value for the specified screen.
      
@@ -58,7 +58,31 @@ public extension BinaryFloatingPoint {
     func scaledIntegral(for screen: NSScreen) -> Self {
         rounded(toMultiple: 1.0 / Self(screen.backingScaleFactor))
     }
-#endif
+    
+    /**
+     Returns the scaled integral value of the value for the specified view.
+     
+     The value is scaled based on the view's screen scale.
+     
+     - Parameter view: The view for the scale factor.
+     */
+    func scaledIntegral(for view: NSView) -> Self {
+        guard let screen = view.window?.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    
+    /**
+     Returns the scaled integral value of the value for the specified window.
+     
+     The value is scaled based on the window's screen scale.
+     
+     - Parameter window: The window for the scale factor.
+     */
+    func scaledIntegral(for window: NSWindow) -> Self {
+        guard let screen = window.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    #endif
 }
 
 
@@ -69,17 +93,17 @@ public extension CGFloat {
      The value is scaled based on the current device's screen scale.
      */
     var scaledIntegral: Self {
-#if os(macOS)
+        #if os(macOS)
         let scale = NSScreen.main?.backingScaleFactor ?? 1.0
-#elseif os(iOS) || os(tvOS)
+        #elseif os(iOS) || os(tvOS)
         let scale = UIScreen.main.scale
-#else
+        #else
         let scale = 1.0
-#endif
+        #endif
         return rounded(toMultiple: 1.0 / scale)
     }
     
-#if os(macOS)
+    #if os(macOS)
     /**
      Returns the scaled integral value of the value for the specified screen.
      
@@ -90,7 +114,31 @@ public extension CGFloat {
     func scaledIntegral(for screen: NSScreen) -> Self {
         rounded(toMultiple: 1.0 / screen.backingScaleFactor)
     }
-#endif
+    
+    /**
+     Returns the scaled integral value of the value for the specified view.
+     
+     The value is scaled based on the view's screen scale.
+     
+     - Parameter view: The view for the scale factor.
+     */
+    func scaledIntegral(for view: NSView) -> Self {
+        guard let screen = view.window?.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    
+    /**
+     Returns the scaled integral value of the value for the specified window.
+     
+     The value is scaled based on the window's screen scale.
+     
+     - Parameter window: The window for the scale factor.
+     */
+    func scaledIntegral(for window: NSWindow) -> Self {
+        guard let screen = window.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    #endif
     
     /// Converts the value from degrees to radians.
     var degreesToRadians: CGFloat {

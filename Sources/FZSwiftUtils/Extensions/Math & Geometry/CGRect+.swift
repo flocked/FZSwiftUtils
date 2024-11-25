@@ -58,12 +58,7 @@ public extension CGRect {
      - Returns: The scaled integral rectangle.
      */
     var scaledIntegral: CGRect {
-        CGRect(
-            x: origin.x.scaledIntegral,
-            y: origin.y.scaledIntegral,
-            width: size.width.scaledIntegral,
-            height: size.height.scaledIntegral
-        )
+        CGRect(origin: origin.scaledIntegral, size: size.scaledIntegral)
     }
     
     #if os(macOS)
@@ -76,12 +71,31 @@ public extension CGRect {
      - Returns: The scaled integral rectangle.
      */
     func scaledIntegral(for screen: NSScreen) -> CGRect {
-        CGRect(
-            x: origin.x.scaledIntegral(for: screen),
-            y: origin.y.scaledIntegral(for: screen),
-            width: size.width.scaledIntegral(for: screen),
-            height: size.height.scaledIntegral(for: screen)
-        )
+        CGRect(origin: origin.scaledIntegral(for: screen), size: size.scaledIntegral(for: screen))
+    }
+    
+    /**
+     Returns the scaled integral rectangle based on the current rectangle for the specfied view.
+     
+     The origin and size values are scaled based on the view's screen scale.
+
+     - Parameter view: The view for scale.
+     */
+    func scaledIntegral(for view: NSView) -> Self {
+        guard let screen = view.window?.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    
+    /**
+     Returns the scaled integral rectangle based on the current rectangle for the specfied window.
+     
+     The origin and size values are scaled based on the window's screen scale.
+
+     - Parameter window: The window for scale.
+     */
+    func scaledIntegral(for window: NSWindow) -> Self {
+        guard let screen = window.screen else { return self }
+        return scaledIntegral(for: screen)
     }
     #endif
 

@@ -88,27 +88,50 @@ public extension CGPoint {
     }
 
     /**
-     Returns the scaled integral point of the current CGPoint.
+     Returns the scaled integral point of the current point.
      
      The x and y values are scaled based on the current device's screen scale.
 
      - Returns: The scaled integral CGPoint.
      */
-    var scaledIntegralhs: CGPoint {
+    var scaledIntegral: CGPoint {
         CGPoint(x: x.scaledIntegral, y: y.scaledIntegral)
     }
     
     #if os(macOS)
     /**
-     Returns the scaled integral point of the current CGPoint for the specified screen.
+     Returns the scaled integral point of the current point for the specified screen.
      
      The x and y values are scaled based on the the screen scale.
 
      - Parameter screen: The screen for scale.
-     - Returns: The scaled integral CGPoint.
      */
     func scaledIntegral(for screen: NSScreen) -> CGPoint {
         CGPoint(x: x.scaledIntegral(for: screen), y: y.scaledIntegral(for: screen))
+    }
+    
+    /**
+     Returns the scaled integral point of the current point for the specified view.
+     
+     The x and y values are scaled based on the the view's screen scale.
+
+     - Parameter view: The view for scale.
+     */
+    func scaledIntegral(for view: NSView) -> Self {
+        guard let screen = view.window?.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    
+    /**
+     Returns the scaled integral point of the current point for the specified window.
+     
+     The x and y values are scaled based on the the window's screen scale.
+
+     - Parameter window: The window for scale.
+     */
+    func scaledIntegral(for window: NSWindow) -> Self {
+        guard let screen = window.screen else { return self }
+        return scaledIntegral(for: screen)
     }
     #endif
 

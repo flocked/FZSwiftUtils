@@ -42,6 +42,30 @@ public extension CGSize {
     func scaledIntegral(for screen: NSScreen) -> CGSize {
         CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
     }
+    
+    /**
+     Returns the scaled integral of the size for the specified view.
+     
+     The width and height values are scaled based on the view's screen scale.
+
+     - Parameter view: The view for the scale.
+     */
+    func scaledIntegral(for view: NSView) -> Self {
+        guard let screen = view.window?.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
+    
+    /**
+     Returns the scaled integral of the size for the specified window.
+     
+     The width and height values are scaled based on the window's screen scale.
+
+     - Parameter window: The window for the scale.
+     */
+    func scaledIntegral(for window: NSWindow) -> Self {
+        guard let screen = window.screen else { return self }
+        return scaledIntegral(for: screen)
+    }
     #endif
 
     /**
