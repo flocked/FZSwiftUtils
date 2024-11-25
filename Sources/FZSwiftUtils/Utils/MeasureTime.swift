@@ -7,53 +7,84 @@
 
 import Foundation
 
-///  Meassures the time executing a block.
+///  Meassures the time.
 public struct MeasureTime {
+    /**
+     Meassures the time executing the specified block.
+     
+     - Parameter block: The block to meassure.
+     */
+    public static func measure(block: () -> Void) -> TimeDuration {
+        start()
+        block()
+        return stop()
+    }
     
     /**
-     Meassures the time executing a block and prints the result.
+     Meassures the time executing the specified block and prints the duration.
      
      - Parameters:
-        - operation: The block to meassure.
-        - title: The title used for printing.
+        - title: An optional string for printing.
+        - block: The block to meassure.
      */
     @discardableResult
-    public static func printTimeElapsed(title: String? = nil, running operation: () -> Void) -> TimeDuration {
-        let startTime = CFAbsoluteTimeGetCurrent()
-        operation()
-        let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-        if let title = title {
-            print("Time elapsed for \(title): \(timeElapsed) s.")
-        } else {
-            print("Time elapsed: \(timeElapsed) s.")
-        }
-        return TimeDuration(Double(timeElapsed))
+    public static func measurePrinted(_ title: String? = nil, block: () -> Void) -> TimeDuration {
+        start(title)
+        block()
+        return stopPrinted()
     }
-
+    
     /**
-     Meassures the time executing a block.
-     - Parameter operation: The block to meassure.
+     Starts a measurement.
+     
+     - Parameter title: An optional title for printing the measurement.
      */
-    public static func timeElapsed(running operation: () -> Void) -> TimeDuration {
-        let startTime = CFAbsoluteTimeGetCurrent()
-        operation()
-        let timeElapsed = CFAbsoluteTimeGetCurrent() - startTime
-        return TimeDuration(Double(timeElapsed))
+    public static func start(_ title: String? = nil) {
+        measurements.append((CFAbsoluteTimeGetCurrent(), title))
     }
     
-    private static var timingStack = [(startTime:Double,name:String,reported:Bool)]()
-    
-    public static func startMeasurement(_ name: String) {
-        timingStack.append((CFAbsoluteTimeGetCurrent(), name, false))
+    /// Stops the current measurement and returns it's duration.
+    public static func stop() -> TimeDuration {
+        current(remove: true, print: false, details: nil)
     }
     
+    /**
+     Stops the current measurement, prints it's duration and returns it.
+     
+     - Parameter details: An optional string for printing.
+     */
     @discardableResult
-    public static func stopMeasurement(_ executionDetails: String?) -> TimeDuration {
-        guard !timingStack.isEmpty else { return .zero }
-        let beginning = timingStack.removeLast()
+    public static func stopPrinted(_ details: String? = nil) -> TimeDuration {
+        current(remove: true, print: true, details: details)
+    }
+    
+    /// Returns the duration of the current measurement.
+    public static func log() -> TimeDuration {
+        current(remove: false, print: false, details: nil)
+    }
+    
+    /**
+     Prints and returns the duration of the current measurement.
+     
+     - Parameter details: An optional string for printing.
+     */
+    public static func logPrinted(_ details: String? = nil) -> TimeDuration {
+        current(remove: false, print: true, details: details)
+    }
+    
+    private static var measurements = [(startTime: Double, title:String?)]()
+    
+    private static func current(remove: Bool, print: Bool, details: String?) -> TimeDuration {
+        guard !measurements.isEmpty else { return .zero }
+        let beginning = remove ? measurements.removeLast() : measurements.last!
         let timeElapsed = CFAbsoluteTimeGetCurrent() - beginning.startTime
         let duration = TimeDuration(Double(timeElapsed))
-        print("\(String(repeating: "\t", count: timingStack.count))\(beginning.name) took: \(timeElapsed)" + (executionDetails == nil ? "" : " (\(executionDetails!))"))
+        if print {
+            let indent = "\t".repeated(amount: remove ? measurements.count : measurements.count-1)
+            let title = beginning.title == nil ? "" : " for \(beginning.title!)"
+            let details = details == nil ? "" : " (\(details!))"
+            Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s.\(details)")
+        }
         return duration
     }
 }

@@ -249,3 +249,10 @@ extension Sequence {
         self.max(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
     }
 }
+
+public extension Sequence {
+    /// Returns the elements of the sequence, repeated by the specified amount.
+    func repeated(amount: Int) -> [Element] {
+        Array(repeating: Array(self), count: amount.clamped(min: 0)).flattened()
+    }
+}

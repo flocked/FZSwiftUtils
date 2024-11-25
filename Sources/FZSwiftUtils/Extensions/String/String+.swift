@@ -174,6 +174,11 @@ public extension StringProtocol {
 }
 
 public extension String {
+    /// Returns the string, repeated by the specified amount.
+    func repeated(amount: Int) -> String {
+        String(repeating: self, count: amount)
+    }
+    
     /// The range of the specified prefix, or `nil` if it doesn't exist.
     func rangeOfPrefix(_ prefix: String) -> Range<Index>? {
         guard hasPrefix(prefix) else { return nil }
