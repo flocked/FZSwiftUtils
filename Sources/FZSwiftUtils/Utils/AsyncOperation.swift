@@ -29,6 +29,7 @@ open class AsyncOperation: Operation, Pausable {
     /// The error, if the operation failed.
     open var error: Error?
     
+    /// The handler that is called when the operation starts executing.
     open var startHandler: (()->())? = nil
     
     private let pauseSemaphore = DispatchSemaphore(value: 0) // Semaphore to pause/resume
@@ -39,20 +40,21 @@ open class AsyncOperation: Operation, Pausable {
         set {
             guard newValue != state else { return }
             if validateState(newValue) {
-                willChangeValue(for: \.isReady)
-                willChangeValue(for: \.isExecuting)
-                willChangeValue(for: \.isCancelled)
-                willChangeValue(for: \.isFinished)
-                _state = newValue
-                didChangeValue(for: \.isReady)
-                didChangeValue(for: \.isExecuting)
-                didChangeValue(for: \.isCancelled)
-                didChangeValue(for: \.isFinished)
+                self.willChangeValue(for: \.isReady)
+                self.willChangeValue(for: \.isExecuting)
+                self.willChangeValue(for: \.isCancelled)
+                self.willChangeValue(for: \.isFinished)
+                self._state = newValue
+                self.didChangeValue(for: \.isReady)
+                self.didChangeValue(for: \.isExecuting)
+                self.didChangeValue(for: \.isCancelled)
+                self.didChangeValue(for: \.isFinished)
             } else {
                 debugPrint("Invalid change from \(_state) to \(newValue)")
             }
         }
     }
+    
     var _state: State = .waiting
         
     private func validateState(_ newState: State) -> Bool {
