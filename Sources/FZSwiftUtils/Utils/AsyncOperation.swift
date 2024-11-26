@@ -16,7 +16,7 @@ import Foundation
  */
 open class AsyncOperation: Operation {
     
-    private let stateQueue = DispatchQueue(label: "AsyncOpStateQueue_\("fdffff")", attributes: .concurrent)
+    private let stateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath + ".AsyncOperationState", attributes: .concurrent)
     private let pauseSemaphore = DispatchSemaphore(value: 0) // Semaphore to pause/resume
     private var _state: State = .ready
     
