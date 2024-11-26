@@ -41,13 +41,13 @@ open class AsyncOperation: Operation, Pausable {
             if validateState(newValue) {
                 willChangeValue(for: \.isReady)
                 willChangeValue(for: \.isExecuting)
-                willChangeValue(for: \.isFinished)
                 willChangeValue(for: \.isCancelled)
+                willChangeValue(for: \.isFinished)
                 _state = newValue
                 didChangeValue(for: \.isReady)
                 didChangeValue(for: \.isExecuting)
-                didChangeValue(for: \.isFinished)
                 didChangeValue(for: \.isCancelled)
+                didChangeValue(for: \.isFinished)
             } else {
                 debugPrint("Invalid change from \(_state) to \(newValue)")
             }
