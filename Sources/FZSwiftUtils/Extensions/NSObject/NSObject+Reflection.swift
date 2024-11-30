@@ -552,7 +552,7 @@ private struct Block: CustomStringConvertible {
 private struct AnyObjectType: CustomStringConvertible {
     let type: Any
 
-    init?(string: String) {
+    init?(_ string: String) {
         guard let type = string.matches(pattern: #"(?<=NSObject<)([^>]+)(?=>)"#).first?.string.toType() else { return nil }
         self.type = type
     }
@@ -561,6 +561,19 @@ private struct AnyObjectType: CustomStringConvertible {
             return "NSObject<\(NSStringFromProtocol(type))>"
         }
         return "NSObject<\(String(describing: type))>"
+    }
+}
+
+private struct WFlagsType: CustomStringConvertible {
+    let description: String
+    init?(_ string: String) {
+        guard string.hasPrefix("{__wFlags=") && string.hasSuffix("}>") else { return nil }
+        var string = string
+        string.replacePrefix("{__wFlags=", with: "")
+        string.replaceSuffix("}>", with: "")
+        let matches = string.matches(pattern: #"(?<=NSObject<)([^>]+)(?=>)"#)
+        guard !matches.isEmpty else { return nil }
+        self.description = matches.compactMap({ $0.string }).joined(separator: "\n")
     }
 }
 
@@ -588,6 +601,8 @@ private extension String {
             return StructType(string)
         } else if string == "@" {
             return AnyObject.self
+        }  else if string == "<NSObject>" {
+            return NSObject.self
         } else if string.contains("T@,") {
             return Optional<AnyObject>.self
         } else if string.contains("@?,") {
@@ -634,8 +649,10 @@ private extension String {
             return type
         } else if let type = NSProtocolFromString(string) {
             return type
-        } else if let anyObjectType = AnyObjectType(string: string) {
+        } else if let anyObjectType = AnyObjectType(string) {
             return anyObjectType
+        } else if let wFlagsType = WFlagsType(string) {
+            return wFlagsType
         } else {
             let matches = string.matches(pattern: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
             if matches.count == 2, let match = matches.last {
