@@ -251,18 +251,7 @@ extension NSObject {
     private static func methodsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [MethodDescription] {
         var methodCount: UInt32 = 0
         let methods = class_copyMethodList(`class`, &methodCount)
-        var methodDescriptions: [MethodDescription] = []
-        for i in 0..<Int(methodCount) {
-            guard let method = methods?.advanced(by: i).pointee else { continue }
-            let name = NSStringFromSelector(method_getName(method))
-            let returnType = method.returnType.toType()
-            var argumentTypes: [Any] = []
-            for index in 0..<method.numberOfArguments.clamped(min: 0) {
-                argumentTypes.append(method.argumentType(at: index).toType())
-            }
-            let description = MethodDescription(name: name, argumentTypes: argumentTypes, returnType: returnType)
-            methodDescriptions.append(description)
-        }
+        var methodDescriptions: [MethodDescription] = (0..<Int(methodCount)).compactMap({ methods?.advanced(by: $0).pointee.methodDescription })
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
             methodDescriptions += superclass.methodsReflection(includeSuperclass: includeSuperclass)
         }
@@ -272,15 +261,7 @@ extension NSObject {
     private static func propertiesReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
         var count: Int32 = 0
         let properties = class_copyPropertyList(`class`, &count)
-        var descriptions: [PropertyDescription] = []
-        for i in 0..<Int(count) {
-            guard let property = properties?.advanced(by: i).pointee else { continue }
-            guard let propertyName = property.name else { continue }
-            let isReadOnly = property.isReadOnly
-            if excludeReadOnly, isReadOnly { continue }
-            let propertyType = property.type
-            descriptions.append(.init(propertyName, propertyType, isReadOnly))
-        }
+        var descriptions: [PropertyDescription] = (0..<Int(count)).compactMap({ properties?.advanced(by: $0).pointee.propertyDescription })
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
             descriptions += superclass.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
         }
@@ -288,15 +269,9 @@ extension NSObject {
     }
     
     private static func ivarsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [PropertyDescription] {
-        var descriptions: [PropertyDescription] = []
         var count: Int32 = 0
         let ivars = class_copyIvarList(`class`, &count)
-        for i in 0..<Int(count) {
-            guard let ivar = ivars?.advanced(by: i).pointee else { continue }
-            guard let nameChars = ivar_getName(ivar), let name = String(validatingUTF8: nameChars) else { continue }
-            guard let typeChars = ivar_getTypeEncoding(ivar), let type = String(validatingUTF8: typeChars)?.toType() else { continue }
-            descriptions.append(PropertyDescription(name, type, false))
-        }
+        var descriptions: [PropertyDescription] = (0..<Int(count)).compactMap({ ivars?.advanced(by: $0).pointee.ivarDescription })
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
             descriptions += superclass.ivarsReflection(includeSuperclass: includeSuperclass)
         }
@@ -462,13 +437,6 @@ extension NSObject {
     }
 }
 
-fileprivate extension Ivar {
-    var ivarType: String? {
-        guard let typeEncoding = ObjectiveC.ivar_getTypeEncoding(self) else { return nil }
-        return String(cString: typeEncoding)
-    }
-}
-
 fileprivate extension Method {
     var methodName: String {
         NSStringFromSelector(method_getName(self))
@@ -492,6 +460,33 @@ fileprivate extension Method {
         ObjectiveC.method_getReturnType(self, buf, len)
         return String(validatingUTF8: UnsafePointer<CChar>(buf))!
     }
+    
+    var methodDescription: NSObject.MethodDescription? {
+        let name = NSStringFromSelector(method_getName(self))
+        let returnType = self.returnType.toType()
+        var argumentTypes: [Any] = []
+        for index in 0..<self.numberOfArguments.clamped(min: 0) {
+            argumentTypes.append(self.argumentType(at: index).toType())
+        }
+        return .init(name: name, argumentTypes: argumentTypes, returnType: returnType)
+    }
+}
+
+fileprivate extension Ivar {
+    var ivarName: String? {
+        guard let nameChars = ivar_getName(self) else { return nil }
+        return String(validatingUTF8: nameChars)
+    }
+    
+    var ivarType: Any? {
+        guard let typeChars = ivar_getTypeEncoding(self) else { return nil }
+        return String(validatingUTF8: typeChars)?.toType()
+    }
+    
+    var ivarDescription: NSObject.PropertyDescription? {
+        guard let name = ivarName, let type = ivarType else { return nil }
+        return .init(name, type, false)
+    }
 }
 
 fileprivate extension objc_property_t {
@@ -512,6 +507,11 @@ fileprivate extension objc_property_t {
         let slices = String(cString: _attributes).components(separatedBy: "\"")
         return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
     }
+    
+    var propertyDescription: NSObject.PropertyDescription? {
+        guard let name = name else { return nil }
+        return .init(name, type, isReadOnly)
+    }
 }
 
 fileprivate let valueTypesMap: [String: Any] = [
@@ -528,26 +528,10 @@ fileprivate let valueTypesMap: [String: Any] = [
     "d": Double.self,
     "f": Float.self,
     "{": Decimal.self,
-    "@?": Block.self, // ()->()).self,
+    "@?": "Block", // ()->()).self,
     "b1": Bool.self, // for ivar
     "C": UInt.self, // for ivar
 ]
-
-fileprivate struct Unknown: CustomStringConvertible {
-    let type: String
-    init(_ type: String) {
-        self.type = type
-    }
-    var description: String {
-        "Unknown<\(type)>"
-    }
-}
-
-fileprivate struct Block: CustomStringConvertible {
-    var description: String {
-        "Block"
-    }
-}
 
 fileprivate struct AnyObjectType: CustomStringConvertible {
     let type: Any
@@ -565,33 +549,21 @@ fileprivate struct AnyObjectType: CustomStringConvertible {
 }
 
 fileprivate struct WFlagsType: CustomStringConvertible {
-    var dictionary: [String: Any] = [:]
+    var descriptions: [NSObject.PropertyDescription] = []
+    let flagType: String
     
     var description: String {
-        let keys = dictionary.keys.sorted()
-        var strings: [String] = ["WFlags:"]
-        for key in keys {
-            let type = dictionary[key]!
-            if let type = type as? Protocol {
-                strings.append("\t\(key):\(NSStringFromProtocol(type))")
-            } else {
-                strings.append("\t\(key):\(String(describing: type))")
-            }
-        }
-        return strings.joined(separator: "\n")
+        (flagType + descriptions.compactMap({"\t" + $0.description})).joined(separator: "\n")
     }
+    
     init?(_ string: String) {
-        guard string.hasPrefix("{__wFlags=") && string.hasSuffix("}") else { return nil }
-        Swift.print("hasPrefix")
+        guard (string.hasPrefix("{__wFlags=") || string.hasPrefix("{__VFlags="))  && string.hasSuffix("}") else { return nil }
         var string = string
-        string.replacePrefix("{__wFlags=", with: "")
-        string.replaceSuffix("}", with: "")
+        flagType = string.hasPrefix("{__wFlags=") ? "WFlags:" : "VFlags:"
+        string = string.replacingOccurrences(of: ["{__wFlags=", "{__VFlags=", "}"], with: "")
         let matches = string.matches(pattern: "\"([^\"]+)\"|(\\b\\w+\\b)").compactMap({$0.string})
-        Swift.print("count", matches.count)
         guard !matches.isEmpty else { return nil }
-        for chunk in matches.chunked(size: 2) {
-            dictionary[chunk[0]] = chunk[1].toType()
-        }
+        descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
     }
 }
 
@@ -624,7 +596,7 @@ fileprivate extension String {
         } else if string.contains("T@,") {
             return Optional<AnyObject>.self
         } else if string.contains("@?,") {
-            return Optional<Block>.self
+            return "Optional<Block>"
         } else if string == "v" || string == "Vv"{
             return Void.self
         } else if let type = valueTypesMap[string] {
@@ -676,15 +648,8 @@ fileprivate extension String {
             if matches.count == 2, let match = matches.last {
                 return match.toType()
             }
-            return Unknown(string)
+            return "Unknown<\(string)>"
         }
-    }
-    
-    var withoutOptional: String {
-        guard contains("Optional("), contains(")") else { return self }
-        let afterOpeningParenthesis = components(separatedBy: "(")[1]
-        let wihtoutOptional = afterOpeningParenthesis.components(separatedBy: ")")[0]
-        return wihtoutOptional
     }
     
     var withoutBrackets: String {
