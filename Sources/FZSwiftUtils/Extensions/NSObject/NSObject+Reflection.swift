@@ -47,28 +47,28 @@ extension NSObject {
         func description(isDebug: Bool) -> String {
            var strings =  ["<\(String(describing: type))>("]
             if !properties.isEmpty {
-                strings.append("Properties:")
-                strings.append(contentsOf: properties.compactMap({"\t" + $0.description}))
+                strings.append("\tProperties:")
+                strings.append(contentsOf: properties.compactMap({"\t\t" + $0.description}))
             }
             if !methods.isEmpty {
-                strings.append("Methods:")
-                strings.append(contentsOf: methods.compactMap({"\t" + (isDebug ? $0.debugDescription : $0.description)}))
+                strings.append("\tMethods:")
+                strings.append(contentsOf: methods.compactMap({"\t\t" + (isDebug ? $0.debugDescription : $0.description)}))
             }
             if !ivars.isEmpty {
-                strings.append("Ivars:")
-                strings.append(contentsOf: ivars.compactMap({"\t" + $0.description}))
+                strings.append("\tIvars:")
+                strings.append(contentsOf: ivars.compactMap({"\t\t" + $0.description}))
             }
             if !classProperties.isEmpty {
-                strings.append("Class Properties:")
-                strings.append(contentsOf: classProperties.compactMap({"\t" + $0.description}))
+                strings.append("\tClass Properties:")
+                strings.append(contentsOf: classProperties.compactMap({"\t\t" + $0.description}))
             }
             if !classMethods.isEmpty {
-                strings.append("Class Methods:")
-                strings.append(contentsOf: classMethods.compactMap({"\t" + (isDebug ? $0.debugDescription : $0.description)}))
+                strings.append("\tClass Methods:")
+                strings.append(contentsOf: classMethods.compactMap({"\t\t" + (isDebug ? $0.debugDescription : $0.description)}))
             }
             if !classIvars.isEmpty {
-                strings.append("Class Ivars:")
-                strings.append(contentsOf: classIvars.compactMap({"\t" + $0.description}))
+                strings.append("\tClass Ivars:")
+                strings.append(contentsOf: classIvars.compactMap({"\t\t" + $0.description}))
             }
             strings.append(")")
             return strings.joined(separator: "\n")
