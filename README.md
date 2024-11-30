@@ -32,51 +32,57 @@ duration.string(for: .seconds) =  "121 seconds"
 let dateDuration = TimeDuration(from: date1, to: date2)
 ```
 
-### KeyValueObserver
+### NSObject property observation
 
-Observes multiple properties of an object.
+- Observe KVO properties of a `NSObject` using `observeChanges(for:)`:
 
 ```swift
 let textField = NSTextField()
-let observer = KeyValueObserver(textField)
-observer.add(\.stringValue) { oldStringValue, stringValue in
-guard oldStringValue != stringValue else { return }
-/// Process stringValue
-}  
-```
- 
-### NSObject extensions
 
-- `associatedValue`: Getting and setting associated values of an object.
+let textFieldStringObservation = textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
+    /// stringValue changed
+}
+```
+
+- Observe multiple properties using `KeyValueObserver`:
+
+```swift
+let textFieldObserver = KeyValueObserver(textField)
+textFieldObserver.add(\.stringValue) { oldStringValue, stringValue in
+    /// stringValue changed
+}
+textFieldObserver.add(\.font) { oldFont, font in
+    /// font changed
+}
+textFieldObserver.add(\.textColor) { oldTextColor, textColor in
+    /// textColor changed
+}
+```
+
+### NSObject Associated Values
+
+Associated Values allows you to add additional properties to a `NSObject`.
 
 ```swift
 // Set
-button.associatedValue["myAssociatedValue"] = "SomeValue"
+view.associatedValue["backgroundColor"] = NSColor.black
 
 // get
-if let string: String = button.associatedValue["myAssociatedValue"] {
+if let backgroundColor: NSColor = view.associatedValue["backgroundColor"] {
 
 }
+
+// Or easily extend objects:
+extension NSView {
+    var backgroundColor: NSColor? {
+        get { associatedValue["backgroundColor"] }
+        set { 
+            associatedValue["backgroundColor"] = newValue
+            …
+        }
+    }
+}
 ```
-- `observeChanges<Value>(for: for keyPath: KeyPath<Self, Value>)`: Observes changes for a property.
-
-```swift
-textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
-guard oldStringValue != stringValue else { return }
-/// Process stringValue
-}  
-```
-
-### Progress extensions
-
-- `updateEstimatedTimeRemaining()`: Updates the estimted time remaining and throughput.
-- `addFileProgress(url: URL, kind: FileOperationKind = .downloading)`: Shows the file progress in Finder.
-
-```swift
-progress.addFileProgress(url: fileURL, kind: .downloading)
-```
-
-- `MutableProgress`: A progress that allows to add and remove children progresses.
 
 ### Iterate directories & files
 
@@ -98,7 +104,7 @@ Addition `URL` methods for iterating the content of file system directories.
  }
  ```
  
- - Iterate files recursively, including the files of the folders and include hidden files.
+ - Iterate files recursively (including the files of sub folders) and include hidden files.
  
   ```swift
  for fileURL in downloadsDirectory.iterateFiles().recursive.includingHidden {
@@ -109,31 +115,20 @@ Addition `URL` methods for iterating the content of file system directories.
  - Iterate files by file extensions, file types or by predicate.
  
  ```swift
- // Iterates files with .txt extension
- for txtFileURL in downloadsDirectory.iterateFiles(extensions: ["txt"]) {
-
- }
- 
  // Iterate multimedia files
  for multimediaFileURL in downloadsDirectory.iterateFiles(types: [.video, .image, .gif]) {
  
  }
  
- // Iterates video files with file names that contain "vid_" and finder tags containing "Favorite"
- for fileURL in downloadsDirectory.iterate(.includeSubdirectoryDescendants, .includeHiddenFiles, predicate: { file in
-     return file.fileType == .video &&
-     file.lastPathComponent.contains("vid_") &&
-     file.resources.finderTags.contains("Favorite")
- }) {
-     
+  // Iterates files with .txt extension
+ for txtFileURL in downloadsDirectory.iterateFiles(extensions: ["txt"]) {
+
  }
- ```
  
- You can also specifiy iterate options.
- 
- ```swift
- /// Iterates files, including files in subdirectories and hidden files
- for fileURL in downloadsDirectory.iterateFiles(.includeSubdirectoryDescendants, .includeHiddenFiles) {
+ // Iterates video files with file names that contain "vid_"
+ for fileURL in downloadsDirectory.iterate(predicate: { file in
+     return file.fileType == .video && file.lastPathComponent.contains("vid_")
+ }).recursive.includingHidden {
      
  }
  ```
@@ -143,9 +138,32 @@ Addition `URL` methods for iterating the content of file system directories.
 Meassures the time executing a block.
 
 ```swift
-let timeElapsed = MeasureTime.timeElapsed() {
+MeasureTime.printTimeElapsed() {
 /// The block to measure
 }
+```
+
+### Progress extensions
+
+- `updateEstimatedTimeRemaining()`: Updates the estimted time remaining and throughput.
+- `addFileProgress(url: URL, kind: FileOperationKind = .downloading)`: Shows the file progress in Finder.
+
+```swift
+progress.addFileProgress(url: fileURL, kind: .downloading)
+```
+
+- `MutableProgress`: A progress that allows to add and remove children progresses.
+
+#### NSObject Class Reflection
+
+Reflects all properties, methods and ivars of a NSObject class including hidden ones.
+
+```swift
+/// All properties, methods and ivars of `NSView`:
+Swift.print(NSView.classReflection())
+
+/// All class properties of `UIView`:
+Swift.print(UIView.classReflection().classProperties)
 ```
 
 ### OSHash
@@ -156,7 +174,7 @@ An implementation of the OpenSuptitle hash.
 let hash = try? OSHash(url: fileURL)
 hash?.Value /// The hash value
 ```
- 
+
 ### More…
 
 - `AsyncOperation`: An asynchronous, pausable operation.

@@ -14,7 +14,7 @@ public struct MeasureTime {
      
      - Parameter block: The block to meassure.
      */
-    public static func measure(block: () -> Void) -> TimeDuration {
+    public static func timeElapsed(block: () -> Void) -> TimeDuration {
         start()
         block()
         return stop()
@@ -28,7 +28,7 @@ public struct MeasureTime {
         - block: The block to meassure.
      */
     @discardableResult
-    public static func measurePrinted(_ title: String? = nil, block: () -> Void) -> TimeDuration {
+    public static func printTimeElapsed(_ title: String? = nil, block: () -> Void) -> TimeDuration {
         start(title)
         block()
         return stopPrinted()
