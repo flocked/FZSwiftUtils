@@ -570,6 +570,7 @@ fileprivate struct WFlagsType: CustomStringConvertible {
 fileprivate struct StructType: CustomStringConvertible {
     public let values: [Any]
     init(_ string: String) {
+        Swift.print("CHECK", string)
         let string = String(string.dropFirst(3).dropLast(3))
         let matches = string.matches(pattern: #"\{(.*?)=\w+\}"#).compactMap({$0.string}).filter({!$0.hasPrefix("{") && !$0.hasSuffix("}")})
         values = matches.compactMap({$0.toType()})
