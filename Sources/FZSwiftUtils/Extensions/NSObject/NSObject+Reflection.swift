@@ -572,8 +572,10 @@ fileprivate struct WFlagsType: CustomStringConvertible {
 fileprivate struct StructType: CustomStringConvertible {
     var descriptions: [NSObject.PropertyDescription] = []
     var _description: String  = ""
-    init(_ string: String) {
+    init?(_ string: String) {
+        guard string.hasPrefix("{?=") else { return nil }
         let string = String(string.dropFirst(3).dropLast(1))
+        Swift.print("STRUCT!!!", string)
         let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
         let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
         Swift.print("CHECK!", matches)
@@ -600,8 +602,8 @@ fileprivate extension String {
             string.replacePrefix("@", with: "")
         }
         string = string.withoutBrackets
-        if string.hasPrefix("{?=") {
-            return StructType(string)
+        if let structType = StructType(string) {
+            return structType
         } else if string == "@" {
             return AnyObject.self
         }  else if string == "<NSObject>" {
