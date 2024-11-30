@@ -560,7 +560,7 @@ fileprivate struct WFlagsType: CustomStringConvertible {
         guard (string.hasPrefix("{__wFlags=") || string.hasPrefix("{__VFlags="))  && string.hasSuffix("}") else { return nil }
         var string = string
         flagType = string.hasPrefix("{__wFlags=") ? "WFlags:" : "VFlags:"
-        string = string.replacingOccurrences(of: ["{__wFlags=", "{__VFlags=", "}"], with: "")
+        string = string.removingPrefix("{__wFlags=").removingPrefix("{__VFlags=").removingSuffix("}")
         let matches = string.matches(pattern: "\"([^\"]+)\"|(\\b\\w+\\b)").compactMap({$0.string})
         guard !matches.isEmpty else { return nil }
         descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)

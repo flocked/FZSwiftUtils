@@ -197,6 +197,37 @@ public extension String {
         replaceSubrange(range, with: string)
     }
     
+    /**
+     Removes the specified prefix.
+     
+     - Parameter prefix: The prefix to remove.
+     */
+    mutating func removePrefix(_ prefix: String) {
+        replacePrefix(prefix, with: "")
+    }
+    
+    /**
+     Returns the string where the specified prefix is replaced.
+     
+     - Parameters:
+        - prefix: The prefix to replace.
+        - string: The replacement string.
+     */
+    func replacingPrefix(_ prefix: String, with string: String) -> String {
+        var string = self
+        string.replacePrefix(prefix, with: string)
+        return string
+    }
+    
+    /**
+     Returns the string with the specified prefix removed.
+     
+     - Parameter prefix: The prefix to remove.
+     */
+    func removingPrefix(_ prefix: String) -> String {
+        replacingPrefix(prefix, with: "")
+    }
+    
     /// The range of the specified suffix, or `nil` if it doesn't exist.
     func rangeOfSuffix(_ suffix: String) -> Range<Index>? {
         guard hasSuffix(suffix) else { return nil }
@@ -213,6 +244,37 @@ public extension String {
     mutating func replaceSuffix(_ suffix: String, with string: String) {
         guard let range = rangeOfSuffix(suffix) else { return }
         replaceSubrange(range, with: string)
+    }
+    
+    /**
+     Removes the specified suffix.
+     
+     - Parameter suffix: The suffix to remove.
+     */
+    mutating func removeSuffix(_ suffix: String) {
+        replaceSuffix(suffix, with: "")
+    }
+    
+    /**
+     Returns the string where the specified suffix is replaced.
+     
+     - Parameters:
+        - suffix: The suffix to replace.
+        - string: The replacement string.
+     */
+    func replacingSuffix(_ suffix: String, with string: String) -> String {
+        var string = self
+        string.replaceSuffix(suffix, with: string)
+        return string
+    }
+    
+    /**
+     Returns the string with the specified suffix removed.
+     
+     - Parameter suffix: The suffix to remove.
+     */
+    func removingSuffix(_ suffix: String) -> String {
+        replacingSuffix(suffix, with: "")
     }
     
     /**
