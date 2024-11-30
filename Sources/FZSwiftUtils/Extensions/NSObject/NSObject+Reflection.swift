@@ -528,7 +528,7 @@ private let valueTypesMap: [String: Any] = [
     "d": Double.self,
     "f": Float.self,
     "{": Decimal.self,
-    "@?": (()->()).self,
+    "@?": Block.self, // ()->()).self,
     "b1": Bool.self, // for ivar
     "C": UInt.self, // for ivar
 ]
@@ -540,6 +540,12 @@ private struct Unknown: CustomStringConvertible {
     }
     var description: String {
         "Unknown<\(type)>"
+    }
+}
+
+private struct Block: CustomStringConvertible {
+    var description: String {
+        "Block"
     }
 }
 
@@ -577,16 +583,21 @@ private extension String {
         if string.hasPrefix("@\"") {
             string.replacePrefix("@", with: "")
         }
+        string = string.withoutBrackets
         if string.hasPrefix("{?=") {
             return StructType(string)
         } else if string == "@" {
             return AnyObject.self
         } else if string.contains("T@,") {
             return Optional<AnyObject>.self
+        } else if string.contains("@?,") {
+            return Optional<Block>.self
         } else if string == "v" || string == "Vv"{
             return Void.self
         } else if let type = valueTypesMap[string] {
            return type
+        } else if string.isMatching(pattern: "^b\\d+$") {
+            return Int.self
         }
         if string.contains("CGRect") {
             return CGRect.self
@@ -619,9 +630,9 @@ private extension String {
             return UIEdgeInsets.self
         }
         #endif
-        if let type = NSClassFromString(string.withoutBrackets) {
+        if let type = NSClassFromString(string) {
             return type
-        } else if let type = NSProtocolFromString(string.withoutBrackets) {
+        } else if let type = NSProtocolFromString(string) {
             return type
         } else if let anyObjectType = AnyObjectType(string: string) {
             return anyObjectType
