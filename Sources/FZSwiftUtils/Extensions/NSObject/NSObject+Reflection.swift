@@ -549,53 +549,24 @@ private extension objc_property_t {
     }
 }
 
-private let valueTypesMap: [String: Any] = {
-    var valueTypesMap = [
-        "c": Int8.self,
-        "s": Int16.self,
-        "#": AnyClass.self,
-        ":": Selector.self,
-        "i": Int32.self,
-        "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
-        "S": UInt16.self,
-        "I": UInt32.self,
-        "Q": UInt.self, // also UInt64, only true on 64 bit platforms
-        "B": Bool.self,
-        "d": Double.self,
-        "f": Float.self,
-        "{": Decimal.self,
-        "@?": (()->()).self,
-        "{CGSize=dd}": CGSize.self,
-        "{CGPoint=dd}": CGPoint.self,
-        "{_NSRange=QQ}": _NSRange.self,
-        "{CGRect={CGPoint=dd}{CGSize=dd}}": CGRect.self,
-        "{CGAffineTransform=dddddd}": CGAffineTransform.self,
-        "CGAffineTransform": CGAffineTransform.self,
-        "CGSize": CGSize.self,
-        "CGPoint": CGPoint.self,
-        "_NSRange": _NSRange.self,
-        "CGRect": CGRect.self,
-        "r^{CGPath=}": CGPath.self,
-        "CGPath": CGPath.self,
-    ]
-    // for ivars
-    valueTypesMap += [
-        "b1": Bool.self,
-        "C": UInt.self,
-        #"{CGPoint="x"d"y"d}"#: CGPoint.self,
-        #"{CGSize="width"d"height"d}"#: CGSize.self,
-        #"{CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}}"#: CGRect.self,
-    ]
-    #if os(macOS) || os(iOS) || os(tvOS)
-    valueTypesMap += ["{CATransform3D=dddddddddddddddd}": CATransform3D.self, "CATransform3D": CATransform3D.self]
-    #endif
-    #if os(macOS)
-    valueTypesMap += [ "{NSEdgeInsets=dddd}": NSUIEdgeInsets.self, "NSEdgeInsets": NSUIEdgeInsets.self]
-    #elseif canImport(UIKit)
-    valueTypesMap += [ "{UIEdgeInsets=dddd}": NSUIEdgeInsets.self, "UIEdgeInsets": NSUIEdgeInsets.self]
-    #endif
-    return valueTypesMap
-}()
+private let valueTypesMap: [String: Any] = [
+    "c": Int8.self,
+    "s": Int16.self,
+    "#": AnyClass.self,
+    ":": Selector.self,
+    "i": Int32.self,
+    "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
+    "S": UInt16.self,
+    "I": UInt32.self,
+    "Q": UInt.self, // also UInt64, only true on 64 bit platforms
+    "B": Bool.self,
+    "d": Double.self,
+    "f": Float.self,
+    "{": Decimal.self,
+    "@?": (()->()).self,
+    "b1": Bool.self, // for ivar
+    "C": UInt.self, // for ivar
+]
 
 private struct Unknown: CustomStringConvertible {
     let type: String
@@ -630,11 +601,45 @@ private extension String {
             return StructType(self)
         } else if string == "@" {
             return AnyObject.self
+        } else if string == "T@,&,D" {
+            return Optional<AnyObject>.self
         } else if string == "v" || self == "Vv"{
             return Void.self
         } else if let type = valueTypesMap[string] {
            return type
-        } else if let type = NSClassFromString(string.withoutBrackets) {
+        }
+        if string.contains("CGRect") {
+            return CGRect.self
+        } else if string.contains("CGPoint") {
+            return CGPoint.self
+        } else if string.contains("CGSize") {
+            return CGSize.self
+        } else if string.contains("NSRange") {
+            return NSRange.self
+        } else if string.contains("CGColor") {
+            return CGColor.self
+        }  else if string.contains("CGAffineTransform") {
+            return CGAffineTransform.self
+        } else if string.contains("CGPath") {
+            return CGPath.self
+        }
+        #if os(macOS) || os(iOS) || os(tvOS)
+        if string.contains("CALayer") {
+            return CALayer.self
+        } else if string.contains("CATransform3D") {
+            return CATransform3D.self
+        }
+        #endif
+        #if os(macOS)
+        if string.contains("NSEdgeInsets") {
+            return NSEdgeInsets.self
+        }
+        #elseif canImport(UIKit)
+        if string.contains("UIEdgeInsets") {
+            return UIEdgeInsets.self
+        }
+        #endif
+        if let type = NSClassFromString(string.withoutBrackets) {
             return type
         } else if let type = NSProtocolFromString(string.withoutBrackets) {
             return type
