@@ -610,24 +610,28 @@ private struct StructType: CustomStringConvertible {
 
 private extension String {
     func toType() -> Any {
-        if hasPrefix("{?=") {
+        var string = self
+        if string.hasPrefix("@\"") {
+            string.replacePrefix("@", with: "")
+        }
+        if string.hasPrefix("{?=") {
             return StructType(self)
-        } else if self == "@" {
+        } else if string == "@" {
             return AnyObject.self
-        } else if self == "v" || self == "Vv"{
+        } else if string == "v" || self == "Vv"{
             return Void.self
-        } else if let type = valueTypesMap[self] {
+        } else if let type = valueTypesMap[string] {
            return type
-        } else if let type = NSClassFromString(self.withoutBrackets) {
+        } else if let type = NSClassFromString(string.withoutBrackets) {
             return type
-        } else if let type = NSProtocolFromString(self.withoutBrackets) {
+        } else if let type = NSProtocolFromString(string.withoutBrackets) {
             return type
         } else {
-            let matches = self.matches(pattern: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
+            let matches = string.matches(pattern: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
             if matches.count == 2, let match = matches.last {
                 return match.toType()
             }
-            return Unknown(self)
+            return Unknown(string)
         }
     }
     
