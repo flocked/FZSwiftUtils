@@ -578,6 +578,14 @@ private let valueTypesMap: [String: Any] = {
         "r^{CGPath=}": CGPath.self,
         "CGPath": CGPath.self,
     ]
+    // for ivars
+    valueTypesMap += [
+        "b1": Bool.self,
+        "C": UInt.self,
+        #"{CGPoint="x"d"y"d}"#: CGPoint.self,
+        #"{CGSize="width"d"height"d}"#: CGSize.self,
+        #"{CGRect="origin"{CGPoint="x"d"y"d}"size"{CGSize="width"d"height"d}}"#: CGRect.self,
+    ]
     #if os(macOS) || os(iOS) || os(tvOS)
     valueTypesMap += ["{CATransform3D=dddddddddddddddd}": CATransform3D.self, "CATransform3D": CATransform3D.self]
     #endif
