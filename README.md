@@ -91,16 +91,16 @@ extension NSView {
 ### Iterate directories & files
 
 Addition `URL` methods for iterating the content of file system directories.
-
- - Iterate sub directories
+ 
+  - Iterate sub folders:
  
  ```swift
- for subDirectoryURL in downloadsDirectory.iterateDirectories() {
+ for folderURL in downloadsDirectory.iterateFolders() {
      
  }
  ```
  
- - Iterate files
+  - Iterate files:
  
  ```swift
  for fileURL in downloadsDirectory.iterateFiles() {
@@ -108,7 +108,7 @@ Addition `URL` methods for iterating the content of file system directories.
  }
  ```
  
- - Iterate files recursively (including the files of sub folders) and include hidden files.
+ - Iterate files recursively (including the files of sub folders) and include hidden files:
  
   ```swift
  for fileURL in downloadsDirectory.iterateFiles().recursive.includingHidden {
@@ -116,7 +116,7 @@ Addition `URL` methods for iterating the content of file system directories.
  }
  ```
  
- - Iterate files by file extensions, file types or by predicate.
+ - Iterate files by file extensions, file types or by predicate:
  
  ```swift
  // Iterate multimedia files
