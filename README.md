@@ -34,7 +34,9 @@ let dateDuration = TimeDuration(from: date1, to: date2)
 
 ### NSObject property observation
 
-- Observe KVO properties of a `NSObject` using `observeChanges(for:)`. It returns a `KeyValueObservation` object that you need to save as long as you want to observe the property.
+- Observe KVO properties of a `NSObject` using `observeChanges(for:)`. 
+
+It returns a `KeyValueObservation` object that you need to save as long as you want to observe the property.
 
 ```swift
 let textField = NSTextField()
@@ -194,7 +196,7 @@ progress.addFileProgress(url: fileURL, kind: .downloading)
 
 Observe `NotificationCenter` notifications using a block.
 
-Use `observe(name:object:block:)`. It returns a `NotificationToken` that you need to save as long as you want to observe the notification.
+Use NotificationCenter`s `observe(name:object:block:)`. It returns a `NotificationToken` that you need to save as long as you want to observe the notification.
 
 
 ```swift
