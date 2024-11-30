@@ -272,19 +272,19 @@ extension NSObject {
     private static func propertiesReflection(for class: NSObject.Type?, excludeReadOnly: Bool = false, includeSuperclass: Bool = false) -> [PropertyDescription] {
         var count: Int32 = 0
         let properties = class_copyPropertyList(`class`, &count)
-        var names: [PropertyDescription] = []
+        var descriptions: [PropertyDescription] = []
         for i in 0..<Int(count) {
             guard let property = properties?.advanced(by: i).pointee else { continue }
             guard let propertyName = property.name else { continue }
             let isReadOnly = property.isReadOnly
             if excludeReadOnly, isReadOnly { continue }
             let propertyType = property.type
-            names.append(.init(propertyName, propertyType, isReadOnly))
+            descriptions.append(.init(propertyName, propertyType, isReadOnly))
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names += superclass.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
+            descriptions += superclass.propertiesReflection(excludeReadOnly: excludeReadOnly, includeSuperclass: includeSuperclass)
         }
-        return names.uniqued(by: \.name).sorted(by: \.name)
+        return descriptions.uniqued(by: \.name).sorted(by: \.name)
     }
     
     private static func ivarsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [PropertyDescription] {
@@ -294,49 +294,14 @@ extension NSObject {
         for i in 0..<Int(count) {
             guard let ivar = ivars?.advanced(by: i).pointee else { continue }
             guard let nameChars = ivar_getName(ivar), let name = String(validatingUTF8: nameChars) else { continue }
-            guard let typeChars = ivar_getTypeEncoding(ivar), let type = String(validatingUTF8: typeChars) else { continue }
-            descriptions.append(PropertyDescription(name, type.toType(), false))
-            Swift.print("-----")
-            Swift.print("\(name):\(type)")
-            Swift.print(descriptions.last?.description ?? "nil")
-
+            guard let typeChars = ivar_getTypeEncoding(ivar), let type = String(validatingUTF8: typeChars)?.toType() else { continue }
+            descriptions.append(PropertyDescription(name, type, false))
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
             descriptions += superclass.ivarsReflection(includeSuperclass: includeSuperclass)
         }
-        return descriptions
+        return descriptions.uniqued(by: \.name).sorted(by: \.name)
     }
-    
-    /*
-    private static func ivarsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
-        var count: Int32 = 0
-        let ivars = class_copyIvarList(`class`, &count)
-        var names: [String] = []
-        for i in 0..<Int(count) {
-            guard let ivar = ivars?.advanced(by: i).pointee else { continue }
-            guard let ivarNameChars = ivar_getName(ivar), let ivarName = String(validatingUTF8: ivarNameChars) else { continue }
-            if let type = ivar_getTypeEncoding(ivar) {
-                Swift.print("Check")
-                if let string = String(validatingUTF8: type) {
-                    Swift.print("\t", string, "\(String(describing: string.toType))", string.toType)
-                }
-                for encoding in [String.Encoding.utf8, .utf16, .symbol, .unicode, ] {
-                    if let string = String(cString: type, encoding: encoding) {
-                        Swift.print("\t", string, "\(String(describing: string.toType))", string.toType)
-                    }
-                }
-            }
-            // let ivarEncodingChars = ivar_getTypeEncoding(ivar)
-            // let ivarEncoding = String(validatingUTF8: ivarEncodingChars)
-            // Swift.print(ivarName, ivar.ivarType ?? "nil")
-            names.append(ivarName)
-        }
-        if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
-            names += superclass.ivarsReflection(includeSuperclass: includeSuperclass)
-        }
-        return names.uniqued().sorted()
-    }
-     */
     
     private static func protocolConformances(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var count: Int32 = 0
@@ -598,12 +563,12 @@ private extension String {
             string.replacePrefix("@", with: "")
         }
         if string.hasPrefix("{?=") {
-            return StructType(self)
+            return StructType(string)
         } else if string == "@" {
             return AnyObject.self
-        } else if string == "T@,&,D" {
+        } else if string.contains("T@,") {
             return Optional<AnyObject>.self
-        } else if string == "v" || self == "Vv"{
+        } else if string == "v" || string == "Vv"{
             return Void.self
         } else if let type = valueTypesMap[string] {
            return type
