@@ -44,8 +44,6 @@ let textField = NSTextField()
 let stringObservation = textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
     /// stringValue changed
 }
-// Save the `KeyValueObservation
-
 let fontObservation = textField.observeChanges(for \.font) { oldFont, font in
     /// font changed
 }
