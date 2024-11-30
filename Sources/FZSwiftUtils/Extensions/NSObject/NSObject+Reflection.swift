@@ -543,6 +543,21 @@ private struct Unknown: CustomStringConvertible {
     }
 }
 
+private struct AnyObjectType: CustomStringConvertible {
+    let type: Any
+
+    init?(string: String) {
+        guard let type = string.matches(pattern: #"(?<=NSObject<)([^>]+)(?=>)"#).first?.string.toType() else { return nil }
+        self.type = type
+    }
+    var description: String {
+        if let type = type as? Protocol {
+            return "NSObject<\(NSStringFromProtocol(type))>"
+        }
+        return "NSObject<\(String(describing: type))>"
+    }
+}
+
 private struct StructType: CustomStringConvertible {
     public let values: [Any]
     init(_ string: String) {
@@ -608,6 +623,8 @@ private extension String {
             return type
         } else if let type = NSProtocolFromString(string.withoutBrackets) {
             return type
+        } else if let anyObjectType = AnyObjectType(string: string) {
+            return anyObjectType
         } else {
             let matches = string.matches(pattern: #"\{(.*?)=\w*\}"#).compactMap({$0.string})
             if matches.count == 2, let match = matches.last {
