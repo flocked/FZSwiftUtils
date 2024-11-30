@@ -107,23 +107,27 @@ extension NSObject {
         public let returnType: Any
         
         public var description: String {
-            name
+            debugDescription
         }
         
         public var debugDescription: String {
-            var string = "- "
-            string += returnType is Void.Type ? "(void)" : "(\(String(describing: returnType)))"
+            var string = ""
             var arguments = argumentTypes.compactMap({"("+String(describing: $0)+")"})
             if !arguments.isEmpty {
-                let components = name.components(separatedBy: ":")
+                var components = name.components(separatedBy: ":")
                 if components.count == arguments.count+1 {
+                    let lastComponent = components.removeLastSafetly() ?? ""
                     for component in components {
                         string += component + ":"
                         string += arguments.removeFirstSafetly() ?? ""
                     }
+                    string += lastComponent
                 }
             } else {
                 string += name
+            }
+            if !(returnType is Void.Type) {
+                string += " -> \(String(describing: returnType))"
             }
             return string
         }
