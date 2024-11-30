@@ -295,7 +295,9 @@ extension NSObject {
             guard let ivar = ivars?.advanced(by: i).pointee else { continue }
             guard let ivarNameChars = ivar_getName(ivar), let ivarName = String(validatingUTF8: ivarNameChars) else { continue }
             if let type = ivar_getTypeEncoding(ivar) {
-                Swift.print("CHECK", String(cString: type, encoding: .utf8) ?? "nil", String(validatingUTF8: type) ?? "nil", String(cString: type, encoding: .symbol) ?? "nil", type)
+                if let string = String(cString: type, encoding: .utf8) {
+                    Swift.print("CHECK", String(describing: string.toType), string)
+                }
             }
             // let ivarEncodingChars = ivar_getTypeEncoding(ivar)
             // let ivarEncoding = String(validatingUTF8: ivarEncodingChars)
