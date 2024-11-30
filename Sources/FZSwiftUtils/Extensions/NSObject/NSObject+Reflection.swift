@@ -28,13 +28,13 @@ extension NSObject {
         /// The methods of the object.
         public let methods: [MethodDescription]
         /// The ivars of the object.
-        public let ivars: [String]
+        public let ivars: [PropertyDescription]
         /// The class properties of the object.
         public let classProperties: [PropertyDescription]
         /// The class methods of the object.
         public let classMethods: [MethodDescription]
         /// The class ivars of the object.
-        public let classIvars: [String]
+        public let classIvars: [PropertyDescription]
         
         public var description: String {
             description(isDebug: false)
@@ -56,7 +56,7 @@ extension NSObject {
             }
             if !ivars.isEmpty {
                 strings.append("\tIvars:")
-                strings.append(contentsOf: ivars.compactMap({"\t\t" + $0}))
+                strings.append(contentsOf: ivars.compactMap({"\t\t" + $0.description}))
             }
             if !classProperties.isEmpty {
                 strings.append("\tClass Properties:")
@@ -68,7 +68,7 @@ extension NSObject {
             }
             if !classIvars.isEmpty {
                 strings.append("\tClass Ivars:")
-                strings.append(contentsOf: classIvars.compactMap({"\t\t" + $0}))
+                strings.append(contentsOf: classIvars.compactMap({"\t\t" + $0.description}))
             }
             strings.append(")")
             return strings.joined(separator: "\n")
@@ -174,7 +174,7 @@ extension NSObject {
      
      - Parameter includeSuperclass: A Boolean value indicating whether to include ivar names of the class's `superclass`.
      */
-    public static func ivarsReflection(includeSuperclass: Bool = false) -> [String] {
+    public static func ivarsReflection(includeSuperclass: Bool = false) -> [PropertyDescription] {
         ivarsReflection(for: self, includeSuperclass: includeSuperclass)
     }
     
@@ -203,7 +203,7 @@ extension NSObject {
      
      - Parameter includeSuperclass: A Boolean value indicating whether to include ivar names of the class's `superclass`.
      */
-    public static func classIvarsReflection(includeSuperclass: Bool = false) -> [String] {
+    public static func classIvarsReflection(includeSuperclass: Bool = false) -> [PropertyDescription] {
         metaClass?.ivarsReflection(includeSuperclass: includeSuperclass) ?? []
     }
     
@@ -287,6 +287,23 @@ extension NSObject {
         return names.uniqued(by: \.name).sorted(by: \.name)
     }
     
+    private static func ivarsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [PropertyDescription] {
+        var descriptions: [PropertyDescription] = []
+        var count: Int32 = 0
+        let ivars = class_copyIvarList(`class`, &count)
+        for i in 0..<Int(count) {
+            guard let ivar = ivars?.advanced(by: i).pointee else { continue }
+            guard let nameChars = ivar_getName(ivar), let name = String(validatingUTF8: nameChars) else { continue }
+            guard let typeChars = ivar_getTypeEncoding(ivar), let type = String(validatingUTF8: typeChars) else { continue }
+            descriptions.append(PropertyDescription(name, type.toType(), true))
+        }
+        if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
+            descriptions += superclass.ivarsReflection(includeSuperclass: includeSuperclass)
+        }
+        return descriptions
+    }
+    
+    /*
     private static func ivarsReflection(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var count: Int32 = 0
         let ivars = class_copyIvarList(`class`, &count)
@@ -315,6 +332,7 @@ extension NSObject {
         }
         return names.uniqued().sorted()
     }
+     */
     
     private static func protocolConformances(for class: NSObject.Type?, includeSuperclass: Bool = false) -> [String] {
         var count: Int32 = 0
