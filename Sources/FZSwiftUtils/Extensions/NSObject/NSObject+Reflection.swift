@@ -462,14 +462,14 @@ extension NSObject {
     }
 }
 
-private extension Ivar {
+fileprivate extension Ivar {
     var ivarType: String? {
         guard let typeEncoding = ObjectiveC.ivar_getTypeEncoding(self) else { return nil }
         return String(cString: typeEncoding)
     }
 }
 
-private extension Method {
+fileprivate extension Method {
     var methodName: String {
         NSStringFromSelector(method_getName(self))
     }
@@ -494,7 +494,7 @@ private extension Method {
     }
 }
 
-private extension objc_property_t {
+fileprivate extension objc_property_t {
     var name: String? {
         guard let name = NSString(utf8String: property_getName(self)) else { return nil }
         return name as String
@@ -514,7 +514,7 @@ private extension objc_property_t {
     }
 }
 
-private let valueTypesMap: [String: Any] = [
+fileprivate let valueTypesMap: [String: Any] = [
     "c": Int8.self,
     "s": Int16.self,
     "#": AnyClass.self,
@@ -533,7 +533,7 @@ private let valueTypesMap: [String: Any] = [
     "C": UInt.self, // for ivar
 ]
 
-private struct Unknown: CustomStringConvertible {
+fileprivate struct Unknown: CustomStringConvertible {
     let type: String
     init(_ type: String) {
         self.type = type
@@ -543,13 +543,13 @@ private struct Unknown: CustomStringConvertible {
     }
 }
 
-private struct Block: CustomStringConvertible {
+fileprivate struct Block: CustomStringConvertible {
     var description: String {
         "Block"
     }
 }
 
-private struct AnyObjectType: CustomStringConvertible {
+fileprivate struct AnyObjectType: CustomStringConvertible {
     let type: Any
 
     init?(_ string: String) {
@@ -564,20 +564,38 @@ private struct AnyObjectType: CustomStringConvertible {
     }
 }
 
-private struct WFlagsType: CustomStringConvertible {
-    let description: String
+fileprivate struct WFlagsType: CustomStringConvertible {
+    var dictionary: [String: Any] = [:]
+    
+    var description: String {
+        let keys = dictionary.keys.sorted()
+        var strings: [String] = ["WFlags:"]
+        for key in keys {
+            let type = dictionary[key]!
+            if let type = type as? Protocol {
+                strings.append("\t\(key):\(NSStringFromProtocol(type))")
+            } else {
+                strings.append("\t\(key):\(String(describing: type))")
+            }
+        }
+        return strings.joined(separator: "\n")
+    }
     init?(_ string: String) {
         guard string.hasPrefix("{__wFlags=") && string.hasSuffix("}") else { return nil }
+        Swift.print("hasPrefix")
         var string = string
         string.replacePrefix("{__wFlags=", with: "")
         string.replaceSuffix("}", with: "")
-        let matches = string.matches(pattern: #"(?<=NSObject<)([^>]+)(?=>)"#)
+        let matches = string.matches(pattern: "\"([^\"]+)\"|(\\b\\w+\\b)").compactMap({$0.string})
+        Swift.print("count", matches.count)
         guard !matches.isEmpty else { return nil }
-        self.description = matches.compactMap({ $0.string }).joined(separator: "\n")
+        for chunk in matches.chunked(size: 2) {
+            dictionary[chunk[0]] = chunk[1].toType()
+        }
     }
 }
 
-private struct StructType: CustomStringConvertible {
+fileprivate struct StructType: CustomStringConvertible {
     public let values: [Any]
     init(_ string: String) {
         let string = String(string.dropFirst(3).dropLast(3))
@@ -590,7 +608,7 @@ private struct StructType: CustomStringConvertible {
     }
 }
 
-private extension String {
+fileprivate extension String {
     func toType() -> Any {
         var string = self
         if string.hasPrefix("@\"") {
