@@ -111,21 +111,21 @@ extension NSObject {
         }
         
         public var debugDescription: String {
-            var argumentString: String?
-            let argumentTypes = argumentTypes.compactMap({String(describing: $0)})
-            if !argumentTypes.isEmpty {
-                argumentString = "(\(argumentTypes.joined(separator: ", ")))"
-            }
-            Swift.print(argumentTypes.count, argumentTypes)
-
-            if let argumentString = argumentString {
-                return "\(name) \(argumentString) -> \(String(describing: returnType))"
-            } else {
-                if returnType is Void.Type {
-                    return name
+            var string = "- "
+            string += returnType is Void.Type ? "(void)" : "(\(String(describing: returnType)))"
+            var arguments = argumentTypes.compactMap({"("+String(describing: $0)+")"})
+            if !arguments.isEmpty {
+                let components = name.components(separatedBy: ":")
+                if components.count == arguments.count+1 {
+                    for component in components {
+                        string += component + ":"
+                        string += arguments.removeFirstSafetly() ?? ""
+                    }
                 }
-                return "\(name) -> \(String(describing: returnType))"
+            } else {
+                string += name
             }
+            return string
         }
     }
     
