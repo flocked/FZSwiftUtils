@@ -127,7 +127,7 @@ extension NSObject {
                 string += name
             }
             if !(returnType is Void.Type) {
-                string += " -> \(String(describing: returnType))"
+                string += "->\(String(describing: returnType))"
             }
             return string
         }
