@@ -567,10 +567,10 @@ private struct AnyObjectType: CustomStringConvertible {
 private struct WFlagsType: CustomStringConvertible {
     let description: String
     init?(_ string: String) {
-        guard string.hasPrefix("{__wFlags=") && string.hasSuffix("}>") else { return nil }
+        guard string.hasPrefix("{__wFlags=") && string.hasSuffix("}") else { return nil }
         var string = string
         string.replacePrefix("{__wFlags=", with: "")
-        string.replaceSuffix("}>", with: "")
+        string.replaceSuffix("}", with: "")
         let matches = string.matches(pattern: #"(?<=NSObject<)([^>]+)(?=>)"#)
         guard !matches.isEmpty else { return nil }
         self.description = matches.compactMap({ $0.string }).joined(separator: "\n")
