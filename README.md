@@ -39,8 +39,12 @@ let dateDuration = TimeDuration(from: date1, to: date2)
 ```swift
 let textField = NSTextField()
 
-let textFieldStringObservation = textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
+let stringObservation = textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
     /// stringValue changed
+}
+
+let fontObservation = textField.observeChanges(for \.font) { oldFont, font in
+    /// font changed
 }
 ```
 
