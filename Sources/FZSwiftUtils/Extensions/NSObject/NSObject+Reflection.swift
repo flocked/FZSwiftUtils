@@ -116,6 +116,7 @@ extension NSObject {
             if !argumentTypes.isEmpty {
                 argumentString = "(\(argumentTypes.joined(separator: ", ")))"
             }
+            Swift.print(argumentTypes.count, argumentTypes)
 
             if let argumentString = argumentString {
                 return "\(name) \(argumentString) -> \(String(describing: returnType))"
