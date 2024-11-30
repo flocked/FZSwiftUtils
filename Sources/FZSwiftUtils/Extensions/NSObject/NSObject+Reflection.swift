@@ -639,6 +639,8 @@ fileprivate extension String {
             return type
         } else if let type = NSProtocolFromString(string) {
             return type
+        } else if string.contains("os_unfair_lock") {
+            return "Lock"
         } else if let anyObjectType = AnyObjectType(string) {
             return anyObjectType
         } else if let wFlagsType = WFlagsType(string) {
