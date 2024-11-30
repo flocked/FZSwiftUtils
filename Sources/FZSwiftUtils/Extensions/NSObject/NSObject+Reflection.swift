@@ -561,9 +561,10 @@ fileprivate struct WFlagsType: CustomStringConvertible {
         var string = string
         flagType = string.hasPrefix("{__wFlags=") ? "WFlags" : "VFlags"
         string = string.removingPrefix("{__wFlags=").removingPrefix("{__VFlags=").removingSuffix("}")
-        let matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#).compactMap({$0.string})
-        guard !matches.isEmpty else { return nil }
-        Swift.print("CHECK", matches)
+        let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
+        guard !_matches.isEmpty else { return nil }
+        let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
+        Swift.print("CHECK!", matches)
         descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
     }
 }
@@ -573,8 +574,9 @@ fileprivate struct StructType: CustomStringConvertible {
     var _description: String  = ""
     init(_ string: String) {
         let string = String(string.dropFirst(3).dropLast(1))
-        let matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#).compactMap({$0.string})
-        Swift.print("CHECK", matches)
+        let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
+        let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
+        Swift.print("CHECK!", matches)
         if !matches.isEmpty && (matches.count % 2 == 0) {
             descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
         } else {
