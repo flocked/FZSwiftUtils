@@ -13,9 +13,9 @@ public extension DispatchQueue {
 
      - Parameters:
         - timeInterval: The time interval (in seconds) at which to schedule the work item for execution.
-        - execute: The work item containing the task to execute. For information on how to create this work item, see `DispatchWorkItem`.
+        - execute: The work item containing the task to execute.
      */
-    func asyncAfter(timeInterval: TimeInterval, execute: DispatchWorkItem) {
+    func asyncAfter(_ timeInterval: TimeInterval, execute: DispatchWorkItem) {
         asyncAfter(deadline: .now() + timeInterval, execute: execute)
     }
 
@@ -24,9 +24,9 @@ public extension DispatchQueue {
 
      - Parameters:
         - timeInterval: The time interval at which to schedule the work item for execution.
-        - execute: The work item containing the task to execute. For information on how to create this work item, see `DispatchWorkItem`.
+        - execute: The work item containing the task to execute.
      */
-    func asyncAfter(timeInterval: TimeDuration, execute: DispatchWorkItem) {
+    func asyncAfter(_ timeInterval: TimeDuration, execute: DispatchWorkItem) {
         asyncAfter(deadline: .now() + timeInterval.seconds, execute: execute)
     }
 
@@ -35,12 +35,12 @@ public extension DispatchQueue {
 
      - Parameters:
         - timeInterval: The time interval (in seconds) at which to schedule the block for execution.
-        - qos: The quality-of-service class to use when executing the block. This parameter determines the priority with which the block is scheduled and executed. For a list of possible values, see `DispatchQoS`.
-        - flags: Additional attributes to apply when executing the block. For a list of possible values, see `DispatchWorkItemFlags`.
+        - qos: The quality-of-service class to use when executing the block. This parameter determines the priority with which the block is scheduled and executed.
+        - flags: Additional attributes to apply when executing the block.
         - work: The block containing the work to perform. This block has no return value and no parameters.
      */
     @preconcurrency
-    func asyncAfter(timeInterval: TimeInterval, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
+    func asyncAfter(_ timeInterval: TimeInterval, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
         asyncAfter(deadline: .now() + timeInterval, qos: qos, flags: flags, execute: work)
     }
 
@@ -49,12 +49,12 @@ public extension DispatchQueue {
 
      - Parameters:
         - timeInterval: The time interval  at which to schedule the block for execution.
-        - qos: The quality-of-service class to use when executing the block. This parameter determines the priority with which the block is scheduled and executed. For a list of possible values, see `DispatchQoS`.
-        - flags: Additional attributes to apply when executing the block. For a list of possible values, see `DispatchWorkItemFlags`.
+        - qos: The quality-of-service class to use when executing the block. This parameter determines the priority with which the block is scheduled and executed.
+        - flags: Additional attributes to apply when executing the block.
         - work: The block containing the work to perform. This block has no return value and no parameters.
      */
     @preconcurrency
-    func asyncAfter(timeInterval: TimeDuration, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
+    func asyncAfter(_ timeInterval: TimeDuration, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
         asyncAfter(deadline: .now() + timeInterval.seconds, qos: qos, flags: flags, execute: work)
     }
 }
