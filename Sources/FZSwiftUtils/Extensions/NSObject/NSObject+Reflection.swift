@@ -297,11 +297,11 @@ extension NSObject {
             if let type = ivar_getTypeEncoding(ivar) {
                 Swift.print("Check")
                 if let string = String(validatingUTF8: type) {
-                    Swift.print("\t", string, String(describing: string.toType))
+                    Swift.print("\t", string, "\(String(describing: string.toType))", string.toType)
                 }
                 for encoding in [String.Encoding.utf8, .utf16, .symbol, .unicode, ] {
                     if let string = String(cString: type, encoding: encoding) {
-                        Swift.print("\t", string, String(describing: string.toType))
+                        Swift.print("\t", string, "\(String(describing: string.toType))", string.toType)
                     }
                 }
             }
