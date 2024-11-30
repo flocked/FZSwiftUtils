@@ -107,7 +107,7 @@ extension NSObject {
         public let returnType: Any
         
         public var description: String {
-            debugDescription
+            name
         }
         
         public var debugDescription: String {
@@ -294,7 +294,10 @@ extension NSObject {
         for i in 0..<Int(count) {
             guard let ivar = ivars?.advanced(by: i).pointee else { continue }
             guard let ivarNameChars = ivar_getName(ivar), let ivarName = String(validatingUTF8: ivarNameChars) else { continue }
-            // let ivarEncodingChars = ivar_getTypeEncoding(ivar),
+            if let type = ivar_getTypeEncoding(ivar) {
+                Swift.print("CHECK", String(cString: type, encoding: .utf8) ?? "nil", String(validatingUTF8: type) ?? "nil", String(cString: type, encoding: .symbol) ?? "nil", type)
+            }
+            // let ivarEncodingChars = ivar_getTypeEncoding(ivar)
             // let ivarEncoding = String(validatingUTF8: ivarEncodingChars)
             // Swift.print(ivarName, ivar.ivarType ?? "nil")
             names.append(ivarName)
