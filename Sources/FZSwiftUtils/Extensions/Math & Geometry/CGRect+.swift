@@ -561,6 +561,165 @@ public extension CGRect {
     func clamped(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) -> CGRect {
         CGRect(origin, size.clamped(minWidth: minWidth, minHeight: minHeight, maxWidth: maxWidth, maxHeight: maxHeight))
     }
+    
+    /**
+     Returns the edge that contains the specified point.
+     
+     - Parameters:
+        - point: The point.
+        - tolerance: The tolerance for the edges.
+     */
+    func edge(containing point: CGPoint, tolerance: CGFloat) -> CGRectEdge? {
+        guard insetBy(dx: -tolerance, dy: -tolerance).contains(point) else { return nil }
+        
+        if point.y >= minY - tolerance && point.y <= minY + tolerance &&
+            point.x >= minX - tolerance && point.x <= maxX + tolerance {
+            #if os(macOS)
+            return .bottom
+            #else
+            return .top
+            #endif
+        }
+        
+        if point.y >= maxY - tolerance && point.y <= maxY + tolerance &&
+            point.x >= minX - tolerance && point.x <= maxX + tolerance {
+            #if os(macOS)
+            return .top
+            #else
+            return .bottom
+            #endif
+        }
+        
+        if point.x >= minX - tolerance && point.x <= minX + tolerance &&
+            point.y >= minY - tolerance && point.y <= maxY + tolerance {
+            return .left
+        }
+        
+        if point.x >= maxX - tolerance && point.x <= maxX + tolerance &&
+            point.y >= minY - tolerance && point.y <= maxY + tolerance {
+            return .right
+        }
+        
+        return nil
+    }
+    
+    /**
+     Returns the edge or corner that contains the specified point.
+     
+     - Parameters:
+        - point: The point.
+        - tolerance: The tolerance on the edges and corners.
+     */
+    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat) -> EdgePosition? {
+        edgeOrCorner(containing: point, tolerance: tolerance, cornerTolerance: tolerance)
+    }
+    
+    /**
+     Returns the edge or corner that contains the specified point.
+
+     - Parameters:
+        - point: The point.
+        - tolerance: The tolerance on the edges.
+        - cornerTolerance: The tolerance on the corners.
+     */
+    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat, cornerTolerance: CGFloat) -> EdgePosition? {
+        let edgeExtendedRect = insetBy(dx: -tolerance, dy: -tolerance)
+        let cornerExtendedRect = insetBy(dx: -cornerTolerance, dy: -cornerTolerance)
+        
+        if cornerExtendedRect.contains(point) {
+            if point.x >= minX - cornerTolerance && point.x <= minX + cornerTolerance {
+                if point.y >= minY - cornerTolerance && point.y <= minY + cornerTolerance {
+                    #if os(macOS)
+                    return .bottomLeft
+                    #else
+                    return .topLeft
+                    #endif
+                } else if point.y >= maxY - cornerTolerance && point.y <= maxY + cornerTolerance {
+                    #if os(macOS)
+                    return .topLeft
+                    #else
+                    return .bottomLeft
+                    #endif
+                }
+            }
+            
+            if point.x >= maxX - cornerTolerance && point.x <= maxX + cornerTolerance {
+                if point.y >= minY - cornerTolerance && point.y <= minY + cornerTolerance {
+                    #if os(macOS)
+                    return .bottomRight
+                    #else
+                    return .topRight
+                    #endif
+                } else if point.y >= maxY - cornerTolerance && point.y <= maxY + cornerTolerance {
+                    #if os(macOS)
+                    return .topRight
+                    #else
+                    return .bottomRight
+                    #endif
+                }
+            }
+        }
+        
+        if edgeExtendedRect.contains(point) {
+            // Edges
+            if point.y >= minY - tolerance && point.y <= minY + tolerance {
+                #if os(macOS)
+                return .bottom
+                #else
+                return .top
+                #endif
+            }
+            if point.y >= maxY - tolerance && point.y <= maxY + tolerance {
+                #if os(macOS)
+                return .top
+                #else
+                return .bottom
+                #endif
+            }
+            
+            if point.x >= minX - tolerance && point.x <= minX + tolerance {
+                return .left
+            }
+            if point.x >= maxX - tolerance && point.x <= maxX + tolerance {
+                return .right
+            }
+        }
+        
+        return nil
+    }
+    
+    /// The location on the edges of a rectangle.
+    enum EdgePosition: Int, CustomStringConvertible, Hashable, Codable {
+        /// Left edge.
+        case left
+        /// Right edge.
+        case right
+        /// Bottom edge.
+        case bottom
+        /// Bottom-left corner
+        case bottomLeft
+        /// Bottom-right corner.
+        case bottomRight
+        /// Top edge.
+        case top
+        /// Top-left corner.
+        case topLeft
+        /// Top-right corner.
+        case topRight
+        
+        public var description: String {
+            switch self {
+            case .top: return "top"
+            case .bottom: return "bottom"
+            case .left: return "left"
+            case .right: return "right"
+            case .topLeft: return "topLeft"
+            case .topRight: return "topRight"
+            case .bottomLeft: return "bottomLeft"
+            case .bottomRight: return "bottomRight"
+            }
+        }
+    }
 }
 
 extension CGRect: Hashable {
