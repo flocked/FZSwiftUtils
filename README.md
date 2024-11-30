@@ -136,6 +136,16 @@ Addition `URL` methods for iterating the content of file system directories.
      
  }
  ```
+ 
+ ### File System URL Resources
+
+Get properties of a file system resource (like creation date, file size or finder tags) using `URL.resources`:
+
+```swift
+let creationDate = fileURL.resources.creationDate
+let fileSize = fileURL.resources.fileSize
+let finderTags = fileURL.resources.finderTags
+```
 
 ### MeasureTime
 
@@ -147,18 +157,9 @@ MeasureTime.printTimeElapsed() {
 }
 ```
 
-### Progress extensions
-
-- `updateEstimatedTimeRemaining()`: Updates the estimted time remaining and throughput.
-- `addFileProgress(url: URL, kind: FileOperationKind = .downloading)`: Shows the file progress in Finder.
-
-```swift
-progress.addFileProgress(url: fileURL, kind: .downloading)
-```
-
 - `MutableProgress`: A progress that allows to add and remove children progresses.
 
-#### NSObject Class Reflection
+### NSObject Class Reflection
 
 Reflects all properties, methods and ivars of a NSObject class including hidden ones.
 
@@ -177,6 +178,15 @@ An implementation of the OpenSuptitle hash.
 ```swift
 let hash = try? OSHash(url: fileURL)
 hash?.Value /// The hash value
+```
+
+### Progress extensions
+
+- `autoUpdateEstimatedTimeRemaining`: Updates the estimted time remaining and throughput.
+- `addFileProgress(url: URL)`: Shows the file progress in Finder.
+
+```swift
+progress.addFileProgress(url: fileURL, kind: .downloading)
 ```
 
 ### More…
