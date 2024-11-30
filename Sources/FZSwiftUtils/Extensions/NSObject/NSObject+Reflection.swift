@@ -564,7 +564,6 @@ fileprivate struct WFlagsType: CustomStringConvertible {
         let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
         guard !_matches.isEmpty else { return nil }
         let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
-        Swift.print("CHECK!", matches)
         descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
     }
 }
@@ -575,10 +574,8 @@ fileprivate struct StructType: CustomStringConvertible {
     init?(_ string: String) {
         guard string.hasPrefix("{?=") else { return nil }
         let string = String(string.dropFirst(3).dropLast(1))
-        Swift.print("STRUCT!!!", string)
         let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
         let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
-        Swift.print("CHECK!", matches)
         if !matches.isEmpty && (matches.count % 2 == 0) {
             descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
         } else {
