@@ -568,16 +568,24 @@ fileprivate struct WFlagsType: CustomStringConvertible {
 }
 
 fileprivate struct StructType: CustomStringConvertible {
-    public let values: [Any]
+    var descriptions: [NSObject.PropertyDescription] = []
+    var _description: String  = ""
     init(_ string: String) {
-        Swift.print("CHECK", string)
-        let string = String(string.dropFirst(3).dropLast(3))
-        let matches = string.matches(pattern: #"\{(.*?)=\w+\}"#).compactMap({$0.string}).filter({!$0.hasPrefix("{") && !$0.hasSuffix("}")})
-        values = matches.compactMap({$0.toType()})
+        let string = String(string.dropFirst(3).dropLast(1))
+        let matches = string.matches(pattern: "\"([^\"]+)\"|(\\b\\w+\\b)").compactMap({$0.string})
+        if !matches.isEmpty && (matches.count % 2 == 0) {
+            descriptions = matches.chunked(size: 2).compactMap({ NSObject.PropertyDescription.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
+        } else {
+            _description = string
+        }
     }
     
     var description: String {
-        "Struct[\(values.compactMap({ String(describing: $0) }).joined(separator: ", "))]"
+        if !descriptions.isEmpty {
+            return ("Struct" + descriptions.compactMap({"\t" + $0.description})).joined(separator: "\n")
+        } else {
+            return "Struct\n\t\(_description)"
+        }
     }
 }
 
