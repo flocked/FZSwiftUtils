@@ -42,147 +42,156 @@ public class URLResources {
         self.url = url
     }
 
-    func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) throws -> V? {
+    func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) -> V? {
         guard let resourceKey = keyPath.resourceKey else { return nil }
-        return try url.resourceValues(for: resourceKey)[keyPath: keyPath]
+        do {
+            return try url.resourceValues(for: resourceKey)[keyPath: keyPath]
+        } catch {
+            Swift.print(error)
+            return nil
+        }
     }
 
-    func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) throws {
+    func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) {
         var urlResouceValues = URLResourceValues()
         urlResouceValues[keyPath: keyPath] = newValue
-        try url.setResourceValues(urlResouceValues)
+        do {
+            try url.setResourceValues(urlResouceValues)
+        } catch {
+            Swift.print(error)
+        }
     }
 
     /// Name of the resource in the file system.
     public var name: String? {
-        get { try? value(for: \.name) }
-        set { try? setValue(newValue, for: \.name) }
+        get { value(for: \.name) }
+        set { setValue(newValue, for: \.name) }
     }
 
     /// Localized or extension-hidden name  as displayed to users.
-    public var localizedName: String? { try? value(for: \.localizedName) }
+    public var localizedName: String? { value(for: \.localizedName) }
 
     /// A Boolean value indicating whether the resource is a regular file rather than a directory or a symbolic link.
-    public var isRegularFile: Bool { (try? value(for: \.isRegularFile)) ?? false }
+    public var isRegularFile: Bool { value(for: \.isRegularFile) ?? false }
 
     /// A Boolean value indicating if the resource is a directory.
-    public var isDirectory: Bool { (try? value(for: \.isDirectory)) ?? false }
+    public var isDirectory: Bool { value(for: \.isDirectory) ?? false }
 
     /// A Boolean value indicating if the resource is a isymbolic link.
-    public var isSymbolicLink: Bool { (try? value(for: \.isSymbolicLink)) ?? false }
+    public var isSymbolicLink: Bool { value(for: \.isSymbolicLink) ?? false }
 
     /// A Boolean value indicating if the resource is a volume.
-    public var isVolume: Bool { (try? value(for: \.isVolume)) ?? false }
+    public var isVolume: Bool { value(for: \.isVolume) ?? false }
 
     /// A Boolean value indicating if the resource is a packaged directory.
     public var isPackage: Bool {
-        get { (try? value(for: \.isPackage)) ?? false }
-        set { try? setValue(newValue, for: \.isPackage) }
+        get { value(for: \.isPackage) ?? false }
+        set { setValue(newValue, for: \.isPackage) }
     }
 
     /// A Boolean value indicating if the resource is an application.
     @available(macOS 10.11, iOS 9.0, watchOS 2.0, tvOS 9.0, *)
-    public var isApplication: Bool { (try? value(for: \.isApplication)) ?? false }
+    public var isApplication: Bool { value(for: \.isApplication) ?? false }
 
     /// A Boolean value indicating if the resource is system-immutable.
-    public var isSystemImmutable: Bool { (try? value(for: \.isSystemImmutable)) ?? false }
+    public var isSystemImmutable: Bool { value(for: \.isSystemImmutable) ?? false }
 
     /// A Boolean value indicating if the resource is user-immutable.
     public var isUserImmutable: Bool {
-        get { (try? value(for: \.isUserImmutable)) ?? false }
-        set { try? setValue(newValue, for: \.isUserImmutable) }
+        get { value(for: \.isUserImmutable) ?? false }
+        set { setValue(newValue, for: \.isUserImmutable) }
     }
 
     /// A Boolean value indicating if the resource is normally not displayed to users.
     public var isHidden: Bool {
-        get { (try? value(for: \.isHidden)) ?? false }
-        set { try? setValue(newValue, for: \.isHidden) }
+        get { value(for: \.isHidden) ?? false }
+        set { setValue(newValue, for: \.isHidden) }
     }
 
     /// A Boolean value indicating if the resources filename extension is removed from the localizedName property.
     public var hasHiddenExtension: Bool {
-        get { (try? value(for: \.hasHiddenExtension)) ?? false }
-        set { try? setValue(newValue, for: \.hasHiddenExtension) }
+        get { value(for: \.hasHiddenExtension) ?? false }
+        set { setValue(newValue, for: \.hasHiddenExtension) }
     }
 
     /// Creation date of the resource.
     public var creationDate: Date? {
-        get { try? value(for: \.creationDate) }
-        set { try? setValue(newValue, for: \.creationDate) }
+        get { value(for: \.creationDate) }
+        set { setValue(newValue, for: \.creationDate) }
     }
 
     /// Date the resource was created, or renamed into or within its parent directory.
-    public var addedToDirectoryDate: Date? { try? value(for: \.addedToDirectoryDate) }
+    public var addedToDirectoryDate: Date? { value(for: \.addedToDirectoryDate) }
 
     /// Date the resource content was last accessed.
     public var contentAccessDate: Date? {
-        get { try? value(for: \.contentAccessDate) }
-        set { try? setValue(newValue, for: \.contentAccessDate) }
+        get { value(for: \.contentAccessDate) }
+        set { setValue(newValue, for: \.contentAccessDate) }
     }
 
     /// Date the resource content was last modified.
     public var contentModificationDate: Date? {
-        get { try? value(for: \.contentModificationDate) }
-        set { try? setValue(newValue, for: \.contentModificationDate) }
+        get { value(for: \.contentModificationDate) }
+        set { setValue(newValue, for: \.contentModificationDate) }
     }
 
     /// Date the resource’s attributes were last modified.
-    public var attributeModificationDate: Date? { try? value(for: \.attributeModificationDate) }
+    public var attributeModificationDate: Date? { value(for: \.attributeModificationDate) }
 
     /// Number of hard links to the resource.
-    public var linkCount: Int? { try? value(for: \.linkCount) }
+    public var linkCount: Int? { value(for: \.linkCount) }
 
     /// The resource’s parent directory, if any.
-    public var parentDirectory: URL? { try? value(for: \.parentDirectory) }
+    public var parentDirectory: URL? { value(for: \.parentDirectory) }
 
     /// User-visible type or “kind” description of the resource.
-    public var localizedTypeDescription: String? { try? value(for: \.localizedTypeDescription) }
+    public var localizedTypeDescription: String? { value(for: \.localizedTypeDescription) }
 
     /// The label number assigned to the resource.
     public var labelNumber: Int? {
-        get { try? value(for: \.labelNumber) }
-        set { try? setValue(newValue, for: \.labelNumber) }
+        get { value(for: \.labelNumber) }
+        set { setValue(newValue, for: \.labelNumber) }
     }
 
     /// The user-visible label text of the resource.
-    public var labelLocalizedName: String? { try? value(for: \.localizedLabel) }
+    public var labelLocalizedName: String? { value(for: \.localizedLabel) }
 
     /// A value APFS assigns that identifies a file’s content data stream.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public var fileContentIdentifier: Int64? { try? value(for: \.fileContentIdentifier) }
+    public var fileContentIdentifier: Int64? { value(for: \.fileContentIdentifier) }
 
     /// The optimal block size when reading or writing this file’s data, or `nil` if not available.
-    public var preferredIOBlockSize: Int? { try? value(for: \.preferredIOBlockSize) }
+    public var preferredIOBlockSize: Int? { value(for: \.preferredIOBlockSize) }
 
     /// A Boolean value indicating if the resource is readable.
-    public var isReadable: Bool? { try? value(for: \.isReadable) }
+    public var isReadable: Bool? { value(for: \.isReadable) }
 
     /// A Boolean value indicating if the resource is writable.
-    public var isWritable: Bool? { try? value(for: \.isWritable) }
+    public var isWritable: Bool? { value(for: \.isWritable) }
 
     /// A Boolean value indicating if the resource is executable.
-    public var isExecutable: Bool? { try? value(for: \.isExecutable) }
+    public var isExecutable: Bool? { value(for: \.isExecutable) }
 
     public var fileSecurity: NSFileSecurity? {
-        get { try? value(for: \.fileSecurity) }
-        set { try? setValue(newValue, for: \.fileSecurity) }
+        get { value(for: \.fileSecurity) }
+        set { setValue(newValue, for: \.fileSecurity) }
     }
 
     /// A Boolean value indicating whether the resource is excluded from backups.
     public var isExcludedFromBackup: Bool? {
-        get { try? value(for: \.isExcludedFromBackup) }
-        set { try? setValue(newValue, for: \.isExcludedFromBackup) }
+        get { value(for: \.isExcludedFromBackup) }
+        set { setValue(newValue, for: \.isExcludedFromBackup) }
     }
 
     /// File system path to the resource.
-    public var path: String? { try? value(for: \.path) }
+    public var path: String? { value(for: \.path) }
 
     /// The resource’s path as a canonical absolute file system path.
     @available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)
-    public var canonicalPath: String? { try? value(for: \.canonicalPath) }
+    public var canonicalPath: String? { value(for: \.canonicalPath) }
 
     /// A Boolean value indicating whether the resource is a file system trigger directory.
-    public var isMountTrigger: Bool? { try? value(for: \.isMountTrigger) }
+    public var isMountTrigger: Bool? { value(for: \.isMountTrigger) }
 
     /**
      An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
@@ -190,52 +199,52 @@ public class URLResources {
      For resources which refer to the same file inode, the generation identifier will change when the data in the file’s data fork is changed (changes to extended attributes or other file system metadata do not change the generation identifier). For resources which refer to the same directory inode, the generation identifier will change when direct children of that directory are added, removed or renamed (changes to the data of the direct children of that directory will not change the generation identifier). The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
     @available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
-    public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { try? value(for: \.generationIdentifier) }
+    public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { value(for: \.generationIdentifier) }
 
     /// A value that the kernel assigns to identify a document.
     @available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
-    public var documentIdentifier: Int? { try? value(for: \.documentIdentifier) }
+    public var documentIdentifier: Int? { value(for: \.documentIdentifier) }
 
     /// A Boolean value indicating whether the file may have extended attributes.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public var mayHaveExtendedAttributes: Bool { (try? value(for: \.mayHaveExtendedAttributes)) ?? false }
+    public var mayHaveExtendedAttributes: Bool { value(for: \.mayHaveExtendedAttributes) ?? false }
 
     /// A Boolean value indicating whether the file system can delete the file when the system needs to free space.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public var isPurgeable: Bool { (try? value(for: \.isPurgeable)) ?? false }
+    public var isPurgeable: Bool { value(for: \.isPurgeable) ?? false }
 
     /// A Boolean value indicating whether the file has sparse regions.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public var isSparse: Bool { (try? value(for: \.isSparse)) ?? false }
+    public var isSparse: Bool { value(for: \.isSparse) ?? false }
 
     /// A Boolean value that indicates whether the cloned files and their original files may share data blocks.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public var mayShareFileContent: Bool { (try? value(for: \.mayShareFileContent)) ?? false }
+    public var mayShareFileContent: Bool { value(for: \.mayShareFileContent) ?? false }
 
     /// The type of the fresource.
-    public var fileResourceType: URLFileResourceType? { try? value(for: \.fileResourceType) }
+    public var fileResourceType: URLFileResourceType? { value(for: \.fileResourceType) }
 
     /// A Boolean value indicating whether the resource is in the iCloud storage.
-    public var isUbiquitousItem: Bool { (try? value(for: \.isUbiquitousItem)) ?? false }
+    public var isUbiquitousItem: Bool { value(for: \.isUbiquitousItem) ?? false }
 
     /// A Boolean value indicating whether the resource has outstanding conflicts.
-    public var ubiquitousItemHasUnresolvedConflicts: Bool { (try? value(for: \.ubiquitousItemHasUnresolvedConflicts)) ?? false }
+    public var ubiquitousItemHasUnresolvedConflicts: Bool { value(for: \.ubiquitousItemHasUnresolvedConflicts) ?? false }
 
     /// A Boolean value indicating whether the system is downloading the resource.
-    public var ubiquitousItemIsDownloading: Bool { (try? value(for: \.ubiquitousItemIsDownloading)) ?? false }
+    public var ubiquitousItemIsDownloading: Bool { value(for: \.ubiquitousItemIsDownloading) ?? false }
 
     /// A Boolean value indicating whether data is present in the cloud for the resource.
-    public var ubiquitousItemIsUploaded: Bool { (try? value(for: \.ubiquitousItemIsUploaded)) ?? false }
+    public var ubiquitousItemIsUploaded: Bool { value(for: \.ubiquitousItemIsUploaded) ?? false }
 
     /// A Boolean value indicating whether the system is uploading the resource.
-    public var ubiquitousItemIsUploading: Bool { (try? value(for: \.ubiquitousItemIsUploading)) ?? false }
+    public var ubiquitousItemIsUploading: Bool { value(for: \.ubiquitousItemIsUploading) ?? false }
 
     /// The download status of the resource.
-    public var ubiquitousItemDownloadingStatus: URLUbiquitousItemDownloadingStatus? { try? value(for: \.ubiquitousItemDownloadingStatus) }
+    public var ubiquitousItemDownloadingStatus: URLUbiquitousItemDownloadingStatus? { value(for: \.ubiquitousItemDownloadingStatus) }
 
     /// The protection level for the resource.
     @available(macOS 11.0, iOS 9.0, *)
-    public var fileProtection: URLFileProtection? { try? value(for: \.fileProtection) }
+    public var fileProtection: URLFileProtection? { value(for: \.fileProtection) }
 
     /// The total file size.
     public var fileSize: DataSize? { guard let bytes = fileSizeBytes else { return nil }
@@ -257,27 +266,27 @@ public class URLResources {
         return DataSize(bytes)
     }
 
-    var fileSizeBytes: Int? { try? value(for: \.fileSize) }
+    var fileSizeBytes: Int? { value(for: \.fileSize) }
 
-    var fileAllocatedSizeBytes: Int? { try? value(for: \.fileAllocatedSize) }
+    var fileAllocatedSizeBytes: Int? { value(for: \.fileAllocatedSize) }
 
-    var totalFileSizeBytes: Int? { try? value(for: \.totalFileSize) }
+    var totalFileSizeBytes: Int? { value(for: \.totalFileSize) }
 
-    var totalFileAllocatedSizeBytes: Int? { try? value(for: \.totalFileAllocatedSize) }
+    var totalFileAllocatedSizeBytes: Int? { value(for: \.totalFileAllocatedSize) }
 
     /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
-    public var isAliasFile: Bool { (try? value(for: \.isAliasFile)) ?? false }
+    public var isAliasFile: Bool { value(for: \.isAliasFile) ?? false }
 
     #if canImport(UniformTypeIdentifiers)
     /// A content type of the resource.
     @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
-    public var contentType: UTType? { try? value(for: \.contentType) }
+    public var contentType: UTType? { value(for: \.contentType) }
     #endif
     
     #if os(macOS)
     /// The Finder tags of the resource.
     public var finderTags: [String] {
-        get { (try? value(for: \.tagNames)) ?? [] }
+        get { value(for: \.tagNames) ?? [] }
         set {
             do {
                 try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
@@ -307,7 +316,7 @@ public class URLResources {
 @available(watchOS, deprecated: 7.0, message: "Use contentType instead")
 extension URLResources {
     /// A content type identifier of the resource.
-    public var contentTypeIdentifier: String? { try? value(for: \.typeIdentifier) }
+    public var contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
 
     /// A content type identifier tree of the resource.
     public var contentTypeIdentifierTree: [String] {
@@ -329,7 +338,7 @@ extension URLResources {
     public extension URLResources {
         /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
         @available(macOS 10.11, *)
-        var applicationIsScriptable: Bool { (try? value(for: \.applicationIsScriptable)) ?? false }
+        var applicationIsScriptable: Bool { value(for: \.applicationIsScriptable) ?? false }
 
         /// URLs to applications that support opening the file.
         @available(macOS 12.0, *)
@@ -340,18 +349,18 @@ extension URLResources {
         /// The quarantine properties of the resource.
         @available(macOS 10.10, *)
         var quarantineProperties: [String: Any]? {
-            get { try? value(for: \.quarantineProperties) }
-            set { try? setValue(newValue, for: \.quarantineProperties) }
+            get { value(for: \.quarantineProperties) }
+            set { setValue(newValue, for: \.quarantineProperties) }
         }
 
         /// The icon stored with the resource.
-        var customIcon: NSUIImage? { try? value(for: \.customIcon) }
+        var customIcon: NSUIImage? { value(for: \.customIcon) }
 
         /// The normal icon for the resource.
-        var effectiveIcon: NSUIImage? { (try? value(for: \.effectiveIcon)) as? NSUIImage }
+        var effectiveIcon: NSUIImage? { value(for: \.effectiveIcon) as? NSUIImage }
 
         /// The label color of the resource.
-        var labelColor: NSUIColor? { try? value(for: \.labelColor) }
+        var labelColor: NSUIColor? { value(for: \.labelColor) }
     }
 #endif
 

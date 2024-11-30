@@ -183,6 +183,6 @@ hash?.Value /// The hash value
 
 - `AsyncOperation`: An asynchronous, pausable operation.
 - `PausableOperationQueue`: A pausable operation queue.
-- `SynchronizedArray`/`SynchronizedDictionary`: A synchronized array/dictioanry.
+- `SynchronizedArray`/`SynchronizedDictionary`: A synchronized array/dictionary.
 - `Equatable.isEqual(_ other: any Equatable) -> Bool`: Returns a Boolean value indicating whether the value is equatable to another value.
 - `Comparable.isLessThan(_ other: any Comparable) -> Bool`: Returns a Boolean value indicating whether the value is less than another value.
