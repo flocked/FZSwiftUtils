@@ -647,7 +647,7 @@ private extension String {
     }
     
     var withoutBrackets: String {
-        guard contains("<"), contains(">") else { return self }
+        guard (hasPrefix("<") || hasPrefix("\"")) && (hasSuffix(">") || hasPrefix("\"")) else { return self }
         return String(dropFirst(1).dropLast(1))
     }
 }
