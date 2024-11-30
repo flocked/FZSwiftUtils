@@ -295,7 +295,11 @@ extension NSObject {
             guard let ivar = ivars?.advanced(by: i).pointee else { continue }
             guard let nameChars = ivar_getName(ivar), let name = String(validatingUTF8: nameChars) else { continue }
             guard let typeChars = ivar_getTypeEncoding(ivar), let type = String(validatingUTF8: typeChars) else { continue }
-            descriptions.append(PropertyDescription(name, type.toType(), true))
+            descriptions.append(PropertyDescription(name, type.toType(), false))
+            Swift.print("-----")
+            Swift.print("\(name):\(type)")
+            Swift.print(descriptions.last?.description ?? "nil")
+
         }
         if includeSuperclass, let superclass = `class`?.superclass() as? NSObject.Type, superclass != NSObject.self {
             descriptions += superclass.ivarsReflection(includeSuperclass: includeSuperclass)
