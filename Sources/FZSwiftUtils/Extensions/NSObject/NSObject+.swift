@@ -57,19 +57,38 @@ public extension NSCoding where Self: NSObject {
     }
 }
 
-public extension NSObject {
+public extension NSObjectProtocol where Self: NSObject {
     /**
-     Removes an observer for the specified key path.
+     Registers an observer object to receive KVO notifications for the key path relative to the object receiving this message.
+
+     - Parameters:
+        - observer: The object to register for KVO notifications. The observer must implement the key-value observing method `observeValue(forKeyPath:of:change:context:)`.
+        - keypath: The key path to stop observing.
+        - options: The observation options.
+        - context: Arbitrary data that is passed to observer in `observeValue(forKeyPath:of:change:context:)`.
+     */
+    func addObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>,
+                            options: NSKeyValueObservingOptions = [],
+                            context: UnsafeMutableRawPointer? = nil) {
+        guard let keypathString = keypath._kvcKeyPathString else { return }
+        addObserver(observer, forKeyPath: keypathString, options: options, context: context)
+    }
+    
+    /**
+     Stops the observer object from receiving change notifications for the property specified by the key path.
 
      - Parameters:
         - observer: The observer to remove.
         - keypath: The key path to stop observing.
+        - context: Arbitrary data that more specifically identifies the observer to be removed.
      */
-    func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<NSObject, Value>) {
+    func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>, context: UnsafeMutableRawPointer? = nil) {
         guard let keypathString = keypath._kvcKeyPathString else { return }
-        removeObserver(observer, forKeyPath: keypathString)
+        removeObserver(observer, forKeyPath: keypathString, context: context)
     }
-    
+}
+
+public extension NSObject {
     /**
      Returns the value for the property identified by a given key.
 
@@ -77,7 +96,7 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        guard Self.hasValue(key) else { return nil }
+        guard Self.containsProperty(key) else { return nil }
         return value(forKey: key)
     }
     
@@ -99,7 +118,7 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     func setValue(safely value: Any?, forKey key: String) {
-        guard Self.hasValue(key) else { return }
+        guard Self.containsProperty(key) else { return }
         setValue(value, forKey: key)
     }
 

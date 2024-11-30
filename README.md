@@ -63,7 +63,7 @@ textFieldObserver.add(\.textColor) { oldTextColor, textColor in
 
 ### NSObject Associated Values
 
-Associated Values allows you to add additional properties to a `NSObject`.
+Associated Values allows you to add additional properties to a `NSObject`:
 
 ```swift
 // Set
