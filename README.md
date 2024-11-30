@@ -34,7 +34,7 @@ let dateDuration = TimeDuration(from: date1, to: date2)
 
 ### NSObject property observation
 
-- Observe KVO properties of a `NSObject` using `observeChanges(for:)`:
+- Observe KVO properties of a `NSObject` using `observeChanges(for:)`. It returns a `KeyValueObservation` object that you need to save as long as you want to observe the property.
 
 ```swift
 let textField = NSTextField()
@@ -42,6 +42,7 @@ let textField = NSTextField()
 let stringObservation = textField.observeChanges(for \.stringValue) { oldStringValue, stringValue in
     /// stringValue changed
 }
+// Save the `KeyValueObservation
 
 let fontObservation = textField.observeChanges(for \.font) { oldFont, font in
     /// font changed
@@ -157,8 +158,6 @@ MeasureTime.printTimeElapsed() {
 }
 ```
 
-- `MutableProgress`: A progress that allows to add and remove children progresses.
-
 ### NSObject Class Reflection
 
 Reflects all properties, methods and ivars of a NSObject class including hidden ones.
@@ -187,6 +186,20 @@ hash?.Value /// The hash value
 
 ```swift
 progress.addFileProgress(url: fileURL, kind: .downloading)
+```
+
+- `MutableProgress`: A progress that allows to add and remove children progresses.
+
+### Notification Observation Using Blocks
+
+Observe `NotificationCenter` notifications using a block.
+
+Use `observe(name:object:block:)`. It returns a `NotificationToken` that you need to save as long as you want to observe the notification.
+
+
+```swift
+let viewFrameNotificationToken = NotificationCenter.default.observe(NSView.frameDidChangeNotification, object: view) { _ in 
+}
 ```
 
 ### More…
