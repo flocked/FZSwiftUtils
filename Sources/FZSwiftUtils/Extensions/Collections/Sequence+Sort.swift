@@ -393,7 +393,7 @@ public prefix func >> <Element, T: Comparable>(keyPath: KeyPath<Element, T?>) ->
 }
 
 /// The order of sorting for a sequence
-public enum SequenceSortOrder: Int, Hashable {
+public enum SequenceSortOrder: Int, Hashable, Codable {
     /// An ascending sorting order.
     case ascending
     /// A descending sorting order.
