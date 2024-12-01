@@ -445,7 +445,7 @@ struct ComparableElement<Element, Compare: Comparable>: Comparable {
     }
 }
 
-extension Sequence {
+public extension Sequence {
     /**
      Sorts the sequence based on a key path and an array specifying the order of key values.
      
