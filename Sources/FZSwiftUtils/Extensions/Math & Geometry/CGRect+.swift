@@ -689,35 +689,63 @@ public extension CGRect {
     }
     
     /// The location on the edges of a rectangle.
-    enum EdgePosition: Int, CustomStringConvertible, Hashable, Codable {
+    struct EdgePosition: OptionSet, CustomStringConvertible, Hashable, Codable {
+        
         /// Left edge.
-        case left
+        public static let left = EdgePosition(rawValue: 1 << 0)
         /// Right edge.
-        case right
+        public static let right = EdgePosition(rawValue: 1 << 1)
         /// Bottom edge.
-        case bottom
+        public static let bottom = EdgePosition(rawValue: 1 << 2)
         /// Bottom-left corner
-        case bottomLeft
+        public static let bottomLeft = EdgePosition(rawValue: 1 << 3)
         /// Bottom-right corner.
-        case bottomRight
+        public static let bottomRight = EdgePosition(rawValue: 1 << 4)
         /// Top edge.
-        case top
+        public static let top = EdgePosition(rawValue: 1 << 5)
         /// Top-left corner.
-        case topLeft
+        public static let topLeft = EdgePosition(rawValue: 1 << 6)
         /// Top-right corner.
-        case topRight
+        public static let topRight = EdgePosition(rawValue: 1 << 7)
+        
+        /// All corners.
+        public static let corners: EdgePosition = [.topLeft, .topRight, bottomLeft, .bottomRight]
+        /// All edges.
+        public static let edges: EdgePosition = [.top, .bottom, .left, .right]
+        /// All edges and corners.
+        public static let all: EdgePosition = [.topLeft, .topRight, bottomLeft, .bottomRight, .top, .bottom, .left, .right]
+        /// No edges and corners.
+        public static let none: EdgePosition = []
+
+        public let rawValue: Int
+        public init(rawValue: Int) { self.rawValue = rawValue }
         
         public var description: String {
-            switch self {
-            case .top: return "top"
-            case .bottom: return "bottom"
-            case .left: return "left"
-            case .right: return "right"
-            case .topLeft: return "topLeft"
-            case .topRight: return "topRight"
-            case .bottomLeft: return "bottomLeft"
-            case .bottomRight: return "bottomRight"
+            if self == .all {
+                return "EdgePosition.all"
+            } else if self == .edges {
+                return "EdgePosition.edges"
+            } else if self == .corners {
+                return "EdgePosition.corners"
+            } else if self == .none {
+                return "EdgePosition.none"
             }
+            
+            var strings: [String] = []
+            for element in elements() {
+                switch element {
+                case .top: strings += "top"
+                case .bottom: strings += "bottom"
+                case .left: strings += "left"
+                case .right: strings += "right"
+                case .topLeft: strings += "topLeft"
+                case .topRight: strings += "topRight"
+                case .bottomLeft: strings += "bottomLeft"
+                case .bottomRight: strings += "bottomRight"
+                default: break
+                }
+            }
+            return "EdgePosition[" + strings.sorted().joined(separator: ", ") + "]"
         }
     }
 }
