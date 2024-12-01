@@ -510,7 +510,6 @@ extension Sequence {
         - order: An array specifying the desired order of key values.
      */
     func sorted<T: Hashable>(by keyPath: KeyPath<Element, T?>, order: [T]) -> [Element] {
-         // Create a dictionary mapping each value in `order` to its index
          let orderMap = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
          return sorted {
              let lhsValue = $0[keyPath: keyPath]
