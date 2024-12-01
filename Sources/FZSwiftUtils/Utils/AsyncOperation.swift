@@ -55,7 +55,7 @@ open class AsyncOperation: Operation {
             if validateState(newValue) {
                 stateQueue.async(flags: .barrier) { self._state = newValue }
             } else {
-                debugPrint("\(Self.className()): Invalid change from `\(state)` to `\(newValue)`")
+                debugPrint("\(String(describing: type(of: self))): Invalid change from `\(state)` to `\(newValue)`")
             }
         }
     }
