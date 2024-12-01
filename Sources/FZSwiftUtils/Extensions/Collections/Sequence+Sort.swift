@@ -444,3 +444,86 @@ struct ComparableElement<Element, Compare: Comparable>: Comparable {
         return lhs < rhs
     }
 }
+
+extension Sequence {
+    /**
+     Sorts the sequence based on a key path and an array specifying the order of key values.
+     
+     Elements whose key path values are not in the `order` array are sorted after explicitly ordered elements but before `nil` values.
+     
+     - Parameters:
+        - keyPath: A key path to the property of each element to sort by.
+        - order: An array specifying the desired order of key values.
+     */
+    func sorted<T: Equatable>(by keyPath: KeyPath<Element, T>, order: [T]) -> [Element] {
+        compactMap({ 
+            (element: $0, index: order.firstIndex(of: $0[keyPath: keyPath]) ?? .max)
+        }).sorted(by: \.index).compactMap({ $0.element })
+    }
+    
+    /**
+     Sorts the sequence based on a key path and an array specifying the order of key values.
+     
+     - Elements with `nil` values for the specified key path are always sorted to the end.
+     - Elements whose key path values are not in the `order` array are sorted after explicitly ordered elements but before `nil` values.
+     
+     - Parameters:
+        - keyPath: A key path to the property of each element to sort by.
+        - order: An array specifying the desired order of key values.
+     */
+    func sorted<T: Equatable>(by keyPath: KeyPath<Element, T?>, order: [T]) -> [Element] {
+        compactMap({
+            if let value = $0[keyPath: keyPath] {
+                return (element: $0, index: order.firstIndex(of: value) ?? Int.max)
+            } else {
+                return (element: $0, index: Int.max)
+            }
+        }).sorted(by: \.index).compactMap({ $0.element })
+    }
+    
+    /**
+     Sorts the sequence based on a key path and an array specifying the order of key values.
+     
+     Elements whose key path values are not in the `order` array are sorted after explicitly ordered elements but before `nil` values.
+     
+     - Parameters:
+        - keyPath: A key path to the property of each element to sort by.
+        - order: An array specifying the desired order of key values.
+     */
+    func sorted<T: Hashable>(by keyPath: KeyPath<Element, T>, order: [T]) -> [Element] {
+        let orderMap = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+           return sorted {
+               let lhsIndex = orderMap[$0[keyPath: keyPath]] ?? Int.max
+               let rhsIndex = orderMap[$1[keyPath: keyPath]] ?? Int.max
+               return lhsIndex < rhsIndex
+           }
+    }
+    
+    /**
+     Sorts the sequence based on a key path and an array specifying the order of key values.
+     
+     - Elements with `nil` values for the specified key path are always sorted to the end.
+     - Elements whose key path values are not in the `order` array are sorted after explicitly ordered elements but before `nil` values.
+     
+     - Parameters:
+        - keyPath: A key path to the property of each element to sort by.
+        - order: An array specifying the desired order of key values.
+     */
+    func sorted<T: Hashable>(by keyPath: KeyPath<Element, T?>, order: [T]) -> [Element] {
+         // Create a dictionary mapping each value in `order` to its index
+         let orderMap = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
+         return sorted {
+             let lhsValue = $0[keyPath: keyPath]
+             let rhsValue = $1[keyPath: keyPath]
+             
+             switch (lhsValue, rhsValue) {
+             case let (lhs?, rhs?): // Both values are non-nil
+                 let lhsIndex = orderMap[lhs] ?? Int.max
+                 let rhsIndex = orderMap[rhs] ?? Int.max
+                 return lhsIndex < rhsIndex
+             case (nil, _): return false
+             case (_, nil): return true
+             }
+         }
+     }
+}
