@@ -610,7 +610,7 @@ public extension CGRect {
         - point: The point.
         - tolerance: The tolerance on the edges and corners.
      */
-    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat) -> EdgePosition? {
+    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat) -> RectEdgeCorner? {
         edgeOrCorner(containing: point, tolerance: tolerance, cornerTolerance: tolerance)
     }
     
@@ -622,7 +622,7 @@ public extension CGRect {
         - tolerance: The tolerance on the edges.
         - cornerTolerance: The tolerance on the corners.
      */
-    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat, cornerTolerance: CGFloat) -> EdgePosition? {
+    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat, cornerTolerance: CGFloat) -> RectEdgeCorner? {
         let edgeExtendedRect = insetBy(dx: -tolerance, dy: -tolerance)
         let cornerExtendedRect = insetBy(dx: -cornerTolerance, dy: -cornerTolerance)
         
@@ -686,67 +686,6 @@ public extension CGRect {
         }
         
         return nil
-    }
-    
-    /// The location on the edges of a rectangle.
-    struct EdgePosition: OptionSet, CustomStringConvertible, Hashable, Codable {
-        
-        /// Left edge.
-        public static let left = EdgePosition(rawValue: 1 << 0)
-        /// Right edge.
-        public static let right = EdgePosition(rawValue: 1 << 1)
-        /// Bottom edge.
-        public static let bottom = EdgePosition(rawValue: 1 << 2)
-        /// Bottom-left corner
-        public static let bottomLeft = EdgePosition(rawValue: 1 << 3)
-        /// Bottom-right corner.
-        public static let bottomRight = EdgePosition(rawValue: 1 << 4)
-        /// Top edge.
-        public static let top = EdgePosition(rawValue: 1 << 5)
-        /// Top-left corner.
-        public static let topLeft = EdgePosition(rawValue: 1 << 6)
-        /// Top-right corner.
-        public static let topRight = EdgePosition(rawValue: 1 << 7)
-        
-        /// All corners.
-        public static let corners: EdgePosition = [.topLeft, .topRight, bottomLeft, .bottomRight]
-        /// All edges.
-        public static let edges: EdgePosition = [.top, .bottom, .left, .right]
-        /// All edges and corners.
-        public static let all: EdgePosition = [.topLeft, .topRight, bottomLeft, .bottomRight, .top, .bottom, .left, .right]
-        /// No edges and corners.
-        public static let none: EdgePosition = []
-
-        public let rawValue: Int
-        public init(rawValue: Int) { self.rawValue = rawValue }
-        
-        public var description: String {
-            if self == .all {
-                return "EdgePosition.all"
-            } else if self == .edges {
-                return "EdgePosition.edges"
-            } else if self == .corners {
-                return "EdgePosition.corners"
-            } else if self == .none {
-                return "EdgePosition.none"
-            }
-            
-            var strings: [String] = []
-            for element in elements() {
-                switch element {
-                case .top: strings += "top"
-                case .bottom: strings += "bottom"
-                case .left: strings += "left"
-                case .right: strings += "right"
-                case .topLeft: strings += "topLeft"
-                case .topRight: strings += "topRight"
-                case .bottomLeft: strings += "bottomLeft"
-                case .bottomRight: strings += "bottomRight"
-                default: break
-                }
-            }
-            return "EdgePosition[" + strings.sorted().joined(separator: ", ") + "]"
-        }
     }
 }
 
