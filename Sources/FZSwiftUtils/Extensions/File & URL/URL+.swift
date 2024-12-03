@@ -265,12 +265,12 @@ public extension URL {
     }
 #endif
 
-@available(macOS, obsoleted: 13.0)
-@available(iOS, obsoleted: 16.0)
-@available(tvOS, obsoleted: 16.0)
-@available(watchOS, obsoleted: 9.0)
 public extension URL {
     /// A hint for determining whether a file path represents a directory.
+    @available(macOS, obsoleted: 13.0)
+    @available(iOS, obsoleted: 16.0)
+    @available(tvOS, obsoleted: 16.0)
+    @available(watchOS, obsoleted: 9.0)
     enum FilePathDirectoryHint {
         /**
          Infers the type based on the file path string.
@@ -300,8 +300,12 @@ public extension URL {
      
      If `base` is provided, the file path will be resolved relative to this base URL.
      */
-    static func file(_ path: String, directoryHint: FilePathDirectoryHint, relativeTo base: URL? = nil) -> URL {
-        URL(filePath: path, directoryHint: directoryHint, relativeTo: base)
+    @available(macOS, obsoleted: 13.0)
+    @available(iOS, obsoleted: 16.0)
+    @available(tvOS, obsoleted: 16.0)
+    @available(watchOS, obsoleted: 9.0)
+    static func file(_ path: String, isDirectory directoryHint: FilePathDirectoryHint, relativeTo base: URL? = nil) -> URL {
+        URL(filePath: path, isDirectory: directoryHint, relativeTo: base)
     }
     
     /**
@@ -314,7 +318,11 @@ public extension URL {
      
      If `base` is provided, the file path will be resolved relative to this base URL.
      */
-    init(filePath path: String, directoryHint: FilePathDirectoryHint = .inferFromPath, relativeTo base: URL? = nil) {
+    @available(macOS, obsoleted: 13.0)
+    @available(iOS, obsoleted: 16.0)
+    @available(tvOS, obsoleted: 16.0)
+    @available(watchOS, obsoleted: 9.0)
+    init(filePath path: String, isDirectory directoryHint: FilePathDirectoryHint = .inferFromPath, relativeTo base: URL? = nil) {
         if let base = base {
             switch directoryHint {
             case .isDirectory:
