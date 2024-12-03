@@ -261,3 +261,63 @@ public extension URL {
         }
     }
 #endif
+
+@available(macOS, obsoleted: 13.0)
+@available(iOS, obsoleted: 16.0)
+@available(tvOS, obsoleted: 16.0)
+@available(watchOS, obsoleted: 9.0)
+public extension URL {
+    /// A hint for determining whether a file path represents a directory.
+    enum FilePathDirectoryHint {
+        /**
+         Infers the type based on the file path string.
+         
+         A trailing slash (`/`) in the file path is used to guess whether the path represents a directory.
+         */
+        case inferFromPath
+        /// Indicates that the file path should be treated as a directory.
+        case isDirectory
+        /// Indicates that the file path should not be treated as a directory.
+        case notDirectory
+        /**
+         Checks the filesystem to determine if the file path represents a directory.
+         
+         This case uses `FileManager` to inspect the actual file system, which may incur a performance cost.
+         */
+        case checkFileSystem
+    }
+    
+    /**
+     Creates a file URL.
+          
+     - Parameters:
+       - filePath: The file path string. Can be either absolute or relative.
+       - directoryHint: A hint indicating whether the file path represents a directory or a file.
+       - relativeTo: A base URL to resolve the file path relative to.
+     
+     If `base` is provided, the file path will be resolved relative to this base URL.
+     */
+    init(filePath path: String, directoryHint: FilePathDirectoryHint = .inferFromPath, relativeTo base: URL? = nil) {
+        if let base = base {
+            let resolvedURL = base.appendingPathComponent(path, isDirectory: directoryHint == .isDirectory)
+            self = resolvedURL
+        } else {
+            let isDirectory: Bool
+            switch directoryHint {
+            case .isDirectory:
+                isDirectory = true
+            case .notDirectory:
+                isDirectory = false
+            case .inferFromPath:
+                isDirectory = path.hasSuffix("/") // Guess based on trailing slash.
+            case .checkFileSystem:
+                if !path.hasSuffix("/") {
+                    isDirectory = URL(fileURLWithPath: path).resources.isDirectory
+                } else {
+                    isDirectory = true
+                }
+            }
+            self.init(fileURLWithPath: path, isDirectory: isDirectory)
+        }
+    }
+}

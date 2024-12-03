@@ -270,3 +270,4 @@ public extension Collection where Element == CGPoint {
         compactMap({(point: $0, distance: $0.distance(to: point ))}).sorted(by: \.distance, .smallestFirst).first?.point
     }
 }
+
