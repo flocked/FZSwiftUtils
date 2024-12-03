@@ -19,26 +19,29 @@ public extension URL {
     
     /**
      Creates a file URL that references the local file or directory at path.
-
-     If the path is an empty string, the system interprets it as “.”.
-
-     - Parameter path: The location in the file system.
+     
+     - Parameters:
+       - filePath: The location in the file system.
+       - directoryHint: A hint indicating whether the file path represents a directory or a file.
+       - relativeTo: A URL that provides a file system location that the path extends.
      */
-    static func file(_ path: String) -> URL {
-        URL(fileURLWithPath: path)
+    static func file(_ path: String, relativeTo base: URL? = nil) -> URL {
+        URL(fileURLWithPath: path, relativeTo: base)
     }
     
     /**
-     Creates a file URL that references the local file or directory at path, relative to a base URL.
-
-     If the path is an empty string, the system interprets it as “.”.
+     Creates a file URL that references the local file or directory at path.
 
      - Parameters:
-        - path: The location in the file system.
-        - base: A URL that provides a file system location that the path extends.
+       - filePath: The location in the file system.
+       - directoryHint: A hint indicating whether the file path represents a directory or a file.
+       - relativeTo: A URL that provides a file system location that the path extends.
+     
+     If `base` is provided, the file path will be resolved relative to this base URL.
      */
-    static func file(_ path: String, relativeTo base: URL?) -> URL {
-        URL(fileURLWithPath: path, relativeTo: base)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    static func file(_ path: String, directoryHint: DirectoryHint, relativeTo base: URL? = nil) -> URL {
+        URL(filePath: path, directoryHint: directoryHint, relativeTo: base)
     }
     
     /**
@@ -288,36 +291,56 @@ public extension URL {
     }
     
     /**
-     Creates a file URL.
-          
+     Creates a file URL that references the local file or directory at path.
+
      - Parameters:
-       - filePath: The file path string. Can be either absolute or relative.
+       - filePath: The location in the file system.
        - directoryHint: A hint indicating whether the file path represents a directory or a file.
-       - relativeTo: A base URL to resolve the file path relative to.
+       - relativeTo: A URL that provides a file system location that the path extends.
+     
+     If `base` is provided, the file path will be resolved relative to this base URL.
+     */
+    static func file(_ path: String, directoryHint: FilePathDirectoryHint, relativeTo base: URL? = nil) -> URL {
+        URL(filePath: path, directoryHint: directoryHint, relativeTo: base)
+    }
+    
+    /**
+     Creates a file URL that references the local file or directory at path.
+
+     - Parameters:
+       - filePath: The location in the file system.
+       - directoryHint: A hint indicating whether the file path represents a directory or a file.
+       - relativeTo: A URL that provides a file system location that the path extends.
      
      If `base` is provided, the file path will be resolved relative to this base URL.
      */
     init(filePath path: String, directoryHint: FilePathDirectoryHint = .inferFromPath, relativeTo base: URL? = nil) {
         if let base = base {
-            let resolvedURL = base.appendingPathComponent(path, isDirectory: directoryHint == .isDirectory)
-            self = resolvedURL
-        } else {
-            let isDirectory: Bool
             switch directoryHint {
             case .isDirectory:
-                isDirectory = true
+                self = base.appendingPathComponent(path, isDirectory: true)
             case .notDirectory:
-                isDirectory = false
+                self = base.appendingPathComponent(path, isDirectory: false)
             case .inferFromPath:
-                isDirectory = path.hasSuffix("/") // Guess based on trailing slash.
+                self = base.appendingPathComponent(path, isDirectory: path.hasSuffix("/"))
+            case .checkFileSystem:
+                self = base.appendingPathComponent(path, isDirectory: FileManager.default.directoryExists(at: base.appendingPathComponent(path)))
+            }
+        } else {
+            switch directoryHint {
+            case .isDirectory:
+                self.init(fileURLWithPath: path, isDirectory: true)
+            case .notDirectory:
+                self.init(fileURLWithPath: path, isDirectory: false)
+            case .inferFromPath:
+                self.init(fileURLWithPath: path)
             case .checkFileSystem:
                 if !path.hasSuffix("/") {
-                    isDirectory = URL(fileURLWithPath: path).resources.isDirectory
+                    self.init(fileURLWithPath: path, isDirectory: URL(fileURLWithPath: path).resources.isDirectory)
                 } else {
-                    isDirectory = true
+                    self.init(fileURLWithPath: path, isDirectory: true)
                 }
             }
-            self.init(fileURLWithPath: path, isDirectory: isDirectory)
         }
     }
 }
