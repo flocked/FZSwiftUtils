@@ -172,8 +172,9 @@ Swift.print(UIView.classReflection().classProperties)
 An implementation of the OpenSuptitle hash.
 
 ```swift
-let hash = try? OSHash(url: fileURL)
-hash?.Value /// The hash value
+
+let hash = try? OSHash.hash(url: fileURL)
+hash?.hashValue /// The hash value
 ```
 
 ### Progress extensions

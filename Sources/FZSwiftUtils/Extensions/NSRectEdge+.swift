@@ -6,28 +6,28 @@
 //
 
 #if os(macOS)
-    import Foundation
+import Foundation
 
-    extension NSRectEdge {
-        /// The bottom edge of the rectangle.
-        public static var bottom: NSRectEdge {
-            .minY
-        }
-
-        /// The right edge of the rectangle.
-        public static var right: NSRectEdge {
-            .maxX
-        }
-
-        /// The top edge of the rectangle.
-        public static var top: NSRectEdge {
-            .maxY
-        }
-
-        /// The left edge of the rectangle.
-        public static var left: NSRectEdge {
-            .minX
-        }
+extension NSRectEdge {
+    /// The bottom edge of the rectangle.
+    public static var bottom: NSRectEdge {
+        .minY
     }
+    
+    /// The right edge of the rectangle.
+    public static var right: NSRectEdge {
+        .maxX
+    }
+    
+    /// The top edge of the rectangle.
+    public static var top: NSRectEdge {
+        .maxY
+    }
+    
+    /// The left edge of the rectangle.
+    public static var left: NSRectEdge {
+        .minX
+    }
+}
 
 #endif
