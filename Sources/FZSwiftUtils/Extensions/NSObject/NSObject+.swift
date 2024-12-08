@@ -7,6 +7,13 @@
 
 import Foundation
 
+extension NSObject {
+    /// The identifier of the object.
+    public var objectIdentifier: ObjectIdentifier {
+        ObjectIdentifier(self)
+    }
+}
+
 extension NSObjectProtocol where Self: NSObject {
     /// The type of the object.
     public var classType: Self.Type {
