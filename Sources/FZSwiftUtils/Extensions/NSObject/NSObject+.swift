@@ -132,8 +132,7 @@ public extension NSObject {
     /**
      Checks if the object overrides the specified selector.
 
-     - Parameters:
-        - selector: The selector to check for override.
+     - Parameter selector: The selector to check for override.
 
      - Returns: `true` if the object overrides the selector, `false` otherwise.
      */
