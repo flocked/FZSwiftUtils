@@ -169,3 +169,70 @@ public extension NSObject {
         return false
     }
 }
+
+extension NSObjectProtocol where Self: NSObject {
+    /// Returns all subclasses for the class.
+    public static func allSubclasses() -> [Self.Type] {
+        NSObject.allSubclasses(of: self)
+    }
+}
+ 
+extension NSObject {
+    /// Returns all classes.
+    static func allClasses() -> [AnyClass] {
+        // Get an approximate amount of classes we are going to need space for.
+        // Double it, just to make sure if it returns more we can still accomodate them all
+        let expectedClassCount = objc_getClassList(nil, 0) * 2
+
+        let allClasses = UnsafeMutablePointer<AnyClass>.allocate(capacity: Int(expectedClassCount))
+        let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)  // Huh? We should have gotten this for free.
+        let actualClassCount = objc_getClassList(autoreleasingAllClasses, expectedClassCount)
+
+        // Take care of the stunningly rare situation where we get more classes back than we have allocated,
+        // remembering that we have allocated more than we were told to, to take case of the unexpected case
+        // where we recieve more classes than we were told we were going to three lines previously. #paranoid #safe
+        let count = min(actualClassCount, expectedClassCount)
+
+        var classes = [AnyClass]()
+        for i in 0 ..< count {
+            let currentClass: AnyClass = allClasses[Int(i)]
+            classes.append(currentClass)
+        }
+
+        allClasses.deallocate()
+
+        return classes
+    }
+    
+    /// Returns all subclasses for the specified class.
+    public static func allSubclasses<T>(of baseClass: T) -> [T] {
+        var matches: [T] = []
+        
+        for currentClass in allClasses() {
+            #if os(macOS)
+            let skip = String(describing: currentClass) == "UINSServiceViewController"
+            #else
+            let skip = false
+            #endif
+            guard class_getRootSuperclass(currentClass) == NSObject.self && !skip else {
+                continue
+            }
+
+            if currentClass is T {
+                matches.append(currentClass as! T)
+            }
+        }
+
+        return matches
+    }
+    
+    static func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
+        guard let superclass = class_getSuperclass(type) else { return type }
+
+        return class_getRootSuperclass(superclass)
+    }
+    
+    static func allClasses(implementing p: Protocol) -> [AnyClass] {
+        allClasses().filter({ class_conformsToProtocol($0, p) })
+    }
+}
