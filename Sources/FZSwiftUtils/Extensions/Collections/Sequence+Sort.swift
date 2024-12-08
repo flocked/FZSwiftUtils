@@ -399,6 +399,11 @@ public enum SequenceSortOrder: Int, Hashable, Codable {
     /// A descending sorting order.
     case descending
     
+    /// Toggles the sort order.
+    public mutating func toggle() {
+        self = (self == .ascending) ? .descending : .ascending
+    }
+    
     @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     var sortOrder: SortOrder {
         self == .ascending ? .forward : .reverse

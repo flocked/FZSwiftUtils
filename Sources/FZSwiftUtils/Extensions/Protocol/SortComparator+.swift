@@ -108,7 +108,12 @@ struct PartialKeyPathComparator<Compared>: SortComparator {
 }
 
 @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-extension SortOrder {
+public extension SortOrder {
+    /// Toggles the sort order.
+    mutating func toggle() {
+        self = (self == .ascending) ? .descending : .ascending
+    }
+    
     /// An ascending sorting order.
     static let ascending = SortOrder.forward
     /// A descending sorting order.
