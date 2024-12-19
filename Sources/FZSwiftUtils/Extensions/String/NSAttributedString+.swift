@@ -263,7 +263,7 @@ import AppKit
 #elseif canImport(UIKit)
 import UIKit
 #endif
-extension NSAttributedString {
+public extension NSAttributedString {
     /**
      Applies the specified shadow to the attributed string.
 
