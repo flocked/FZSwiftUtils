@@ -264,6 +264,21 @@ import AppKit
 import UIKit
 #endif
 public extension NSAttributedString {
+    /// The foreground color of the attributed string.
+    var foregroundColor: NSUIColor? {
+        attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSUIColor
+    }
+    
+    /// The background color of the attributed string.
+    var backgroundColor: NSUIColor? {
+        attribute(.backgroundColor, at: 0, effectiveRange: nil) as? NSUIColor
+    }
+    
+    /// The shadow of the attributed string.
+    var shadow: NSShadow? {
+        attribute(.shadow, at: 0, effectiveRange: nil) as? NSShadow
+    }
+    
     /**
      Applies the specified shadow to the attributed string.
 
