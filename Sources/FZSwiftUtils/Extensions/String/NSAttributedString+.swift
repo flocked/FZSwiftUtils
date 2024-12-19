@@ -335,6 +335,29 @@ public extension NSAttributedString {
     }
 }
 
+public extension NSAttributedString {
+    /// Returns the value for the specified attribute.
+    subscript <V>(name: NSAttributedString.Key) -> V? {
+        get { attribute(name, at: 0, effectiveRange: nil) as? V }
+        set {
+            guard let self = self as? NSMutableAttributedString else { return }
+            self.setAttribute(name, to: newValue)
+        }
+    }
+    
+    /// Returns the value for the specified attribute.
+    subscript <V>(name: NSAttributedString.Key) -> V? where V: RawRepresentable, V.RawValue == Int {
+        get {
+            guard let rawValue = attribute(name, at: 0, effectiveRange: nil) as? Int else { return nil }
+            return V(rawValue: rawValue)
+        }
+        set {
+            guard let self = self as? NSMutableAttributedString else { return }
+            self.setAttribute(name, to: newValue?.rawValue)
+        }
+    }
+}
+
 public extension NSMutableAttributedString {
     /// The foreground color of the attributed string.
     var foregroundColor: NSUIColor? {
@@ -419,22 +442,6 @@ public extension NSMutableAttributedString {
     func removeAttribute(_ name: NSAttributedString.Key) {
         removeAttribute(name, range: fullRange)
     }
-    
-    /// Returns the value for the specified attribute.
-    subscript <V>(name: NSAttributedString.Key) -> V? {
-        get { attribute(name, at: 0, effectiveRange: nil) as? V }
-        set { setAttribute(name, to: newValue) }
-    }
-    
-    /// Returns the value for the specified attribute.
-    subscript <V>(name: NSAttributedString.Key) -> V? where V: RawRepresentable, V.RawValue == Int {
-        get { 
-            guard let rawValue = attribute(name, at: 0, effectiveRange: nil) as? Int else { return nil }
-            return V(rawValue: rawValue)
-        }
-        set { setAttribute(name, to: newValue?.rawValue) }
-    }
-    
     
     internal func setAttribute(_ name: NSAttributedString.Key, to value: Any?) {
         if let value = value {
