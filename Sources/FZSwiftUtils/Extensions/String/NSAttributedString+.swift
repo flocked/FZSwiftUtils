@@ -6,6 +6,11 @@
 //
 
 import Foundation
+#if os(macOS)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 public extension NSAttributedString {
     /// Returns the full range of the attributed string.
@@ -16,14 +21,16 @@ public extension NSAttributedString {
     /**
      Applies the specified attributes to the attributed string.
 
-     - Parameter attributes: The attributes to apply to the attributed string.
+     - Parameters:
+        - attributes: The attributes to add.
+        - range: The range of characters, or `nil` to use the full range.
 
      - Returns: A new attributed string with the specified attributes applied.
      */
-    func applyingAttributes(_ attributes: [Key: Any]) -> NSAttributedString {
+    func applyingAttributes(_ attributes: [Key: Any], at range: NSRange? = nil) -> NSAttributedString {
         guard !string.isEmpty else { return self }
         let copy = NSMutableAttributedString(attributedString: self)
-        copy.addAttributes(attributes, range: fullRange)
+        copy.addAttributes(attributes, range: range ?? fullRange)
         return copy
     }
 
@@ -32,70 +39,132 @@ public extension NSAttributedString {
 
      - Parameters:
         - attributes: The attributes to remove.
+        - range: The range of characters, or `nil` to use the full range.
 
      - Returns: A new attributed string with the attributes removed.
      */
-    func removingAttributes(_ attributes: [Key]) -> NSAttributedString {
+    func removingAttributes(_ attributes: [Key], at range: NSRange? = nil) -> NSAttributedString {
         guard !string.isEmpty else { return self }
-        let range = fullRange
         let copy = NSMutableAttributedString(attributedString: self)
-        for attribute in attributes {
-            copy.removeAttribute(attribute, range: range)
-        }
+        copy.removeAttributes(attributes, at: range)
         return copy
     }
     
     /**
-     Applies the specified color to the attributed string.
+     Sets the specified attribute value.
 
-     - Parameter color: The color to apply.
+     - Parameters:
+        - attributes: The attributes to add.
+        - range: The range of characters, or `nil` to use the full range.
 
-     - Returns: A new attributed string with the specified color applied.
+     - Returns: A new attributed string with the specified attributes applied.
      */
-    func color(_ color: NSUIColor?) -> NSAttributedString {
-        if let color = color {
-            return applyingAttributes([.foregroundColor: color])
-        }
-        return removingAttributes([.foregroundColor])
+    internal func settingAttribute(_ name: Key, to value: Any?, at range: NSRange? = nil) -> NSAttributedString {
+        guard !string.isEmpty else { return self }
+        var copy = NSMutableAttributedString(attributedString: self)
+        copy.setAttribute(name, to: value, at: range)
+        return copy
     }
     
     /**
-     Applies the specified color to the attributed string.
+     Sets the foreground color of the attributed string.
 
-     - Parameter color: The color to apply.
+     - Returns: A new attributed string with the specified goreground color applied.
+     */
+    func color(_ color: NSUIColor?) -> NSAttributedString {
+        settingAttribute(.foregroundColor, to: color)
+    }
+    
+    /**
+     Sets the background color of the attributed string.
 
-     - Returns: A new attributed string with the specified color applied.
+     - Returns: A new attributed string with the specified background color applied.
      */
     func backgroundColor(_ color: NSUIColor?) -> NSAttributedString {
-        if let color = color {
-            return applyingAttributes([.backgroundColor: color])
-        }
-        return removingAttributes([.backgroundColor])
+        settingAttribute(.backgroundColor, to: color)
+
     }
 
     /**
-     Applies the specified link to the attributed string.
-
-     - Parameter link: The link to apply.
+     Sets the link of the attributed string.
 
      - Returns: A new attributed string with the specified link applied.
      */
     func link(_ url: URL?) -> NSAttributedString {
-        if let url = url {
-            return applyingAttributes([.link: url])
-        }
-        return removingAttributes([.link])
+        settingAttribute(.link, to: url)
+
     }
 
     /**
-     Applies the specified font to the attributed string.
-
-     - Parameter font: The font to apply.
+     Sets the font of the attributed string.
 
      - Returns: A new attributed string with the specified font applied.
      */
-    func font(_ font: NSUIFont) -> NSAttributedString {
-        applyingAttributes([.font: font])
+    func font(_ font: NSUIFont?) -> NSAttributedString {
+        settingAttribute(.font, to: font)
+    }
+    
+    /**
+     Sets the shadow of the attributed string.
+
+     - Returns: A new attributed string with the specified shadow applied.
+     */
+    func shadow(_ shadow: NSShadow?) -> NSAttributedString {
+        settingAttribute(.shadow, to: shadow)
+    }
+    
+    /**
+     Sets the underline color of the attributed string.
+
+     - Returns: A new attributed string with the specified underline color applied.
+     */
+    func underlineColor(_ color: NSUIColor?) -> NSAttributedString {
+        settingAttribute(.underlineColor, to: color)
+    }
+    
+    /**
+     Sets the underline style of the attributed string.
+
+     - Returns: A new attributed string with the specified underline style applied.
+     */
+    func underlineStyle(_ style: NSUnderlineStyle?) -> NSAttributedString {
+        settingAttribute(.underlineStyle, to: style?.rawValue)
+    }
+    
+    /**
+     Sets the stroke color of the attributed string.
+
+     - Returns: A new attributed string with the specified stroke color applied.
+     */
+    func strokeColor(_ color: NSUIColor?) -> NSAttributedString {
+        settingAttribute(.strokeColor, to: color)
+    }
+    
+    /**
+     Sets the stroke width of the attributed string.
+
+     - Returns: A new attributed string with the specified stroke width applied.
+     */
+    func strokeWidth(_ width: CGFloat?) -> NSAttributedString {
+        settingAttribute(.strokeWidth, to: width)
+    }
+    
+    /**
+     Sets the strikethrough color of the attributed string.
+
+     - Returns: A new attributed string with the specified strikethrough color applied.
+     */
+    func strikethroughColor(_ color: NSUIColor?) -> NSAttributedString {
+        settingAttribute(.strikethroughColor, to: color)
+    }
+    
+    /**
+     Sets the strikethrough style of the attributed string.
+
+     - Returns: A new attributed string with the specified strikethrough style applied.
+     */
+    func strikethroughStyle(_ style: NSUnderlineStyle?) -> NSAttributedString {
+        settingAttribute(.strikethroughStyle, to: style?.rawValue)
     }
 
     /**
@@ -110,6 +179,19 @@ public extension NSAttributedString {
         value.replaceCharacters(in: range, with: string)
         return value.attributedSubstring(from: range)
     }
+    
+    /**
+     Returns a version of the attributed string where the first character is lowercased.
+
+     - Returns: A lowercase copy of the attributed string.
+     */
+    func lowercasedFirst() -> NSAttributedString {
+        let range = fullRange
+        let value = NSMutableAttributedString(attributedString: self)
+        let string = value.string.lowercasedFirst()
+        value.replaceCharacters(in: range, with: string)
+        return value.attributedSubstring(from: range)
+    }
 
     /**
      Returns a uppercase version of the attributed string.
@@ -120,6 +202,19 @@ public extension NSAttributedString {
         let range = fullRange
         let value = NSMutableAttributedString(attributedString: self)
         let string = value.string.uppercased()
+        value.replaceCharacters(in: range, with: string)
+        return value.attributedSubstring(from: range)
+    }
+    
+    /**
+     Returns a version of the attributed string, where the first character is uppercased.
+
+     - Returns: A lowercase copy of the attributed string.
+     */
+    func uppercasedFirst() -> NSAttributedString {
+        let range = fullRange
+        let value = NSMutableAttributedString(attributedString: self)
+        let string = value.string.uppercasedFirst()
         value.replaceCharacters(in: range, with: string)
         return value.attributedSubstring(from: range)
     }
@@ -268,235 +363,241 @@ public extension Array where Element: NSAttributedString {
     }
 }
 
-
-#if os(macOS)
-import AppKit
-#elseif canImport(UIKit)
-import UIKit
-#endif
 public extension NSAttributedString {
-    /*
-    /// The foreground color of the attributed string.
-    var foregroundColor: NSUIColor? {
-        attribute(.foregroundColor, at: 0, effectiveRange: nil) as? NSUIColor
-    }
-    
-    /// The background color of the attributed string.
-    var backgroundColor: NSUIColor? {
-        attribute(.backgroundColor, at: 0, effectiveRange: nil) as? NSUIColor
-    }
-    
-    /// The stroke color of the attributed string.
-    var strokeColor: NSUIColor? {
-        attribute(.strokeColor, at: 0, effectiveRange: nil) as? NSUIColor
-    }
-    
-    /// The shadow of the attributed string.
-    var shadow: NSShadow? {
-        attribute(.shadow, at: 0, effectiveRange: nil) as? NSShadow
-    }
-    
-    /// The stroke width of the attributed string.
-    var strokeWidth: CGFloat? {
-        attribute(.strokeWidth, at: 0, effectiveRange: nil) as? CGFloat
-    }
-     */
-    
     /**
-     Applies the specified shadow to the attributed string.
-
-     - Parameter shadow: The shadow to apply.
-
-     - Returns: A new attributed string with the specified shadow applied.
-     */
-    func shadow(_ shadow: NSShadow?) -> NSAttributedString {
-        if let shadow = shadow {
-            return applyingAttributes([.shadow:  shadow])
-        } else {
-            return removingAttributes([.shadow])
-        }
-    }
-    
-    /**
-     Applies the specified stroke color and width to the attributed string.
-
+     The value for the specified attribute.
+     
      - Parameters:
-        - color: The color of the stroke.
-        - width: The width of the stroke.
-
-     - Returns: A new attributed string with the specified stroke color and width applied.
+        - name: The name of the attribute.
+        - range: The range of characters, or `nil` to use the full range.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
      */
-    func stroke(_ color: NSUIColor?, width: CGFloat = 1.0) -> NSAttributedString {
-        if let color = color {
-            return applyingAttributes([.strokeColor: color, .strokeWidth: width])
-        } else {
-            return removingAttributes([.strokeColor, .strokeWidth])
-        }
-    }
-}
-
-public extension NSAttributedString {
-    /// Returns the value for the specified attribute.
-    subscript <V>(name: NSAttributedString.Key) -> V? {
-        get { attribute(name, at: 0, effectiveRange: nil) as? V }
+    subscript <V>(name: NSAttributedString.Key, range: NSRange? = nil) -> V? {
+        get { attribute(name, at: range?.location ?? 0, effectiveRange: nil) as? V }
         set {
             guard let self = self as? NSMutableAttributedString else { return }
-            self.setAttribute(name, to: newValue)
+            self.setAttribute(name, to: newValue, at: range)
         }
     }
     
-    /// Returns the value for the specified attribute.
-    subscript <V>(name: NSAttributedString.Key) -> V? where V: RawRepresentable, V.RawValue == Int {
+    /**
+     The value for the specified attribute.
+     
+     - Parameters:
+        - name: The name of the attribute.
+        - range: The range of characters, or `nil` to use the full range.
+
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
+    subscript <V>(name: NSAttributedString.Key, range: NSRange? = nil) -> V? where V: RawRepresentable, V.RawValue == Int {
         get {
-            guard let rawValue = attribute(name, at: 0, effectiveRange: nil) as? Int else { return nil }
+            guard let rawValue = attribute(name, at: range?.location ?? 0, effectiveRange: nil) as? Int else { return nil }
             return V(rawValue: rawValue)
         }
         set {
             guard let self = self as? NSMutableAttributedString else { return }
-            self.setAttribute(name, to: newValue?.rawValue)
+            self.setAttribute(name, to: newValue?.rawValue, at: range)
         }
     }
-}
-
-public extension NSMutableAttributedString {
-    /// The foreground color of the attributed string.
+    
+    /**
+     The foreground color of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var foregroundColor: NSUIColor? {
         get { self[.foregroundColor] }
         set { self[.foregroundColor] = newValue }
     }
-    
-    /// The background color of the attributed string.
+
+    /**
+     The background color of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var backgroundColor: NSUIColor? {
         get { self[.backgroundColor] }
         set { self[.backgroundColor] = newValue }
     }
-    
-    /// The stroke color of the attributed string.
+
+    /**
+     The stroke color of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var strokeColor: NSUIColor? {
         get { self[.strokeColor] }
         set { self[.strokeColor] = newValue }
     }
-    
-    /// The stroke width of the attributed string.
+
+    /**
+     The stroke width of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var strokeWidth: CGFloat? {
         get { self[.strokeWidth] }
         set { self[.strokeWidth] = newValue }
     }
-    
-    /// The font of the attributed string.
+
+    /**
+     The font of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var font: NSUIFont? {
         get { self[.font] }
         set { self[.font] = newValue }
     }
-    
-    /// The shadow of the attributed string.
+
+    /**
+     The shadow of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var shadow: NSShadow? {
         get { self[.shadow] }
         set { self[.shadow] = newValue }
     }
-    
-    /// The link for the text.
+
+    /**
+     The link for the text.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var link: URL? {
         get { self[.link] }
         set { self[.link] = newValue }
     }
-    
+
     #if os(macOS)
-    /// The tooltip text.
+    /**
+     The tooltip text.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var toolTip: String? {
         get { self[.toolTip] }
         set { self[.toolTip] = newValue }
     }
     #endif
-    
-    /// The underline color of the attributed string.
+
+    /**
+     The underline color of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var underlineColor: NSUIColor? {
         get { self[.underlineColor] }
         set { self[.underlineColor] = newValue }
     }
-    
-    /// The underline style of the attributed string.
+
+    /**
+     The underline style of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var underlineStyle: NSUnderlineStyle? {
         get { self[.underlineStyle] }
         set { self[.underlineStyle] = newValue }
     }
-    
-    /// The strike through color of the attributed string.
+
+    /**
+     The strikethrough color of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var strikethroughColor: NSUIColor? {
         get { self[.strikethroughColor] }
         set { self[.strikethroughColor] = newValue }
     }
-    
-    /// The strike through style of the attributed string.
+
+    /**
+     The strikethrough style of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
     var strikethroughStyle: NSUnderlineStyle? {
         get { self[.strikethroughStyle] }
         set { self[.strikethroughStyle] = newValue }
     }
-    
-    /// Adds the specified attributes to the whole attributed string.
-    func addAttributes(_ attrs: [NSAttributedString.Key : Any]) {
-        addAttributes(attrs, range: fullRange)
+
+    /**
+     The attachment of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
+    var attachment: NSTextAttachment? {
+        get { self[.attachment] }
+        set { self[.attachment] = newValue }
+    }
+
+    /**
+     The vertical offset for the position of the text.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
+    var baselineOffset: CGFloat? {
+        get { self[.baselineOffset] }
+        set { self[.baselineOffset] = newValue }
+    }
+
+    /**
+     The kerning of the text.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
+    var kern: CGFloat? {
+        get { self[.kern] }
+        set { self[.kern] = newValue }
+    }
+}
+
+public extension NSMutableAttributedString {
+    /**
+     Adds the specified attributes to the whole attributed string.
+     
+     - Parameter attributes: A dictionary containing the attributes to add.
+     */
+    func addAttributes(_ attributes: [NSAttributedString.Key : Any]) {
+        addAttributes(attributes, range: fullRange)
     }
     
-    /// Removes the specified attribute from the whole attributed string.
+    /**
+     Removes the specified attribute from the whole attributed string.
+     
+     - Parameter name: The name of the attribute.
+     */
     func removeAttribute(_ name: NSAttributedString.Key) {
         removeAttribute(name, range: fullRange)
     }
     
-    internal func setAttribute(_ name: NSAttributedString.Key, to value: Any?) {
+    /**
+     Removes the specified attributes from the whole attributed string.
+     
+     - Parameters:
+        - names: The names of the attribute.
+        - range: The range of characters, or `nil` to use the full range.
+     */
+    func removeAttributes(_ names: [Key], at range: NSRange? = nil) {
+        let range = range ?? fullRange
+        names.forEach({ removeAttribute($0, range: range) })
+    }
+    
+    /**
+     Sets the specified attribute value.
+     
+     - Parameters:
+        - name: The name of the attribute.
+        - value: The value of the attribute.
+        - range: The range of characters, or `nil` to use the full range.
+     */
+    func setAttribute(_ name: NSAttributedString.Key, to value: Any?, at range: NSRange? = nil) {
         if let value = value {
-            addAttributes([name: value])
+            addAttributes([name: value], range: NSRange(location: 0, length: length))
         } else {
-            removeAttribute(name)
+            removeAttribute(name, range: NSRange(location: 0, length: length))
         }
     }
 }
-
-/*
- /// The style used to draw the underline or strikethrough of an attributed string.
- struct LineStyle {
-     /// The pattern of the line.
-     public var type: NSUnderlineStyle = .single
-     
-     /// The color of the line. If not provided, the foreground color of text is used.
-     public var color: NSUIColor? = nil
-     
-     /**
-      Creates a line style.
-      
-      - Parameters:
-         - type: The type of the line.
-         - color:  The color of the line. If not provided, the foreground color of text is used.
-      */
-     public init(type: NSUnderlineStyle = .single, color: NSUIColor? = nil) {
-         self.type = type
-         self.color = color
-     }
-     
-     /// Draw a single solid line.
-     public static let single = Self(type: .single)
-
- }
- 
- var underline: LineStyle? {
-     get {
-         guard let type: NSUnderlineStyle = self[.underlineStyle] else { return nil }
-         return LineStyle(type: type, color: self[.underlineColor])
-     }
-     set {
-         self[.underlineStyle] = newValue?.type
-         self[.underlineColor] = newValue?.color
-     }
- }
- 
- var strikethrough: LineStyle? {
-     get {
-         guard let type: NSUnderlineStyle = self[.strikethroughStyle] else { return nil }
-         return LineStyle(type: type, color: self[.strikethroughColor])
-     }
-     set {
-         self[.strikethroughStyle] = newValue?.type
-         self[.strikethroughColor] = newValue?.color
-     }
- }
- */

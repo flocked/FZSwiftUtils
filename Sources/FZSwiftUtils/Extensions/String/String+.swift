@@ -60,13 +60,13 @@ public extension StringProtocol {
 
     /// A representation of the string where the first character is lowercased.
     func lowercasedFirst() -> String {
-        if isEmpty { return "" }
+        if isEmpty { return String(self) }
         return prefix(1).lowercased() + dropFirst()
     }
 
     /// A representation of the string where the first character is uppercased.
     func uppercasedFirst() -> String {
-        if isEmpty { return "" }
+        if isEmpty { return String(self) }
         return prefix(1).uppercased() + dropFirst()
     }
 
