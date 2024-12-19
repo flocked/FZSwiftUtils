@@ -41,11 +41,11 @@ public extension NSAttributedString {
     }
     
     /**
-     Applies the specified color to the sttributed string.
+     Applies the specified color to the attributed string.
 
      - Parameter color: The color to apply.
 
-     - Returns: A new sttributed string with the specified color applied.
+     - Returns: A new attributed string with the specified color applied.
      */
     func color(_ color: NSUIColor?) -> NSAttributedString {
         if let color = color {
@@ -55,11 +55,11 @@ public extension NSAttributedString {
     }
     
     /**
-     Applies the specified color to the sttributed string.
+     Applies the specified color to the attributed string.
 
      - Parameter color: The color to apply.
 
-     - Returns: A new sttributed string with the specified color applied.
+     - Returns: A new attributed string with the specified color applied.
      */
     func backgroundColor(_ color: NSUIColor?) -> NSAttributedString {
         if let color = color {
@@ -73,7 +73,7 @@ public extension NSAttributedString {
 
      - Parameter link: The link to apply.
 
-     - Returns: A new sttributed string with the specified link applied.
+     - Returns: A new attributed string with the specified link applied.
      */
     func link(_ url: URL?) -> NSAttributedString {
         if let url = url {
@@ -83,11 +83,11 @@ public extension NSAttributedString {
     }
 
     /**
-     Applies the specified font to the sttributed string.
+     Applies the specified font to the attributed string.
 
      - Parameter font: The font to apply.
 
-     - Returns: A new sttributed string with the specified font applied.
+     - Returns: A new attributed string with the specified font applied.
      */
     func font(_ font: NSUIFont) -> NSAttributedString {
         applyingAttributes([.font: font])
@@ -269,7 +269,7 @@ public extension NSAttributedString {
 
      - Parameter shadow: The shadow to apply.
 
-     - Returns: A new sttributed string with the specified shadow applied.
+     - Returns: A new attributed string with the specified shadow applied.
      */
     func shadow(_ shadow: NSShadow?) -> NSAttributedString {
         if let shadow = shadow {
@@ -286,7 +286,7 @@ public extension NSAttributedString {
         - color: The color of the stroke.
         - width: The width of the stroke.
 
-     - Returns: A new sttributed string with the specified stroke color and width applied.
+     - Returns: A new attributed string with the specified stroke color and width applied.
      */
     func stroke(_ color: NSUIColor?, width: CGFloat = 1.0) -> NSAttributedString {
         if let color = color {
