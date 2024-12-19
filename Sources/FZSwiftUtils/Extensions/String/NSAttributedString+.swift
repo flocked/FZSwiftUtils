@@ -274,9 +274,19 @@ public extension NSAttributedString {
         attribute(.backgroundColor, at: 0, effectiveRange: nil) as? NSUIColor
     }
     
+    /// The stroke color of the attributed string.
+    var strokeColor: NSUIColor? {
+        attribute(.strokeColor, at: 0, effectiveRange: nil) as? NSUIColor
+    }
+    
     /// The shadow of the attributed string.
     var shadow: NSShadow? {
         attribute(.shadow, at: 0, effectiveRange: nil) as? NSShadow
+    }
+    
+    /// The stroke width of the attributed string.
+    var strokeWidth: CGFloat? {
+        attribute(.strokeWidth, at: 0, effectiveRange: nil) as? CGFloat
     }
     
     /**
