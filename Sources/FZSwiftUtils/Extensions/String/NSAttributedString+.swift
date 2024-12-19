@@ -39,7 +39,7 @@ public extension NSAttributedString {
         }
         return copy
     }
-
+    
     /**
      Applies the specified color to the sttributed string.
 
@@ -69,7 +69,7 @@ public extension NSAttributedString {
     }
 
     /**
-     Applies the specified link to the sttributed string.
+     Applies the specified link to the attributed string.
 
      - Parameter link: The link to apply.
 
@@ -171,6 +171,12 @@ public extension NSAttributedString {
     func range(of string: String) -> NSRange {
         (self.string as NSString).range(of: string)
     }
+    
+    /// A `AttributedString` representation of the attributed string.
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    var attributedString: AttributedString {
+        AttributedString(self)
+    }
 }
 
 public extension NSAttributedString {
@@ -248,6 +254,45 @@ public extension Array where Element: NSAttributedString {
         return dropFirst().reduce(into: NSMutableAttributedString(attributedString: firstElement)) { result, element in
             result.append(attributedStringSeparator)
             result.append(element)
+        }
+    }
+}
+
+#if os(macOS)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
+extension NSAttributedString {
+    /**
+     Applies the specified shadow to the attributed string.
+
+     - Parameter shadow: The shadow to apply.
+
+     - Returns: A new sttributed string with the specified shadow applied.
+     */
+    func shadow(_ shadow: NSShadow?) -> NSAttributedString {
+        if let shadow = shadow {
+            return applyingAttributes([.shadow:  shadow])
+        } else {
+            return removingAttributes([.shadow])
+        }
+    }
+    
+    /**
+     Applies the specified stroke color and width to the attributed string.
+
+     - Parameters:
+        - color: The color of the stroke.
+        - width: The width of the stroke.
+
+     - Returns: A new sttributed string with the specified stroke color and width applied.
+     */
+    func stroke(_ color: NSUIColor?, width: CGFloat = 1.0) -> NSAttributedString {
+        if let color = color {
+            return applyingAttributes([.strokeColor: color, .strokeWidth: width])
+        } else {
+            return removingAttributes([.strokeColor, .strokeWidth])
         }
     }
 }
