@@ -689,6 +689,98 @@ public extension CGRect {
     }
 }
 
+public extension CGRect {
+    /// The vertical order to split a rectangle.
+    enum VerticalSplitOrder: Int  {
+        /// Bottom to top.
+        case bottomToTop
+        /// Top to bottom.
+        case topToBottom
+        /// Towards the center.
+        case towardsCenter
+        /// Towards the edges.
+        case towardsEdges
+        /// Random order.
+        case random
+    }
+    
+    /// The horizontal order to split a rectangle.
+    enum HorizontalSplitOrder: Int {
+        /// Left to right.
+        case leftToRight
+        /// Right to left.
+        case rightToLeft
+        /// Towards the center.
+        case towardsCenter
+        /// Towards the edges.
+        case towardsEdges
+        /// Random order.
+        case random
+    }
+    
+    /**
+     Splits the rectangle to the specified vertical and horizontal amount of rectangles.
+
+     - Parameters:
+        - horizontalAmount: The amount of horizontal rectangles.
+        - verticalAmount: The amount of vertical rectangles.
+        - horizontalOrder: The horizontal order of the rectangles.
+        - verticalOrder: The vertical order of the rectangles.
+     
+     - Returns: An array with the divided rectangles.
+     */
+    func splitted(horizontalAmount: Int, verticalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+        splitted(size: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+    }
+    
+    /**
+     Splits the rectangle into rectangles of the specified size.
+
+     - Parameters:
+        - size: The size of an split.
+        - horizontalOrder: The horizontal order of the rectangles.
+        - verticalOrder: The vertical order of the rectangles.
+     
+     - Returns: An array with the divided rectangles.
+     */
+    func splitted(size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+        let verticalCount = Int(self.size.height / size.height)
+        let horizontalCount = Int(self.size.width / size.width)
+        var splits: [CGRect] = []
+        var hValues = (0..<horizontalCount).compactMap({CGFloat($0)})
+        switch horizontalOrder {
+        case .leftToRight: break
+        case .rightToLeft:
+            hValues = hValues.reversed()
+        case .towardsCenter:
+            hValues = hValues.reorderedTowardsCenter()
+        case .towardsEdges:
+            hValues = hValues.reorderedFromCenterOutwards()
+        case .random:
+            hValues = hValues.shuffled()
+        }
+        
+        var vValues = (0..<verticalCount).compactMap({CGFloat($0)})
+        switch verticalOrder {
+        case .bottomToTop: break
+        case .topToBottom:
+            vValues = vValues.reversed()
+        case .towardsCenter:
+            vValues = vValues.reorderedTowardsCenter()
+        case .towardsEdges:
+            vValues = vValues.reorderedFromCenterOutwards()
+        case .random:
+            vValues = vValues.shuffled()
+        }
+        for v in vValues {
+            for h in hValues {
+                splits.append(CGRect(CGPoint(x: v * size.width, y: h * size.height), size))
+            }
+        }
+        return splits
+    }
+}
+
 extension CGRect: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(size)
