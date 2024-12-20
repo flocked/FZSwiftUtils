@@ -774,7 +774,7 @@ public extension CGRect {
         }
         for v in vValues {
             for h in hValues {
-                splits.append(CGRect(CGPoint(x: v * size.width, y: h * size.height), size))
+                splits.append(CGRect(CGPoint(x: h * size.width, y: v * size.height), size))
             }
         }
         return splits
