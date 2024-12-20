@@ -8,9 +8,9 @@
 import Foundation
 
 /**
- A asynchronous, pausable operation.
+ An asynchronous, pausable operation.
  
- Override ``main()`` to perform your desired task and finish the operation by calling ``finish()``.
+ You have to override ``main()`` to perform your desired task and finish the operation by calling ``finish()``.
   
  Always call `super` when overriding `start()`, `cancel()`, `finish()`, `pause()` or `resume()`.
  */
@@ -22,6 +22,12 @@ open class AsyncOperation: Operation {
     
     /// The handler that is called when the operation starts executing.
     open var startHandler: (()->())? = nil
+    
+    /// The maximum amount of retries.
+    open var maximumRetries = 1
+
+    /// The current retry attempt.
+    open private(set) var currentAttempt = 0
     
     /// The state of the operation.
     @objc public enum State: Int, Hashable, CustomStringConvertible {
@@ -35,6 +41,8 @@ open class AsyncOperation: Operation {
         case cancelled
         /// The operation is paused.
         case paused
+        /// The operation failed.
+        case failed
         
         public var description: String {
             switch self {
@@ -43,6 +51,7 @@ open class AsyncOperation: Operation {
             case .finished: return "finished"
             case .cancelled: return "cancelled"
             case .paused: return "paused"
+            case .failed: return "failed"
             }
         }
     }
@@ -71,6 +80,8 @@ open class AsyncOperation: Operation {
         case .cancelled:
             return true
         case .paused:
+            return state != .cancelled && state != .finished && state != .failed
+        case .failed:
             return state != .cancelled && state != .finished
         }
     }
@@ -84,7 +95,7 @@ open class AsyncOperation: Operation {
     }
 
     override open var isFinished: Bool {
-        state == .finished || state == .cancelled
+        state == .finished || state == .cancelled || state == .failed
     }
     
     override open var isAsynchronous: Bool {
@@ -96,9 +107,11 @@ open class AsyncOperation: Operation {
         state == .paused
     }
     
+    /// Starts the operation,
     override open func start() {
         guard !isCancelled, !isExecuting, !isFinished else { return }
         state = .executing
+        currentAttempt = 1
         startHandler?()
         main()
     }
@@ -107,6 +120,7 @@ open class AsyncOperation: Operation {
       fatalError("Subclasses of `AsyncOperation` must implement `main()`.")
     }
     
+    /// Cancels the operation.
     override open func cancel() {
         super.cancel()
         if isPaused {
@@ -115,10 +129,24 @@ open class AsyncOperation: Operation {
         state = .cancelled
     }
     
-    /// Finishes the operation.
-    open func finish() {
+    /**
+     Finishes the operation.
+     
+     - Parameter success: A Boolean value indicating whether the operation finished successfully.
+     
+     - If `success` is `true`, the operation's state is set to `finish`.
+     - If `false`, the operation may retry if the maximum amount of retries isn't reached, otherwise the state is set to `failed`.
+     */
+    open func finish(success: Bool = true) {
         guard isExecuting, !isPaused else { return }
-        state = .finished
+        if success {
+            state = .finished
+        } else if currentAttempt < maximumRetries {
+            currentAttempt += 1
+            main()
+        } else {
+            state = .failed
+        }
     }
 
     /// Pauses the operation.
