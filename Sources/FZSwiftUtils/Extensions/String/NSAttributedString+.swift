@@ -61,7 +61,7 @@ public extension NSAttributedString {
      */
     internal func settingAttribute(_ name: Key, to value: Any?, at range: NSRange? = nil) -> NSAttributedString {
         guard !string.isEmpty else { return self }
-        var copy = NSMutableAttributedString(attributedString: self)
+        let copy = NSMutableAttributedString(attributedString: self)
         copy.setAttribute(name, to: value, at: range)
         return copy
     }
