@@ -10,6 +10,27 @@ import Foundation
 public extension IndexPath {
     /// An index path with a `item` and `section` value of `0`.
     static var zero: IndexPath { IndexPath(item: 0, section: 0) }
+    
+    /// Create a `IndexPath` with the specified item and the current section.
+    func item(_ item: Int) -> IndexPath {
+        IndexPath(item: item, section: section)
+    }
+    
+    /// Create a `IndexPath` with the specified section and the current item.
+    func section(_ section: Int) -> IndexPath {
+        IndexPath(item: item, section: section)
+    }
+    
+    /// Returns the next `IndexPath` with the incremented `item` value
+    var next: IndexPath {
+        item(item + 1)
+    }
+    
+    /// Returns the previous `IndexPath` with the decremented` item` value, or `nil` if the value is `0`.
+    var previous: IndexPath? {
+        guard item > 0 else { return nil }
+        return item(item - 1)
+    }
 
     #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
         /// `NSIndexPath` representation of the value.
