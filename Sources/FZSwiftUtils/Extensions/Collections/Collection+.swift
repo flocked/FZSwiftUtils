@@ -906,7 +906,7 @@ extension Collection where Element: BinaryInteger {
         - sorted: A Boolean value indicating whether to check the integers in a sorted order.
      */
     public func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
-        let elements = sorted ? sorted() : self
+        let elements = sorted ? self.sorted() : self
         return !(1..<count).contains(where: { elements[$0] != elements[$0 - 1] + value })
     }
 }
@@ -920,7 +920,7 @@ extension Collection where Element: BinaryFloatingPoint {
         - sorted: A Boolean value indicating whether to check the elements in a sorted order.
      */
     public func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
-        let elements = sorted ? sorted() : self
+        let elements = sorted ? self.sorted() : self
         return !(1..<count).contains(where: { elements[$0] != elements[$0 - 1] + value })
     }
 }
