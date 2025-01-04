@@ -523,6 +523,7 @@ public extension NSAttributedString {
         set { self[.strikethroughStyle] = newValue }
     }
 
+    #if os(macOS) || os(iOS) || os(tvOS)
     /**
      The attachment of the attributed string.
      
@@ -532,6 +533,7 @@ public extension NSAttributedString {
         get { self[.attachment] }
         set { self[.attachment] = newValue }
     }
+    #endif
 
     /**
      The vertical offset for the position of the text.
