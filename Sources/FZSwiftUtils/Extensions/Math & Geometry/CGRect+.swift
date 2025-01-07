@@ -49,6 +49,17 @@ public extension CGRect {
         let result = integralized ? unintegralizedRect.scaledIntegral : unintegralizedRect
         self.init(x: result.origin.x, y: result.origin.y, width: result.size.width, height: result.size.height)
     }
+    
+    /**
+     Initializes a rectangle with the specified points that spans between the points.
+     
+     - Parameters:
+        - point1: The first point.
+        - point2: The second point.
+     */
+    init(point1: CGPoint, point2: CGPoint) {
+        self.init(x: min(point1.x, point2.x), y: min(point1.y, point2.y), width: abs(point1.x - point2.x), height: abs(point1.y - point2.y))        
+    }
 
     /**
      Returns the scaled integral rectangle based on the current rectangle.
