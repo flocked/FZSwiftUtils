@@ -1,10 +1,10 @@
-AssociatedValues
-- Copyright (c) 2014 Skyvive <brad.hilton.nw@gmail.com>
-- http://github.com/bradhilton/AssociatedValues
-
 ApproximateEquatable
 - Copyright (c) 2020, Adam Bell
 - https://github.com/b3ll/Motion
+
+AssociatedValues
+- Copyright (c) 2014 Skyvive <brad.hilton.nw@gmail.com>
+- http://github.com/bradhilton/AssociatedValues
 
 Collection+Indexed
 - Copyright (c) 2020 Apple Inc.
@@ -22,6 +22,10 @@ DisplayableEnum/NSObject+onChanged
 - Copyright (c) 2018-2022 Boinx Software Ltd. & Imagine GbR
 - https://github.com/boinx/BXSwiftUtils
 
+LoremSwiftum
+- Copyright (c) 2014-2021 Lukas Kubanek
+- https://github.com/lukaskubanek/LoremSwiftum
+
 NSObject+Reflection
 - Copyright (c) 2016 Cyon Alexander, com.cyon
 - https://github.com/Sajjon
@@ -30,6 +34,14 @@ NSObject+Swizzle
 - Copyright (c) 2020 Peter Steinberger
 - https://github.com/steipete/InterposeKit
 
+OrderedDictionary
+- Copyright © 2015-2021 Lukas Kubanek
+- https://github.com/lukaskubanek/OrderedDictionary/
+
+OrderedSet
+- Copyright © 2021 Frazer Robinson
+- https://github.com/frazer-rbsn/orderedset/
+
 Sequence+Concurrency
 - Copyright (c) 2021 John Sundell
 - https://github.com/JohnSundell/CollectionConcurrencyKit
@@ -37,8 +49,3 @@ Sequence+Concurrency
 Swizzle
 - Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
 - https://github.com/MarioIannotta/SwizzleSwift
-
-
-LoremSwiftum
-- Copyright (c) 2014-2021 Lukas Kubanek
-- https://github.com/lukaskubanek/LoremSwiftum
