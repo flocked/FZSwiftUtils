@@ -17,6 +17,10 @@ public extension Dictionary {
         }
     }
     
+    subscript<EnumKey: RawRepresentable>(key: EnumKey) -> Value? where EnumKey.RawValue == Dictionary.Key {
+        get { self[key.rawValue] }
+        set { self[key.rawValue] = newValue  }
+    }
     
     /// Returns values for the specified keys.
     subscript(keys: [Key]) -> [(key: Key, value: Value)] {
