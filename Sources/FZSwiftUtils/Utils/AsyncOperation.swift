@@ -14,7 +14,7 @@ import Foundation
   
  Always call `super` when overriding `start()`, `cancel()`, `finish()`, `pause()` or `resume()`.
  */
-open class AsyncOperation: Operation {
+open class AsyncOperation: Operation, Pausable {
     
     private let stateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath + ".AsyncOperationState", attributes: .concurrent)
     private let pauseSemaphore = DispatchSemaphore(value: 0) // Semaphore to pause/resume
@@ -195,7 +195,7 @@ open class AsyncOperation: Operation {
 }
 
 
-/// A asynchronous, pausable operation executing a specifed handler.
+/// An asynchronous, pausable operation executing a specifed handler.
 open class AsyncBlockOperation: AsyncOperation {
     /// The handler to execute.
     public let closure: (AsyncBlockOperation) -> Void
@@ -210,7 +210,7 @@ open class AsyncBlockOperation: AsyncOperation {
         self.closure = closure
     }
     
-    override open func main() {
+    override public func main() {
         closure(self)
         finish()
     }
