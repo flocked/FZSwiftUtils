@@ -49,3 +49,7 @@ Sequence+Concurrency
 Swizzle
 - Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
 - https://github.com/MarioIannotta/SwizzleSwift
+
+Synchronized
+- Copyright (c) 2016-2018 Peter Baumgartner
+- https://github.com/boinx/BXSwiftUtils
