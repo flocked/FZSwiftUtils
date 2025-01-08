@@ -20,11 +20,9 @@ extension Logger {
     /// Networking logger.
     public static let networking = Logger(subsystem: subsystem, category: "Networking")
     
-    /*
     /// Writes a message to the log with the specified items using the default log type.
     public func notice(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        let message = Array(repeating: "\t", count: indent).joined() + items.map { String(describing: $0) }.joined(separator: separator)
-        self.notice("\(message)")
+        log(level: .default, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a debug message to the log with the specified items.
@@ -34,7 +32,7 @@ extension Logger {
     
     /// Writes a trace message to the log with the specified items.
     public func trace(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        trace("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .debug, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes an informative message to the log with the specified items.
@@ -49,7 +47,7 @@ extension Logger {
     
     /// Writes information about a warning to the log with the specified items.
     public func warning(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        warning("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .error, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a message to the log with the specified items about a bug that occurs when your app executes.
@@ -59,9 +57,8 @@ extension Logger {
     
     /// Writes a message to the log with the specified items about a critical event in your app’s execution.
     public func critical(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        critical("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .fault, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
-    */
 }
 
 /**
