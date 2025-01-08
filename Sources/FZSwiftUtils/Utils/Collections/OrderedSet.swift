@@ -37,10 +37,14 @@
     // MARK: - Public Stored Properties
     
     /// Returns the number of elements in this ordered set.
-    public let count: Int
+    public var count: Int {
+        _array.count
+    }
     
     /// Returns `true` if this ordered set is empty.
-    public let isEmpty: Bool
+    public var isEmpty: Bool {
+        _array.isEmpty
+    }
     
     
     // MARK: - Public Initialisers
@@ -128,8 +132,6 @@
         self._array = array
         self._set = set
         self._hashIndexDict = hashIndexDict
-        self.count = array.count
-        self.isEmpty = array.isEmpty
     }
     
     private static func hashIndexDict<S>(from sequence: S) -> HashIndexDict where Element == S.Element, S: Sequence {
@@ -235,7 +237,6 @@
     public func isDisjoint(with otherSet: Self) -> Bool {
         _set.isDisjoint(with: otherSet)
     }
-    
     
     // MARK: - Creation Functions
     
@@ -386,6 +387,21 @@
         return element
     }
     
+    /// Removes the specified number of elements from the beginning of the set.
+    mutating func removeFirst(_ k: Int) {
+        remove(_array[safe: 0..<k])
+    }
+    
+    /// Removes and returns the last element of the set.
+    mutating func removeLast(_ k: Int) {
+        remove(_array[(count-k).clamped(min: 0)..<count])
+    }
+    
+    /// Removes the elements in the specified subrange from the set.
+    mutating func removeSubrange(_ bounds: Range<Index>) {
+        remove(_array[safe: bounds])
+    }
+    
     /// Returns a new ordered set with the element at the specified position removed.
     /// - parameter position: The index of the member to remove.
     ///   `position` must be a valid index of the ordered set.
@@ -406,7 +422,6 @@
     /// member.
     /// - parameter element: The member to remove.
     func removing(_ element: Element) -> Self {
-        var array = _array
         guard let index = self.index(of: element) else { return self }
         return removing(at: index)
     }
