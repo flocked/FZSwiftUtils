@@ -261,15 +261,15 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
                 select(at: (first - 1 >= 0) ? first - 1 : elements.count, exclusivly: exclusivly)
             }
         case .first:
-            if elements.isEmpty == false {
+            if !elements.isEmpty {
                 select(at: 0, exclusivly: exclusivly)
             }
         case .last:
-            if elements.isEmpty == false {
+            if !elements.isEmpty {
                 select(at: elements.count - 1, exclusivly: exclusivly)
             }
         case .random:
-            if elements.isEmpty == false {
+            if !elements.isEmpty {
                 select(at: Int.random(in: 0 ..< elements.count), exclusivly: exclusivly)
             }
         }
@@ -295,7 +295,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func deselect(at index: Int) {
-        guard elements.isEmpty == false, index < elements.count else { return }
+        guard !elements.isEmpty, index < elements.count else { return }
         isSelected[index] = false
         updateSelections()
     }
@@ -306,10 +306,10 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
 
     private mutating func updateSelections() {
         if allowsSelection {
-            if allowsMultipleSelection == false, let firstIndex = selectedIndexes.first {
+            if !allowsMultipleSelection, let firstIndex = selectedIndexes.first {
                 select(at: firstIndex, exclusivly: true)
             }
-            if allowsEmptySelection == false, selectedIndexes.count == 0 {
+            if !allowsEmptySelection, selectedIndexes.count == 0 {
                 select(at: 0)
             }
         } else {
@@ -318,7 +318,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func deselectFirst() {
-        guard elements.isEmpty == false else { return }
+        guard !elements.isEmpty else { return }
         deselect(at: 0)
     }
 
@@ -333,7 +333,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func selectFirst() {
-        guard elements.isEmpty == false else { return }
+        guard !elements.isEmpty else { return }
         select(at: 0)
     }
 
@@ -348,7 +348,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func deselectLast() {
-        guard elements.isEmpty == false else { return }
+        guard !elements.isEmpty else { return }
         deselect(at: elements.count - 1)
     }
 
@@ -363,7 +363,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func selectLast() {
-        guard elements.isEmpty == false else { return }
+        guard !elements.isEmpty else { return }
         select(at: elements.count - 1)
     }
 
