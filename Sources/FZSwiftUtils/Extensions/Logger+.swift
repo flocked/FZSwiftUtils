@@ -59,7 +59,7 @@ extension Logger {
     }
     
     func log(level: OSLogType, items: [Any], indent: Int, separator: String, debug: Bool) {
-        let message = Array(repeating: "\t", count: indent).joined() + items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator)
+        let message = Array(repeating: "  ", count: indent).joined() + items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator)
         log(level: level, "\(message)")
     }
 }
@@ -74,7 +74,7 @@ extension Logger {
     - terminator: The string to print after all items have been printed. The default is a newline ("\n").
  */
 public func print(_ items: Any..., indent: Int = 0, separator: String = " ", terminator: String = "\n") {
-    print(Array(repeating: "\t", count: indent).joined() + items.compactMap({ String(describing: $0) }).joined(separator: separator), terminator: terminator)
+    print(Array(repeating: "  ", count: indent).joined() + items.compactMap({ String(describing: $0) }).joined(separator: separator), terminator: terminator)
 }
 
 /**
@@ -87,5 +87,5 @@ public func print(_ items: Any..., indent: Int = 0, separator: String = " ", ter
     - terminator: The string to print after all items have been printed. The default is a newline ("\n").
  */
 public func debugPrint(_ items: Any..., indent: Int = 0, separator: String = " ", terminator: String = "\n") {
-    print(Array(repeating: "\t", count: indent).joined() + items.compactMap({ String(reflecting: $0) }).joined(separator: separator), terminator: terminator)
+    print(Array(repeating: "  ", count: indent).joined() + items.compactMap({ String(reflecting: $0) }).joined(separator: separator), terminator: terminator)
 }
