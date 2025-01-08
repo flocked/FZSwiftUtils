@@ -280,6 +280,22 @@
         self = appending(contentsOf: elements)
     }
     
+    public static func += (lhs: inout Self, rhs: Element) {
+        lhs.append(rhs)
+    }
+    
+    public static func += <S: Sequence<Element>>(lhs: inout Self, rhs: S) {
+        lhs.append(contentsOf: rhs)
+    }
+    
+    public static func + (lhs: Self, rhs: Element) -> Self {
+        lhs.appending(rhs)
+    }
+    
+    public static func + <S: Sequence<Element>>(lhs: Self, rhs: S) -> Self {
+        lhs.appending(contentsOf: rhs)
+    }
+    
     /// Returns a new ordered set with `element` inserted at `index`.
     /// This function returns an equivalent ordered set if `element` is
     /// already a member.
