@@ -20,42 +20,47 @@ extension Logger {
     
     /// Writes a message to the log with the specified items using the default log type.
     public func notice(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .default, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .default, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes a debug message to the log with the specified items.
     public func debug(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .debug, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .debug, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes a trace message to the log with the specified items.
     public func trace(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .debug, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .debug, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes an informative message to the log with the specified items.
     public func info(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .info, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .info, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes information about an error to the log with the specified items.
     public func error(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .error, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .error, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes information about a warning to the log with the specified items.
     public func warning(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .error, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .error, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes a message to the log with the specified items about a bug that occurs when your app executes.
     public func fault(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .fault, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .fault, items: items, indent: indent, separator: separator, debug: debug)
     }
     
     /// Writes a message to the log with the specified items about a critical event in your app’s execution.
     public func critical(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        log(level: .fault, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .fault, items: items, indent: indent, separator: separator, debug: debug)
+    }
+    
+    func log(level: OSLogType, items: [Any], indent: Int, separator: String, debug: Bool) {
+        let message = Array(repeating: "\t", count: indent).joined() + items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator)
+        log(level: level, "\(message)")
     }
 }
 
