@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  Selector+.swift
+//
 //
 //  Created by Florian Zand on 09.04.24.
 //
@@ -12,7 +12,6 @@ extension Selector: Codable {
         let container = try decoder.singleValueContainer()
         self = Selector(try container.decode(String.self))
     }
-    
     
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()

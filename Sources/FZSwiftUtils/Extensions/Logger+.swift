@@ -58,3 +58,29 @@ extension Logger {
         critical("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
     }
 }
+
+/**
+ Writes the textual representations of the given items into the standard output.
+ 
+ - Parameters:
+    - items: Zero or more items to print.
+    - indent: The indent of the printed string.
+    - separator: A string to print between each item. The default is a single space (" ").
+    -   terminator: The string to print after all items have been printed. The default is a newline ("\n").
+ */
+public func print(_ items: Any..., indent: Int = 0, separator: String = " ", terminator: String = "\n") {
+    print(Array(repeating: "\t", count: indent).joined() + items.compactMap({ String(describing: $0) }).joined(separator: separator), terminator: terminator)
+}
+
+/**
+ Writes the textual representations of the given items most suitable for debugging into the standard output.
+ 
+ - Parameters:
+    - items: Zero or more items to print.
+    - indent: The indent of the printed string.
+    - separator: A string to print between each item. The default is a single space (" ").
+    - terminator: The string to print after all items have been printed. The default is a newline ("\n").
+ */
+public func debugPrint(_ items: Any..., indent: Int = 0, separator: String = " ", terminator: String = "\n") {
+    print(Array(repeating: "\t", count: indent).joined() + items.compactMap({ String(reflecting: $0) }).joined(separator: separator), terminator: terminator)
+}
