@@ -280,33 +280,6 @@
         self = appending(contentsOf: elements)
     }
     
-    public static func += (lhs: inout Self, rhs: Element) {
-        lhs.append(rhs)
-    }
-    
-    public static func += <S: Sequence<Element>>(lhs: inout Self, rhs: S) {
-        lhs.append(contentsOf: rhs)
-    }
-    
-    public static func + (lhs: Self, rhs: Element) -> Self {
-        lhs.appending(rhs)
-    }
-    
-    public static func + <S: Sequence<Element>>(lhs: Self, rhs: S) -> Self {
-        lhs.appending(contentsOf: rhs)
-    }
-    
-    public subscript(element: Element) -> Bool {
-        get { contains(element) }
-        set {
-            if newValue {
-                append(element)
-            } else {
-                remove(element)
-            }
-        }
-    }
-    
     /// Returns a new ordered set with `element` inserted at `index`.
     /// This function returns an equivalent ordered set if `element` is
     /// already a member.
@@ -697,12 +670,31 @@
 // MARK: - Extensions
 
 extension OrderedSet {
-    static public func + (lhs: Self, rhs: Self) -> Self {
-        Self(lhs._array + rhs._array)
+    static public func + (lhs: Self, rhs: Element) -> Self {
+        lhs.appending(rhs)
     }
     
-    static public func + <S>(lhs: Self, rhs: S) -> Self where Element == S.Element, S: Sequence {
-        Self(lhs._array + rhs)
+    static public func + <S>(lhs: Self, rhs: S) -> Self where S: Sequence<Element> {
+        lhs.appending(contentsOf: rhs)
+    }
+    
+    static public func += (lhs: inout Self, rhs: Element) {
+        lhs.append(rhs)
+    }
+    
+    static public func += <S>(lhs: inout Self, rhs: S) where S: Sequence<Element> {
+        lhs.append(contentsOf: rhs)
+    }
+    
+    public subscript(element: Element) -> Bool {
+        get { contains(element) }
+        set {
+            if newValue {
+                append(element)
+            } else {
+                remove(element)
+            }
+        }
     }
 }
 
