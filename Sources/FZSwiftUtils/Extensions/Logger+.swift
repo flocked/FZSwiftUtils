@@ -20,10 +20,11 @@ extension Logger {
     /// Networking logger.
     public static let networking = Logger(subsystem: subsystem, category: "Networking")
     
+    /*
     /// Writes a message to the log with the specified items using the default log type.
-    public func notice(_ items: Any..., indent: Int, separator: String = " ", debug: Bool = false) {
+    public func notice(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
         let message = Array(repeating: "\t", count: indent).joined() + items.map { String(describing: $0) }.joined(separator: separator)
-        self.notice("\(message)")        
+        self.notice("\(message)")
     }
     
     /// Writes a debug message to the log with the specified items.
@@ -60,6 +61,7 @@ extension Logger {
     public func critical(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
         critical("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
+    */
 }
 
 /**
