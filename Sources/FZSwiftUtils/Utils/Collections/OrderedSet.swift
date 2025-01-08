@@ -5,6 +5,8 @@
 //  OrderedDictionary - https://github.com/frazer-rbsn/orderedset/
 //
 
+import Foundation
+
 /**
  An ordered collection of unique objects.
  
@@ -158,13 +160,14 @@
     
     
     // MARK: - Metadata Functions
-    
+    /*
     /// Returns `true` if this ordered set contains `element`.
     /// - complexity: O(1)
     public func contains(_ element: Element) -> Bool {
         _set.contains(element)
     }
-    
+     */
+    /*
     /// Returns `true` if this ordered set contains any element in `elements`.
     /// - complexity: O(n) where n is the length of `elements`.
     public func contains(anyOf elements: Element...) -> Bool {
@@ -175,7 +178,8 @@
         }
         return false
     }
-    
+     */
+    /*
     /// Returns the index of `element`, or `nil` if it is not a member of this ordered set.
     /// - complexity: O(1)
     public func index(of element: Element) -> Index? {
@@ -197,6 +201,7 @@
     @inlinable public func lastIndex(of element: Element) -> Index? {
         index(of: element)
     }
+    */
     
     /// Returns `true` if this ordered set is a subset of `otherSet`.
     public func isSubset(of otherSet: Set<Element>) -> Bool {
@@ -242,6 +247,7 @@
     
     // MARK: Adding Elements
     
+    /*
     /// Returns a new ordered set with `element` inserted at the end.
     /// This function returns an equivalent ordered set if `element` is
     /// already a member.
@@ -256,10 +262,12 @@
         return Self(array: array, set: set, hashIndexDict: dict)
     }
     
+    
     /// Adds a new element at the end of the set.
     public mutating func append(_ element: Element) {
         self = appending(element)
     }
+     
     
     func appending<S: Sequence<Element>>(contentsOf elements: S) -> Self {
         let elements = elements.filter({!_set.contains($0)})
@@ -279,7 +287,22 @@
     public mutating func append<S: Sequence<Element>>(contentsOf elements: S) {
         self = appending(contentsOf: elements)
     }
-    
+     
+     func inserting<C: Collection<Element>>(contentsOf elements: C, at index: Index) -> Self {
+         let elements = elements.filter({!_set.contains($0)})
+         guard !elements.isEmpty else { return self }
+         var set = _set
+         set.insert(elements)
+         var array = _array
+         array.insert(contentsOf: elements, at: index)
+         return Self(array: array, set: set)
+     }
+     
+     /// Inserts the elements of a sequence into the set at the specified position.
+     public mutating func insert<C: Collection<Element>>(contentsOf elements: C, at index: Index) {
+         self = inserting(contentsOf: elements, at: index)
+     }
+
     /// Returns a new ordered set with `element` inserted at `index`.
     /// This function returns an equivalent ordered set if `element` is
     /// already a member.
@@ -296,6 +319,7 @@
     public mutating func insert(_ element: Element, at index: Index) {
         self = inserting(element, at: index)
     }
+    
     
     func inserting(_ newElement: Element, before: Element) -> Self {
         var set = _set
@@ -324,32 +348,17 @@
     public mutating func insert(_ newElement: Element, after: Element) {
         self = inserting(newElement, after: after)
     }
-    
-    
-    func inserting<C: Collection<Element>>(contentsOf elements: C, at index: Index) -> Self {
-        let elements = elements.filter({!_set.contains($0)})
-        guard !elements.isEmpty else { return self }
-        var set = _set
-        set.insert(elements)
-        var array = _array
-        array.insert(contentsOf: elements, at: index)
-        return Self(array: array, set: set)
-    }
-    
-    /// Inserts the elements of a sequence into the set at the specified position.
-    public mutating func insert<C: Collection<Element>>(contentsOf elements: C, at index: Index) {
-        self = inserting(contentsOf: elements, at: index)
-    }
+    */
     
     /// Returns a new ordered set with the contents of `otherSet` appended
     /// to the end of this set, retaining the order of both ordered sets,
     /// removing any duplicate elements in place.
-    @inlinable public func union(with otherSet: Self) -> Self {
-        self + otherSet
+    @inlinable public func union(_ other: Self) -> Self {
+        self + other
     }
     
     // MARK: Removing Elements
-    
+    /*
     /// Returns a new ordered set with the first element removed.
     /// The collection must not be empty.
     func removingFirst() -> Self {
@@ -368,6 +377,7 @@
         self = removingFirst()
         return element
     }
+    
     
     /// Returns a new ordered set with the last element removed.
     /// The collection must not be empty.
@@ -388,19 +398,20 @@
     }
     
     /// Removes the specified number of elements from the beginning of the set.
-    mutating func removeFirst(_ k: Int) {
+    public mutating func removeFirst(_ k: Int) {
         remove(_array[safe: 0..<k])
     }
     
     /// Removes and returns the last element of the set.
-    mutating func removeLast(_ k: Int) {
+    public mutating func removeLast(_ k: Int) {
         remove(_array[(count-k).clamped(min: 0)..<count])
     }
     
     /// Removes the elements in the specified subrange from the set.
-    mutating func removeSubrange(_ bounds: Range<Index>) {
+    public mutating func removeSubrange(_ bounds: Range<Index>) {
         remove(_array[safe: bounds])
     }
+     
     
     /// Returns a new ordered set with the element at the specified position removed.
     /// - parameter position: The index of the member to remove.
@@ -416,6 +427,9 @@
     public mutating func remove(at position: Index) {
         self = removing(at: position)
     }
+     
+    
+    
     
     /// Returns a new ordered set with the member element removed.
     /// This function returns an equivalent ordered set if `element` is not a
@@ -433,7 +447,9 @@
         self = removing(element)
         return contains ? element : nil
     }
+     */
     
+    /*
     func removing<C: Collection<Element>>(_ elements: C) -> Self {
         let elements = elements.filter({!_set.contains($0)})
         guard !elements.isEmpty else { return self }
@@ -453,6 +469,15 @@
         self = removing(elements)
         return elements
     }
+     */
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    public mutating func replaceSubrange<C>(_ subrange: Range<Self.Index>, with newElements: C) where C : Collection, Self.Element == C.Element {
+        var array = _array
+        array.replaceSubrange(subrange, with: newElements)
+        self = Self(array)
+    }
+    /*
     
     /// Returns a new ordered set with the elements filtered by the given predicate.
     /// - parameter shouldBeRemoved: A closure that takes an element of the
@@ -468,6 +493,33 @@
     public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
         self = try removingAll(where: shouldBeRemoved)
     }
+     */
+    
+    /// Returns a new ordered set with the elements at the specified offsets removed.
+    /// `offsets` must not contain any invalid indices.
+    func removing(atOffsets offsets: IndexSet) -> Self {
+        let indicesToRemove = Array(offsets)
+        var newArr = [Element]()
+        for index in _array.indices where !indicesToRemove.contains(index) {
+            newArr.append(_array[index])
+        }
+        return Self(newArr)
+    }
+    
+    /// Removes all the elements at the specified offsets from the set.
+    public mutating func remove(atOffsets offsets: IndexSet) {
+        self = removing(atOffsets: offsets)
+    }
+    
+    /*
+    /// Removes and returns the last element of the set.
+    public mutating func popLast() -> Self.Element? {
+        guard let element = _array.popLast() else { return nil }
+        _set.remove(element)
+        _hashIndexDict[element.hashValue] = nil
+        return element
+    }
+     */
     
     /// Returns a new ordered set with the elements filtered by the given predicate.
     /// - parameter retainOrder: The returned ordered set retains the relative order of the elements. Defaults to `true`.
@@ -515,7 +567,7 @@
     }
     
     // MARK: Reordering Elements
-    
+    /*
     /// Returns a new ordered set with the elements sorted by the given predicate.
     /// - parameter areInIncreasingOrder: A predicate that returns `true` if its
     ///   first argument should be ordered before its second argument;
@@ -530,7 +582,9 @@
     public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
         self = try sorted(by: areInIncreasingOrder)
     }
+    */
     
+    /*
     /// Returns a new ordered set with the elements at indices `i` and `j` swapped.
     /// Both parameters must be valid indices of the collection that are not equal to `endIndex`.
     func swappingAt(_ i: Index, _ j: Index) -> Self {
@@ -549,6 +603,7 @@
         self = swappingAt(i, j)
     }
     
+    
     /// Returns the set in reverse order.
     public func reversed() -> Self {
         Self(array: _array.reversed(), set: _set)
@@ -558,7 +613,9 @@
     public mutating func reverse() {
         self = reversed()
     }
+     */
     
+    /*
     /// Returns a new ordered set with the order of the elements shuffled.
     ///
     /// For example, you can shuffle the numbers between `0` and `9` by calling
@@ -579,6 +636,7 @@
     public mutating func shuffle() {
         self = shuffled()
     }
+     
     
     /// Returns a new ordered set, with the order of the elements shuffled using the given generator
     /// as a source for randomness.
@@ -608,6 +666,7 @@
     public mutating func shuffle<T>(using generator: inout T) where T: RandomNumberGenerator {
         self = shuffled(using: &generator)
     }
+     */
     
     // MARK: Transforming Elements
     
@@ -664,18 +723,19 @@
     }
 }
 
-
-
-
 // MARK: - Extensions
 
 extension OrderedSet {
     static public func + (lhs: Self, rhs: Element) -> Self {
-        lhs.appending(rhs)
+        var lhs = lhs
+        lhs.append(rhs)
+        return lhs
     }
     
     static public func + <S>(lhs: Self, rhs: S) -> Self where S: Sequence<Element> {
-        lhs.appending(contentsOf: rhs)
+        var lhs = lhs
+        lhs.append(contentsOf: rhs)
+        return lhs
     }
     
     static public func += (lhs: inout Self, rhs: Element) {
@@ -710,20 +770,31 @@ extension OrderedSet: RandomAccessCollection {
     
     public var endIndex: Index { _array.endIndex }
     
-    public subscript(index: Index) -> Element { _array[index] }
+    public subscript(index: Index) -> Element { 
+        get { _array[index] }
+        set {
+            guard let element = _array[safe: index], newValue != element else { return }
+            let removeIndex = firstIndex(of: newValue)
+            _set.insert(newValue)
+            _set.remove(element)
+            _array[index] = newValue
+            if let removeIndex = removeIndex {
+                _array.remove(at: removeIndex)
+            }
+            self = OrderedSet(array: _array, set: _set)
+        }
+    }
 }
 
-extension OrderedSet: Hashable {}
+extension OrderedSet: Hashable { }
 
 extension OrderedSet: Equatable {
-    
     static public func == <F>(lhs: OrderedSet<F>, rhs: OrderedSet<F>) -> Bool {
         lhs._array == rhs._array
     }
 }
 
-extension OrderedSet: Codable where Element: Codable {
-    
+extension OrderedSet: Decodable where Element: Decodable {
     public init(from decoder: Decoder) throws {
         let c = try decoder.singleValueContainer()
         let array = try c.decode(ContiguousArray<Element>.self)
@@ -733,7 +804,9 @@ extension OrderedSet: Codable where Element: Codable {
         }
         self.init(array: array, set: set)
     }
-    
+}
+
+extension OrderedSet: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
         var c = encoder.singleValueContainer()
         try c.encode(_array)
@@ -754,7 +827,6 @@ extension OrderedSet {
 }
 
 extension OrderedSet: CustomStringConvertible {
-    
     public var description: String {
         "\(_array)"
     }
@@ -764,40 +836,34 @@ extension OrderedSet: CustomStringConvertible {
     }
 }
 
-extension OrderedSet: Sendable where Element: Sendable {
-    
-}
+extension OrderedSet: Sendable where Element: Sendable { }
 
-#if canImport(Foundation)
-import Foundation
+extension OrderedSet: RangeReplaceableCollection { }
 
-extension OrderedSet {
+extension OrderedSet: MutableCollection { }
+
+extension OrderedSet: BidirectionalCollection { }
+
+/*
+extension OrderedSet: SetAlgebra {
+    public func symmetricDifference(_ other: __owned OrderedSet<E>) -> OrderedSet<E> {
+        <#code#>
+    }
     
-    /// Returns a new ordered set with the elements at the specified offsets removed.
-    /// `offsets` must not contain any invalid indices.
-    public func removing(atOffsets offsets: IndexSet) -> Self {
-        let indicesToRemove = Array(offsets)
-        var newArr = [Element]()
-        for index in _array.indices where !indicesToRemove.contains(index) {
-            newArr.append(_array[index])
-        }
-        return Self(newArr)
+    public mutating func update(with newMember: __owned E) -> E? {
+        <#code#>
+    }
+    
+    public mutating func formUnion(_ other: __owned OrderedSet<E>) {
+        <#code#>
+    }
+    
+    public mutating func formIntersection(_ other: OrderedSet<E>) {
+        <#code#>
+    }
+    
+    public mutating func formSymmetricDifference(_ other: __owned OrderedSet<E>) {
+        <#code#>
     }
 }
-#endif
-
-//#if canImport(SwiftUI)
-//import SwiftUI
-//
-//extension OrderedSet {
-//
-//  /// Returns a new ordered set with the elements at the specified offsets moved.
-//  /// Calls the `move(fromOffsets:_, toOffset:_)` function which is defined in the `SwiftUI` framework, and is undocumented.
-//  /// Both parameters must not contain any invalid indices.
-//  public func moving(fromOffsets source: IndexSet, toOffset destination: Int) -> Self {
-//    var arr = _array
-//    arr.move(fromOffsets: source, toOffset: destination)
-//    return Self(arr)
-//  }
-//}
-//#endif
+*/
