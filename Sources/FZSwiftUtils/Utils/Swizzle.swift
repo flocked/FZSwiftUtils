@@ -181,7 +181,7 @@ public struct Swizzle {
     }
 }
 
-public extension Swizzle {
+extension Swizzle {
     /// An error for swizzleing.
     enum Error: LocalizedError {
         /// The class is missing.

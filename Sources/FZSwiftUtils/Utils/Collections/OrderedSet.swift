@@ -160,48 +160,6 @@ import Foundation
     
     
     // MARK: - Metadata Functions
-    /*
-    /// Returns `true` if this ordered set contains `element`.
-    /// - complexity: O(1)
-    public func contains(_ element: Element) -> Bool {
-        _set.contains(element)
-    }
-     */
-    /*
-    /// Returns `true` if this ordered set contains any element in `elements`.
-    /// - complexity: O(n) where n is the length of `elements`.
-    public func contains(anyOf elements: Element...) -> Bool {
-        for e in elements {
-            if _set.contains(e) {
-                return true
-            }
-        }
-        return false
-    }
-     */
-    /*
-    /// Returns the index of `element`, or `nil` if it is not a member of this ordered set.
-    /// - complexity: O(1)
-    public func index(of element: Element) -> Index? {
-        _hashIndexDict[element.hashValue]
-    }
-    
-    // Overrides method from `Collection`
-    /// Returns the index of `element`, or `nil` if it is not a member of this ordered set.
-    /// - complexity: O(1)
-    /// - note: All members of `OrderedSet` are unique. Please use `index(of:)` instead.
-    @inlinable public func firstIndex(of element: Element) -> Index? {
-        index(of: element)
-    }
-    
-    // Overrides method from `Collection`
-    /// Returns the index of `element`, or `nil` if it is not a member of this ordered set.
-    /// - complexity: O(1)
-    /// - note: All members of `OrderedSet` are unique. Please use `index(of:)` instead.
-    @inlinable public func lastIndex(of element: Element) -> Index? {
-        index(of: element)
-    }
-    */
     
     /// Returns `true` if this ordered set is a subset of `otherSet`.
     public func isSubset(of otherSet: Set<Element>) -> Bool {
@@ -242,234 +200,51 @@ import Foundation
     public func isDisjoint(with otherSet: Self) -> Bool {
         _set.isDisjoint(with: otherSet)
     }
-    
-    // MARK: - Creation Functions
-    
-    // MARK: Adding Elements
-    
-    /*
-    /// Returns a new ordered set with `element` inserted at the end.
-    /// This function returns an equivalent ordered set if `element` is
-    /// already a member.
-    func appending(_ element: Element) -> Self {
-        var set = _set
-        let inserted = set.insert(element).inserted
-        guard inserted else { return self }
-        var dict = _hashIndexDict
-        dict[element.hashValue] = endIndex
-        var array = _array
-        array.append(element)
-        return Self(array: array, set: set, hashIndexDict: dict)
-    }
-    
-    
-    /// Adds a new element at the end of the set.
-    public mutating func append(_ element: Element) {
-        self = appending(element)
-    }
-     
-    
-    func appending<S: Sequence<Element>>(contentsOf elements: S) -> Self {
-        let elements = elements.filter({!_set.contains($0)})
-        guard !elements.isEmpty else { return self }
-        var set = _set
-        set.insert(elements)
-        let array = _array + elements
-        var dict = _hashIndexDict
-        let endIndex = _array.endIndex
-        for value in elements.enumerated() {
-            dict[value.element.hashValue] = endIndex + value.offset
-        }
-        return Self(array: array, set: set, hashIndexDict: dict)
-    }
-    
-    /// Adds the elements of a sequence to the end of the set.
-    public mutating func append<S: Sequence<Element>>(contentsOf elements: S) {
-        self = appending(contentsOf: elements)
-    }
-     
-     func inserting<C: Collection<Element>>(contentsOf elements: C, at index: Index) -> Self {
-         let elements = elements.filter({!_set.contains($0)})
-         guard !elements.isEmpty else { return self }
-         var set = _set
-         set.insert(elements)
-         var array = _array
-         array.insert(contentsOf: elements, at: index)
-         return Self(array: array, set: set)
-     }
-     
-     /// Inserts the elements of a sequence into the set at the specified position.
-     public mutating func insert<C: Collection<Element>>(contentsOf elements: C, at index: Index) {
-         self = inserting(contentsOf: elements, at: index)
-     }
-
-    /// Returns a new ordered set with `element` inserted at `index`.
-    /// This function returns an equivalent ordered set if `element` is
-    /// already a member.
-    func inserting(_ element: Element, at index: Index) -> Self {
-        var set = _set
-        let inserted = set.insert(element).inserted
-        guard inserted else { return self }
-        var array = _array
-        array.insert(element, at: index)
-        return Self(array: array, set: set)
-    }
-    
-    /// Inserts a new element at the specified position.
-    public mutating func insert(_ element: Element, at index: Index) {
-        self = inserting(element, at: index)
-    }
-    
-    
-    func inserting(_ newElement: Element, before: Element) -> Self {
-        var set = _set
-        let inserted = set.insert(before).inserted
-        guard inserted else { return self }
-        var array = _array
-        array.insert(newElement, before: before)
-        return Self(array: array, set: set)
-    }
-    
-    /// Inserts a new element before the specified element.
-    public mutating func insert(_ newElement: Element, before: Element) {
-        self = inserting(newElement, before: before)
-    }
-    
-    func inserting(_ newElement: Element, after: Element) -> Self {
-        var set = _set
-        let inserted = set.insert(after).inserted
-        guard inserted else { return self }
-        var array = _array
-        array.insert(newElement, after: after)
-        return Self(array: array, set: set)
-    }
-    
-    /// Inserts a new element after the specified element.
-    public mutating func insert(_ newElement: Element, after: Element) {
-        self = inserting(newElement, after: after)
-    }
-    */
-    
-    /// Returns a new ordered set with the contents of `otherSet` appended
-    /// to the end of this set, retaining the order of both ordered sets,
-    /// removing any duplicate elements in place.
+            
+    /// Returns a new set with the elements of both this set and the given sequence.
     @inlinable public func union(_ other: Self) -> Self {
         self + other
     }
     
+    /// Adds the elements of the given set to the set.
+    public mutating func formUnion(_ other: Self) {
+        self = union(other)
+    }
+    
+    /// Returns a Boolean value that indicates whether this set is a strict subset of the given set.
+    public func isStrictSubset(of other: Self) -> Bool {
+        _set.isStrictSubset(of: other._set)
+    }
+    
+    /// Returns a Boolean value that indicates whether this set is a strict superset of the given set.
+    public func isStrictSuperset(of other: Self) -> Bool {
+        _set.isStrictSuperset(of: other._set)
+    }
+        
+    /// Returns a new set with the elements that are common to both this set and the given set.
+    public func intersection(_ other: Self) -> Self {
+        let set = _set.intersection(other)
+        let array = _array.filter({ set.contains($0) })
+        return OrderedSet(array: array, set: set)
+    }
+    
+    /// Removes the elements of this set that aren’t also in the given set.
+    public mutating func formIntersection(_ other: Self) {
+        self = intersection(other)
+    }
+    
+    /// Returns a new set with the elements that are either in this set or in the given set, but not in both.
+    public func symmetricDifference(_ other: Self) -> Self {
+        let set = _set.symmetricDifference(other)
+        let array = _array.filter({ set.contains($0) })
+        return OrderedSet(array: array, set: set)
+    }
+    
+    public mutating func formSymmetricDifference(_ other: Self) {
+        self = symmetricDifference(other)
+    }
+    
     // MARK: Removing Elements
-    /*
-    /// Returns a new ordered set with the first element removed.
-    /// The collection must not be empty.
-    func removingFirst() -> Self {
-        var arr = _array
-        arr.removeFirst()
-        let e = arr.removeFirst()
-        var set = _set
-        set.remove(e)
-        return Self(array: arr, set: set)
-    }
-    
-    /// Removes and returns the first element of the set.
-    @discardableResult
-    public mutating func removeFirst() -> Element {
-        let element = _array.first!
-        self = removingFirst()
-        return element
-    }
-    
-    
-    /// Returns a new ordered set with the last element removed.
-    /// The collection must not be empty.
-    func removingLast() -> Self {
-        var arr = _array
-        let e = arr.removeLast()
-        var set = _set
-        set.remove(e)
-        return Self(array: arr, set: set)
-    }
-    
-    /// Removes and returns the last element of the set.
-    @discardableResult
-    public mutating func removeLast() -> Element {
-        let element = _array.last!
-        self = removingLast()
-        return element
-    }
-    
-    /// Removes the specified number of elements from the beginning of the set.
-    public mutating func removeFirst(_ k: Int) {
-        remove(_array[safe: 0..<k])
-    }
-    
-    /// Removes and returns the last element of the set.
-    public mutating func removeLast(_ k: Int) {
-        remove(_array[(count-k).clamped(min: 0)..<count])
-    }
-    
-    /// Removes the elements in the specified subrange from the set.
-    public mutating func removeSubrange(_ bounds: Range<Index>) {
-        remove(_array[safe: bounds])
-    }
-     
-    
-    /// Returns a new ordered set with the element at the specified position removed.
-    /// - parameter position: The index of the member to remove.
-    ///   `position` must be a valid index of the ordered set.
-    func removing(at position: Index) -> Self {
-        var arr = _array
-        let e = arr.remove(at: position)
-        var set = _set
-        set.remove(e)
-        return Self(array: arr, set: set)
-    }
-    
-    public mutating func remove(at position: Index) {
-        self = removing(at: position)
-    }
-     
-    
-    
-    
-    /// Returns a new ordered set with the member element removed.
-    /// This function returns an equivalent ordered set if `element` is not a
-    /// member.
-    /// - parameter element: The member to remove.
-    func removing(_ element: Element) -> Self {
-        guard let index = self.index(of: element) else { return self }
-        return removing(at: index)
-    }
-    
-    /// Removes the specificed element and returns them.
-    @discardableResult
-    public mutating func remove(_ element: Element) -> Element? {
-        let contains = _set.contains(element)
-        self = removing(element)
-        return contains ? element : nil
-    }
-     */
-    
-    /*
-    func removing<C: Collection<Element>>(_ elements: C) -> Self {
-        let elements = elements.filter({!_set.contains($0)})
-        guard !elements.isEmpty else { return self }
-        var array = _array
-        array.remove(elements)
-        var set = _set
-        set.remove(elements)
-        var dic = _hashIndexDict
-        elements.forEach({ dic[$0.hashValue] = nil })
-        return Self(array: array, set: set, hashIndexDict: dic)
-    }
-    
-    /// Removes the specified elements from the set.
-    @discardableResult
-    public mutating func remove<C: Collection<Element>>(_ elements: C) -> [Element] {
-        let elements = elements.filter({!_set.contains($0)})
-        self = removing(elements)
-        return elements
-    }
-     */
     
     /// Replaces the specified subrange of elements with the given collection.
     public mutating func replaceSubrange<C>(_ subrange: Range<Self.Index>, with newElements: C) where C : Collection, Self.Element == C.Element {
@@ -477,49 +252,6 @@ import Foundation
         array.replaceSubrange(subrange, with: newElements)
         self = Self(array)
     }
-    /*
-    
-    /// Returns a new ordered set with the elements filtered by the given predicate.
-    /// - parameter shouldBeRemoved: A closure that takes an element of the
-    ///   sequence as its argument and returns a Boolean value indicating
-    ///   whether the element should be removed from the collection.
-    func removingAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Self {
-        var arr = _array
-        try arr.removeAll(where: shouldBeRemoved)
-        return Self(arr)
-    }
-    
-    /// Removes all the elements that satisfy the given predicate.
-    public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
-        self = try removingAll(where: shouldBeRemoved)
-    }
-     */
-    
-    /// Returns a new ordered set with the elements at the specified offsets removed.
-    /// `offsets` must not contain any invalid indices.
-    func removing(atOffsets offsets: IndexSet) -> Self {
-        let indicesToRemove = Array(offsets)
-        var newArr = [Element]()
-        for index in _array.indices where !indicesToRemove.contains(index) {
-            newArr.append(_array[index])
-        }
-        return Self(newArr)
-    }
-    
-    /// Removes all the elements at the specified offsets from the set.
-    public mutating func remove(atOffsets offsets: IndexSet) {
-        self = removing(atOffsets: offsets)
-    }
-    
-    /*
-    /// Removes and returns the last element of the set.
-    public mutating func popLast() -> Self.Element? {
-        guard let element = _array.popLast() else { return nil }
-        _set.remove(element)
-        _hashIndexDict[element.hashValue] = nil
-        return element
-    }
-     */
     
     /// Returns a new ordered set with the elements filtered by the given predicate.
     /// - parameter retainOrder: The returned ordered set retains the relative order of the elements. Defaults to `true`.
@@ -566,108 +298,6 @@ import Foundation
         }
     }
     
-    // MARK: Reordering Elements
-    /*
-    /// Returns a new ordered set with the elements sorted by the given predicate.
-    /// - parameter areInIncreasingOrder: A predicate that returns `true` if its
-    ///   first argument should be ordered before its second argument;
-    ///   otherwise, `false`. If `areInIncreasingOrder` throws an error during
-    ///   the sort, the elements may be in a different order, but none will be
-    ///   lost.
-    /// - note: Documentation based on `Swift.Sequence.sorted(by:)`
-    public func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> Self {
-        Self(array: try _array.sorted(by: areInIncreasingOrder), set: _set)
-    }
-    
-    public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
-        self = try sorted(by: areInIncreasingOrder)
-    }
-    */
-    
-    /*
-    /// Returns a new ordered set with the elements at indices `i` and `j` swapped.
-    /// Both parameters must be valid indices of the collection that are not equal to `endIndex`.
-    func swappingAt(_ i: Index, _ j: Index) -> Self {
-        var array = _array
-        var dict = _hashIndexDict
-        let elementAtI = array[i]
-        let elementAtJ = array[j]
-        array.swapAt(i, j)
-        dict[elementAtI.hashValue] = j
-        dict[elementAtJ.hashValue] = i
-        return Self(array: array, set: _set, hashIndexDict: dict)
-    }
-    
-    /// Exchanges the values at the specified indices of the set.
-    public mutating func swapAt(_ i: Index, _ j: Index) {
-        self = swappingAt(i, j)
-    }
-    
-    
-    /// Returns the set in reverse order.
-    public func reversed() -> Self {
-        Self(array: _array.reversed(), set: _set)
-    }
-    
-    /// Reverses the elements of the set in place.
-    public mutating func reverse() {
-        self = reversed()
-    }
-     */
-    
-    /*
-    /// Returns a new ordered set with the order of the elements shuffled.
-    ///
-    /// For example, you can shuffle the numbers between `0` and `9` by calling
-    /// the `shuffled()` method on that range:
-    ///
-    ///     let numbers = OrderedSet(0...9)
-    ///     let shuffledNumbers = numbers.shuffled()
-    ///     // shuffledNumbers == OrderedSet([1, 7, 6, 2, 8, 9, 4, 3, 5, 0])
-    ///
-    /// This method is equivalent to calling `shuffled(using:)`, passing in the
-    /// system's default random generator.
-    /// - note: Documentation based on `Swift.Sequence.shuffled(using:_)`
-    public func shuffled() -> Self {
-        Self(array: _set.shuffled(), set: _set)
-    }
-    
-    /// Shuffles the set in place.
-    public mutating func shuffle() {
-        self = shuffled()
-    }
-     
-    
-    /// Returns a new ordered set, with the order of the elements shuffled using the given generator
-    /// as a source for randomness.
-    ///
-    /// You use this method to randomize the elements of a sequence when you are
-    /// using a custom random number generator. For example, you can shuffle the
-    /// numbers between `0` and `9` by calling the `shuffled(using:)` method on
-    /// that range:
-    ///
-    ///     let numbers = OrderedSet(0...9)
-    ///     let shuffledNumbers = numbers.shuffled(using: &myGenerator)
-    ///     // shuffledNumbers == OrderedSet([8, 9, 4, 3, 2, 6, 7, 0, 5, 1])
-    ///
-    /// - parameter generator: The random number generator to use when shuffling
-    ///   the sequence.
-    /// - note: The algorithm used to shuffle a sequence may change in a future
-    ///   version of Swift. If you're passing a generator that results in the
-    ///   same shuffled order each time you run your program, that sequence may
-    ///   change when your program is compiled using a different version of
-    ///   Swift.
-    /// - note: Documentation based on `Swift.Sequence.shuffled(using:_)`
-    public func shuffled<T>(using generator: inout T) -> Self where T: RandomNumberGenerator {
-        Self(array: _set.shuffled(using: &generator), set: _set)
-    }
-    
-    /// Shuffles the set in place, using the given generator as a source for randomness.
-    public mutating func shuffle<T>(using generator: inout T) where T: RandomNumberGenerator {
-        self = shuffled(using: &generator)
-    }
-     */
-    
     // MARK: Transforming Elements
     
     /// Returns a new ordered set with the results of mapping the given closure over the ordered set's elements.
@@ -701,29 +331,15 @@ import Foundation
             return OrderedSet<T>(try _set.compactMap(transform))
         }
     }
-    
-    
-    // MARK: - Subscripts
-    
-    /// Returns the element at `index`, or `nil` if this index is out of bounds.
-    public subscript(safe index: Index) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return _array[index]
-    }
-    
-    
-    // MARK: - Internal Functions
-    
-    func sanityCheck() -> Bool {
-        return _array.count == _set.count
-        && _set.count == _hashIndexDict.count
-        && endIndex == _array.count
-        && _hashIndexDict.count == Set(_hashIndexDict.values).count // Check for duplicate indices
-        && _set == Set(_array) // Check set and array match
-    }
 }
 
 // MARK: - Extensions
+
+extension OrderedSet: Hashable { }
+extension OrderedSet: Sendable where Element: Sendable { }
+extension OrderedSet: RangeReplaceableCollection { }
+extension OrderedSet: MutableCollection { }
+extension OrderedSet: BidirectionalCollection { }
 
 extension OrderedSet {
     static public func + (lhs: Self, rhs: Element) -> Self {
@@ -765,7 +381,6 @@ extension OrderedSet: ExpressibleByArrayLiteral {
 }
 
 extension OrderedSet: RandomAccessCollection {
-    
     public var startIndex: Index { 0 }
     
     public var endIndex: Index { _array.endIndex }
@@ -786,10 +401,8 @@ extension OrderedSet: RandomAccessCollection {
     }
 }
 
-extension OrderedSet: Hashable { }
-
 extension OrderedSet: Equatable {
-    static public func == <F>(lhs: OrderedSet<F>, rhs: OrderedSet<F>) -> Bool {
+    static public func == (lhs: OrderedSet, rhs: OrderedSet) -> Bool {
         lhs._array == rhs._array
     }
 }
@@ -835,14 +448,6 @@ extension OrderedSet: CustomStringConvertible {
         "OrderedSet (\(count) elements): " + description
     }
 }
-
-extension OrderedSet: Sendable where Element: Sendable { }
-
-extension OrderedSet: RangeReplaceableCollection { }
-
-extension OrderedSet: MutableCollection { }
-
-extension OrderedSet: BidirectionalCollection { }
 
 /*
 extension OrderedSet: SetAlgebra {

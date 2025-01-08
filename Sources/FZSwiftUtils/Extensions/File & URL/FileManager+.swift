@@ -46,7 +46,7 @@ public extension FileManager {
         }
     
         /// An enumeration of file manager errors.
-        enum Errors: Error {
+        internal enum Errors: Error {
             /// The file couldn't be moved to the trash.
             case failedToMoveToTrash
             /// The file doesn't exist.

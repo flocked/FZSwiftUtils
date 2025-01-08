@@ -88,7 +88,7 @@ extension URL {
             try FileManager.default.createDirectory(at: url.appendingPathComponent(name), withIntermediateDirectories: true)
         }
         
-        public enum Errors: Error {
+        enum Errors: Error {
             case stringDecodingFailed
         }
     }
