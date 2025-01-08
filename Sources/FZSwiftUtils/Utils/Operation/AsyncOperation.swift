@@ -122,6 +122,9 @@ open class AsyncOperation: Operation, Pausable {
     
     /// Cancels the operation.
     override open func cancel() {
+        if state == .ready {
+            state = .executing
+        }
         super.cancel()
         if isPaused {
             pauseSemaphore.signal()
