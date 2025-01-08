@@ -448,27 +448,3 @@ extension OrderedSet: CustomStringConvertible {
         "OrderedSet (\(count) elements): " + description
     }
 }
-
-/*
-extension OrderedSet: SetAlgebra {
-    public func symmetricDifference(_ other: __owned OrderedSet<E>) -> OrderedSet<E> {
-        <#code#>
-    }
-    
-    public mutating func update(with newMember: __owned E) -> E? {
-        <#code#>
-    }
-    
-    public mutating func formUnion(_ other: __owned OrderedSet<E>) {
-        <#code#>
-    }
-    
-    public mutating func formIntersection(_ other: OrderedSet<E>) {
-        <#code#>
-    }
-    
-    public mutating func formSymmetricDifference(_ other: __owned OrderedSet<E>) {
-        <#code#>
-    }
-}
-*/
