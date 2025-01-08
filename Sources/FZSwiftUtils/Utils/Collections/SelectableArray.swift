@@ -7,13 +7,32 @@
 
 import Foundation
 
+/// An array with selectable elements.
 public struct SelectableArray<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
-    var elements: [Element] = []
+    
+    var elements: [SelectedElement] = []
+    
+    struct SelectedElement {
+        let element: Element
+        var isSelected: Bool
+        init(_ element: Element, isSelected: Bool = false) {
+            self.element = element
+            self.isSelected = isSelected
+        }
+    }
 
     public init() {}
 
     public init(arrayLiteral elements: Element...) {
-        self.elements = elements
+        self.elements = elements.compactMap({SelectedElement($0)})
+    }
+    
+    public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
+        self.elements = elements.compactMap({SelectedElement($0)})
+    }
+
+    public init(repeating repeatedValue: Element, count: Int) {
+        elements = .init(repeating: SelectedElement(repeatedValue), count: count)
     }
 
     public var count: Int {
@@ -22,72 +41,60 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
 
     public mutating func removeAll() {
         elements.removeAll()
-        isSelected.removeAll()
     }
 
     @discardableResult
     public mutating func remove(at i: Int) -> Element {
         let element = elements.remove(at: i)
-        isSelected.remove(at: i)
         updateSelections()
-        return element
+        return element.element
     }
 
     @discardableResult
     public mutating func removeFirst() -> Element {
         let element = elements.removeFirst()
-        isSelected.removeFirst()
         updateSelections()
-        return element
+        return element.element
     }
 
     public mutating func removeFirst(_ k: Int) {
         elements.removeFirst(k)
-        isSelected.removeFirst(k)
         updateSelections()
     }
 
     public mutating func removeSubrange(_ bounds: Range<Int>) {
         elements.removeSubrange(bounds)
-        isSelected.removeSubrange(bounds)
         updateSelections()
     }
 
     public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
-        try elements.removeAll(where: shouldBeRemoved)
+        try elements.removeAll(where: { try shouldBeRemoved($0.element) })
         updateSelections()
     }
 
     public mutating func removeAll(keepingCapacity keepCapacity: Bool) {
         elements.removeAll(keepingCapacity: keepCapacity)
-        isSelected.removeAll(keepingCapacity: keepCapacity)
         updateSelections()
     }
 
     public mutating func removeLast(_ k: Int) {
         elements.removeLast(k)
-        isSelected.removeLast(k)
         updateSelections()
     }
 
     public mutating func removeLast() {
         elements.removeLast()
-        isSelected.removeLast()
         updateSelections()
     }
 
     public mutating func append(_ newElement: Element) {
-        elements.append(newElement)
-        isSelected.append(false)
+        elements.append(.init(newElement))
         updateSelections()
     }
 
     public mutating func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
-        let count = elements.count
-        elements.append(contentsOf: newElements)
-        for _ in 0 ..< (elements.count - count) {
-            isSelected.append(false)
-        }
+        elements.append(contentsOf: newElements.compactMap({SelectedElement($0)}))
+        updateSelections()
     }
 
     public var indices: Range<Int> {
@@ -97,6 +104,10 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public var isEmpty: Bool {
         elements.isEmpty
     }
+    
+    public var capacity: Int {
+        elements.capacity
+    }
 
     public func distance(from start: Int, to end: Int) -> Int {
         elements.distance(from: start, to: end)
@@ -104,7 +115,6 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
 
     public mutating func swapAt(_ i: Int, _ j: Int) {
         elements.swapAt(i, j)
-        isSelected.swapAt(i, j)
     }
 
     public mutating func reserveCapacity(_ n: Int) {
@@ -112,19 +122,13 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func insert(_ newElement: Element, at i: Int) {
-        elements.insert(newElement, at: i)
+        elements.insert(.init(newElement), at: i)
+        updateSelections()
     }
 
     public mutating func insert<S>(contentsOf newElements: S, at i: Int) where S: Collection, Element == S.Element {
-        elements.insert(contentsOf: newElements, at: i)
-    }
-
-    public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
-        self.elements = .init(elements)
-    }
-
-    public init(repeating repeatedValue: Element, count: Int) {
-        elements = .init(repeating: repeatedValue, count: count)
+        elements.insert(contentsOf: newElements.compactMap({SelectedElement($0)}), at: i)
+        updateSelections()
     }
 
     public func formIndex(after i: inout Int) {
@@ -136,9 +140,10 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func partition(by belongsInSecondPartition: (Element) throws -> Bool) rethrows -> Int {
-        try elements.partition(by: belongsInSecondPartition)
+        try elements.partition(by: { try belongsInSecondPartition($0.element) })
     }
 
+    /*
     public func withContiguousStorageIfAvailable<R>(_ body: (UnsafeBufferPointer<Element>) throws -> R) rethrows -> R? {
         try elements.withContiguousStorageIfAvailable(body)
     }
@@ -146,6 +151,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public mutating func withContiguousMutableStorageIfAvailable<R>(_ body: (inout UnsafeMutableBufferPointer<Element>) throws -> R) rethrows -> R? {
         try elements.withContiguousMutableStorageIfAvailable(body)
     }
+     */
 
     // Collection / Mutable Collection
 
@@ -162,18 +168,24 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public subscript(index: Int) -> Element {
-        get { elements[index] }
-        set { elements[index] = newValue }
+        get { elements[index].element }
+        set { elements[index] = .init(newValue, isSelected: elements[index].isSelected) }
     }
 
     public subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
-        get { elements[range] }
-        set { elements[range] = newValue }
+        get { ArraySlice<Element>(elements[range].compactMap({$0.element})) }
+        set { 
+            replaceSubrange(range, with: newValue)
+            updateSelections()
+        }
     }
 
     public subscript(range: Range<Int>) -> ArraySlice<Element> {
-        get { elements[range] }
-        set { elements[range] = newValue }
+        get { ArraySlice<Element>(elements[range].compactMap({$0.element})) }
+        set { 
+            replaceSubrange(range, with: newValue)
+            updateSelections()
+        }
     }
 
     public func index(after i: Int) -> Int {
@@ -193,49 +205,49 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
-    {
-        elements.replaceSubrange(subrange, with: newElements)
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
+            elements.replaceSubrange(subrange, with: newElements.compactMap({ SelectedElement($0) }))
+            updateSelections()
     }
 
     public var allowsSelection: Bool = true {
-        didSet {
-            updateSelections()
-        }
+        didSet { updateSelections() }
     }
 
     public var allowsMultipleSelection: Bool = false {
-        didSet {
-            updateSelections()
-        }
+        didSet { updateSelections() }
     }
 
     public var allowsEmptySelection: Bool = true {
-        didSet {
-            updateSelections()
-        }
+        didSet { updateSelections() }
     }
-
-    private var isSelected: [Bool] = []
 
     public var selectedElements: [Element] {
-        var selectedElements: [Element] = []
-        for (index, i) in isSelected.indexed() {
-            if i == true {
-                selectedElements.append(elements[index])
-            }
-        }
-        return selectedElements
+        elements.filter({$0.isSelected}).compactMap({$0.element})
     }
-
+    
     public var selectedIndexes: [Int] {
-        var selectedIndexes: [Int] = []
-        for (index, i) in isSelected.indexed() {
-            if i == true {
-                selectedIndexes.append(index)
-            }
-        }
-        return selectedIndexes
+        elements.indexes(where: {$0.isSelected})
+    }
+    
+    public var nonSelectedElements: [Element] {
+        elements.filter({!$0.isSelected}).compactMap({$0.element})
+    }
+    
+    public var nonSelectedIndexes: [Int] {
+        elements.indexes(where: {!$0.isSelected})
+    }
+    
+    public func isSelected(at index: Index) -> Bool {
+        elements[safe: index]?.isSelected ?? false
+    }
+    
+    public func isSelected(for element: Element) -> Bool where Element: Equatable {
+        elements.first(where: {$0.element == element })?.isSelected ?? false
+    }
+    
+    public func isSelected(for element: Element) -> Bool where Element: AnyObject {
+        elements.first(where: {$0.element === element })?.isSelected ?? false
     }
 
     public mutating func select(at index: Int) {
@@ -278,11 +290,11 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public mutating func select(at index: Int, exclusivly: Bool) {
         guard allowsSelection, index < elements.count else { return }
         if !allowsMultipleSelection || exclusivly == true {
-            for i in 0 ..< isSelected.count {
-                isSelected[i] = false
+            for i in 0 ..< elements.count {
+                elements[i].isSelected = false
             }
         }
-        isSelected[index] = true
+        elements[index].isSelected = true
     }
 
     public mutating func select(at indexes: [Int]) {
@@ -296,7 +308,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
 
     public mutating func deselect(at index: Int) {
         guard !elements.isEmpty, index < elements.count else { return }
-        isSelected[index] = false
+        elements[index].isSelected = false
         updateSelections()
     }
 
@@ -378,10 +390,14 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     }
 }
 
+extension SelectableArray.SelectedElement: Encodable where Element: Encodable { }
+extension SelectableArray.SelectedElement: Decodable where Element: Decodable { }
+extension SelectableArray.SelectedElement: Equatable where Element: Equatable { }
+extension SelectableArray.SelectedElement: Hashable where Element: Hashable { }
+
+extension SelectableArray: ExpressibleByArrayLiteral { }
 extension SelectableArray: Sendable where Element: Sendable {}
-
 extension SelectableArray: Encodable where Element: Encodable {}
-
 extension SelectableArray: Decodable where Element: Decodable {}
 
 extension SelectableArray: CVarArg {
@@ -421,5 +437,3 @@ extension SelectableArray: Equatable where Element: Equatable {
         lhs.elements == rhs.elements
     }
 }
-
-extension SelectableArray: ExpressibleByArrayLiteral {}
