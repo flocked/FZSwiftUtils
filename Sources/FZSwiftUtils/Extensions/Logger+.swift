@@ -19,43 +19,43 @@ extension Logger {
     public static let networking = Logger(subsystem: subsystem, category: "Networking")
     
     /// Writes a message to the log with the specified items using the default log type.
-    public func notice(indent: Int = 0, items: Any..., separator: String = " ") {
-        notice("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func notice(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        notice("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a debug message to the log with the specified items.
-    public func debug(indent: Int = 0, items: Any..., separator: String = " ") {
-        debug("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func debug(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        self.debug("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a trace message to the log with the specified items.
-    public func trace(indent: Int = 0, items: Any..., separator: String = " ") {
-        trace("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func trace(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        trace("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes an informative message to the log with the specified items.
-    public func info(indent: Int = 0, items: Any..., separator: String = " ") {
-        info("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func info(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        info("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes information about an error to the log with the specified items.
-    public func error(indent: Int = 0, items: Any..., separator: String = " ") {
-        error("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func error(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        error("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes information about a warning to the log with the specified items.
-    public func warning(indent: Int = 0, items: Any..., separator: String = " ") {
-        warning("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func warning(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        warning("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a message to the log with the specified items about a bug that occurs when your app executes.
-    public func fault(indent: Int = 0, items: Any..., separator: String = " ") {
-        fault("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func fault(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        fault("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a message to the log with the specified items about a critical event in your app’s execution.
-    public func critical(indent: Int = 0, items: Any..., separator: String = " ") {
-        critical("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({String(describing: $0)}).joined(separator: separator))")
+    public func critical(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
+        critical("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
 }
 
@@ -66,7 +66,7 @@ extension Logger {
     - items: Zero or more items to print.
     - indent: The indent of the printed string.
     - separator: A string to print between each item. The default is a single space (" ").
-    -   terminator: The string to print after all items have been printed. The default is a newline ("\n").
+    - terminator: The string to print after all items have been printed. The default is a newline ("\n").
  */
 public func print(_ items: Any..., indent: Int = 0, separator: String = " ", terminator: String = "\n") {
     print(Array(repeating: "\t", count: indent).joined() + items.compactMap({ String(describing: $0) }).joined(separator: separator), terminator: terminator)
