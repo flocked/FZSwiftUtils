@@ -8,6 +8,8 @@
 import Foundation
 import os
 
+
+
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 extension Logger {
     static let subsystem = Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath
@@ -19,13 +21,14 @@ extension Logger {
     public static let networking = Logger(subsystem: subsystem, category: "Networking")
     
     /// Writes a message to the log with the specified items using the default log type.
-    public func notice(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        notice("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+    public func notice(_ items: Any..., indent: Int, separator: String = " ", debug: Bool = false) {
+        let message = Array(repeating: "\t", count: indent).joined() + items.map { String(describing: $0) }.joined(separator: separator)
+        self.notice("\(message)")        
     }
     
     /// Writes a debug message to the log with the specified items.
     public func debug(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        self.debug("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .debug, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a trace message to the log with the specified items.
@@ -35,12 +38,12 @@ extension Logger {
     
     /// Writes an informative message to the log with the specified items.
     public func info(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        info("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .info, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes information about an error to the log with the specified items.
     public func error(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        error("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .error, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes information about a warning to the log with the specified items.
@@ -50,7 +53,7 @@ extension Logger {
     
     /// Writes a message to the log with the specified items about a bug that occurs when your app executes.
     public func fault(_ items: Any..., indent: Int = 0, separator: String = " ", debug: Bool = false) {
-        fault("\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
+        log(level: .fault, "\(Array(repeating: "\t", count: indent).joined())\(items.compactMap({debug ? String(reflecting: $0) : String(describing: $0)}).joined(separator: separator))")
     }
     
     /// Writes a message to the log with the specified items about a critical event in your app’s execution.
