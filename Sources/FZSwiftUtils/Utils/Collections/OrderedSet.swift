@@ -296,6 +296,17 @@
         lhs.appending(contentsOf: rhs)
     }
     
+    public subscript(element: Element) -> Bool {
+        get { contains(element) }
+        set {
+            if newValue {
+                append(element)
+            } else {
+                remove(element)
+            }
+        }
+    }
+    
     /// Returns a new ordered set with `element` inserted at `index`.
     /// This function returns an equivalent ordered set if `element` is
     /// already a member.
