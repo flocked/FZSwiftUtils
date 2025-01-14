@@ -8,13 +8,43 @@
 import Foundation
 
 public extension Sequence where Element: Comparable {
+    /// Returns the elements of the sequence, sorted by the specified order.
+    func sorted(_ order: SequenceSortOrder) -> [Element] {
+        return order == .ascending ? sorted() : sorted(by: >)
+    }
+    
+    /// Returns the elements of the sequence, sorted by the specified order.
+    func sorted(_ order: SequenceSortOrder = .ascending) -> [Element] where Element: OptionalProtocol, Element.Wrapped: Comparable {
+        sorted { a, b in
+            let aValue = a.optional
+            let bValue = b.optional
+            switch (aValue, bValue) {
+            case (nil, nil):
+                return false
+            case (nil, _):
+                return false
+            case (_, nil):
+                return true
+            case let (a?, b?):
+                return order == .ascending ? a < b : a > b
+            }
+        }
+    }
+    
     /**
      Returns the elements of the sequence, sorted.
      
-     - Parameter order: The order of sorting.
+     - Parameters:
+        - options: Options for comparing the strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting. The default value is `ascending`.
      */
-    func sorted(_ order: SequenceSortOrder) -> [Element] {
-        return order == .ascending ? sorted() : sorted(by: >)
+    func sorted(options: String.CompareOptions, range: Range<Element.Index>? = nil, locale: Locale? = nil, _ order: SequenceSortOrder = .ascending) -> [Element] where Element: StringProtocol {
+        sorted { (a, b) -> Bool in
+            let comparsion = a.compare(b, options: options, range: range, locale: locale)
+            return order == .ascending ? (comparsion == .orderedAscending) : (comparsion == .orderedDescending)
+        }
     }
 }
 
@@ -25,6 +55,40 @@ public extension MutableCollection where Self: RandomAccessCollection, Element: 
             sort()
         } else {
             sort(by: >)
+        }
+    }
+    
+    /// Sorts the collection in place by the specified order.
+    mutating func sort(_ order: SequenceSortOrder) where Element: OptionalProtocol, Element.Wrapped: Comparable {
+        sort { a, b in
+            let aValue = a.optional
+            let bValue = b.optional
+            switch (aValue, bValue) {
+            case (nil, nil):
+                return false
+            case (nil, _):
+                return false
+            case (_, nil):
+                return true
+            case let (a?, b?):
+                return order == .ascending ? a < b : a > b
+            }
+        }
+    }
+    
+    /**
+     Sorts the collection in place by the specified order.
+     
+     - Parameters:
+        - options: Options for comparing the strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting. The default value is `ascending`.
+     */
+    mutating func sort(options: String.CompareOptions, range: Range<Element.Index>? = nil, locale: Locale? = nil, _ order: SequenceSortOrder = .ascending) where Element: StringProtocol {
+        sort { (a, b) -> Bool in
+            let comparsion = a.compare(b, options: options, range: range, locale: locale)
+            return order == .ascending ? (comparsion == .orderedAscending) : (comparsion == .orderedDescending)
         }
     }
 }
@@ -39,6 +103,25 @@ public extension Sequence {
       */
     func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
         compactMap({ ComparableElement($0, $0[keyPath: keyPath]) }).sorted(order).compactMap({$0.element})
+    }
+    
+    /**
+     An array of the elements sorted by the given keypath.
+
+      - Parameters:
+        - keyPath: The keypath to compare the elements.
+        - options: Options for comparing the key path strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting. The default value is `ascending`.
+      */
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: StringProtocol {
+        sorted { (a, b) -> Bool in
+            let aValue = a[keyPath: keyPath]
+            let bValue = b[keyPath: keyPath]
+            let comparsion = aValue.compare(bValue, options: options, range: range, locale: locale)
+            return order == .ascending ? (comparsion == .orderedAscending) : (comparsion == .orderedDescending)
+        }
     }
 
     /**
@@ -61,6 +144,34 @@ public extension Sequence {
                         return true
                     case let (a?, b?):
                         return order == .ascending ? a < b : a > b
+                    }
+                }
+    }
+    
+    /**
+     An array of the elements sorted by the given keypath.
+
+      - Parameters:
+        - compare: The keypath to compare the elements.
+        - options: Options for comparing the key path strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting. The default value is `ascending`.
+      */
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: StringProtocol {
+        sorted { (a, b) -> Bool in
+                    let aValue = a[keyPath: keyPath]
+                    let bValue = b[keyPath: keyPath]
+                    switch (aValue, bValue) {
+                    case (nil, nil):
+                        return false
+                    case (nil, _):
+                        return false
+                    case (_, nil):
+                        return true
+                    case let (a?, b?):
+                        let comparsion = a.compare(b, options: options, range: range, locale: locale)
+                        return order == .ascending ? (comparsion == .orderedAscending) : (comparsion == .orderedDescending)
                     }
                 }
     }

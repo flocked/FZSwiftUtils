@@ -40,7 +40,7 @@ extension Mirror {
     
     func strings(level: Int, maxLevel: Int? = nil, maxChildren: Int? = nil, options: PrintOptions = .all) -> [String] {
         var strings: [String] = []
-        var indentation = String(repeating: "  ", count: level)
+        let indentation = String(repeating: "  ", count: level)
         if options.contains(.superclass), let superclassMirror = superclassMirror {
             strings.append("\(indentation)Superclass<\(superclassMirror.subjectType)>(")
             strings += superclassMirror.strings(level: level + 1, maxLevel: maxLevel, maxChildren: maxChildren, options: options)
