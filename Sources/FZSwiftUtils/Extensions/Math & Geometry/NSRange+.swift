@@ -18,6 +18,11 @@ public extension NSRange {
         lowerBound ..< upperBound + 1
     }
     
+    /// The range as `CFRange`.
+    var cfRange: CFRange {
+        CFRange(location: location, length: length)
+    }
+    
     /// The maximum value.
     var max: Int {
         NSMaxRange(self)
@@ -100,5 +105,12 @@ public extension Sequence<NSRange> {
     /// Returns the maximum upper bound in the sequence.
     var max: Int? {
         filter({!$0.isNotFound}).map(\.upperBound).max()
+    }
+}
+
+public extension CFRange {
+    /// The range as `NSRange`.
+    var nsRange: NSRange {
+        NSRange(location: location, length: length)
     }
 }
