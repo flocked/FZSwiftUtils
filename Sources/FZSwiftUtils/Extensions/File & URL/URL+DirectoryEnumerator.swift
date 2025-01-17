@@ -133,7 +133,7 @@ public extension URL {
     /// A sequence of urls.
     struct URLSequence: Sequence {
         let url: URL
-        let predicate: (URL) -> Bool
+        var predicate: (URL) -> Bool
         var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         var maxDepth: Int? = nil
         var resourceKeys: [URLResourceKey]? = nil

@@ -6,6 +6,10 @@ AssociatedValues
 - Copyright (c) 2014 Skyvive <brad.hilton.nw@gmail.com>
 - http://github.com/bradhilton/AssociatedValues
 
+CollectionDifference+Steps
+- Copyright (c) 2022 Giles Hammond
+- https://github.com/GilesHammond/DifferenceTracker/
+
 Collection+Indexed
 - Copyright (c) 2020 Apple Inc.
 - https://github.com/apple/swift-algorithms/
