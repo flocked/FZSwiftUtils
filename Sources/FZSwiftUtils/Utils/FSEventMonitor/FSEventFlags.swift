@@ -89,6 +89,8 @@ public struct FSEventFlags: OptionSet, Hashable {
     
     static let itemTypes: FSEventFlags = [.itemIsFile, .itemIsDirectory, .itemIsSymbolicLink, .itemIsHardlink, .itemIsLastHardlink]
     
+    static let filter: FSEventFlags = [.mustScanSubDirectories, .userDropped, .kernelDropped, .eventIdsWrapped, .historyDone]
+    
     var itemType: FSEventItemType {
         FSEventItemType(rawValue: intersection(Self.itemTypes).rawValue)
     }

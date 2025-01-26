@@ -20,9 +20,21 @@ public struct FSEvent: Hashable, Identifiable {
     public let flags: FSEventFlags
     /// The identifier of the event.
     public let id: FSEventStreamEventId
+    /// The identifier of the file.
+    public let fileID: UInt64?
+    /// The identifier of the document.
+    public let documentID: Int?
 
-    init(_ eventId: FSEventStreamEventId, _ eventPath: String, _ eventFlags: FSEventStreamEventFlags) {
+    let date = Date()
+    
+    
+    /// The new url of the file for a renamed file.
+    // public fileprivate(set) var newURL: URL?
+    
+    init(_ eventId: FSEventStreamEventId, _ eventPath: String, _ eventFlags: FSEventStreamEventFlags, _ fileID: UInt64?, _ documentID: Int?) {
         self.id = eventId
+        self.fileID = fileID
+        self.documentID = documentID
         self.flags = FSEventFlags(rawValue: eventFlags)
         self.itemType = flags.itemType
         self.actions = flags.actions
@@ -35,4 +47,20 @@ extension FSEvent: CustomStringConvertible {
         return "FSEvent \(actions.debugDescription): \(url.path)"
     }
 }
+
+/*
+extension Array where Element == FSEvent {
+    var mappedEvents: Self {
+        var events: [FSEvent] = []
+        for event in enumerated() {
+            var event = event.element
+            if event.actions.contains(.renamed), let fileID = event.fileID, let other = first(where: { $0.fileID == fileID && $0.id > event.id }) {
+                event.newURL = other.url
+            }
+            events += event
+        }
+        return events
+    }
+}
+ */
 #endif

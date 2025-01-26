@@ -46,12 +46,22 @@ extension FSEventMonitor {
          */
         public static let noDefer = Self(rawValue: 1 << 1)
         
+        /**
+         Include the full history of all events.
+         
+         If you include this option, the event monitor provides all past events for it's monitored file urls on start.
+        */
+        public static let includeFullHistory = Self(rawValue: 1 << 7)
+        
         static let useCFTypes = Self(rawValue: 1 << 0)
         static let fileEvents = Self(rawValue: 1 << 4)
+        static let extendedData = Self(rawValue: 1 << 6)
+        
+        // kFSEventStreamCreateFlagMarkSelf
         
         var stream: Self {
             var options = self
-            options.insert([.useCFTypes, .fileEvents])
+            options.insert([.useCFTypes, .fileEvents, .extendedData])
             options.remove(.monitorFolderContent)
             return options
         }

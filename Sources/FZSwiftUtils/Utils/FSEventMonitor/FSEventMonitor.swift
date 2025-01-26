@@ -10,6 +10,7 @@ import Foundation
 
 /// Monitores files on the file system.
 public class FSEventMonitor {
+    private static var eventIDInvalidationDate: Date?
     private let id = UUID()
     private var streamRef: FSEventStreamRef?
     private var isRunning: Bool { streamRef != nil }
@@ -115,7 +116,7 @@ public class FSEventMonitor {
 
     /// Start monitoring the files and additionally provide all events that happened since the specified event.
     public func start(withEventsSince event: FSEvent) {
-        startEventID = event.id
+        startEventID = (event.date >  Self.eventIDInvalidationDate ?? .distantPast)  ? event.id : nil
         restart()
         isActive = true
     }
@@ -186,6 +187,34 @@ public class FSEventMonitor {
         return FSEventsGetLastEventIdForDeviceBeforeTime(deviceID, timestamp)
     }
     
+    private func sendEvents(_ events: [FSEvent]) {
+        var events = events
+        if events.contains(where: { $0.flags.contains(.eventIdsWrapped) }) {
+            FSEventMonitor.eventIDInvalidationDate = Date()
+        }
+        events = events.filter({ !$0.flags.contains(any: FSEventFlags.filter) })
+        if eventActions != .all {
+            events = events.filter({ eventActions.contains(any: $0.actions) })
+        }
+        if !monitorOptions.contains(.monitorFolderContent) {
+            let monitorRoot = monitorOptions.contains(.monitorRoot)
+            events = events.filter({
+                if fileURLs.contains($0.url) || (monitorRoot && $0.actions.contains(.rootChanged)) { return true } else { return false }
+            })
+        }
+        if let filter = filter {
+            events = events.filter({ filter($0) })
+        }
+        events.forEach({ callback?($0) })
+        /*
+        if !events.isEmpty, let allEventsHandler = fileSystemWatcher.allEventsHandler {
+            allEventsHandler(events)
+            FSEventMonitor.sharedMonitors[fileSystemWatcher.id] = nil
+            fileSystemWatcher.stop()
+        }
+         */
+    }
+    
     private let eventCallback: FSEventStreamCallback = {(
         stream: ConstFSEventStreamRef,
         contextInfo: UnsafeMutableRawPointer?,
@@ -194,29 +223,9 @@ public class FSEventMonitor {
         eventFlags: UnsafePointer<FSEventStreamEventFlags>,
         eventIds: UnsafePointer<FSEventStreamEventId>) in
         let eventMonitor = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo!).takeUnretainedValue()
-        let paths = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [String]
-        var events = (0..<numEvents).compactMap({ FSEvent(eventIds[$0], paths[$0], eventFlags[$0]) })
-        events = events.filter({ $0.flags.contains(.historyDone) })
-        if eventMonitor.eventActions != .all {
-            events = events.filter({ eventMonitor.eventActions.contains(any: $0.actions) })
-        }
-        if !eventMonitor.monitorOptions.contains(.monitorFolderContent) {
-            let monitorRoot = eventMonitor.monitorOptions.contains(.monitorRoot)
-            events = events.filter({
-                if eventMonitor.fileURLs.contains($0.url) || (monitorRoot && $0.actions.contains(.rootChanged)) { return true } else { return false }
-            })
-        }
-        if let filter = eventMonitor.filter {
-            events = events.filter({ filter($0) })
-        }
-        events.forEach({ eventMonitor.callback?($0) })
-        /*
-        if !events.isEmpty, let allEventsHandler = fileSystemWatcher.allEventsHandler {
-            allEventsHandler(events)
-            FSEventMonitor.sharedMonitors[fileSystemWatcher.id] = nil
-            fileSystemWatcher.stop()
-        }
-         */
+        let dictionaries = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [[String:Any]]
+        var events = (0..<numEvents).compactMap({ FSEvent(eventIds[$0], dictionaries[$0][kFSEventStreamEventExtendedDataPathKey] as! String, eventFlags[$0], dictionaries[$0][kFSEventStreamEventExtendedFileIDKey] as? UInt64, dictionaries[$0][kFSEventStreamEventExtendedDocIDKey] as? Int) })
+        eventMonitor.sendEvents(events)
     }
     
     private let retainCallback: CFAllocatorRetainCallBack = {(info: UnsafeRawPointer?) in
