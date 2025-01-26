@@ -37,6 +37,11 @@ public struct FSEventFlags: OptionSet, Hashable {
     /// An item's inode metadata was modified.
     public static let itemInodeMetaModied = FSEventFlags(rawValue: 1024)
     
+    // MARK: - Hierarchy
+        
+    /// The root path of a watched hierarchy has changed.
+    public static let rootChanged = FSEventFlags(rawValue: 32)
+    
     // MARK: - Item Type
     
     /// The item is a file.
@@ -49,11 +54,6 @@ public struct FSEventFlags: OptionSet, Hashable {
     public static let itemIsHardlink = FSEventFlags(rawValue: 1048576)
     /// The item is the last hard link to a file.
     public static let itemIsLastHardlink = FSEventFlags(rawValue: 2097152)
-    
-    // MARK: - Hierarchy
-        
-    /// The root path of a watched hierarchy has changed.
-    public static let rootChanged = FSEventFlags(rawValue: 32)
     
     // MARK: - Volume
     
@@ -78,25 +78,35 @@ public struct FSEventFlags: OptionSet, Hashable {
     public static let historyDone = FSEventFlags(rawValue: 16)
     
     /// No specific flags set for this event.
-    public static let none: FSEventFlags = []
+    public static let none: FSEventFlags = FSEventFlags(rawValue: 0)
     
     /// All flags.
     public static let all: FSEventFlags = [.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted, .itemIsFile, .itemIsDirectory, .itemIsSymbolicLink, .itemIsHardlink, .itemIsLastHardlink, .mustScanSubDirectories, .userDropped, .kernelDropped, .eventIdsWrapped, .historyDone, .ownEvent]
     
-    static let filter: FSEventFlags = [.mustScanSubDirectories, .userDropped, .kernelDropped, .historyDone]
+  //  static let filter: FSEventFlags = [.mustScanSubDirectories, .userDropped, .kernelDropped, .historyDone]
+    
+    static let actions: FSEventFlags = [.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted]
     
     static let itemTypes: FSEventFlags = [.itemIsFile, .itemIsDirectory, .itemIsSymbolicLink, .itemIsHardlink, .itemIsLastHardlink]
+    
+    var itemType: FSEventItemType {
+        FSEventItemType(rawValue: intersection(Self.itemTypes).rawValue)
+    }
+    
+    var actions: FSEventActions {
+        FSEventActions(rawValue: intersection([.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted]).rawValue)
+    }
     
     // MARK: - Description
 }
 
 extension FSEventFlags: CustomStringConvertible {
     public var description: String {
-        return "[\(self.elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+        self == .none ? "[.none]" : "[\(self.elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
     
     public var debugDescription: String {
-        "[\(self.elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
+        self == .none ? "[.none]" : "[\(self.elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
     }
     
     var _description: String {
@@ -157,16 +167,6 @@ extension FSEventFlags: CustomStringConvertible {
         case .ownEvent: return "Own event"
         default: return "Unkown"
         }
-    }
-    
-    var itemTypeString: String {
-        let itemTypes = intersection(Self.itemTypes).elements().collect()
-        if itemTypes.count > 1 {
-            return "[\(itemTypes.compactMap({$0._debugDescription}).joined(separator: ", "))]"
-        } else if itemTypes.count == 1 {
-            return itemTypes.first!._debugDescription
-        }
-        return ""
     }
 }
 #endif

@@ -14,7 +14,7 @@ public class FSEventMonitor {
     private var isRunning: Bool { streamRef != nil }
     private var startEventID: FSEventStreamEventId? = nil
     private var shouldMonitor: Bool {
-        isActive && !fileURLs.isEmpty && callback != nil && eventFlagsToMonitor != .none
+        isActive && !fileURLs.isEmpty && callback != nil && eventActions != .none
     }
     
     /// The urls of the files to monitor.
@@ -40,23 +40,14 @@ public class FSEventMonitor {
         }
     }
     
-    /// The handler that gets called when a file sytem event occurs for the monitored file.
-    public var callback: ((_ event: FSEvent) -> Void)? {
-        didSet { updateMonitoring() }
-    }
-    
     /**
-     The event flags to monitor.
+     The event actions to monitor.
      
      The default value is `all`.
      */
-    public var eventFlagsToMonitor: FSEventFlags = .all {
+    public var eventActions: FSEventActions = .all {
         didSet { updateMonitoring() }
     }
-    
-    var monitorRoot = false
-    var monitorFolderContent = false
-    var ignoreEventsBySelf = true
     
     /// The options for monitoring the files.
     public var monitorOptions: MonitorOptions = [] {
@@ -66,8 +57,17 @@ public class FSEventMonitor {
         }
     }
     
-    /// The dispatch queue for the monitor.
-    public var queue: DispatchQueue? {
+    /// The handler that gets called when a file sytem event occurs for the monitored file.
+    public var callback: ((_ event: FSEvent) -> Void)? {
+        didSet { updateMonitoring() }
+    }
+    
+    /**
+     The dispatch queue for the monitor.
+     
+     The default value is `main`.
+     */
+    public var queue: DispatchQueue = .main {
         didSet {
             guard oldValue != queue, isRunning else { return }
             restart()
@@ -78,6 +78,8 @@ public class FSEventMonitor {
      The amount of seconds the monitor should wait after hearing about an event before passing it to the callback.
      
      Specifying a larger value may result in more effective temporal coalescing, resulting in fewer callbacks and greater overall efficiency.
+     
+     The default value is `0.0`.
      */
     public var latency: CGFloat = 0.0 {
         didSet {
@@ -154,7 +156,7 @@ public class FSEventMonitor {
         if !excludingFileURLs.isEmpty {
             FSEventStreamSetExclusionPaths(streamRef!, excludingFileURLs.compactMap({$0.path}) as CFArray)
         }
-        FSEventStreamSetDispatchQueue(streamRef!, queue ?? .main)
+        FSEventStreamSetDispatchQueue(streamRef!, queue)
         FSEventStreamStart(streamRef!)
         startEventID = nil
     }
@@ -182,8 +184,8 @@ public class FSEventMonitor {
             Swift.print(event)
         }
         events = events.filter({ $0.flags.contains(.historyDone) })
-        if fileSystemWatcher.eventFlagsToMonitor != .all {
-            events = events.filter({ fileSystemWatcher.eventFlagsToMonitor.contains(any: $0.flags) })
+        if fileSystemWatcher.eventActions != .all {
+            events = events.filter({ fileSystemWatcher.eventActions.contains(any: $0.actions) })
         }
         if !fileSystemWatcher.monitorOptions.contains(.monitorFolderContent) {
             let monitorRoot = fileSystemWatcher.monitorOptions.contains(.monitorRoot)

@@ -12,6 +12,10 @@ import Foundation
 public struct FSEvent: Hashable, Identifiable {
     /// The url of the file.
     public let url: URL
+    /// The type of the item.
+    public let itemType: FSEventItemType
+    /// The actions of the event.
+    public let actions: FSEventActions
     /// The event flags.
     public let flags: FSEventFlags
     /// The identifier of the event.
@@ -20,7 +24,9 @@ public struct FSEvent: Hashable, Identifiable {
     init(_ eventId: FSEventStreamEventId, _ eventPath: String, _ eventFlags: FSEventStreamEventFlags) {
         self.id = eventId
         self.flags = FSEventFlags(rawValue: eventFlags)
-        if flags.contains(.itemIsDirectory), !eventPath.hasSuffix("/") {
+        self.itemType = flags.itemType
+        self.actions = flags.actions
+        if itemType.contains(.directory), !eventPath.hasSuffix("/") {
             self.url = URL(fileURLWithPath: eventPath + "/")
         } else {
             self.url = URL(fileURLWithPath: eventPath)
@@ -30,7 +36,7 @@ public struct FSEvent: Hashable, Identifiable {
 
 extension FSEvent: CustomStringConvertible {
     public var description: String {
-        return "FSEvent \(flags.debugDescription): \(url.path))"
+        return "FSEvent \(actions.debugDescription): \(url.path)"
     }
 }
 #endif

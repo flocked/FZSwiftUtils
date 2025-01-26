@@ -32,14 +32,17 @@ extension FSEventMonitor {
          
          This is useful for reducing the volume of events that are sent. It is only useful if your process might modify the file system hierarchy beneath the path(s) being monitored. Note: this has no effect on `historical` events, i.e., those delivered before the `historyDone` sentinel event.
          */
-        public static let ignoreSelf = Self(rawValue: 1 << 3)
+        public static let ignoreEventsFromSelf = Self(rawValue: 1 << 3)
                 
         /**
-         Affects the meaning of the latency parameter.
+         This option ensures that events are delivered immediately if more than the specified `latency` seconds
+         have passed since the last event, bypassing any deferral or batching.
+                  
+         If you specify this option and more than the specified `latency` seconds have elapsed since the last event, the callback handler will receive the event immediately. The delivery of the event resets the latency timer and any further events will be delivered after `latency` seconds have elapsed.
          
-         If you specify this option and more than latency seconds have elapsed since the last event, your app will receive the event immediately. The delivery of the event resets the latency timer and any further events will be delivered after latency seconds have elapsed.
+         This flag is useful for apps that are interactive and want to react immediately to changes but avoid getting swamped by notifications when changes are occurringin rapid succession.
          
-         This flag is useful for apps that are interactive and want to react immediately to changes but avoid getting swamped by notifications when changes are occurringin rapid succession. If you do not specify this flag, then when an event occurs after a period of no events, the latency timer is started. Any events that occur during the next latency seconds will be delivered as one group (including that first event). The delivery of the group of events resets the latency timer and any further events will be delivered after latency seconds. This is the default behavior and is more appropriate for background, daemon or batch processing apps.
+         If you do not specify this option, then when an event occurs after a period of no events, the latency timer is started. Any events that occur during the next `latency` seconds will be delivered to the callback handler. The delivery of events resets the latency timer and any further events will be delivered after `latency` seconds. This is the default behavior and is more appropriate for background, daemon or batch processing apps.
          */
         public static let noDefer = Self(rawValue: 1 << 1)
         
