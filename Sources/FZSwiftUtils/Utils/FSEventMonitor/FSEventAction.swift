@@ -29,7 +29,7 @@ public struct FSEventActions: OptionSet, Hashable {
     /// An item's ownership information was changed.
     public static let ownerModified = FSEventActions(rawValue: 16384)
     /// An item's extended attributes were modified.
-    public static let xattrModied = FSEventActions(rawValue: 32768)
+    public static let xattrModifed = FSEventActions(rawValue: 32768)
     /// An item's inode metadata was modified.
     public static let inodeMetaModied = FSEventActions(rawValue: 1024)
     
@@ -49,7 +49,7 @@ public struct FSEventActions: OptionSet, Hashable {
     public static let none: FSEventActions = []
     
     /// All actions.
-    public static let all: FSEventActions = [.rootChanged, .created, .removed, .renamed, .cloned, .modified, .xattrModied, .ownerModified, .finderInfoModified, .inodeMetaModied, .mounted, .unmounted]
+    public static let all: FSEventActions = [.rootChanged, .created, .removed, .renamed, .cloned, .modified, .xattrModifed, .ownerModified, .finderInfoModified, .inodeMetaModied, .mounted, .unmounted]
     
     public let rawValue: UInt32
 
@@ -80,7 +80,7 @@ extension FSEventActions: CustomStringConvertible {
         case .modified: return "modified"
         case .finderInfoModified: return "finderInfoModified"
         case .ownerModified: return "ownerModified"
-        case .xattrModied: return "xattrModied"
+        case .xattrModifed: return "xattrModied"
         case .cloned: return "cloned"
         default: return "unkown"
         }
@@ -100,7 +100,7 @@ extension FSEventActions: CustomStringConvertible {
         case .cloned: return "Cloned"
         case .finderInfoModified: return "Finder info changed"
         case .ownerModified: return "Owner changed"
-        case .xattrModied: return "Xattr modified"
+        case .xattrModifed: return "Xattr modified"
         default: return "Unkown"
         }
     }

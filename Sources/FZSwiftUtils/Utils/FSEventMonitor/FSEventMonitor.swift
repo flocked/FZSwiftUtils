@@ -50,6 +50,9 @@ public class FSEventMonitor {
         didSet { updateMonitoring() }
     }
     
+    /// The handler to filter the events provided to the callback.
+    public var filter: ((_ event: FSEvent)->(Bool))?
+    
     /// The options for monitoring the files.
     public var monitorOptions: MonitorOptions = [] {
         didSet {
@@ -190,21 +193,23 @@ public class FSEventMonitor {
         eventPaths: UnsafeMutableRawPointer,
         eventFlags: UnsafePointer<FSEventStreamEventFlags>,
         eventIds: UnsafePointer<FSEventStreamEventId>) in
-        let fileSystemWatcher = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo!).takeUnretainedValue()
+        let eventMonitor = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo!).takeUnretainedValue()
         let paths = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [String]
         var events = (0..<numEvents).compactMap({ FSEvent(eventIds[$0], paths[$0], eventFlags[$0]) })
-        let eventCount = events.count
         events = events.filter({ $0.flags.contains(.historyDone) })
-        if fileSystemWatcher.eventActions != .all {
-            events = events.filter({ fileSystemWatcher.eventActions.contains(any: $0.actions) })
+        if eventMonitor.eventActions != .all {
+            events = events.filter({ eventMonitor.eventActions.contains(any: $0.actions) })
         }
-        if !fileSystemWatcher.monitorOptions.contains(.monitorFolderContent) {
-            let monitorRoot = fileSystemWatcher.monitorOptions.contains(.monitorRoot)
+        if !eventMonitor.monitorOptions.contains(.monitorFolderContent) {
+            let monitorRoot = eventMonitor.monitorOptions.contains(.monitorRoot)
             events = events.filter({
-                if fileSystemWatcher.fileURLs.contains($0.url) { return true } else if monitorRoot, $0.flags.contains(.rootChanged) { return true } else { return false }
+                if eventMonitor.fileURLs.contains($0.url) || (monitorRoot && $0.actions.contains(.rootChanged)) { return true } else { return false }
             })
         }
-        events.forEach({ fileSystemWatcher.callback?($0) })
+        if let filter = eventMonitor.filter {
+            events = events.filter({ filter($0) })
+        }
+        events.forEach({ eventMonitor.callback?($0) })
         /*
         if !events.isEmpty, let allEventsHandler = fileSystemWatcher.allEventsHandler {
             allEventsHandler(events)
