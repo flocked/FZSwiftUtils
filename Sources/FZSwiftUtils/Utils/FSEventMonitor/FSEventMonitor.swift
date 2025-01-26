@@ -10,6 +10,7 @@ import Foundation
 
 /// Monitores files on the file system.
 public class FSEventMonitor {
+    private let id = UUID()
     private var streamRef: FSEventStreamRef?
     private var isRunning: Bool { streamRef != nil }
     private var startEventID: FSEventStreamEventId? = nil
@@ -109,9 +110,16 @@ public class FSEventMonitor {
     }
     
 
-    /// Start monitoring the files and additionally provide all events that have happened since the specified event.
-    public func start(since event: FSEvent) {
+    /// Start monitoring the files and additionally provide all events that happened since the specified event.
+    public func start(withEventsSince event: FSEvent) {
         startEventID = event.id
+        restart()
+        isActive = true
+    }
+    
+    /// Start monitoring the files and additionally provide all events that happened since the specified date.
+    public func start(withEventsSince date: Date) {
+        startEventID = fileURLs.compactMap({ $0.resources.volume.url }).uniqued().compactMap({ eventID(for: date, url: $0) }).sorted(.smallestFirst).first
         restart()
         isActive = true
     }
@@ -169,6 +177,12 @@ public class FSEventMonitor {
         streamRef = nil
     }
     
+    private func eventID(for date: Date, url: URL? = nil) -> FSEventStreamEventId? {
+        guard let deviceID = (url ?? URL(fileURLWithPath: "/"))?.deviceID else { return nil }
+        let timestamp = date.timeIntervalSince1970
+        return FSEventsGetLastEventIdForDeviceBeforeTime(deviceID, timestamp)
+    }
+    
     private let eventCallback: FSEventStreamCallback = {(
         stream: ConstFSEventStreamRef,
         contextInfo: UnsafeMutableRawPointer?,
@@ -180,9 +194,6 @@ public class FSEventMonitor {
         let paths = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [String]
         var events = (0..<numEvents).compactMap({ FSEvent(eventIds[$0], paths[$0], eventFlags[$0]) })
         let eventCount = events.count
-        for event in events {
-            Swift.print(event)
-        }
         events = events.filter({ $0.flags.contains(.historyDone) })
         if fileSystemWatcher.eventActions != .all {
             events = events.filter({ fileSystemWatcher.eventActions.contains(any: $0.actions) })
@@ -194,6 +205,13 @@ public class FSEventMonitor {
             })
         }
         events.forEach({ fileSystemWatcher.callback?($0) })
+        /*
+        if !events.isEmpty, let allEventsHandler = fileSystemWatcher.allEventsHandler {
+            allEventsHandler(events)
+            FSEventMonitor.sharedMonitors[fileSystemWatcher.id] = nil
+            fileSystemWatcher.stop()
+        }
+         */
     }
     
     private let retainCallback: CFAllocatorRetainCallBack = {(info: UnsafeRawPointer?) in
@@ -203,6 +221,31 @@ public class FSEventMonitor {
     
     private let releaseCallback: CFAllocatorReleaseCallBack = {(info: UnsafeRawPointer?) in
         Unmanaged<FSEventMonitor>.fromOpaque(info!).release()
+    }
+    
+    /*
+     var allEventsHandler: (([FSEvent])->())?
+     let id = UUID()
+     static var sharedMonitors: [UUID: FSEventMonitor] = [:]
+     static func events(for urls: [URL], since date: Date, handler: @escaping ([FSEvent])->()) {
+         let monitor = FSEventMonitor(urls)
+         monitor.allEventsHandler = handler
+         monitor.callback = { _ in }
+         monitor.start(withEventsSince: date)
+         Self.sharedMonitors[monitor.id] = monitor
+     }
+     */
+}
+
+fileprivate extension URL {
+    var deviceID: dev_t? {
+        guard isFileURL else { return nil }
+        var statInfo = stat()
+        if stat(path, &statInfo) == 0 {
+            return statInfo.st_dev
+        } else {
+            return nil
+        }
     }
 }
 #endif

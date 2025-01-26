@@ -26,11 +26,7 @@ public struct FSEvent: Hashable, Identifiable {
         self.flags = FSEventFlags(rawValue: eventFlags)
         self.itemType = flags.itemType
         self.actions = flags.actions
-        if itemType.contains(.directory), !eventPath.hasSuffix("/") {
-            self.url = URL(fileURLWithPath: eventPath + "/")
-        } else {
-            self.url = URL(fileURLWithPath: eventPath)
-        }
+        self.url = URL(fileURLWithPath: eventPath, isDirectory: itemType.contains(.directory))
     }
 }
 
