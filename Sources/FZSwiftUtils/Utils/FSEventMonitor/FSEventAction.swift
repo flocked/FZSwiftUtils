@@ -60,11 +60,11 @@ public struct FSEventActions: OptionSet, Hashable {
 
 extension FSEventActions: CustomStringConvertible {
     public var description: String {
-        return "[\(self.elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+        "[\(self.elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
     
     public var debugDescription: String {
-        self == .none ? "[.none]" : "[\(self.elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
+        "[\(self.elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
     }
     
     var _description: String {
