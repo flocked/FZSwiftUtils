@@ -74,6 +74,7 @@ extension NSObject {
             
             public var debugDescription: String {
                 var string = ""
+                string += "(\(String(describing: returnType)))"
                 var arguments = argumentTypes.compactMap({"("+String(describing: $0)+")"})
                 if !arguments.isEmpty {
                     var components = name.components(separatedBy: ":")
@@ -92,7 +93,7 @@ extension NSObject {
                     string += name
                 }
                 if !(returnType is Void.Type) {
-                    string += "->\(String(describing: returnType))"
+                  //  string += "->\(String(describing: returnType))"
                 }
                 return string
             }
