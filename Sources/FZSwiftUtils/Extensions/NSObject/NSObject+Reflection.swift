@@ -749,17 +749,3 @@ fileprivate extension String {
         return String(dropFirst(1).dropLast(1))
     }
 }
-
-/*
- // Ref: http://nshipster.com/type-encodings/
-             // c: A char                  v: A void
-             // C: An unsigned char        B: A C++ bool or C99 _bool
-             // i: An int                  @: An object (whether statically typed or typed id)
-             // I: An unsigned int         #: A class object
-             // s: A short                 :: A method selector (SEL)
-             // S: An unsigned short       [array type]: An array
-             // l: A long                  {name=type...}: A structure
-             // L: An unsigned long        (name=type...): A union
-             // q: A long long             bnum: A bit field of num bits
-             // Q: An unsigned long long   ^type: A pointer to type
- */
