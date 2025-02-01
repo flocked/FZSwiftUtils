@@ -625,9 +625,7 @@ fileprivate extension String {
             string.replacePrefix("@", with: "")
         }
         string = string.withoutBrackets
-        if let structType = StructType(string) {
-            return structType
-        } else if string == "@" {
+        if string == "@" {
             return AnyObject.self
         }  else if string == "<NSObject>" {
             return NSObject.self
