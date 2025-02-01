@@ -539,22 +539,24 @@ fileprivate extension objc_property_t {
 }
 
 fileprivate let valueTypesMap: [String: Any] = [
+    "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
     "c": Int8.self,
     "s": Int16.self,
+    "i": Int32.self,
     "#": AnyClass.self,
     ":": Selector.self,
-    "i": Int32.self,
-    "q": Int.self, // also: Int64, NSInteger, only true on 64 bit platforms
+    "Q": UInt.self, // also UInt64, only true on 64 bit platforms
+    "C": UInt8.self,
+  //  "C": UInt.self, // for ivar
     "S": UInt16.self,
     "I": UInt32.self,
-    "Q": UInt.self, // also UInt64, only true on 64 bit platforms
     "B": Bool.self,
     "d": Double.self,
     "f": Float.self,
-    "{": Decimal.self,
+ //   "{": Decimal.self,
     "@?": "Block", // ()->()).self,
     "b1": Bool.self, // for ivar
-    "C": UInt.self, // for ivar
+    "*": String.self,
 ]
 
 fileprivate struct AnyObjectType: CustomStringConvertible {
@@ -660,6 +662,46 @@ fileprivate extension String {
             return CALayer.self
         } else if string.contains("CATransform3D") {
             return CATransform3D.self
+        } else if string.hasPrefix("{") && string.hasSuffix("}") {
+            let content = string.dropFirst().dropLast()
+            if let equalIndex = content.firstIndex(of: "=") {
+                let name = content[..<equalIndex]
+                let fields = content[content.index(after: equalIndex)...]
+
+                let fieldDescriptions = fields.map { "\(String($0).toType())" }.joined(separator: ", ")
+                return "\(name)(\(fieldDescriptions))"
+            }
+        } else if string.hasPrefix("[") && string.hasSuffix("]") {
+            let content = self.dropFirst().dropLast()
+            var countString = ""
+            var typeEncoding = ""
+            var isAddingNumber = true
+            for char in content {
+                if isAddingNumber, char.isNumber {
+                    countString.append(char)
+                } else {
+                    isAddingNumber = false
+                    typeEncoding.append(char)
+                }
+            }
+            let elementType = typeEncoding.toType()
+            if let count = Int(countString), !countString.isEmpty {
+                return "[\(elementType)](\(count))"
+            } else {
+                return "[\(elementType)]"
+            }
+        } else if string.hasPrefix("^") {
+            let pointedType = String(string.dropFirst()).toType()
+            return "UnsafePointer<\(pointedType)>"
+        } else if string.hasPrefix("(") && string.hasSuffix(")") {
+            let content = string.dropFirst().dropLast()
+            if let equalIndex = content.firstIndex(of: "=") {
+                let name = content[..<equalIndex]
+                let fields = content[content.index(after: equalIndex)...]
+
+                let fieldDescriptions = fields.map { "\(String($0).toType())" }.joined(separator: ", ")
+                return "union \(name)(\(fieldDescriptions))"
+            }
         }
         #endif
         #if os(macOS)
