@@ -1,5 +1,5 @@
 //
-//  ItemType.swift
+//  FSEvent+ItemType.swift
 //  
 //
 //  Created by Florian Zand on 26.01.25.
