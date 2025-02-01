@@ -13,11 +13,11 @@ public struct FSEvent: Hashable, Identifiable {
     /// The url of the file.
     public let url: URL
     /// The type of the item.
-    public let itemType: FSEventItemType
+    public let itemType: ItemType
     /// The actions of the event.
-    public let actions: FSEventActions
+    public let actions: Actions
     /// The event flags.
-    public let flags: FSEventFlags
+    public let flags: Flags
     /// The identifier of the event.
     public let id: FSEventStreamEventId
     /// The identifier of the file.
@@ -35,7 +35,7 @@ public struct FSEvent: Hashable, Identifiable {
         self.id = eventId
         self.fileID = fileID
         self.documentID = documentID
-        self.flags = FSEventFlags(rawValue: eventFlags)
+        self.flags = Flags(rawValue: eventFlags)
         self.itemType = flags.itemType
         self.actions = flags.actions
         self.url = URL(fileURLWithPath: eventPath, isDirectory: itemType.contains(.directory))

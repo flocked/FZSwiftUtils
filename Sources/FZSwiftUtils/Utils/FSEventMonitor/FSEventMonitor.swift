@@ -47,7 +47,7 @@ public class FSEventMonitor {
      
      The default value is `all`.
      */
-    public var eventActions: FSEventActions = .all {
+    public var eventActions: FSEvent.Actions = .all {
         didSet { updateMonitoring() }
     }
     
@@ -192,7 +192,7 @@ public class FSEventMonitor {
         if events.contains(where: { $0.flags.contains(.eventIdsWrapped) }) {
             FSEventMonitor.eventIDInvalidationDate = Date()
         }
-        events = events.filter({ !$0.flags.contains(any: FSEventFlags.filter) })
+        events = events.filter({ !$0.flags.contains(any: FSEvent.Flags.filter) })
         if eventActions != .all {
             events = events.filter({ eventActions.contains(any: $0.actions) })
         }
