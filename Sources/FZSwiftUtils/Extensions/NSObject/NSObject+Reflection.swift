@@ -75,7 +75,7 @@ extension NSObject {
             public var debugDescription: String {
                 var string = ""
                 let argumentTypes = argumentTypes
-                var arguments = argumentTypes.enumerated().compactMap({$0.offset == argumentTypes.endIndex ?   "("+String(describing: $0.element)+")" : "("+String(describing: $0.element)+"), "})
+                var arguments = argumentTypes.enumerated().compactMap({$0.offset == argumentTypes.endIndex-1 ?   "("+String(describing: $0.element)+")" : "("+String(describing: $0.element)+"), "})
                 if !arguments.isEmpty {
                     var components = name.components(separatedBy: ":")
                     if components.count == arguments.count+1 {
