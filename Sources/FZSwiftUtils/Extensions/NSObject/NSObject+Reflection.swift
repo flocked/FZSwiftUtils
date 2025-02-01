@@ -18,160 +18,156 @@ import UIKit
 
 // MARK: Class Reflection
 
-extension NSObject {
-    /// Reflection of a `NSObject` class.
-    public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvertible {
-        /// The type of the object.
-        public let type: NSObject.Type
-        /// The properties of the object.
-        public let properties: [PropertyDescription]
-        /// The methods of the object.
-        public let methods: [MethodDescription]
-        /// The ivars of the object.
-        public let ivars: [PropertyDescription]
-        /// The class properties of the object.
-        public let classProperties: [PropertyDescription]
-        /// The class methods of the object.
-        public let classMethods: [MethodDescription]
-        /// The class ivars of the object.
-        public let classIvars: [PropertyDescription]
-        
-        /// Description of a `NSObject` property.
-        public struct PropertyDescription: CustomStringConvertible {
-            /// The name of the property.
-            public let name: String
-            /// The type of the property.
-            public let type: Any
-            /// A Boolean value indicating whether the property is `readOnly`.
-            public let isReadOnly: Bool
-            
-            public var description: String {
-                if let type = type as? Protocol {
-                    return isReadOnly ? "\(name) [readOnly]: \(NSStringFromProtocol(type))" : "\(name): \(NSStringFromProtocol(type))"
-                }
-                return isReadOnly ? "\(name) [readOnly]: \(String(describing: type))" : "\(name): \(String(describing: type))"
-            }
-            
-            init(_ name: String, _ type: Any, _ isReadOnly: Bool) {
-                self.name = name
-                self.type = type
-                self.isReadOnly = isReadOnly
-            }
-        }
-        
-        /// Description of a`NSObject` method.
-        public struct MethodDescription: CustomStringConvertible, CustomDebugStringConvertible {
-            /// The name of the method.
-            public let name: String
-            /// The argument types of the method.
-            public let argumentTypes: [Any]
-            /// The return type of the method.
-            public let returnType: Any
-            
-            public var description: String {
-                name
-            }
-            
-            public var debugDescription: String {
-                var string = ""
-                string += "(\(String(describing: returnType)))"
-                var arguments = argumentTypes.compactMap({"("+String(describing: $0)+")"})
-                if !arguments.isEmpty {
-                    var components = name.components(separatedBy: ":")
-                    if components.count == arguments.count+1 {
-                        let lastComponent = components.removeLastSafetly() ?? ""
-                        for component in components {
-                            string += component + ":"
-                            string += arguments.removeFirstSafetly() ?? ""
-                            if !arguments.isEmpty {
-                                string += " "
-                            }
-                        }
-                        string += lastComponent
-                    }
-                } else {
-                    string += name
-                }
-                if !(returnType is Void.Type) {
-                  //  string += "->\(String(describing: returnType))"
-                }
-                return string
-            }
-        }
-        
-        /**
-         Returns a reflection for the specified `NSObject` class.
-         
-         - Parameters:
-         - `class`: The class.
-         - includeSuperclass: A Boolean value indicating whether to include include reflection of the class's `superclass`.
-         */
-        public init(_ `class`: NSObject.Type, includeSuperclass: Bool = false) {
-            self.type = `class`
-            self.properties = `class`.propertiesReflection(includeSuperclass: includeSuperclass)
-            self.methods = `class`.methodsReflection(includeSuperclass: includeSuperclass)
-            self.ivars = `class`.ivarsReflection(includeSuperclass: includeSuperclass)
-            self.classProperties = `class`.classPropertiesReflection(includeSuperclass: includeSuperclass)
-            self.classMethods = `class`.classMethodsReflection(includeSuperclass: includeSuperclass)
-            self.classIvars = `class`.classIvarsReflection(includeSuperclass: includeSuperclass)
-        }
-        
-        /**
-         Returns a reflection for a `NSObject` with the specified class name.
-         
-         - Parameters:
-         - className: The name of the class..
-         - includeSuperclass: A Boolean value indicating whether to include include reflection of the class's `superclass`.
-         
-         - Returns: The reflection for the class with the specified name, or `nil` if no class if found with the name.
-         */
-        public init?(_ className: String, includeSuperclass: Bool = false) {
-            guard let type = NSClassFromString(className) as? NSObject.Type else { return nil }
-            self = .init(type, includeSuperclass: includeSuperclass)
-        }
+/// Reflection of a `NSObject` class.
+public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvertible {
+    /// The type of the object.
+    public let type: NSObject.Type
+    /// The properties of the object.
+    public let properties: [PropertyDescription]
+    /// The methods of the object.
+    public let methods: [MethodDescription]
+    /// The ivars of the object.
+    public let ivars: [PropertyDescription]
+    /// The class properties of the object.
+    public let classProperties: [PropertyDescription]
+    /// The class methods of the object.
+    public let classMethods: [MethodDescription]
+    /// The class ivars of the object.
+    public let classIvars: [PropertyDescription]
+    
+    /// Description of a `NSObject` property.
+    public struct PropertyDescription: CustomStringConvertible {
+        /// The name of the property.
+        public let name: String
+        /// The type of the property.
+        public let type: Any
+        /// A Boolean value indicating whether the property is `readOnly`.
+        public let isReadOnly: Bool
         
         public var description: String {
-            description()
+            if let type = type as? Protocol {
+                return isReadOnly ? "\(name) [readOnly]: \(NSStringFromProtocol(type))" : "\(name): \(NSStringFromProtocol(type))"
+            }
+            return isReadOnly ? "\(name) [readOnly]: \(String(describing: type))" : "\(name): \(String(describing: type))"
+        }
+        
+        init(_ name: String, _ type: Any, _ isReadOnly: Bool) {
+            self.name = name
+            self.type = type
+            self.isReadOnly = isReadOnly
+        }
+    }
+    
+    /// Description of a`NSObject` method.
+    public struct MethodDescription: CustomStringConvertible, CustomDebugStringConvertible {
+        /// The name of the method.
+        public let name: String
+        /// The argument types of the method.
+        public let argumentTypes: [Any]
+        /// The return type of the method, or `nil` if the method isn't returning anything.
+        public let returnType: Any?
+        
+        public var description: String {
+            name
         }
         
         public var debugDescription: String {
-            description(isDebug: true)
+            var string = ""
+            var arguments = argumentTypes.compactMap({"("+String(describing: $0)+")"})
+            if !arguments.isEmpty {
+                var components = name.components(separatedBy: ":")
+                if components.count == arguments.count+1 {
+                    let lastComponent = components.removeLastSafetly() ?? ""
+                    for component in components {
+                        string += component + ":"
+                        string += arguments.removeFirstSafetly() ?? ""
+                        if !arguments.isEmpty {
+                            string += " "
+                        }
+                    }
+                    string += lastComponent
+                }
+            } else {
+                string += name
+            }
+            if let returnType = returnType {
+                string += "->\(String(describing: returnType))"
+            }
+            return string
         }
-        
-        private func description(isDebug: Bool = false) -> String {
-            var strings =  ["<\(String(describing: type))>("]
-            if !properties.isEmpty {
-                strings.append("  Properties:")
-                strings.append(contentsOf: properties.compactMap({"    " + $0.description}))
-            }
-            if !methods.isEmpty {
-                strings.append("  Methods:")
-                strings.append(contentsOf: methods.compactMap({"    " + (isDebug ? $0.debugDescription : $0.description)}))
-            }
-            if !ivars.isEmpty {
-                strings.append("  Ivars:")
-                strings.append(contentsOf: ivars.compactMap({"    " + $0.description}))
-            }
-            if !classProperties.isEmpty {
-                strings.append("  Class Properties:")
-                strings.append(contentsOf: classProperties.compactMap({"    " + $0.description}))
-            }
-            if !classMethods.isEmpty {
-                strings.append("  Class Methods:")
-                strings.append(contentsOf: classMethods.compactMap({"    " + (isDebug ? $0.debugDescription : $0.description)}))
-            }
-            if !classIvars.isEmpty {
-                strings.append("  Class Ivars:")
-                strings.append(contentsOf: classIvars.compactMap({"    " + $0.description}))
-            }
-            strings.append(")")
-            return strings.joined(separator: "\n")
+    }
+    
+    /**
+     Returns a reflection for the specified `NSObject` class.
+     
+     - Parameters:
+        - class: The class of the object to reflect.
+        - includeSuperclass: A Boolean value indicating whether to include include reflection of the class's `superclass`.
+     */
+    public init(_ class: NSObject.Type, includeSuperclass: Bool = false) {
+        self.type = `class`
+        self.properties = `class`.propertiesReflection(includeSuperclass: includeSuperclass)
+        self.methods = `class`.methodsReflection(includeSuperclass: includeSuperclass)
+        self.ivars = `class`.ivarsReflection(includeSuperclass: includeSuperclass)
+        self.classProperties = `class`.classPropertiesReflection(includeSuperclass: includeSuperclass)
+        self.classMethods = `class`.classMethodsReflection(includeSuperclass: includeSuperclass)
+        self.classIvars = `class`.classIvarsReflection(includeSuperclass: includeSuperclass)
+    }
+    
+    /**
+     Returns a reflection for a `NSObject` with the specified class name.
+     
+     - Parameters:
+        - className: The name of the class to reflect.
+        - includeSuperclass: A Boolean value indicating whether to include include reflection of the class's `superclass`.
+     
+     - Returns: The reflection for the class with the specified name, or `nil` if no class is found with the name.
+     */
+    public init?(_ className: String, includeSuperclass: Bool = false) {
+        guard let type = NSClassFromString(className) as? NSObject.Type else { return nil }
+        self = .init(type, includeSuperclass: includeSuperclass)
+    }
+    
+    public var description: String {
+        description()
+    }
+    
+    public var debugDescription: String {
+        description(isDebug: true)
+    }
+    
+    private func description(isDebug: Bool = false) -> String {
+        var strings =  ["<\(String(describing: type))>("]
+        if !properties.isEmpty {
+            strings.append("  Properties:")
+            strings.append(contentsOf: properties.compactMap({"    " + $0.description}))
         }
+        if !methods.isEmpty {
+            strings.append("  Methods:")
+            strings.append(contentsOf: methods.compactMap({"    " + (isDebug ? $0.debugDescription : $0.description)}))
+        }
+        if !ivars.isEmpty {
+            strings.append("  Ivars:")
+            strings.append(contentsOf: ivars.compactMap({"    " + $0.description}))
+        }
+        if !classProperties.isEmpty {
+            strings.append("  Class Properties:")
+            strings.append(contentsOf: classProperties.compactMap({"    " + $0.description}))
+        }
+        if !classMethods.isEmpty {
+            strings.append("  Class Methods:")
+            strings.append(contentsOf: classMethods.compactMap({"    " + (isDebug ? $0.debugDescription : $0.description)}))
+        }
+        if !classIvars.isEmpty {
+            strings.append("  Class Ivars:")
+            strings.append(contentsOf: classIvars.compactMap({"    " + $0.description}))
+        }
+        strings.append(")")
+        return strings.joined(separator: "\n")
     }
 }
 
 extension NSObject {
-    
     /// Returns a reflection of the class.
     public static func classReflection(includeSuperclass: Bool = false) -> ClassReflection {
         ClassReflection(self, includeSuperclass: includeSuperclass)
@@ -256,20 +252,24 @@ extension NSObject {
     }
     
     /**
-     Returns the value type for the property with the specified name.
+     The value type for the property with the specified name.
      
      - Parameters:
         - name: The name of the property.
-        - includeSuperclass: A Boolean value indicating whether to also check the properties of the class's `superclass`.
+        - includeSuperclass: A Boolean value indicating whether to also check for properties of the class's `superclass`.
      */
     public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertiesReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
     }
     
-    static func hasValue(_ name: String, includeSuperclass: Bool = false) -> Bool {
-        if propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name }) {
-            return true
-        }
-        return methodsReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name})
+    /**
+     A Boolean value indicating whether the class has a property with the specified name.
+     
+     - Parameters:
+        - name: The name of the property.
+        - includeSuperclass: A Boolean value indicating whether to also check for properties of the class's `superclass`.
+     */
+    static func hasProperty(named name: String, includeSuperclass: Bool = false) -> Bool {
+        propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name })
     }
     
     private static var metaClass: NSObject.Type? {
@@ -325,108 +325,117 @@ extension NSObject {
 
 // MARK: Protocol Reflection
 
-extension NSObject {
-    /// Reflection of a protocol.
-    public struct ProtocolReflection: CustomStringConvertible {
-        /// The name of the protocol.
+/// Reflection of a `NSObjectProtocol` protocol.
+public struct ProtocolReflection: CustomStringConvertible {
+    /// The name of the protocol.
+    public let name: String
+    /// The method descriptions of the protocol.
+    public let methods: [MethodDescription]
+    /// The property descriptions of the protocol.
+    public let properties: [PropertyDescription]
+    
+    public var description: String {
+        var strings: [String] = ["<\(name)>("]
+        var _methods = methods.filter({$0.isRequired && $0.isInstance})
+        if !_methods.isEmpty {
+            strings.append("\tMethods (required):")
+            strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
+        }
+        _methods = methods.filter({!$0.isRequired && $0.isInstance})
+        if !_methods.isEmpty {
+            strings.append("\tMethods (optional):")
+            strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
+        }
+        _methods = methods.filter({$0.isRequired && !$0.isInstance})
+        if !_methods.isEmpty {
+            strings.append("\tClass Methods (required):")
+            strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
+        }
+        _methods = methods.filter({!$0.isRequired && !$0.isInstance})
+        if !_methods.isEmpty {
+            strings.append("\tClass Methods (optional):")
+            strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
+        }
+        var _properties = properties.filter({$0.isRequired && $0.isInstance})
+        if !_properties.isEmpty {
+            strings.append("\tProperties (required):")
+            strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.description}))
+        }
+        _properties = properties.filter({!$0.isRequired && $0.isInstance})
+        if !_properties.isEmpty {
+            strings.append("\tProperties (optional):")
+            strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.description}))
+        }
+        _properties = properties.filter({$0.isRequired && !$0.isInstance})
+        if !_properties.isEmpty {
+            strings.append("\tClass Properties (required):")
+            strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.name}))
+        }
+        _properties = properties.filter({!$0.isRequired && !$0.isInstance})
+        if !_properties.isEmpty {
+            strings.append("\tClass Properties (optional):")
+            strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.name}))
+        }
+        strings.append(")")
+        return strings.joined(separator: "\n")
+    }
+    
+    /// Protocol property description.
+    public struct PropertyDescription: CustomStringConvertible {
+        /// The name of the method.
         public let name: String
-        /// The method descriptions of the protocol.
-        public let methods: [MethodDescription]
-        /// The property descriptions of the protocol.
-        public let properties: [PropertyDescription]
+        /// The type of the property.
+        public let type: Any
+        /// A Boolean value indicating whether the property is `readOnly`.
+        public let isReadOnly: Bool
+        /// A Boolean value indicating whether the property is an instance property.
+        public let isInstance: Bool
+        /// A Boolean value indicating whether the property is required.
+        public let isRequired: Bool
         
         public var description: String {
-            var strings: [String] = ["<\(name)>("]
-            var _methods = methods.filter({$0.isRequired && $0.isInstance})
-            if !_methods.isEmpty {
-                strings.append("\tMethods (required):")
-                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
-            }
-            _methods = methods.filter({!$0.isRequired && $0.isInstance})
-            if !_methods.isEmpty {
-                strings.append("\tMethods (optional):")
-                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
-            }
-            _methods = methods.filter({$0.isRequired && !$0.isInstance})
-            if !_methods.isEmpty {
-                strings.append("\tClass Methods (required):")
-                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
-            }
-            _methods = methods.filter({!$0.isRequired && !$0.isInstance})
-            if !_methods.isEmpty {
-                strings.append("\tClass Methods (optional):")
-                strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
-            }
-            var _properties = properties.filter({$0.isRequired && $0.isInstance})
-            if !_properties.isEmpty {
-                strings.append("\tProperties (required):")
-                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.description}))
-            }
-            _properties = properties.filter({!$0.isRequired && $0.isInstance})
-            if !_properties.isEmpty {
-                strings.append("\tProperties (optional):")
-                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.description}))
-            }
-            _properties = properties.filter({$0.isRequired && !$0.isInstance})
-            if !_properties.isEmpty {
-                strings.append("\tClass Properties (required):")
-                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.name}))
-            }
-            _properties = properties.filter({!$0.isRequired && !$0.isInstance})
-            if !_properties.isEmpty {
-                strings.append("\tClass Properties (optional):")
-                strings.append(contentsOf: _properties.compactMap({"\t\t" + $0.name}))
-            }
-            strings.append(")")
-            return strings.joined(separator: "\n")
-        }
-        
-        /// Protocol property description.
-        public struct PropertyDescription: CustomStringConvertible {
-            /// The name of the method.
-            public let name: String
-            /// The type of the property.
-            public let type: Any
-            /// A Boolean value indicating whether the property is `readOnly`.
-            public let isReadOnly: Bool
-            /// A Boolean value indicating whether the property is an instance property.
-            public let isInstance: Bool
-            /// A Boolean value indicating whether the property is required.
-            public let isRequired: Bool
-            
-            public var description: String {
-                isReadOnly ? "\(name) [readOnly]: \(type)" : "\(name): \(type)"
-            }
-        }
-        
-        /// Protocol method description.
-        public struct MethodDescription {
-            /// The name of the method.
-            public let name: String
-            /// A Boolean value indicating whether the method is an instance method.
-            public let isInstance: Bool
-            /// A Boolean value indicating whether the method is required.
-            public let isRequired: Bool
+            isReadOnly ? "\(name) [readOnly]: \(type)" : "\(name): \(type)"
         }
     }
     
-    /// Protocol reflection for the specified protocol.
-    public static func protocolReclection<Object: NSObjectProtocol>(for protocol: Object.Type) -> ProtocolReflection? {
-        let name = String(describing: Object.self)
-        guard let proto = NSProtocolFromString(name) else { return nil }
-        let methods = protocolMethods(for: proto)
-        let properties = protocolProperties(for: proto)
-        return ProtocolReflection(name: name, methods: methods, properties: properties)
-    }
-        
-    private static func protocolMethods<Object: NSObjectProtocol>(for protocol: Object.Type) -> [ProtocolReflection.MethodDescription] {
-        guard let proto = NSProtocolFromString(String(describing: Object.self)) else { return [] }
-        return protocolMethods(for: proto)
+    /// Protocol method description.
+    public struct MethodDescription {
+        /// The name of the method.
+        public let name: String
+        /// A Boolean value indicating whether the method is an instance method.
+        public let isInstance: Bool
+        /// A Boolean value indicating whether the method is required.
+        public let isRequired: Bool
     }
     
-    private static func protocolProperties<Object: NSObjectProtocol>(for protocol: Object.Type) -> [ProtocolReflection.PropertyDescription] {
-        guard let proto = NSProtocolFromString(String(describing: Object.self)) else { return [] }
-        return protocolProperties(for: proto)
+    /**
+     Returns a protocol reflection for the specified `NSObjectProtocol` protocol.
+     
+     - Parameter protocol: The protocol to reflect.
+     - Returns: The reflection for the protocol, or `nil` if the reflection couldn't be created.
+     */
+    public init?<Protocol: NSObjectProtocol>(_ protocol: Protocol.Type) {
+        self.init(String(describing: `Protocol`.self))
+    }
+    
+    /**
+     Returns a protocol reflection for a `NSObjectProtocol` with the specified protocol name.
+     
+     - Parameter protocolName: The name of the protocol to reflect.
+     
+     - Returns: The reflection for the protocol with the specified name, or `nil` if no protocol is found with the name.
+     */
+    public init?(_ protocolName: String) {
+        guard let proto = NSProtocolFromString(protocolName) else { return nil }
+        let methods = Self.protocolMethods(for: proto)
+        let properties = Self.protocolProperties(for: proto)
+        self = ProtocolReflection(name: protocolName, methods: methods, properties: properties)
+    }
+    
+    private init(name: String, methods: [MethodDescription], properties: [PropertyDescription]) {
+        self.name = name
+        self.methods = methods
+        self.properties = properties
     }
     
     private static func protocolProperties(for protocol: Protocol) -> [ProtocolReflection.PropertyDescription] {
@@ -489,9 +498,10 @@ fileprivate extension Method {
         return String(validatingUTF8: UnsafePointer<CChar>(buf))!
     }
     
-    var methodDescription: NSObject.ClassReflection.MethodDescription? {
+    var methodDescription: ClassReflection.MethodDescription? {
         let name = NSStringFromSelector(method_getName(self))
-        let returnType = self.returnType.toType()
+        let _returnType = self.returnType.toType()
+        let returnType = _returnType is Void.Type ? nil : _returnType
         var argumentTypes: [Any] = []
         for index in 0..<self.numberOfArguments.clamped(min: 0) {
             argumentTypes.append(self.argumentType(at: index).toType())
@@ -511,7 +521,7 @@ fileprivate extension Ivar {
         return String(validatingUTF8: typeChars)?.toType()
     }
     
-    var ivarDescription: NSObject.ClassReflection.PropertyDescription? {
+    var ivarDescription: ClassReflection.PropertyDescription? {
         guard let name = ivarName, let type = ivarType else { return nil }
         return .init(name, type, false)
     }
@@ -536,7 +546,7 @@ fileprivate extension objc_property_t {
         return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
     }
     
-    var propertyDescription: NSObject.ClassReflection.PropertyDescription? {
+    var propertyDescription: ClassReflection.PropertyDescription? {
         guard let name = name else { return nil }
         return .init(name, type, isReadOnly)
     }
@@ -579,7 +589,7 @@ fileprivate struct AnyObjectType: CustomStringConvertible {
 }
 
 fileprivate struct WFlagsType: CustomStringConvertible {
-    var descriptions: [NSObject.ClassReflection.PropertyDescription] = []
+    var descriptions: [ClassReflection.PropertyDescription] = []
     let flagType: String
     
     var description: String {
@@ -599,7 +609,7 @@ fileprivate struct WFlagsType: CustomStringConvertible {
 }
 
 fileprivate struct StructType: CustomStringConvertible {
-    var descriptions: [NSObject.ClassReflection.PropertyDescription] = []
+    var descriptions: [ClassReflection.PropertyDescription] = []
     var _description: String  = ""
     init?(_ string: String) {
         guard string.hasPrefix("{?=") else { return nil }
