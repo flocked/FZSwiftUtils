@@ -148,49 +148,22 @@ public struct Swizzle {
             var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
             selectors[pair.new] = pair.old
             setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
-        } else if lhs != nil {
-            Swift.print("HERE_2")
-            let selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
-            if selectors[pair.old] == pair.new {
-                Swift.print("HERE_3")
-                var deleteImplementations = getAssociatedValue("deleteImplementations", object: `class`, initialValue: [Selector: IMP]())
-                if let deleteIMP = deleteImplementations[pair.old] ?? class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) {
-                    Swift.print("HERE_4")
-                    deleteImplementations[pair.old] = deleteIMP
-                    setAssociatedValue(deleteImplementations, key: "deleteImplementations", object: `class`)
-                    method_setImplementation(method, deleteIMP)
-                } else {
-                    throw Error.missingMethod(`class`, pair.static, false, pair)
-                }
-            } else {
-                throw Error.missingMethod(`class`, pair.static, false, pair)
-            }
         } else {
             throw Error.missingMethod(`class`, pair.static, true, pair)
         }
     }
     
     private func resetOptional(type: AnyObject.Type, pair: SelectorPair) -> Bool {
-        guard let `class` = pair.static ? object_getClass(type) : type
+        guard let `class` = pair.static ? object_getClass(type) : type, class_getInstanceMethod(`class`, pair.old) != nil
         else { return false }
-        let lhs = class_getInstanceMethod(`class`, pair.old)
-        let rhs = class_getInstanceMethod(`class`, pair.new)
-        if lhs != nil {
-            Swift.print("HERE_2")
-            let selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
-            if selectors[pair.old] == pair.new {
-                Swift.print("HERE_3")
-                var deleteImplementations = getAssociatedValue("deleteImplementations", object: `class`, initialValue: [Selector: IMP]())
-                if let deleteIMP = deleteImplementations[pair.old] ?? class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) {
-                    Swift.print("HERE_4")
-                    deleteImplementations[pair.old] = deleteIMP
-                    setAssociatedValue(deleteImplementations, key: "deleteImplementations", object: `class`)
-                    method_setImplementation(method, deleteIMP)
-                    return true
-                }
-            }
-        }
-        return false
+        Swift.print("HERE_2")
+        var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
+        guard selectors[pair.old] == pair.new, let deleteIMP = class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) else { return false }
+        Swift.print("HERE_4")
+        method_setImplementation(method, deleteIMP)
+        selectors[pair.old] = nil
+        setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
+        return true
     }
 
     private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
@@ -203,13 +176,9 @@ public struct Swizzle {
                 return
             }
             guard let rhs = class_getInstanceMethod(`class`, pair.new)
-            else {
-                Swift.print("HERE_1")
-                try swizzleOptional(type: `class`, pair: pair)
-                return
-            }
-            Swift.print("HERE_10")
-            guard !resetOptional(type: `class`, pair: pair) else { return }
+            else { throw Error.missingMethod(`class`, pair.static, false, pair) }
+            guard !resetOptional(type: `class`, pair: pair)
+            else { return }
 
             if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
                 class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
