@@ -34,6 +34,8 @@ public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvert
     public let classMethods: [MethodDescription]
     /// The class ivars of the object.
     public let classIvars: [PropertyDescription]
+    /// The protocols adopted by the object.
+    public let protocols: [ProtocolReflection]
     
     /// Description of a `NSObject` property.
     public struct PropertyDescription: CustomStringConvertible {
@@ -120,6 +122,7 @@ public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvert
         self.classProperties = `class`.classPropertiesReflection(includeSuperclass: includeSuperclass)
         self.classMethods = `class`.classMethodsReflection(includeSuperclass: includeSuperclass)
         self.classIvars = `class`.classIvarsReflection(includeSuperclass: includeSuperclass)
+        self.protocols = `class`.protocolReflections(includeSuperclass: includeSuperclass)
     }
     
     /**
@@ -267,6 +270,22 @@ extension NSObject {
         - includeSuperclass: A Boolean value indicating whether to also check for properties of the class's `superclass`.
      */
     public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertiesReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
+    }
+    
+    /// Returns the protocol reflections of the protocols adopted by the class.
+    public static func protocolReflections(includeSuperclass: Bool = false) -> [ProtocolReflection] {
+        var reflections: [ProtocolReflection] = []
+        var protocolCount: UInt32 = 0
+        if let protocols = class_copyProtocolList(self, &protocolCount) {
+            for i in 0..<Int(protocolCount) {
+                reflections += ProtocolReflection(protocols[i])
+            }
+        }
+        if includeSuperclass, let superclass = self.superclass(), superclass != NSObject.self {
+            reflections += ProtocolReflection.protocols(for: superclass, includeSuperclass: includeSuperclass)
+        }
+        reflections = reflections.uniqued(by: \.name)
+        return reflections
     }
     
     /**
@@ -456,6 +475,22 @@ public struct ProtocolReflection: CustomStringConvertible {
         self.name = name
         self.methods = methods
         self.properties = properties
+    }
+    
+    /// Returns the protocol reflections of the protocols adopted by the specified class.
+    public static func protocols(for class: AnyClass, includeSuperclass: Bool = false) -> [ProtocolReflection] {
+        var reflections: [ProtocolReflection] = []
+        var protocolCount: UInt32 = 0
+        if let protocols = class_copyProtocolList(`class`, &protocolCount) {
+            for i in 0..<Int(protocolCount) {
+                reflections += ProtocolReflection(protocols[i])
+            }
+        }
+        if includeSuperclass, let superclass = `class`.superclass(), superclass != NSObject.self {
+            reflections += protocols(for: superclass, includeSuperclass: includeSuperclass)
+        }
+        reflections = reflections.uniqued(by: \.name)
+        return reflections
     }
     
     private static func protocolProperties(for protocol: Protocol) -> [ProtocolReflection.PropertyDescription] {
