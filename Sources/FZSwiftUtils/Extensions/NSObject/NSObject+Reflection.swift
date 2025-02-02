@@ -344,6 +344,7 @@ public struct ProtocolReflection: CustomStringConvertible {
     
     public var description: String {
         var strings: [String] = ["<\(name)>("]
+        let methods = methods
         var _methods = methods.filter({$0.isRequired && $0.isInstance})
         if !_methods.isEmpty {
             strings.append("\tMethods (required):")
@@ -364,6 +365,7 @@ public struct ProtocolReflection: CustomStringConvertible {
             strings.append("\tClass Methods (optional):")
             strings.append(contentsOf: _methods.compactMap({"\t\t" + $0.name}))
         }
+        let properties = properties
         var _properties = properties.filter({$0.isRequired && $0.isInstance})
         if !_properties.isEmpty {
             strings.append("\tProperties (required):")
@@ -411,7 +413,7 @@ public struct ProtocolReflection: CustomStringConvertible {
     }
     
     /// Protocol method description.
-    public struct MethodDescription {
+    public struct MethodDescription: CustomStringConvertible {
         /// The name of the method.
         public let name: String
         /// A Boolean value indicating whether the method is an instance method.
@@ -422,6 +424,10 @@ public struct ProtocolReflection: CustomStringConvertible {
         public var selector: Selector {
             NSSelectorFromString(name)
         }
+        
+        public var description: String {
+            name
+        }
     }
     
     /**
@@ -430,8 +436,8 @@ public struct ProtocolReflection: CustomStringConvertible {
      - Parameter protocol: The protocol to reflect.
      - Returns: The reflection for the protocol, or `nil` if the reflection couldn't be created.
      */
-    public init?<Protocol: NSObjectProtocol>(_ protocol: Protocol.Type) {
-        self.init(String(describing: `Protocol`.self))
+    public init(_ protocol: Protocol) {
+        self = ProtocolReflection(name: NSStringFromProtocol(`protocol`), methods: Self.protocolMethods(for: `protocol`), properties: Self.protocolProperties(for: `protocol`))
     }
     
     /**
@@ -443,9 +449,7 @@ public struct ProtocolReflection: CustomStringConvertible {
      */
     public init?(_ protocolName: String) {
         guard let proto = NSProtocolFromString(protocolName) else { return nil }
-        let methods = Self.protocolMethods(for: proto)
-        let properties = Self.protocolProperties(for: proto)
-        self = ProtocolReflection(name: protocolName, methods: methods, properties: properties)
+        self.init(proto)
     }
     
     private init(name: String, methods: [MethodDescription], properties: [PropertyDescription]) {
