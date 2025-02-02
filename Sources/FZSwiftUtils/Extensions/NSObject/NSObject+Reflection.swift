@@ -272,20 +272,15 @@ extension NSObject {
     public static func propertyType(for name: String, includeSuperclass: Bool = false) -> Any? {propertiesReflection(includeSuperclass: includeSuperclass).first(where: {$0.name == name})?.type
     }
     
-    /// Returns the protocol reflections of the protocols adopted by the class.
-    public static func protocolReflections(includeSuperclass: Bool = false) -> [ProtocolReflection] {
-        var reflections: [ProtocolReflection] = []
-        var protocolCount: UInt32 = 0
-        if let protocols = class_copyProtocolList(self, &protocolCount) {
-            for i in 0..<Int(protocolCount) {
-                reflections += ProtocolReflection(protocols[i])
-            }
-        }
-        if includeSuperclass, let superclass = self.superclass(), superclass != NSObject.self {
-            reflections += ProtocolReflection.protocols(for: superclass, includeSuperclass: includeSuperclass)
-        }
-        reflections = reflections.uniqued(by: \.name)
-        return reflections
+    /**
+     Returns the protocol reflections of the protocols adopted by the class.
+     
+     - Parameters:
+        - includeInherentProtocols: A Boolean value indicating whether to include inherent protocols.
+        - includeSuperclass: A Boolean value indicating whether to include protocols of the superclasses.
+     */
+    public static func protocolReflections(includeSuperclass: Bool = false, includeInherentProtocols: Bool = false) -> [ProtocolReflection] {
+        ProtocolReflection.protocols(for: self, includeSuperclass: includeSuperclass, includeInherentProtocols: includeInherentProtocols)
     }
     
     /**
@@ -477,17 +472,30 @@ public struct ProtocolReflection: CustomStringConvertible {
         self.properties = properties
     }
     
-    /// Returns the protocol reflections of the protocols adopted by the specified class.
-    public static func protocols(for class: AnyClass, includeSuperclass: Bool = false) -> [ProtocolReflection] {
+    /**
+     Returns the protocol reflections of the protocols adopted by the specified class.
+     
+     - Parameters:
+        - class: The class.
+        - includeSuperclass: A Boolean value indicating whether to include protocols of the superclasses.
+        - includeInherentProtocols: A Boolean value indicating whether to include inherent protocols.
+     */
+    public static func protocols(for class: AnyClass, includeSuperclass: Bool = false, includeInherentProtocols: Bool = false) -> [ProtocolReflection] {
         var reflections: [ProtocolReflection] = []
         var protocolCount: UInt32 = 0
         if let protocols = class_copyProtocolList(`class`, &protocolCount) {
             for i in 0..<Int(protocolCount) {
                 reflections += ProtocolReflection(protocols[i])
+                if includeInherentProtocols {
+                    var inheritedCount: UInt32 = 0
+                    if let inheritedProtocols = protocol_copyProtocolList(protocols[i], &inheritedCount) {
+                        reflections += (0..<Int(inheritedCount)).compactMap({ ProtocolReflection(inheritedProtocols[$0]) })
+                    }
+                }
             }
         }
         if includeSuperclass, let superclass = `class`.superclass(), superclass != NSObject.self {
-            reflections += protocols(for: superclass, includeSuperclass: includeSuperclass)
+            reflections += protocols(for: superclass, includeSuperclass: includeSuperclass, includeInherentProtocols: includeInherentProtocols)
         }
         reflections = reflections.uniqued(by: \.name)
         return reflections
@@ -521,6 +529,16 @@ public struct ProtocolReflection: CustomStringConvertible {
                 let method = methods?.advanced(by: i).pointee
                 guard let selector = method?.name else { continue }
                 let name = NSStringFromSelector(selector)
+                
+                if let types = method?.types {
+                    let typeEncoding = String(cString: types)
+                    print(name + ", encoding: \(typeEncoding)")
+                    let methodTypes = getMethodTypes(from: typeEncoding)
+                    for type in methodTypes {
+                        print("\t\(type)")
+                    }
+                }
+                
                 descriptions.append(ProtocolReflection.MethodDescription(name: name, isInstance: variation.instance, isRequired: variation.required))
                 // guard let typesChars = method?.types, let types = String(validatingUTF8: typesChars)  else { continue }
             }
@@ -803,4 +821,106 @@ fileprivate extension String {
         guard (hasPrefix("<") || hasPrefix("\"")) && (hasSuffix(">") || hasPrefix("\"")) else { return self }
         return String(dropFirst(1).dropLast(1))
     }
+}
+
+
+
+
+// Objective-C type encoding to Swift mapping (only single-character keys)
+let typeEncodingMap: [Character: String] = [
+    "v": "Void",
+    "@": "AnyObject", // Objects (NSString, NSArray, etc.)
+    "#": "AnyClass",  // Class type
+    ":": "Selector",
+    "c": "Bool",      // char (C) / Bool (Swift)
+    "i": "Int",       // int
+    "s": "Int16",     // short
+    "l": "Int32",     // long (always 32-bit in Obj-C)
+    "q": "Int64",     // long long
+    "C": "UInt8",     // unsigned char
+    "I": "UInt32",    // unsigned int
+    "S": "UInt16",    // unsigned short
+    "L": "UInt32",    // unsigned long
+    "Q": "UInt64",    // unsigned long long
+    "f": "Float",     // float
+    "d": "Double",    // double
+    "B": "Bool",      // _Bool (C99)
+    "*": "UnsafePointer<CChar>", // C-string (char *)
+    "?": "UnknownBlock" // Block / unknown type
+]
+
+// Function to extract complex types (Structs, Arrays, Unions)
+func extractComplexType(from encoding: inout String) -> String? {
+    guard let startChar = encoding.first else { return nil }
+    var stack: [Character] = [startChar]
+    var result = ""
+
+    encoding.removeFirst()
+    
+    while let char = encoding.first {
+        result.append(char)
+        encoding.removeFirst()
+        
+        if char == stack.last {
+            stack.removeLast()
+            if stack.isEmpty { break }
+        } else if char == "{" || char == "(" || char == "[" {
+            stack.append(char)
+        }
+    }
+
+    return result
+}
+
+// Function to map object encoding to specific class types dynamically
+func mapObjectType(from encoding: String) -> String {
+    guard encoding.hasPrefix("@\"") && encoding.hasSuffix("\"") else {
+        return "AnyObject" // Default for unknown types
+    }
+    
+    let className = encoding.dropFirst(2).dropLast(1) // Strip @" and "
+    return String(className)
+}
+
+// Function to parse type encoding into an array of Swift types
+func parseTypeEncoding(_ encoding: String) -> [String] {
+    var components: [String] = []
+    var remainingEncoding = encoding
+
+    while let typeChar = remainingEncoding.first {
+        remainingEncoding.removeFirst()
+
+        if typeChar == "{" || typeChar == "(" || typeChar == "[" { // Struct, Union, or Array
+            if let complexType = extractComplexType(from: &remainingEncoding) {
+                components.append("\(typeChar)\(complexType)")
+            }
+        } else if typeChar == "^" { // Pointer types (multi-character)
+            if let nextChar = remainingEncoding.first {
+                remainingEncoding.removeFirst()
+                let pointerType = typeEncodingMap[nextChar] ?? String(nextChar)
+                components.append("UnsafePointer<\(pointerType)>")
+            } else {
+                components.append("UnsafeRawPointer") // Default for `^` without a known type
+            }
+        } else if typeChar == "@" { // Object types
+            let objectType = mapObjectType(from: remainingEncoding)
+            components.append(objectType)
+        } else {
+            components.append(typeEncodingMap[typeChar] ?? String(typeChar))
+        }
+    }
+
+    return components
+}
+
+// Function to extract method types (return type + parameters)
+func getMethodTypes(from encoding: String) -> [String] {
+    let parsedTypes = parseTypeEncoding(encoding)
+
+    guard parsedTypes.count >= 3 else { return [] } // Must have return type + at least `self` & `_cmd`
+
+    let returnType = parsedTypes[0] // First element is the return type
+    let parameterTypes = Array(parsedTypes.dropFirst(2)) // Drop `self` and `_cmd`
+
+    return [returnType] + parameterTypes
 }
