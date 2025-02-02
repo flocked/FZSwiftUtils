@@ -744,7 +744,7 @@ public extension CGRect {
     }
     
     /// The horizontal order to split a rectangle.
-    enum HorizontalSplitOrder {
+    enum HorizontalSplitOrder: Int {
         /// Left to right.
         case leftToRight
         /// Right to left.
@@ -975,8 +975,19 @@ public extension CGRect {
      - Returns: An array with the divided rectangles.
      */
     func splitted(by size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-        let verticalCount = Int(self.size.height / size.height)
-        let horizontalCount = Int(self.size.width / size.width)
+        
+        var verticalCount = Int(height / size.height)
+        var horizontalCount = Int(width / size.width)
+                
+        let remainingWidth = width - CGFloat(horizontalCount) * size.width
+        let remainingHeight = height - CGFloat(verticalCount) * size.height
+        if remainingWidth > 0.0 {
+            horizontalCount += 1
+        }
+        if remainingHeight > 0.0 {
+            verticalCount += 1
+        }
+        
         var splits: [CGRect] = []
         var hValues = (0..<horizontalCount).compactMap({CGFloat($0)})
         switch horizontalOrder {
@@ -1003,9 +1014,21 @@ public extension CGRect {
         case .random:
             vValues = vValues.shuffled()
         }
-        for v in vValues {
-            for h in hValues {
-                splits.append(CGRect(CGPoint(x: h * size.width, y: v * size.height), size))
+        for vVal in vValues.enumerated() {
+            var v = vVal.element
+            for hVal in hValues.enumerated() {
+                var h = hVal.element
+                var _size = size
+                if hVal.offset == hValues.count-1, remainingWidth > 0.0 {
+                    _size.width = remainingWidth
+                }
+                if vVal.offset == vValues.count-1, remainingHeight > 0.0 {
+                    _size.height = remainingHeight
+                }
+                
+                var rect = CGRect(CGPoint(x: h * size.width, y: v * size.height), _size)
+                splits.append(rect)
+               // splits.append(CGRect(CGPoint(x: h * size.width, y: v * size.height), size))
             }
         }
         return splits
