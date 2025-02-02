@@ -823,6 +823,7 @@ fileprivate extension String {
     }
 }
 
+
 // Objective-C type encoding to Swift mapping (only single-character keys)
 let typeEncodingMap: [Character: String] = [
     "v": "Void",
@@ -908,6 +909,11 @@ func parseTypeEncoding(_ encoding: String) -> [String] {
             } else {
                 components.append(String(typeChar)) // For unexpected characters
             }
+        }
+
+        // Skip over offsets (like 0:8, 16:32) in the encoding
+        if remainingEncoding.hasPrefix("@") || remainingEncoding.hasPrefix("q") {
+            remainingEncoding = String(remainingEncoding.drop(while: { $0.isNumber || $0 == ":" || $0 == "@" }))
         }
     }
 
