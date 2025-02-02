@@ -823,9 +823,6 @@ fileprivate extension String {
     }
 }
 
-
-
-
 // Objective-C type encoding to Swift mapping (only single-character keys)
 let typeEncodingMap: [Character: String] = [
     "v": "Void",
@@ -906,7 +903,11 @@ func parseTypeEncoding(_ encoding: String) -> [String] {
             let objectType = mapObjectType(from: remainingEncoding)
             components.append(objectType)
         } else {
-            components.append(typeEncodingMap[typeChar] ?? String(typeChar))
+            if let mappedType = typeEncodingMap[typeChar] {
+                components.append(mappedType)
+            } else {
+                components.append(String(typeChar)) // For unexpected characters
+            }
         }
     }
 
