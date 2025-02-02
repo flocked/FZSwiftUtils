@@ -916,7 +916,10 @@ func parseTypeEncoding(_ encoding: String) -> [String] {
          //   remainingEncoding = String(remainingEncoding.drop(while: { $0.isNumber || $0 == ":" || $0 == "@" }))
         }
     }
-
+    components = components.filter {
+        guard let number = Int($0) else { return true } // Keep non-numeric strings
+        return number >= 10 // Only include numbers that are greater than or equal to 10
+    }
     return components
 }
 
