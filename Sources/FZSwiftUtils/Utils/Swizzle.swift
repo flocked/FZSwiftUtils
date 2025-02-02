@@ -133,6 +133,29 @@ public struct Swizzle {
         else { throw Error.missingClass(className) }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
+
+    private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
+        try pairs.forEach { pair in
+            guard let `class` = pair.static ? object_getClass(type) : type
+            else { throw Error.missingClass(type.description()) }
+            guard let lhs = class_getInstanceMethod(`class`, pair.old)
+            else {
+                try swizzleOptional(type: `class`, pair: pair)
+                return
+            }
+            guard let rhs = class_getInstanceMethod(`class`, pair.new)
+            else { throw Error.missingMethod(`class`, pair.static, false, pair) }
+            guard !resetOptional(type: `class`, pair: pair)
+            else { return }
+
+            if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
+                class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
+            } else {
+                method_exchangeImplementations(lhs, rhs)
+            }
+            //   debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
+        }
+    }
     
     private func swizzleOptional(type: AnyObject.Type, pair: SelectorPair) throws {
         guard let `class` = pair.static ? object_getClass(type) : type
@@ -156,37 +179,12 @@ public struct Swizzle {
     private func resetOptional(type: AnyObject.Type, pair: SelectorPair) -> Bool {
         guard let `class` = pair.static ? object_getClass(type) : type, class_getInstanceMethod(`class`, pair.old) != nil
         else { return false }
-        Swift.print("HERE_2")
         var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
         guard selectors[pair.old] == pair.new, let deleteIMP = class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) else { return false }
-        Swift.print("HERE_4")
         method_setImplementation(method, deleteIMP)
         selectors[pair.old] = nil
         setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
         return true
-    }
-
-    private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
-        try pairs.forEach { pair in
-            guard let `class` = pair.static ? object_getClass(type) : type
-            else { throw Error.missingClass(type.description()) }
-            guard let lhs = class_getInstanceMethod(`class`, pair.old)
-            else {
-                try swizzleOptional(type: `class`, pair: pair)
-                return
-            }
-            guard let rhs = class_getInstanceMethod(`class`, pair.new)
-            else { throw Error.missingMethod(`class`, pair.static, false, pair) }
-            guard !resetOptional(type: `class`, pair: pair)
-            else { return }
-
-            if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
-                class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
-            } else {
-                method_exchangeImplementations(lhs, rhs)
-            }
-            //   debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
-        }
     }
 }
 

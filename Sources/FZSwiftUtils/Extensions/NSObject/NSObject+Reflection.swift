@@ -43,6 +43,10 @@ public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvert
         public let type: Any
         /// A Boolean value indicating whether the property is `readOnly`.
         public let isReadOnly: Bool
+        /// The selector of the property.
+        public var selector: Selector {
+            NSSelectorFromString(name)
+        }
         
         public var description: String {
             if let type = type as? Protocol {
@@ -66,6 +70,10 @@ public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvert
         public let argumentTypes: [Any]
         /// The return type of the method, or `nil` if the method isn't returning anything.
         public let returnType: Any?
+        /// The selector of the method.
+        public var selector: Selector {
+            NSSelectorFromString(name)
+        }
         
         public var description: String {
             name
@@ -392,6 +400,10 @@ public struct ProtocolReflection: CustomStringConvertible {
         public let isInstance: Bool
         /// A Boolean value indicating whether the property is required.
         public let isRequired: Bool
+        /// The selector of the property.
+        public var selector: Selector {
+            NSSelectorFromString(name)
+        }
         
         public var description: String {
             isReadOnly ? "\(name) [readOnly]: \(type)" : "\(name): \(type)"
@@ -406,6 +418,10 @@ public struct ProtocolReflection: CustomStringConvertible {
         public let isInstance: Bool
         /// A Boolean value indicating whether the method is required.
         public let isRequired: Bool
+        /// The selector of the method.
+        public var selector: Selector {
+            NSSelectorFromString(name)
+        }
     }
     
     /**
