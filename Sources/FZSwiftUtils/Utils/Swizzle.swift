@@ -7,8 +7,13 @@
 
 import Foundation
 
-infix operator <->
-infix operator <~>
+precedencegroup SwizzlePrecedence {
+    associativity: left
+    higherThan: DefaultPrecedence
+}
+
+infix operator <-> : SwizzlePrecedence
+infix operator <~> : SwizzlePrecedence
 
 public extension Selector {
     /// Creates a selector pair for swizzleing from the first and second selector.
@@ -77,21 +82,6 @@ public struct Swizzle {
     }
 
     /**
-     Swizzles selectors of the specified class.
-
-     - Parameters:
-        - type:  The class to swizzle.
-        - makeSelectorPairs: The swizzle selector pairs.
-
-     - Throws:Throws if swizzling fails.
-     - Returns: A `Swizzle` object for the specified values.
-     */
-    @discardableResult
-    public init(_ type: AnyClass, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
-        try self.init(type, swizzlePairs: [makeSelectorPairs()])
-    }
-
-    /**
      Swizzles selectors of the class with the specified name.
 
      - Parameters:
@@ -104,21 +94,6 @@ public struct Swizzle {
     @discardableResult
     public init(_ className: String, @Builder _ makeSelectorPairs: () -> [SelectorPair]) throws {
         try self.init(className, swizzlePairs: makeSelectorPairs())
-    }
-
-    /**
-     Swizzles selectors of the class with the specified name.
-
-     - Parameters:
-        - className:  The name of the class.
-        - makeSelectorPairs: The swizzle selector pairs.
-
-     - Throws:Throws if swizzling fails.
-     - Returns: A `Swizzle` object for the specified values.
-     */
-    @discardableResult
-    public init(_ className: String, @Builder _ makeSelectorPairs: () -> SelectorPair) throws {
-        try self.init(className, swizzlePairs: [makeSelectorPairs()])
     }
 
     @discardableResult
@@ -280,3 +255,202 @@ public extension Swizzle {
         }
     }
 }
+
+/*
+public extension Swizzle {
+    struct SelectorTriple: CustomStringConvertible {
+        /// The old selector.
+        public let old: Selector
+        /// The new selector to replace the old.
+        public let new: Selector
+        /// The new selector to replace the old.
+        public let original: Selector
+        /// A Boolean value indicating whether the selectors are static.
+        public let `static`: Bool
+        
+        /**
+         Creates a selector pair.
+
+         - Parameters:
+            - old: The old selector.
+            - new: The new selector to replace the old.
+            - static: A Boolean value indicating whether the selectors are static. The default value is `false`.
+         */
+        public init(old: Selector, new: Selector, original: Selector, static: Bool = false) {
+            self.old = old
+            self.new = new
+            self.original = original
+            self.static = `static`
+        }
+        
+        var `operator`: String {
+            `static` ? "<~>" : "<->"
+        }
+
+        public var description: String {
+            "\(old) \(self.operator) \(new) \(self.operator) \(original)"
+        }
+    }
+}
+
+extension Swizzle.SelectorPair {
+    public static func <-> (lhs: Swizzle.SelectorPair, rhs: Selector) -> Swizzle.SelectorTriple {
+        Swizzle.SelectorTriple(old: lhs.old, new: lhs.new, original: rhs)
+    }
+
+    public static func <-> (lhs: Swizzle.SelectorPair, rhs: String) -> Swizzle.SelectorTriple {
+        Swizzle.SelectorTriple(old: lhs.old, new: lhs.new, original: Selector(rhs))
+    }
+
+    public static func <~> (lhs: Swizzle.SelectorPair, rhs: Selector) -> Swizzle.SelectorTriple {
+        Swizzle.SelectorTriple(old: lhs.old, new: lhs.new, original: rhs, static: true)
+    }
+
+    public static func <~> (lhs: Swizzle.SelectorPair, rhs: String) -> Swizzle.SelectorTriple {
+        Swizzle.SelectorTriple(old: lhs.old, new: lhs.new, original: Selector(rhs), static: true)
+    }
+}
+
+public extension String {
+    static func <-> (lhs: String, rhs: Swizzle.SelectorPair) -> Swizzle.SelectorTriple {
+        Swizzle.SelectorTriple(old: Selector(lhs), new: rhs.old, original: rhs.new)
+    }
+
+    static func <~> (lhs: String, rhs: Swizzle.SelectorPair) -> Swizzle.SelectorTriple {
+        Swizzle.SelectorTriple(old: Selector(lhs), new: rhs.old, original: rhs.new, static: true)
+    }
+}
+
+extension Swizzle {
+    @resultBuilder
+    public enum TrippleBuilder {
+        public static func buildBlock(_ swizzleTriples: SelectorTriple...) -> [SelectorTriple] {
+            Array(swizzleTriples)
+        }
+    }
+    
+    /**
+     Swizzles selectors of the specified class.
+
+     - Parameters:
+        - type:  The class to swizzle.
+        - makeSelectorPairs: The swizzle selector pairs.
+
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
+    @discardableResult
+    public init(_ type: AnyClass, @TrippleBuilder _ makeSelectorTriples: () -> [SelectorTriple]) throws {
+        try self.init(type, swizzleTriples: makeSelectorTriples())
+    }
+
+    /**
+     Swizzles selectors of the specified class.
+
+     - Parameters:
+        - type:  The class to swizzle.
+        - makeSelectorPairs: The swizzle selector pairs.
+
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
+    @discardableResult
+    public init(_ type: AnyClass, @TrippleBuilder _ makeSelectorTriples: () -> SelectorTriple) throws {
+        try self.init(type, swizzleTriples: [makeSelectorTriples()])
+    }
+
+    /**
+     Swizzles selectors of the class with the specified name.
+
+     - Parameters:
+        - className:  The name of the class.
+        - makeSelectorPairs: The swizzle selector pairs.
+
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
+    @discardableResult
+    public init(_ className: String, @TrippleBuilder _ makeSelectorTriples: () -> [SelectorTriple]) throws {
+        try self.init(className, swizzleTriples: makeSelectorTriples())
+    }
+
+    /**
+     Swizzles selectors of the class with the specified name.
+
+     - Parameters:
+        - className:  The name of the class.
+        - makeSelectorPairs: The swizzle selector pairs.
+
+     - Throws:Throws if swizzling fails.
+     - Returns: A `Swizzle` object for the specified values.
+     */
+    @discardableResult
+    public init(_ className: String, @TrippleBuilder _ makeSelectorTriples: () -> SelectorTriple) throws {
+        try self.init(className, swizzleTriples: [makeSelectorTriples()])
+    }
+    
+    @discardableResult
+    init(_ class_: AnyClass, swizzleTriples: [SelectorTriple]) throws {
+        guard object_isClass(class_) else { throw Error.missingClass(String(describing: class_)) }
+        try swizzle(type: class_, triples: swizzleTriples)
+    }
+    
+    @discardableResult
+    init(_ className: String, swizzleTriples: [SelectorTriple], reset _: Bool = false) throws {
+        guard let class_ = NSClassFromString(className)
+        else { throw Error.missingClass(className) }
+        try swizzle(type: class_, triples: swizzleTriples)
+    }
+    
+    private func swizzle(type: AnyObject.Type, triples: [SelectorTriple]) throws {
+        try triples.forEach { triple in
+            guard let `class` = triple.static ? object_getClass(type) : type
+            else { throw Error.missingClass(type.description()) }
+            guard let old = triple.static ? class_getClassMethod(`class`, triple.old) : class_getInstanceMethod(`class`, triple.old)
+            else { throw TrippleError.missingMethod(`class`, triple.static, .old, triple) }
+            guard let new = triple.static ? class_getClassMethod(`class`, triple.new) : class_getInstanceMethod(`class`, triple.new)
+            else { throw TrippleError.missingMethod(`class`, triple.static, .new, triple) }
+            guard let original = triple.static ? class_getClassMethod(`class`, triple.original) : class_getInstanceMethod(`class`, triple.original)
+            else { throw TrippleError.missingMethod(`class`, triple.static, .original, triple) }
+            
+            method_setImplementation(original, method_getImplementation(old))
+            method_setImplementation(old, method_getImplementation(new))
+        }
+    }
+}
+
+extension Swizzle {
+    enum TrippleError: LocalizedError {
+        enum Destionation: String {
+            case old
+            case new
+            case original
+        }
+        
+        /// The method is missing.
+        case missingMethod(_ type: AnyObject.Type, _ static: Bool, _ destionation: Destionation, SelectorTriple)
+        
+        public var failureReason: String? {
+            switch self {
+            case let .missingMethod(type, `static`, destionation, pair):
+                return
+                    """
+                    Missing \(destionation)\(`static` ? " static" : "") method for \
+                    \(type.description()): \(pair)
+                    """
+            }
+        }
+        
+        public var recoverySuggestion: String? {
+            switch self {
+            case let .missingMethod(type, `static`, destionation, pair):
+                return
+                    """
+                    Create \(destionation)\(`static` ? " static" : "") method for \
+                    \(type.description()): \(pair)
+                    """
+            }
+        }
+    }
+}
+*/
