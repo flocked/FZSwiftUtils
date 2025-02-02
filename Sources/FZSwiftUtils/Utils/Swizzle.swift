@@ -186,6 +186,7 @@ public struct Swizzle {
                 try swizzleOptional(type: `class`, pair: pair)
                 return
             }
+            Swift.print("HERE_10")
 
             if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
                 class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
