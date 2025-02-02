@@ -149,10 +149,13 @@ public struct Swizzle {
             selectors[pair.new] = pair.old
             setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
         } else if lhs != nil {
+            Swift.print("HERE_2")
             let selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
             if selectors[pair.old] == pair.new {
+                Swift.print("HERE_3")
                 var deleteImplementations = getAssociatedValue("deleteImplementations", object: `class`, initialValue: [Selector: IMP]())
                 if let deleteIMP = deleteImplementations[pair.old] ?? class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) {
+                    Swift.print("HERE_4")
                     deleteImplementations[pair.old] = deleteIMP
                     setAssociatedValue(deleteImplementations, key: "deleteImplementations", object: `class`)
                     method_setImplementation(method, deleteIMP)
@@ -179,6 +182,7 @@ public struct Swizzle {
             }
             guard let rhs = class_getInstanceMethod(`class`, pair.new)
             else {
+                Swift.print("HERE_1")
                 try swizzleOptional(type: `class`, pair: pair)
                 return
             }
