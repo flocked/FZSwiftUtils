@@ -141,11 +141,31 @@ public struct Swizzle {
         let rhs = class_getInstanceMethod(`class`, pair.new)
         guard rhs != nil
         else { throw Error.missingMethod(`class`, pair.static, false, pair) }
-        if let lhs = lhs, let rhs = rhs {
+        if lhs != nil, rhs != nil {
             try swizzle(type: `class`, pairs: [pair])
         } else if let rhs = rhs {
-            let added = class_replaceMethod(`class`, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
+            class_replaceMethod(`class`, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
+            var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
+            selectors[pair.new] = pair.old
+            setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
+        } else if lhs != nil {
+            let selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
+            if selectors[pair.old] == pair.new {
+                var deleteImplementations = getAssociatedValue("deleteImplementations", object: `class`, initialValue: [Selector: IMP]())
+                if let deleteIMP = deleteImplementations[pair.old] ?? class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) {
+                    deleteImplementations[pair.old] = deleteIMP
+                    setAssociatedValue(deleteImplementations, key: "deleteImplementations", object: `class`)
+                    method_setImplementation(method, deleteIMP)
+                } else {
+                    throw Error.missingMethod(`class`, pair.static, false, pair)
+                }
+            } else {
+                throw Error.missingMethod(`class`, pair.static, false, pair)
+            }
+        } else {
+            throw Error.missingMethod(`class`, pair.static, true, pair)
         }
+        
     }
 
     private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
@@ -158,7 +178,10 @@ public struct Swizzle {
                 return
             }
             guard let rhs = class_getInstanceMethod(`class`, pair.new)
-            else { throw Error.missingMethod(`class`, pair.static, false, pair) }
+            else {
+                try swizzleOptional(type: `class`, pair: pair)
+                return
+            }
 
             if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
                 class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
