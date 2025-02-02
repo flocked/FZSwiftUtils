@@ -13,7 +13,6 @@ import AppKit
 import UIKit
 #endif
 
-
 public extension BinaryFloatingPoint {
     /// Converts the value from degrees to radians.
     var degreesToRadians: Self {
@@ -51,7 +50,7 @@ public extension BinaryFloatingPoint {
     /**
      Returns the scaled integral value of the value for the specified screen.
      
-     The value is scaled based on the screen scale.
+     The value is scaled based on the screen's backing scale factor.
      
      - Parameter screen: The screen for the scale factor.
      */
@@ -62,25 +61,35 @@ public extension BinaryFloatingPoint {
     /**
      Returns the scaled integral value of the value for the specified view.
      
-     The value is scaled based on the view's screen scale.
+     The value is scaled based on the view's window backing scale factor.
      
      - Parameter view: The view for the scale factor.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let screen = view.window?.screen else { return self }
-        return scaledIntegral(for: screen)
+        guard let window = view.window else { return self }
+        return scaledIntegral(for: window)
     }
     
     /**
      Returns the scaled integral value of the value for the specified window.
      
-     The value is scaled based on the window's screen scale.
+     The value is scaled based on the window's backing scale factor.
      
      - Parameter window: The window for the scale factor.
      */
     func scaledIntegral(for window: NSWindow) -> Self {
-        guard let screen = window.screen else { return self }
-        return scaledIntegral(for: screen)
+        rounded(toMultiple: 1.0 / Self(window.backingScaleFactor))
+    }
+    
+    /**
+     Returns the scaled integral value of the value for the specified application.
+     
+     The value is scaled based on either the key, main or first visible window, or else the main screen and it's backing scale factor.
+     
+     - Parameter application: The application for the scale factor.
+     */
+    func scaledIntegral(for application: NSApplication) -> Self {
+        rounded(toMultiple: 1.0 / Self(application.backingScaleFactor))
     }
     #endif
 }
@@ -107,7 +116,7 @@ public extension CGFloat {
     /**
      Returns the scaled integral value of the value for the specified screen.
      
-     The value is scaled based on the screen scale.
+     The value is scaled based on the screen's backing scale factor.
      
      - Parameter screen: The screen for the scale factor.
      */
@@ -118,25 +127,35 @@ public extension CGFloat {
     /**
      Returns the scaled integral value of the value for the specified view.
      
-     The value is scaled based on the view's screen scale.
+     The value is scaled based on the view's window scale.
      
      - Parameter view: The view for the scale factor.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let screen = view.window?.screen else { return self }
-        return scaledIntegral(for: screen)
+        guard let window = view.window else { return self }
+        return scaledIntegral(for: window)
     }
     
     /**
      Returns the scaled integral value of the value for the specified window.
      
-     The value is scaled based on the window's screen scale.
+     The value is scaled based on the window's backing scale factor.
      
      - Parameter window: The window for the scale factor.
      */
     func scaledIntegral(for window: NSWindow) -> Self {
-        guard let screen = window.screen else { return self }
-        return scaledIntegral(for: screen)
+        rounded(toMultiple: 1.0 / Self(window.backingScaleFactor))
+    }
+    
+    /**
+     Returns the scaled integral value of the value for the specified application.
+     
+     The value is scaled based on either the key, main or first visible window, or else the main screen and it's backing scale factor.
+     
+     - Parameter application: The application for the scale factor.
+     */
+    func scaledIntegral(for application: NSApplication) -> Self {
+        rounded(toMultiple: 1.0 / Self(application.backingScaleFactor))
     }
     #endif
     
@@ -267,3 +286,11 @@ extension BinaryFloatingPoint where Self: LosslessStringConvertible {
         return string(minPlaces: places, maxPlaces: places, groupingSeparator: groupingSeparator)
     }    
 }
+
+#if os(macOS)
+extension NSApplication {
+    var backingScaleFactor: CGFloat {
+        keyWindow?.backingScaleFactor ?? mainWindow?.backingScaleFactor ?? windows.first(where: { $0.isVisible })?.backingScaleFactor ?? (NSScreen.main ?? .screens.first)?.backingScaleFactor ?? 1.0
+    }
+}
+#endif

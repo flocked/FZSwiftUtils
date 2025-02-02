@@ -123,56 +123,45 @@ public struct Swizzle {
 
     @discardableResult
     init(_ class_: AnyClass, swizzlePairs: [SelectorPair]) throws {
-        guard object_isClass(class_) else {
-            throw Error.missingClass(String(describing: class_))
-        }
+        guard object_isClass(class_) else { throw Error.missingClass(String(describing: class_)) }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
     @discardableResult
     init(_ className: String, swizzlePairs: [SelectorPair], reset _: Bool = false) throws {
-        guard let class_ = NSClassFromString(className) else {
-            throw Error.missingClass(className)
-        }
+        guard let class_ = NSClassFromString(className) 
+        else { throw Error.missingClass(className) }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
+    
+    private func swizzleOptional(type: AnyObject.Type, pair: SelectorPair) throws {
+        guard let `class` = pair.static ? object_getClass(type) : type
+        else { throw Error.missingClass(type.description()) }
+        let lhs = class_getInstanceMethod(`class`, pair.old)
+        let rhs = class_getInstanceMethod(`class`, pair.new)
+        guard rhs != nil
+        else { throw Error.missingMethod(`class`, pair.static, false, pair) }
+        if let lhs = lhs, let rhs = rhs {
+            try swizzle(type: `class`, pairs: [pair])
+        } else if let rhs = rhs {
+            let added = class_replaceMethod(`class`, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
+        }
+    }
 
-    private func swizzle(
-        type: AnyObject.Type,
-        pairs: [SelectorPair]
-    ) throws {
+    private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
         try pairs.forEach { pair in
-            guard let `class` =
-                pair.static ?
-                object_getClass(type) : type
+            guard let `class` = pair.static ? object_getClass(type) : type
+            else { throw Error.missingClass(type.description()) }
+            guard let lhs = class_getInstanceMethod(`class`, pair.old)
             else {
-                throw Error.missingClass(type.description())
+                try swizzleOptional(type: `class`, pair: pair)
+                return
             }
-            guard
-                let lhs =
-                class_getInstanceMethod(`class`, pair.old)
-            else {
-                throw Error.missingMethod(`class`, pair.static, true, pair)
-            }
-            guard let rhs =
-                class_getInstanceMethod(`class`, pair.new)
-            else {
-                throw Error.missingMethod(`class`, pair.static, false, pair)
-            }
+            guard let rhs = class_getInstanceMethod(`class`, pair.new)
+            else { throw Error.missingMethod(`class`, pair.static, false, pair) }
 
-            if pair.static,
-               class_addMethod(
-                   `class`, pair.old,
-                   method_getImplementation(rhs), method_getTypeEncoding(rhs)
-               )
-            {
-                class_replaceMethod(
-                    `class`,
-                    pair.new,
-                    method_getImplementation(lhs),
-                    method_getTypeEncoding(lhs)
-                )
-
+            if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
+                class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
             } else {
                 method_exchangeImplementations(lhs, rhs)
             }

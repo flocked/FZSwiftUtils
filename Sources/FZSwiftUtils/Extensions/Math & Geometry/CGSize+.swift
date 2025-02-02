@@ -35,7 +35,7 @@ public extension CGSize {
     /**
      Returns the scaled integral of the size for the specified screen.
      
-     The width and height values are scaled based on the screen scale.
+     The width and height values are scaled based on the screen's backing scale factor.
 
      - Parameter screen: The screen for the scale.
      */
@@ -46,25 +46,35 @@ public extension CGSize {
     /**
      Returns the scaled integral of the size for the specified view.
      
-     The width and height values are scaled based on the view's screen scale.
+     The width and height values are scaled based on the view's window backing scale factor.
 
      - Parameter view: The view for the scale.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let screen = view.window?.screen else { return self }
-        return scaledIntegral(for: screen)
+        guard let window = view.window else { return self }
+        return scaledIntegral(for: window)
     }
     
     /**
      Returns the scaled integral of the size for the specified window.
      
-     The width and height values are scaled based on the window's screen scale.
+     The width and height values are scaled based on the window's backing scale factor.
 
      - Parameter window: The window for the scale.
      */
     func scaledIntegral(for window: NSWindow) -> Self {
-        guard let screen = window.screen else { return self }
-        return scaledIntegral(for: screen)
+        CGSize(width.scaledIntegral(for: window), height.scaledIntegral(for: window))
+    }
+    
+    /**
+     Returns the scaled integral of the size for the specified window.
+
+     The width and height values are scaled based on either the key, main or first visible window, or else the main screen and it's backing scale factor.
+     
+     - Parameter application: The application for the scale factor.
+     */
+    func scaledIntegral(for application: NSApplication) -> Self {
+        CGSize(width.scaledIntegral(for: application), height.scaledIntegral(for: application))
     }
     #endif
 
@@ -76,6 +86,15 @@ public extension CGSize {
     var aspectRatio: CGFloat {
         if height == 0 { return 1 }
         return width / height
+    }
+    
+    /**
+     The area of the size.
+     
+     The area is calculated as the `width` multiplied by the `height`.
+     */
+    var area: CGFloat {
+        width * height
     }
 
     /**
@@ -258,6 +277,11 @@ public extension CGSize {
         CGPoint(width, height)
     }
     
+    /// A `CGRect` with the size and origin `zero`.
+    var rect: CGRect {
+        CGRect(.zero, self)
+    }
+    
     /// Returns the size with the specified width.
     func width(_ width: CGFloat) -> CGSize {
         CGSize(width, height)
@@ -266,11 +290,6 @@ public extension CGSize {
     /// Returns the size with the specified height.
     func height(_ height: CGFloat) -> CGSize {
         CGSize(width, height)
-    }
-    
-    /// The area of the size.
-    var area: CGFloat {
-        width * height
     }
 }
 
@@ -378,5 +397,56 @@ public extension Collection where Element == CGSize {
             totalSize.height = Swift.max(totalSize.height, size.height)
         }
         return totalSize
+    }
+    
+    /**
+     Returns the sizes scaled proportionally to fit within a specified target size, based on the given orientation.
+
+     The scaling maintains the aspect ratio of each size, ensuring that the combined primary dimension (`width` for `horizontal`, `height` for `vertical`) fits within the target size.
+
+     - Parameters:
+       - size: The target size within which the sizes should fit.
+       - orientation: The orientation that determines how sizes are combined.
+     */
+    func scaledToFit(_ size: CGSize, orientation: NSUserInterfaceLayoutOrientation) -> [CGSize] {
+        guard !isEmpty else { return [] }
+        guard size.width > 0.0, size.height > 0.0 else { return Array(repeating: .zero, count: count) }
+
+        let totalPrimaryLength = reduce(0) { result, current in
+            result + (orientation == .vertical ? current.height : current.width)
+        }
+
+        let maxSecondaryLength = map { orientation == .vertical ? $0.width : $0.height }.max() ?? 0
+
+        let scaleFactor = Swift.min(
+            (orientation == .vertical ? size.height : size.width) / totalPrimaryLength,
+            (orientation == .vertical ? size.width : size.height) / maxSecondaryLength
+        )
+
+        return map { originalSize in
+            CGSize(width: originalSize.width * scaleFactor, height: originalSize.height * scaleFactor)
+        }
+    }
+    
+    /**
+     Returns the sizes scaled proportionally to fit within a specified target width, based on the given orientation.
+
+     - Parameters:
+       - width: The target width within which the sizes should fit.
+       - orientation: The orientation that determines how sizes are combined.
+     */
+    func sclaedToFit(width: CGFloat, orientation: NSUserInterfaceLayoutOrientation) -> [CGSize] {
+        return scaledToFit(CGSize(width: width, height: .greatestFiniteMagnitude), orientation: orientation)
+    }
+    
+    /**
+     Returns the sizes scaled proportionally to fit within a specified target height, based on the given orientation.
+
+     - Parameters:
+       - height: The target height within which the sizes should fit.
+       - orientation: The orientation that determines how sizes are combined.
+     */
+    func sclaedToFit(height: CGFloat, orientation: NSUserInterfaceLayoutOrientation) -> [CGSize] {
+        return scaledToFit(CGSize(width:.greatestFiniteMagnitude, height: height), orientation: orientation)
     }
 }

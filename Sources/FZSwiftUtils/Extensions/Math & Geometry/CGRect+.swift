@@ -14,7 +14,7 @@ import Foundation
 #endif
 
 public extension CGRect {
-    /// Creates a rectangle with the specified values.
+    /// Creates a rectangle with  the specified values.
     init(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) {
         self.init(x: x, y: y, width: width, height: height)
     }
@@ -23,35 +23,34 @@ public extension CGRect {
     init(_ origin: CGPoint, _ size: CGSize) {
         self.init(origin: origin, size: size)
     }
+    
+    /// Creates a rectangle with the specified origin and a size of `zero`.
+    init(_ origin: CGPoint) {
+        self.init(origin: origin, size: .zero)
+    }
+    
+    /// Creates a rectangle with the specified size and a origin of `zero`.
+    init(_ size: CGSize) {
+        self.init(origin: .zero, size: size)
+    }
+    
+    /// Creates a rectangle with the specified origin and a size of `zero`.
+    init(origin: CGPoint) {
+        self.init(origin)
+    }
 
-    /// Creates a rectangle with the specified size.
+    /// Creates a rectangle with the specified size and a origin of `zero`.
     init(size: CGSize) {
-        self.init(x: 0, y: 0, width: size.width, height: size.height)
+        self.init(size)
     }
 
-    /// Creates a rectangle with the specified size.
+    /// Creates a rectangle with the specified size and a origin of `zero`.
     init(size: CGFloat) {
-        self.init(x: 0, y: 0, width: size, height: size)
-    }
-
-    /**
-     Initializes a rectangle with the specified point and size.
-
-     - Parameters:
-        - point: The center point of the rectangle.
-        - size: The size of the rectangle.
-        - integralized: A Boolean value indicating whether the resulting rectangle should have integral values.
-
-     - Returns: A new rectangle initialized with the specified parameters.
-     */
-    init(aroundPoint point: CGPoint, size: CGSize, integralized: Bool = false) {
-        let unintegralizedRect = CGRect(x: point.x - size.width / 2.0, y: point.y - size.height / 2.0, width: size.width, height: size.height)
-        let result = integralized ? unintegralizedRect.scaledIntegral : unintegralizedRect
-        self.init(x: result.origin.x, y: result.origin.y, width: result.size.width, height: result.size.height)
+        self.init(.zero, CGSize(size))
     }
     
     /**
-     Initializes a rectangle with the specified points that spans between the points.
+     Creates a rectangle that spans between the specified points.
      
      - Parameters:
         - point1: The first point.
@@ -76,7 +75,7 @@ public extension CGRect {
     /**
      Returns the scaled integral rectangle based on the current rectangle for the specfied screen.
      
-     The origin and size values are scaled based on the screen scale.
+     The origin and size values are scaled based on the screen's backing scale factor.
 
      - Parameter screen: The screen for scale.
      - Returns: The scaled integral rectangle.
@@ -88,25 +87,35 @@ public extension CGRect {
     /**
      Returns the scaled integral rectangle based on the current rectangle for the specfied view.
      
-     The origin and size values are scaled based on the view's screen scale.
+     The origin and size values are scaled based on the view's window backing scale factor.
 
      - Parameter view: The view for scale.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let screen = view.window?.screen else { return self }
-        return scaledIntegral(for: screen)
+        guard let window = view.window else { return self }
+        return scaledIntegral(for: window)
     }
     
     /**
      Returns the scaled integral rectangle based on the current rectangle for the specfied window.
      
-     The origin and size values are scaled based on the window's screen scale.
+     The origin and size values are scaled based on the window's backing scale factor.
 
      - Parameter window: The window for scale.
      */
     func scaledIntegral(for window: NSWindow) -> Self {
-        guard let screen = window.screen else { return self }
-        return scaledIntegral(for: screen)
+        CGRect(origin.scaledIntegral(for: window), size.scaledIntegral(for: window))
+    }
+    
+    /**
+     Returns the scaled integral rectangle based on the current rectangle for the specfied window.
+
+     The origin and size values are scaled based on either the key, main or first visible window, or else the main screen and it's backing scale factor.
+     
+     - Parameter application: The application for the scale factor.
+     */
+    func scaledIntegral(for application: NSApplication) -> Self {
+        CGRect(origin.scaledIntegral(for: application), size.scaledIntegral(for: application))
     }
     #endif
 
@@ -438,18 +447,74 @@ public extension CGRect {
      Divides the rectangle into rectangles by the specified amount and edge.
      
      - Parameters:
-     - count:The amount of rects
-     - edge: The side of the rectangle from which to divide the rectangle.
+        - count:The amount of rects
+        - edge: The side of the rectangle from which to divide the rectangle.
      */
-    func divided(count: Int, from edge: CGRectEdge) -> [CGRect] {
+    func divided(by count: Int, from edge: CGRectEdge) -> [CGRect] {
+        let value = (edge.isHeight ? height : width) / CGFloat(count)
+        return divided(by: value, count: count, from: edge)
+    }
+    
+    /**
+     Divides the rectangle into multiple rectangles of the specified size, starting from the given edge.
+
+     This method returns an array of rectangles, each with a `width` or `height` equal to the specified value, depending on the division edge. The final rectangle may be smaller if the remaining space is less than the specified value.
+
+     - Parameters:
+        - value: The width or height of each rectangle, based on the division edge.
+        - edge: The edge of the rectangle from which the division starts.
+
+     - Returns: An array of rectangles resulting from the division.
+     */
+    func divided(byValue value: CGFloat, from edge: CGRectEdge) -> [CGRect] {
+        guard value > 0.0 else { return [] }
+        let total = edge.isHeight ? height : width
+        let value = value.clamped(max: total)
+        let count = Int(floor(total / value))
+        return divided(by: value, count: count, from: edge)
+    }
+    
+    /**
+     Divides the rectangle into multiple rectangles based on the specified percentage, starting from the given edge.
+
+     This method returns an array of rectangles, each with a `width` or `height` equal to the specified percentage of the original rectangle's corresponding dimension. The final rectangle may be smaller if the remaining space is less than the specified percentage.
+
+     - Parameters:
+        - percentage: The percentage of the rectangle's width or height to use for each division. Values should be between `0` and `1`.
+        - edge: The edge of the rectangle from which the division starts.
+
+     - Returns: An array of rectangles resulting from the division.
+     */
+    func divided(byPercentage percentage: CGFloat, from edge: CGRectEdge) -> [CGRect] {
+        guard percentage > 0.0 else { return [] }
+        let percentage = percentage.clamped(to: 0...1.0)
+        let total = edge.isHeight ? height : width
+        let value = total * percentage
+        let count = Int(floor(total / value))
+        return divided(by: value, count: count, from: edge)
+    }
+    
+    /**
+     Creates two rectangles by dividing the original rectangle.
+     
+     - Parameters:
+        - percentage: The percentage of the rectangle's width or height to use for division. The value should be between `0` and `1`.
+        - edge: The side of the rectangle from which to measure the atDistance parameter, defining the line along which to divide the rectangle.
+     */
+    func divided(atPercentage percentage: CGFloat, from edge: CGRectEdge) -> (slice: CGRect, remainder: CGRect) {
+        divided(atDistance: edge.isHeight ? height : width * percentage.clamped(to: 0...1.0), from: edge)
+    }
+    
+    internal func divided(by value: CGFloat, count: Int, from edge: CGRectEdge) -> [CGRect] {
         guard count > 0 else { return [] }
-        var copy = self
-        let dimension = (edge == .minYEdge || edge == .maxYEdge ? height : width) / CGFloat(count)
-        return (1...count).map({ _ in
-            let (slice, remainder) = copy.divided(atDistance: dimension, from: edge)
-            copy = remainder
+        var rect = self
+        var rects = (1...count).map({ _ in
+            let (slice, remainder) = rect.divided(atDistance: value, from: edge)
+            rect = remainder
             return slice
         })
+        rects.append(rect)
+        return rects
     }
 
     /**
@@ -461,7 +526,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled by the specified factor, anchored at the specified point.
      */
-    func scaled(byFactor factor: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+    func scaled(byFactor factor: CGFloat, anchor: FractionalPoint = .bottomLeft) -> CGRect {
         let sizeDelta = size.scaled(byFactor: factor)
         return scaled(to: sizeDelta, anchor: anchor)
     }
@@ -475,7 +540,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled to the specified size, anchored at the specified point.
      */
-    func scaled(to size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+    func scaled(to size: CGSize, anchor: FractionalPoint = .bottomLeft) -> CGRect {
         let sizeDelta = CGSize(width: size.width - width, height: size.height - height)
         return CGRect(origin: CGPoint(x: minX - sizeDelta.width * anchor.x,
                                       y: minY - sizeDelta.height * anchor.y),
@@ -491,7 +556,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled to fit the specified size, anchored at the specified point.
      */
-    func scaled(toFit size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+    func scaled(toFit size: CGSize, anchor: FractionalPoint = .bottomLeft) -> CGRect {
         let sizeDelta = self.size.scaled(toFit: size)
         return scaled(to: sizeDelta, anchor: anchor)
     }
@@ -505,7 +570,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled to fill the specified size, anchored at the specified point.
      */
-    func scaled(toFill size: CGSize, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+    func scaled(toFill size: CGSize, anchor: FractionalPoint = .bottomLeft) -> CGRect {
         let sizeDelta = self.size.scaled(toFill: size)
         return scaled(to: sizeDelta, anchor: anchor)
     }
@@ -519,7 +584,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled to the specified width, anchored at the specified point.
      */
-    func scaled(toWidth width: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+    func scaled(toWidth width: CGFloat, anchor: FractionalPoint = .bottomLeft) -> CGRect {
         let sizeDelta = size.scaled(toWidth: width)
         return scaled(to: sizeDelta, anchor: anchor)
     }
@@ -533,7 +598,7 @@ public extension CGRect {
 
      - Returns: A new rectangle scaled to the specified height, anchored at the specified point.
      */
-    func scaled(toHeight height: CGFloat, anchor: CGPoint = CGPoint(x: 0.5, y: 0.5)) -> CGRect {
+    func scaled(toHeight height: CGFloat, anchor: FractionalPoint = .bottomLeft) -> CGRect {
         let sizeDelta = size.scaled(toHeight: height)
         return scaled(to: sizeDelta, anchor: anchor)
     }
@@ -547,7 +612,7 @@ public extension CGRect {
      - Returns: A new rectangle with rounded coordinates according to the specified rounding rule.
      */
     func rounded(_ rule: FloatingPointRoundingRule = .toNearestOrAwayFromZero) -> CGRect {
-        CGRect(x: x.rounded(rule), y: y.rounded(rule), width: width.rounded(rule), height: height.rounded(rule))
+        CGRect(origin.rounded(rule), size.rounded(rule))
     }
     
     /// Clamps the rectangle to the specified minimum size.
@@ -574,128 +639,91 @@ public extension CGRect {
     }
     
     /**
-     Returns the edge that contains the specified point.
+     Returns the edge of the rectangle that contains the specified point within a given tolerance.
+
+     This method determines if the provided point lies along any of the rectangle’s edges, considering the specified tolerance as a margin of error. If the point falls within this tolerance range near an edge, the corresponding edge is returned. If the point does not align with any edge within the tolerance, the method returns `nil`.
      
+     If the point is within tolerance of multiple edges (e.g., near a corner), the method returns the first matching edge in the following order: `minYEdge`, `maxYEdge`, `minXEdge` and `maxXEdge`.
+
      - Parameters:
-        - point: The point.
-        - tolerance: The tolerance for the edges.
+       - point: The point to evaluate.
+       - tolerance: The maximum distance from an edge within which the point is considered to be contained by that edge. Must be a non-negative value.
+
+     - Returns: The edge that contains the point within the specified tolerance, or `nil` if the point does not fall within the tolerance of any edge.
      */
     func edge(containing point: CGPoint, tolerance: CGFloat) -> CGRectEdge? {
         guard insetBy(dx: -tolerance, dy: -tolerance).contains(point) else { return nil }
-        
         if point.y >= minY - tolerance && point.y <= minY + tolerance &&
             point.x >= minX - tolerance && point.x <= maxX + tolerance {
-            #if os(macOS)
-            return .bottom
-            #else
-            return .top
-            #endif
-        }
-        
-        if point.y >= maxY - tolerance && point.y <= maxY + tolerance &&
+            return .minYEdge
+        } else if point.y >= maxY - tolerance && point.y <= maxY + tolerance &&
             point.x >= minX - tolerance && point.x <= maxX + tolerance {
-            #if os(macOS)
-            return .top
-            #else
-            return .bottom
-            #endif
-        }
-        
-        if point.x >= minX - tolerance && point.x <= minX + tolerance &&
+            return .maxYEdge
+        } else if point.x >= minX - tolerance && point.x <= minX + tolerance &&
             point.y >= minY - tolerance && point.y <= maxY + tolerance {
             return .left
-        }
-        
-        if point.x >= maxX - tolerance && point.x <= maxX + tolerance &&
+        } else if point.x >= maxX - tolerance && point.x <= maxX + tolerance &&
             point.y >= minY - tolerance && point.y <= maxY + tolerance {
             return .right
         }
-        
         return nil
     }
     
     /**
-     Returns the edge or corner that contains the specified point.
-     
+     Returns the edge or corner of the rectangle that contains the specified point within a given tolerance.
+
+     This method determines if the provided point lies on one of the rectangle's edges or corners, considering the specified tolerance as a margin of error. If the point is within the tolerance range of an edge or corner, the corresponding value is returned. If the point does not align with any edge or corner within the tolerance, the method returns `nil`.
+
      - Parameters:
-        - point: The point.
-        - tolerance: The tolerance on the edges and corners.
+       - point: The point to evaluate.
+       - tolerance: The maximum distance from an edge or corner within which the point is considered to be contained by that edge or corner. Must be a non-negative value.
+
+     - Returns: The edge or corner that contains the point within the specified tolerance, or `nil` if the point does not fall within the tolerance of any edge or corner.
      */
     func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat) -> RectEdgeCorner? {
         edgeOrCorner(containing: point, tolerance: tolerance, cornerTolerance: tolerance)
     }
     
     /**
-     Returns the edge or corner that contains the specified point.
+     Returns the edge or corner of the rectangle that contains the specified point within a given tolerance.
+
+     This method determines if the provided point lies on one of the rectangle's edges or corners, considering the specified tolerance as a margin of error. If the point is within the tolerance range of an edge or corner, the corresponding value is returned. If the point does not align with any edge or corner within the tolerance, the method returns `nil`.
 
      - Parameters:
-        - point: The point.
-        - tolerance: The tolerance on the edges.
-        - cornerTolerance: The tolerance on the corners.
+        - point: The point to evaluate.
+       - tolerance: The maximum distance from an edge within which the point is considered to be contained by that edge. Must be a non-negative value.
+        - cornerTolerance: The maximum distance from a corner within which the point is considered to be contained by that corner. Must be a non-negative value.
+
+     - Returns: The edge or corner that contains the point within the specified tolerance, or `nil` if the point does not fall within the tolerance of any edge or corner.
      */
     func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat, cornerTolerance: CGFloat) -> RectEdgeCorner? {
-        let edgeExtendedRect = insetBy(dx: -tolerance, dy: -tolerance)
-        let cornerExtendedRect = insetBy(dx: -cornerTolerance, dy: -cornerTolerance)
-        
-        if cornerExtendedRect.contains(point) {
+        if insetBy(dx: -cornerTolerance, dy: -cornerTolerance).contains(point) {
             if point.x >= minX - cornerTolerance && point.x <= minX + cornerTolerance {
                 if point.y >= minY - cornerTolerance && point.y <= minY + cornerTolerance {
-                    #if os(macOS)
-                    return .bottomLeft
-                    #else
-                    return .topLeft
-                    #endif
+                    return .minXMinY
                 } else if point.y >= maxY - cornerTolerance && point.y <= maxY + cornerTolerance {
-                    #if os(macOS)
-                    return .topLeft
-                    #else
-                    return .bottomLeft
-                    #endif
+                    return .minXMaxY
                 }
             }
-            
             if point.x >= maxX - cornerTolerance && point.x <= maxX + cornerTolerance {
                 if point.y >= minY - cornerTolerance && point.y <= minY + cornerTolerance {
-                    #if os(macOS)
-                    return .bottomRight
-                    #else
-                    return .topRight
-                    #endif
+                    return .maxXMinY
                 } else if point.y >= maxY - cornerTolerance && point.y <= maxY + cornerTolerance {
-                    #if os(macOS)
-                    return .topRight
-                    #else
-                    return .bottomRight
-                    #endif
+                    return .maxXMaxY
                 }
             }
         }
-        
-        if edgeExtendedRect.contains(point) {
-            // Edges
+        if insetBy(dx: -tolerance, dy: -tolerance).contains(point) {
             if point.y >= minY - tolerance && point.y <= minY + tolerance {
-                #if os(macOS)
-                return .bottom
-                #else
-                return .top
-                #endif
-            }
-            if point.y >= maxY - tolerance && point.y <= maxY + tolerance {
-                #if os(macOS)
-                return .top
-                #else
-                return .bottom
-                #endif
-            }
-            
-            if point.x >= minX - tolerance && point.x <= minX + tolerance {
-                return .left
-            }
-            if point.x >= maxX - tolerance && point.x <= maxX + tolerance {
-                return .right
+                return .minY
+            } else if point.y >= maxY - tolerance && point.y <= maxY + tolerance {
+                return .maxY
+            } else if point.x >= minX - tolerance && point.x <= minX + tolerance {
+                return .minX
+            } else if point.x >= maxX - tolerance && point.x <= maxX + tolerance {
+                return .maxX
             }
         }
-        
         return nil
     }
 }
@@ -716,7 +744,7 @@ public extension CGRect {
     }
     
     /// The horizontal order to split a rectangle.
-    enum HorizontalSplitOrder: Int {
+    enum HorizontalSplitOrder {
         /// Left to right.
         case leftToRight
         /// Right to left.
@@ -728,20 +756,212 @@ public extension CGRect {
         /// Random order.
         case random
     }
-    
+    /*
     /**
      Splits the rectangle to the specified vertical and horizontal amount of rectangles.
-
+     
      - Parameters:
-        - horizontalAmount: The amount of horizontal rectangles.
-        - verticalAmount: The amount of vertical rectangles.
-        - horizontalOrder: The horizontal order of the rectangles.
-        - verticalOrder: The vertical order of the rectangles.
+     - horizontalAmount: The amount of horizontal rectangles.
+     - verticalAmount: The amount of vertical rectangles.
+     - horizontalOrder: The horizontal order of the rectangles.
+     - verticalOrder: The vertical order of the rectangles.
      
      - Returns: An array with the divided rectangles.
      */
-    func splitted(horizontalAmount: Int, verticalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-        splitted(size: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+    func splitted(horizontalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalAmount: Int = 1, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+        splitted(by: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+    }
+    
+    func splitted(verticalAmount: Int, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+        splitted(horizontalAmount: 1, verticalAmount: verticalAmount, verticalOrder: verticalOrder)
+    }
+    
+    func splitted(_ amount: SplitAmount, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
+        splitted(.both(5) )
+    }
+    
+    func splitted(_ percentage: SplitPercentage, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
+        splitted(.both(5) )
+    }
+    */
+    
+    struct SplitPercentage: ExpressibleByFloatLiteral {
+        /// The percentage of the width of each vertical split.
+        public let vertical: CGFloat
+        /// The percentage of the height of each horizontal split.
+        public let horizontal: CGFloat
+        
+        /// Splits vertical by the specified percentage of the height.
+        public static func vertical(_ percentage: CGFloat) -> Self {
+            .init(vertical: percentage, horizontal: 1.0)
+        }
+        
+        /// Splits horizontal by the specified percentage of the width..
+        public static func horizontal(_ percentage: CGFloat) -> Self {
+            .init(vertical: 1.0, horizontal: percentage)
+        }
+        
+        /// Splits both vertical and horizontal by the specified percentage of the width and height.
+        public static func both(_ percentage: CGFloat) -> Self {
+            .init(vertical: percentage, horizontal: percentage)
+        }
+        
+        /**
+         Splits vertical and horizontal by the specified percentages.
+         
+         - Parameters:
+            - vertical: The vertical split percentage of the height.
+            - horizontal: The horizontal split percentage of the width.
+         */
+        public init(vertical: CGFloat, horizontal: CGFloat) {
+            self.vertical = vertical.clamped(to: 0...1.0)
+            self.horizontal = horizontal.clamped(to: 0...1.0)
+        }
+        
+        /// Splits both vertical and horizontal by the specified percentage of the width and height.
+        public init(floatLiteral value: Double) {
+            self.init(vertical: value, horizontal: value)
+        }
+    }
+    
+    struct SplitOption: ExpressibleByIntegerLiteral {
+        enum Option {
+            case size(CGSize)
+            case amount(vertical: Int, horizontal: Int)
+            case percebtage(vertical: CGFloat, horizontal: CGFloat)
+        }
+        let option: Option
+        
+        func splitSize(for rect: CGRect) -> CGSize {
+            switch option {
+            case .size(let size):
+                return size
+            case .amount(let vertical, let horizontal):
+                return .init(rect.width/CGFloat(horizontal), rect.height/CGFloat(vertical))
+            case .percebtage(let vertical, let horizontal):
+                return .init(rect.size.width*horizontal.clamped(to: 0...1.0), rect.size.height*vertical.clamped(to: 0...1.0))
+            }
+        }
+        
+        init(_ option: Option) {
+            self.option = option
+        }
+        
+        public init(integerLiteral value: Int) {
+            self.init(.amount(vertical: value, horizontal: value))
+        }
+        
+        public static func vertical(by amount: Int) -> Self {
+            .init(.amount(vertical: amount, horizontal: 1))
+        }
+        
+        public static func vertical(relative size: CGFloat) -> Self {
+            .init(.percebtage(vertical: size, horizontal: 1.0))
+        }
+        
+        public static func vertical(absolute size: CGFloat) -> Self {
+            .init(.size(CGSize(-1, size)))
+        }
+        
+        public static func horizontal(by amount: Int) -> Self {
+            .init(.amount(vertical: 1, horizontal: amount))
+        }
+        
+        public static func horizontal(relative size: CGFloat) -> Self {
+            .init(.percebtage(vertical: 1.0, horizontal: size))
+        }
+        
+        public static func horizontal(absolute size: CGFloat) -> Self {
+            .init(.size(CGSize(size, -1)))
+        }
+        
+        public static func both(by amount: Int) -> Self {
+            .init(.amount(vertical: amount, horizontal: amount))
+        }
+        
+        public static func both(relative size: CGFloat) -> Self {
+            .init(.percebtage(vertical: size, horizontal: size))
+        }
+        
+        public static func both(absolute size: CGFloat) -> Self {
+            .init(.size(CGSize(size, size)))
+        }
+        
+        /*
+        public static func amount(vertical: Int, horizontal: Int = 1) -> Self {
+            .init(.amount(vertical: vertical, horizontal: horizontal))
+        }
+        
+        public static func amount(horizontal: Int) -> Self {
+            .init(.amount(vertical: 1, horizontal: horizontal))
+        }
+        
+        public static func amount(_ amount: Int) -> Self {
+            .init(.amount(vertical: amount, horizontal: amount))
+        }
+        
+        public static func percentage(vertical: CGFloat, horizontal: CGFloat = 1.0) -> Self {
+            .init(.percebtage(vertical: vertical, horizontal: horizontal))
+        }
+        
+        public static func percentage(horizontal: CGFloat) -> Self {
+            .init(.percebtage(vertical: 1.0, horizontal: horizontal))
+        }
+        
+        public static func percentage(_ percentage: CGFloat) -> Self {
+            .init(.percebtage(vertical: percentage, horizontal: percentage))
+        }
+        
+        public static func size(vertical: CGFloat) -> Self {
+            .init(.size(.init(-1, vertical)))
+        }
+        
+        public static func size(horizontal: CGFloat) -> Self {
+            .init(.size(.init(horizontal, -1)))
+        }
+        
+        public static func size(_ size: CGSize) -> Self {
+            .init(.size(size))
+        }
+         */
+        
+    }
+    
+    struct SplitAmount: ExpressibleByIntegerLiteral {
+        /// The amount of vertical splits.
+        public let vertical: Int
+        /// The amount of horizontal splits.
+        public let horizontal: Int
+        
+        /// Splits vertical by the specified amount.
+        public static func vertical(_ amount: Int) -> Self {
+            .init(vertical: amount, horizontal: 1)
+        }
+        
+        /// Splits horizontal by the specified amount.
+        public static func horizontal(_ amount: Int) -> Self {
+            .init(vertical: 1, horizontal: amount)
+        }
+        
+        /// Splits both vertical and horizontal by the specified amount.
+        public static func both(_ amount: Int) -> Self {
+            .init(vertical: amount, horizontal: amount)
+        }
+        
+        /// Splits by the specified vertical and horizontal  amount.
+        public init(vertical: Int, horizontal: Int) {
+            self.vertical = vertical
+            self.horizontal = horizontal
+        }
+        
+        /// Splits both vertical and horizontal by the specified amount.
+        public init(integerLiteral value: Int) {
+            self.init(vertical: value, horizontal: value)
+        }
+    }
+    
+    func splitted(_ option: SplitOption, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect]  {
+        splitted(by: option.splitSize(for: self), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
     }
     
     /**
@@ -754,7 +974,7 @@ public extension CGRect {
      
      - Returns: An array with the divided rectangles.
      */
-    func splitted(size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+    func splitted(by size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
         let verticalCount = Int(self.size.height / size.height)
         let horizontalCount = Int(self.size.width / size.width)
         var splits: [CGRect] = []
@@ -790,6 +1010,23 @@ public extension CGRect {
         }
         return splits
     }
+    
+    /// The distance of the rectangle to the specified point.
+    func distance(to point: CGPoint) -> CGFloat {
+        if contains(point) {
+            return 0.0
+        }
+        let closestMaxY = CGPoint(x: min(max(point.x, origin.x), maxX), y: origin.y)
+        let closestMinY = CGPoint(x: min(max(point.x, origin.x), maxX), y: maxY)
+        let closestMinX = CGPoint(x: origin.x, y: min(max(point.y, origin.y), maxY))
+        let closestMaxX = CGPoint(x: maxX, y: min(max(point.y, origin.y), maxY))
+        return [closestMinX, closestMaxX, closestMinY, closestMaxY].compactMap({ point.distance(to: $0)}).min() ?? .infinity
+      }
+    
+    /// The distance of the rectangle to the specified other rectangle.
+    func distance(to rect: CGRect) -> CGFloat {
+        intersects(rect) ? 0 : [bottomLeft, bottomCenter, bottomRight, topLeft, topCenter, topRight, centerLeft, centerRight].compactMap({ rect.distance(to: $0) }).min() ?? .infinity
+     }
 }
 
 extension CGRect: Hashable {
@@ -805,48 +1042,34 @@ public extension Collection where Element == CGRect {
         return reduce(CGRect.zero) {$0.union($1)}
     }
     
-    /// Returns the rectangle in the center.
-    func centeredRect() -> CGRect? {
-        return centeredRect(in: union().center)
+    /// Returns the rectangles sorted by distance to the specified point.
+    func sortedByDistance(to point: CGPoint, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
+        compactMap({(rect: $0, distance: $0.distance(to: point)) }).sorted(by: \.distance, order).compactMap({$0.rect})
     }
     
-    /// Returns the rectangle in the center of the specified point.
-    func centeredRect(in point: CGPoint) -> CGRect? {
-        return compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
+    /// Returns the rectangles sorted by distance to the specified rectangle.
+    func sortedByDistance(to rect: CGRect, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
+        compactMap({(rect: $0, distance: $0.distance(to: rect)) }).sorted(by: \.distance, order).compactMap({$0.rect})
     }
     
+    /// Returns the closed rectangle in the specified point.
     func closedRect(to point: CGPoint) -> CGRect? {
-        compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst).first?.rect
-    }
-        
-    func closedRects(to point: CGPoint, amount: Int) -> [CGRect] {
-        compactMap({(rect: $0, distance: $0.center.distance(to: point)) }).sorted(by: \.distance, .smallestFirst)[safe: 0..<amount].compactMap({$0.rect})
+        sortedByDistance(to: point).first
     }
     
-    /// Returns the rectangle in the center of the specified rect.
-    func centeredRect(in rect: CGRect) -> CGRect? {
-        return centeredRect(in: rect.center)
+    /// Returns the closed rectangle in the specified other rectangle.
+    func closedRect(to rect: CGRect) -> CGRect? {
+        sortedByDistance(to: rect).first
+    }
+    
+    /// Returns the rectangle in the center.
+    var centeredRect: CGRect? {
+        sortedByDistance(to: union().center).first
     }
     
     /// Returns the index of the rectangle in the center.
-    func indexOfCenteredRect() -> Index? {
-        if let rect = centeredRect() {
-            return firstIndex(of: rect) ?? nil
-        }
-        return nil
-    }
-    
-    /// Returns the index of the rectangle in the center of the specified point.
-    func indexOfCenteredRect(in point: CGPoint) -> Index? {
-        if let rect = centeredRect(in: point) {
-            return firstIndex(of: rect) ?? nil
-        }
-        return nil
-    }
-    
-    /// Returns the  index of rectangle in the center of the specified rect.
-    func indexOfCenteredRect(in rect: CGRect) -> Index? {
-        if let rect = centeredRect(in: rect) {
+    var indexOfCenteredRect: Index? {
+        if let rect = centeredRect {
             return firstIndex(of: rect) ?? nil
         }
         return nil
@@ -855,18 +1078,22 @@ public extension Collection where Element == CGRect {
 
 public extension CGRectEdge {
     /// The left edge of the rectangle.
-    static let left = CGRectEdge.minYEdge
+    static let left: CGRectEdge = .minXEdge
     /// The right edge of the rectangle.
-    static let right = CGRectEdge.maxYEdge
+    static let right: CGRectEdge = .maxXEdge
     #if os(macOS)
     /// The bottom edge of the rectangle.
-    static let bottom = CGRectEdge.minXEdge
+    static let bottom: CGRectEdge = .minYEdge
     /// The top edge of the rectangle.
-    static let top = CGRectEdge.maxXEdge
+    static let top: CGRectEdge = .maxYEdge
     #else
     /// The bottom edge of the rectangle.
-    static let bottom = CGRectEdge.maxXEdge
+    static let bottom: CGRectEdge = .maxYEdge
     /// The top edge of the rectangle.
-    static let top = CGRectEdge.minXEdge
+    static let top: CGRectEdge = .minYEdge
     #endif
+    
+    internal var isHeight: Bool {
+        self == .minYEdge || self == .maxYEdge
+    }
 }

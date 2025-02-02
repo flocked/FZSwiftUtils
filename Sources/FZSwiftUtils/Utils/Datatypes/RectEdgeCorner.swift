@@ -9,24 +9,54 @@ import Foundation
 
 /// Edges and corners of a rectangle.
 public struct RectEdgeCorner: OptionSet, CustomStringConvertible, Hashable, Codable {
+    /// MinX.
+    public static let minX = RectEdgeCorner(rawValue: 1 << 0)
+    /// MaxX.
+    public static let maxX = RectEdgeCorner(rawValue: 1 << 1)
+    /// MinY.
+    public static let minY = RectEdgeCorner(rawValue: 1 << 2)
+    /// MinXMinY.
+    public static let minXMinY = RectEdgeCorner(rawValue: 1 << 3)
+    /// MaxXMinY.
+    public static let maxXMinY = RectEdgeCorner(rawValue: 1 << 4)
+    /// MaxY.
+    public static let maxY = RectEdgeCorner(rawValue: 1 << 5)
+    /// MinXMaxY.
+    public static let minXMaxY = RectEdgeCorner(rawValue: 1 << 6)
+    /// MaxXMaxY.
+    public static let maxXMaxY = RectEdgeCorner(rawValue: 1 << 7)
     
     /// Left edge.
-    public static let left = RectEdgeCorner(rawValue: 1 << 0)
+    public static let left = minX
     /// Right edge.
-    public static let right = RectEdgeCorner(rawValue: 1 << 1)
+    public static let right = maxX
+    #if os(macOS)
     /// Bottom edge.
-    public static let bottom = RectEdgeCorner(rawValue: 1 << 2)
+    public static let bottom = minY
     /// Bottom-left corner
-    public static let bottomLeft = RectEdgeCorner(rawValue: 1 << 3)
+    public static let bottomLeft = minXMinY
     /// Bottom-right corner.
-    public static let bottomRight = RectEdgeCorner(rawValue: 1 << 4)
+    public static let bottomRight = maxXMinY
     /// Top edge.
-    public static let top = RectEdgeCorner(rawValue: 1 << 5)
+    public static let top = maxY
     /// Top-left corner.
-    public static let topLeft = RectEdgeCorner(rawValue: 1 << 6)
+    public static let topLeft = minXMaxY
     /// Top-right corner.
-    public static let topRight = RectEdgeCorner(rawValue: 1 << 7)
-    
+    public static let topRight = maxXMaxY
+    #else
+    /// Bottom edge.
+    public static let bottom = maxY
+    /// Bottom-left corner
+    public static let bottomLeft = minXMaxY
+    /// Bottom-right corner.
+    public static let bottomRight = maxXMaxY
+    /// Top edge.
+    public static let top = minY
+    /// Top-left corner.
+    public static let topLeft = minXMinY
+    /// Top-right corner.
+    public static let topRight = maxXMinY
+    #endif
     /// All corners.
     public static let corners: RectEdgeCorner = [.topLeft, .topRight, bottomLeft, .bottomRight]
     /// All edges.

@@ -118,8 +118,8 @@ public extension CGPoint {
      - Parameter view: The view for scale.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let screen = view.window?.screen else { return self }
-        return scaledIntegral(for: screen)
+        guard let window = view.window else { return self }
+        return scaledIntegral(for: window)
     }
     
     /**
@@ -130,8 +130,18 @@ public extension CGPoint {
      - Parameter window: The window for scale.
      */
     func scaledIntegral(for window: NSWindow) -> Self {
-        guard let screen = window.screen else { return self }
-        return scaledIntegral(for: screen)
+        CGPoint(x.scaledIntegral(for: window), y.scaledIntegral(for: window))
+    }
+    
+    /**
+     Returns the scaled integral point of the current point for the specified window.
+
+     The x and y values are scaled based on either the key, main or first visible window, or else the main screen and it's backing scale factor.
+     
+     - Parameter application: The application for the scale factor.
+     */
+    func scaledIntegral(for application: NSApplication) -> Self {
+        CGPoint(x.scaledIntegral(for: application), y.scaledIntegral(for: application))
     }
     #endif
 
