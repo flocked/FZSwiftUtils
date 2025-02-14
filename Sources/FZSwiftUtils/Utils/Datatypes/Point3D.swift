@@ -85,3 +85,51 @@ public struct Point3D: Hashable, Codable, CustomStringConvertible {
         "(\(x), \(y), \(z))"
     }
 }
+
+/// The Objective-C class for ``Point3D``.
+public class __Point3D: NSObject, NSCopying {
+    let point: Point3D
+    
+    public init(point: Point3D) {
+        self.point = point
+    }
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        __Point3D(point: point)
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        point == (object as? __Point3D)?.point
+    }
+}
+
+extension Point3D: ReferenceConvertible {
+    /// The Objective-C type for the configuration.
+    public typealias ReferenceType = __Point3D
+    
+    public func _bridgeToObjectiveC() -> __Point3D {
+        return __Point3D(point: self)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ source: __Point3D, result: inout Point3D?) {
+        result = source.point
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __Point3D, result: inout Point3D?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __Point3D?) -> Point3D {
+        if let source = source {
+            var result: Point3D?
+            _forceBridgeFromObjectiveC(source, result: &result)
+            return result!
+        }
+        return Point3D()
+    }
+    
+    public var debugDescription: String {
+        description
+    }
+}
