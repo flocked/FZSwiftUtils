@@ -14,6 +14,10 @@ Collection+Indexed
 - Copyright (c) 2020 Apple Inc.
 - https://github.com/apple/swift-algorithms/
 
+Collection+ResultsBuilder
+- Copyright (c) 2025 Tinder
+- https://github.com/Tinder/CollectionBuilders/
+
 DateFormatComponents
 - Copyright (c) 2021 Yurii Lysytsia.
 - https://github.com/yurii-lysytsia/AirKit

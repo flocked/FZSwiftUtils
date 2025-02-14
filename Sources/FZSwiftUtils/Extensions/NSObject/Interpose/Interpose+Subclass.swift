@@ -5,9 +5,7 @@
 //  InterposeKit - https://github.com/steipete/InterposeKit/
 //
 
-/*
 import Foundation
-import _SuperBuilder
 
 class InterposeSubclass {
 
@@ -28,7 +26,7 @@ class InterposeSubclass {
     }
 
     /// The object that is being hooked.
-    weak var object: AnyObject?
+    let object: AnyObject
 
     /// Subclass that we create on the fly
     private(set) var dynamicClass: AnyClass
@@ -45,10 +43,6 @@ class InterposeSubclass {
     }
 
     private func createSubclass() throws -> AnyClass {
-        guard let object = object else {
-            throw NSObject.SwizzleError.objectDoesntExistAnymore
-        }
-        
         let perceivedClass: AnyClass = type(of: object)
         let actualClass: AnyClass = object_getClass(object)!
 
@@ -88,9 +82,7 @@ class InterposeSubclass {
         return nil
     }
 
-    #if !os(Linux)
     private func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {
-        // crashes on linux
         let getClass: @convention(block) (AnyObject) -> AnyClass = { _ in
             perceivedClass
         }
@@ -100,23 +92,22 @@ class InterposeSubclass {
     }
 
     class var supportsSuperTrampolines: Bool {
-        _SuperBuilder.isSupportedArchitecure
+        NSClassFromString("_SuperBuilder")?.value(forKey: "isSupportedArchitecure") as? Bool ?? false
     }
-    
-    func addSuperTrampoline(selector: Selector) {
-        do {
-            try _SuperBuilder.addSuperInstanceMethod(to: dynamicClass, selector: selector)
 
+    private lazy var addSuperImpl: @convention(c) (AnyClass, Selector, NSErrorPointer) -> Bool = {
+        let handle = dlopen(nil, RTLD_LAZY)
+        let imp = dlsym(handle, "IKTAddSuperImplementationToClass")
+        return unsafeBitCast(imp, to: (@convention(c) (AnyClass, Selector, NSErrorPointer) -> Bool).self)
+    }()
+
+    func addSuperTrampoline(selector: Selector) {
+        var error: NSError?
+        if addSuperImpl(dynamicClass, selector, &error) == false {
+            Interpose.log("Failed to add super implementation to -[\(dynamicClass).\(selector)]: \(error!)")
+        } else {
             let imp = class_getMethodImplementation(dynamicClass, selector)!
             Interpose.log("Added super for -[\(dynamicClass).\(selector)]: \(imp)")
-        } catch {
-            Interpose.log("Failed to add super implementation to -[\(dynamicClass).\(selector)]: \(error)")
         }
     }
-    #else
-    func addSuperTrampoline(selector: Selector) { }
-    class var supportsSuperTrampolines: Bool { return false }
-    private func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {}
-    #endif
 }
-*/

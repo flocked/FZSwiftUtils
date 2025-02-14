@@ -1065,6 +1065,21 @@ public extension Collection where Element == CGRect {
         return reduce(CGRect.zero) {$0.union($1)}
     }
     
+    /// Returns the rectangle in the center.
+    var centeredRect: CGRect? {
+        sortedByDistance(to: union().center).first
+    }
+    
+    /// Returns the index of the rectangle in the center.
+    var indexOfCenteredRect: Index? {
+        if let rect = centeredRect {
+            return firstIndex(of: rect) ?? nil
+        }
+        return nil
+    }
+}
+
+public extension Sequence where Element == CGRect {
     /// Returns the rectangles sorted by distance to the specified point.
     func sortedByDistance(to point: CGPoint, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
         compactMap({(rect: $0, distance: $0.distance(to: point)) }).sorted(by: \.distance, order).compactMap({$0.rect})
@@ -1083,19 +1098,6 @@ public extension Collection where Element == CGRect {
     /// Returns the closed rectangle in the specified other rectangle.
     func closedRect(to rect: CGRect) -> CGRect? {
         sortedByDistance(to: rect).first
-    }
-    
-    /// Returns the rectangle in the center.
-    var centeredRect: CGRect? {
-        sortedByDistance(to: union().center).first
-    }
-    
-    /// Returns the index of the rectangle in the center.
-    var indexOfCenteredRect: Index? {
-        if let rect = centeredRect {
-            return firstIndex(of: rect) ?? nil
-        }
-        return nil
     }
 }
 

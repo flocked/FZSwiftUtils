@@ -31,11 +31,11 @@ public class AnyHook {
         indirect case error(NSObject.SwizzleError)
     }
 
-    init(`class`: AnyClass, selector: Selector) throws {
+    init(`class`: AnyClass, selector: Selector, shouldValidate: Bool = true) throws {
         self.selector = selector
         self.class = `class`
 
-        // Check if method exists
+        guard shouldValidate else { return }
         try validate()
     }
 

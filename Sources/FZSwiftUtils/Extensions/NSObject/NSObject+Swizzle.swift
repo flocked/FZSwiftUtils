@@ -58,7 +58,7 @@ extension NSObject {
                 throw error
             }
     }
-
+    
     /**
      Replace an `@objc dynamic` class method of the current class.
      
@@ -76,6 +76,34 @@ extension NSObject {
                                        selector: selector, implementation: implementation).apply()
         hooks[selector, default: []].append(hook)
         return .init(hook, self)
+    }
+    
+    /**
+     Adds an unimplemented protocol instance method to the current object.
+     
+     Use this method to add an unimplemented protocol method to the object. To replace a already implemented method use ``replaceMethod(_:methodSignature:hookSignature:_:)-swift.type.method``.
+     
+     To remove the added method, use `resetMethod(_:)` with the selector or set tokens `isActive` to false.
+          
+     - Returns: The token for resetting the adding method.
+     */
+    @discardableResult
+    public func addMethod<MethodSignature, HookSignature> (
+        _ selector: Selector,
+        methodSignature: MethodSignature.Type = MethodSignature.self,
+        hookSignature: HookSignature.Type = HookSignature.self,
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
+            let kvoObservers = kvoObservers
+            kvoObservers.forEach({ $0.isActive = false })
+            do {
+                let hook = try Interpose.OptionalObjectHook(object: self, selector: selector, implementation: implementation).apply()
+                hooks[selector, default: []].append(hook)
+                kvoObservers.forEach({ $0.isActive = true })
+                return .init(hook, self)
+            } catch {
+                kvoObservers.forEach({ $0.isActive = true })
+                throw error
+            }
     }
     
     /// A Boolean value indicating whether the instance method for the specified selector is replaced.

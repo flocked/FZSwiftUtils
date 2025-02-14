@@ -38,6 +38,9 @@ extension NSObject {
         /// Unable to remove hook.
         case resetUnsupported(_ reason: String)
         
+        /// The method to add is already implemented by the object.
+        case methodAlreadyImplemented(AnyClass, Selector)
+        
         /// Generic failure
         case unknownError(_ reason: String)
         case objectDoesntExistAnymore
@@ -72,6 +75,8 @@ extension NSObject.SwizzleError: Equatable {
             return "Reset Unsupported: \(reason)"
         case .objectDoesntExistAnymore:
             return "Object doesnt exist anymore"
+        case .methodAlreadyImplemented(let klass, let selector):
+            return "Method is already implemented by the object: -[\(klass) \(selector)]"
         case .unknownError(let reason):
             return reason
         }

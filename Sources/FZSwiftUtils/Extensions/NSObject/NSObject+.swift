@@ -285,3 +285,77 @@ extension NSObject {
         allClasses().filter({ class_conformsToProtocol($0, p) })
     }
 }
+
+extension NSObjectProtocol where Self: NSObject {
+    static func isProtocolSelector(_ selector: Selector) -> Bool {
+        var protocolCount: UInt32 = 0
+        if let protocols = class_copyProtocolList(self, &protocolCount) {
+            if (0..<Int(protocolCount)).contains(where: { protocols[$0].containsSelector(selector) }) {
+                return true
+            }
+        }
+        return (class_getSuperclass(self) as? NSObject.Type)?.isProtocolSelector(selector) ?? false
+    }
+    
+    
+    static func typeEncoding(for selector: Selector) -> UnsafePointer<CChar>? {
+         var protocolCount: UInt32 = 0
+         if let protocols = class_copyProtocolList(self, &protocolCount) {
+             for i in 0..<Int(protocolCount) {
+                 if let typeEncoding = protocols[i].typeEncoding(for: selector) {
+                     return typeEncoding
+                 }
+             }
+         }
+        return (class_getSuperclass(self) as? NSObject.Type)?.typeEncoding(for: selector)
+     }
+}
+
+func typeEncoding(for selector: Selector, _class: AnyClass) -> UnsafePointer<CChar>? {
+    var protocolCount: UInt32 = 0
+    if let protocols = class_copyProtocolList(_class, &protocolCount) {
+        for i in 0..<Int(protocolCount) {
+            if let typeEncoding = protocols[i].typeEncoding(for: selector) {
+                return typeEncoding
+            }
+        }
+    }
+    if let superclass = class_getSuperclass(type(of: _class)) {
+        return typeEncoding(for: selector, _class: superclass)
+    }
+   return nil
+}
+
+extension Protocol {
+    func containsSelector(_ selector: Selector) -> Bool {
+        if protocol_getMethodDescription(self, selector, true, true).name != nil || protocol_getMethodDescription(self, selector, false, true).name != nil {
+            return true
+        }
+        var protocolCount: UInt32 = 0
+        guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return false }
+        if (0..<Int(protocolCount)).contains(where: { superProtocols[$0].containsSelector(selector) }) {
+            return true
+        }
+        return false
+    }
+    
+    func typeEncoding(for selector: Selector) -> UnsafePointer<CChar>? {
+        var methodDesc = protocol_getMethodDescription(self, selector, true, true)
+        if methodDesc.types == nil {
+            methodDesc = protocol_getMethodDescription(self, selector, false, true)
+        }
+        if let types = methodDesc.types {
+            return withUnsafePointer(to: &types.pointee) { pointer in
+                return pointer
+            }
+        }
+        var protocolCount: UInt32 = 0
+        guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return nil }
+        for i in 0..<Int(protocolCount) {
+            if let typeEncoding = superProtocols[i].typeEncoding(for: selector) {
+                return typeEncoding
+            }
+        }
+        return nil
+    }
+}

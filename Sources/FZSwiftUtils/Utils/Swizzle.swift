@@ -104,24 +104,19 @@ public struct Swizzle {
 
     @discardableResult
     init(_ className: String, swizzlePairs: [SelectorPair], reset _: Bool = false) throws {
-        guard let class_ = NSClassFromString(className) 
-        else { throw Error.missingClass(className) }
+        guard let class_ = NSClassFromString(className) else { throw Error.missingClass(className) }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
     private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
         try pairs.forEach { pair in
-            guard let `class` = pair.static ? object_getClass(type) : type
-            else { throw Error.missingClass(type.description()) }
-            guard let lhs = class_getInstanceMethod(`class`, pair.old)
-            else {
-                try swizzleOptional(type: `class`, pair: pair)
+            guard let `class` = pair.static ? object_getClass(type) : type else { throw Error.missingClass(type.description()) }
+            guard let lhs = class_getInstanceMethod(`class`, pair.old) else {
+                try swizzleOptional(`class`, pair: pair)
                 return
             }
-            guard let rhs = class_getInstanceMethod(`class`, pair.new)
-            else { throw Error.missingMethod(`class`, pair.static, false, pair) }
-            guard !resetOptional(type: `class`, pair: pair)
-            else { return }
+            guard let rhs = class_getInstanceMethod(`class`, pair.new) else { throw Error.missingMethod(`class`, pair.static, false, pair) }
+            guard !resetOptional(`class`, pair: pair) else { return }
 
             if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
                 class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
@@ -132,28 +127,16 @@ public struct Swizzle {
         }
     }
     
-    private func swizzleOptional(type: AnyObject.Type, pair: SelectorPair) throws {
-        guard let `class` = pair.static ? object_getClass(type) : type
-        else { throw Error.missingClass(type.description()) }
-        let lhs = class_getInstanceMethod(`class`, pair.old)
+    private func swizzleOptional(_ `class`: AnyClass, pair: SelectorPair) throws {
         let rhs = class_getInstanceMethod(`class`, pair.new)
-        guard rhs != nil
-        else { throw Error.missingMethod(`class`, pair.static, false, pair) }
-        if lhs != nil, rhs != nil {
-            try swizzle(type: `class`, pairs: [pair])
-        } else if let rhs = rhs {
-            class_replaceMethod(`class`, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
-            var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
-            selectors[pair.new] = pair.old
-            setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
-        } else {
-            throw Error.missingMethod(`class`, pair.static, true, pair)
-        }
+        guard let rhs = rhs else { throw Error.missingMethod(`class`, pair.static, true, pair) }
+        class_replaceMethod(`class`, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
+        var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
+        selectors[pair.new] = pair.old
+        setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
     }
     
-    private func resetOptional(type: AnyObject.Type, pair: SelectorPair) -> Bool {
-        guard let `class` = pair.static ? object_getClass(type) : type, class_getInstanceMethod(`class`, pair.old) != nil
-        else { return false }
+    private func resetOptional(_ `class`: AnyClass, pair: SelectorPair) -> Bool {
         var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
         guard selectors[pair.old] == pair.new, let deleteIMP = class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) else { return false }
         method_setImplementation(method, deleteIMP)
