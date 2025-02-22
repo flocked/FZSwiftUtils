@@ -165,6 +165,10 @@ extension NSObject {
         let handler: ((NSKeyValueObservedChange<Value>) -> Void)
         let options: NSKeyValueObservingOptions
         
+        func copied(with object: NSObject) -> KVObservation {
+            KVObserver<Object, Value>(object as! Object, keyPath: keyPath, options: options, handler: handler)
+        }
+        
         var _object: NSObject? {
             get { object }
             set {
@@ -180,8 +184,6 @@ extension NSObject {
             get { object != nil && observation != nil }
             set {
                 if newValue {
-                    Swift.print("isActive", object ?? "nil")
-                    Swift.print("isActive_2", keyPath, options)
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
@@ -193,6 +195,15 @@ extension NSObject {
                     object?.removeKVObservation(self)
                 }
             }
+        }
+        
+        init(_ object: Object, keyPath: KeyPath<Object, Value>, options: NSKeyValueObservingOptions, handler: @escaping ((NSKeyValueObservedChange<Value>) -> Void)) {
+            self.object = object
+            self.keyPath = keyPath
+            self.options = options
+            self.handler = handler
+            super.init()
+            self.isActive = true
         }
         
         init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {

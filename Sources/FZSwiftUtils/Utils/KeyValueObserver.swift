@@ -8,6 +8,12 @@
 import Foundation
 
 open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObject {
+    func copied(with object: NSObject) -> KVObservation {
+        let observer = KeyValueObserver<Object>.init(object as! Object)
+        observations.values.forEach({ observer.addObservation($0) })
+        return observer
+    }
+    
     
     /// The observed object.
     public fileprivate(set) weak var observedObject: Object?
@@ -356,6 +362,7 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
 protocol KVObservation: NSObject {
     var isActive: Bool { get set }
     var _object: NSObject? { get set }
+    func copied(with object: NSObject) -> KVObservation
 }
 
 extension KVObservation {
