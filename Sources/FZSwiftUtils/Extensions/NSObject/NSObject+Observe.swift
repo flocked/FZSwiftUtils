@@ -177,8 +177,8 @@ extension NSObject {
         var isActive: Bool {
             get { object != nil && _isActive }
             set {
+                Swift.print("isActive", newValue, newValue != isActive, object != nil, NSStringFromClass(object_getClass(object)!))
                 guard newValue != isActive, let object = object else { return }
-                Swift.print("isActive", newValue, NSStringFromClass(object_getClass(object)!))
                 _isActive = newValue
                 if newValue {
                     object.addObserver(self, forKeyPath: keyPath, options: options, context: nil)
