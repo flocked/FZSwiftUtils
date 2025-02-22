@@ -185,16 +185,10 @@ extension NSObject {
             get { object != nil && observation != nil }
             set {
                 if newValue {
-                    if didDeactivate {
-                        didDeactivate = false
-                        observation = (object?.observeChanges(for: keyPath, handler: { oldValue, newValue in
-                            
-                        })?.observer as? KVObserver<Object, Value>)?.observation
-                    } else {
-                         observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
-                         guard let self = self else { return }
-                         self.handler(change)
-                         }
+                    Swift.print("CCCCC", object?[keyPath: keyPath] ?? "nil")
+                    observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
+                        guard let self = self else { return }
+                        self.handler(change)
                     }
                     object?.addKVObservation(self)
                 } else {
