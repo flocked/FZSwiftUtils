@@ -158,7 +158,7 @@ public class KeyValueObservation: NSObject {
 
 extension NSObject {
     class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
-        var object: Object?
+        weak var object: Object?
         let keyPath: KeyPath<Object, Value>
         var _keyPath: String { keyPath.stringValue }
         var observation: NSKeyValueObservation?
@@ -184,10 +184,15 @@ extension NSObject {
             get { object != nil && observation != nil }
             set {
                 if newValue {
+                    observation = (object?.observeChanges(for: keyPath, handler: { oldValue, newValue in
+                        
+                    })?.observer as? KVObserver<Object, Value>)?.observation
+                    /*
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
                     }
+                     */
                     object?.addKVObservation(self)
                 } else {
                     observation?.invalidate()
