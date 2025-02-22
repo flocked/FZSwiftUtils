@@ -157,7 +157,7 @@ public class KeyValueObservation: NSObject {
 }
 
 extension NSObject {
-    class KVObserver<Value>: NSObject, KVObservation {
+    class _KVObserver<Value>: NSObject, KVObservation {
         var _object: NSObject? {
             get { object }
             set { object = newValue }
@@ -272,7 +272,7 @@ extension NSObject {
         }
     }
     
-    class _KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
+    class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         weak var object: Object?
         let keyPath: KeyPath<Object, Value>
         var _keyPath: String { keyPath.stringValue }
