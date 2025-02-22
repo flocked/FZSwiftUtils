@@ -381,7 +381,7 @@ extension NSObject {
 
         var isActive: Bool {
             get { object?.isActive ?? false }
-            set { object?.isActive = true }
+            set { object?.isActive = newValue }
         }
         
         var object: KVObservation? {
