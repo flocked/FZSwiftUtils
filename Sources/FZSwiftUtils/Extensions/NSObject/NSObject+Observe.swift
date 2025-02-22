@@ -184,7 +184,7 @@ extension NSObject {
             get { object != nil && observation != nil }
             set {
                 if newValue {
-                    Swift.print("CCCCC", (object?.hooks.first as? AAAA)?.interposeSubclass?.dynamicClass ?? "nil" )
+                    Swift.print("CCCCC", (object?.hooks.values.first as? AAAA)?.interposeSubclass?.dynamicClass ?? "nil" )
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
