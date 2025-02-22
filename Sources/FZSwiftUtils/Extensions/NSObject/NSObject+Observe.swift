@@ -157,121 +157,6 @@ public class KeyValueObservation: NSObject {
 }
 
 extension NSObject {
-    class _KVObserver<Value>: NSObject, KVObservation {
-        var _object: NSObject? {
-            get { object }
-            set { object = newValue }
-        }
-        weak var object: NSObject?
-        let keyPath: String
-        let handler: ((Change) -> Void)
-        let options: NSKeyValueObservingOptions
-        init(object: NSObject? = nil, keyPath: String, handler: @escaping (Change) -> Void, options: NSKeyValueObservingOptions) {
-            self.object = object
-            self.keyPath = keyPath
-            self.handler = handler
-            self.options = options
-        }
-        
-        var _isActive = false
-        var isActive: Bool {
-            get { object != nil && _isActive }
-            set {
-                Swift.print("isActive", newValue, newValue != isActive, object != nil, NSStringFromClass(object_getClass(object)!))
-                guard newValue != isActive, let object = object else { return }
-                _isActive = newValue
-                if newValue {
-                    object.addObserver(self, forKeyPath: keyPath, options: options, context: nil)
-                    object.addKVObservation(self)
-                } else {
-                    object.removeObserver(self, forKeyPath: keyPath)
-                    object.removeKVObservation(self)
-                }
-            }
-        }
-        
-        struct Change {
-            let oldValue: Value?
-            let newValue: Value?
-            let isPrior: Bool
-            init(_ change: [NSKeyValueChangeKey: Any]) {
-                oldValue = change[.oldKey] as? Value
-                newValue = change[.newKey] as? Value
-                isPrior = (change[.notificationIsPriorKey] as? Bool) ?? false
-            }
-        }
-        
-        override func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
-            guard object != nil, let change = change else { return }
-            handler(.init(change))
-        }
-        
-        deinit {
-            isActive = false
-        }
-        
-        init?<Object: NSObject>(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-            guard let _keyPath =  keyPath._kvcKeyPathString else { return nil }
-            self.object = object
-            self.keyPath = _keyPath
-            self.options = [.old, .new]
-            self.handler = { change in
-                guard let new = change.newValue else { return }
-                if let old = change.oldValue {
-                    handler(old, new)
-                } else {
-                    handler(new, new)
-                }
-            }
-            super.init()
-            if sendInitalValue {
-                let value = object[keyPath: keyPath]
-                handler(value, value)
-            }
-            self.isActive = true
-        }
-        
-        init?<Object: NSObject>(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) where Value: Equatable {
-            guard let _keyPath =  keyPath._kvcKeyPathString else { return nil }
-            self.object = object
-            self.keyPath = _keyPath
-            self.options = [.old, .new]
-            self.handler = { change in
-                guard let new = change.newValue else { return }
-                if let old = change.oldValue {
-                    if !uniqueValues || old != new {
-                        handler(old, new)
-                    }
-                } else {
-                    handler(new, new)
-                }
-            }
-            super.init()
-            if sendInitalValue {
-                let value = object[keyPath: keyPath]
-                handler(value, value)
-            }
-            self.isActive = true
-        }
-        
-        init?<Object: NSObject>(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
-            guard let keyPath =  keyPath._kvcKeyPathString else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.options = [.old, .prior]
-            self.handler = { change in
-                guard change.isPrior, let oldValue = change.oldValue else { return }
-                handler(oldValue)
-            }
-            super.init()
-            self.isActive = true
-        }
-        
-        var keyValueObservation: KeyValueObservation {
-            KeyValueObservation(self)
-        }
-    }
-    
     class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         weak var object: Object?
         let keyPath: KeyPath<Object, Value>
@@ -279,32 +164,21 @@ extension NSObject {
         var observation: NSKeyValueObservation?
         let handler: ((NSKeyValueObservedChange<Value>) -> Void)
         let options: NSKeyValueObservingOptions
-        
-        var _object: NSObject? {
-            get { object }
-            set {
-                if let newValue = newValue as? Object, newValue !== object {
-                    object = newValue
-                } else if newValue == nil {
-                    object = nil
-                }
-            }
-        }
-        
+
         var isActive: Bool {
             get { object != nil && observation != nil }
             set {
-                if newValue {                    
-                    Swift.print("CCCCC", NSStringFromClass(object_getClass(object!)!))
-                    observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
+                guard let object = object else { return }
+                if newValue {
+                    observation = object.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
                     }
-                    object?.addKVObservation(self)
+                    object.addKVObservation(self)
                 } else {
                     observation?.invalidate()
                     observation = nil
-                    object?.removeKVObservation(self)
+                    object.removeKVObservation(self)
                 }
             }
         }

@@ -49,13 +49,9 @@ extension NSObject {
             let kvoObservers = kvoObservers
             let count = kvoObservers.filter({!$0.isActive}).count
             kvoObservers.forEach({ $0.isActive = false })
-            Swift.print("replaceMethod", kvoObservers.count, count, kvoObservers.filter({!$0.isActive}).count)
             do {
                 let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
                 hooks[selector, default: []].append(hook)
-                Swift.print("BBBBB", NSStringFromClass(object_getClass(self)!))
-
-                 kvoObservers.forEach({$0.object?._object = self })
                  kvoObservers.forEach({ $0.isActive = true })
                 return .init(hook, self)
             } catch {

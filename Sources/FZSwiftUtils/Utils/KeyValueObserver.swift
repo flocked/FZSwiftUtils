@@ -11,17 +11,6 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
     /// The observed object.
     public fileprivate(set) weak var observedObject: Object?
     
-    var _object: NSObject? {
-        get { observedObject }
-        set { 
-            if let newValue = newValue as? Object, newValue != observedObject {
-                replaceObservedObject(with: newValue)
-            } else if newValue == nil {
-                removeObservedObject()
-            }
-        }
-    }
-    
     private var observations: [String: Observation] = [:]
     
     var isActive: Bool = true {
@@ -354,7 +343,6 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
 
 protocol KVObservation: NSObject {
     var isActive: Bool { get set }
-    var _object: NSObject? { get set }
 }
 
 extension KVObservation {
