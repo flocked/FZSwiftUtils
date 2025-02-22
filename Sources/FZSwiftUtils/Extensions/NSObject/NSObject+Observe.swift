@@ -183,8 +183,8 @@ extension NSObject {
         var isActive: Bool {
             get { object != nil && observation != nil }
             set {
-                if newValue {
-                    Swift.print("CCCCC", object?.hooks ?? "nil", (object?.hooks.values.first as? AAAA)?.interposeSubclass?.dynamicClass ?? "nil" )
+                if newValue {                    
+                    Swift.print("CCCCC", NSStringFromClass(object_getClass(object!)!))
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
