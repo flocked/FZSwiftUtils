@@ -184,10 +184,12 @@ extension NSObject {
             get { object != nil && observation != nil }
             set {
                 if newValue {
+                    /*
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
                     }
+                     */
                     object?.addKVObservation(self)
                 } else {
                     observation?.invalidate()
