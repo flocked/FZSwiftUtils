@@ -180,6 +180,8 @@ extension NSObject {
             get { object != nil && observation != nil }
             set {
                 if newValue {
+                    Swift.print("isActive", object ?? "nil")
+                    Swift.print("isActive_2", keyPath, options)
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
