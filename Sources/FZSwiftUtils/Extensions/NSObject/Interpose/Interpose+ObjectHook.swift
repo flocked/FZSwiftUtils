@@ -1,9 +1,13 @@
 import Foundation
 
+protocol AAAA {
+    var interposeSubclass: InterposeSubclass? { get }
+}
+
 extension Interpose {
     /// A hook to an instance method of a single object, stores both the original and new implementation.
     /// Think about: Multiple hooks for one object
-    final public class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
+    final public class ObjectHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature>, AAAA {
 
         /// The object that is being hooked.
         public let object: AnyObject
