@@ -178,6 +178,7 @@ extension NSObject {
             get { object != nil && _isActive }
             set {
                 guard newValue != isActive, let object = object else { return }
+                Swift.print("CCCCC", NSStringFromClass(object_getClass(object)!), newValue)
                 _isActive = newValue
                 if newValue {
                     object.addObserver(self, forKeyPath: keyPath, options: options, context: nil)
