@@ -180,19 +180,17 @@ extension NSObject {
             }
         }
         
-        var didDeactivate = false
         var isActive: Bool {
             get { object != nil && observation != nil }
             set {
                 if newValue {
-                    Swift.print("CCCCC", object?[keyPath: keyPath] ?? "nil")
+                    Swift.print("CCCCC", (try? InterposeSubclass.init(object: object!).dynamicClass) ?? "nil" )
                     observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
                         guard let self = self else { return }
                         self.handler(change)
                     }
                     object?.addKVObservation(self)
                 } else {
-                    didDeactivate = true
                     observation?.invalidate()
                     observation = nil
                     object?.removeKVObservation(self)
