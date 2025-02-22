@@ -343,6 +343,7 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
 
 protocol KVObservation: NSObject {
     var isActive: Bool { get set }
+    var _keyPath: String { get }
 }
 
 extension KVObservation {
@@ -365,19 +366,15 @@ extension NSObject {
     }
     
     class WeakKVObservation {
-        private weak var _object: KVObservation?
+        weak var object: KVObservation?
 
         var isActive: Bool {
             get { object?.isActive ?? false }
             set { object?.isActive = newValue }
         }
         
-        var object: KVObservation? {
-            _object
-        }
-        
-        init(_ object: KVObservation?) {
-            _object = object
+        init(_ object: KVObservation) {
+            self.object = object
         }
     }
 }

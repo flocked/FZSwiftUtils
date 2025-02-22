@@ -160,7 +160,7 @@ extension NSObject {
     class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
         weak var object: Object?
         let keyPath: KeyPath<Object, Value>
-        var _keyPath: String { keyPath.stringValue }
+        var _keyPath: String { keyPath._kvcKeyPathString ?? "" }
         var observation: NSKeyValueObservation?
         let handler: ((NSKeyValueObservedChange<Value>) -> Void)
         let options: NSKeyValueObservingOptions
