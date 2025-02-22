@@ -51,6 +51,7 @@ extension NSObject {
             do {
                 let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
                 hooks[selector, default: []].append(hook)
+                kvoObservers.forEach({$0.object?._object = self })
                 kvoObservers.forEach({ $0.isActive = true })
                 return .init(hook, self)
             } catch {

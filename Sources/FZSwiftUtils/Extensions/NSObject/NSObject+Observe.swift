@@ -165,6 +165,17 @@ extension NSObject {
         let handler: ((NSKeyValueObservedChange<Value>) -> Void)
         let options: NSKeyValueObservingOptions
         
+        var _object: NSObject? {
+            get { object }
+            set {
+                if let newValue = newValue as? Object, newValue !== object {
+                    object = newValue
+                } else if newValue == nil {
+                    object = nil
+                }
+            }
+        }
+        
         var isActive: Bool {
             get { object != nil && observation != nil }
             set {
