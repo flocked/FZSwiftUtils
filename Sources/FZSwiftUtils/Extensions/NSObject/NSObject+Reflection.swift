@@ -50,17 +50,97 @@ public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvert
             NSSelectorFromString(name)
         }
         
-        public var description: String {
-            if let type = type as? Protocol {
-                return isReadOnly ? "\(name) [readOnly]: \(NSStringFromProtocol(type))" : "\(name): \(NSStringFromProtocol(type))"
-            }
-            return isReadOnly ? "\(name) [readOnly]: \(String(describing: type))" : "\(name): \(String(describing: type))"
+        public let attributes: [Attribute]
+        
+        public enum Ownership {
+            case retain
+            case copy
+            case weak
         }
         
-        init(_ name: String, _ type: Any, _ isReadOnly: Bool) {
+        public enum Atomicity {
+            case atomic
+            case nonAtomic
+        }
+        
+        public enum Attribute: CustomStringConvertible {
+            case type(Any) // T
+            case readonly // R
+            case copy // C
+            case retain // &
+            case nonatomic // N
+            case getter(name: String) // G
+            case setter(name: String) // S
+            case dynamic // D
+            case weak // W
+            case ivar(name: String) // V
+            case other(String)
+            
+            public var description: String {
+                switch self {
+                case .type(let type): return "type: \(type)"
+                case .readonly: return "readOnly"
+                case .copy:  return "copy"
+                case .retain: return "retain"
+                case .nonatomic: return "nonatomic"
+                case .getter(let name): return "getter: \(name)"
+                case .setter(let name): return "setter: \(name)"
+                case .dynamic: return "dynamic"
+                case .weak: return "weak"
+                case .ivar(let name): return "ivar: \(name)"
+                case .other(let string): return "other: \(string)"
+                }
+            }
+            
+            var getterName: String? {
+                switch self {
+                case .getter(let name): return name
+                default: return nil
+                }
+            }
+            
+            var setterName: String? {
+                switch self {
+                case .setter(let name): return name
+                default: return nil
+                }
+            }
+            
+            var isWeak: Bool {
+                switch self {
+                case .weak: return true
+                default: return false
+                }
+            }
+            
+            var isReadOnly: Bool {
+                switch self {
+                case .readonly: return true
+                default: return false
+                }
+            }
+            
+            var isDynamic: Bool {
+                switch self {
+                case .dynamic: return true
+                default: return false
+                }
+            }
+        }
+        
+        public var description: String {
+            let attributes = "[" + attributes.compactMap({$0.description}).joined(separator: ", ") + "]"
+            if let type = type as? Protocol {
+                return "\(name): \(NSStringFromProtocol(type)) \(attributes)"
+            }
+            return "\(name): \(String(describing: type)) \(attributes)"
+        }
+        
+        init(_ name: String, _ type: Any, _ isReadOnly: Bool, _ attributes: [Attribute] = []) {
             self.name = name
             self.type = type
             self.isReadOnly = isReadOnly
+            self.attributes = attributes
         }
     }
     
@@ -619,9 +699,51 @@ fileprivate extension objc_property_t {
         return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
     }
     
+    var attributes: [ClassReflection.PropertyDescription.Attribute] {
+        guard let _attributes = property_getAttributes(self) else { return [] }
+        var attributes: [ClassReflection.PropertyDescription.Attribute] = []
+        for var _attribute in String(cString: _attributes).split(separator: ",").map({ String($0) }) {
+            guard let first = _attribute.first else {
+                attributes.append(.other(_attribute))
+                continue
+            }
+            switch first {
+            case "T":
+                _attribute.removeFirst()
+                attributes.append(
+                    .type(_attribute.toType())
+                )
+            case "R": attributes.append(.readonly)
+            case "C": attributes.append(.copy)
+            case "&": attributes.append(.retain)
+            case "N": attributes.append(.nonatomic)
+            case "G":
+                _attribute.removeFirst()
+                attributes.append(
+                    .getter(name: _attribute)
+                )
+            case "S":
+                _attribute.removeFirst()
+                attributes.append(
+                    .setter(name: _attribute)
+                )
+            case "D": attributes.append(.dynamic)
+            case "W": attributes.append(.weak)
+            case "V":
+                _attribute.removeFirst()
+                attributes.append(
+                    .ivar(name: _attribute)
+                )
+            default:
+                attributes.append(.other(_attribute))
+            }
+        }
+        return attributes
+    }
+    
     var propertyDescription: ClassReflection.PropertyDescription? {
         guard let name = name else { return nil }
-        return .init(name, type, isReadOnly)
+        return .init(name, type, isReadOnly, attributes)
     }
 }
 

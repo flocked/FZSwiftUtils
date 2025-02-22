@@ -7,9 +7,26 @@
 
 import Foundation
 
-open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObject {
+/// An object that observes multiple properties of a given object.
+open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject {
     /// The observed object.
-    public fileprivate(set) weak var observedObject: Object?
+    /**
+     The observed object.
+          
+     Changing the object will automatically start observing the new object using the previously observed properties and handlers.
+     
+     Setting this value to `nil`, stops the observation of the object, while perserving the list of observed properties and handlers.
+     */
+    public fileprivate(set) weak var observedObject: Object? {
+        willSet {
+            guard newValue !== observedObject else { return }
+            isActive = false
+        }
+        didSet {
+            guard oldValue !== observedObject, observedObject != nil else { return }
+            isActive = true
+        }
+    }
     
     private var observations: [String: Observation] = [:]
     
@@ -303,16 +320,10 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
     
     override open func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
         guard observedObject != nil, let keyPath = keyPath, let change = change, let observation = observations[keyPath] else { return }
-        if change[.notificationIsPriorKey] as? Bool != nil {
-            if let oldValue = change[NSKeyValueChangeKey.oldKey], let willChange = observation.willChange {
-                willChange(oldValue)
-            }
-        } else if let newValue = change[NSKeyValueChangeKey.newKey], let handler = observation.handler {
-            if let oldValue = change[NSKeyValueChangeKey.oldKey] {
-                handler(oldValue, newValue, false)
-            } else {
-                handler(newValue, newValue, true)
-            }
+        if change.isPrior, let oldValue = change.oldValue, let handler = observation.willChange {
+            handler(oldValue)
+        } else if let newValue = change.newValue, let handler = observation.handler {
+            handler(change.oldValue ?? newValue, newValue, false)
         }
     }
     
@@ -341,42 +352,8 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
     }
 }
 
-protocol KVObservation: NSObject {
-    var isActive: Bool { get set }
-    var _keyPath: String { get }
-}
-
-extension KVObservation {
-    var _keyPath: String { "" }
-}
-
-extension NSObject {
-    var kvoObservers: [WeakKVObservation] {
-        get { getAssociatedValue("kvoObservers") ?? [] }
-        set { setAssociatedValue(newValue.filter({$0.observation != nil}), key: "kvoObservers") }
-    }
-    
-    class WeakKVObservation {
-        weak var observation: KVObservation?
-
-        var isActive: Bool {
-            get { observation?.isActive ?? false }
-            set { observation?.isActive = newValue }
-        }
-        
-        init(_ observation: KVObservation) {
-            self.observation = observation
-        }
-    }
-}
-
-extension Array where Element == NSObject.WeakKVObservation {
-    mutating func add(_ observation: KVObservation) {
-        guard !contains(where: { $0.observation === observation }) else { return }
-        append(.init(observation))
-    }
-    
-    mutating func remove(_ observation: KVObservation) {
-        removeFirst(where: { $0.observation === observation })
-    }
+extension [NSKeyValueChangeKey: Any] {
+    var newValue: Any? { self[.newKey] }
+    var oldValue: Any? { self[.oldKey] }
+    var isPrior: Bool { self[.notificationIsPriorKey] as? Bool ?? false }
 }

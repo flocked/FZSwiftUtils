@@ -32,7 +32,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
     public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)?.keyValueObservation
+        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
     }
     
     /**
@@ -83,7 +83,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        KVObserver(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)?.keyValueObservation
+        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
     }
     
     /**
@@ -107,155 +107,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
     public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
-        KVObserver(self, keyPath: keyPath, handler: handler)?.keyValueObservation
-    }
-}
-
-extension NSObject {
-    static let deactivateObservation = NSNotification.Name("com.fzuikit.deactivateObservation")
-    static let activateObservation = NSNotification.Name("com.fzuikit.activateObservation")
-}
-
-/**
- An object that observes the value of a key-value compatible property,
- 
- To observe the value of a property that is key-value compatible, use `observeChanges(for:)`
- 
- ```swift
- let observation = textField.observeChanges(for: \.stringValue)
- { oldValue, newValue in
-    // handle changes
- }
- ```
- To stop the observation of the property, either call ``invalidate()```, or deinitalize the object.
- */
-public class KeyValueObservation: NSObject {
-
-    /// Invalidates the observation.
-    public func invalidate() {
-        observer.isActive = false
-    }
-    
-    /// The keypath of the observed property.
-    public var keyPath: String {
-        observer._keyPath
-    }
-    
-    ///  A Boolean value indicating whether the observation is active.
-    public var isObserving: Bool {
-        get { observer.isActive }
-        set { observer.isActive = newValue }
-    }
-    
-    let observer: KVObservation
-
-        
-    init(_ observer: KVObservation) {
-        self.observer = observer
-        super.init()
-    }
-}
-
-extension NSObject {
-    class KVObserver<Object: NSObject, Value>: NSObject, KVObservation {
-        weak var object: Object?
-        let keyPath: KeyPath<Object, Value>
-        var _keyPath: String { keyPath._kvcKeyPathString ?? "" }
-        var observation: NSKeyValueObservation?
-        let handler: ((NSKeyValueObservedChange<Value>) -> Void)
-        let options: NSKeyValueObservingOptions
-
-        var isActive: Bool {
-            get { object != nil && observation != nil }
-            set {
-                guard let object = object else { return }
-                if newValue {
-                    observation = object.observe(keyPath, options: options) { [ weak self] _, change in
-                        guard let self = self else { return }
-                        self.handler(change)
-                    }
-                    object.kvoObservers.add(self)
-                } else {
-                    observation?.invalidate()
-                    observation = nil
-                    object.kvoObservers.remove(self)
-                }
-            }
-        }
-        
-        init(_ object: Object, keyPath: KeyPath<Object, Value>, options: NSKeyValueObservingOptions, handler: @escaping ((NSKeyValueObservedChange<Value>) -> Void)) {
-            self.object = object
-            self.keyPath = keyPath
-            self.options = options
-            self.handler = handler
-            super.init()
-            self.isActive = true
-        }
-        
-        init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-            guard keyPath._kvcKeyPathString != nil else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.options = [.old, .new]
-            self.handler = { change in
-                guard let new = change.newValue else { return }
-                if let old = change.oldValue {
-                    handler(old, new)
-                } else {
-                    handler(new, new)
-                }
-            }
-            super.init()
-            if sendInitalValue {
-                let value = object[keyPath: keyPath]
-                handler(value, value)
-            }
-            self.isActive = true
-        }
-        
-        init?(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) where Value: Equatable {
-            guard keyPath._kvcKeyPathString != nil else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.options = [.old, .new]
-            self.handler = { change in
-                guard let new = change.newValue else { return }
-                if let old = change.oldValue {
-                    if !uniqueValues || old != new {
-                        handler(old, new)
-                    }
-                } else {
-                    handler(new, new)
-                }
-            }
-            super.init()
-            if sendInitalValue {
-                let value = object[keyPath: keyPath]
-                handler(value, value)
-            }
-            self.isActive = true
-        }
-        
-        init?(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
-            guard keyPath._kvcKeyPathString != nil else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.options = [.old, .prior]
-            self.handler = { change in
-                guard change.isPrior, let oldValue = change.oldValue else { return }
-                handler(oldValue)
-            }
-            super.init()
-            self.isActive = true
-        }
-        
-        deinit {
-            isActive = false
-        }
-        
-        var keyValueObservation: KeyValueObservation {
-            KeyValueObservation(self)
-        }
+        KeyValueObservation(self, keyPath: keyPath, handler: handler)
     }
 }
 
@@ -266,9 +118,9 @@ public extension NSObjectProtocol where Self: NSObject {
      Example:
      
      ```swift
-     let deinitObservation = textField.observeDeinit(handler: {
+     let deinitObservation = textField.observeDeinit {
         // handle deinitialization
-     })
+     }
      ```
      
      - Parameter handler: A closure that will be called when the object deinitializes.

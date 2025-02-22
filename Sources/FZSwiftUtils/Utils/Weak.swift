@@ -8,13 +8,17 @@
 import Foundation
 
 /// A weak reference to an object.
-public struct Weak<T: AnyObject>: Equatable, Hashable, WeakReference {
-    public weak var object: T?
-    public init(_ object: T) {
-        self.object = object
+public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
+    /// The weakly stored object.
+    public var object: Object? { _object }
+    private weak var _object: Object?
+    private let id = UUID()
+    
+    public init(_ object: Object) {
+        self._object = object
     }
 
-    public static func == (lhs: Weak<T>, rhs: Weak<T>) -> Bool {
+    public static func == (lhs: Weak, rhs: Weak) -> Bool {
         lhs.hashValue == rhs.hashValue
     }
 
@@ -22,15 +26,15 @@ public struct Weak<T: AnyObject>: Equatable, Hashable, WeakReference {
         if let object = object {
             hasher.combine(ObjectIdentifier(object))
         } else {
-            hasher.combine(0)
+            hasher.combine(id)
         }
     }
 }
 
 /// A weak reference to an object.
 public protocol WeakReference {
-    associatedtype T
-    var object: T? { get set }
+    associatedtype Object
+    var object: Object? { get }
 }
 
 public extension Array where Element: WeakReference {
