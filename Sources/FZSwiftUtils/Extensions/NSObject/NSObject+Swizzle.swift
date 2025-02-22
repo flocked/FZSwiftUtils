@@ -47,7 +47,9 @@ extension NSObject {
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> ReplacedMethodToken {
             let kvoObservers = kvoObservers
+            let count = kvoObservers.filter({!$0.isActive}).count
             kvoObservers.forEach({ $0.isActive = false })
+            Swift.print("replaceMethod", kvoObservers.count, count, kvoObservers.filter({!$0.isActive}).count)
             do {
                 let hook = try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation).apply()
                 hooks[selector, default: []].append(hook)
