@@ -180,21 +180,25 @@ extension NSObject {
             }
         }
         
+        var didDeactivate = false
         var isActive: Bool {
             get { object != nil && observation != nil }
             set {
                 if newValue {
-                    observation = (object?.observeChanges(for: keyPath, handler: { oldValue, newValue in
-                        
-                    })?.observer as? KVObserver<Object, Value>)?.observation
-                    /*
-                    observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
-                        guard let self = self else { return }
-                        self.handler(change)
+                    if didDeactivate {
+                        didDeactivate = false
+                        observation = (object?.observeChanges(for: keyPath, handler: { oldValue, newValue in
+                            
+                        })?.observer as? KVObserver<Object, Value>)?.observation
+                    } else {
+                         observation = object?.observe(keyPath, options: options) { [ weak self] _, change in
+                         guard let self = self else { return }
+                         self.handler(change)
+                         }
                     }
-                     */
                     object?.addKVObservation(self)
                 } else {
+                    didDeactivate = true
                     observation?.invalidate()
                     observation = nil
                     object?.removeKVObservation(self)
