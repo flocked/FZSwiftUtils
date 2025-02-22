@@ -18,10 +18,10 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
             guard oldValue != isActive, let observedObject = observedObject else { return }
             if isActive {
                 observations.forEach({ observedObject.addObserver(self, forKeyPath: $0.key, options: $0.value.options, context: nil) })
-                observedObject.addKVObservation(self)
+                observedObject.kvoObservers.add(self)
             } else {
                 observations.forEach({ observedObject.removeObserver(self, forKeyPath: $0.key) })
-                observedObject.removeKVObservation(self)
+                observedObject.kvoObservers.remove(self)
             }
         }
     }
@@ -36,7 +36,7 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
     public init(_ observedObject: Object) {
         self.observedObject = observedObject
         super.init()
-        observedObject.addKVObservation(self)
+        observedObject.kvoObservers.add(self)
     }
     
     // MARK: - Observation
@@ -337,7 +337,7 @@ open class KeyValueObserver<Object>: NSObject, KVObservation where Object: NSObj
     
     deinit {
         removeAll()
-        observedObject?.removeKVObservation(self)
+        observedObject?.kvoObservers.remove(self)
     }
 }
 
@@ -353,28 +353,30 @@ extension KVObservation {
 extension NSObject {
     var kvoObservers: [WeakKVObservation] {
         get { getAssociatedValue("kvoObservers") ?? [] }
-        set { setAssociatedValue(newValue.filter({$0.object != nil}), key: "kvoObservers") }
-    }
-    
-    func addKVObservation(_ observation: KVObservation) {
-        guard !kvoObservers.contains(where: { $0.object === observation }) else { return }
-        kvoObservers.append(.init(observation))
-    }
-    
-    func removeKVObservation(_ observation: KVObservation) {
-        kvoObservers.removeFirst(where: { $0.object === observation })
+        set { setAssociatedValue(newValue.filter({$0.observation != nil}), key: "kvoObservers") }
     }
     
     class WeakKVObservation {
-        weak var object: KVObservation?
+        weak var observation: KVObservation?
 
         var isActive: Bool {
-            get { object?.isActive ?? false }
-            set { object?.isActive = newValue }
+            get { observation?.isActive ?? false }
+            set { observation?.isActive = newValue }
         }
         
-        init(_ object: KVObservation) {
-            self.object = object
+        init(_ observation: KVObservation) {
+            self.observation = observation
         }
+    }
+}
+
+extension Array where Element == NSObject.WeakKVObservation {
+    mutating func add(_ observation: KVObservation) {
+        guard !contains(where: { $0.observation === observation }) else { return }
+        append(.init(observation))
+    }
+    
+    mutating func remove(_ observation: KVObservation) {
+        removeFirst(where: { $0.observation === observation })
     }
 }

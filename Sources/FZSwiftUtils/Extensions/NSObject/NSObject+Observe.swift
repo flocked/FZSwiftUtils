@@ -174,11 +174,11 @@ extension NSObject {
                         guard let self = self else { return }
                         self.handler(change)
                     }
-                    object.addKVObservation(self)
+                    object.kvoObservers.add(self)
                 } else {
                     observation?.invalidate()
                     observation = nil
-                    object.removeKVObservation(self)
+                    object.kvoObservers.remove(self)
                 }
             }
         }
