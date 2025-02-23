@@ -43,103 +43,70 @@ public struct ClassReflection: CustomStringConvertible, CustomDebugStringConvert
         public let name: String
         /// The type of the property.
         public let type: Any
-        /// A Boolean value indicating whether the property is `readOnly`.
-        public let isReadOnly: Bool
+        /// The attributes of the property.
+        public let attributes: [Attribute]
         /// The selector of the property.
         public var selector: Selector {
             NSSelectorFromString(name)
         }
         
-        public let attributes: [Attribute]
-        
-        public enum Ownership {
-            case retain
-            case copy
-            case weak
-        }
-        
-        public enum Atomicity {
-            case atomic
-            case nonAtomic
-        }
-        
+        /// The property attributes.
         public enum Attribute: CustomStringConvertible {
+            /// Type of the property.
             case type(Any) // T
+            /// Readonly.
             case readonly // R
-            case copy // C
-            case retain // &
+            /// Nonatomic.
             case nonatomic // N
+            /// Getter name.
             case getter(name: String) // G
+            /// Setter name.
             case setter(name: String) // S
+            /// Dynamic.
             case dynamic // D
-            case weak // W
+            /// iVar name.
             case ivar(name: String) // V
+            /// Other.
             case other(String)
+            /// Ownership (`retain`, `copy` or `weak`).
+            case ownership(Ownership)
+            
+            /// Ownership of the property.
+            public enum Ownership: String {
+                /// Retain.
+                case retain // &
+                /// Copy.
+                case copy // C
+                /// Weak.
+                case weak // W
+            }
             
             public var description: String {
                 switch self {
                 case .type(let type): return "type: \(type)"
                 case .readonly: return "readOnly"
-                case .copy:  return "copy"
-                case .retain: return "retain"
                 case .nonatomic: return "nonatomic"
                 case .getter(let name): return "getter: \(name)"
                 case .setter(let name): return "setter: \(name)"
                 case .dynamic: return "dynamic"
-                case .weak: return "weak"
                 case .ivar(let name): return "ivar: \(name)"
+                case .ownership(let ownership): return "\(ownership)"
                 case .other(let string): return "other: \(string)"
-                }
-            }
-            
-            var getterName: String? {
-                switch self {
-                case .getter(let name): return name
-                default: return nil
-                }
-            }
-            
-            var setterName: String? {
-                switch self {
-                case .setter(let name): return name
-                default: return nil
-                }
-            }
-            
-            var isWeak: Bool {
-                switch self {
-                case .weak: return true
-                default: return false
-                }
-            }
-            
-            var isReadOnly: Bool {
-                switch self {
-                case .readonly: return true
-                default: return false
-                }
-            }
-            
-            var isDynamic: Bool {
-                switch self {
-                case .dynamic: return true
-                default: return false
                 }
             }
         }
         
         public var description: String {
-            let attributes = "[" + attributes.compactMap({$0.description}).joined(separator: ", ") + "]"
+            let attributes = attributes.isEmpty ? "" : " [\(attributes.compactMap({$0.description}).joined(separator: ", "))]"
             if let type = type as? Protocol {
-                return "\(name): \(NSStringFromProtocol(type)) \(attributes)"
+                return "\(name): \(NSStringFromProtocol(type))\(attributes)"
             }
-            return "\(name): \(String(describing: type)) \(attributes)"
+            return "\(name): \(String(describing: type))\(attributes)"
         }
         
-        init(_ name: String, _ type: Any, _ isReadOnly: Bool, _ attributes: [Attribute] = []) {
+        init(_ name: String, _ type: Any, _ attributes: [Attribute] = []) {
             self.name = name
             self.type = type
-            self.isReadOnly = isReadOnly
             self.attributes = attributes
         }
     }
@@ -340,6 +307,20 @@ extension NSObject {
      */
     public static func containsProperty(_ name: String, includeSuperclass: Bool = false) -> Bool {
         propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name })
+    }
+    
+    func isPropertyKeyValueObservable(keyPath: String) -> Bool {
+        guard Self.containsProperty(keyPath, includeSuperclass: true) else { return false }
+        guard type(of: self).automaticallyNotifiesObservers(forKey: keyPath) else { return false }
+        
+        if NSStringFromClass(object_getClass(self)!).contains("NSKVONotifying") {
+            return true
+        }
+        let observer = NSObject()
+        addObserver(observer, forKeyPath: keyPath, options: [], context: nil)
+        let isObservable = NSStringFromClass(object_getClass(self)!).contains("NSKVONotifying")
+        removeObserver(observer, forKeyPath: keyPath)
+        return isObservable
     }
     
     /**
@@ -676,7 +657,7 @@ fileprivate extension Ivar {
     
     var ivarDescription: ClassReflection.PropertyDescription? {
         guard let name = ivarName, let type = ivarType else { return nil }
-        return .init(name, type, false)
+        return .init(name, type)
     }
 }
 
@@ -714,8 +695,8 @@ fileprivate extension objc_property_t {
                     .type(_attribute.toType())
                 )
             case "R": attributes.append(.readonly)
-            case "C": attributes.append(.copy)
-            case "&": attributes.append(.retain)
+            case "C": attributes.append(.ownership(.copy))
+            case "&": attributes.append(.ownership(.retain))
             case "N": attributes.append(.nonatomic)
             case "G":
                 _attribute.removeFirst()
@@ -728,7 +709,7 @@ fileprivate extension objc_property_t {
                     .setter(name: _attribute)
                 )
             case "D": attributes.append(.dynamic)
-            case "W": attributes.append(.weak)
+            case "W": attributes.append(.ownership(.weak))
             case "V":
                 _attribute.removeFirst()
                 attributes.append(
@@ -743,7 +724,7 @@ fileprivate extension objc_property_t {
     
     var propertyDescription: ClassReflection.PropertyDescription? {
         guard let name = name else { return nil }
-        return .init(name, type, isReadOnly, attributes)
+        return .init(name, type, attributes)
     }
 }
 
@@ -799,7 +780,7 @@ fileprivate struct WFlagsType: CustomStringConvertible {
         let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
         guard !_matches.isEmpty else { return nil }
         let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
-        descriptions = matches.chunked(size: 2).compactMap({.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
+        descriptions = matches.chunked(size: 2).compactMap({.init($0[0], $0[1].toType()) }).sorted(by: \.name)
     }
 }
 
@@ -812,7 +793,7 @@ fileprivate struct StructType: CustomStringConvertible {
         let _matches = string.matches(pattern: #""([^"]+)"|(\\b\w+\b)"#)
         let matches = _matches.compactMap({ $0.string + $0.groups.compactMap({$0.string}) }).flattened()
         if !matches.isEmpty && (matches.count % 2 == 0) {
-            descriptions = matches.chunked(size: 2).compactMap({.init($0[0], $0[1].toType(), true) }).sorted(by: \.name)
+            descriptions = matches.chunked(size: 2).compactMap({.init($0[0], $0[1].toType()) }).sorted(by: \.name)
         } else {
             _description = string
         }

@@ -81,6 +81,36 @@ public class KeyValueObservation: NSObject {
             handler(oldValue)
         }
     }
+    
+    init?<Object: NSObject, Value>(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
+        guard object.isPropertyKeyValueObservable(keyPath: keyPath) else { return nil }
+        observer = TypedObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
+            guard let newValue = change.newValue as? Value else { return }
+            handler(change.oldValue as? Value ?? newValue, newValue)
+        }
+    }
+    
+    init?<Object: NSObject, Value: Equatable>(_ object: Object, keyPath: String, initial: Bool = false, uniqueValues: Bool = true, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
+        guard object.isPropertyKeyValueObservable(keyPath: keyPath) else { return nil }
+        observer = TypedObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
+            guard let new = change.newValue as? Value else { return }
+            if let old = change.oldValue as? Value {
+                if !uniqueValues || old != new {
+                    handler(old, new)
+                }
+            } else {
+                handler(new, new)
+            }
+        }
+    }
+    
+    init?<Object: NSObject, Value>(_ object: Object, keyPath: String, willChange: @escaping (_ oldValue: Value)->()) {
+        guard object.isPropertyKeyValueObservable(keyPath: keyPath) else { return nil }
+        observer = TypedObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
+            guard change.isPrior, let oldValue = change.oldValue as? Value else { return }
+            willChange(oldValue)
+        }
+    }
 }
 
 private extension KeyValueObservation {
@@ -123,28 +153,18 @@ private extension KeyValueObservation {
             isActive = false
         }
     }
-    class KeyPathObserver<Object: NSObject, Value>: NSObject {
-        weak var object: Object?
+    class TypedObserver: NSObject, KVObserver {
+        weak var object: NSObject?
         let keyPath: String
-        var handler: ((_ oldValue: Value, _ newValue: Value)->())?
-        var willChangeHandler:  ((_ oldValue: Value)->())?
-        var options: NSKeyValueObservingOptions = [.old, .new]
-        init?(_ object: Object, keyPath: String, willChange: @escaping (_ oldValue: Value)->()) {
-            guard Object.containsProperty(keyPath, includeSuperclass: true) else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.willChangeHandler = willChange
-            self.options = [.old, .prior]
-            super.init()
-            isActive = true
-        }
+        var keyPathString: String { keyPath }
+        let options: NSKeyValueObservingOptions
+        let handler: ([NSKeyValueChangeKey: Any])->()
         
-        init?(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
-            guard Object.containsProperty(keyPath, includeSuperclass: true) else { return nil }
+        init(_ object: NSObject, keyPath: String, options: NSKeyValueObservingOptions, handler: @escaping ([NSKeyValueChangeKey: Any])->()) {
             self.object = object
             self.keyPath = keyPath
+            self.options = options
             self.handler = handler
-            self.options = initial ? [.old, .new, .initial] : [.old, .new]
             super.init()
             isActive = true
         }
@@ -164,10 +184,8 @@ private extension KeyValueObservation {
         }
         
         override func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
-            guard object != nil, let keyPath = keyPath, let change = change else { return }
-            if let newValue = change.newValue as? Value {
-                
-            }
+            guard object != nil, keyPath != nil, let change = change else { return }
+            handler(change)
         }
     }
 }

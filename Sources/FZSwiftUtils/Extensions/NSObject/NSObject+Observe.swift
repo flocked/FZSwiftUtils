@@ -111,6 +111,68 @@ extension NSObjectProtocol where Self: NSObject {
     }
 }
 
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Observes changes for the specified property.
+     
+     - Parameters:
+        - keyPath: The name of the key path of the property to observe.
+        - type: The value type of the property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    public func observeChanges<Value>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, handler: handler)
+    }
+    
+    /**
+     Observes changes for the specified property.
+     
+     - Parameters:
+        - keyPath: The name key path of the property to observe.
+        - type: The value type of the property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        observeChanges(for: keyPath, type: type, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    }
+    
+    /**
+     Observes changes for a property identified by the given key path.
+     
+     - Parameters:
+        -  keyPath: The key path of the property to observe.
+        - type: The value type of the property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+    }
+    
+    /**
+     Observes will change for the specified property.
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - type: The value type of the property.
+        - handler: A closure that will be called when the property value changes. It takes the old value.
+     
+     - Returns: An `NSKeyValueObservation` object representing the observation.
+     */
+    public func observeWillChange<Value>(_ keyPath: String, type: Value.Type, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, willChange: handler)
+    }
+}
+
 public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes the deinitialization of the object and calls the specified handler.

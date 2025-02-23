@@ -1,36 +1,16 @@
 import Foundation
 
 extension Interpose {
-
-    private struct AssociatedKeys {
-        static var hookForBlock: UInt8 = 0
-    }
-
-    private class WeakObjectContainer<T: AnyObject>: NSObject {
-        private weak var _object: T?
-
-        var object: T? {
-            return _object
-        }
-        init(with object: T?) {
-            _object = object
-        }
-    }
-
     static func storeHook<HookType: AnyHook>(hook: HookType, to block: AnyObject) {
         // Weakly store reference to hook inside the block of the IMP.
         setAssociatedValue(weak: hook, key: "hookForBlock", object: block)
-        // objc_setAssociatedObject(block, &AssociatedKeys.hookForBlock, WeakObjectContainer(with: hook), .OBJC_ASSOCIATION_RETAIN)
     }
 
     // Finds the hook to a given implementation.
     static func hookForIMP<HookType: AnyHook>(_ imp: IMP) -> HookType? {
         // Get the block that backs our IMP replacement
         guard let block = imp_getBlock(imp) else { return nil }
-        let container: WeakObjectContainer<HookType>? = getAssociatedValue("hookForBlock", object: block as AnyObject)
-        Swift.print("CHECCCK", container != nil)
-        // let container = objc_getAssociatedObject(block, &AssociatedKeys.hookForBlock) as? WeakObjectContainer<HookType>
-        return container?.object
+        return getAssociatedValue("hookForBlock", object: block as AnyObject)
     }
 
     // Find the hook above us (not necessarily topmost)
@@ -40,7 +20,7 @@ extension Interpose {
         var currentHook: HookType?
         repeat {
             // get topmost hook
-            let hook: HookType? = Interpose.hookForIMP(impl!)
+            let hook: HookType? = hookForIMP(impl!)
             if hook === selfHook {
                 // return parent
                 return currentHook
