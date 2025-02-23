@@ -356,4 +356,6 @@ extension [NSKeyValueChangeKey: Any] {
     var newValue: Any? { self[.newKey] }
     var oldValue: Any? { self[.oldKey] }
     var isPrior: Bool { self[.notificationIsPriorKey] as? Bool ?? false }
+    var kind: NSKeyValueChange { .init(rawValue: self[.kindKey] as? UInt ?? 1) ?? .setting }
+    var indexes: IndexSet? { self[.indexesKey] as? IndexSet }
 }

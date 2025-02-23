@@ -228,7 +228,7 @@ extension NSObjectProtocol where Self: NSObject {
  
 extension NSObject {
     /// Returns all classes.
-    static func allClasses() -> [AnyClass] {
+    public static func allClasses() -> [AnyClass] {
         // Get an approximate amount of classes we are going to need space for.
         // Double it, just to make sure if it returns more we can still accomodate them all
         let expectedClassCount = objc_getClassList(nil, 0) * 2
