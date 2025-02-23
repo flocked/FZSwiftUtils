@@ -378,4 +378,29 @@ extension NSObject {
         let objectPointer = Unmanaged.passUnretained(self).toOpaque()
         return objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self).pointee
     }
+    
+    /// Sets the value of the Ivar with the specified name.
+    public func setIvarValue<T>(of name: String, to value: T) -> Bool {
+        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
+
+        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
+            let offset = ivar_getOffset(ivar)
+            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
+            let pointer = objectPointer.advanced(by: offset)
+            if let mutablePointer = value as? UnsafeMutableRawPointer {
+                mutablePointer.copyMemory(from: pointer, byteCount: MemoryLayout<T>.size)
+            }
+            return true
+        } else if T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type {
+            let offset = ivar_getOffset(ivar)
+            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
+            let pointer = objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self)
+            pointer.pointee = value
+            return true
+        } else if T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type {
+            object_setIvar(self, ivar, value as AnyObject)
+            return true
+        }
+        return false
+    }
 }
