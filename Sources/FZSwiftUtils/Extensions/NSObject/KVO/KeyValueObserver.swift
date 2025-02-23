@@ -9,7 +9,7 @@ import Foundation
 
 /// An object that observes multiple properties of a given object.
 open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject {
-    /// The observed object.
+
     /**
      The observed object.
           
@@ -17,7 +17,7 @@ open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject
      
      Setting this value to `nil`, stops the observation of the object, while perserving the list of observed properties and handlers.
      */
-    public fileprivate(set) weak var observedObject: Object? {
+    public weak var observedObject: Object? {
         willSet {
             guard newValue !== observedObject else { return }
             isActive = false
@@ -235,28 +235,6 @@ open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject
         observation.willChange = nil
         addObservation(observation)
     }
-        
-    /**
-     Removes the observed object and stops observing it, while keeping the list of observed properties and handlers for a new object.
-     
-     When you add a new object to observe via ``replaceObservedObject(_:)``, all previous observed properties and handlers are used.
-     
-     */
-    public func removeObservedObject() {
-        isActive = false
-        observedObject = nil
-    }
-    
-    /**
-     Replaces the observed object.
-     
-     All previous observed properties and handlers are used.
-    */
-    public func replaceObservedObject(with object: Object) {
-        removeObservedObject()
-        observedObject = object
-        isActive = true
-    }
     
     /**
      Removes the observer for the properties at the specified key paths.
@@ -318,7 +296,7 @@ open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject
         observations[keyPath] = nil
     }
     
-    override open func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
+    override public func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
         guard observedObject != nil, let keyPath = keyPath, let change = change, let observation = observations[keyPath] else { return }
         if change.isPrior, let oldValue = change.oldValue, let handler = observation.willChange {
             handler(oldValue)

@@ -312,15 +312,7 @@ extension NSObject {
     func isPropertyKeyValueObservable(keyPath: String) -> Bool {
         guard Self.containsProperty(keyPath, includeSuperclass: true) else { return false }
         guard type(of: self).automaticallyNotifiesObservers(forKey: keyPath) else { return false }
-        
-        if NSStringFromClass(object_getClass(self)!).contains("NSKVONotifying") {
-            return true
-        }
-        let observer = NSObject()
-        addObserver(observer, forKeyPath: keyPath, options: [], context: nil)
-        let isObservable = NSStringFromClass(object_getClass(self)!).contains("NSKVONotifying")
-        removeObserver(observer, forKeyPath: keyPath)
-        return isObservable
+        return true
     }
     
     /**

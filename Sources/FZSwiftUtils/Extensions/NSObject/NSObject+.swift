@@ -368,15 +368,14 @@ extension NSObject {
         let isPrimitive = (T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type)
         if !isPrimitive && (T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type) {
             return object_getIvar(self, ivar) as? T
-        } else if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
-            let offset = ivar_getOffset(ivar)
-            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-            let pointer = objectPointer.advanced(by: offset)
-            return T.self is UnsafeRawPointer.Type ? UnsafeRawPointer(pointer) as? T : UnsafeMutableRawPointer(pointer) as? T
         }
         let offset = ivar_getOffset(ivar)
         let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-        return objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self).pointee
+        let pointer = objectPointer.advanced(by: offset)
+        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
+            return T.self is UnsafeRawPointer.Type ? UnsafeRawPointer(pointer) as? T : UnsafeMutableRawPointer(pointer) as? T
+        }
+        return pointer.assumingMemoryBound(to: T.self).pointee
     }
     
     /// Sets the value of the Ivar with the specified name.
