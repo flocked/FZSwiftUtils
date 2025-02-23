@@ -359,3 +359,19 @@ extension Protocol {
         return nil
     }
 }
+
+extension NSObject {
+    /// Returns the value of an Ivar.
+    public func getIvarValue<T>(for name: String) -> T? {
+        guard let ivar = class_getInstanceVariable(type(of: self), name) else {
+            return nil
+        }
+        let isPrimitive = (T.self is any Numeric.Type || T.self is Bool.Type)
+        if !isPrimitive && (T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type) {
+            return object_getIvar(self, ivar) as? T
+        }
+        let offset = ivar_getOffset(ivar)
+        let objectPointer = Unmanaged.passUnretained(self).toOpaque()
+        return objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self).pointee
+    }
+}
