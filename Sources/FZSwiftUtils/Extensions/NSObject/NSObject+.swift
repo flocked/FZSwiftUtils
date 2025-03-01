@@ -189,7 +189,7 @@ public extension NSObject {
         var currentClass: AnyClass = type(of: self)
         let method: Method? = class_getInstanceMethod(currentClass, selector)
 
-        while let superClass: AnyClass = class_getSuperclass(currentClass) {
+        while let superClass: AnyClass = class_getSuperclass(currentClass), superClass != currentClass {
             // Make sure we only check against non-`nil` returned instance methods.
             if class_getInstanceMethod(superClass, selector).map({ $0 != method }) ?? false {
                 return true
@@ -209,7 +209,7 @@ public extension NSObject {
      */
     func isSubclass(of class_: AnyClass) -> Bool {
         var currentClass: AnyClass = type(of: self)
-        while let superClass: AnyClass = class_getSuperclass(currentClass) {
+        while let superClass: AnyClass = class_getSuperclass(currentClass), superClass != currentClass {
             if superClass == class_ {
                 return true
             }
@@ -276,7 +276,7 @@ extension NSObject {
     }
     
     static func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
-        guard let superclass = class_getSuperclass(type) else { return type }
+        guard let superclass = class_getSuperclass(type), superclass != type else { return type }
 
         return class_getRootSuperclass(superclass)
     }
@@ -294,10 +294,12 @@ extension NSObjectProtocol where Self: NSObject {
                 return true
             }
         }
-        return (class_getSuperclass(self) as? NSObject.Type)?.isProtocolSelector(selector) ?? false
+        let superclass = class_getSuperclass(self) as? NSObject.Type
+        guard let superclass = superclass, superclass != type(of: self) else { return false }
+        return superclass.isProtocolSelector(selector)
     }
     
-    
+    /*
     static func typeEncoding(for selector: Selector) -> UnsafePointer<CChar>? {
          var protocolCount: UInt32 = 0
          if let protocols = class_copyProtocolList(self, &protocolCount) {
@@ -309,6 +311,53 @@ extension NSObjectProtocol where Self: NSObject {
          }
         return (class_getSuperclass(self) as? NSObject.Type)?.typeEncoding(for: selector)
      }
+    */
+    
+    static func typeEncoding(for selector: Selector, _class: AnyClass) -> UnsafePointer<CChar>? {
+        var protocolCount: UInt32 = 0
+        guard let protocols = class_copyProtocolList(_class, &protocolCount) else {
+            return nil
+        }
+        for i in 0..<Int(protocolCount) {
+            let proto = protocols[i]
+            if let typeEncoding = typeEncoding(for: selector, protocol: proto) {
+                return typeEncoding
+            }
+        }
+
+        // Check superclass
+        if let superclass = class_getSuperclass(_class), superclass != _class {
+            return typeEncoding(for: selector, _class: superclass)
+        }
+
+        return nil
+    }
+
+    private static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
+        // Check required methods
+        var methodDesc = protocol_getMethodDescription(proto, selector, true, true)
+        if methodDesc.name != nil, let types = methodDesc.types {
+               return UnsafePointer(types) // Explicitly cast to UnsafePointer<CChar>
+           }
+
+        // Check optional methods
+        methodDesc = protocol_getMethodDescription(proto, selector, false, true)
+        if methodDesc.name != nil, let types = methodDesc.types {
+              return UnsafePointer(types) // Explicitly cast to UnsafePointer<CChar>
+          }
+
+        // Recursively check inherited protocols
+        var inheritedCount: UInt32 = 0
+        if let inherited = protocol_copyProtocolList(proto, &inheritedCount) {
+            for i in 0..<Int(inheritedCount) {
+                if let typeEncoding = typeEncoding(for: selector, protocol: inherited[i]) {
+                    return typeEncoding
+                }
+            }
+        }
+
+        return nil
+    }
 }
 
 func typeEncoding(for selector: Selector, _class: AnyClass) -> UnsafePointer<CChar>? {
@@ -320,7 +369,7 @@ func typeEncoding(for selector: Selector, _class: AnyClass) -> UnsafePointer<CCh
             }
         }
     }
-    if let superclass = class_getSuperclass(type(of: _class)) {
+    if let superclass = class_getSuperclass(_class), superclass != _class {
         return typeEncoding(for: selector, _class: superclass)
     }
    return nil
@@ -356,6 +405,32 @@ extension Protocol {
                 return typeEncoding
             }
         }
+        return nil
+    }
+    
+    private static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
+        // Check required methods
+        var methodDesc = protocol_getMethodDescription(proto, selector, true, true)
+        if methodDesc.name != nil, let types = methodDesc.types {
+            return UnsafePointer(types)
+        }
+
+        // Check optional methods
+        methodDesc = protocol_getMethodDescription(proto, selector, false, true)
+        if methodDesc.name != nil, let types = methodDesc.types {
+            return UnsafePointer(types)
+        }
+
+        // Recursively check inherited protocols
+        var inheritedCount: UInt32 = 0
+        if let inherited = protocol_copyProtocolList(proto, &inheritedCount) {
+            for i in 0..<Int(inheritedCount) {
+                if let typeEncoding = typeEncoding(for: selector, protocol: inherited[i]) {
+                    return typeEncoding
+                }
+            }
+        }
+
         return nil
     }
 }
