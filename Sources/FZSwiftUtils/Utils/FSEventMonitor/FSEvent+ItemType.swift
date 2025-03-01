@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 26.01.25.
 //
 
+#if os(macOS)
 import Foundation
 
 extension FSEvent {
@@ -45,3 +46,4 @@ extension FSEvent.ItemType: CustomStringConvertible {
         }
     }
 }
+#endif

@@ -39,6 +39,7 @@ import SwiftUI
     public typealias NSUICollectionViewItem = NSCollectionViewItem
     public typealias NSUIRectEdge = RectEdge
     public typealias NSUIRectCorner = NSRectCorner
+    public typealias InterfaceOrientation = NSUserInterfaceLayoutOrientation
 #elseif canImport(UIKit)
     import UIKit
     public typealias NSUIBezierPath = UIBezierPath
@@ -53,6 +54,7 @@ import SwiftUI
     public typealias NSUIImageSymbolScale = UIImage.SymbolScale
     public typealias NSUIImageSymbolWeight = UIImage.SymbolWeight
     public typealias NSUIRectEdge = UIRectEdge
+    public typealias InterfaceOrientation = NSLayoutConstraint.Axis
 #endif
 
 #if os(iOS) || os(tvOS)

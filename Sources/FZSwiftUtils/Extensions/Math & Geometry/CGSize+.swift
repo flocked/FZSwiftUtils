@@ -408,7 +408,7 @@ public extension Collection where Element == CGSize {
        - size: The target size within which the sizes should fit.
        - orientation: The orientation that determines how sizes are combined.
      */
-    func scaledToFit(_ size: CGSize, orientation: NSUserInterfaceLayoutOrientation) -> [CGSize] {
+    func scaledToFit(_ size: CGSize, orientation: InterfaceOrientation) -> [CGSize] {
         guard !isEmpty else { return [] }
         guard size.width > 0.0, size.height > 0.0 else { return Array(repeating: .zero, count: count) }
 
@@ -435,7 +435,7 @@ public extension Collection where Element == CGSize {
        - width: The target width within which the sizes should fit.
        - orientation: The orientation that determines how sizes are combined.
      */
-    func sclaedToFit(width: CGFloat, orientation: NSUserInterfaceLayoutOrientation) -> [CGSize] {
+    func sclaedToFit(width: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
         return scaledToFit(CGSize(width: width, height: .greatestFiniteMagnitude), orientation: orientation)
     }
     
@@ -446,7 +446,7 @@ public extension Collection where Element == CGSize {
        - height: The target height within which the sizes should fit.
        - orientation: The orientation that determines how sizes are combined.
      */
-    func sclaedToFit(height: CGFloat, orientation: NSUserInterfaceLayoutOrientation) -> [CGSize] {
+    func sclaedToFit(height: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
         return scaledToFit(CGSize(width:.greatestFiniteMagnitude, height: height), orientation: orientation)
     }
 }

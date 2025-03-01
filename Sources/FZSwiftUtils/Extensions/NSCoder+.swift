@@ -39,21 +39,6 @@ public extension NSCoder {
         decodeObject(of: NSValue.self, forKey: key)?.rangeValue ?? .notFound
     }
     
-    /// Decodes and returns an array of `CGPoint` values that was previously encoded with `encode(_:)`.
-    func decodePoints(forKey key: String) -> [CGPoint] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.pointValue }) ?? []
-    }
-    
-    /// Decodes and returns an array of `CGSize` values that was previously encoded with `encode(_:)`.
-    func decodeSizes(forKey key: String) -> [CGSize] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.sizeValue }) ?? []
-    }
-    
-    /// Decodes and returns an array of `CGRect` values that was previously encoded with `encode(_:)`.
-    func decodeRects(forKey key: String) -> [CGRect] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.rectValue }) ?? []
-    }
-    
     /// Decodes and returns an array of `NSDirectionalEdgeInsets` values that was previously encoded with `encode(_:)`.
     func decodeDirectionalEdgeInsetsArray(forKey key: String) -> [NSDirectionalEdgeInsets] {
         (decodeObject(forKey: key) as? [NSValue])?.map({ $0.directionalEdgeInsetsValue }) ?? []
@@ -108,6 +93,21 @@ public extension NSCoder {
     func decodeClosedRanges<Bound: NSNumberConvertable>(forKey key: String) -> [ClosedRange<Bound>] {
         (decodeObject(forKey: key) as? [RangeObjC<Bound>])?.compactMap({ $0.closedRange }) ?? []
     }
+    
+    /// Decodes and returns an array of `CGPoint` values that was previously encoded with `encode(_:)`.
+    func decodePoints(forKey key: String) -> [CGPoint] {
+        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.pointValue }) ?? []
+    }
+    
+    /// Decodes and returns an array of `CGSize` values that was previously encoded with `encode(_:)`.
+    func decodeSizes(forKey key: String) -> [CGSize] {
+        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.sizeValue }) ?? []
+    }
+    
+    /// Decodes and returns an array of `CGRect` values that was previously encoded with `encode(_:)`.
+    func decodeRects(forKey key: String) -> [CGRect] {
+        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.rectValue }) ?? []
+    }
     #elseif canImport(UIKit)
     /// Decodes and returns a `UIEdgeInsets` value that was previously encoded with `encode(_:)`.
     func decodeEdgeInsets(forKey key: String) -> UIEdgeInsets {
@@ -127,6 +127,21 @@ public extension NSCoder {
     /// Decodes and returns an array of `CGVector` values that was previously encoded with `encode(_:)`.
     func decodeCGVectors(forKey key: String) -> [CGVector] {
         (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgVectorValue }) ?? []
+    }
+    
+    /// Decodes and returns an array of `CGPoint` values that was previously encoded with `encode(_:)`.
+    func decodePoints(forKey key: String) -> [CGPoint] {
+        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgPointValue }) ?? []
+    }
+    
+    /// Decodes and returns an array of `CGSize` values that was previously encoded with `encode(_:)`.
+    func decodeSizes(forKey key: String) -> [CGSize] {
+        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgSizeValue }) ?? []
+    }
+    
+    /// Decodes and returns an array of `CGRect` values that was previously encoded with `encode(_:)`.
+    func decodeRects(forKey key: String) -> [CGRect] {
+        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgRectValue }) ?? []
     }
     #endif
     
@@ -158,21 +173,6 @@ public extension NSCoder {
     /// Encodes the specified array of `NSDirectionalEdgeInsets` values.
     func encode(_ directionalEdgeInsets: [NSDirectionalEdgeInsets], forKey key: String) {
         encode(directionalEdgeInsets.map { NSValue(directionalEdgeInsets: $0) }, forKey: key)
-    }
-    
-    /// Encodes the specified array of `CGPoint` values.
-    func encode(_ points: [CGPoint], forKey key: String) {
-        encode(points.map { NSValue(point: $0) }, forKey: key)
-    }
-    
-    /// Encodes the specified array of `CGSize` values.
-    func encode(_ sizes: [CGSize], forKey key: String) {
-        encode(sizes.map { NSValue(size: $0) }, forKey: key)
-    }
-    
-    /// Encodes the specified array of `CGRect` values.
-    func encode(_ rects: [CGRect], forKey key: String) {
-        encode(rects.map { NSValue(rect: $0) }, forKey: key)
     }
     
     /// Encodes the specified array of `NSRange` values.
@@ -225,6 +225,21 @@ public extension NSCoder {
     func encode(_ edgeInsets: [NSEdgeInsets], forKey key: String) {
         encode(edgeInsets.map { NSValue(edgeInsets: $0) }, forKey: key)
     }
+    
+    /// Encodes the specified array of `CGPoint` values.
+    func encode(_ points: [CGPoint], forKey key: String) {
+        encode(points.map { NSValue(point: $0) }, forKey: key)
+    }
+    
+    /// Encodes the specified array of `CGSize` values.
+    func encode(_ sizes: [CGSize], forKey key: String) {
+        encode(sizes.map { NSValue(size: $0) }, forKey: key)
+    }
+    
+    /// Encodes the specified array of `CGRect` values.
+    func encode(_ rects: [CGRect], forKey key: String) {
+        encode(rects.map { NSValue(rect: $0) }, forKey: key)
+    }
     #elseif canImport(UIKit)
     /// Encodes the specified `NSEdgeInsets`.
     func encode(_ edgeInsets: UIEdgeInsets, forKey key: String) {
@@ -245,6 +260,22 @@ public extension NSCoder {
     func encode(_ cgVectors: [CGVector], forKey key: String) {
         encode(cgVectors.map { NSValue(cgVector: $0) }, forKey: key)
     }
+    
+    /// Encodes the specified array of `CGPoint` values.
+    func encode(_ points: [CGPoint], forKey key: String) {
+        encode(points.map { NSValue(cgPoint: $0) }, forKey: key)
+    }
+    
+    /// Encodes the specified array of `CGSize` values.
+    func encode(_ sizes: [CGSize], forKey key: String) {
+        encode(sizes.map { NSValue(cgSize: $0) }, forKey: key)
+    }
+    
+    /// Encodes the specified array of `CGRect` values.
+    func encode(_ rects: [CGRect], forKey key: String) {
+        encode(rects.map { NSValue(cgRect: $0) }, forKey: key)
+    }
+    
     #endif
     
     private class RangeObjC<Bound: NSNumberConvertable>: NSObject, NSCoding {
