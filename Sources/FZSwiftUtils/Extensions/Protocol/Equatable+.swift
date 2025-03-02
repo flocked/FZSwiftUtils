@@ -9,6 +9,15 @@ import Foundation
 
 public extension Equatable {
     /**
+     A Boolean value indicating whether the value exists in the specified collection.
+     
+     - Parameter sequence: A sequence of elements to check.
+     */
+    func exists<S: Sequence<Self>>(in sequence: S) -> Bool {
+        sequence.contains(self)
+    }
+    
+    /**
      A Boolean value indicating whether the value is equatable to another value.
 
      - Parameter other: A value conforming to Equatable.
