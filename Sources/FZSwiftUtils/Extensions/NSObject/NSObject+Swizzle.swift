@@ -106,6 +106,41 @@ extension NSObject {
             }
     }
     
+    func sdsds() {
+        try? addMethodAlt(NSSelectorFromString(""), methodSignature: (@convention(block)  (AnyObject, CGPoint) -> ()).self, { oject, event in  })
+        /*
+         try view.replaceMethod(
+         #selector(NSView.mouseDown(with:)),
+         methodSignature: (@convention(c)  (AnyObject, Selector, NSEvent) -> ()).self,
+         hookSignature: (@convention(block)  (AnyObject, NSEvent) -> ()).self) { store in {
+             object, event in
+             let view = (object as! NSView)
+             // handle replaced `mouseDown`
+      
+             // calls `super.mouseDown`
+             store.original(object, #selector(NSView.mouseDown(with:)), event)
+             }
+         }
+         */
+    }
+    
+    public func addMethodAlt<MethodSignature> (
+        _ selector: Selector,
+        methodSignature: MethodSignature.Type = MethodSignature.self,
+        _ implementation: MethodSignature) throws -> ReplacedMethodToken {
+            let kvoObservers = kvoObservers
+            kvoObservers.forEach({ $0.isActive = false })
+            do {
+                let hook = try OptionalObjectHookAlt.init(object: self, selector: selector, implementation: implementation).apply()
+                hooks[selector, default: []].append(hook)
+                kvoObservers.forEach({ $0.isActive = true })
+                return .init(hook, self)
+            } catch {
+                kvoObservers.forEach({ $0.isActive = true })
+                throw error
+            }
+        }
+    
     /// A Boolean value indicating whether the instance method for the specified selector is replaced.
     public func isMethodReplaced(_ selector: Selector) -> Bool {
         (hooks[selector] ?? []).isEmpty == false
