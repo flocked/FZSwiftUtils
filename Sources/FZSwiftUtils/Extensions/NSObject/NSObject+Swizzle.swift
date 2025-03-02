@@ -174,6 +174,32 @@ extension NSObject {
         get { getAssociatedValue("_hooks", initialValue: [:]) }
         set { setAssociatedValue(newValue, key: "_hooks") }
     }
+    
+    var addedMethods: Set<Selector> {
+        get { getAssociatedValue("addedMethods") ?? [] }
+        set {
+            setAssociatedValue(newValue, key: "addedMethods")
+            if newValue.count == 1 {
+                do {
+                   try replaceMethod(
+                    #selector(NSObject.responds(to:)),
+                   methodSignature: (@convention(c)  (AnyObject, Selector, Selector?) -> (Bool)).self,
+                   hookSignature: (@convention(block)  (AnyObject, Selector?) -> (Bool)).self) { store in {
+                       object, selector in
+                       if let object = object as? NSObject, let selector = selector, object.addedMethods.contains(selector) {
+                           return true
+                       }
+                       return store.original(object, #selector(NSObject.responds(to:)), selector)
+                       }
+                   }
+                } catch {
+                   debugPrint(error)
+                }
+            } else if newValue.isEmpty {
+                resetMethod(#selector(NSObject.responds(to:)))
+            }
+        }
+    }
         
     /**
      The token for a replaced method.

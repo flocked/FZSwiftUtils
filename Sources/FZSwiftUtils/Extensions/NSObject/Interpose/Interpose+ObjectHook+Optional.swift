@@ -29,11 +29,13 @@ extension Interpose {
                 throw NSObject.SwizzleError.unknownError("typeEncoding failed")
             }
             class_replaceMethod(dynamicSubclass, selector, replacementIMP, typeEncoding)
+            (object as? NSObject)?.addedMethods.insert(selector)
         }
         
         override func resetImplementation() throws {
             guard let deleteIMP = class_getMethodImplementation(dynamicSubclass, NSSelectorFromString(NSStringFromSelector(selector)+"_Remove")), let method = class_getInstanceMethod(dynamicSubclass, selector) else { throw NSObject.SwizzleError.resetUnsupported("Couldn't reset the added method \(selector)") }
            method_setImplementation(method, deleteIMP)
+            (object as? NSObject)?.addedMethods.remove(selector)
         }
         
         /// Initialize a new hook to add an unimplemented instance method from a conforming protocol.
