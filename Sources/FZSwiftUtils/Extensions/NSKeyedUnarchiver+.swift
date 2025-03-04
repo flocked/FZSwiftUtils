@@ -15,44 +15,30 @@ extension NSKeyedUnarchiver {
      - Returns: The decoded object.
      - Throws: If the data isn't an archive, doesn't contain the object or the decoding failed.
      */
-    public static func unarchive<Object>(_ data: Data) throws -> Object {
+    public static func unarchive<Object: NSObject>(_ data: Data, requiresSecureCoding: Bool = false) throws -> Object where Object: NSCoding {
         let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-        unarchiver.requiresSecureCoding = false
-        guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? Object else {
+        unarchiver.requiresSecureCoding = requiresSecureCoding
+        guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? AnyObject else {
             throw UnarchiverErrors.failedDecoding
+        }
+        guard let value = value as? Object else {
+            throw UnarchiverErrors.wrongMapping(original: type(of: value), new: Object.self)
         }
         return value
     }
     
     /// Keyed unarchiver errors.
-    public enum UnarchiverErrors: Error {
+    enum UnarchiverErrors: Error, LocalizedError {
         /// The decoding of the archive failed.
         case failedDecoding
+        
+        case wrongMapping(original: AnyClass, new: AnyClass)
+        
+        var errorDescription: String? {
+            switch self {
+            case .failedDecoding: return "The root object couldn't be decoded."
+            case .wrongMapping(let original, let new): return "The object of type \(original) couldn't be cast to \(new)."
+            }
+        }
     }
 }
-
-/*
- extension NSKeyedArchiver {
-     static func archiver(forWritingWith data: NSMutableData) -> NSKeyedArchiver? {
-         if let allocatedObject = NSClassFromString("NSKeyedArchiver")?.alloc() as? NSObject {
-             let selector: Selector = NSSelectorFromString("initForWritingWithMutableData:")
-             let methodIMP: IMP! = allocatedObject.method(for: selector)
-             let objectAfterInit = unsafeBitCast(methodIMP,to:(@convention(c)(AnyObject?,Selector,NSMutableData)->NSObject).self)(allocatedObject,selector, data)
-             return objectAfterInit as? NSKeyedArchiver
-         }
-         return nil
-     }
- }
-
- extension NSKeyedUnarchiver {
-     static func unarchiver(forReadingWith data: NSData) -> NSKeyedUnarchiver? {
-         if let allocatedObject = NSClassFromString("NSKeyedUnarchiver")?.alloc() as? NSObject {
-             let selector: Selector = NSSelectorFromString("initForReadingWithData:")
-             let methodIMP: IMP! = allocatedObject.method(for: selector)
-             let objectAfterInit = unsafeBitCast(methodIMP,to:(@convention(c)(AnyObject?,Selector, NSData)->NSObject).self)(allocatedObject,selector, data)
-             return objectAfterInit as? NSKeyedUnarchiver
-         }
-         return nil
-     }
- }
- */
