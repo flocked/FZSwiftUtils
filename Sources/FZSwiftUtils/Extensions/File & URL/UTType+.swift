@@ -65,12 +65,7 @@
          - Returns: true if the type directly or indirectly conforms to any of the types, or if it’s equal to.
          */
         func conforms<S: Sequence<UTType>>(toAny types: S) -> Bool {
-            for uttype in types {
-                if conforms(to: uttype) {
-                    return true
-                }
-            }
-            return false
+            types.contains(where: { conforms(to: $0) })
         }
     }
 
@@ -91,7 +86,7 @@
 
             /// An array of all file definitions for the `UTType`.
             var definitions: [FileTypeDefinition] {
-                supportedApplications.compactMap({ $0.fileTypeDefinition(for: self) })
+                supportedApplications.flatMap({ $0.fileTypeDefinitions(for: self) })
             }
         }
     #endif

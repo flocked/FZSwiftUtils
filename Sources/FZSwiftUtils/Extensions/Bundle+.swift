@@ -110,14 +110,14 @@
         }
 
         /// The supported file types for the specified file extension.
-        func fileTypeDefinition(for extensionString: String) -> FileTypeDefinition? {
-            supportedFileTypes.first(where: { $0.extensions.contains(extensionString.lowercased()) })
+        func fileTypeDefinitions(for extensionString: String) -> [FileTypeDefinition] {
+            supportedFileTypes.filter({ $0.extensions.compactMap({$0.lowercased()}).contains(extensionString.lowercased()) })
         }
         
         /// The supported file types for the specified content type.
         @available(macOS 11.0, *)
-        func fileTypeDefinition(for type: UTType) -> FileTypeDefinition? {
-            supportedFileTypes.first(where: { type.conforms(toAny: $0.contentTypes) })
+        func fileTypeDefinitions(for type: UTType) -> [FileTypeDefinition] {
+            supportedFileTypes.filter( { type.conforms(toAny: $0.contentTypes) })
         }
         
         /// A Boolean value indicating whether the application is running.
