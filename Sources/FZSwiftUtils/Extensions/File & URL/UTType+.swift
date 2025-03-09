@@ -89,8 +89,17 @@
              
              Each dictionary key represents the application bundle that can handle the content type and each value represents the file type definitions for the content type.
              */
-            var definitions: [Bundle : [FileTypeDefinition]] {
+            var fileDefinitions: [Bundle : [FileTypeDefinition]] {
                 NSWorkspace.shared.fileDefinitions(for: self)
+            }
+            
+            /**
+             All icons that applications provide for the content type.
+             
+             Each dictionary key represents the application bundle that can handle the content type and each value represents the icons for the content type.
+             */
+            var icons: [Bundle: [NSImage]] {
+                NSWorkspace.shared.icons(for: self)
             }
         }
     #endif
