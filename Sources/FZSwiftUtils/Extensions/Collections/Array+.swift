@@ -28,15 +28,6 @@ public extension Array {
     }
 }
 
-/*
-extension Array: Comparable where Element: Comparable {
-    public static func < (lhs: [Element], rhs: [Element]) -> Bool {
-        guard lhs.count == rhs.count else { return lhs.count < rhs.count }
-        return !zip(lhs, rhs).contains(where: { $0.0 > $0.1 })
-    }
-}
- */
-
 public extension ArraySlice {
      /// The array slice as `Array`.
     var asArray: [Element] {
@@ -47,23 +38,14 @@ public extension ArraySlice {
 extension Array {
     @resultBuilder
     public enum Builder {
-
-        public typealias Expression = Element
-
         public typealias Component = [Element]
 
-        public typealias FinalResult = [Element]
-
-        public static func buildExpression(_ expression: Expression?) -> Component {
-            guard let expression: Expression
-            else { return [] }
-            return [expression]
+        public static func buildExpression(_ expression: Element?) -> Component {
+            expression.map({ [$0] }) ?? []
         }
 
         public static func buildExpression(_ component: Component?) -> Component {
-            guard let component: Component
-            else { return [] }
-            return component
+            component ?? []
         }
 
         public static func buildBlock(_ components: Component...) -> Component {
@@ -90,17 +72,13 @@ extension Array {
             component
         }
 
-        public static func buildFinalResult(_ component: Component) -> FinalResult {
+        public static func buildFinalResult(_ component: Component) -> [Element] {
             component
         }
     }
 
     public init(@Builder elements: () -> Self) {
         self = elements()
-    }
-
-    public static func build(@Builder elements: () -> Self) -> Self {
-        elements()
     }
 
     public mutating func append(@Builder elements: () -> Self) {

@@ -6,42 +6,67 @@
 //
 
 public extension Dictionary {
+    /// Strategies of merging two dictionaries
+    enum MergeStrategy {
+        /// Overwrite the value in the first dictionary with the value in the second dictionary.
+        case overwrite
+        /// Keep the value in the first dictionary, only adding new keys from the second dictionary.
+        case keepFirst
+        /// Keep the value in the second dictionary, overwriting existing values in the first.
+        case keepSecond
+        /// Custom merge strategy using a closure to combine values.
+        case custom((Key, Value?, Value?) -> Value?)
+    }
+    
     /**
-     The dictionary merged with another dictionary.
-
-     - Parameter dictionary: The dictionary for merging.
-     - Returns: A dictionary with merged values.
+     Returns the current dictionary merged with another dictionary using the specified merge strategy.
+     
+     - Parameters:
+        - dictionary: The dictionary to merge with the current dictionary.
+        - strategy: The strategy to use when merging the dictionaries.
+     
+     - Returns: A new dictionary containing the merged results.
      */
-    func merged(_ dictionary: Self) -> Self {
-        self + dictionary
+    func merged(with dictionary: [Key: Value], strategy: MergeStrategy = .overwrite) -> [Key: Value] {
+        var merged = self
+        for (key, value) in dictionary {
+            switch strategy {
+            case .overwrite:
+                merged[key] = value
+            case .keepFirst:
+                if merged[key] == nil {
+                    merged[key] = value
+                }
+            case .keepSecond:
+                merged[key] = value
+            case .custom(let mergeClosure):
+                let existingValue = merged[key]
+                merged[key] = mergeClosure(key, existingValue, value)
+            }
+        }
+        return merged
     }
 
     /**
-     Merges the dictionary with another dictionary.
-
-     - Parameter dictionary: The dictionary for merging.
+     Merges the current dictionary with another dictionary using the specified merge strategy.
+     
+     - Parameters:
+        - dictionary: The dictionary to merge with the current dictionary.
+        - strategy: The strategy to use when merging the dictionaries.
+     
+     - Returns: A new dictionary containing the merged results.
      */
-    mutating func merge(_ dictionary: Self) {
+    mutating func merge(with dictionary: Self, strategy: MergeStrategy = .overwrite) {
         self += dictionary
     }
-}
-
-public func + <Key, Value>(lhs: [Key: Value], rhs: [Key: Value]) -> [Key: Value] {
-    var result = lhs
-    rhs.forEach {
-        if let dict = $1 as? [Key: Value] {
-            if let exist = result[$0] as? [Key: Value] {
-                result[$0] = exist + dict as? Value
-            } else {
-                result[$0] = dict as? Value
-            }
-        } else {
-            result[$0] = $1
-        }
+    
+    /// Returns the left dictionary merged with the right dictionary using the `overwrite` merge strategy.
+    static func + (lhs: Self, rhs: Self) -> Self {
+        lhs.merged(with: rhs)
     }
-    return result
-}
-
-public func += <Key, Value>(lhs: inout [Key: Value], rhs: [Key: Value]) {
-    lhs = lhs + rhs
+    
+    /// Merges the other dictionary with the current using the `overwrite` merge strategy.
+    static func += (lhs: inout Self, rhs: Self) {
+        lhs.merge(with: rhs)
+    }
 }

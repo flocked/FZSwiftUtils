@@ -71,14 +71,35 @@ public extension Set {
     }
 }
 
-public extension Set where Element: Hashable {
-    static func + (lhs: Set<Element>, rhs: Element) -> Set<Element> {
+public extension Set {
+    static func + (lhs: Self, rhs: Element) -> Self {
         var lhs = lhs
         lhs += rhs
         return lhs
     }
     
-    static func + <Collection: Sequence<Element>>(lhs: Set<Element>, rhs: Collection) -> Set<Element> {
+    static func + (lhs: Self, rhs: Element?) -> Self {
+        guard let rhs = rhs else { return lhs }
+        var lhs = lhs
+        lhs += rhs
+        return lhs
+    }
+    
+    static func += (lhs: inout Self, rhs: Element?) {
+        guard let rhs = rhs else { return }
+        lhs += rhs
+    }
+    
+    static func + (lhs: Element, rhs: Self) -> Self {
+        return rhs + lhs
+    }
+    
+    static func + (lhs: Element?, rhs: Self) -> Self {
+        guard let lhs = lhs else { return rhs }
+        return rhs + lhs
+    }
+    
+    static func + <Collection: Sequence<Element>>(lhs: Self, rhs: Collection) -> Self {
         var lhs = lhs
         lhs += rhs
         return lhs
@@ -88,7 +109,7 @@ public extension Set where Element: Hashable {
         lhs.insert(rhs)
     }
     
-    static func += <Collection: Sequence<Element>>(lhs: inout Set<Element>, rhs: Collection) {
+    static func += <Collection: Sequence<Element>>(lhs: inout Self, rhs: Collection) {
         for element in rhs {
             lhs.insert(element)
         }
@@ -109,33 +130,20 @@ extension Set: Comparable where Element: Comparable {
 }
 
 extension Set {
-
     @resultBuilder
     public enum Builder {
+        public typealias Component = [Element]
 
-        // swiftlint:disable:next nesting
-        public typealias Expression = Element
-
-        // swiftlint:disable:next nesting
-        public typealias Component = Set<Element>
-
-        // swiftlint:disable:next nesting
-        public typealias FinalResult = Set<Element>
-
-        public static func buildExpression(_ expression: Expression?) -> Component {
-            guard let expression: Expression
-            else { return [] }
-            return [expression]
+        public static func buildExpression(_ expression: Element?) -> Component {
+            expression.map({ [$0] }) ?? []
         }
 
         public static func buildExpression(_ component: Component?) -> Component {
-            guard let component: Component
-            else { return [] }
-            return component
+            component ?? []
         }
 
         public static func buildBlock(_ components: Component...) -> Component {
-            components.reduce(into: Set()) { $0.formUnion($1) }
+            components.flatMap { $0 }
         }
 
         public static func buildOptional(_ component: Component?) -> Component {
@@ -151,24 +159,20 @@ extension Set {
         }
 
         public static func buildArray(_ components: [Component]) -> Component {
-            components.reduce(into: Set()) { $0.formUnion($1) }
+            components.flatMap { $0 }
         }
 
         public static func buildLimitedAvailability(_ component: Component) -> Component {
             component
         }
 
-        public static func buildFinalResult(_ component: Component) -> FinalResult {
+        public static func buildFinalResult(_ component: Component) -> [Element] {
             component
         }
     }
 
     public init(@Builder elements: () -> Self) {
         self = elements()
-    }
-
-    public static func build(@Builder elements: () -> Self) -> Self {
-        elements()
     }
 
     public mutating func insert(@Builder elements: () -> Self) {

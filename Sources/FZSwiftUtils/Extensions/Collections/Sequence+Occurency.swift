@@ -10,16 +10,11 @@ import Foundation
 public extension Sequence where Element: Equatable & Hashable {
     /// A dictionary for the occurences of the elements keyed by count.
     func numberOfOccurences() -> [Int: [Element]] {
-        var occurences: [Int: [Element]] = [:]
-        for occurency in numberOfOccurencesByElement() {
-            if let value = occurences[occurency.value] {
-                occurences[occurency.value] = value + occurency.key
-            } else {
-                occurences[occurency.value] = [occurency.key]
-            }
+        var occurrencesByCount: [Int: [Element]] = [:]
+        for (element, count) in numberOfOccurencesByElement() {
+            occurrencesByCount[count, default: []].append(element)
         }
-
-        return occurences
+        return occurrencesByCount
     }
 
     /// A dictionary for the occurences of the elements keyed by element value.
@@ -30,8 +25,8 @@ public extension Sequence where Element: Equatable & Hashable {
     }
     
     func numberOfOccurences<Value: Hashable>(of keyPath: KeyPath<Element, Value>) -> [Value: [Element]] {
-        return reduce(into: [Value: [Element]]()) { currentResult, element in
-            currentResult[element[keyPath: keyPath], default: []] += element
+        return reduce(into: [Value: [Element]]()) { result, element in
+            result[element[keyPath: keyPath], default: []].append(element)
         }
     }
 }

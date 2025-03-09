@@ -454,3 +454,169 @@ public final class Defaults {
     
     static let _valueUpdatedNotification = Notification.Name("_valueUpdatedNotification")
 }
+
+fileprivate extension [AnyHashable : Any] {
+    var oldValue: Any? { self["oldValue"] }
+    var newValue: Any? { self["newValue"] }
+    var key: String { self["key"] as! String }
+}
+
+extension Defaults {
+    public class Key<Value>: _AnyKey {
+        let defaultValueGetter: () -> Value
+
+        public var defaultValue: Value { defaultValueGetter() }
+        
+        public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: Value) where Value: Codable {
+            defaultValueGetter = { defaultValue }
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: @escaping () -> Value) where Value: Codable {
+            defaultValueGetter = defaultValue
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard) where Value: OptionalProtocol, Value.Wrapped: Codable {
+            defaultValueGetter = { nil }
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: Value) where Value: RawRepresentable, Value.RawValue: Codable {
+            defaultValueGetter = { defaultValue }
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: Value) where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
+            defaultValueGetter = { defaultValue }
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: @escaping () -> Value) where Value: RawRepresentable, Value.RawValue: Codable {
+            defaultValueGetter = defaultValue
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: @escaping () -> Value) where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
+            defaultValueGetter = defaultValue
+            super.init(name: name, suite: suite)
+        }
+        
+        public init(_ name: String, suite: UserDefaults = .standard) where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
+            defaultValueGetter = { nil }
+            super.init(name: name, suite: suite)
+        }
+    }
+
+    /// Type-erased key.
+    public class _AnyKey: @unchecked Sendable {
+        public typealias Key = Defaults.Key
+
+        public let name: String
+        public let suite: UserDefaults
+        
+        var defaults: Defaults {
+            .init(userDefaults: suite)
+        }
+
+        fileprivate init(name: String, suite: UserDefaults) {
+            assert(!(!name.starts(with: "@") && name.allSatisfy { $0 != "." && $0.isASCII }), "The key name must be ASCII, not start with @, and cannot contain a dot (.).")
+            self.name = name
+            self.suite = suite
+        }
+
+        /// Reset the item back to its default value.
+        public func reset() {
+            suite.removeObject(forKey: name)
+        }
+    }
+
+    public typealias Keys = _AnyKey
+}
+
+extension Defaults.Key where Value: Codable {
+    /// A Boolean value indicating whether the value is written.
+    public var isWritten: Bool {
+        defaults.get(name) as Value? != nil
+    }
+    
+    public func observe(sendInitalValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) -> NotificationToken where Value: Equatable {
+        defaults.observeChanges(for: name, type: Value.self, sendInitalValue: sendInitalValue, uniqueValues: true) { oldValue, newValue in
+            guard let oldValue = oldValue, let newValue = newValue else { return }
+            handler(oldValue, newValue)
+        }
+    }
+    
+    public func observe(sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) -> NotificationToken where Value: Equatable {
+        defaults.observeChanges(for: name, type: Value.self, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { oldValue, newValue in
+            guard let oldValue = oldValue, let newValue = newValue else { return }
+            handler(oldValue, newValue)
+        }
+    }
+    
+    public func observe(sendInitalValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) -> NotificationToken {
+        defaults.observeChanges(for: name, type: Value.self, sendInitalValue: sendInitalValue) { oldValue, newValue in
+            guard let oldValue = oldValue, let newValue = newValue else { return }
+            handler(oldValue, newValue)
+        }
+    }
+}
+
+extension Defaults.Key where Value: RawRepresentable, Value.RawValue: Codable {
+    /// A Boolean value indicating whether the value is written.
+    public var isWritten: Bool {
+        defaults.get(name) as Value? != nil
+    }
+    
+    public func observe(sendInitalValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) -> NotificationToken where Value: Equatable {
+        defaults.observeChanges(for: name, type: Value.self, sendInitalValue: sendInitalValue, uniqueValues: true) { oldValue, newValue in
+            guard let oldValue = oldValue, let newValue = newValue else { return }
+            handler(oldValue, newValue)
+        }
+    }
+    
+    public func observe(sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) -> NotificationToken where Value: Equatable {
+        defaults.observeChanges(for: name, type: Value.self, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues) { oldValue, newValue in
+            guard let oldValue = oldValue, let newValue = newValue else { return }
+            handler(oldValue, newValue)
+        }
+    }
+    
+    public func observe(sendInitalValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) -> NotificationToken {
+        defaults.observeChanges(for: name, type: Value.self, sendInitalValue: sendInitalValue) { oldValue, newValue in
+            guard let oldValue = oldValue, let newValue = newValue else { return }
+            handler(oldValue, newValue)
+        }
+    }
+}
+
+extension Defaults.Key where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
+    /// A Boolean value indicating whether the value is written.
+    public var isWritten: Bool {
+        defaults.get(name) as Value.Wrapped? != nil
+    }
+}
+
+
+extension Defaults {
+    /// The value for the specified key.
+    public static subscript<T: Codable>(key: Key<T>) -> T {
+        get { key.defaults.get(key.name, initalValue: key.defaultValue) }
+        set { key.defaults.set(newValue, for: key.name) }
+    }
+    
+    /// The value for the specified key.
+    public static subscript<T: RawRepresentable>(key: Key<T>) -> T where T.RawValue: Codable {
+        get { key.defaults.get(key.name, initalValue: key.defaultValue) }
+        set { key.defaults.set(newValue, for: key.name) }
+    }
+    
+    /// The value for the specified key.
+    public static subscript<T: OptionalProtocol>(key: Key<T>) -> T.Wrapped? where T.Wrapped: RawRepresentable, T.Wrapped.RawValue: Codable {
+        get {
+            guard let rawValue: T.Wrapped.RawValue = key.defaults.get(key.name, initalValue: key.defaultValue.optional?.rawValue) else { return nil }
+            return T.Wrapped(rawValue: rawValue)
+        }
+        set { key.defaults.set(newValue.optional?.rawValue, for: key.name) }
+    }
+}

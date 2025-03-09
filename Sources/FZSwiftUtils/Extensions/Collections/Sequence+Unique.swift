@@ -7,9 +7,9 @@
 
 import Foundation
 
-public extension Sequence where Element: Equatable {
+public extension Sequence {
     /// An array of unique elements.
-    func uniqued() -> [Element] {
+    func uniqued() -> [Element] where Element: Equatable  {
         var elements: [Element] = []
         for element in self {
             if !elements.contains(element) {
@@ -17,6 +17,12 @@ public extension Sequence where Element: Equatable {
             }
         }
         return elements
+    }
+    
+    /// An array of unique elements in the order they first appear.
+    func uniqued() -> [Element] where Element: Hashable {
+        var seen: Set<Element> = []
+        return filter { seen.insert($0).inserted }
     }
 }
 
@@ -26,7 +32,7 @@ public extension Sequence {
 
      - Parameter keyPath: The keypath for filtering the object.
      */
-    func uniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+    func euniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
         uniqued(by: { $0[keyPath: keyPath] })
     }
     
@@ -35,7 +41,7 @@ public extension Sequence {
 
      - Parameter keyPath: The keypath for filtering the object.
      */
-    func uniqued<T: Comparable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+    func uniqued<T: Hashable>(by keyPath: KeyPath<Element, T>) -> [Element] {
         uniqued(by: { $0[keyPath: keyPath] })
     }
 
@@ -62,15 +68,9 @@ public extension Sequence {
 
      - Parameter map: A mapping closure. map accepts an element of this sequence as its parameter and returns a value of the same or of a different type.
      */
-    func uniqued<T: Comparable>(by map: (Element) -> T) -> [Element] {
-        let elements = reduce(into: [(index: Int, element: Element, compare: T)]()) {
-            $0 += ($0.count, $1, map($1))
-        }.sorted(by: \.compare)
-        return elements.reduce(into: [(index: Int, element: Element, compare: T)]()) {
-            if $0.last?.compare != $1.compare {
-                $0.append($1)
-            }
-        }.sorted(by: \.index).compactMap({$0.element})
+    func uniqued<T: Hashable>(by map: (Element) -> T) -> [Element] {
+        var seen = Set<T>()
+        return filter { seen.insert(map($0)).inserted }
     }
 }
 
@@ -88,7 +88,7 @@ public extension Sequence where Element: Equatable {
      - Parameter excluding: The elements excluded for the returned element.
      - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
      */
-    func randomElement(excluding: [Element]) -> Element? {
+    func randomElement<S: Sequence<Element>>(excluding: S) -> Element? {
         filter { !excluding.contains($0) }.randomElement()
     }
 }

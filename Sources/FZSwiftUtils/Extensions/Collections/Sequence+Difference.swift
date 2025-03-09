@@ -67,16 +67,46 @@ public extension Sequence where Element: Hashable {
         let selfSet = Set(self)
         let otherSet = Set(other)
 
-        // Calculate differences using set operations
         let removed = selfSet.subtracting(otherSet)
         let added = otherSet.subtracting(selfSet)
         let unchanged = selfSet.intersection(otherSet)
 
-        // Preserve the order of elements
         let removedOrdered = filter { removed.contains($0) }
         let unchangedOrdered = filter { unchanged.contains($0) }
         let addedOrdered = other.filter { added.contains($0) }
 
         return (removedOrdered, addedOrdered, unchangedOrdered)
+    }
+    
+    /**
+     Returns the difference needed to produce this collection’s ordered elements from the given collection.
+
+     - Parameter other: The other collection to compare.
+     - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
+     */
+    func differenceIndexed<C: Collection<Element>>(to other: C) -> (removed: [Element], added: [Element], changed: [Element], unchanged: [Element]) where C.Index: BinaryInteger {
+        let otherSet = Set(other)
+        let indexMap = Dictionary(uniqueKeysWithValues: other.enumerated().map { ($1, $0) })
+
+        var removed: [Element] = []
+        var changed: [Element] = []
+        var unchanged: [Element] = []
+
+        for (index, element) in enumerated() {
+            if let otherIndex = indexMap[element] {
+                if index == otherIndex {
+                    unchanged.append(element)
+                } else {
+                    changed.append(element)
+                }
+            } else {
+                removed.append(element)
+            }
+        }
+
+        let selfSet = Set(self)
+        let added = other.filter { !selfSet.contains($0) }
+
+        return (removed, added, changed, unchanged)
     }
 }

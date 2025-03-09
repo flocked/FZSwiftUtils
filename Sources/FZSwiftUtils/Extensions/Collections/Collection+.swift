@@ -58,19 +58,7 @@ public extension Collection where Index == Int {
     }
 }
 
-public extension RangeReplaceableCollection where Self: MutableCollection {
-    /// Removes all the elements at the specified range.
-    mutating func remove(at range: ClosedRange<Int>) {
-        let range = range.clamped(to: 0...count - 1)
-        remove(atOffsets: IndexSet(range))
-    }
-    
-    /// Removes all the elements at the specified range.
-    mutating func remove(at range: Range<Int>) {
-        let range = range.clamped(to: 0..<count)
-        remove(atOffsets: IndexSet(range))
-    }
-    
+public extension RangeReplaceableCollection {
     /**
      Removes the first element that satisfy the given predicate.
      
@@ -82,6 +70,20 @@ public extension RangeReplaceableCollection where Self: MutableCollection {
     mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows -> Element? {
         guard let index = try firstIndex(where: predicate) else { return nil }
         return remove(at: index)
+    }
+}
+
+public extension RangeReplaceableCollection where Self: MutableCollection {
+    /// Removes all the elements at the specified range.
+    mutating func remove(at range: ClosedRange<Int>) {
+        let range = range.clamped(to: 0...count - 1)
+        remove(atOffsets: IndexSet(range))
+    }
+    
+    /// Removes all the elements at the specified range.
+    mutating func remove(at range: Range<Int>) {
+        let range = range.clamped(to: 0..<count)
+        remove(atOffsets: IndexSet(range))
     }
 }
 
@@ -123,7 +125,7 @@ public extension Collection where Index: Comparable {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: Range<Index>) -> [Element] {
-        Array(self[range.clamped(to: startIndex..<endIndex)])
+        !isEmpty ? Array(self[range.clamped(to: startIndex..<endIndex)]) : []
     }
 
     /**
@@ -133,7 +135,7 @@ public extension Collection where Index: Comparable {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: ClosedRange<Index>) -> [Element] {
-        Array(self[range.clamped(to: startIndex..<endIndex)])
+        !isEmpty ? Array(self[range.clamped(to: startIndex..<endIndex)]) : []
     }
     
     /**
@@ -185,6 +187,10 @@ public extension RangeReplaceableCollection {
         guard let rhs = rhs else { return lhs }
         return lhs + [rhs]
     }
+    
+    static func + (lhs: Element, rhs: Self) -> Self {
+        [lhs] + rhs
+    }
 
     static func + (lhs: Element?, rhs: Self) -> Self {
         guard let lhs = lhs else { return rhs }
@@ -230,7 +236,7 @@ public extension RangeReplaceableCollection {
     }
 }
 
-public extension RangeReplaceableCollection where Index: Comparable {
+public extension RangeReplaceableCollection {
     /**
      Accesses a contiguous subrange of the collection’s elements.
 
@@ -425,7 +431,7 @@ public extension RangeReplaceableCollection {
     }
 }
 
-public extension RangeReplaceableCollection where Self.Indices.Element == Int, Element: Equatable {
+public extension RangeReplaceableCollection where Indices.Element == Int, Element: Equatable {
     /**
      Moves the specified element to the specified position.
 
@@ -436,7 +442,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     @discardableResult
-    mutating func move(_ element: Element, to destinationIndex: Self.Indices.Element) -> Bool {
+    mutating func move(_ element: Element, to destinationIndex: Indices.Element) -> Bool {
         let indexes = indexes(of: element)
         return move(from: indexes, to: destinationIndex)
     }
@@ -451,7 +457,7 @@ public extension RangeReplaceableCollection where Self.Indices.Element == Int, E
      - Returns: `true` if moving succeeded, or `false` if not.
      */
     @discardableResult
-    mutating func move<S: Sequence<Element>>(_ elements: S, to destinationIndex: Self.Indices.Element) -> Bool {
+    mutating func move<S: Sequence<Element>>(_ elements: S, to destinationIndex: Indices.Element) -> Bool {
         let indexes = indexes(of: elements)
         return move(from: indexes, to: destinationIndex)
     }
@@ -684,96 +690,6 @@ public extension RangeReplaceableCollection where Element: Equatable {
     mutating func insert<C>(_ newElements: C, after: Element) where C: Collection<Element> {
         guard let index = firstIndex(of: after) else { return }
         insert(contentsOf: newElements, at: self.index(after: index))
-    }
-}
-
-public extension Collection where Element: BinaryInteger {
-    /// The average value of all values in the collection. If the collection is empty, it returns `0`.
-    func average() -> Double {
-        guard !isEmpty else { return .zero }
-        return Double(reduce(.zero, +)) / Double(count)
-    }
-    
-    /// The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
-    func weightedAverage() -> Double {
-        compactMap({Double($0)}).weightedAverage()
-    }
-    
-    /**
-     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
-     
-     - Parameter weights: The weight for each element in the collection.
-     
-     - Note: `weights` needs to have the same number of elements as the collection.
-     */
-    func weightedAverage(weights: [Double]) -> Double {
-        compactMap({Double($0)}).weightedAverage(weights: weights)
-    }
-    
-    /**
-     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
-     
-     The first value of the collection is weighted by the upper bound value of the range and the last value by the lower bound value of the range.
-     
-     - Parameter weighting: The range of the weights.
-     */
-    func weightedAverage(weighting: ClosedRange<Double>) -> Double {
-        compactMap({Double($0)}).weightedAverage(weighting: weighting)
-    }
-}
-
-public extension Collection where Element: FloatingPoint {
-    /// The average value of all values in the collection. If the collection is empty, it returns `0`.
-    func average() -> Element {
-        guard !isEmpty else { return .zero }
-        return reduce(.zero, +) / Element(count)
-    }
-}
-
-public extension Collection where Element: BinaryFloatingPoint {
-    /// The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
-    func weightedAverage() -> Element {
-        var weights: [Element] = []
-        var value: Element = 1.0
-        let divider: Element = 1.0/Element(count)
-        for _ in 0..<count {
-            weights.append(value)
-            value = value - divider
-        }
-        return weightedAverage(weights: weights)
-    }
-    
-    /**
-     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
-     
-     - Parameter weights: The weight for each element in the collection.
-     
-     - Note: `weights` needs to have the same number of elements as the collection.
-     */
-    func weightedAverage(weights: [Element]) -> Element {
-        guard !isEmpty, count == weights.count else { return .zero }
-        let totalWeight = weights.sum()
-        guard totalWeight > 0 else { return .zero }
-        return zip(self, weights).map { $0 * $1 }.reduce(.zero, +) / totalWeight
-    }
-    
-    /**
-     The weighted average value of all values in the collection. If the collection is empty, it returns `0`.
-          
-     The first value of the collection is weighted by the upper bound value of the range and the last value by the lower bound value of the range.
-
-     - Parameter weighting: The range of the weights.
-     */
-    func weightedAverage(weighting: ClosedRange<Element>) -> Element {
-        var weights: [Element] = []
-        let range = weighting.upperBound-weighting.lowerBound
-        let divider: Element = 1.0/Element(count-1)
-        var value: Element = 1.0
-        for _ in 0..<count {
-            weights.append((range*value)+weighting.lowerBound)
-            value = value - divider
-        }
-        return weightedAverage(weights: weights)
     }
 }
 

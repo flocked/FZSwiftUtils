@@ -247,36 +247,41 @@ public extension NSDictionary {
 extension Dictionary where Value == Any {
     /**
      A Boolean value indicating whether the dictionary is equatable to another dictionary.
-
+     
      - Parameter other: The dictionary to compare.
      - Returns: Returns `true` if the dictionary is equal to the other dictionary; or `false` if it isn't equal.
      */
     public func isEqual(to other: Self) -> Bool {
-        guard keys.count == other.keys.count, Set(keys) == Set(other.keys) else { return false }
-        for key in keys {
-            if let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), !val1.isEqual(val2) {
+        guard self.count == other.count else { return false }
+        for (key, val1) in self {
+            guard let val2 = other[key] else { return false }
+            if let val1 = val1 as? (any Equatable), let val2 = val2 as? (any Equatable), !val1.isEqual(val2) {
                 return false
             }
-            if let val1 = self[key] as? AnyObject, let val2 = other[key] as? AnyObject, val1 !== val2 {
-                return false
-            }
+            return val1 as AnyObject !== val2 as AnyObject
         }
         return true
     }
     
-    /// The keys of tha values that where added, removed and changed from the other dictionary.
+    /// The keys of the values that were added, removed, and changed from the other dictionary.
     public func keysChanged(from other: Self) -> (added: [Key], removed: [Key], changed: [Key]) {
-        let diff = keys.difference(to: other.keys)
+        var added: [Key] = []
+        var removed: [Key] = []
         var changed: [Key] = []
-        for key in diff.unchanged {
-            if let val1 = self[key] as? (any Equatable), let val2 = other[key] as? (any Equatable), val1.isEqual(val2) {
+        for (key, val1) in self {
+            guard let val2 = other[key] else {
+                added.append(key)
                 continue
             }
-            if let val1 = self[key] as? AnyObject, let val2 = other[key] as? AnyObject, val1 === val2 {
-                continue
+            if let val1 = val1 as? (any Equatable), let val2 = val2 as? (any Equatable), !val1.isEqual(val2) {
+                changed.append(key)
+            } else if val1 as AnyObject !== val2 as AnyObject {
+                changed.append(key)
             }
-            changed.append(key)
         }
-        return (diff.added, diff.removed, changed)
+        for key in other.keys where self[key] == nil {
+            removed.append(key)
+        }
+        return (added, removed, changed)
     }
 }

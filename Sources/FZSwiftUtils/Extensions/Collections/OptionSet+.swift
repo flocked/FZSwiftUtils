@@ -14,7 +14,7 @@ public extension OptionSet {
      - Parameter elements: The elements to look for in the set.
      - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
      */
-    func contains(any members: [Element]) -> Bool {
+    func contains<S: Sequence<Element>>(any members: S) -> Bool {
         members.contains(where: { contains($0) })
     }
     
