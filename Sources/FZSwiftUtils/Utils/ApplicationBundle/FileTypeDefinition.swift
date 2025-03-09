@@ -17,7 +17,7 @@
         public var extensions: [String]
         private var contentTypeIdentifiers: [String]
         public var appBundleURL: URL?
-        public var isPackage: Bool?
+        //public var isPackage: Bool?
         @available(macOS 11.0, iOS 14.0, *)
         public var contentTypes: [UTType] { contentTypeIdentifiers.compactMap { UTType($0) } }
         public var icon: NSUIImage? {
@@ -51,7 +51,7 @@
             self.name = try container.decodeIfPresent(String.self, forKey: .name)
             self.appBundleURL = try container.decodeIfPresent(URL.self, forKey: .appBundleURL)
             self.role = try container.decodeIfPresent(Role.self, forKey: .role)
-            self.isPackage = try container.decodeIfPresent(Bool.self, forKey: .isPackage)
+            // self.isPackage = try container.decodeIfPresent(Bool.self, forKey: .isPackage)
             self.handlerRank = try container.decodeIfPresent(HandlerRank.self, forKey: .handlerRank)
             self.contentTypeIdentifiers = try container.decodeIfPresent([String].self, forKey: .contentTypeIdentifiers) ?? []
         }
@@ -63,7 +63,7 @@
             case appBundleURL = "appBundleURL"
             case role = "CFBundleTypeRole"
             case contentTypeIdentifiers = "LSItemContentTypes"
-            case isPackage = "LSTypeIsPackage"
+            //case isPackage = "LSTypeIsPackage"
             case handlerRank = "LSHandlerRank"
         }
     }
