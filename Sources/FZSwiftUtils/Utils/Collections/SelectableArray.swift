@@ -74,13 +74,31 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public var allowsSelection: Bool = true {
         didSet { updateSelections() }
     }
+    
+    @discardableResult
+    public mutating func allowsSelection(_ allows: Bool) -> Self {
+        allowsSelection = allows
+        return self
+    }
 
     public var allowsMultipleSelection: Bool = false {
         didSet { updateSelections() }
     }
 
+    @discardableResult
+    public mutating func allowsMultipleSelection(_ allows: Bool) -> Self {
+        allowsMultipleSelection = allows
+        return self
+    }
+
     public var allowsEmptySelection: Bool = true {
         didSet { updateSelections() }
+    }
+    
+    @discardableResult
+    public mutating func allowsEmptySelection(_ allows: Bool) -> Self {
+        allowsEmptySelection = allows
+        return self
     }
 
     public var selectedElements: [Element] {
