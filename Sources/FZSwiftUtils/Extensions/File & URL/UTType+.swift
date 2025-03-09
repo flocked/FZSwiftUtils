@@ -84,9 +84,13 @@
                 NSWorkspace.shared.applications(toOpen: self)
             }
 
-            /// An array of all file definitions for the `UTType`.
-            var definitions: [FileTypeDefinition] {
-                supportedApplications.flatMap({ $0.fileTypeDefinitions(for: self) })
+            /**
+             The file definitions for the content type.
+             
+             Each dictionary key represents the application bundle that can handle the content type and each value represents the file type definitions for the content type.
+             */
+            var definitions: [Bundle : [FileTypeDefinition]] {
+                NSWorkspace.shared.fileDefinitions(for: self)
             }
         }
     #endif
