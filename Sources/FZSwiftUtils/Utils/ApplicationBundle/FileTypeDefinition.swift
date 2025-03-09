@@ -21,7 +21,7 @@
         public var contentTypes: [UTType] {
             contentTypeIdentifiers.compactMap { UTType($0) }
         }
-        var icon: NSUIImage? {
+        public var icon: NSUIImage? {
             guard let iconName = iconName, let appBundle = appBundle else { return nil }
             return appBundle.image(forResource: iconName)
         }
