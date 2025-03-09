@@ -59,6 +59,7 @@
         var info: ApplicationInfo? {
             var appInfo: ApplicationInfo? = infoDictionary?.toModel()
             appInfo?.appBundleURL = bundleURL
+            appInfo?.url = infoURL
             return appInfo
         }
         

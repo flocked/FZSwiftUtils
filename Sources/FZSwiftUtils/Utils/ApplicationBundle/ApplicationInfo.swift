@@ -13,7 +13,7 @@
     /// The application info, constructed from the bundle’s `Info.plist` file.
     public struct ApplicationInfo: Codable {
         /// The url of the `info.plist`.
-        public private(set) var url: URL?
+        public internal(set) var url: URL?
         
         var appBundleURL: URL? {
             didSet { supportedFileTypes.editEach({$0.appBundleURL = appBundleURL }) }
@@ -51,10 +51,8 @@
         
         init?(url: URL) {
             do {
-                let data = try Data(contentsOf: url)
-                var info = try PropertyListDecoder().decode(ApplicationInfo.self, from: data)
-                info.url = url
-                self = info
+                self = try PropertyListDecoder().decode(Self.self, from: try Data(contentsOf: url))
+                self.url = url
             } catch {
                 return nil
             }
