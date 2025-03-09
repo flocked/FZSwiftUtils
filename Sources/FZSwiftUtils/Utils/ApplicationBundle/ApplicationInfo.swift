@@ -15,6 +15,10 @@
         /// The url of the `info.plist`.
         public private(set) var url: URL?
         
+        var appBundleURL: URL? {
+            didSet { supportedFileTypes.editEach({$0.appBundleURL = appBundleURL }) }
+        }
+                
         /// The bundle identifier.
         public let bundleIdentifier: String
         
@@ -37,7 +41,7 @@
         public let minimumSystemVersion: String?
         
         /// The supported file types.
-        public let supportedFileTypes: [FileTypeDefinition]
+        public var supportedFileTypes: [FileTypeDefinition]
         
         /// The name of the icon file.
         public let iconFile: String?
@@ -55,7 +59,7 @@
                 return nil
             }
         }
-
+        
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             bundleName = try container.decodeIfPresent(String.self, forKey: .bundleName)
@@ -71,7 +75,7 @@
             let supportedTypes = try container.decodeIfPresent([FileTypeDefinition].self, forKey: .supportedFileTypes) ?? []
             var supportedFileTypes: [FileTypeDefinition] = []
             for var supportedType in supportedTypes {
-                supportedType.applicationURL = url
+                supportedType.appBundleURL = url
                 supportedFileTypes.append(supportedType)
             }
             self.supportedFileTypes = supportedFileTypes

@@ -57,7 +57,9 @@
         
         /// The application info, constructed from the bundle’s `Info.plist` file.
         var info: ApplicationInfo? {
-            infoDictionary?.toModel()
+            var appInfo: ApplicationInfo? = infoDictionary?.toModel()
+            appInfo?.appBundleURL = bundleURL
+            return appInfo
         }
         
         /// The name of the bundle.
