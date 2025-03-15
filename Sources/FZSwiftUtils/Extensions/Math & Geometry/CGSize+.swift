@@ -399,6 +399,7 @@ public extension Collection where Element == CGSize {
         return totalSize
     }
     
+    #if os(macOS) || os(iOS) || os(tvOS)
     /**
      Returns the sizes scaled proportionally to fit within a specified target size, based on the given orientation.
 
@@ -435,7 +436,7 @@ public extension Collection where Element == CGSize {
        - width: The target width within which the sizes should fit.
        - orientation: The orientation that determines how sizes are combined.
      */
-    func sclaedToFit(width: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
+    func scaledToFit(width: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
         return scaledToFit(CGSize(width: width, height: .greatestFiniteMagnitude), orientation: orientation)
     }
     
@@ -446,7 +447,8 @@ public extension Collection where Element == CGSize {
        - height: The target height within which the sizes should fit.
        - orientation: The orientation that determines how sizes are combined.
      */
-    func sclaedToFit(height: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
+    func scaledToFit(height: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
         return scaledToFit(CGSize(width:.greatestFiniteMagnitude, height: height), orientation: orientation)
     }
+    #endif
 }

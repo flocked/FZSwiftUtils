@@ -54,7 +54,6 @@ import SwiftUI
     public typealias NSUIImageSymbolScale = UIImage.SymbolScale
     public typealias NSUIImageSymbolWeight = UIImage.SymbolWeight
     public typealias NSUIRectEdge = UIRectEdge
-    public typealias InterfaceOrientation = NSLayoutConstraint.Axis
 #endif
 
 #if os(iOS) || os(tvOS)
@@ -73,4 +72,5 @@ import SwiftUI
     public typealias NSUIHostingController = UIHostingController
     public typealias NSUILayoutGuide = UILayoutGuide
     public typealias NSUICollectionViewItem = UICollectionViewCell
+    public typealias InterfaceOrientation = NSLayoutConstraint.Axis
 #endif

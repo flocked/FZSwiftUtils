@@ -19,20 +19,22 @@ public extension NSCoder {
         decodeObject(of: NSValue.self, forKey: key)?.directionalEdgeInsetsValue ?? .init()
     }
     
-    /// Decodes and returns a `CMTime` value that was previously encoded with `encode(_:)`.
-    func decodeTime(forKey key: String) -> CMTime {
-        decodeObject(of: NSValue.self, forKey: key)?.timeValue ?? .zero
-    }
-    
     /// Decodes and returns a `CGAffineTransform` value that was previously encoded with `encode(_:)`.
     func decodeCGAffineTransform(forKey key: String) -> CGAffineTransform {
         decodeObject(of: NSValue.self, forKey: key)?.cgAffineTransformValue ?? .identity
     }
     
+    #if os(macOS) || os(iOS) || os(tvOS)
     /// Decodes and returns a `CATransform3D` value that was previously encoded with `encode(_:)`.
     func decodeCATransform3D(forKey key: String) -> CATransform3D {
         decodeObject(of: NSValue.self, forKey: key)?.caTransform3DValue ?? .init()
     }
+    
+    /// Decodes and returns a `CMTime` value that was previously encoded with `encode(_:)`.
+    func decodeTime(forKey key: String) -> CMTime {
+        decodeObject(of: NSValue.self, forKey: key)?.timeValue ?? .zero
+    }
+    #endif
     
     /// Decodes and returns a `NSRange` value that was previously encoded with `encode(_:)`.
     func decodeRange(forKey key: String) -> NSRange {
@@ -49,6 +51,7 @@ public extension NSCoder {
         (decodeObject(forKey: key) as? [NSValue])?.map({ $0.rangeValue }) ?? []
     }
     
+    #if os(macOS) || os(iOS) || os(tvOS)
     /// Decodes and returns an array of `CMTime` values that was previously encoded with `encode(_:)`.
     func decodeTimes(forKey key: String) -> [CMTime] {
         (decodeObject(forKey: key) as? [NSValue])?.map({ $0.timeValue }) ?? []
@@ -58,6 +61,7 @@ public extension NSCoder {
     func decodeCATransform3Ds(forKey key: String) -> [CATransform3D] {
         (decodeObject(forKey: key) as? [NSValue])?.map({ $0.caTransform3DValue }) ?? []
     }
+    #endif
     
     /// Decodes and returns an array of `CGAffineTransform` values that was previously encoded with `encode(_:)`.
     func decodeCGAffineTransforms(forKey key: String) -> [CGAffineTransform] {
@@ -155,19 +159,21 @@ public extension NSCoder {
         encode(NSValue(cgAffineTransform: cgAffineTransform), forKey: key)
     }
     
+    #if os(macOS) || os(iOS) || os(tvOS)
     /// Encodes the specified `CATransform3D`.
     func encode(_ caTransform3D: CATransform3D, forKey key: String) {
         encode(NSValue(caTransform3D: caTransform3D), forKey: key)
     }
     
-    /// Encodes the specified `NSRange`.
-    func encode(_ range: NSRange, forKey key: String) {
-        encode(NSValue(range: range), forKey: key)
-    }
-    
     /// Encodes the specified `CMTime`.
     func encode(_ time: CMTime, forKey key: String) {
         encode(NSValue(time: time), forKey: key)
+    }
+    #endif
+    
+    /// Encodes the specified `NSRange`.
+    func encode(_ range: NSRange, forKey key: String) {
+        encode(NSValue(range: range), forKey: key)
     }
     
     /// Encodes the specified array of `NSDirectionalEdgeInsets` values.
@@ -180,20 +186,22 @@ public extension NSCoder {
         encode(ranges.map { NSValue(range: $0) }, forKey: key)
     }
     
-    /// Encodes the specified array of `CMTime` values.
-    func encode(_ times: [CMTime], forKey key: String) {
-        encode(times.map { NSValue(time: $0) }, forKey: key)
-    }
-    
     /// Encodes the specified array of `CGAffineTransform` values.
     func encode(_ transforms: [CGAffineTransform], forKey key: String) {
         encode(transforms.map { NSValue(cgAffineTransform: $0) }, forKey: key)
+    }
+    
+    #if os(macOS) || os(iOS) || os(tvOS)
+    /// Encodes the specified array of `CMTime` values.
+    func encode(_ times: [CMTime], forKey key: String) {
+    encode(times.map { NSValue(time: $0) }, forKey: key)
     }
     
     /// Encodes the specified array of `CATransform3D` values.
     func encode(_ transforms: [CATransform3D], forKey key: String) {
         encode(transforms.map { NSValue(caTransform3D: $0) }, forKey: key)
     }
+    #endif
     
     /// Encodes the specified range.
     func encode<Bound: NSNumberConvertable>(_ range: Range<Bound>, forKey key: String) {

@@ -11,6 +11,12 @@ import AppKit
 #elseif canImport(UIKit)
 import UIKit
 #endif
+#if canImport(WebKit)
+import WebKit
+#endif
+#if canImport(UniformTypeIdentifiers)
+import UniformTypeIdentifiers
+#endif
 
 public extension NSAttributedString {
     /// Returns the full range of the attributed string.
@@ -600,6 +606,603 @@ public extension NSMutableAttributedString {
             addAttributes([name: value], range: NSRange(location: 0, length: length))
         } else {
             removeAttribute(name, range: NSRange(location: 0, length: length))
+        }
+    }
+}
+
+extension NSAttributedString {
+    /**
+     Returns the data that contains a text stream corresponding to the characters and attributes.
+     
+     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     */
+    public func data(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
+        try! data(from: fullRange, documentAttributes: documentAttributes)
+    }
+    
+    /**
+     Returns the data that contains a text stream corresponding to the characters and attributes.
+     
+     - Parameter documentAttributes: The document attributes.
+     */
+    public func data(documentAttributes: DocumentAttributes) -> Data {
+        data(documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns the data that contains a text stream corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range.
+        - documentAttributes: The document attributes.
+     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     */
+    public func data(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
+        try? data(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a file wrapper that contains a text stream corresponding to the characters and attributes.
+     
+     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     */
+    public func fileWrapper(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> FileWrapper {
+        try! fileWrapper(from: fullRange, documentAttributes: documentAttributes)
+    }
+    
+    /**
+     Returns a file wrapper that contains a text stream corresponding to the characters and attributes.
+     
+     - Parameter documentAttributes: The document attributes.
+     */
+    public func fileWrapper(documentAttributes: DocumentAttributes) -> FileWrapper {
+        fileWrapper(documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a file wrapper that contains a text stream corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range.
+        - documentAttributes: The document attributes.
+     - Returns: The filewrapper, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     */
+    public func fileWrapper(from range: NSRange, documentAttributes: DocumentAttributes) -> FileWrapper? {
+        try? fileWrapper(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    #if os(macOS)
+    
+    /**
+     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes.
+     
+     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     */
+    public func rtf(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
+        documentAttributes.isEmpty ? rtf(from: fullRange)! : rtf(from: fullRange, documentAttributes: documentAttributes)!
+    }
+    
+    /**
+     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes.
+     
+     - Parameter documentAttributes: The document attributes.
+     */
+    public func rtf(documentAttributes: DocumentAttributes) -> Data {
+        rtf(documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes within the specified range.
+     
+     - Parameters:
+        - range: The range.
+        - documentAttributes: The document attributes.
+     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     */
+    public func rtf(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
+        documentAttributes.dict.isEmpty ? rtf(from: range) : rtf(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns the data object that contains an RTFD stream corresponding to the characters and attributes, omitting all attachment attributes.
+     
+     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     */
+    public func rtfd(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
+        documentAttributes.isEmpty ? rtfd(from: fullRange)! : rtfd(from: fullRange, documentAttributes: documentAttributes)!
+    }
+    
+    /**
+     Returns the data object that contains an RTFD stream corresponding to the characters and attributes, omitting all attachment attributes.
+     
+     - Parameter documentAttributes: The document attributes.
+     */
+    public func rtfd(documentAttributes: DocumentAttributes) -> Data {
+        rtfd(documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns the data object that contains an RTFD stream corresponding to the characters and attributes, omitting all attachment attributes within the specified range.
+     
+     - Parameters:
+        - range: The range.
+        - documentAttributes: The document attributes.
+     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     */
+    public func rtfd(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
+        documentAttributes.dict.isEmpty ? rtfd(from: range) : rtfd(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes.
+     
+     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     */
+    public func docFormat(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
+        docFormat(from: fullRange, documentAttributes: documentAttributes)!
+    }
+    
+    /**
+     Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes.
+     
+     - Parameter documentAttributes: The document attributes.
+     */
+    public func docFormat(documentAttributes: DocumentAttributes) -> Data {
+        docFormat(documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range.
+        - documentAttributes: The document attributes.
+     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     */
+    public func docFormat(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
+        docFormat(from: range, documentAttributes: documentAttributes.dict)
+    }
+    #endif
+    
+    /**
+     Creates an attributed string from the data in the specified data.
+
+     - Parameters:
+        - data: The data from which to create the string.
+        - options: Options for importing the document. The default valus is `automatic` and tries to automatically determine the appropriate attributes.
+     - Throws: If the data can’t be decoded.
+     */
+    public convenience init(data: Data, options: DataDocumentReadingOptions = .automatic) throws {
+        try self.init(data: data, options: options.dict, documentAttributes: nil)
+    }
+    
+    /**
+     Creates an attributed string from the data in the specified data.
+
+     - Parameters:
+        - data: The data from which to create the string.
+        - options: Options for importing the document. The default valus is `automatic` and tries to automatically determine the appropriate attributes.
+        - documentAttributes: The document attributes.
+     - Throws: If the data can’t be decoded.
+     */
+    public convenience init(data: Data, options: DataDocumentReadingOptions = .automatic, documentAttributes: inout DocumentAttributes) throws {
+        var _attributes: NSDictionary? = documentAttributes.dict as NSDictionary
+        try self.init(data: data, options: options.dict, documentAttributes: &_attributes)
+        if let updatedAttributes = _attributes as? [NSAttributedString.DocumentAttributeKey: Any] {
+            documentAttributes.update(with: updatedAttributes)
+        }
+    }
+    
+    /**
+     Creates an attributed string from the contents of the specified URL.
+
+     - Parameters:
+        - url: The url of the document to load.
+        - options: Options for importing the document. The default valus is `automatic` and tries to automatically determine the appropriate attributes.
+     - Throws: If the data can’t be decoded.
+     */
+    public convenience init(url: URL, options: DataDocumentReadingOptions = .automatic) throws {
+        try self.init(url: url, options: options.dict, documentAttributes: nil)
+    }
+    
+    /**
+     Creates an attributed string from the contents of the specified URL.
+
+     - Parameters:
+        - url: The url of the document to load.
+        - options: Options for importing the document. The default valus is `automatic` and tries to automatically determine the appropriate attributes.
+        - documentAttributes: The document attributes.
+     - Throws: If the data can’t be decoded.
+     */
+    public convenience init(url: URL, options: DataDocumentReadingOptions = .automatic, documentAttributes: inout DocumentAttributes) throws {
+        var _attributes: NSDictionary? = documentAttributes.dict as NSDictionary
+        try self.init(url: url, options: options.dict, documentAttributes: &_attributes)
+        if let updatedAttributes = _attributes as? [NSAttributedString.DocumentAttributeKey: Any] {
+            documentAttributes.update(with: updatedAttributes)
+        }
+    }
+    
+    #if os(macOS) || os(iOS)
+    /// Creates an attributed string by converting the contents of the specified HTML URL request.
+    public class func loadFromHTML(request: URLRequest, options: DocumentReadingOptions, completionHandler: @escaping CompletionHandler) {
+        loadFromHTML(request: request, options: options.dict, completionHandler: completionHandler)
+    }
+    
+    /// Creates an attributed string by converting the content of a local HTML file at the specified URL.
+    public class func loadFromHTML(fileURL: URL, options: DocumentReadingOptions, completionHandler: @escaping CompletionHandler) {
+        loadFromHTML(fileURL: fileURL, options: options.dict, completionHandler: completionHandler)
+    }
+    
+    /// Creates an attributed string from the specified HTML string.
+    public class func loadFromHTML(string: String, options: DocumentReadingOptions, completionHandler: @escaping CompletionHandler) {
+        loadFromHTML(string: string, options: options.dict, completionHandler: completionHandler)
+    }
+    
+    /// Creates an attributed string from the specified HTML data.
+    public class func loadFromHTML(data: Data, options: DocumentReadingOptions, completionHandler: @escaping CompletionHandler) {
+        loadFromHTML(data: data, options: options.dict, completionHandler: completionHandler)
+    }
+    #endif
+}
+
+extension NSAttributedString {
+    /// Options for importing documents.
+    public struct DocumentReadingOptions {
+        #if os(macOS)
+        /// The base URL for HTML documents.
+        public var baseURL: URL?
+        #endif
+        
+        /// The character encoding used in the document.
+        public var characterEncoding: String.Encoding?
+        
+        /// The default attributes to apply to plain files.
+        public var defaultAttributes: [NSAttributedString.Key: Any]?
+        
+        /// The document type.
+        public var documentType: NSAttributedString.DocumentType?
+        
+        #if os(macOS)
+        /// The file type of the document (e.g., RTF, HTML, etc.).
+        public var fileTypeIdentifier: String?
+        
+        @available (macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        public var fileType: UTType? {
+            get {
+                guard let fileTypeIdentifier = fileTypeIdentifier else { return nil }
+                return UTType(fileTypeIdentifier)
+            }
+            set { fileTypeIdentifier = newValue?.identifier }
+        }
+        #endif
+        
+        #if os(macOS) || os(iOS)
+        /// The local files WebKit can access when loading content.
+        public var readAccessURL: URL?
+        #endif
+        
+        /// The source text scaling.
+        public var sourceTextScaling: CGFloat?
+
+        /// The target text scaling.
+        public var targetTextScaling: CGFloat?
+        
+        #if os(macOS)
+        /// The name of the text encoding used in the document.
+        public var textEncodingName: String?
+        
+        /// The scale factor for font sizes.
+        public var textSizeMultiplier: CGFloat?
+        
+        /// The time, in seconds, to wait for a document to finish loading.
+        public var timeout: CGFloat?
+        #endif
+        
+        var dict: [DocumentReadingOptionKey: Any] {
+            var dict: [DocumentReadingOptionKey: Any] = [:]
+            dict[.characterEncoding] = characterEncoding?.rawValue
+            dict[.defaultAttributes] = defaultAttributes
+            dict[.documentType] = documentType
+            dict[.sourceTextScaling] = sourceTextScaling
+            dict[.targetTextScaling] = targetTextScaling
+            #if os(macOS)
+            dict[.baseURL] = baseURL
+            dict[.fileType] = fileTypeIdentifier
+            dict[.textEncodingName] = textEncodingName
+            dict[.textSizeMultiplier] = textSizeMultiplier
+            dict[.timeout] = timeout
+            #endif
+            #if os(macOS) || os(iOS)
+            dict[.readAccessURL] = readAccessURL
+            #endif
+            return dict
+        }
+    }
+    
+    /// Options for importing documents from data.
+    public struct DataDocumentReadingOptions {
+        /// The character encoding used in the document.
+        public var characterEncoding: String.Encoding?
+        
+        /// The default attributes to apply to plain files.
+        public var defaultAttributes: [NSAttributedString.Key: Any]?
+        
+        /// The document type.
+        public var documentType: NSAttributedString.DocumentType?
+        
+        /// Automatically determines the appropriate attributes.
+        public static let automatic = DataDocumentReadingOptions()
+        
+        var dict: [DocumentReadingOptionKey: Any] {
+            var dict: [DocumentReadingOptionKey: Any] = [:]
+            dict[.characterEncoding] = characterEncoding?.rawValue
+            dict[.defaultAttributes] = defaultAttributes
+            dict[.documentType] = documentType
+            return dict
+        }
+    }
+    
+    /// The document attributes of a attributed string.
+    public struct DocumentAttributes {
+        /// The type of the document (e.g., plain text, rich text, etc.).
+        public var documentType: NSAttributedString.DocumentType?
+        
+        #if os(macOS)
+        /// A boolean indicating whether the document has been converted.
+        public var isConverted: Bool?
+        
+        /// The version of Cocoa used to create the document.
+        public var cocoaVersion: String?
+        
+        /// The file type of the document (e.g., RTF, HTML, etc.).
+        public var fileTypeIdentifier: String?
+        
+        @available (macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        public var fileType: UTType? {
+            get {
+                guard let fileTypeIdentifier = fileTypeIdentifier else { return nil }
+                return UTType(fileTypeIdentifier)
+            }
+            set { fileTypeIdentifier = newValue?.identifier }
+        }
+        
+        /// The title of the document.
+        public var title: String?
+        
+        /// The company or organization name associated with the document.
+        public var company: String?
+        
+        /// The copyright information for the document.
+        public var copyright: String?
+        
+        /// The subject of the document.
+        public var subject: String?
+        
+        /// The author of the document.
+        public var author: String?
+        
+        /// The keywords of the document.
+        public var keywords: [String]?
+        
+        /// The document comments.
+        public var comment: String?
+        
+        /// The editor of the document.
+        public var editor: String?
+        
+        /// The creation time of the document.
+        public var creationTime: Date?
+        
+        /// The last modification time of the document.
+        public var modificationTime: Date?
+        
+        /// The manager of the document.
+        public var manager: String?
+        
+        /// The category to which the document belongs.
+        public var category: String?
+        
+        /// The appearance style of the document.
+        public var appearance: String?
+        #endif
+        
+        /// The character encoding used in the document.
+        public var characterEncoding: String.Encoding?
+        
+        /// The default attributes applied to the document.
+        public var defaultAttributes: [NSAttributedString.Key: Any]?
+        
+        /// The paper size for printing the document.
+        public var paperSize: CGSize?
+        
+        #if os(macOS)
+        /// The left margin of the document.
+        public var leftMargin: CGFloat?
+        
+        /// The right margin of the document.
+        public var rightMargin: CGFloat?
+        
+        /// The top margin of the document.
+        public var topMargin: CGFloat?
+        
+        /// The bottom margin of the document.
+        public var bottomMargin: CGFloat?
+        #endif
+        
+        /// The size of the document's view.
+        public var viewSize: CGSize?
+        
+        /// The zoom level of the document's view.
+        public var viewZoom: CGFloat?
+        
+        /// The view mode of the document (e.g., full screen, layout view).
+        public var viewMode: String?
+        
+        /// A boolean indicating whether the document is read-only.
+        public var isReadOnly: Bool?
+        
+        /// The background color of the document's view.
+        public var backgroundColor: NSUIColor?
+        
+        /// The hyphenation factor applied to the document.
+        public var hyphenationFactor: Float?
+        
+        /// The default tab stop interval for the document.
+        public var defaultTabInterval: CGFloat?
+        
+        /// The sections that define the document's text layout.
+        public var textLayoutSections: [TextLayoutSection]?
+        
+        /// A section that defines the document layout.
+        public struct TextLayoutSection {
+            
+            /// Constants that describe the text layout orientation.
+            public enum Orentation: Int {
+                /// Lines render horizontally, each line following the previous from top to bottom.
+                case horizontal
+                /// Lines render vertically, each line following the previous from right to left.
+                case vertical
+            }
+            
+            /// The orientation of the section.
+            public let orientation: Orentation
+            
+            /// The character range of the section.
+            public let range: NSRange
+            
+            #if os(macOS) || os(iOS) || os(tvOS)
+            var dict: [TextLayoutSectionKey: Any] {
+                [.orientation: NSLayoutManager.TextLayoutOrientation(rawValue: orientation.rawValue)!, .range: range]
+            }
+            #else
+            var dict: [TextLayoutSectionKey: Any] {
+                [.orientation: orientation.rawValue, .range: range]
+            }
+            #endif
+            
+            /// Creates a text layout section with the specified orientation and range.
+            public init(orientation: Orentation = .horizontal, range: NSRange) {
+                self.orientation = orientation
+                self.range = range
+            }
+            
+            init(dict: [TextLayoutSectionKey: Any]) {
+                orientation = .init(rawValue: dict[.orientation] as? Int ?? 0)!
+                range = dict[.range] as! NSRange
+            }
+        }
+        
+        #if os(macOS)
+        /// The HTML elements to exclude from the document's text layout.
+        public var excludedElements: [String]?
+        
+        /// The name of the text encoding used in the document.
+        public var textEncodingName: String?
+        
+        /// The number of spaces for indenting nested HTML elements.
+        public var prefixSpaces: Int?
+        #endif
+        
+        /// A boolean indicating whether the default font is excluded in the document.
+        public var isDefaultFontExcluded: Bool?
+        
+        /// The scaling factor applied to the text in the document.
+        public var textScaling: CGFloat?
+        
+        /// The scaling factor applied to the source text in the document.
+        public var sourceTextScaling: CGFloat?
+
+        /// A dictionary mapping the document attributes to their respective keys.
+        var dict: [DocumentAttributeKey: Any] {
+            var dict: [DocumentAttributeKey: Any] = [:]
+            #if os(macOS)
+            dict[.converted] = isConverted
+            dict[.cocoaVersion] = cocoaVersion
+            dict[.fileType] = fileTypeIdentifier
+            dict[.title] = title
+            dict[.company] = company
+            dict[.copyright] = copyright
+            dict[.subject] = subject
+            dict[.author] = author
+            dict[.keywords] = keywords
+            dict[.comment] = comment
+            dict[.editor] = editor
+            dict[.creationTime] = creationTime
+            dict[.modificationTime] = modificationTime
+            dict[.manager] = manager
+            dict[.category] = category
+            dict[.leftMargin] = leftMargin
+            dict[.rightMargin] = rightMargin
+            dict[.topMargin] = topMargin
+            dict[.appearance] = appearance
+            dict[.bottomMargin] = bottomMargin
+            dict[.excludedElements] = excludedElements
+            dict[.textEncodingName] = textEncodingName
+            dict[.prefixSpaces] = prefixSpaces
+            #endif
+            dict[.documentType] = documentType
+            dict[.characterEncoding] = characterEncoding?.rawValue
+            dict[.defaultAttributes] = defaultAttributes
+            dict[.paperSize] = paperSize
+            dict[.viewSize] = viewSize?.nsValue
+            dict[.viewZoom] = viewZoom
+            dict[.viewMode] = viewMode
+            dict[.readOnly] = isReadOnly
+            dict[.backgroundColor] = backgroundColor
+            dict[.hyphenationFactor] = hyphenationFactor
+            dict[.defaultTabInterval] = defaultTabInterval
+            dict[.textLayoutSections] = textLayoutSections?.compactMap({$0.dict})
+            dict[.textScaling] = textScaling
+            dict[.sourceTextScaling] = sourceTextScaling
+            if #available(macOS 14, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+                dict[.defaultFontExcluded] = isDefaultFontExcluded
+            }
+            return dict
+        }
+        
+        mutating func update(with dict: [NSAttributedString.DocumentAttributeKey: Any]) {
+            #if os(macOS)
+            isConverted = dict[.converted] as? Bool
+            cocoaVersion = dict[.cocoaVersion] as? String
+            fileTypeIdentifier = dict[.fileType] as? String
+            title = dict[.title] as? String
+            company = dict[.company] as? String
+            copyright = dict[.copyright] as? String
+            subject = dict[.subject] as? String
+            author = dict[.author] as? String
+            keywords = dict[.keywords] as? [String]
+            comment = dict[.comment] as? String
+            editor = dict[.editor] as? String
+            creationTime = dict[.creationTime] as? Date
+            modificationTime = dict[.modificationTime] as? Date
+            manager = dict[.manager] as? String
+            category = dict[.category] as? String
+            appearance = dict[.appearance] as? String
+            leftMargin = dict[.leftMargin] as? CGFloat
+            rightMargin = dict[.rightMargin] as? CGFloat
+            topMargin = dict[.topMargin] as? CGFloat
+            bottomMargin = dict[.bottomMargin] as? CGFloat
+            excludedElements = dict[.excludedElements] as? [String]
+            textEncodingName = dict[.textEncodingName] as? String
+            prefixSpaces = dict[.prefixSpaces] as? Int
+            #endif
+            documentType = dict[.documentType] as? NSAttributedString.DocumentType
+            characterEncoding = String.Encoding(rawValue: (dict[.characterEncoding] as? UInt) ?? 12212323)
+            defaultAttributes = dict[.defaultAttributes] as? [NSAttributedString.Key: Any]
+            paperSize = dict[.paperSize] as? CGSize
+            viewSize = dict[.viewSize] as? CGSize
+            viewZoom = dict[.viewZoom] as? CGFloat
+            viewMode = dict[.viewMode] as? String
+            isReadOnly = dict[.readOnly] as? Bool
+            backgroundColor = dict[.backgroundColor] as? NSUIColor
+            hyphenationFactor = dict[.hyphenationFactor] as? Float
+            defaultTabInterval = dict[.defaultTabInterval] as? CGFloat
+            textLayoutSections = (dict[.textLayoutSections] as? [[TextLayoutSectionKey: Any]])?.compactMap({TextLayoutSection(dict: $0)})
+            textScaling = dict[.textScaling] as? CGFloat
+            sourceTextScaling = dict[.sourceTextScaling] as? CGFloat
+            if #available(macOS 14, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+                isDefaultFontExcluded = dict[.defaultFontExcluded] as? Bool
+            }
         }
     }
 }
