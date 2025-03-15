@@ -42,6 +42,21 @@ enum NSCodingError: LocalizedError {
     }
 }
 
+public extension NSCoding {
+    /**
+     Archives the object into `Data`.
+     
+     If the object conforms to `NSSecureCoding`, set `requiringSecureCoding` to `true` for added security.
+
+     - Parameter requiringSecureCoding: A Boolean value indicating whether secure coding is required.
+     - Throws: An error if the encoding process fails.
+     - Returns: A `Data` representation of the object.
+     */
+    func archivedData(requiringSecureCoding: Bool = false) throws -> Data {
+        try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: requiringSecureCoding)
+    }
+}
+
 public extension NSCoding where Self: NSObject {
     /**
      Creates an archived-based copy of the object.
