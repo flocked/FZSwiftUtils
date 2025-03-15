@@ -13,8 +13,12 @@
     /// The application info, constructed from the bundle’s `Info.plist` file.
     public struct ApplicationInfo: Codable {
         /// The url of the `info.plist`.
-        public private(set) var url: URL?
+        public internal(set) var url: URL?
         
+        var appBundleURL: URL? {
+            didSet { supportedFileTypes.editEach({$0.appBundleURL = appBundleURL }) }
+        }
+                
         /// The bundle identifier.
         public let bundleIdentifier: String
         
@@ -37,7 +41,7 @@
         public let minimumSystemVersion: String?
         
         /// The supported file types.
-        public let supportedFileTypes: [FileTypeDefinition]
+        public var supportedFileTypes: [FileTypeDefinition]
         
         /// The name of the icon file.
         public let iconFile: String?
@@ -47,15 +51,13 @@
         
         init?(url: URL) {
             do {
-                let data = try Data(contentsOf: url)
-                var info = try PropertyListDecoder().decode(ApplicationInfo.self, from: data)
-                info.url = url
-                self = info
+                self = try PropertyListDecoder().decode(Self.self, from: try Data(contentsOf: url))
+                self.url = url
             } catch {
                 return nil
             }
         }
-
+        
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             bundleName = try container.decodeIfPresent(String.self, forKey: .bundleName)
@@ -71,7 +73,7 @@
             let supportedTypes = try container.decodeIfPresent([FileTypeDefinition].self, forKey: .supportedFileTypes) ?? []
             var supportedFileTypes: [FileTypeDefinition] = []
             for var supportedType in supportedTypes {
-                supportedType.applicationURL = url
+                supportedType.appBundleURL = url
                 supportedFileTypes.append(supportedType)
             }
             self.supportedFileTypes = supportedFileTypes

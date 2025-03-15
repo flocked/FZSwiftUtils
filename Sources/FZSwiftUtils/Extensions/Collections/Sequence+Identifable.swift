@@ -46,7 +46,7 @@ public extension RangeReplaceableCollection where Element: Identifiable {
         removeFirst(where: { $0.id == id })
     }
 }
-
+/*
 public extension Collection where Element: Identifiable {
     /**
      Returns the first index of the specified element.
@@ -88,3 +88,4 @@ public extension Collection where Element: Identifiable {
         ids.compactMap { firstIndex(of: $0) }
     }
 }
+*/

@@ -65,12 +65,7 @@
          - Returns: true if the type directly or indirectly conforms to any of the types, or if it’s equal to.
          */
         func conforms<S: Sequence<UTType>>(toAny types: S) -> Bool {
-            for uttype in types {
-                if conforms(to: uttype) {
-                    return true
-                }
-            }
-            return false
+            types.contains(where: { conforms(to: $0) })
         }
     }
 
@@ -89,9 +84,22 @@
                 NSWorkspace.shared.applications(toOpen: self)
             }
 
-            /// An array of all file definitions for the `UTType`.
-            var definitions: [FileTypeDefinition] {
-                supportedApplications.compactMap({ $0.fileTypeDefinition(for: self) })
+            /**
+             The file definitions for the content type.
+             
+             Each dictionary key represents the application bundle that can handle the content type and each value represents the file type definitions for the content type.
+             */
+            var fileDefinitions: [Bundle : [FileTypeDefinition]] {
+                NSWorkspace.shared.fileDefinitions(for: self)
+            }
+            
+            /**
+             All icons that applications provide for the content type.
+             
+             Each dictionary key represents the application bundle that can handle the content type and each value represents the icons for the content type.
+             */
+            var icons: [Bundle: [NSImage]] {
+                NSWorkspace.shared.icons(for: self)
             }
         }
     #endif

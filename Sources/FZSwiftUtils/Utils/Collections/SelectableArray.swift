@@ -9,11 +9,12 @@ import Foundation
 
 /// An array with selectable elements.
 public struct SelectableArray<Element>: MutableCollection, RangeReplaceableCollection, RandomAccessCollection, BidirectionalCollection {
-    
-    var elements: [SelectedElement] = []
+    var elements: [SelectedElement] = [] {
+        didSet { updateSelections() }
+    }
     
     struct SelectedElement {
-        let element: Element
+        var element: Element
         var isSelected: Bool
         init(_ element: Element, isSelected: Bool = false) {
             self.element = element
@@ -26,31 +27,23 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public init(arrayLiteral elements: Element...) {
         self.elements = elements.compactMap({SelectedElement($0)})
     }
-    
+
     public init<S>(_ elements: S) where S: Sequence, Element == S.Element {
-        self.elements = elements.compactMap({SelectedElement($0)})
+        self.elements = Array(elements).compactMap({SelectedElement($0)})
     }
 
     public init(repeating repeatedValue: Element, count: Int) {
-        elements = .init(repeating: SelectedElement(repeatedValue), count: count)
+        elements = Array(repeating: repeatedValue, count: count).compactMap({SelectedElement($0)})
     }
 
     public var count: Int {
         elements.count
     }
 
-    public var indices: Range<Int> {
-        elements.indices
-    }
-
     public var isEmpty: Bool {
         elements.isEmpty
     }
-    
-    public var capacity: Int {
-        elements.capacity
-    }
-    
+
     public var startIndex: Int {
         elements.startIndex
     }
@@ -59,61 +52,21 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         elements.endIndex
     }
 
-    public func distance(from start: Int, to end: Int) -> Int {
-        elements.distance(from: start, to: end)
-    }
-
-    public mutating func reserveCapacity(_ n: Int) {
-        elements.reserveCapacity(n)
-    }
-
-    public func formIndex(after i: inout Int) {
-        elements.formIndex(after: &i)
-    }
-
-    public func formIndex(before i: inout Int) {
-        elements.formIndex(before: &i)
-    }
-
-    public mutating func partition(by belongsInSecondPartition: (Element) throws -> Bool) rethrows -> Int {
-        try elements.partition(by: { try belongsInSecondPartition($0.element) })
-    }
-
     public subscript(index: Int) -> Element {
         get { elements[index].element }
-        set { elements[index] = .init(newValue, isSelected: elements[index].isSelected) }
+        set { elements[index].element = newValue }
     }
 
-    public subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
-        get { ArraySlice<Element>(elements[range].compactMap({$0.element})) }
-        set { 
-            replaceSubrange(range, with: newValue)
-            updateSelections()
+    public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound
+    {
+        let range = subrange.relative(to: elements.indices)
+        var newSelectedElements: [SelectedElement] = []
+        for (offset, newElement) in newElements.enumerated() {
+            let index = range.lowerBound + offset
+            newSelectedElements.append(SelectedElement(newElement, isSelected: elements[safe: index]?.isSelected ?? false))
         }
-    }
-
-    public subscript(range: Range<Int>) -> ArraySlice<Element> {
-        get { ArraySlice<Element>(elements[range].compactMap({$0.element})) }
-        set { 
-            replaceSubrange(range, with: newValue)
-            updateSelections()
-        }
-    }
-
-    public func index(after i: Int) -> Int {
-        elements.index(after: i)
-    }
-
-    public func index(before i: Int) -> Int {
-        elements.index(before: i)
-    }
-
-    public func index(_ i: Int, offsetBy distance: Int) -> Int {
-        elements.index(i, offsetBy: distance)
-    }
-
-    public func index(_ i: Int, offsetBy distance: Int, limitedBy limit: Int) -> Int? {
-        elements.index(i, offsetBy: distance, limitedBy: limit)
+        elements.replaceSubrange(subrange, with: newSelectedElements)
     }
     
     // MARK: - Selection
@@ -121,13 +74,31 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
     public var allowsSelection: Bool = true {
         didSet { updateSelections() }
     }
+    
+    @discardableResult
+    public mutating func allowsSelection(_ allows: Bool) -> Self {
+        allowsSelection = allows
+        return self
+    }
 
     public var allowsMultipleSelection: Bool = false {
         didSet { updateSelections() }
     }
 
+    @discardableResult
+    public mutating func allowsMultipleSelection(_ allows: Bool) -> Self {
+        allowsMultipleSelection = allows
+        return self
+    }
+
     public var allowsEmptySelection: Bool = true {
         didSet { updateSelections() }
+    }
+    
+    @discardableResult
+    public mutating func allowsEmptySelection(_ allows: Bool) -> Self {
+        allowsEmptySelection = allows
+        return self
     }
 
     public var selectedElements: [Element] {
@@ -297,19 +268,9 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         select(at: selectIndexes)
     }
     
-    // MARK: - Insert elements
-    
-    public mutating func append(_ newElement: Element) {
-        append(newElement, isSelected: false)
-    }
-    
     public mutating func append(_ newElement: Element, isSelected: Bool) {
         elements.append(.init(newElement, isSelected: isSelected))
         updateSelections()
-    }
-
-    public mutating func append<S>(contentsOf newElements: S) where S: Sequence, Element == S.Element {
-        append(contentsOf: newElements, isSelected: false)
     }
     
     public mutating func append<S>(contentsOf newElements: S, isSelected: Bool) where S: Sequence, Element == S.Element {
@@ -317,94 +278,18 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         updateSelections()
     }
     
-    public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C) where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
-        replaceSubrange(subrange, with: newElements, isSelected: false)
-    }
-    
     public mutating func replaceSubrange<C, R>(_ subrange: R, with newElements: C, isSelected: Bool) where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
         elements.replaceSubrange(subrange, with: newElements.compactMap({ SelectedElement($0, isSelected: isSelected) }))
         updateSelections()
-    }
-    
-    public mutating func insert(_ newElement: Element, at i: Int) {
-        insert(newElement, at: i, isSelected: false)
-    }
-    
-    public mutating func insert(_ newElement: Element, at i: Int, isSelected: Bool) {
-        elements.insert(.init(newElement, isSelected: isSelected), at: i)
-        updateSelections()
-    }
-
-    public mutating func insert<S>(contentsOf newElements: S, at i: Int) where S: Collection, Element == S.Element {
-        insert(contentsOf: newElements, at: i, isSelected: false)
     }
     
     public mutating func insert<S>(contentsOf newElements: S, at i: Int, isSelected: Bool) where S: Collection, Element == S.Element {
         elements.insert(contentsOf: newElements.compactMap({SelectedElement($0, isSelected: isSelected)}), at: i)
         updateSelections()
     }
-    
-    // MARK: - Remove elements
-    
-    public mutating func removeAll() {
-        elements.removeAll()
-    }
-
-    @discardableResult
-    public mutating func remove(at i: Int) -> Element {
-        let element = elements.remove(at: i)
-        updateSelections()
-        return element.element
-    }
-
-    @discardableResult
-    public mutating func removeFirst() -> Element {
-        let element = elements.removeFirst()
-        updateSelections()
-        return element.element
-    }
-
-    public mutating func removeFirst(_ k: Int) {
-        elements.removeFirst(k)
-        updateSelections()
-    }
-
-    public mutating func removeSubrange(_ bounds: Range<Int>) {
-        elements.removeSubrange(bounds)
-        updateSelections()
-    }
-
-    public mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
-        try elements.removeAll(where: { try shouldBeRemoved($0.element) })
-        updateSelections()
-    }
-
-    public mutating func removeAll(keepingCapacity keepCapacity: Bool) {
-        elements.removeAll(keepingCapacity: keepCapacity)
-        updateSelections()
-    }
-
-    public mutating func removeLast(_ k: Int) {
-        elements.removeLast(k)
-        updateSelections()
-    }
-
-    public mutating func removeLast() {
-        elements.removeLast()
-        updateSelections()
-    }
-    
-    public mutating func swapAt(_ i: Int, _ j: Int) {
-        elements.swapAt(i, j)
-    }
 }
 
-extension SelectableArray.SelectedElement: Encodable where Element: Encodable { }
-extension SelectableArray.SelectedElement: Decodable where Element: Decodable { }
-extension SelectableArray.SelectedElement: Equatable where Element: Equatable { }
-extension SelectableArray.SelectedElement: Hashable where Element: Hashable { }
-
-extension SelectableArray: ExpressibleByArrayLiteral { }
+extension SelectableArray: ExpressibleByArrayLiteral {}
 extension SelectableArray: Sendable where Element: Sendable {}
 extension SelectableArray: Encodable where Element: Encodable {}
 extension SelectableArray: Decodable where Element: Decodable {}
@@ -446,3 +331,8 @@ extension SelectableArray: Equatable where Element: Equatable {
         lhs.elements == rhs.elements
     }
 }
+
+extension SelectableArray.SelectedElement: Equatable where Element: Equatable { }
+extension SelectableArray.SelectedElement: Hashable where Element: Hashable { }
+extension SelectableArray.SelectedElement: Encodable where Element: Encodable { }
+extension SelectableArray.SelectedElement: Decodable where Element: Decodable { }
