@@ -1122,3 +1122,61 @@ public extension CGRectEdge {
         self == .minYEdge || self == .maxYEdge
     }
 }
+
+public extension Collection where Element == CGRect {
+    /// Aligns the rectangles vertically.
+    func alignVertical(alignment: CGRect.HorizontalAlignment = .center) -> [CGRect] {
+        let totalSize = CGSize(map({ $0.width }).max() ?? 0.0, map({ $0.height }).sum())
+        var yOffset: CGFloat = 0
+        return map({ rect in
+            let xOrigin: CGFloat
+            switch alignment {
+            case .left: xOrigin = 0
+            case .center: xOrigin = (totalSize.width - rect.width) / 2
+            case .right: xOrigin = totalSize.width-rect.width
+            }
+            let frame = CGRect(CGPoint(xOrigin, yOffset), rect.size)
+            yOffset += rect.height
+            return frame
+        })
+    }
+    
+    /// Aligns the rectangles horizontally.
+    func alignHorizontal(alignment: CGRect.VerticalAlignment = .center) -> [CGRect] {
+        var xOffset: CGFloat = 0
+        let totalSize = CGSize(map({ $0.width }).sum(), map({ $0.height }).max() ?? 0.0)
+        return map({ rect in
+            let yOrigin: CGFloat
+            switch alignment {
+            case .top: yOrigin = 0
+            case .center: yOrigin = (totalSize.height - rect.height) / 2
+            case .bottom: yOrigin = totalSize.height-rect.height
+            }
+            let frame = CGRect(CGPoint(xOffset, yOrigin), rect.size)
+            xOffset += rect.width
+            return frame
+        })
+    }
+}
+
+extension CGRect {
+    /// The vertical alignment of rectangles.
+    public enum VerticalAlignment: Int {
+        /// bottom.
+        case bottom
+        /// Center.
+        case center
+        /// Top.
+        case top
+    }
+    
+    /// The horizontal alignment of rectangles.
+    public enum HorizontalAlignment: Int {
+        /// Left.
+        case left
+        /// Center.
+        case center
+        /// Right.
+        case right
+    }
+}

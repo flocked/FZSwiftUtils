@@ -452,3 +452,37 @@ public extension Collection where Element == CGSize {
     }
     #endif
 }
+
+public extension Collection where Element == CGSize {
+    /// Aligns the sizes vertically.
+    func alignVertical(alignment: CGSize.HorizontalAlignment = .center) -> [CGRect] {
+        map{CGRect(.zero, $0)}.alignVertical(alignment: .init(rawValue: alignment.rawValue)!)
+    }
+    
+    /// Aligns the sizes horizontally.
+    func alignHorizontal(alignment: CGSize.VerticalAlignment = .center) -> [CGRect] {
+        map{CGRect(.zero, $0)}.alignHorizontal(alignment: .init(rawValue: alignment.rawValue)!)
+    }
+}
+
+extension CGSize {
+    /// The vertical alignment of sizes.
+    public enum VerticalAlignment: Int {
+        /// bottom.
+        case bottom
+        /// Center.
+        case center
+        /// Top.
+        case top
+    }
+    
+    /// The horizontal alignment of sizes.
+    public enum HorizontalAlignment: Int {
+        /// Left.
+        case left
+        /// Center.
+        case center
+        /// Right.
+        case right
+    }
+}
