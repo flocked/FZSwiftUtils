@@ -1126,6 +1126,7 @@ public extension CGRectEdge {
 public extension Collection where Element == CGRect {
     /// Aligns the rectangles vertically.
     func alignVertical(alignment: CGRect.HorizontalAlignment = .center) -> [CGRect] {
+        if isEmpty || count == 1 { return Array(self) }
         let totalSize = CGSize(map({ $0.width }).max() ?? 0.0, map({ $0.height }).sum())
         var yOffset: CGFloat = 0
         return map({ rect in
@@ -1143,6 +1144,7 @@ public extension Collection where Element == CGRect {
     
     /// Aligns the rectangles horizontally.
     func alignHorizontal(alignment: CGRect.VerticalAlignment = .center) -> [CGRect] {
+        if isEmpty || count == 1 { return Array(self) }
         var xOffset: CGFloat = 0
         let totalSize = CGSize(map({ $0.width }).sum(), map({ $0.height }).max() ?? 0.0)
         return map({ rect in
