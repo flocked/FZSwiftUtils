@@ -85,7 +85,6 @@ public extension Sequence where Element: Hashable {
      - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
      */
     func differenceIndexed<C: Collection<Element>>(to other: C) -> (removed: [Element], added: [Element], changed: [Element], unchanged: [Element]) where C.Index: BinaryInteger {
-        let otherSet = Set(other)
         let indexMap = Dictionary(uniqueKeysWithValues: other.enumerated().map { ($1, $0) })
 
         var removed: [Element] = []

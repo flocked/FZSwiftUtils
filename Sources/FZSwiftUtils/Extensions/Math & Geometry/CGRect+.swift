@@ -1015,20 +1015,16 @@ public extension CGRect {
             vValues = vValues.shuffled()
         }
         for vVal in vValues.enumerated() {
-            var v = vVal.element
             for hVal in hValues.enumerated() {
-                var h = hVal.element
-                var _size = size
+                var size = size
                 if hVal.offset == hValues.count-1, remainingWidth > 0.0 {
-                    _size.width = remainingWidth
+                    size.width = remainingWidth
                 }
                 if vVal.offset == vValues.count-1, remainingHeight > 0.0 {
-                    _size.height = remainingHeight
+                    size.height = remainingHeight
                 }
                 
-                var rect = CGRect(CGPoint(x: h * size.width, y: v * size.height), _size)
-                splits.append(rect)
-               // splits.append(CGRect(CGPoint(x: h * size.width, y: v * size.height), size))
+                splits.append(CGRect(CGPoint(x: hVal.element * size.width, y: vVal.element * size.height), size))
             }
         }
         return splits
