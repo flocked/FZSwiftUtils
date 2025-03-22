@@ -19,6 +19,13 @@ extension NSObjectProtocol where Self: NSObject {
     public var classType: Self.Type {
         return type(of: self)
     }
+    
+    /// Sets the value of the specific key path and returns the object.
+    @discardableResult
+    public func setValue<Value>(_ keyPath: ReferenceWritableKeyPath<Self, Value>, to value: Value) -> Self {
+        self[keyPath: keyPath] = value
+        return self
+    }
 }
 
 /// `NSCoding` errors.

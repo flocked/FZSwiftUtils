@@ -16,8 +16,6 @@ final class Interpose {
     // Checks if a object is posing as a different class
     // via implementing 'class' and returning something else.
     private func checkObjectPosingAsDifferentClass(_ object: AnyObject) -> AnyClass? {
-        Swift.print("check!!!", NSStringFromClass(type(of: object)), NSStringFromClass(object_getClass(object)!), type(of: object) == object_getClass(object)!)
-
         let perceivedClass: AnyClass = type(of: object)
         let actualClass: AnyClass = object_getClass(object)!
         if actualClass != perceivedClass {
