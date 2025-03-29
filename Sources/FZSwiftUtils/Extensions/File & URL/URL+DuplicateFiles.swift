@@ -67,7 +67,7 @@ extension URL {
             updateHandler([], nonDuplicates, progress)
         }
         func callHandler() {
-            updateHandler(Array(duplicates.filter({$0.value.count > 1}).values).sorted(by: \.first?.fileSize), nonDuplicates + duplicates.filter({$0.value.count == 1}).flatMap({$0.value}), progress)
+            updateHandler(Array(duplicates.filter({$0.value.count > 1}).values), nonDuplicates + duplicates.filter({$0.value.count == 1}).flatMap({$0.value}), progress)
         }
         for files in filesBySize.filter({$0.key != nil}).values {
             for file in files {
