@@ -21,7 +21,18 @@ extension URL {
         return (duplicates, nonDuplicates)
     }
     
-    private static func findDuplicateFiles(for urls: [HashedFile]) -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
+    /**
+     Searches for duplicate files for the specified file URLs asynchronous.
+     
+     - Parameters:
+        - urls: The file URLs to search duplicates.
+        - updateHandler: The handler that gets called whenever duplicates are found. It returns the duplicate files sorted by file size, the non-duplicate files and the search progress.
+     */
+    public static func findDuplicateFiles(for urls: [URL], updateHandler: (_ duplicates: [[HashedFile]], _ nonDuplicates: [HashedFile], _ progress: Progress) -> ()) {
+        findDuplicateFiles(for: urls.map({ HashedFile($0) }), updateHandler: updateHandler)
+    }
+    
+    private static func findDuplicateFiles(for urls: [HashedFile]) async -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
         let filesBySize = Dictionary(grouping: urls, by: \.url.resources.fileSize)
         var nonDuplicates = filesBySize[nil] ?? []
         var duplicates: [[HashedFile]] = []
@@ -44,6 +55,35 @@ extension URL {
         }
         duplicates = duplicates.sorted(by: \.first?.url.resources.fileSize, .smallestFirst)
         return (duplicates, nonDuplicates)
+    }
+    
+    private static func findDuplicateFiles(for urls: [HashedFile], updateHandler: (_ duplicates: [[HashedFile]], _ nonDuplicates: [HashedFile], _ progress: Progress) -> ()) {
+        let filesBySize = Dictionary(grouping: urls, by: \.url.resources.fileSize)
+        var nonDuplicates = filesBySize[nil] ?? []
+        var duplicates: [OSHash: [HashedFile]] = [:]
+        let progress = Progress(totalUnitCount: Int64(urls.count))
+        progress.completedUnitCount = Int64(nonDuplicates.count)
+        if !nonDuplicates.isEmpty {
+            updateHandler([], nonDuplicates, progress)
+        }
+        func callHandler() {
+            updateHandler(Array(duplicates.filter({$0.value.count > 1}).values), nonDuplicates + duplicates.filter({$0.value.count == 1}).flatMap({$0.value}), progress)
+        }
+        for files in filesBySize.filter({$0.key != nil}).values {
+            for file in files {
+                if let hash = file.hash {
+                    let dups = duplicates[hash, default: []] + file
+                    duplicates[hash] = dups
+                    if dups.count > 1 {
+                        callHandler()
+                    }
+                } else {
+                    nonDuplicates += file
+                }
+                progress.completedUnitCount += 1
+            }
+        }
+        callHandler()
     }
 }
 
