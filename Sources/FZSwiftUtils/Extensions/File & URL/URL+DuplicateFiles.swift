@@ -32,7 +32,7 @@ extension URL {
         findDuplicateFiles(for: urls.map({ HashedFile($0) }), updateHandler: updateHandler)
     }
     
-    private static func findDuplicateFiles(for urls: [HashedFile]) async -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
+    private static func findDuplicateFiles(for urls: [HashedFile]) -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
         let filesBySize = Dictionary(grouping: urls, by: \.url.resources.fileSize)
         var nonDuplicates = filesBySize[nil] ?? []
         var duplicates: [[HashedFile]] = []
