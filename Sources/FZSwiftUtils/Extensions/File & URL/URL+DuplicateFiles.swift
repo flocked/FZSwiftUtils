@@ -67,7 +67,7 @@ extension URL {
             updateHandler([], nonDuplicates, progress)
         }
         func callHandler() {
-            updateHandler(Array(duplicates.filter({$0.value.count > 1}).values), nonDuplicates + duplicates.filter({$0.value.count == 1}).flatMap({$0.value}), progress)
+            updateHandler(Array(duplicates.filter({$0.value.count > 1}).values).sorted(by: \.first?.fileSize), nonDuplicates + duplicates.filter({$0.value.count == 1}).flatMap({$0.value}), progress)
         }
         for files in filesBySize.filter({$0.key != nil}).values {
             for file in files {
@@ -90,6 +90,7 @@ extension URL {
 /// A hashed file.
 public class HashedFile: Equatable {
     private var _hash: OSHash?
+    private var _fileSize: DataSize?
     private var didCalculateHash = false
     
     /// The URL of the file.
@@ -102,6 +103,14 @@ public class HashedFile: Equatable {
             didCalculateHash = true
         }
         return _hash
+    }
+    
+    /// The size of the file.
+    public var fileSize: DataSize? {
+        if _fileSize == nil {
+            _fileSize = url.resources.fileSize
+        }
+        return _fileSize
     }
     
     /// Creates a hashed file for the specified file URL.
