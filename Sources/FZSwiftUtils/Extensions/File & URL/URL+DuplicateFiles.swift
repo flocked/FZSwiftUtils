@@ -21,6 +21,14 @@ extension URL {
         return (duplicates, nonDuplicates)
     }
     
+    public static func findDuplicateFiles(in directories: [URL], maxDepth: Int = 0) -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
+        return findDuplicateFiles(for: directories.flatMap({$0.iterateFiles().recursive(maxDepth: maxDepth).collect()}))
+    }
+    
+    public static func findDuplicateFiles(in directory: URL, maxDepth: Int = 0) -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
+        findDuplicateFiles(in: [directory], maxDepth: maxDepth)
+    }
+    
     /**
      Searches for duplicate files for the specified file URLs asynchronous.
      
@@ -30,6 +38,27 @@ extension URL {
      */
     public static func findDuplicateFiles(for urls: [URL], updateHandler: (_ duplicates: [[HashedFile]], _ nonDuplicates: [HashedFile], _ progress: Progress) -> ()) {
         findDuplicateFiles(for: urls.map({ HashedFile($0) }), updateHandler: updateHandler)
+    }
+    
+    public static func findDuplicateFiles(in directories: [URL], maxDepth: Int = 0, updateHandler: (_ duplicates: [[HashedFile]], _ nonDuplicates: [HashedFile], _ progress: Progress) -> ()) {
+        var duplicates: [OSHash: [HashedFile]] = [:]
+        var nonDuplicates: [HashedFile] = []
+        var progress = Progress(totalUnitCount: 0)
+        var directories = directories
+        func getDuplicates() {
+            if !directories.isEmpty {
+                let directory = directories.removeFirst()
+                let urls = directory.iterateFiles().recursive(maxDepth: maxDepth).collect()
+                findDuplicateFiles(for: urls.map({ HashedFile($0) }), current: (duplicates, nonDuplicates, progress)) { _duplicates, _nonDuplicates, progress, isFinished in
+                    duplicates = _duplicates
+                    nonDuplicates = _nonDuplicates
+                    getDuplicates()
+                }
+            } else {
+                
+            }
+        }
+        getDuplicates()
     }
     
     private static func findDuplicateFiles(for urls: [HashedFile]) -> (duplicates: [[HashedFile]], nonDuplicates: [HashedFile]) {
@@ -82,6 +111,30 @@ extension URL {
                 }
                 progress.completedUnitCount += 1
             }
+        }
+        callHandler()
+    }
+    
+    private static func findDuplicateFiles(for urls: [HashedFile], current: (duplicates: [OSHash: [HashedFile]], nonDuplicates: [HashedFile], progress: Progress), updateHandler: (_ duplicates: [OSHash:[HashedFile]], _ nonDuplicates: [HashedFile], _ progress: Progress, _ isFInished: Bool) -> ()) {
+        let filesBySize = Dictionary(grouping: urls, by: \.url.resources.fileSize)
+        var nonDuplicates = current.nonDuplicates + (filesBySize[nil] ?? [])
+        var duplicates: [OSHash: [HashedFile]] = current.duplicates
+        let progress = current.progress
+        progress.totalUnitCount += Int64(urls.count)
+        progress.completedUnitCount += Int64(nonDuplicates.count)
+        func callHandler(isFinished: Bool = false) {
+        }
+        for url in urls {
+            if let hash = url.hash {
+                let dups = duplicates[hash, default: []] + url
+                duplicates[hash] = dups
+                if dups.count > 1 {
+                    callHandler()
+                }
+            } else {
+                nonDuplicates += url
+            }
+            progress.completedUnitCount += 1
         }
         callHandler()
     }

@@ -458,7 +458,7 @@ extension Protocol {
 }
 
 extension NSObject {
-    /// Returns the value of an Ivar.
+    /// Returns the value of the Ivar with the specified name.
     public func getIvarValue<T>(for name: String) -> T? {
         guard let ivar = class_getInstanceVariable(type(of: self), name) else { return nil }
         
@@ -475,7 +475,15 @@ extension NSObject {
         return pointer.assumingMemoryBound(to: T.self).pointee
     }
     
-    /// Sets the value of the Ivar with the specified name.
+    /**
+     Sets the value of the Ivar with the specified name.
+     
+     - Parameters:
+        - name: The name of the ivar.
+        - value: The new value for the ivar.
+     - Returns: `true` if updating the iVar value has been sucessfully, else `false`.
+     */
+    @discardableResult
     public func setIvarValue<T>(of name: String, to value: T) -> Bool {
         guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
 
