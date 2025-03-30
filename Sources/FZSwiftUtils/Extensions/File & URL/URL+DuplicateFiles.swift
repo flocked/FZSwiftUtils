@@ -43,7 +43,7 @@ extension URL {
     public static func findDuplicateFiles(in directories: [URL], maxDepth: Int = 0, updateHandler: (_ duplicates: [[HashedFile]], _ nonDuplicates: [HashedFile], _ progress: Progress) -> ()) {
         var duplicates: [OSHash: [HashedFile]] = [:]
         var nonDuplicates: [HashedFile] = []
-        var progress = Progress(totalUnitCount: 0)
+        let progress = Progress(totalUnitCount: 0)
         var directories = directories
         func getDuplicates() {
             if !directories.isEmpty {
