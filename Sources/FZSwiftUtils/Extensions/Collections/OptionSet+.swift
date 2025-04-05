@@ -7,7 +7,7 @@
 
 import Foundation
 
-public extension OptionSet {
+public extension SetAlgebra {
     /**
      A Boolean value indicating whether the set contains any of the specified elements.
 
@@ -28,6 +28,16 @@ public extension OptionSet {
                 remove(element)
             }
         }
+    }
+    
+    static func + (lhs: Self, rhs: Element) -> Self {
+        var lhs = lhs
+        lhs.insert(rhs)
+        return lhs
+    }
+    
+    static func += (lhs: inout Self, rhs: Element) {
+        lhs.insert(rhs)
     }
 }
 
@@ -58,15 +68,5 @@ public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
                 return nil
             }
         }
-    }
-    
-    static func + (lhs: Self, rhs: Element) -> Self {
-        var lhs = lhs
-        lhs.insert(rhs)
-        return lhs
-    }
-    
-    static func += (lhs: inout Self, rhs: Element) {
-        lhs.insert(rhs)
     }
 }
