@@ -114,7 +114,7 @@ public extension Range where Bound: BinaryInteger {
     }
 #endif
 
-#if canImport(QuartzCore)
+#if os(macOS) || os(iOS) || os(tvOS)
     public extension CATransform3D {
         /// A `NSValue` representation of the value.
         var nsValue: NSValue {
