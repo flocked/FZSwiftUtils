@@ -83,7 +83,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
-        guard object.isPropertyKeyValueObservable(keyPath: keyPath) else { return nil }
+        guard object.value(forKeyPathSafely: keyPath) != nil else { return nil }
         observer = TypedObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
             guard let newValue = change.newValue as? Value else { return }
             handler(change.oldValue as? Value ?? newValue, newValue)
@@ -91,7 +91,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value: Equatable>(_ object: Object, keyPath: String, initial: Bool = false, uniqueValues: Bool = true, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
-        guard object.isPropertyKeyValueObservable(keyPath: keyPath) else { return nil }
+        guard object.value(forKeyPathSafely: keyPath) != nil else { return nil }
         observer = TypedObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
             guard let new = change.newValue as? Value else { return }
             if let old = change.oldValue as? Value {
@@ -105,7 +105,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: String, willChange: @escaping (_ oldValue: Value)->()) {
-        guard object.isPropertyKeyValueObservable(keyPath: keyPath) else { return nil }
+        guard object.value(forKeyPathSafely: keyPath) != nil else { return nil }
         observer = TypedObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
             guard change.isPrior, let oldValue = change.oldValue as? Value else { return }
             willChange(oldValue)

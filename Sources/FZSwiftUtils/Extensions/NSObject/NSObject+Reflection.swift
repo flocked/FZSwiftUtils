@@ -309,12 +309,6 @@ extension NSObject {
         propertiesReflection(includeSuperclass: includeSuperclass).contains(where: {$0.name == name })
     }
     
-    func isPropertyKeyValueObservable(keyPath: String) -> Bool {
-        guard Self.containsProperty(keyPath, includeSuperclass: true) else { return false }
-        guard type(of: self).automaticallyNotifiesObservers(forKey: keyPath) else { return false }
-        return true
-    }
-    
     /**
      The value type for the property with the specified name.
      
