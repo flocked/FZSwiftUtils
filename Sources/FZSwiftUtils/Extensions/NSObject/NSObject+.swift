@@ -147,15 +147,6 @@ public extension NSObject {
         ObjectIdentifier(self)
     }
     
-    func value(forKeySafely key: String) -> Any? {
-        self.safeValue(forKey: key)
-    }
-
-    func setValue(safely value: Any?, forKey key: String) {
-        self.safeSetValue(value, forKey: key)
-    }
-    
-    /*
     /**
      Returns the value for the property identified by a given key.
 
@@ -163,10 +154,8 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        guard Self.containsProperty(key) else { return nil }
-        return value(forKey: key)
+        self.safeValue(forKey: key)
     }
-    */
     
     /**
      Returns the value for the property identified by a given key.
@@ -178,7 +167,6 @@ public extension NSObject {
         value(forKeySafely: key) as? Value
     }
     
-    /*
     /**
      Sets the value safely for the specified key, only if the object contains a property with the given key.
 
@@ -187,10 +175,8 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     func setValue(safely value: Any?, forKey key: String) {
-        guard Self.containsProperty(key) else { return }
-        setValue(value, forKey: key)
+        self.safeSetValue(value, forKey: key)
     }
-     */
 
     /**
      Checks if the object overrides the specified selector.
