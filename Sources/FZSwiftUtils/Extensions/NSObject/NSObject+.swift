@@ -153,8 +153,8 @@ public extension NSObject {
      - Parameter key: The key of the property.
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
-    func value(forKeySafely key: String) -> Any? {
-        self.safeValue(forKey: key)
+    func value<Value>(forKey key: String) -> Value? {
+        value(forKeySafely: key) as? Value
     }
     
     /**
@@ -163,8 +163,8 @@ public extension NSObject {
      - Parameter key: The key of the property.
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
-    func value<Value>(forKey key: String) -> Value? {
-        value(forKeySafely: key) as? Value
+    func value(forKeySafely key: String) -> Any? {
+        self.safeValue(forKey: key)
     }
     
     /**
@@ -176,6 +176,27 @@ public extension NSObject {
      */
     func setValue(safely value: Any?, forKey key: String) {
         self.safeSetValue(value, forKey: key)
+    }
+    
+    /**
+     Returns the value for the derived property identified by a given key path.
+
+     - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
+     - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
+     */
+    func value(forKeyPathSafely keyPath: String) -> Any? {
+        self.safeValue(forKeyPath: keyPath)
+    }
+    
+    /**
+     Sets the value for the property identified by a given key path to a given value.
+
+     - Parameters:
+        - value: The value to set.
+        - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
+     */
+    func setValue(safely value: Any?, forKeyPath keyPath: String) {
+        self.safeSetValue(value, forKeyPath: keyPath)
     }
 
     /**

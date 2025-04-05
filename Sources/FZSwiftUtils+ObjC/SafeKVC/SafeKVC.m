@@ -28,4 +28,23 @@
     }
 }
 
+- (id)safeValueForKeyPath:(NSString *)key {
+    @try {
+        return [self valueForKeyPath:key];
+    }
+    @catch (NSException *exception) {
+        return nil;
+    }
+}
+
+- (BOOL)safeSetValue:(id)value forKeyPath:(NSString *)key {
+    @try {
+        [self setValue:value forKeyPath:key];
+        return YES;
+    }
+    @catch (NSException *exception) {
+        return NO;
+    }
+}
+
 @end
