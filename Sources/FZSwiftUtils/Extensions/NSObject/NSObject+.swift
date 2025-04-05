@@ -6,13 +6,7 @@
 //
 
 import Foundation
-
-extension NSObject {
-    /// The identifier of the object.
-    public var objectIdentifier: ObjectIdentifier {
-        ObjectIdentifier(self)
-    }
-}
+import SafeKVC
 
 extension NSObjectProtocol where Self: NSObject {
     /// The type of the object.
@@ -110,25 +104,6 @@ public extension NSCoding where Self: NSObject {
         return copy
     }
     
-    /*
-    /**
-     Creates an archived-based copy of the object as the specified subclass.
-     
-     - Parameter subclass: The type of the subclass for the copy.
-
-     - Throws: An error if copying fails or the specified class isn't a subclass.
-     */
-    func archiveBasedCopy<Subclass: NSObject & NSCoding>(as subclass: Subclass.Type) throws -> Subclass {
-        let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-        unarchiver.requiresSecureCoding = false
-        guard let object = Subclass(coder: unarchiver) else {
-            throw NSCodingError.castingFailed
-        }
-        return object
-    }
-     */
-    
     /// Returns a new instance that’s a copy of the receiver.
     func copyAsSelf() -> Self? {
         copy() as? Self
@@ -167,6 +142,20 @@ public extension NSObjectProtocol where Self: NSObject {
 }
 
 public extension NSObject {
+    /// The identifier of the object.
+    var objectIdentifier: ObjectIdentifier {
+        ObjectIdentifier(self)
+    }
+    
+    func value(forKeySafely key: String) -> Any? {
+        self.safeValue(forKey: key)
+    }
+
+    func setValue(safely value: Any?, forKey key: String) {
+        self.safeSetValue(value, forKey: key)
+    }
+    
+    /*
     /**
      Returns the value for the property identified by a given key.
 
@@ -177,6 +166,7 @@ public extension NSObject {
         guard Self.containsProperty(key) else { return nil }
         return value(forKey: key)
     }
+    */
     
     /**
      Returns the value for the property identified by a given key.
@@ -188,6 +178,7 @@ public extension NSObject {
         value(forKeySafely: key) as? Value
     }
     
+    /*
     /**
      Sets the value safely for the specified key, only if the object contains a property with the given key.
 
@@ -199,6 +190,7 @@ public extension NSObject {
         guard Self.containsProperty(key) else { return }
         setValue(value, forKey: key)
     }
+     */
 
     /**
      Checks if the object overrides the specified selector.
@@ -239,6 +231,55 @@ public extension NSObject {
         }
         return false
     }
+
+    /// Returns the value of the Ivar with the specified name.
+    func getIvarValue<T>(for name: String) -> T? {
+        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return nil }
+        let isPrimitive = (T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type)
+        if !isPrimitive && (T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type) {
+            return object_getIvar(self, ivar) as? T
+        }
+        let offset = ivar_getOffset(ivar)
+        let objectPointer = Unmanaged.passUnretained(self).toOpaque()
+        let pointer = objectPointer.advanced(by: offset)
+        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
+            return T.self is UnsafeRawPointer.Type ? UnsafeRawPointer(pointer) as? T : UnsafeMutableRawPointer(pointer) as? T
+        }
+        return pointer.assumingMemoryBound(to: T.self).pointee
+    }
+    
+    /**
+     Sets the value of the Ivar with the specified name.
+     
+     - Parameters:
+        - name: The name of the ivar.
+        - value: The new value for the ivar.
+     - Returns: `true` if updating the iVar value has been sucessfully, else `false`.
+     */
+    @discardableResult
+    func setIvarValue<T>(of name: String, to value: T) -> Bool {
+        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
+
+        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
+            let offset = ivar_getOffset(ivar)
+            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
+            let pointer = objectPointer.advanced(by: offset)
+            if let mutablePointer = value as? UnsafeMutableRawPointer {
+                mutablePointer.copyMemory(from: pointer, byteCount: MemoryLayout<T>.size)
+            }
+            return true
+        } else if T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type {
+            let offset = ivar_getOffset(ivar)
+            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
+            let pointer = objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self)
+            pointer.pointee = value
+            return true
+        } else if T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type {
+            object_setIvar(self, ivar, value as AnyObject)
+            return true
+        }
+        return false
+    }
 }
 
 extension NSObjectProtocol where Self: NSObject {
@@ -251,60 +292,39 @@ extension NSObjectProtocol where Self: NSObject {
 extension NSObject {
     /// Returns all classes.
     public static func allClasses() -> [AnyClass] {
-        // Get an approximate amount of classes we are going to need space for.
-        // Double it, just to make sure if it returns more we can still accomodate them all
         let expectedClassCount = objc_getClassList(nil, 0) * 2
-
         let allClasses = UnsafeMutablePointer<AnyClass>.allocate(capacity: Int(expectedClassCount))
-        let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)  // Huh? We should have gotten this for free.
+        let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)
         let actualClassCount = objc_getClassList(autoreleasingAllClasses, expectedClassCount)
-
-        // Take care of the stunningly rare situation where we get more classes back than we have allocated,
-        // remembering that we have allocated more than we were told to, to take case of the unexpected case
-        // where we recieve more classes than we were told we were going to three lines previously. #paranoid #safe
-        let count = min(actualClassCount, expectedClassCount)
-
-        var classes = [AnyClass]()
-        for i in 0 ..< count {
-            let currentClass: AnyClass = allClasses[Int(i)]
-            classes.append(currentClass)
-        }
-
+        let classes = (0 ..< min(actualClassCount, expectedClassCount)).map({ allClasses[Int($0)] })
         allClasses.deallocate()
-
         return classes
     }
     
     /// Returns all subclasses for the specified class.
     public static func allSubclasses<T>(of baseClass: T) -> [T] {
         var matches: [T] = []
-        
         for currentClass in allClasses() {
             #if os(macOS)
             let skip = String(describing: currentClass) == "UINSServiceViewController"
             #else
             let skip = false
             #endif
-            guard class_getRootSuperclass(currentClass) == NSObject.self && !skip else {
-                continue
-            }
-
-            if currentClass is T {
-                matches.append(currentClass as! T)
-            }
+            guard class_getRootSuperclass(currentClass) == NSObject.self, !skip, currentClass is T else { continue }
+            matches.append(currentClass as! T)
         }
 
         return matches
     }
     
-    static func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
-        guard let superclass = class_getSuperclass(type), superclass != type else { return type }
-
-        return class_getRootSuperclass(superclass)
+    /// Returns all clases implementing the specified protocol.
+    static func allClasses(implementing _protocol: Protocol) -> [AnyClass] {
+        allClasses().filter({ class_conformsToProtocol($0, _protocol) })
     }
     
-    static func allClasses(implementing p: Protocol) -> [AnyClass] {
-        allClasses().filter({ class_conformsToProtocol($0, p) })
+    private static func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
+        guard let superclass = class_getSuperclass(type), superclass != type else { return type }
+        return class_getRootSuperclass(superclass)
     }
 }
 
@@ -321,64 +341,8 @@ extension NSObjectProtocol where Self: NSObject {
         return superclass.isProtocolSelector(selector)
     }
     
-    /*
     static func typeEncoding(for selector: Selector) -> UnsafePointer<CChar>? {
-         var protocolCount: UInt32 = 0
-         if let protocols = class_copyProtocolList(self, &protocolCount) {
-             for i in 0..<Int(protocolCount) {
-                 if let typeEncoding = protocols[i].typeEncoding(for: selector) {
-                     return typeEncoding
-                 }
-             }
-         }
-        return (class_getSuperclass(self) as? NSObject.Type)?.typeEncoding(for: selector)
-     }
-    */
-    
-    static func typeEncoding(for selector: Selector, _class: AnyClass) -> UnsafePointer<CChar>? {
-        var protocolCount: UInt32 = 0
-        guard let protocols = class_copyProtocolList(_class, &protocolCount) else {
-            return nil
-        }
-        for i in 0..<Int(protocolCount) {
-            let proto = protocols[i]
-            if let typeEncoding = typeEncoding(for: selector, protocol: proto) {
-                return typeEncoding
-            }
-        }
-
-        // Check superclass
-        if let superclass = class_getSuperclass(_class), superclass != _class {
-            return typeEncoding(for: selector, _class: superclass)
-        }
-
-        return nil
-    }
-
-    private static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
-        // Check required methods
-        var methodDesc = protocol_getMethodDescription(proto, selector, true, true)
-        if methodDesc.name != nil, let types = methodDesc.types {
-               return UnsafePointer(types) // Explicitly cast to UnsafePointer<CChar>
-           }
-
-        // Check optional methods
-        methodDesc = protocol_getMethodDescription(proto, selector, false, true)
-        if methodDesc.name != nil, let types = methodDesc.types {
-              return UnsafePointer(types) // Explicitly cast to UnsafePointer<CChar>
-          }
-
-        // Recursively check inherited protocols
-        var inheritedCount: UInt32 = 0
-        if let inherited = protocol_copyProtocolList(proto, &inheritedCount) {
-            for i in 0..<Int(inheritedCount) {
-                if let typeEncoding = typeEncoding(for: selector, protocol: inherited[i]) {
-                    return typeEncoding
-                }
-            }
-        }
-
-        return nil
+        FZSwiftUtils.typeEncoding(for: selector, _class: self)
     }
 }
 
@@ -454,57 +418,5 @@ extension Protocol {
         }
 
         return nil
-    }
-}
-
-extension NSObject {
-    /// Returns the value of the Ivar with the specified name.
-    public func getIvarValue<T>(for name: String) -> T? {
-        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return nil }
-        
-        let isPrimitive = (T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type)
-        if !isPrimitive && (T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type) {
-            return object_getIvar(self, ivar) as? T
-        }
-        let offset = ivar_getOffset(ivar)
-        let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-        let pointer = objectPointer.advanced(by: offset)
-        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
-            return T.self is UnsafeRawPointer.Type ? UnsafeRawPointer(pointer) as? T : UnsafeMutableRawPointer(pointer) as? T
-        }
-        return pointer.assumingMemoryBound(to: T.self).pointee
-    }
-    
-    /**
-     Sets the value of the Ivar with the specified name.
-     
-     - Parameters:
-        - name: The name of the ivar.
-        - value: The new value for the ivar.
-     - Returns: `true` if updating the iVar value has been sucessfully, else `false`.
-     */
-    @discardableResult
-    public func setIvarValue<T>(of name: String, to value: T) -> Bool {
-        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
-
-        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
-            let offset = ivar_getOffset(ivar)
-            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-            let pointer = objectPointer.advanced(by: offset)
-            if let mutablePointer = value as? UnsafeMutableRawPointer {
-                mutablePointer.copyMemory(from: pointer, byteCount: MemoryLayout<T>.size)
-            }
-            return true
-        } else if T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type {
-            let offset = ivar_getOffset(ivar)
-            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-            let pointer = objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self)
-            pointer.pointee = value
-            return true
-        } else if T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type {
-            object_setIvar(self, ivar, value as AnyObject)
-            return true
-        }
-        return false
     }
 }
