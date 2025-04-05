@@ -16,10 +16,10 @@ let package = Package(
     ],
     targets: [
         .target(name: "_SuperBuilder", path: "Sources/FZSwiftUtils+ObjC/SuperBuilder"),
-        .target(name: "SafeKVC", path: "Sources/FZSwiftUtils+ObjC/SafeKVC", publicHeadersPath: "", cSettings: [.headerSearchPath(".")]),
+        .target(name: "_SafeKVC", path: "Sources/FZSwiftUtils+ObjC/SafeKVC", publicHeadersPath: "", cSettings: [.headerSearchPath(".")]),
         .target(
             name: "FZSwiftUtils",
-            dependencies: ["_SuperBuilder", "SafeKVC"]
+            dependencies: ["_SuperBuilder", "_SafeKVC"]
         ),
     ]
 )

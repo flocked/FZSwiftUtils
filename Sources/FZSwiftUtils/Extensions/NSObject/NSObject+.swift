@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SafeKVC
+import _SafeKVC
 
 extension NSObjectProtocol where Self: NSObject {
     /// The type of the object.
