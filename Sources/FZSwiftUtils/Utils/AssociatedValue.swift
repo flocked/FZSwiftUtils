@@ -603,6 +603,54 @@ fileprivate class AssociatedValue {
     }
 }
 
+struct Associated {
+    public static func get<T>(_ key: String, for object: AnyObject) -> T? {
+        (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value as? T
+    }
+    
+    public static func get<T>(_ key: String, initialValue: @autoclosure () -> T, for object: AnyObject) -> T? {
+        get(key, for: object) ?? setAndReturn(key, to: initialValue(), for: object)
+    }
+    
+    public static func get<T: AnyObject>(_ key: String, weakInitialValue initialValue: @autoclosure () -> T, for object: AnyObject) -> T? {
+        get(key, for: object) ?? setAndReturn(key, toWeak: initialValue(), for: object)
+    }
+    
+    public static func get<T>(_ key: String, initialValue: () -> T, for object: AnyObject) -> T? {
+        get(key, for: object) ?? setAndReturn(key, to: initialValue(), for: object)
+    }
+    
+    public static func get<T: AnyObject>(_ key: String, weakInitialValue initialValue: () -> T, for object: AnyObject) -> T? {
+        get(key, for: object) ?? setAndReturn(key, toWeak: initialValue(), for: object)
+    }
+    
+    public static func set<T>(_ key: String, to value: T?, for object: AnyObject) {
+        set(key, to: AssociatedValue(value), for: object)
+    }
+    
+    public static func set<T: AnyObject>(_ key: String, toWeak value: T?, for object: AnyObject) {
+        set(key, to: AssociatedValue(weak: value), for: object)
+    }
+    
+    private static func set(_ key: String, to value: AssociatedValue, for object: AnyObject) {
+        objc_setAssociatedObject(object, key.address, value, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    }
+    
+    private static func setAndReturn<T>(_ key: String, to value: T, for object: AnyObject) -> T {
+        set(key, to: value, for: object)
+        return value
+    }
+    
+    func sdsds() {
+        Associated.set("", to: "", for: NSObject())
+    }
+
+    private static func setAndReturn<T: AnyObject>(_ key: String, toWeak value: T, for object: AnyObject) -> T {
+        set(key, toWeak: value, for: object)
+        return value
+    }
+}
+
 private extension String {
     var address: UnsafeRawPointer {
         UnsafeRawPointer(bitPattern: abs(hashValue))!
