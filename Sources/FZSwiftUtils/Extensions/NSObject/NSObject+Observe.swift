@@ -123,7 +123,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeChanges<Value>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation {
         KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, handler: handler)
     }
     
@@ -138,7 +138,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation {
         observeChanges(for: keyPath, type: type, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
     }
     
@@ -154,7 +154,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation {
         KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
     }
     
@@ -168,7 +168,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: An `NSKeyValueObservation` object representing the observation.
      */
-    public func observeWillChange<Value>(_ keyPath: String, type: Value.Type, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeWillChange<Value>(_ keyPath: String, type: Value.Type, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation {
         KeyValueObservation(self, keyPath: keyPath, willChange: handler)
     }
 }
