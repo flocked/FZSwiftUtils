@@ -14,6 +14,72 @@ import UIKit
 import CoreMedia
 
 public extension NSCoder {
+    /// Encodes an object and associates it with the string key.
+    func encode<T: _ObjectiveCBridgeable>(_ value: T, forKey key: String) where T._ObjectiveCType: NSObject, T._ObjectiveCType: NSCoding {
+        encode(T._bridgeToObjectiveC(value), forKey: key)
+    }
+    
+    func encode<T: _ObjectiveCBridgeable>(_ values: [T], forKey key: String) where T._ObjectiveCType: NSObject, T._ObjectiveCType: NSCoding {
+        encode(values.map({ T._bridgeToObjectiveC($0) }), forKey: key)
+    }
+    
+    /**
+     Decode an object as an expected type, failing if the archived type doesn’t match.
+     
+     If the coder responds `true` to `requiresSecureCoding`, then the coder calls `failWithError(_:)` in either of the following cases:
+     - The class indicated by `DecodedObjectType` doesn’t implement `NSSecureCoding`.
+     - The unarchived class doesn’t match `DecodedObjectType`, nor do any of its superclasses.
+     
+     If the coder doesn’t require secure coding, it ignores the cls parameter and does not check the decoded object.
+     
+     - Parameter key: The key indicating the member to decode.
+     
+     - Returns: The decoded object, or `nil` if decoding fails.
+     */
+    func decode<DecodedObjectType>(forKey key: String
+    ) -> DecodedObjectType? where DecodedObjectType : NSObject, DecodedObjectType : NSCoding {
+        decodeObject(of: DecodedObjectType.self, forKey: key)
+    }
+    
+    /**
+     Decode an object as an expected type, failing if the archived type doesn’t match.
+     
+     If the coder responds `true` to `requiresSecureCoding`, then the coder calls `failWithError(_:)` in either of the following cases:
+     - The class indicated by `DecodedObjectType` doesn’t implement `NSSecureCoding`.
+     - The unarchived class doesn’t match `DecodedObjectType`, nor do any of its superclasses.
+     
+     If the coder doesn’t require secure coding, it ignores the cls parameter and does not check the decoded object.
+     
+     - Parameter key: The key indicating the member to decode.
+     
+     - Returns: The decoded object, or `nil` if decoding fails.
+     */
+    func decode<DecodedObjectType: _ObjectiveCBridgeable>(forKey key: String) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject, DecodedObjectType._ObjectiveCType: NSCoding {
+        guard let obj = self.decodeObject(forKey: key) as? DecodedObjectType._ObjectiveCType else {  return nil }
+        var result: DecodedObjectType?
+        DecodedObjectType._forceBridgeFromObjectiveC(obj, result: &result)
+        return result
+    }
+    
+    /**
+     Decode an object as an expected type, failing if the archived type doesn’t match.
+     
+     If the coder responds `true` to `requiresSecureCoding`, then the coder calls `failWithError(_:)` in either of the following cases:
+     - The class indicated by `cls` doesn’t implement `NSSecureCoding`.
+     - The unarchived class doesn’t match `cls`, nor do any of its superclasses.
+     
+     If the coder doesn’t require secure coding, it ignores the cls parameter and does not check the decoded object.
+     
+     - Parameters:
+        - cls: The expected class of the object being decoded.
+        - key: The key indicating the member to decode.
+     
+     - Returns: The decoded object, or `nil` if decoding fails.
+     */
+    func decodeObject<DecodedObjectType: _ObjectiveCBridgeable>(of cls: DecodedObjectType.Type, forKey key: String) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject, DecodedObjectType._ObjectiveCType: NSCoding {
+        decode(forKey: key)
+    }
+    
     /// Decodes and returns a `NSDirectionalEdgeInsets` value that was previously encoded with `encode(_:)`.
     func decodeDirectionalEdgeInsets(forKey key: String) -> NSDirectionalEdgeInsets {
         decodeObject(of: NSValue.self, forKey: key)?.directionalEdgeInsetsValue ?? .init()
