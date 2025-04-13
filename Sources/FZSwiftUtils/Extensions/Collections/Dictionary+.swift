@@ -198,6 +198,19 @@ public extension Dictionary {
     }
 }
 
+public extension Dictionary where Value: OptionalProtocol {
+    /// Returns the dictionary with non optional values.
+    var nonNil: [Key: Value.Wrapped] {
+        var result: [Key: Value.Wrapped] = [:]
+        for (key, value) in self {
+            if let unwrapped = value.optional {
+                result[key] = unwrapped
+            }
+        }
+        return result
+    }
+}
+
 public extension Dictionary where Value: Equatable {
     /// The keys of the values that are different to the other dictionary.
     func difference(to dictionary: [Key : Value]) -> (removed: [Key], added: [Key], changed: [Key]) {
