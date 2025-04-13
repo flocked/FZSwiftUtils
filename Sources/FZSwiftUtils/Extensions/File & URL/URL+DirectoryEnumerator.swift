@@ -12,8 +12,10 @@ import Foundation
 #endif
 
 public extension URL {
+
+    
     func iterate() -> URLSequence {
-        URLSequence(url: self, predicate: { _ in true })
+        URLSequence(url: self, predicate: { _,_ in true })
     }
 
     /**
@@ -29,6 +31,31 @@ public extension URL {
      - Parameter predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
      */
     func iterate(predicate: @escaping ((URL) -> Bool)) -> URLSequence {
+        URLSequence(url: self, predicate: { url,_ in predicate(url) ? .include : .skip  })
+    }
+    
+    /**
+     Iterate files and folders that satisfy the given predicate.
+     
+     Example:
+     ```swift
+     let folderSequence = folder.iterate { url, level in
+        if url.lastPathComponent == "node_modules" {
+            return .skipAndSkipDescendants
+        } else if url.pathExtension == "swift" {
+            return .include
+        } else {
+            return .skip
+        }
+     }
+     
+     for url in folderSequence {
+     
+     }
+     ```
+     - Parameter predicate: A closure that receives each visited url and its depth level relative to the root, and returns a ``URLSequence/Decision`` indicating whether to include the url and whether to skip recursion for the url.
+     */
+    func iterate(predicate: @escaping ((_ url: URL, _ level: Int) -> URLSequence.Decision)) -> URLSequence {
         URLSequence(url: self, predicate: predicate)
     }
     
@@ -133,12 +160,23 @@ public extension URL {
     /// A sequence of urls.
     struct URLSequence: Sequence {
         let url: URL
-        var predicate: (URL) -> Bool
+        var predicate: (URL, Int) -> Decision
         var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         var maxDepth: Int? = nil
         var resourceKeys: [URLResourceKey]? = nil
         
-        init(url: URL, predicate: @escaping (URL) -> Bool) {
+        public enum Decision: ExpressibleByBooleanLiteral {
+            case include
+            case skip
+            case includeAndSkipDescendants
+            case skipAndSkipDescendants
+            
+            public init(booleanLiteral value: BooleanLiteralType) {
+                self = value ? .include : .skip
+            }
+        }
+        
+        init(url: URL, predicate: @escaping (URL, Int) -> Decision) {
             self.url = url
             self.predicate = predicate
         }
@@ -149,7 +187,7 @@ public extension URL {
         
         /// Iterator of a url sequence.
         public struct Iterator: IteratorProtocol {
-            let predicate: (URL) -> Bool
+            let predicate: (URL, Int) -> Decision
             let directoryEnumerator: FileManager.DirectoryEnumerator?
             let maxLevel: Int?
             var maximumLevel = 0
@@ -165,9 +203,20 @@ public extension URL {
                 while let nextURL = directoryEnumerator.nextObject() as? URL {
                     if let maxLevel = maxLevel, directoryEnumerator.level > maxLevel {
                         directoryEnumerator.skipDescendants()
-                    } else if predicate(nextURL) == true {
-                        maximumLevel = level
-                        return nextURL
+                    } else {
+                        switch predicate(nextURL, level) {
+                        case .include:
+                            maximumLevel = level
+                            return nextURL
+                        case .skip: return nil
+                        case .includeAndSkipDescendants:
+                            skipDescendants()
+                            maximumLevel = level
+                            return nextURL
+                        case .skipAndSkipDescendants:
+                            skipDescendants()
+                            return nil
+                        }
                     }
                 }
                 return nil
