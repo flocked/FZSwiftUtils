@@ -12,10 +12,9 @@ import Foundation
 #endif
 
 public extension URL {
-
-    
+    /// Iterate files and folders.
     func iterate() -> URLSequence {
-        URLSequence(url: self, predicate: { _,_ in true })
+        URLSequence(url: self, predicate: { _,_,_ in true })
     }
 
     /**
@@ -23,7 +22,7 @@ public extension URL {
      
      Example:
      ```swift
-     for url in folder.iterate { $0.lastPathComponent.contains("data_") } {
+     for url in folder.iterate { $0.lastPathComponent.contains("data") } {
          
      }
      ```
@@ -31,7 +30,7 @@ public extension URL {
      - Parameter predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
      */
     func iterate(predicate: @escaping ((URL) -> Bool)) -> URLSequence {
-        URLSequence(url: self, predicate: { url,_ in predicate(url) ? .include : .skip  })
+        URLSequence(url: self, predicate: { url,_,_ in return predicate(url)  })
     }
     
     /**
@@ -39,23 +38,22 @@ public extension URL {
      
      Example:
      ```swift
-     let folderSequence = folder.iterate { url, level in
-        if url.lastPathComponent == "node_modules" {
-            return .skipAndSkipDescendants
-        } else if url.pathExtension == "swift" {
-            return .include
-        } else {
-            return .skip
-        }
+     let urls = folder.iterate { url, level, skipDescendants in
+        skipDescendants = url.lastPathComponent == "framework"
+        return url.pathExtension == "swift"
      }
      
-     for url in folderSequence {
+     for url in urls {
      
      }
      ```
-     - Parameter predicate: A closure that receives each visited url and its depth level relative to the root, and returns a ``URLSequence/Decision`` indicating whether to include the url and whether to skip recursion for the url.
+     
+     - Parameter predicate: The predicate that determinates whether to include the url in the sequence. It provides:
+        - url: The current url.
+        - depth: The url's depth level relative to the root.
+        - skipDescendants: A Boolean value that you can set indicating whether to skip recusion of the url's content if it's a folder.
      */
-    func iterate(predicate: @escaping ((_ url: URL, _ level: Int) -> URLSequence.Decision)) -> URLSequence {
+    func iterate(predicate: @escaping ((_ url: URL, _ level: Int, _ skipDescendants: inout Bool) -> Bool)) -> URLSequence {
         URLSequence(url: self, predicate: predicate)
     }
     
@@ -160,7 +158,7 @@ public extension URL {
     /// A sequence of urls.
     struct URLSequence: Sequence {
         let url: URL
-        var predicate: (URL, Int) -> Decision
+        var predicate: (URL, Int, inout Bool) -> Bool
         var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         var maxDepth: Int? = nil
         var resourceKeys: [URLResourceKey]? = nil
@@ -176,7 +174,7 @@ public extension URL {
             }
         }
         
-        init(url: URL, predicate: @escaping (URL, Int) -> Decision) {
+        init(url: URL, predicate: @escaping (URL, Int, inout Bool) -> Bool) {
             self.url = url
             self.predicate = predicate
         }
@@ -187,7 +185,7 @@ public extension URL {
         
         /// Iterator of a url sequence.
         public struct Iterator: IteratorProtocol {
-            let predicate: (URL, Int) -> Decision
+            let predicate: (URL, Int, inout Bool) -> Bool
             let directoryEnumerator: FileManager.DirectoryEnumerator?
             let maxLevel: Int?
             var maximumLevel = 0
@@ -204,18 +202,13 @@ public extension URL {
                     if let maxLevel = maxLevel, directoryEnumerator.level > maxLevel {
                         directoryEnumerator.skipDescendants()
                     } else {
-                        switch predicate(nextURL, level) {
-                        case .include:
-                            maximumLevel = level
-                            return nextURL
-                        case .skip: return nil
-                        case .includeAndSkipDescendants:
+                        var shouldSkipDescendants = false
+                        let includeURL = predicate(nextURL, level, &shouldSkipDescendants)
+                        if shouldSkipDescendants {
                             skipDescendants()
-                            maximumLevel = level
+                        }
+                        if includeURL {
                             return nextURL
-                        case .skipAndSkipDescendants:
-                            skipDescendants()
-                            return nil
                         }
                     }
                 }
