@@ -161,7 +161,7 @@ public extension URL {
         var predicate: (URL, Int, inout Bool) -> Bool
         var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         var maxDepth: Int? = nil
-        var resourceKeys: [URLResourceKey]? = nil
+        var resourceKeys: [URLResourceKey] = []
         
         public enum Decision: ExpressibleByBooleanLiteral {
             case include
@@ -259,7 +259,7 @@ extension URL.URLSequence {
     public func includingProperties(for keys: [URLResourceKey]) -> Self {
         var sequence = self
         let keys = keys.uniqued()
-        sequence.resourceKeys = keys.isEmpty ? nil : keys
+        sequence.resourceKeys = keys
         return sequence
     }
     
