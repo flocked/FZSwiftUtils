@@ -83,7 +83,9 @@ public class URLResources {
      This value is a count of objects that are actually in the file system, so it excludes virtual items like “.” and “..”. This property is useful for quickly identifying an empty directory for backup and syncing. If the URL isn’t a directory, or the file system can’t cheaply compute the value, the value is `nil`.
      */
     @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *)
-    public var directoryEntryCount: Int? { value(for: \.directoryEntryCount) }
+    public var directoryEntryCount: Int? {
+        try? url.resourceValues(forKeys: [.directoryEntryCountKey]).directoryEntryCount        
+    }
 
     /// A Boolean value indicating if the resource is a isymbolic link.
     public var isSymbolicLink: Bool { value(for: \.isSymbolicLink) ?? false }
