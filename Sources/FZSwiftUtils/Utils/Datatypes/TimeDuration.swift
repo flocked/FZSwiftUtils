@@ -291,7 +291,6 @@ public extension Date {
     }
 }
 
-/*
  extension TimeDuration: ExpressibleByIntegerLiteral {
      public init(integerLiteral value: Int) {
          seconds = Double(value)
@@ -303,7 +302,6 @@ public extension Date {
          seconds = value
      }
  }
- */
 
 public extension TimeDuration {
     ///  Enumeration representing different duration time units.

@@ -160,10 +160,20 @@ public extension String {
          ```
          */
         case listNumericColon
+        /**
+         Joined by adding new lines and numbers with dashes.
+
+         ```
+         1 - Apple
+         2 - Orange
+         3 - Banana
+         ```
+         */
+        case listNumericDash
 
         var seperator: String {
             switch self {
-            case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon: return "\n"
+            case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
             case .and: return " and "
             case .slash: return " / "
@@ -174,14 +184,14 @@ public extension String {
 
         var isNumeric: Bool {
             switch self {
-            case .listNumeric, .listNumericDot, .listNumericColon: return true
+            case .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return true
             default: return false
             }
         }
 
         var prefix: String? {
             switch self {
-            case .list: return " - "
+            case .list, .listNumericDash: return " - "
             case .listStars: return " * "
             case .listNumericDot: return ". "
             case .listNumericColon: return ": "

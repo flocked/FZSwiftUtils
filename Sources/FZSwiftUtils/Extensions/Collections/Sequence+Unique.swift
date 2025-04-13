@@ -89,6 +89,6 @@ public extension Sequence where Element: Equatable {
      - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
      */
     func randomElement<S: Sequence<Element>>(excluding: S) -> Element? {
-        filter { !excluding.contains($0) }.randomElement()
+        shuffled().first(where: { !excluding.contains($0) })
     }
 }

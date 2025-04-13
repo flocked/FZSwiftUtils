@@ -126,6 +126,18 @@ public extension Sequence {
     }
 }
 
+public extension BidirectionalCollection {
+    /**
+     Returns the last element of the sequence at a keypath.
+
+     - Parameter keyPath: The keypath to the element.
+     - Returns: The last element of the sequence at the keypath.
+     */
+    func last<T>(_ keyPath: KeyPath<Element, T?>) -> T? {
+        last(where: { $0[keyPath: keyPath] != nil })?[keyPath: keyPath]
+    }
+}
+
 public extension Collection {
     /**
      The indexes of an element at a keypath.

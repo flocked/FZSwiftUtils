@@ -33,7 +33,7 @@ extension Progress {
                 guard let self = self, self.autoUpdateEstimatedTimeRemaining else { return }
                 self.eta.count += 1
                 self.updateEstimatedTimeRemaining()
-            }.perform(after: estimateTimeEvaluationTimeInterval/Double(eta.maxCount))
+            }.perform(after: 4.0)
         }
     }
     

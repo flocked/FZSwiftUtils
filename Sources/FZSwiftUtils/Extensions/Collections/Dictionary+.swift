@@ -101,8 +101,7 @@ public extension Dictionary {
      - Returns: A dictionary containing the keys and transformed values of this dictionary.
      */
     func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> Dictionary<Key, T> {
-        try .init(
-            uniqueKeysWithValues: compactMap { key, value in
+        try .init(uniqueKeysWithValues: compactMap { key, value in
                 try transform(value).map { (key, $0) }
             }
         )
@@ -127,7 +126,7 @@ public extension Dictionary {
         - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
      */
     func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> Dictionary<K, V> {
-        try Dictionary<K, V>(map(transform), uniquingKeysWith: combine)
+        try .init(map(transform), uniquingKeysWith: combine)
     }
 
     /**
@@ -138,7 +137,7 @@ public extension Dictionary {
      - Note: The collection of transformed keys must not contain duplicates.
      */
     func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)?)) -> Dictionary<K, V> {
-        Dictionary<K, V>(uniqueKeysWithValues: compactMap(transform))
+        .init(uniqueKeysWithValues: compactMap(transform))
     }
     
     /**
@@ -149,7 +148,7 @@ public extension Dictionary {
         - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
      */
     func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> Dictionary<K, V> {
-        try Dictionary<K, V>(compactMap(transform), uniquingKeysWith: combine)
+        try .init(compactMap(transform), uniquingKeysWith: combine)
     }
     
     /// The keys of the values that are different to the other dictionary.
@@ -190,9 +189,9 @@ public extension Dictionary {
      */
     init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?
     ) rethrows where Value == [S.Element], S : Sequence {
-        self = try values.reduce(into: [Key:Value]()) { dic, value in
-            if let key = try keyForValue(value) {
-                dic[key, default: []].append(value)
+        self = try values.reduce(into: [:]) {
+            if let key = try keyForValue($1) {
+                $0[key, default: []].append($1)
             }
         }
     }
@@ -201,13 +200,7 @@ public extension Dictionary {
 public extension Dictionary where Value: OptionalProtocol {
     /// Returns the dictionary with non optional values.
     var nonNil: [Key: Value.Wrapped] {
-        var result: [Key: Value.Wrapped] = [:]
-        for (key, value) in self {
-            if let unwrapped = value.optional {
-                result[key] = unwrapped
-            }
-        }
-        return result
+        compactMapValues({ $0.optional })
     }
 }
 

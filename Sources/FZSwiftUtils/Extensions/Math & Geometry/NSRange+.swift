@@ -10,12 +10,14 @@ import Foundation
 public extension NSRange {
     /// The range as `ClosedRange`.
     var closedRange: ClosedRange<Int> {
-        lowerBound ... upperBound
+        guard location >= 0, length >= 0 else { return 0...0 }
+        return location...(location + length - 1)
     }
 
     /// The range as `Range`.
     var range: Range<Int> {
-        lowerBound ..< upperBound + 1
+        guard location >= 0, length >= 0 else { return 0..<0 }
+        return location..<location + length
     }
     
     /// The range as `CFRange`.

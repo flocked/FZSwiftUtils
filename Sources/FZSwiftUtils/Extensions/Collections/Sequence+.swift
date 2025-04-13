@@ -78,6 +78,11 @@ public extension Collection where Element: Equatable {
     func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
         indexes(where: { elements.contains($0) })
     }
+    
+    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element>, Element: Hashable {
+        let lookup = Set(elements)
+        return indexes(where: { lookup.contains($0) })
+    }
 }
 
 public extension Sequence {
@@ -106,7 +111,7 @@ public extension Sequence {
 
     /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
     func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
-        try reduce(into: [(key: Key, values: [Element])]()) { values, value in
+        try reduce(into: []) { values, value in
             let key = try keyForValue(value)
             if let index = values.firstIndex(where: { $0.key == key }) {
                 values[index].values.append(value)
@@ -144,11 +149,12 @@ public extension Sequence {
          the final dictionary.
      */
     func keyed<Key>(by keyForValue: (Element) throws -> Key, resolvingConflictsWith resolve: (Key, Element, Element) throws -> Element) rethrows -> [Key: Element] {
-        try reduce(into: [Key: Element]()) { result, element in
+        return try reduce(into: [:]) { result, element in
             let key = try keyForValue(element)
-            if let oldValue = result.updateValue(element, forKey: key) {
-              let valueToKeep = try resolve(key, oldValue, element)
-              result[key] = valueToKeep
+            if let existing = result[key] {
+                result[key] = try resolve(key, existing, element)
+            } else {
+                result[key] = element
             }
         }
     }

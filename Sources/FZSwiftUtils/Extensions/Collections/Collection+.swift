@@ -73,6 +73,20 @@ public extension RangeReplaceableCollection {
     }
 }
 
+extension RangeReplaceableCollection where Self: BidirectionalCollection {
+    /**
+     Removes the last element that satisfy the given predicate.
+     
+     - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the collection.
+     
+     - Returns: The removed element for which predicate returns `true`. If no elements in the collection satisfy the given predicate, returns `nil`.
+     */
+    mutating func removeLast(where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        guard let lastIndex = try lastIndex(where: predicate) else { return nil }
+        return remove(at: lastIndex)
+    }
+}
+
 public extension RangeReplaceableCollection where Self: MutableCollection {
     /// Removes all the elements at the specified range.
     mutating func remove(at range: ClosedRange<Int>) {

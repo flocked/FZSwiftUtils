@@ -206,8 +206,7 @@ public extension ClosedRange where Bound: BinaryInteger {
     
     /// `NSRange` representation of the range.
     var nsRange: NSRange {
-        let length = upperBound - lowerBound - 1
-        return NSRange(location: Int(lowerBound), length: Int(length))
+        NSRange(location: Int(lowerBound), length: Int(upperBound - lowerBound + 1))
     }
 }
 
@@ -232,6 +231,18 @@ public extension ClosedRange where Bound: BinaryFloatingPoint {
     /// `Range` representation of the range.
     var toRange: Range<Bound> {
         lowerBound..<(upperBound - 1)
+    }
+    
+    /// Returns an array of `amount` evenly spaced values in the range, including the lower and upper bounds.
+    func divided(into amount: Int) -> [Bound] {
+        guard amount > 1 else {
+            return amount == 1 ? [lowerBound] : []
+        }
+        
+        let step = (upperBound - lowerBound) / Bound(amount - 1)
+        return (0..<amount).map { i in
+            lowerBound + Bound(i) * step
+        }
     }
 }
 
@@ -258,8 +269,7 @@ public extension Range where Bound: BinaryInteger {
     
     /// `NSRange` representation of the range.
     var nsRange: NSRange {
-        let length = upperBound - lowerBound
-        return NSRange(location: Int(lowerBound), length: Int(length))
+        NSRange(location: Int(lowerBound), length: Int(upperBound - lowerBound))
     }
 }
 
@@ -278,6 +288,19 @@ public extension Range where Bound: BinaryFloatingPoint {
     var toClosedRange: ClosedRange<Bound> {
         lowerBound...(upperBound - 1)
     }
+    
+    /// Returns an array of `amount` evenly spaced values in the range, excluding the upper bound.
+     func divided(into amount: Int) -> [Bound] {
+         guard amount > 0 else { return [] }
+         if amount == 1 {
+             return [lowerBound]
+         }
+
+         let step = (upperBound - lowerBound) / Bound(amount)
+         return (0..<amount).map { i in
+             lowerBound + Bound(i) * step
+         }
+     }
 }
 
 public extension Sequence<ClosedRange<Int>> {
