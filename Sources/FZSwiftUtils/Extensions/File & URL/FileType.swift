@@ -86,7 +86,7 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     /// GIF
     case gif
     /// Other
-    case unknown(_ pathExtension: String)
+    case other(fileExtension: String, identifier: String?)
 
     /// Returns the type for the file at the specified url.
     public init?(url: URL) {
@@ -129,7 +129,7 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
         if let fileType = FileType.allCases.first(where: { $0.identifier == contentType.identifier || contentType.conforms(to: $0.contentType!)}) {
             self = fileType
         } else if let fileExtension = contentType.preferredFilenameExtension {
-            self = FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension)}) ?? .unknown(fileExtension)
+            self = FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension)}) ?? .other(fileExtension: fileExtension, identifier: contentType.identifier)
         } else {
             return nil
         }
@@ -153,7 +153,6 @@ public extension FileType {
 
     /// Returns the type for the specified content type tree.
     init?(contentTypeTree: [String]) {
-        let identifiers = FileType.allCases.compactMap(\.identifier)
         if let fileType = contentTypeTree.lazy.compactMap({ FileType(contentTypeIdentifier: $0) }).first {
             self = fileType
         } else {
@@ -186,14 +185,7 @@ public extension FileType {
         case .text: return "public.text"
         case .document: return "public.composite-content"
         case .sourceCode: return "public.source-code"
-        case let .unknown(pathExtension):
-            if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *), let identifier = UTType(filenameExtension: pathExtension)?.identifier {
-                return identifier
-            }
-            if let uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, pathExtension as NSString, nil)?.takeRetainedValue(), let mimeIdentifier = UTTypeCopyPreferredTagWithClass(uti, kUTTagClassMIMEType)?.takeRetainedValue() {
-                return mimeIdentifier as String
-            }
-            return nil
+        case .other(_, let identifier): return identifier
         }
     }
     
@@ -243,6 +235,7 @@ public extension FileType {
             return ["ttf", "otf", "woff", "woff2", "eot", "pfb", "pfm"]
         case .sourceCode:
             return ["js", "py", "rb", "pl", "php", "java", "swift", "c", "cpp", "cs"]
+        case .other(let pathExtension,_): return [pathExtension]
         default:
             return []
         }
@@ -271,7 +264,7 @@ public extension FileType {
         case .text: return "Text"
         case .video: return "Video"
         case .sourceCode: return "Source Code"
-        case let .unknown(value): return value == "" ? "Unknown" : "unknown(.\(value))"
+        case .other(let pathExtension, let identifier): return identifier != nil ? "other(\(identifier!))" : "other(.\(pathExtension))"
         }
     }
 
@@ -286,11 +279,7 @@ public extension FileType {
     }
 
     /// All file types.
-    static let allCases: [FileType] = [
-        .audio, .video, .gif, .image, .pdf, .document, .spreadsheet, .presentation, .text,
-        .archive, .aliasFile, .symbolicLink, .folder, .application, .executable,
-        .diskImage, .font, .contact, .calendar, .sourceCode
-    ]
+    static let allCases: [FileType] = [.audio, .video, .gif, .image, .pdf, .document, .spreadsheet, .presentation, .text, .archive, .aliasFile, .symbolicLink, .folder, .application, .executable, .diskImage, .font, .contact, .calendar, .sourceCode]
 
     /// All multimedia file types (`audio`, `video`, `image` and `gif`).
     static var multimediaTypes: [FileType] = [.gif, .image, .video, .audio]
@@ -318,13 +307,13 @@ public extension FileType {
         case .audio: value = NSExpression(format: "%i", 10)
         case .pdf: value = NSExpression(format: "%i", 11)
         case .presentation: value = NSExpression(format: "%i", 12)
-        case let .unknown(oValue): value = NSExpression(format: "%@", oValue)
+        case .other(let pathExtension,_): value = NSExpression(format: "%@", pathExtension)
         default: value = NSExpression(format: "%@", identifier ?? "")
         }
 
         let modifier: NSComparisonPredicate.Modifier
         switch self {
-        case .application, .archive, .text, .document, .unknown:
+        case .application, .archive, .text, .document, .other:
             modifier = .any
         default:
             modifier = .direct
