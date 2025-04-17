@@ -7,6 +7,23 @@
 
 import Foundation
 
+extension NSComparisonPredicate {
+    /**
+     Creates a predicate to a specified type that you form by combining specified left and right expressions using a specified modifier and options.
+     
+     - Parameters:
+        - left: The left hand expression.
+        - right: The right hand expression.
+        - modifier: The modifier to apply.
+        - type: The operator type.
+        - options: The options to apply.
+     - Returns: The receiver, initialized to a predicate of type type formed by combining the left and right expressions using the modifier and options.
+     */
+    public convenience init(left: NSExpression, right: NSExpression, modifier: Modifier = .direct, type: Operator, options: Options = []) {
+        self.init(leftExpression: left, rightExpression: right, modifier: modifier, type: type, options: options)
+    }
+}
+
 extension NSComparisonPredicate.Options: CustomStringConvertible {
     /// A word-based predicate.
     public static let wordBased = NSComparisonPredicate.Options(rawValue: 16)
