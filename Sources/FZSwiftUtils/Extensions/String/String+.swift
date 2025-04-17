@@ -287,7 +287,7 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the replacement string.
      */
-    func replacingOccurrences<Target, Replacement>(of strings: [Target], with replacement: Replacement, options: String.CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<S, Replacement>(of strings: S, with replacement: Replacement, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol, Replacement: StringProtocol {
         strings.reduce(into: self) { result, string in
             result = result.replacingOccurrences(of: string, with: replacement, options: options)
         }
@@ -306,6 +306,33 @@ public extension String {
         values.reduce(into: self) { result, value in
             result = result.replacingOccurrences(of: value.key, with: value.value, options: options)
         }
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target string are removed.
+
+     - Parameters:
+        - target: The string to be removed.
+        - options: Options for replacing the string.
+        - searchRange: The range of strings to be removed.
+
+     - Returns: A new string with occurrences of target are removed.
+     */
+    func removingOccurrences<Target>(of target: Target, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol {
+        replacingOccurrences(of: target, with: "", range: searchRange)
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target strings are removed.
+
+     - Parameters:
+        - strings: An array of target strings to be removed.
+        - options: Options for replacing the string.
+
+     - Returns: A new string with occurrences of target strings are removed.
+     */
+    func removingOccurrences<S>(of strings: S, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol {
+        replacingOccurrences(of: strings, with: "", options: options)
     }
 
     /**
