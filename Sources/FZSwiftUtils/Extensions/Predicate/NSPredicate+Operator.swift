@@ -7,18 +7,6 @@
 
 import Foundation
 
-public prefix func ! (lhs: NSPredicate) -> NSCompoundPredicate {
-    NSCompoundPredicate(notPredicateWithSubpredicate: lhs)
-}
-
-public func && (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
-    NSCompoundPredicate(andPredicateWithSubpredicates: [lhs, rhs])
-}
-
-public func || (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
-    NSCompoundPredicate(orPredicateWithSubpredicates: [lhs, rhs])
-}
-
 public func == <C: Comparable, R>(lhs: KeyPath<R, C>, rhs: C) -> NSComparisonPredicate {
     NSComparisonPredicate(lhs == rhs)
 }
