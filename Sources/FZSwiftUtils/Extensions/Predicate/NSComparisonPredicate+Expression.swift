@@ -1,5 +1,5 @@
 //
-//  NSPredicate+NSComparisonPredicate.Expression.swift
+//  NSComparisonPredicate+Expression.swift
 //
 //
 //  Created by Florian Zand on 16.03.23.
