@@ -69,7 +69,7 @@ public struct Rotation: Hashable, Codable, ExpressibleByFloatLiteral, CustomStri
     }
     
     public var description: String {
-        "Rotation(x: \(x), y: \(y), z: \(z))"
+        "[x: \(x), y: \(y), z: \(z)]"
     }
     
     public var fractional: FractionalPoint {

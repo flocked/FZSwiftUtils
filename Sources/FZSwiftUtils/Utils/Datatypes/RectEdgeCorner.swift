@@ -70,30 +70,15 @@ public struct RectEdgeCorner: OptionSet, CustomStringConvertible, Hashable, Coda
     public init(rawValue: Int) { self.rawValue = rawValue }
     
     public var description: String {
-        if self == .all {
-            return "RectEdgeCorner.all"
-        } else if self == .edges {
-            return "RectEdgeCorner.edges"
-        } else if self == .corners {
-            return "RectEdgeCorner.corners"
-        } else if self == .none {
-            return "RectEdgeCorner.none"
-        }
-        
         var strings: [String] = []
-        for element in elements() {
-            switch element {
-            case .top: strings += "top"
-            case .bottom: strings += "bottom"
-            case .left: strings += "left"
-            case .right: strings += "right"
-            case .topLeft: strings += "topLeft"
-            case .topRight: strings += "topRight"
-            case .bottomLeft: strings += "bottomLeft"
-            case .bottomRight: strings += "bottomRight"
-            default: break
-            }
-        }
-        return "RectEdgeCorner[" + strings.sorted().joined(separator: ", ") + "]"
+        if contains(.topLeft) { strings += "topLeft" }
+        if contains(.top) { strings += "top" }
+        if contains(.topRight) { strings += "topRight" }
+        if contains(.left) { strings += "left" }
+        if contains(.right) { strings += "right" }
+        if contains(.bottomLeft) { strings += "bottomLeft" }
+        if contains(.bottom) { strings += "bottom" }
+        if contains(.bottomRight) { strings += "bottomRight" }
+        return "[" + strings.sorted().joined(separator: ", ") + "]"
     }
 }

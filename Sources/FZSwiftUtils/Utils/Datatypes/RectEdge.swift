@@ -8,7 +8,7 @@
 #if os(macOS)
 import Foundation
 
-public struct RectEdge: OptionSet {
+public struct RectEdge: OptionSet, CustomStringConvertible {
     /// The top edge of the rectangle.
     public static var top = RectEdge(rawValue: 1 << 0)
     /// The left edge of the rectangle.
@@ -19,6 +19,15 @@ public struct RectEdge: OptionSet {
     public static var right = RectEdge(rawValue: 1 << 3)
     /// All edges of the rectangle.
     public static var all: RectEdge = [.left, .right, .bottom, .top]
+    
+    public var description: String {
+        var strings: [String] = []
+        if contains(.top) { strings.append(".top") }
+        if contains(.bottom) { strings.append(".bottom") }
+        if contains(.left) { strings.append(".left") }
+        if contains(.right) { strings.append(".right") }
+        return "[\(strings.joined(separator: ", "))]"
+    }
     
     /// Creates an edges structure with the specified raw value.
     public init(rawValue: Int) { self.rawValue = rawValue }

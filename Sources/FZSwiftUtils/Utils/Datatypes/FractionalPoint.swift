@@ -61,7 +61,7 @@ public struct FractionalPoint: Hashable, Codable, ExpressibleByFloatLiteral, Cus
     }
     
     public var description: String {
-        "(\(x), \(y))"
+        "[x: \(x), y: \(y)]"
     }
     
     /// Left edge center.

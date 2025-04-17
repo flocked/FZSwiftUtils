@@ -8,7 +8,7 @@
 import Foundation
 
 /// A structure representing an angle in degrees and radians.
-public struct RotationAngle: Hashable, Equatable, Codable {
+public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertible {
     /// The angle in degrees.
     public var degree: Double {
         didSet { radian = degree * .pi / 180 }
@@ -17,6 +17,10 @@ public struct RotationAngle: Hashable, Equatable, Codable {
     /// The angle in radians.
     public var radian: Double {
         didSet { degree = radian * 180 / .pi }
+    }
+    
+    public var description: String {
+        "[degree: \(degree), radian: \(radian)]"
     }
     
     /// Initializes an angle with a value in degrees.

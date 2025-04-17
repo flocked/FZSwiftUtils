@@ -82,7 +82,7 @@ public struct Point3D: Hashable, Codable, CustomStringConvertible {
     }
     
     public var description: String {
-        "(\(x), \(y), \(z))"
+        "[x: \(x), y: \(y), z: \(z)]"
     }
 }
 

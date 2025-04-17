@@ -86,7 +86,7 @@ public struct Scale: Hashable, Codable, ExpressibleByFloatLiteral, CustomStringC
     }
     
     public var description: String {
-        "Scale(x: \(x), y: \(y), z: \(z))"
+        "[x: \(x), y: \(y), z: \(z)]"
     }
 }
 
