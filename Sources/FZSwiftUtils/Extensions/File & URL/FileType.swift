@@ -286,39 +286,4 @@ public extension FileType {
 
     /// All image file types (`image` and `gif`).
     static var imageTypes: [FileType] = [.gif, .image]
-
-    internal var predicate: NSPredicate {
-        let key: NSExpression
-        let type: NSComparisonPredicate.Operator
-        switch self {
-        case .executable, .folder, .image, .video, .audio, .pdf, .presentation:
-            key = NSExpression(forKeyPath: "_kMDItemGroupId")
-            type = .equalTo
-        default:
-            key = NSExpression(forKeyPath: "kMDItemContentTypeTree")
-            type = .like
-        }
-        let value: NSExpression
-        switch self {
-        case .executable: value = NSExpression(format: "%i", 8)
-        case .folder: value = NSExpression(format: "%i", 9)
-        case .image: value = NSExpression(format: "%i", 13)
-        case .video: value = NSExpression(format: "%i", 7)
-        case .audio: value = NSExpression(format: "%i", 10)
-        case .pdf: value = NSExpression(format: "%i", 11)
-        case .presentation: value = NSExpression(format: "%i", 12)
-        case .other(let pathExtension,_): value = NSExpression(format: "%@", pathExtension)
-        default: value = NSExpression(format: "%@", identifier ?? "")
-        }
-
-        let modifier: NSComparisonPredicate.Modifier
-        switch self {
-        case .application, .archive, .text, .document, .other:
-            modifier = .any
-        default:
-            modifier = .direct
-        }
-        
-        return NSComparisonPredicate(leftExpression: key, rightExpression: value, modifier: modifier, type: type)
-    }
 }
