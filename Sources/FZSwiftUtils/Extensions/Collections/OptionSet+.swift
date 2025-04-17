@@ -39,6 +39,16 @@ public extension SetAlgebra {
     static func += (lhs: inout Self, rhs: Element) {
         lhs.insert(rhs)
     }
+    
+    static func - (lhs: Self, rhs: Element) -> Self {
+        var lhs = lhs
+        lhs.remove(rhs)
+        return lhs
+    }
+    
+    static func -= (lhs: inout Self, rhs: Element) {
+        lhs.remove(rhs)
+    }
 }
 
 public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
