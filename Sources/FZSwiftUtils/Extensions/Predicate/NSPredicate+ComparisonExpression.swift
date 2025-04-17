@@ -7,11 +7,6 @@
 
 import Foundation
 
-extension NSComparisonPredicate.Options {
-    /// A word-based predicate.
-    public static let wordBased = NSComparisonPredicate.Options(rawValue: 16)
-}
-
 public struct ComparisonExpression {
     public typealias Modifier = NSComparisonPredicate.Modifier
     public typealias Options = NSComparisonPredicate.Options

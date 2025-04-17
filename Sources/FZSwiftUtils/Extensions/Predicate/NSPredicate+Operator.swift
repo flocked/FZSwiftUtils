@@ -7,23 +7,6 @@
 
 import Foundation
 
-public extension NSComparisonPredicate.Options {
-    /// The predicate option's format string.
-    var predicateFormat: String {
-        var value = ""
-        if contains(.caseInsensitive) {
-            value = value + "c"
-        }
-        if contains(.diacriticInsensitive) {
-            value = value + "d"
-        }
-        if contains(.normalized) {
-            value = value + "w"
-        }
-        return value
-    }
-}
-
 public prefix func ! (lhs: NSPredicate) -> NSCompoundPredicate {
     NSCompoundPredicate(notPredicateWithSubpredicate: lhs)
 }
