@@ -7,6 +7,20 @@
 
 import Foundation
 
+public extension NSPredicate {
+    static func && (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
+        .and([lhs, rhs])
+    }
+    
+    static func || (lhs: NSPredicate, rhs: NSPredicate) -> NSCompoundPredicate {
+        .and([lhs, rhs])
+    }
+    
+    static prefix func ! (predicate: NSPredicate) -> NSCompoundPredicate {
+        .not(predicate)
+    }
+}
+
 public extension NSCompoundPredicate {
     convenience init(and predicates: [NSPredicate]) {
         self.init(andPredicateWithSubpredicates: predicates)
