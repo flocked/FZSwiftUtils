@@ -163,6 +163,11 @@ public struct FileAttributes {
 
     /// The number of free nodes in the file system.
     public var systemFreeNodes: Int? { self[.systemFreeNodes] }
+    
+    /// The file’s extended attributes.
+    public var extendedAttributes: [String: Data]? {
+        self[.extendedAttributes]
+    }
 
     // MARK: Internal
 
@@ -199,4 +204,20 @@ public struct FileAttributes {
         try fileManager.setAttributes(attributes, ofItemAtPath: url.path)
         self.attributes = attributes
     }
+}
+
+extension FileManager {
+    /**
+     Returns the attributes for the item at the specific url.
+     
+     - Throws: If the attributes couldn't be loaded.
+     */
+    public func attributes(for url: URL) throws -> FileAttributes {
+        try FileAttributes(url: url, fileManager: self)
+    }
+}
+
+extension FileAttributeKey {
+    /// The key in a file attribute dictionary whose value indicates the file’s extended attributes.
+    public static let extendedAttributes = FileAttributeKey("NSFileExtendedAttributes")
 }

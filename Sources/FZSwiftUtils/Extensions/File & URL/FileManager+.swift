@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Accessibility
 
 public extension FileManager {
     /**
@@ -20,8 +21,8 @@ public extension FileManager {
             temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         }
         let folderName = ProcessInfo.processInfo.globallyUniqueString
-        let folderURL = temporaryDirectoryURL.appendingPathComponent(folderName)
-        try FileManager.default.createDirectory(at: folderURL, withIntermediateDirectories: true)
+        let folderURL = temporaryDirectoryURL.appendingPathComponent(folderName, isDirectory: true)
+        try createDirectory(at: folderURL, withIntermediateDirectories: true)
         return folderURL
     }
 
@@ -39,18 +40,22 @@ public extension FileManager {
         func trashItem(at url: URL) throws -> URL {
             var trashedFileURL: NSURL?
             try trashItem(at: url, resultingItemURL: &trashedFileURL)
-            guard let fileURL = trashedFileURL as? URL else {
+            guard let trashedFileURL = trashedFileURL as? URL else {
                 throw Errors.failedToMoveToTrash
             }
-            return fileURL
+            return trashedFileURL
         }
     
         /// An enumeration of file manager errors.
-        internal enum Errors: Error {
+        internal enum Errors: LocalizedError {
             /// The file couldn't be moved to the trash.
             case failedToMoveToTrash
-            /// The file doesn't exist.
-            case fileNotExisting
+            
+            var errorDescription: String? {
+                switch self {
+                case .failedToMoveToTrash: return "The file couldn't be moved to the trash."
+                }
+            }
         }
         #endif
 
@@ -79,8 +84,8 @@ public extension FileManager {
                 appSupportURL = url
             }
             guard let name = type == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
-            let directoryURL = appSupportURL.appendingPathComponent(name)
-            if FileManager.default.directoryExists(at: directoryURL) {
+            let directoryURL = appSupportURL.appendingPathComponent(name, isDirectory: true)
+            if directoryExists(at: directoryURL) {
                 return directoryURL
             } else if createIfNeeded {
                 do {
@@ -110,8 +115,8 @@ public extension FileManager {
      - Returns:`true` if a directory at the specified path exists, or `false` if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(atPath path: String) -> Bool {
-        var isDir: ObjCBool = true
-        return fileExists(atPath: path, isDirectory: &isDir)
+        var isDirectory: ObjCBool = false
+        return fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
     }
 
     /**
@@ -136,5 +141,106 @@ public extension FileManager {
      */
     func contentsEqual(at url1: URL, and url2: URL) -> Bool {
         contentsEqual(atPath: url1.path, andPath: url2.path)
+    }
+    
+    /**
+     Creates a file with the specified content and attributes at the specified url.
+     
+     - Parameters:
+        - url: The url of a file or directory to compare with the contents of `url2`.
+        - contents: A data containing the contents of the new file.
+        - attributes: A dictionary containing the attributes to associate with the new file. You can use these attributes to set the owner and group numbers, file permissions, and modification date.
+     - Returns: `true` if the operation was successful or if the item already exists, otherwise `false`.
+     
+     If you specify `nil` for the attributes parameter, this method uses a default set of values for the owner, group, and permissions of any newly created directories in the path. Similarly, if you omit a specific attribute, the default value is used. The default values for newly created files are as follows:
+     - Permissions are set according to the umask of the current process. For more information, see umask.
+     - The owner ID is set to the effective user ID of the process.
+     - The group ID is set to that of the parent directory.
+     
+     If a file already exists at the url, this method overwrites the contents of that file if the current process has the appropriate privileges to do so.
+     */
+    func createFile(at url: URL, contents: Data?, attributes: [FileAttributeKey:Any]? = nil) -> Bool {
+        return createFile(atPath: url.path, contents: contents, attributes: attributes)
+    }
+    
+    /**
+     Creates an alias file for the item at the specific url.
+     
+     - Parameters:
+        - srcURL: The url of the item to create an alias to.
+        - dstURL: The destination url for the alias file.
+     - Throws: If the alias file couldn't be created.
+     */
+    func createAlias(at srcURL: URL, to dstURL: URL) throws {
+        let bookmarkData = try srcURL.bookmarkData(options: [.suitableForBookmarkFile], includingResourceValuesForKeys: nil, relativeTo: nil)
+        try URL.writeBookmarkData(bookmarkData, to: dstURL)
+    }
+    
+    /// The handlers for the file manager.
+    var handlers: Handlers {
+        get { getAssociatedValue("handlers") ?? Handlers() }
+        set {
+            setAssociatedValue(newValue, key: "handlers")
+            _delegate = newValue.needsDelegate ? Delegate(for: self) : nil
+        }
+    }
+    
+    /// Handlers for a file manager.
+    struct Handlers {
+        /// The handler that determinates if a file should should move an item to the new url.
+        public var shouldMove: ((_ from: URL, _ to: URL)->Bool)?
+        /// The handler that determinates if a file should should copy an item to the new url.
+        public var shouldCopy: ((_ from: URL, _ to: URL)->Bool)?
+        /// The handler that determinates if a file should should remove an item.
+        public var shouldRemove: ((_ url: URL)->Bool)?
+        /// The handler that determinates if a hard link should be created between the items at the two urls.
+        public var shouldLink: ((_ url: URL, _ to: URL)->Bool)?
+        
+        var needsDelegate: Bool {
+            shouldMove != nil || shouldCopy != nil || shouldRemove != nil || shouldLink != nil
+        }
+    }
+    
+    private var _delegate: Delegate? {
+        get { getAssociatedValue("_delegate") }
+        set { setAssociatedValue(newValue, key: "handlers")  }
+    }
+    
+    private class Delegate: NSObject, FileManagerDelegate {
+        var observation: KeyValueObservation?
+        var delegate: FileManagerDelegate?
+        weak var fileManager: FileManager?
+        
+        
+        func fileManager(_ fileManager: FileManager, shouldMoveItemAt srcURL: URL, to dstURL: URL) -> Bool {
+            fileManager.handlers.shouldMove?(srcURL, dstURL) ?? delegate?.fileManager?(fileManager, shouldMoveItemAt: srcURL, to: dstURL) ?? true
+        }
+        
+        func fileManager(_ fileManager: FileManager, shouldCopyItemAt srcURL: URL, to dstURL: URL) -> Bool {
+            fileManager.handlers.shouldCopy?(srcURL, dstURL) ?? delegate?.fileManager?(fileManager, shouldCopyItemAt: srcURL, to: dstURL) ?? true
+        }
+        
+        func fileManager(_ fileManager: FileManager, shouldLinkItemAt srcURL: URL, to dstURL: URL) -> Bool {
+            fileManager.handlers.shouldLink?(srcURL, dstURL) ?? delegate?.fileManager?(fileManager, shouldLinkItemAt: srcURL, to: dstURL) ?? true
+        }
+        
+        func fileManager(_ fileManager: FileManager, shouldRemoveItemAt url: URL) -> Bool {
+            fileManager.handlers.shouldRemove?(url) ?? delegate?.fileManager?(fileManager, shouldRemoveItemAt: url) ?? true
+        }
+        
+        init(for fileManager: FileManager) {
+            super.init()
+            delegate = fileManager.delegate
+            fileManager.delegate = self
+            observation = fileManager.observeChanges(for: \.delegate) { [weak self] old, new in
+                guard let self = self, !(new is Delegate) else { return }
+                self.delegate = new
+                self.fileManager?.delegate = self
+            }
+        }
+        
+        deinit {
+            fileManager?.delegate = self
+        }
     }
 }

@@ -12,20 +12,43 @@ import Foundation
 #endif
 
 public extension URL {
-    /// Iterate files and folders.
+    /**
+     Iterate files and folders of the directory.
+          
+     Example:
+     ```swift
+     for url in folder.iterate().recursive {
+     
+     }
+     ```
+     
+     You can add the following to the returned sequence:
+     
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
+     */
     func iterate() -> URLSequence {
         URLSequence(url: self, predicate: { _,_,_ in true })
     }
 
     /**
-     Iterate files and folders that satisfy the given predicate.
-     
+     Iterate files and folders of the directory that satisfy the given predicate.
+          
      Example:
      ```swift
-     for url in folder.iterate { $0.lastPathComponent.contains("data") } {
+     for url in folder.iterate { $0.lastPathComponent.contains("data") }.recursive {
          
      }
      ```
+     
+     You can add the following to the returned sequence:
+          
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
 
      - Parameter predicate: A closure that takes an item url as its argument and returns a Boolean value indicating whether the url is a match.
      */
@@ -34,19 +57,26 @@ public extension URL {
     }
     
     /**
-     Iterate files and folders that satisfy the given predicate.
-     
+     Iterate files and folders of the directory that satisfy the given predicate.
+          
      Example:
      ```swift
      let urls = folder.iterate { url, level, skipDescendants in
         skipDescendants = url.lastPathComponent == "framework"
         return url.pathExtension == "swift"
-     }
+     }.recursive
      
      for url in urls {
      
      }
      ```
+     
+     You can add the following to the returned sequence:
+          
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      
      - Parameter predicate: The predicate that determinates whether to include the url in the sequence. It provides:
         - url: The current url.
@@ -58,10 +88,8 @@ public extension URL {
     }
     
     /**
-     Iterate files.
-     
-     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
-     
+     Iterate files of the directory.
+
      Example usage:
      
      ````swift
@@ -69,16 +97,22 @@ public extension URL {
      
      }
      ````
+     
+     You can add the following to the returned sequence:
+          
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      */
     func iterateFiles() -> URLSequence {
         iterate { $0.isFile }
     }
 
     /**
-     Iterate files with the specified file types.
+     Iterate files of the directory with the specified file types.
      
-     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
-     
+          
      Example usage:
      
      ````swift
@@ -86,7 +120,14 @@ public extension URL {
      
      }
      ````
-
+     
+     You can add the following to the returned sequence:
+          
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
+     
      - Parameter types: The file types to enumerate.
      */
     func iterateFiles(types: [FileType]) -> URLSequence {
@@ -96,10 +137,8 @@ public extension URL {
     }
 
     /**
-     Iterate files with the specified file UTTypes.
-     
-     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
-     
+     Iterate files of the directory with the specified content types.
+          
      Example usage:
      
      ````swift
@@ -107,6 +146,13 @@ public extension URL {
      
      }
      ````
+     
+     You can add the following to the returned sequence:
+          
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
 
      - Parameter contentTypes: The file content types to enumerate.
      */
@@ -118,10 +164,8 @@ public extension URL {
     }
 
     /**
-     Iterate files with the specified file extensions.
-     
-     To include files inside folders use ``URLSequence/recursive`` and to include hidden files use ``URLSequence/includingHidden``.
-     
+     Iterate files of the directory with the specified file extensions.
+          
      Example usage:
      
      ````swift
@@ -129,6 +173,11 @@ public extension URL {
      
      }
      ````
+     
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
 
      - Parameter extensions: The file extensions to enumerate.
      */
@@ -139,10 +188,8 @@ public extension URL {
     }
 
     /**
-     Iterate folders.
-     
-     To include folders inside folders use ``URLSequence/recursive`` and to include hidden folders use ``URLSequence/includingHidden``.
-     
+     Iterate folders of the directory.
+          
      Example usage:
      
      ````swift
@@ -150,12 +197,19 @@ public extension URL {
      
      }
      ````
+     
+     You can add the following to the returned sequence:
+          
+     - ``recursive``: Includes the contents of all subdirectories, recursively.
+     - ``recursive(maxDepth:)``: Includes subdirectory contents up to the specified depth.
+     - ``includingHidden``: Includes hidden files and directories.
+     - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      */
     func iterateFolders() -> URLSequence {
         iterate { $0.isDirectory }
     }
     
-    /// A sequence of urls.
+    /// A sequence of URLs.
     struct URLSequence: Sequence {
         let url: URL
         var predicate: (URL, Int, inout Bool) -> Bool
@@ -183,7 +237,7 @@ public extension URL {
             Iterator(self)
         }
         
-        /// Iterator of a url sequence.
+        /// Iterator of a URL sequence.
         public struct Iterator: IteratorProtocol {
             let predicate: (URL, Int, inout Bool) -> Bool
             let directoryEnumerator: FileManager.DirectoryEnumerator?
@@ -229,15 +283,17 @@ public extension URL {
 }
 
 extension URL.URLSequence {
-    /// Includes the contents of folders.
+    /// Includes the contents of all subdirectories, recursively.
     public var recursive: Self {
-        recursive(true)
+        var sequence = self
+        sequence.options.remove(.skipsSubdirectoryDescendants)
+        return sequence
     }
             
     /**
-     Includes the contents of folders upto the specified maximum depth.
+     Includes subdirectory contents up to the specified depth.
      
-     - Parameter maxDepth: The maximum depth of enumeration. A value of `0` enumerates files/folders only at the url level.
+     - Parameter maxDepth: The maximum directory depth to descend. A value of `0` includes only the top-level directory contents.
      */
     public func recursive(maxDepth: Int) -> Self {
         var sequence = recursive
@@ -245,100 +301,37 @@ extension URL.URLSequence {
         return sequence
     }
 
-    /// Includes all hidden files/folders.
+    /// Includes hidden files and directories.
     public var includingHidden: Self {
-        includingHidden(true)
+        var sequence = self
+        sequence.options.remove(.skipsHiddenFiles)
+        return sequence
     }
     
-    /// Includes the contents of packages.
-    public var includingPackageDescendants: Self {
-        includingPackageDescendants(true)
+    /// Includes the contents of package directories (e.g., .app, .bundle, etc.).
+    public var includingPackageContents: Self {
+        var sequence = self
+        sequence.options.remove(.skipsPackageDescendants)
+        return sequence
     }
     
-    /// Returns a new instance of the sequence that'll that will pre-fetch the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
-    public func includingProperties(for keys: [URLResourceKey]) -> Self {
+    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``resources`` property.
+    public func prefetchingProperties(_ keys: [URLResourceKey]) -> Self {
         var sequence = self
         let keys = keys.uniqued()
         sequence.resourceKeys = keys
         return sequence
     }
     
-    /// Returns a new instance of the sequence that'll traverse the folder's contents recursively.
-    public func recursive(_ recursive: Bool) -> Self {
-        var sequence = self
-        sequence.maxDepth = nil
-        sequence.options[.skipsSubdirectoryDescendants] = !recursive
-        return sequence
-    }
-    
-    /// Returns a new instance of the sequence that'll include all hidden all hidden (dot) files/folders.
-    public func includingHidden(_ include: Bool) -> Self {
-        var sequence = self
-        sequence.options[.skipsHiddenFiles] = !include
-        return sequence
-    }
-    
-    /// Returns a new instance of the sequence that'll treat packages like folders and will traverse their contents.
-    public func includingPackageDescendants(_ include: Bool) -> Self {
-        var sequence = self
-        sequence.options[.skipsPackageDescendants] = !include
-        return sequence
-    }
-    
-    /// The number of urls in the sequence.
+    /// The number of URLs in the sequence.
     public var count: Int {
         reduce(0) { count, _ in count + 1 }
     }
     
-    /// The maximum enumeration depth of the found urls.
+    /// The maximum enumeration depth of the found URLs.
     public var depth: Int {
         var iterator = makeIterator()
         while iterator.next() != nil { }
         return iterator.maximumLevel
-    }
-
-    /// Enumeration options.
-    public enum EnumerationOptions: Hashable {
-        /// Include hidden files/folders.
-        case includingHidden
-        ///  Treat packages like folders and will traverse their contents.
-        case includingPackageDescendants
-        /// Traverse the folder's contents recursively up to the specified maximum depth. A value of `0` enumerates files/folders only at the url level.
-        case recursive(maxDepth: Int?)
-        /// Traverse the folder's contents recursively.
-        public static var recursive: EnumerationOptions { .recursive(maxDepth: nil) }
-        
-        var depth: Int? {
-            switch self {
-            case .recursive(let value): return value
-            default: return nil
-            }
-        }
-        
-        var recursive: Bool {
-            switch self {
-            case .recursive: return true
-            default: return false
-            }
-        }
-    }
-    
-    /// Returns a new instance of the sequence with the specified enumeration options.
-    public func options(_ options: Set<EnumerationOptions>) -> Self {
-        var sequence = self
-        sequence.options[.skipsHiddenFiles] = !options.contains(.includingHidden)
-        sequence.options[.skipsPackageDescendants] = !options.contains(.includingPackageDescendants)
-        sequence.options[.skipsSubdirectoryDescendants] = !options.contains(where: {$0.recursive == true })
-        if let maxDepth = options.compactMap({$0.depth}).first {
-            sequence.maxDepth = maxDepth + 1
-        } else {
-            sequence.maxDepth = nil
-        }
-        return sequence
-    }
-    
-    /// Returns a new instance of the sequence with the specified enumeration options.
-    public func options(_ options: EnumerationOptions...) -> Self {
-        self.options(Set(options))
     }
 }

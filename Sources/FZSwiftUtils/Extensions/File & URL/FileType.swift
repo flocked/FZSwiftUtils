@@ -80,7 +80,7 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     /// Contact
     case contact
     /// Calendar event
-    case calender
+    case calendar
     /// Source Code
     case sourceCode
     /// GIF
@@ -90,8 +90,14 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
 
     /// Returns the type for the file at the specified url.
     public init?(url: URL) {
-        if url.pathExtension != "" || url.absoluteString.hasSuffix("/"), let fileType = FileType(fileExtension: url.pathExtension) {
+        if url.pathExtension != "" || url.hasDirectoryPath, let fileType = FileType(fileExtension: url.pathExtension) {
             self = fileType
+        } else if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
+            if let contentType = url.contentType, let fileType = FileType.allCases.first(where: { $0.identifier == contentType.identifier || contentType.conforms(to: $0.contentType!)}) {
+                self = fileType
+            } else {
+                return nil
+            }
         } else if let fileType = FileType(contentTypeTree: url.contentTypeIdentifierTree) {
             self = fileType
         } else {
@@ -120,7 +126,7 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
     /// Returns the type for the specified content type.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public init?(contentType: UTType) {
-        if let fileType = FileType.allCases.filter({$0.contentType != nil}).first(where: {contentType.conforms(to: $0.contentType!)}) {
+        if let fileType = FileType.allCases.first(where: { $0.identifier == contentType.identifier || contentType.conforms(to: $0.contentType!)}) {
             self = fileType
         } else if let fileExtension = contentType.preferredFilenameExtension {
             self = FileType.allCases.first(where: {$0.commonExtensions.contains(fileExtension)}) ?? .unknown(fileExtension)
@@ -138,16 +144,17 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
 public extension FileType {
     /// Returns the type for the specified content type identifier.
     init?(contentTypeIdentifier: String) {
-        guard let fileType = FileType.allCases.first(where: { $0.identifier == contentTypeIdentifier }) else {
+        if let fileType = FileType.allCases.first(where: { $0.identifier == contentTypeIdentifier }) {
+            self = fileType
+        } else {
             return nil
         }
-        self = fileType
     }
 
     /// Returns the type for the specified content type tree.
     init?(contentTypeTree: [String]) {
         let identifiers = FileType.allCases.compactMap(\.identifier)
-        if let identifier = contentTypeTree.first(where: { identifiers.contains($0) }), let fileType = FileType(contentTypeIdentifier: identifier) {
+        if let fileType = contentTypeTree.lazy.compactMap({ FileType(contentTypeIdentifier: $0) }).first {
             self = fileType
         } else {
             return nil
@@ -166,7 +173,7 @@ public extension FileType {
         case .archive: return "public.archive"
         case .spreadsheet: return "public.spreadsheet"
         case .audio: return "public.audio"
-        case .calender: return "public.calendar-event"
+        case .calendar: return "public.calendar-event"
         case .contact: return "public.contact"
         case .diskImage: return "public.disk-image"
         case .executable: return "public.executable"
@@ -228,7 +235,7 @@ public extension FileType {
             return ["iso", "dmg", "vmdk", "vhd", "img"]
         case .executable:
             return ["exe", "sh", "bat", "com", "bin"]
-        case .calender:
+        case .calendar:
             return ["ics", "ifb"]
         case .contact:
             return ["vcf", "vcard", "abbu"]
@@ -248,7 +255,7 @@ public extension FileType {
         case .application: return "Application"
         case .archive: return "Archive"
         case .audio: return "Audio"
-        case .calender: return "Calendar"
+        case .calendar: return "Calendar"
         case .contact: return "Contact"
         case .diskImage: return "DiskImage"
         case .document: return "Document"
@@ -280,9 +287,9 @@ public extension FileType {
 
     /// All file types.
     static let allCases: [FileType] = [
-        .audio, .video, .image, .pdf, .document, .spreadsheet, .presentation, .text,
+        .audio, .video, .gif, .image, .pdf, .document, .spreadsheet, .presentation, .text,
         .archive, .aliasFile, .symbolicLink, .folder, .application, .executable,
-        .diskImage, .font, .contact, .calender, .sourceCode, .gif
+        .diskImage, .font, .contact, .calendar, .sourceCode
     ]
 
     /// All multimedia file types (`audio`, `video`, `image` and `gif`).

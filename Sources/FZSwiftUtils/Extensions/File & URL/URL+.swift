@@ -22,9 +22,9 @@ public extension URL {
      
      - Parameters:
        - filePath: The location in the file system.
-       - directoryHint: A hint indicating whether the file path represents a directory or a file.
        - relativeTo: A URL that provides a file system location that the path extends.
      */
+    @_disfavoredOverload
     static func file(_ path: String, relativeTo base: URL? = nil) -> URL {
         URL(fileURLWithPath: path, relativeTo: base)
     }
@@ -40,7 +40,7 @@ public extension URL {
      If `base` is provided, the file path will be resolved relative to this base URL.
      */
     @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
-    static func file(_ path: String, directoryHint: DirectoryHint, relativeTo base: URL? = nil) -> URL {
+    static func file(_ path: String, directoryHint: DirectoryHint = .inferFromPath, relativeTo base: URL? = nil) -> URL {
         URL(filePath: path, directoryHint: directoryHint, relativeTo: base)
     }
     
@@ -94,13 +94,54 @@ public extension URL {
      
      - Parameters:
         - url: The bookmark data used to construct a URL.
-        - options: Options taken into account when resolving the bookmark data. To resolve a security-scoped bookmark to support App Sandbox, include the `withSecurityScope option.
+        - options: Options taken into account when resolving the bookmark data. To resolve a security-scoped bookmark to support App Sandbox, include the `withSecurityScope` option.
         - url: The base URL that the bookmark data is relative to. If you’re resolving a security-scoped bookmark to obtain a security-scoped URL, use this parameter as follows: To resolve an app-scoped bookmark, use a value of nil. To resolve a document-scoped bookmark, use the absolute path (despite this parameter’s name) to the document from which you retrieved the bookmark.
      App Sandbox doesn’t restrict which URL values you can pass to this parameter.
         - bookmarkDataIsStale: On return, if `true`, the bookmark data is stale. Your app should create a new bookmark using the returned URL and use it in place of any stored copies of the existing bookmark.
      */
     static func bookmarkData(_ data: Data, options: URL.BookmarkResolutionOptions = [], relativeTo url: URL? = nil, bookmarkDataIsStale: inout Bool) throws -> URL {
         try URL(resolvingBookmarkData: data, options: options, relativeTo: url, bookmarkDataIsStale: &bookmarkDataIsStale)
+    }
+    
+    /// Returns a URL constructed by changing the path extension.
+    func pathExtension(_ pathExtension: String) -> URL {
+        deletingPathExtension().appendingPathExtension(pathExtension)
+    }
+    
+    /**
+     Returns a URL constructed by changing the last path component.
+     
+     - Parameters:
+        - pathComponent: The new path component.
+        - includePathExtension: A Boolean value indicating whether the path extension should also be changed.
+     */
+    @_disfavoredOverload
+    func lastPathComponent(_ pathComponent: String, includePathExtension: Bool = true) -> URL {
+        let pathExtension = pathExtension
+        let url = deletingLastPathComponent().appendingPathComponent(pathComponent)
+        return includePathExtension ? url : url.appendingPathExtension(pathExtension)
+    }
+    
+    /**
+     Returns a URL constructed by changing the last path component.
+     
+     - Parameters:
+        - pathComponent: The new path component.
+        - directoryHint: A hint indicating whether the new path component represents a directory or a file.
+     */
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    func lastPathComponent(_ pathComponent: String, directoryHint: DirectoryHint = .inferFromPath) -> URL  {
+        deletingLastPathComponent().appending(path: pathComponent, directoryHint: directoryHint)
+    }
+    
+    /// Appends the path components to the URL.
+    mutating func appendPathComponents(_ pathComponents: [String]) {
+        pathComponents.forEach({ appendPathComponent($0) })
+    }
+    
+    /// Returns a URL by appending the specified path components to self.
+    func appendingPathComponents(_ pathComponents: [String]) -> URL {
+        pathComponents.reduce(self) { $0.appendingPathComponent($1) }
     }
 
     ///  A Boolean value indicating whether the resource is a directory.
@@ -121,11 +162,7 @@ public extension URL {
      - Parameter amount: The number of path components to remove.
      */
     func deletingLastPathComponents(amount: Int) -> URL {
-        var url = self
-        for _ in 0..<amount {
-            url = url.deletingLastPathComponent()
-        }
-        return url
+        pathComponents.reduce(self) { url,_ in url.deletingLastPathComponent() }
     }
     
     /**
@@ -136,8 +173,17 @@ public extension URL {
      - Parameter amount: The number of path components to remove.
      */
     mutating func deleteLastPathComponents(amount: Int) {
-        for _ in 0..<amount {
-            deleteLastPathComponent()
+        (0..<amount).forEach({ _ in deleteLastPathComponent() })
+    }
+    
+    /// The path component at the specific index.
+    subscript(pathComponent index: Int) -> String? {
+        get { pathComponents[safe: index]}
+        set {
+            var pathComponents = pathComponents
+            guard index < pathComponents.count else { return }
+            pathComponents[safe: index] = newValue
+            (index..<pathComponents.count).forEach({_ in deleteLastPathComponent() })
         }
     }
     
@@ -167,7 +213,7 @@ public extension URL {
 
     ///  A Boolean value indicating whether the resource exist.
     var exists: Bool {
-        FileManager.default.fileExists(atPath: path)
+        FileManager.default.fileExists(at: self)
     }
 
     /**
