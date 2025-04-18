@@ -584,18 +584,15 @@ extension TimeDuration: CustomStringConvertible {
      
      // "03:50:32"
      duration.timecodeString()
-     
      // "03:50:32,44"
      duration.timecodeString(subsecondsPrecision: 2)
-     
      // "230:32"
      duration.timecodeString(showHours: false)
-     
      // "13832"
-     duration.timecodeString(showMinutes: false, showHours: false)
+     duration.timecodeString(showHours: false, showMinutes: false)
      ```
      */
-    public func timecodeString(showHours: Bool = true, showMinutes: Bool = true, showSeconds: Bool = true, showSubseconds: Bool = false, subsecondsPrecision: Int = 2, separator: String = ":", subsecondSeparator: String = ",") -> String {
+    public func timecodeString(showHours: Bool = true, showMinutes: Bool = true, showSeconds: Bool = true, subsecondsPrecision: Int = 2, separator: String = ":", subsecondSeparator: String = ",") -> String {
         let totalSeconds = Int(seconds)
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
@@ -626,7 +623,7 @@ extension TimeDuration: CustomStringConvertible {
 
         var timecode = components.joined(separator: separator)
 
-        if showSubseconds && subsecondsPrecision > 0 {
+        if subsecondsPrecision > 0 {
             let factor = pow(10.0, Double(subsecondsPrecision))
             let fractional = Int((subseconds * factor).rounded())
             let formatted = String(format: "%0*d", subsecondsPrecision, fractional)
