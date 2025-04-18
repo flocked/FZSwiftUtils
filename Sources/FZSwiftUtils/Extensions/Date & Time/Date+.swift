@@ -60,7 +60,7 @@ public extension Date {
      
      - Returns: `true` if the specified component of the date is the same as the corresponding component in the other date; otherwise, `false`.
      */
-    func isSame(_ component: Calendar.Component, as date: Date, in calendar: Calendar = .current) -> Bool {
+    func isInSame(_ component: Calendar.Component, as date: Date, in calendar: Calendar = .current) -> Bool {
         calendar.isDate(self, equalTo: date, toGranularity: component)
     }
     
@@ -74,7 +74,7 @@ public extension Date {
      - Returns: `true` if the date is in the current specified component; otherwise, `false`.
      */
     func isInCurrent(_ component: Calendar.Component, calendar: Calendar = .current) -> Bool {
-        calendar.isDate(self, equalTo: Date(), toGranularity: component)
+        isInSame(component, as: Date(), in: calendar)
     }
     
     /// Compares the date to another date by the specified component.
@@ -109,8 +109,7 @@ public extension Date {
     
     /// A Boolean value indicating whether the date is a workday (Monday to Friday).
     func isWorkday(calendar: Calendar = .current) -> Bool {
-        let weekday = calendar.component(.weekday, from: self)
-        return !(weekday == 1 || weekday == 7) // 1 = Sunday, 7 = Saturday
+        !calendar.isDateInWeekend(self)
     }
     
     
@@ -125,10 +124,7 @@ public extension Date {
      - Returns: `true` if the date is between `date1` and `date2`, inclusive; otherwise, `false`.
      */
     func isBetween(_ date1: Date, _ date2: Date) -> Bool {
-        if date1 == date2 {
-            return self == date1
-        }
-        return DateInterval(start: (date1 < date2) ? date1 : date2, end: (date1 < date2) ? date2 : date1).contains(self)
+        return self >= min(date1, date2) && self <= max(date1, date2)
     }
 
     /**
@@ -360,7 +356,7 @@ public extension Date {
         case let .sameDay(date):
             return lhs.isSameDay(as: date)
         case .same(let component, let date):
-            return lhs.isSame(component, as: date)
+            return lhs.isInSame(component, as: date)
         }
         return lhs.isBetween(from, to)
     }

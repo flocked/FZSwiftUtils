@@ -93,3 +93,77 @@ public extension DispatchWallTime {
         self = DispatchWallTime(timespec: timespec(tv_sec: seconds, tv_nsec: nanoseconds))
     }
 }
+
+/*
+public struct Dispatch {
+    public static var main: Queue {
+        Queue(.main)
+    }
+    
+    public static var background: Queue {
+        Queue(.global(qos: .background))
+    }
+    
+    public static var userInteractive: Queue {
+        Queue(.global(qos: .userInteractive))
+    }
+    
+    public static var userInitiated: Queue {
+        Queue(.global(qos: .userInitiated))
+    }
+    
+    public static var utility: Queue {
+        Queue(.global(qos: .utility))
+    }
+    
+    public struct Queue {
+        let queue: DispatchQueue
+        
+        init(_ queue: DispatchQueue) {
+            self.queue = queue
+        }
+        
+        public func callAsFunction(execute: @escaping ()->()) {
+            queue.async(execute: execute)
+        }
+        
+        public func sync(execute: DispatchWorkItem) {
+            queue.sync(execute: execute)
+        }
+        
+        public func sync(execute block: () -> Void) {
+            queue.sync(execute: block)
+        }
+        
+        public func asyncAndWait(execute block: () -> Void) {
+            queue.asyncAndWait(execute: block)
+        }
+        
+        public func after(_ timeInterval: TimeInterval, execute: DispatchWorkItem) {
+            queue.asyncAfter(timeInterval, execute: execute)
+        }
+        
+        @_disfavoredOverload
+        public func after(_ timeDuration: TimeDuration, execute: DispatchWorkItem) {
+            queue.asyncAfter(timeDuration, execute: execute)
+        }
+        
+        public func after(_ timeInterval: TimeInterval, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute: @escaping @Sendable ()->()) {
+            queue.asyncAfter(timeInterval, qos: qos, flags: flags, execute: execute)
+        }
+        
+        @_disfavoredOverload
+        public func after(_ timeDuration: TimeDuration, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute: @escaping @Sendable ()->()) {
+            queue.asyncAfter(timeDuration, qos: qos, flags: flags, execute: execute)
+        }
+        
+        public func async(at date: Date, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
+            queue.async(at: date, qos: qos, flags: flags, execute: work)
+        }
+        
+        public func async(at date: Date,  execute: DispatchWorkItem) {
+            queue.async(at: date, execute: execute)
+        }
+    }
+}
+*/

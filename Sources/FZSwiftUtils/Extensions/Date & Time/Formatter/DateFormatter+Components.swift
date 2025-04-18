@@ -15,7 +15,7 @@ public extension DateFormatter {
      
      ```swift
      // yyyy-MM-dd HH:mm
-     DateFormatter(.year, "-", .month, "-", .day, " ", .hour, ":", .minute)
+     DateFormatter(components: .year, "-", .month, "-", .day, " ", .hour, ":", .minute)
      ```
 
      - Parameter components: The components of the date formatter.
@@ -122,7 +122,7 @@ public extension DateFormatter {
     }
 }
 
-
+/*
 public extension DateFormatter {
     /**
      Creates a date formatter with the specified components block.
@@ -296,3 +296,4 @@ public extension DateFormatter {
         }
     }
 }
+*/
