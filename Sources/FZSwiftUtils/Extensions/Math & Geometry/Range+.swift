@@ -208,6 +208,11 @@ public extension ClosedRange where Bound: BinaryInteger {
     var nsRange: NSRange {
         NSRange(location: Int(lowerBound), length: Int(upperBound - lowerBound + 1))
     }
+    
+    /// The value at the midpoint between the lower and upper bounds, using integer division.
+    var center: Bound {
+        (lowerBound + upperBound) / 2
+    }
 }
 
 public extension ClosedRange where Bound: BinaryInteger, Bound.Stride: SignedInteger {
@@ -244,6 +249,11 @@ public extension ClosedRange where Bound: BinaryFloatingPoint {
             lowerBound + Bound(i) * step
         }
     }
+    
+    /// The value at the midpoint between the lower and upper bounds, using integer division.
+    var center: Bound {
+        (lowerBound + upperBound) / 2
+    }
 }
 
 public extension Range where Bound: BinaryInteger {
@@ -270,6 +280,11 @@ public extension Range where Bound: BinaryInteger {
     /// `NSRange` representation of the range.
     var nsRange: NSRange {
         NSRange(location: Int(lowerBound), length: Int(upperBound - lowerBound))
+    }
+    
+    /// The value at the midpoint between the lower and upper bounds, using integer division.
+    var center: Bound {
+        (lowerBound + upperBound) / 2
     }
 }
 
@@ -301,6 +316,11 @@ public extension Range where Bound: BinaryFloatingPoint {
              lowerBound + Bound(i) * step
          }
      }
+    
+    /// The value at the midpoint between the lower and upper bounds, using integer division.
+    var center: Bound {
+        (lowerBound + upperBound) / 2
+    }
 }
 
 public extension Sequence<ClosedRange<Int>> {
