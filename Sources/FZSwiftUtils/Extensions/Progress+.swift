@@ -8,7 +8,6 @@
 import Foundation
 
 extension Progress {
-    
     /// The identifier of the progress.
     public var identifier: Any? {
         get { getAssociatedValue("identifier") }
@@ -160,4 +159,25 @@ extension Progress {
         set { setAssociatedValue(newValue, key: "isPublished") }
     }
     #endif
+    
+    /// Sets the number of completed units of work for the current job.
+    @discardableResult
+    public func completedUnitCount(_ count: Int64) -> Self {
+        completedUnitCount = count
+        return self
+    }
+    
+    /// Sets the total number of tracked units of work for the current progress.
+    @discardableResult
+    public func totalUnitCount(_ count: Int64) -> Self {
+        totalUnitCount = count
+        return self
+    }
+    
+    /// Sets the fraction of the work that the progress has completed.
+    @discardableResult
+    public func fractionCompleted(_ value: Double) -> Self {
+        completedUnitCount = Int64(value.clamped(max: 1.0) * Double(totalUnitCount))
+        return self
+    }
 }
