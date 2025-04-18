@@ -165,11 +165,11 @@ public struct TimeDuration: Hashable, Sendable, Codable {
     }
 
     func value(for unit: Unit) -> Double {
-        seconds / unit.calendarComponent.timeInterval!
+        unit.value(for: seconds)
     }
 
     func seconds(for value: Double, _ unit: Unit) -> Double {
-        unit.convert(value, to: .second)
+        unit.seconds(for: value)
     }
 }
 
@@ -307,7 +307,7 @@ public extension TimeDuration {
     ///  Enumeration representing different duration time units.
     enum Unit: Int, CaseIterable {
         /// Nanosecond
-        case nanoSecond = 0
+        case nanoSecond
         /// Millisecond
         case millisecond
         /// Second
@@ -324,6 +324,32 @@ public extension TimeDuration {
         case month
         /// Year
         case year
+        
+        private var secondsPerUnit: Double {
+            switch self {
+            case .nanoSecond: return 1e-9
+            case .millisecond: return 1e-3
+            case .second: return 1
+            case .minute: return 60
+            case .hour: return 3600
+            case .day: return 86400
+            case .week: return 604800
+            case .month: return 2629746
+            case .year: return 31557600
+            }
+        }
+
+        func value(for seconds: Double) -> Double {
+            seconds / secondsPerUnit
+        }
+
+        func seconds(for value: Double) -> Double {
+            value * secondsPerUnit
+        }
+        
+        func convert(_ value: Double, to target: Unit) -> Double {
+            target.value(for: seconds(for: value))
+        }
 
         var calendarComponent: Calendar.Component {
             switch self {
@@ -337,12 +363,6 @@ public extension TimeDuration {
             case .month: return .month
             case .year: return .year
             }
-        }
-
-        func convert(_ number: Double, to targetUnit: Unit) -> Double {
-            let factor: Double = 60
-            let conversionFactor = pow(factor, Double(rawValue - targetUnit.rawValue))
-            return number * conversionFactor
         }
     }
 
@@ -402,19 +422,10 @@ public extension TimeDuration {
         }
 
         func units(for duration: TimeDuration) -> [TimeDuration.Unit] {
-            var units: [TimeDuration.Unit] = []
-            for unitCase in Self.allCases {
-                if let unit = unitCase.unit {
-                    if contains(unitCase) {
-                        units.append(unit)
-                    }
-                }
-            }
-            if self == .allDetailed {
-                units.append(contentsOf: elements().compactMap(\.unit).collect())
-            }
-            if contains(.all) { units.append(contentsOf: duration.preferredUnits(compact: false)) }
-            if contains(.allCompact) { units.append(contentsOf: duration.preferredUnits(compact: true)) }
+            var units = Self.allCases.compactMap { contains($0) ? $0.unit : nil }
+            if self == .allDetailed { units += elements().compactMap(\.unit) }
+            if contains(.all) { units += duration.preferredUnits(compact: false) }
+            if contains(.allCompact) { units += duration.preferredUnits(compact: true) }
             units = units.uniqued()
             return units
         }
@@ -520,39 +531,108 @@ extension TimeDuration: CustomStringConvertible {
         let formatter = DateComponentsFormatter()
         formatter.allowedComponents = allowedUnits.compactMap(\.calendarComponent).uniqued()
         formatter.unitsStyle = style
-        if locale != .current {
-            formatter.calendar = .current
-            formatter.calendar?.locale = locale
-        }
-        return formatter.string(from: TimeInterval(seconds))!
+        formatter.locale = locale
+        return formatter.string(from: seconds)!
     }
     
     /**
-     A timecode string representation of the time duration.
+     Returns a string representation of the time duration using the specified allowed time units and style.
+     
+     Example usage:
+
+     ```swift
+     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+     
+     // "182min 1sec"
+     duration.relativeString(allowedUnits: [.minute, .second], style: .brief)
+     
+     // "3 hours, 2 minutes, 1 second"
+     duration.string(allowedUnits: .all, style: .full)
+     ```
+     
+     - Parameters:
+        - inPast: A Boolean value indicating whether the duration should be interpreted as occurring in the past (e.g. "2 hours ago") or in the future (e.g "in 2 hours").
+        - dateTimeStyle: The style to use when describing a relative date, for example “yesterday” or “1 day ago”.
+        - unitsStyle: The unit style (e.g. “1 day ago” or “one day ago”).
+        - locale: The language of the string.
+
+     - Returns: A string representation of the time duration.
+     */
+    public func relativeString(inPast: Bool = false, dateTimeStyle: RelativeDateTimeFormatter.DateTimeStyle = .numeric, unitsStyle: RelativeDateTimeFormatter.UnitsStyle  = .full, locale: Locale = .current) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.dateTimeStyle = dateTimeStyle
+        formatter.unitsStyle = unitsStyle
+        formatter.locale = locale
+        return formatter.localizedString(fromTimeInterval: seconds)
+    }
+    
+    /**
+     A timecode string representation of the duration (e.g. "03:50:32").
 
      - Parameters:
-        - includingSeconds: A Boolean value indicating whether the string should include seconds.
-        - precision: The amount of digits after the seconds decimal separator.
-     */
-    public func timecodeString(includingSeconds: Bool = true, precision: Int = 0) -> String {
-        let h = Int(seconds) / 3600
-        let m = (Int(seconds) % 3600) / 60
-        
-        let h_ = h > 0 ? "\(h):" : ""
-        let m_ = m < 10 ? "0\(m)" : "\(m)"
-        let s_: String
+       - showHours: Whether to include the hours component in the output.
+       - showMinutes: Whether to include the minutes component in the output.
+       - showSeconds: Whether to include the seconds component in the output.
+       - subsecondsPrecision: Number of digits to include after the separator for fractional seconds. Set to `0` to hide fractional seconds.
+       - separator: The string used to separate hours, minutes, and seconds.
+       - subsecondSeparator: The string used to separate the seconds and fractional seconds.
 
-        guard includingSeconds else {
-            return h_ + m_
-        }
+     - Returns: A formatted string representing the timecode.
+
+     ```swift
+     let duration = .seconds(13832.44)
+     
+     // "03:50:32"
+     duration.timecodeString()
+     
+     // "03:50:32,44"
+     duration.timecodeString(subsecondsPrecision: 2)
+     
+     // "230:32"
+     duration.timecodeString(showHours: false)
+     
+     // "13832"
+     duration.timecodeString(showMinutes: false, showHours: false)
+     ```
+     */
+    public func timecodeString(showHours: Bool = true, showMinutes: Bool = true, showSeconds: Bool = true, showSubseconds: Bool = false, subsecondsPrecision: Int = 2, separator: String = ":", subsecondSeparator: String = ",") -> String {
+        let totalSeconds = Int(seconds)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let secs = totalSeconds % 60
+        let subseconds = seconds - Double(totalSeconds)
         
-        if precision >= 1 {
-          s_ = String(format: "%0\(precision + 3).\(precision)f", fmod(seconds, 60))
-        } else {
-            let s = (Int(seconds) % 3600) % 60
-            s_ = s < 10 ? "0\(s)" : "\(s)"
+        var components: [String] = []
+
+        if showHours {
+            components.append(String(format: "%02d", hours))
         }
-        return h_ + m_ + ":" + s_
+
+        if showMinutes {
+            if !showHours {
+                components.append(String(format: "%02d", minutes + hours * 60))
+            } else {
+                components.append(String(format: "%02d", minutes))
+            }
+        }
+
+        if showSeconds {
+            if !showHours && !showMinutes {
+                components.append(String(format: "%02d", secs + minutes * 60 + hours * 3600))
+            } else {
+                components.append(String(format: "%02d", secs))
+            }
+        }
+
+        var timecode = components.joined(separator: separator)
+
+        if showSubseconds && subsecondsPrecision > 0 {
+            let factor = pow(10.0, Double(subsecondsPrecision))
+            let fractional = Int((subseconds * factor).rounded())
+            let formatted = String(format: "%0*d", subsecondsPrecision, fractional)
+            timecode += subsecondSeparator + formatted
+        }
+        return timecode
     }
 
     func allCurrentUnits() -> [Unit] {

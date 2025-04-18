@@ -35,4 +35,15 @@ public extension RelativeDateTimeFormatter {
         unitsStyle = style
         return self
     }
+    
+    /**
+     Formats the specified time duration using the formatter’s calendar.
+     
+     - Parameters:
+        - timeDuration:
+        - inPast: A Boolean value indicating whether the duration should be interpreted as occurring in the past (e.g. "2 hours ago") or in the future (e.g "in 2 hours").
+     */
+    func localizedString(for timeDuration: TimeDuration, inPast: Bool) {
+        localizedString(fromTimeInterval: inPast ? -timeDuration.seconds : timeDuration.seconds)
+    }
 }
