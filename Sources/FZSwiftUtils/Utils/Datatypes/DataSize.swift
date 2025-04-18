@@ -340,20 +340,6 @@ extension DataSize: CustomStringConvertible {
     public var description: String {
         string(includesActualByteCount: true)
     }
-
-    /**
-     A string representation of the data size that includes the units.
-     
-     Example usage:
-
-     ```swift
-     let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
-     dataSize.string // "1 GB"
-     ```
-     */
-    public var string: String {
-        string()
-    }
         
     /**
      A detailed string representation of the data size that includes the units.
@@ -369,30 +355,34 @@ extension DataSize: CustomStringConvertible {
      ```
      
      - Parameters:
-        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.  The default value is `false`.
-        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string. The default value is `false`.
+        - unitStyle: The unit style. Specify `none` to not include the unit.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
+        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string.
+        - locale: The locale of the string.
 
      - Returns: A detailed string representation of the data size.
      */
-    public func stringDetailed(includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false) -> String {
+    public func stringDetailed(unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, locale: Locale = .current) -> String {
+        string(for: largestUnit, unitStyle: unitStyle, zeroPadsFractionDigits: zeroPadsFractionDigits, locale: locale)
+    }
+    
+    private var largestUnit: Unit {
         if yottabytes >= 1 {
-            return string(for: .zettabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .yottabyte
         } else if zettabytes >= 1 {
-            return string(for: .exabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .zettabyte
         } else if exabytes >= 1 {
-            return string(for: .petabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .exabyte
         } else if petabytes >= 1 {
-            return string(for: .terabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .petabyte
         } else if terabytes >= 1 {
-            return string(for: .gigabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .terabyte
         } else if gigabytes >= 1 {
-            return string(for: .megabyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .gigabyte
         } else if megabytes >= 1 {
-            return string(for: .kilobyte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
-        } else {
-            return string(for: .byte, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits)
+            return .megabyte
         }
+        return .byte
     }
 
     /**
@@ -409,14 +399,15 @@ extension DataSize: CustomStringConvertible {
      
      - Parameters:
         - unit: The unit to use for formatting the data size.
-        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.  The default value is `false`.
-        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string. The default value is `false`.
+        - unitStyle: The unit style. Specify `none` to not include the unit.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
+        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string.
+        - locale: The locale of the string.
 
      - Returns: A string representation of the data size.
      */
-    public func string(for unit: Unit, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false) -> String {
-        string(allowedUnits: unit.byteCountFormatterUnit, includesUnit: includesUnit, zeroPadsFractionDigits: zeroPadsFractionDigits, includesActualByteCount: includesActualByteCount)
+    public func string(for unit: Unit, unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false, locale: Locale = .current) -> String {
+        string(allowedUnits: unit.byteCountFormatterUnit, unitStyle: unitStyle, zeroPadsFractionDigits: zeroPadsFractionDigits, includesActualByteCount: includesActualByteCount)
     }
 
     /**
@@ -432,20 +423,38 @@ extension DataSize: CustomStringConvertible {
      ```
 
      - Parameters:
-        - allowedUnits: The allowed units for formatting the data size. The default value is `useAll`.
-        - includesUnit: A Boolean value indicating whether to include the unit in the string representation. The default value is `true`.
-        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.  The default value is `false`.
-        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string. The default value is `false`.
+        - allowedUnits: The allowed units for formatting the data size.
+        - unitStyle: The unit style. Specify `none` to not include the unit.
+        - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
+        - includesActualByteCount: A Boolean value indicating whether to include the number of bytes after the formatted string.
+        - locale: The locale of the string.
 
      - Returns: A string representation of the data size.
      */
-    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, includesUnit: Bool = true, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false) -> String {
-        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: countStyle)
-        formatter.allowedUnits = allowedUnits
-        formatter.includesUnit = includesUnit
+    public func string(allowedUnits: ByteCountFormatter.Units = .useAll, unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false, locale: Locale = .current) -> String {
+        let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: countStyle)
+        formatter.includesUnit = unitStyle != .none
         formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
+        formatter.locale = locale
+        formatter.unitStyle = unitStyle.formatter
         return formatter.string(fromByteCount: Int64(bytes))
+    }
+    
+    /// The unit style for a string representation of the data size.
+    public enum UnitStyle: Int {
+        /// No unit.
+        case none
+        /// Short (e.g. `KB`, `TB`… )
+        case short
+        /// Medium (e.g. `kByte`, `TByte`… )
+        case medium
+        /// Long (e.g. `kilobytes`, `terabytes`… )
+        case long
+        
+        var formatter: Formatter.UnitStyle {
+            self != .none ? .init(rawValue: rawValue)! : .short
+        }
     }
 }
 

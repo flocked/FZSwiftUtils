@@ -75,78 +75,169 @@ public extension ByteCountFormatter {
         self.zeroPadsFractionDigits = zeroPadsFractionDigits
         return self
     }
-
+    
     /**
-     Returns the localized string representation of the given `Measurement` object.
-
-     - Parameter measurement: The `Measurement` object representing the byte count.
-     - Parameter locale: The locale to use for localization.
-     - Returns: The localized string representation of the byte count.
+     The locale of the formatter.
+     
+     The default value is `current`.
      */
-    func localizedString(from measurement: Measurement<UnitInformationStorage>, locale: Locale) -> String {
-        let string = string(from: measurement)
-        return localizedString(string, locale: locale)
-    }
-
-    /**
-     Returns the localized string representation of the given byte count.
-
-     - Parameter byteCount: The byte count.
-     - Parameter locale: The locale to use for localization.
-     - Returns: The localized string representation of the byte count.
-     */
-    func localizedString(fromByteCount byteCount: Int64, locale: Locale) -> String {
-        let string = string(fromByteCount: byteCount)
-        return localizedString(string, locale: locale)
-    }
-
-    /**
-     Returns the localized string representation of the given object.
-
-     - Parameter obj: The object to format.
-     - Parameter locale: The locale to use for localization.
-     - Returns: The localized string representation of the object.
-     */
-    func localizedString(for obj: Any?, locale: Locale) -> String? {
-        let string = string(for: obj)
-        if let string = string {
-            return localizedString(string, locale: locale)
+    var locale: Locale {
+        get { getAssociatedValue("locale") ?? .current }
+        set {
+            guard newValue != locale else { return }
+            setAssociatedValue(newValue, key: "locale")
+            swizzle(!(locale == .current && unitStyle == .short))
         }
-        return string
     }
-
+    
     /**
-     Returns the localized string by replacing unit descriptions in the given string.
-
-     - Parameter string: The original string.
-     - Parameter locale: The locale to use for localization.
-     - Returns: The localized string with replaced unit descriptions.
+     Sets the locale of the formatter.
+     
+     The default value is `current`.
      */
-    internal func localizedString(_ string: String, locale: Locale) -> String {
-        var string = string
-        if includesUnit {
-            let englishDescriptions = localizedDescriptions(for: locale)
-            let localizedDescriptions = localizedDescriptions(for: locale)
-            for (index, description) in localizedDescriptions.indexed() {
-                string = string.replacingOccurrences(of: englishDescriptions[index], with: description)
+    @discardableResult
+    func locale(_ locale: Locale) -> Self {
+        self.locale = locale
+        return self
+    }
+    
+    /**
+     The unit style.
+     
+     The default value is `short`.
+     */
+    var unitStyle: Formatter.UnitStyle {
+        get { getAssociatedValue("unitStyle") ?? .short }
+        set {
+            guard newValue != unitStyle else { return }
+            setAssociatedValue(newValue, key: "unitStyle")
+            swizzle(!(locale == .current && unitStyle == .short))
+        }
+    }
+    
+    /**
+     Sets the unit style.
+     
+     The default value is `short`.
+     */
+    @discardableResult
+    func unitStyle(_ style: Formatter.UnitStyle) -> Self {
+        unitStyle = style
+        return self
+    }
+}
+
+private extension ByteCountFormatter {
+    func swizzle(_ shouldSwizzle: Bool) {
+        let isReplaced = isMethodReplaced(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
+        if shouldSwizzle, !isReplaced {
+            do {
+                try replaceMethod(
+                    #selector(ByteCountFormatter.string(for:)),
+                    methodSignature: (@convention(c)  (AnyObject, Selector, Any?) -> (String?)).self,
+                    hookSignature: (@convention(block)  (AnyObject, Any?) -> (String?)).self) { store in {
+                        object, obj in
+                        (object as? ByteCountFormatter)?.localizedString(for: obj) ?? store.original(object, #selector(ByteCountFormatter.string(for:)), obj)
+                    }
+                    }
+                try replaceMethod(
+                    #selector(ByteCountFormatter.string(fromByteCount:)),
+                    methodSignature: (@convention(c)  (AnyObject, Selector, Int64) -> (String)).self,
+                    hookSignature: (@convention(block)  (AnyObject, Int64) -> (String)).self) { store in {
+                        object, byteCount in
+                        (object as? ByteCountFormatter)?.localizedString(fromByteCount: byteCount) ?? store.original(object, #selector(ByteCountFormatter.string(fromByteCount:)), byteCount)
+                    }
+                    }
+                try replaceMethod(
+                    #selector(ByteCountFormatter.string(from:)),
+                    methodSignature: (@convention(c)  (AnyObject, Selector, Measurement<UnitInformationStorage>) -> (String)).self,
+                    hookSignature: (@convention(block)  (AnyObject, Measurement<UnitInformationStorage>) -> (String)).self) { store in {
+                        object, measurement in
+                        (object as? ByteCountFormatter)?.localizedString(from: measurement) ??  store.original(object, #selector(ByteCountFormatter.string(from:)), measurement)
+                    }
+                    }
+            } catch {
+                debugPrint(error)
             }
+        } else if isReplaced {
+            resetMethod(#selector(ByteCountFormatter.string(for:)))
+            resetMethod(#selector(ByteCountFormatter.string(fromByteCount:)))
+            resetMethod(#selector(ByteCountFormatter.string(from:)))
         }
-        return string
+    }
+    
+    func localizedString(fromByteCount count: Int64) -> String? {
+        guard needsLocalized else { return nil }
+        let split = split { self.string(fromByteCount: count)  }!
+        if let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) {
+            return "\(split.count) \(unit)"
+        }
+        return nil
+    }
+    
+    
+    func localizedString(for obj: Any?) -> String? {
+        guard needsLocalized, let split = split(handler: { self.string(for: obj) }), let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) else { return nil }
+        return "\(split.count) \(unit)"
     }
 
-    /**
-     Returns the localized unit descriptions for the specified locale.
-
-     - Parameter locale: The locale to use for localization.
-     - Returns: An array of localized unit descriptions.
-     */
-    internal func localizedDescriptions(for locale: Locale) -> [String] {
-        let units: [UnitInformationStorage] = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .zettabytes, .yottabytes]
-        return units.map { unit -> String in
-            let formatter = MeasurementFormatter()
-            formatter.unitStyle = .short
-            formatter.locale = locale
-            return formatter.string(from: unit)
+    func localizedString(from measurement: Measurement<UnitInformationStorage>) -> String? {
+        guard needsLocalized else { return nil }
+        let split = split { self.string(from: measurement) }!
+        if let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) {
+            return "\(split.count) \(unit)"
         }
+        return nil
+    }
+    
+    var needsLocalized: Bool {
+       !isFetching && includesUnit && (locale != .current || unitStyle != .short)
+    }
+    
+    var isFetching: Bool {
+        get { getAssociatedValue("isFetching") ?? false }
+        set { setAssociatedValue(newValue, key: "isFetching") }
+    }
+    
+    func split(handler: @escaping (()->(String?))) -> (count: String, unit: String)? {
+        isFetching = true
+        let previous = (includesCount, includesUnit)
+        includesCount = true
+        includesUnit = false
+        let _count = handler()
+        includesCount = false
+        includesUnit = true
+        let unit = handler()
+        includesCount = previous.0
+        includesUnit = previous.1
+        isFetching = false
+        guard let _count = _count, let unit = unit else { return nil }
+        return (_count, unit)
+    }
+}
+
+fileprivate extension String {
+    var storageUnit: UnitInformationStorage? {
+        switch self {
+        case "bytes", "B": return .bytes
+        case "KB": return .kilobytes
+        case "MB": return .megabytes
+        case "GB": return .gigabytes
+        case "TB": return .terabytes
+        case "PB": return .petabytes
+        case "EB": return .exabytes
+        case "ZB": return .zettabytes
+        case "YB": return .yottabytes
+        default: return nil
+        }
+    }
+}
+
+fileprivate extension UnitInformationStorage {
+    func localized(to locale: Locale, unitStyle: Formatter.UnitStyle = .medium) -> String {
+        let formatter = MeasurementFormatter()
+        formatter.unitStyle = unitStyle
+        formatter.locale = locale
+        return formatter.string(from: self)
     }
 }
