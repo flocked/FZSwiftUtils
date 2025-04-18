@@ -483,13 +483,14 @@ extension TimeDuration: CustomStringConvertible {
      ```
      
      - Parameters:
-       - unit: The unit to use for formatting the time duration.
-       - style: The formatting style. The default value is `full`.
+        - unit: The unit to use for formatting the time duration.
+        - style: The formatting style. The default value is `full`.
+        - locale: The language of the string.
 
      - Returns: A string representation of the time duration.
      */
-    public func string(for unit: Unit, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
-        string(allowedUnits: .init(unit: unit), style: style)
+    public func string(for unit: Unit, style: DateComponentsFormatter.UnitsStyle = .full, locale: Locale = .current) -> String {
+        string(allowedUnits: .init(unit: unit), style: style, locale: locale)
     }
 
     /**
@@ -508,16 +509,21 @@ extension TimeDuration: CustomStringConvertible {
      ```
      
      - Parameters:
-       - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
-       - style: The formatting style. The default value is `full`.
+        - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
+        - style: The formatting style. The default value is `full`.
+        - locale: The language of the string.
 
      - Returns: A string representation of the time duration.
      */
-    public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full) -> String {
+    public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, locale: Locale = .current) -> String {
         let allowedUnits = allowedUnits.units(for: self)
         let formatter = DateComponentsFormatter()
         formatter.allowedComponents = allowedUnits.compactMap(\.calendarComponent).uniqued()
         formatter.unitsStyle = style
+        if locale != .current {
+            formatter.calendar = .current
+            formatter.calendar?.locale = locale
+        }
         return formatter.string(from: TimeInterval(seconds))!
     }
     

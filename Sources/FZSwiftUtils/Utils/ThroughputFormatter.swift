@@ -53,7 +53,6 @@ public struct ThroughputFormatter {
     
     /// Units for formatting data throughput.
     public struct Units: OptionSet {
-        public let rawValue: Int
         /// Bytes per second (B/s)
         public static let bytes = Units(rawValue: 1 << 0)
         /// Kilobytes per second (KB/s)
@@ -64,8 +63,19 @@ public struct ThroughputFormatter {
         public static let gigabytes = Units(rawValue: 1 << 3)
         /// Terabytes per second (TB/s)
         public static let terabytes = Units(rawValue: 1 << 4)
-        /// All units
-        public static let all: Units = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes]
+        /// Petabytes per second (PB/s)
+        public static let petabytes = Units(rawValue: 1 << 5)
+        /// Exabytes per second (EB/s)
+        public static let exabytes = Units(rawValue: 1 << 6)
+        /// Zettabytes per second (ZB/s)
+        public static let zettabytes = Units(rawValue: 1 << 7)
+        /// Yottabytes per second (YB/s)
+        public static let yottabytes = Units(rawValue: 1 << 8)
+
+        /// All units.
+        public static let all: Units = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .exabytes, .zettabytes, .yottabytes]
+
+        public let rawValue: Int
 
         public init(rawValue: Int) {
             self.rawValue = rawValue
@@ -78,6 +88,10 @@ public struct ThroughputFormatter {
             if contains(.megabytes) { result.append((.megabytes, "MB/s")) }
             if contains(.gigabytes) { result.append((.gigabytes, "GB/s")) }
             if contains(.terabytes) { result.append((.terabytes, "TB/s")) }
+            if contains(.petabytes) { result.append((.petabytes, "PB/s")) }
+            if contains(.exabytes) { result.append((.exabytes, "EB/s")) }
+            if contains(.zettabytes) { result.append((.zettabytes, "ZB/s"))}
+            if contains(.yottabytes) { result.append((.yottabytes, "YB/s"))}
             return result
         }
     }
