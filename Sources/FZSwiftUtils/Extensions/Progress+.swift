@@ -180,4 +180,29 @@ extension Progress {
         completedUnitCount = Int64(value.clamped(max: 1.0) * Double(totalUnitCount))
         return self
     }
+    
+    /**
+     Returns a localized string for the estimate time remaining.
+     
+     - Parameters:
+        - locale: The locale to use.
+        - units: The style to use when formatting the quantity or the name of the unit, such as `“1 day ago”` or `“one day ago”`.
+        - style: The style to use when describing a relative date, for example `“yesterday”` or `“1 day ago”`.
+     */
+    public func estimateTimeString(locale: Locale = .current, units: RelativeDateTimeFormatter.UnitsStyle = .full, style: RelativeDateTimeFormatter.DateTimeStyle = .numeric) -> String? {
+        guard let estimate = estimateDurationRemaining else { return nil }
+        return RelativeDateTimeFormatter().unitsStyle(units).dateTimeStyle(style).locale(locale).localizedString(for: Date() + estimate, relativeTo: Date())
+    }
+    
+    /**
+     Returns a string for the throughput.
+     
+     - Parameters:
+        - units: The allowed units to be used for formatting.
+        - minimumFractionDigits: The minimum number of digits after the decimal separator.
+        - maximumFractionDigits: The maximum number of digits after the decimal separator.
+     */
+    public func throughputString(units: ThroughputFormatter.Units = .all, minimumFractionDigits: Int = 0, maximumFractionDigits: Int = 2) -> String {
+        ThroughputFormatter(units: units, minimumFractionDigits: minimumFractionDigits, maximumFractionDigits: maximumFractionDigits).string(for: throughput ?? 0)
+    }
 }
