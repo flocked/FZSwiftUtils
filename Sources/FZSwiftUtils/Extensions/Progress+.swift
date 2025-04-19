@@ -191,7 +191,7 @@ extension Progress {
      */
     public func estimateTimeString(locale: Locale = .current, units: RelativeDateTimeFormatter.UnitsStyle = .full, style: RelativeDateTimeFormatter.DateTimeStyle = .numeric) -> String? {
         guard let estimate = estimateDurationRemaining else { return nil }
-        return RelativeDateTimeFormatter().unitsStyle(units).dateTimeStyle(style).locale(locale).localizedString(for: Date() + estimate, relativeTo: Date())
+        return RelativeDateTimeFormatter().unitsStyle(units).dateTimeStyle(style).locale(locale).localizedString(forTimeDuration: estimate)
     }
     
     /**

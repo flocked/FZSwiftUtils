@@ -199,12 +199,6 @@ public extension NumberFormatter {
         return self
     }
     
-    /// Sets the range of digits after the decimal separator.
-    @discardableResult
-    func fractions(_ range: ClosedRange<Int>) -> Self {
-        self.minFraction(range.lowerBound).maxFraction(range.upperBound)
-    }
-    
     /// Sets the minimum number of digits before the decimal separator.
     @discardableResult
     func minInteger(_ value: Int) -> Self {
@@ -312,5 +306,98 @@ public extension NumberFormatter {
     func negativeSuffix(_ suffix: String?) -> Self {
         negativeSuffix = suffix ?? ""
         return self
+    }
+    
+    /// The allowed number of digits before the decimal separator.
+    var integerLength: DigitLength {
+        get { .init(minimumIntegerDigits, maximumIntegerDigits) }
+        set {
+            minimumIntegerDigits = newValue.digits.min
+            maximumIntegerDigits = newValue.digits.max
+        }
+    }
+    
+    /// Sets the allowed number of digits before the decimal separator.
+    @discardableResult
+    func integerLength( _ length: DigitLength) -> Self {
+        integerLength = length
+        return self
+    }
+    
+    /// The allowed number of digits after the decimal separator.
+    var fractionLength: DigitLength {
+        get { .init(minimumFractionDigits, maximumFractionDigits) }
+        set {
+            minimumFractionDigits = newValue.digits.min
+            maximumFractionDigits = newValue.digits.max
+        }
+    }
+    
+    /// Sets the allowed number of digits after the decimal separator.
+    @discardableResult
+    func fractionLength( _ length: DigitLength) -> Self {
+        fractionLength = length
+        return self
+    }
+    
+    /// The allowed number of significant digits.
+    var significantLength: DigitLength {
+        get { .init(minimumSignificantDigits, maximumSignificantDigits) }
+        set {
+            minimumSignificantDigits = newValue.digits.min
+            maximumSignificantDigits = newValue.digits.max
+        }
+    }
+    
+    /// Sets the allowed number of significant digits.
+    @discardableResult
+    func significantLength( _ length: DigitLength) -> Self {
+        significantLength = length
+        return self
+    }
+        
+    /// The allowed number of digits.
+    enum DigitLength: ExpressibleByIntegerLiteral, CustomStringConvertible {
+        /// A fixed number of digits.
+        case fixed(Int)
+        /// A range of allowed digits.
+        case range(ClosedRange<Int>)
+        /// A minimum number of digits.
+        case min(Int)
+        /// A maximum number of digits.
+        case max(Int)
+        
+        public var description: String {
+            "[min: \(digits.min), max: \(digits.max)]"
+        }
+        
+        init(_ min: Int, _ max: Int) {
+            if min == max {
+                self = .fixed(min)
+            } else if min == 0 {
+                self = .max(max)
+            } else if max == .max {
+                self = .min(min)
+            } else {
+                self = .range(min...max)
+            }
+        }
+        
+        var digits: (min: Int, max: Int) {
+            switch self {
+            case .fixed(let value):
+                return (value, value)
+            case .range(let range):
+                return (range.lowerBound, range.upperBound)
+            case .min(let value):
+                return (value, .max)
+            case .max(let value):
+                return (0, value)
+            }
+        }
+        
+        public init(integerLiteral value: Int) {
+            self = .fixed(value)
+        }
     }
 }
