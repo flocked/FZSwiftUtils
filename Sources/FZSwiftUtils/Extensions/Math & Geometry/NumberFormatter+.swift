@@ -10,26 +10,41 @@ import Foundation
 
 public extension NumberFormatter {
     
-    /// Creates an integer number formatter.
+    /// Creates an integer number formatter (e.g. "1235").
     static var integer: NumberFormatter {
         NumberFormatter(style: .none)
     }
     
-    /// Creates a decimal number formatter.
+    /// Creates a decimal number formatter (e.g. "1,234.568").
     static var decimal: NumberFormatter {
         NumberFormatter(style: .decimal)
     }
     
-    /// Creates a percent number formatter.
+    /// Creates a percent number formatter (e.g. "12%").
     static var percent: NumberFormatter {
         NumberFormatter(style: .percent)
     }
     
-    /// Creates a currency number formatter.
+    /// Creates a currency number formatter (e.g. "$1,234.57").
     static var currency: NumberFormatter {
         NumberFormatter(style: .currency)
     }
     
+    /// Creates a pluralized currency number formatter (e.g. "1,234.57 US dollars").
+    static var currencyPlural: NumberFormatter {
+        NumberFormatter(style: .currencyPlural)
+    }
+    
+    /// Creates a ordinal number formatter (e.g. "3rd").
+    static var ordinal: NumberFormatter {
+        NumberFormatter(style: .ordinal)
+    }
+    
+    /// Creates a spellOut number formatter (e.g. "one hundred twenty-three").
+    static var spellOut: NumberFormatter {
+        NumberFormatter(style: .spellOut)
+    }
+        
     /**
      Creates a currency number formatter with the specified style.
 
@@ -37,15 +52,14 @@ public extension NumberFormatter {
         - style: The formatting style.
         - minValue: The lowest number allowed as input by a text field with the formatter.
         - maxValue: The highest number allowed as input by a text field with the formatter.
-        - minFraction: The minimum number of digits after the decimal separator.
-        - maxFraction: The maximum number of digits after the decimal separator.
+        - fractionLength: The allowed number of digits after the decimal separator.
         - roundingMode: The rounding mode.
         - usesGroupingSeparator: A Boolean value indicating whether to display a group separator.
         - locale: The locale of the formatter.
 
      - Returns: A `NumberFormatter` instance configured for currency formatting.
      */
-    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, minFraction: Int? = nil, maxFraction: Int? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) {
+    convenience init(style: Style, minValue: Double? = nil, maxValue: Double? = nil, fractionLength: DigitLength? = nil, roundingMode: RoundingMode = .halfEven, usesGroupingSeparator: Bool = false, locale: Locale = .current) {
         self.init()
         self.locale = locale
         self.roundingMode = roundingMode
@@ -53,8 +67,7 @@ public extension NumberFormatter {
         numberStyle = style
         minimumValue = minValue
         maximumValue = maxValue
-        minimumFractionDigits = minFraction ?? 0
-        maximumFractionDigits = maxFraction ?? 200000
+        self.fractionLength = fractionLength ?? .range(0...200000)
         allowsFloats = true
         isLenient = true
         usesSignificantDigits = style != .none
@@ -63,7 +76,7 @@ public extension NumberFormatter {
     /// The lowest number allowed as input by a text field with the formatter.
     var minimumValue: Double? {
         get { minimum?.doubleValue }
-        set {
+        set { 
             if let newValue = newValue {
                 minimum = NSNumber(newValue)
             } else {
@@ -211,12 +224,6 @@ public extension NumberFormatter {
     func maxInteger(_ value: Int) -> Self {
         maximumIntegerDigits = value
         return self
-    }
-    
-    /// Sets the range of digits before the decimal separator.
-    @discardableResult
-    func integers(_ range: ClosedRange<Int>) -> Self {
-         self.minInteger(range.lowerBound).maxInteger(range.upperBound)
     }
     
     @discardableResult
