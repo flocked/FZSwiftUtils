@@ -216,6 +216,12 @@ private extension ByteCountFormatter {
     }
 }
 
+public extension ByteCountFormatter.CountStyle {
+    var factor: Int {
+        self == .binary ? 1024 : 1000
+    }
+}
+
 fileprivate extension String {
     var storageUnit: UnitInformationStorage? {
         switch self {
@@ -230,14 +236,5 @@ fileprivate extension String {
         case "YB": return .yottabytes
         default: return nil
         }
-    }
-}
-
-fileprivate extension UnitInformationStorage {
-    func localized(to locale: Locale, unitStyle: Formatter.UnitStyle = .medium) -> String {
-        let formatter = MeasurementFormatter()
-        formatter.unitStyle = unitStyle
-        formatter.locale = locale
-        return formatter.string(from: self)
     }
 }

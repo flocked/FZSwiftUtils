@@ -9,7 +9,7 @@ import Foundation
 
 /// A formatter that creates string representations of a data throughput (bytes per second).
 public class ThroughputFormatter {
-    private let formatter = NumberFormatter.decimal
+    private let formatter = NumberFormatter()
 
     /// The allowed units to be used for formatting.
     public var units: Units = .all
@@ -18,6 +18,42 @@ public class ThroughputFormatter {
     @discardableResult
     public func units( _ units: Units) -> Self {
         self.units = units
+        return self
+    }
+    
+    /**
+     The unit style.
+     
+     The default value is `short`.
+     */
+    public var unitStyle: Formatter.UnitStyle = .short
+    
+    /**
+     Sets the unit style.
+     
+     The default value is `short`.
+     */
+    @discardableResult
+    func unitStyle(_ style: Formatter.UnitStyle) -> Self {
+        unitStyle = style
+        return self
+    }
+    
+    /**
+     The count style.
+     
+     The default value is `file`.
+     */
+    public var countStyle: ByteCountFormatter.CountStyle = .file
+    
+    /**
+     Sets the count style.
+     
+     The default value is `file`.
+     */
+    @discardableResult
+    func countStyle(_ style: ByteCountFormatter.CountStyle) -> Self {
+        countStyle = style
         return self
     }
     
@@ -54,6 +90,24 @@ public class ThroughputFormatter {
         return self
     }
     
+    /**
+     The locale of the formatter.
+     
+     The default value is `current`.
+     */
+    public var locale: Locale = .current
+    
+    /**
+     Sets the locale of the formatter.
+     
+     The default value is `current`.
+     */
+    @discardableResult
+    func locale(_ locale: Locale) -> Self {
+        self.locale = locale
+        return self
+    }
+    
     /// Creates a throughput formatter.
     public init(units: Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) {
         self.units = units
@@ -67,20 +121,25 @@ public class ThroughputFormatter {
     
     /// The formatted string for the specified throughput (bytes per second).
     public func string<I: BinaryInteger>(for bytesPerSecond: I) -> String {
+        if units.isEmpty {
+            units = [.bytes]
+            let string = string(for: bytesPerSecond)
+            units = []
+            return string
+        }
         let units = units.ordered
-        guard !units.isEmpty else { return "\(bytesPerSecond) B/s" }
         var speed = Double(bytesPerSecond)
         var unitIndex = 0
         while unitIndex < units.count - 1, speed >= 1000 {
-            speed /= 1000
+            speed /= Double(countStyle.factor)
             unitIndex += 1
         }
         var strings: [String] = []
         if includesCount {
-            strings += formatter.string(from: NSNumber(value: speed)) ?? "\(speed)"
+            strings += formatter.string(from: speed)!
         }
         if includesUnit {
-            strings += "\(units[unitIndex].string)"
+            strings += units[unitIndex].localized(to: locale, unitStyle: unitStyle) + "/s"
         }
         return strings.joined(separator: " ")
     }
@@ -115,17 +174,17 @@ public class ThroughputFormatter {
             self.rawValue = rawValue
         }
         
-        var ordered: [(unit: Units, string: String)] {
-            var result: [(Units, String)] = []
-            if contains(.bytes) { result.append((.bytes, "B/s")) }
-            if contains(.kilobytes) { result.append((.kilobytes, "KB/s")) }
-            if contains(.megabytes) { result.append((.megabytes, "MB/s")) }
-            if contains(.gigabytes) { result.append((.gigabytes, "GB/s")) }
-            if contains(.terabytes) { result.append((.terabytes, "TB/s")) }
-            if contains(.petabytes) { result.append((.petabytes, "PB/s")) }
-            if contains(.exabytes) { result.append((.exabytes, "EB/s")) }
-            if contains(.zettabytes) { result.append((.zettabytes, "ZB/s"))}
-            if contains(.yottabytes) { result.append((.yottabytes, "YB/s"))}
+        var ordered: [UnitInformationStorage] {
+            var result: [UnitInformationStorage] = []
+            if contains(.bytes) { result += .bytes }
+            if contains(.kilobytes) { result += .kilobytes }
+            if contains(.megabytes) { result += .megabytes }
+            if contains(.gigabytes) { result += .gigabytes }
+            if contains(.terabytes) { result += .terabytes }
+            if contains(.petabytes) { result += .petabytes }
+            if contains(.exabytes) { result += .exabytes }
+            if contains(.zettabytes) { result += .zettabytes }
+            if contains(.yottabytes) { result += .yottabytes }
             return result
         }
     }
