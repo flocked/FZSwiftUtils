@@ -8,31 +8,58 @@
 import Foundation
 
 /// A formatter that creates string representations of a data throughput (bytes per second).
-public struct ThroughputFormatter {
-    
+public class ThroughputFormatter {
+    private let formatter = NumberFormatter.decimal
+
     /// The allowed units to be used for formatting.
     public var units: Units = .all
-        
-    /// The maximum number of digits after the decimal separator.
-    public var minimumFractionDigits: Int {
-        get { formatter.minimumFractionDigits }
-        set { formatter.minimumFractionDigits = newValue }
+    
+    /// Sets the allowed units to be used for formatting.
+    @discardableResult
+    public func units( _ units: Units) -> Self {
+        self.units = units
+        return self
     }
-    /// The maximum number of digits after the decimal separator.
-    public var maximumFractionDigits: Int {
-        get { formatter.maximumFractionDigits }
-        set { formatter.maximumFractionDigits = newValue }
+    
+    /// A Boolean value indicating whether to include the units in the resulting formatted string.
+    public var includesUnit: Bool = true
+    
+    /// Sets the Boolean value indicating whether to include the units in the resulting formatted string.
+    @discardableResult
+    public func includesUnit( _ includes: Bool) -> Self {
+        includesUnit = includes
+        return self
+    }
+    
+    /// A Boolean value indicating whether to include the count in the resulting formatted string.
+    public var includesCount: Bool = true
+    
+    /// Sets the Boolean value indicating whether to include the count in the resulting formatted string.
+    @discardableResult
+    public func includesCount( _ includes: Bool) -> Self {
+        includesCount = includes
+        return self
+    }
+    
+    /// The allowed number of digits after the decimal separator.
+    public var fractionLength: NumberFormatter.DigitLength {
+        get { formatter.fractionLength }
+        set { formatter.fractionLength = newValue }
+    }
+    
+    /// Sets the allowed number of digits after the decimal separator.
+    @discardableResult
+    public func fractionLength( _ length: NumberFormatter.DigitLength) -> Self {
+        fractionLength = length
+        return self
     }
     
     /// Creates a throughput formatter.
-    public init(units: Units = .all, minimumFractionDigits: Int = 0, maximumFractionDigits: Int = 2) {
+    public init(units: Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) {
         self.units = units
-        self.minimumFractionDigits = minimumFractionDigits
-        self.maximumFractionDigits = maximumFractionDigits
+        self.fractionLength = fractionLength
     }
-    
-    private let formatter = NumberFormatter.decimal
-        
+            
     /// The formatter string for the specified throughput (bytes per second).
     public func string(for dataSizePerSecond: DataSize) -> String {
         string(for: dataSizePerSecond.bytes)
@@ -48,7 +75,14 @@ public struct ThroughputFormatter {
             speed /= 1000
             unitIndex += 1
         }
-        return formatter.string(from: NSNumber(value: speed)) ?? "\(speed)"
+        var strings: [String] = []
+        if includesCount {
+            strings += formatter.string(from: NSNumber(value: speed)) ?? "\(speed)"
+        }
+        if includesUnit {
+            strings += "\(units[unitIndex].string)"
+        }
+        return strings.joined(separator: " ")
     }
     
     /// Units for formatting data throughput.
@@ -81,7 +115,7 @@ public struct ThroughputFormatter {
             self.rawValue = rawValue
         }
         
-        var ordered: [(Units, String)] {
+        var ordered: [(unit: Units, string: String)] {
             var result: [(Units, String)] = []
             if contains(.bytes) { result.append((.bytes, "B/s")) }
             if contains(.kilobytes) { result.append((.kilobytes, "KB/s")) }

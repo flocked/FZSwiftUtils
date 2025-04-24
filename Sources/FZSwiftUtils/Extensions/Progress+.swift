@@ -199,10 +199,9 @@ extension Progress {
      
      - Parameters:
         - units: The allowed units to be used for formatting.
-        - minimumFractionDigits: The minimum number of digits after the decimal separator.
-        - maximumFractionDigits: The maximum number of digits after the decimal separator.
+        - fractionLength: The allowed number of digits after the decimal separator.
      */
-    public func throughputString(units: ThroughputFormatter.Units = .all, minimumFractionDigits: Int = 0, maximumFractionDigits: Int = 2) -> String {
-        ThroughputFormatter(units: units, minimumFractionDigits: minimumFractionDigits, maximumFractionDigits: maximumFractionDigits).string(for: throughput ?? 0)
+    public func throughputString(units: ThroughputFormatter.Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) -> String {
+        ThroughputFormatter(units: units, fractionLength: fractionLength).string(for: throughput ?? 0)
     }
 }
