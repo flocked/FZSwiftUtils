@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import _SafeKVC
+import _ExceptionCatcher
 
 extension NSObjectProtocol where Self: NSObject {
     /// The type of the object.
@@ -164,7 +164,11 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        self.safeValue(forKey: key)
+        var value: Any?
+        try? NSObject.catchException {
+            value = self.value(forKey: key)
+        }
+        return value
     }
     
     /**
@@ -175,7 +179,9 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     func setValue(safely value: Any?, forKey key: String) {
-        self.safeSetValue(value, forKey: key)
+        try? NSObject.catchException {
+            setValue(value, forKey: key)
+        }
     }
     
     /**
@@ -185,7 +191,11 @@ public extension NSObject {
      - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
      */
     func value(forKeyPathSafely keyPath: String) -> Any? {
-        self.safeValue(forKeyPath: keyPath)
+        var value: Any?
+        try? NSObject.catchException {
+            value = self.value(forKeyPath: keyPath)
+        }
+        return value
     }
     
     /**
@@ -196,7 +206,9 @@ public extension NSObject {
         - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
      */
     func setValue(safely value: Any?, forKeyPath keyPath: String) {
-        self.safeSetValue(value, forKeyPath: keyPath)
+        try? NSObject.catchException {
+            setValue(value, forKeyPath: keyPath)
+        }
     }
 
     /**
@@ -425,5 +437,20 @@ extension Protocol {
         }
 
         return nil
+    }
+}
+
+extension NSObject {
+    /**
+     Executes a block of code that may throw an Objective-C `NSException` and catches it.
+
+     This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
+
+     - Parameter - tryBlock: A closure containing Objective-C code that may throw an exception. This block is executed immediately and must not escape its scope.
+     */
+    public static func catchException(tryBlock: ()->()) throws {
+        try _catchException {
+            tryBlock()
+        }
     }
 }
