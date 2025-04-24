@@ -14,3 +14,11 @@ extension Operation {
         return self
     }
 }
+
+extension NSObjectProtocol where Self: Operation {
+    /// Sets the handler to execute after the operation’s main task is completed.
+    public func completion(_ completion: @escaping (@Sendable (Self) -> Void)) -> Self {
+        self.completionBlock = {  completion(self) }
+        return self
+    }
+}
