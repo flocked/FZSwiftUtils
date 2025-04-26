@@ -184,7 +184,7 @@ extension Locale {
     public static let englishUK = Locale(identifier: "en-GB")
     /// English (United Kingdom).
     public static let enGB = Locale(identifier: "en-GB")
-    
+        
     /// English (Canada).
     public static let englishCA = Locale(identifier: "en-CA")
     /// English (Canada).
@@ -264,6 +264,9 @@ extension Locale {
     public static let russianRU = Locale(identifier: "ru-RU")
     /// Russian (Russia).
     public static let ruRU = Locale(identifier: "ru-RU")
+    
+    /// A fixed locale for consistent, locale-independent formatting and parsing.
+    public static let posix = Locale(identifier: "en_US_POSIX")
 }
 
 extension Sequence where Element == Locale {

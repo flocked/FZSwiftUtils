@@ -207,7 +207,7 @@ public extension Date {
     /**
      Returns a string representation of the date from the specified date format string.
      
-     - Parameter formatter: The date format string.
+     - Parameter format: The date format string.
      */
     func string(using format: String) -> String {
         DateFormatter(format).string(from: self)
@@ -216,10 +216,10 @@ public extension Date {
     /**
      Returns a string representation from the specified date formatter components.
      
-     - Parameter components: The date formatter components.
+     - Parameter format: The date format.
      */
-    func string(components: DateFormatter.Component...) -> String {
-        DateFormatter(components: components).string(from: self)
+    func string(using format: DateFormat) -> String {
+        DateFormatter(format).string(from: self)
     }
     
     /**

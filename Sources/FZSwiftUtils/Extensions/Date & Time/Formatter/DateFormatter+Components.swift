@@ -15,285 +15,150 @@ public extension DateFormatter {
      
      ```swift
      // yyyy-MM-dd HH:mm
-     DateFormatter(components: .year, "-", .month, "-", .day, " ", .hour, ":", .minute)
+     DateFormatter("\(.year)-\(.month)-\(.day) \(.hour):\(.minute)")
      ```
 
-     - Parameter components: The components of the date formatter.
+     - Parameter format: The date format.
      */
-    convenience init(components: Component...) {
-        self.init(components: components)
+    convenience init(_ format: DateFormat) {
+        self.init(format.description)
+    }
+}
+
+/**
+ A date format to be used with `DateFormatter`.
+ 
+ The date format can be expressed as String and with ``DateComponent``.
+ 
+ Example usage:
+ 
+ ```swift
+ // yyyy-MM-dd HH:mm
+ "\(.year)-\(.month)-\(.day) \(.hour):\(.minute)"
+ ```
+ */
+public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation, CustomStringConvertible {
+    public let format: String
+    
+    public init(stringLiteral value: String) {
+        format = value
     }
     
-    internal convenience init(components: [Component]) {
-        self.init(components.compactMap({$0.format}).joined(separator: ""))
+    public init(stringInterpolation: StringInterpolation) {
+        format = stringInterpolation.parts.joined()
     }
     
-    /// Date component.
-    struct Component: ExpressibleByStringLiteral, CustomStringConvertible {
+    public var description: String {
+        format
+    }
+    
+    public static func += (lhs: inout DateFormat, rhs: DateFormat) {
+            lhs.format + rhs.format
+    }
+    
+    public static func + (lhs: DateFormat, rhs: DateFormat) -> Self {
+        var lhs = lhs
+        lhs += rhs
+        return lhs
+    }
+    
+    public struct StringInterpolation: StringInterpolationProtocol {
+        var parts: [String] = []
+
+        public init(literalCapacity: Int, interpolationCount: Int) {}
+
+        public mutating func appendLiteral(_ literal: String) {
+            parts.append(literal)
+        }
+
+        public mutating func appendInterpolation(_ naming: DateComponent) {
+            parts.append(naming.format)
+        }
+    }
+}
+
+extension DateFormat {
+    /// Date component of a date format.
+    public struct DateComponent: CustomStringConvertible {
         /// The format of the component.
         public let format: String
         
         public var description: String { format }
         
         /// Milisecond (e.g. `123`).
-        public static var millisecond = Component("SSS")
+        public static var millisecond = Self("SSS")
         /// Second with a zero if there is only 1 digit (e.g. `05`).
-        public static var second = Component("ss")
+        public static var second = Self("ss")
         /// Second (e.g. `33`).
-        public static var secondShort = Component("s")
+        public static var secondShort = Self("s")
 
         /// Minute with a zero if there is only 1 digit (e.g. `09`).
-        public static var minute = Component("mm")
+        public static var minute = Self("mm")
         /// Minute (e.g. `9`).
-        public static var minuteShort = Component("m")
+        public static var minuteShort = Self("m")
 
         /// 12-hour with a zero if there is only 1 digit (e.g. `09`).
-        public static var hour12 = Component("hh")
+        public static var hour12 = Self("hh")
         /// 12-hour (e.g. `9`).
-        public static var hour12Short = Component("h")
+        public static var hour12Short = Self("h")
         /// 24-hour with a zero if there is only 1 digit (e.g. `09`).
-        public static var hour24 = Component("HH")
+        public static var hour24 = Self("HH")
         /// 24-hour (e.g. `22`).
-        public static var hour24Short = Component("H")
+        public static var hour24Short = Self("H")
         /// AM / PM for 12-hour time formats (e.g. `PM`)
-        public static var amPM = Component("a")
+        public static var amPM = Self("a")
 
         /// Day with a zero if there is only 1 digit (e.g. `05`).
-        public static var day = Component("d")
+        public static var day = Self("dd")
         /// Day (e.g. `5`).
-        public static var dayShort = Component("dd")
+        public static var dayShort = Self("d")
         /// Day of week in the month (e.g. `5`).
-        public static var weekday = Component("F")
+        public static var weekday = Self("F")
         /// Name of the day of the week (e.g. `Tuesday`).
-        public static var weekdayName = Component("EEEE")
+        public static var weekdayName = Self("EEEE")
         /// Single character name of the day of the week (e.g. `T`).
-        public static var weekdayNameSingle = Component("EEEEE")
+        public static var weekdayNameSingle = Self("EEEEE")
         /// Short name of the day of the week (e.g. `Tue`).
-        public static var weekdayNameShort = Component("E")
+        public static var weekdayNameShort = Self("E")
         
         /// Month with a zero if there is only 1 digit (e.g. `09`).
-        public static var month = Component("MM")
+        public static var month = Self("MM")
         /// Month (e.g. `9`).
-        public static var monthShort = Component("M")
+        public static var monthShort = Self("M")
         /// Name of the month (e.g. `December`).
-        public static var monthName = Component("MMMM")
+        public static var monthName = Self("MMMM")
         /// Single character name of the month (e.g. `D`).
-        public static var monthNameSingle = Component("MMMMM")
+        public static var monthNameSingle = Self("MMMMM")
         /// Short name of the month (e.g. `Dec`).
-        public static var monthNameShort = Component("MMM")
+        public static var monthNameShort = Self("MMM")
 
         /// Year with four digits (e.g. `2024`).
-        public static var year = Component("yyyy")
+        public static var year = Self("yyyy")
         /// Year (e.g. `24`).
-        public static var yearShort = Component("yy")
-        
+        public static var yearShort = Self("yy")
+                
         /// Quarter of the year (e.g. `04`)
-        public static var quartal = Component("QQ")
+        public static var quarter = Self("QQ")
         /// Quarter of the year (e.g. `4`)
-        public static var quartalShort = Component("Q")
+        public static var quarterShort = Self("Q")
         /// Quarter of the year including `Q` (e.g. `Q4`)
-        public static var quartalQ = Component("QQQ")
+        public static var quarterWithQ = Self("QQQ")
         /// Quarter of the year spelled out (e.g. `4th quarter`)
-        public static var quartalSpelled = Component("QQQQ")
+        public static var quarterSpelledOut = Self("QQQQ")
         
         /// Name of the time zone (e.g. `Central Standard Time`).
-        public static var timezone = Component("zzzz")
+        public static var timezone = Self("zzzz")
         /// 3 letter name of the time zone (e.g. `GMT`).
-        public static var timezoneShort = Component("zzz")
+        public static var timezoneShort = Self("zzz")
         /// 3 letter name of the time zone including offset (e.g. `CST-06:00`).
-        public static var timezoneOffset = Component("ZZZZ")
+        public static var timezoneWithOffset = Self("ZZZZ")
         /// ISO 8601 time zone (e.g. `-06:00`).
-        public static var iso8601 = Component("ZZZZZ")
+        public static var iso8601 = Self("ZZZZZ")
         /// RFC 822 GMT time zone. Can also match a literal Z for Zulu (UTC) time (e.g. `-0600`).
-        public static var rfs022 = Component("Z")
-
-        /// Creates a component from the specified string.
-        public init(stringLiteral value: String) {
-            self.format = value
-        }
+        public static var rfs022 = Self("Z")
         
         init(_ value: String) {
             self.format = value
         }
-
-        public static func +(lhs: Self, rhs: Self) -> Self {
-            Component(lhs.format + rhs.format)
-        }
     }
 }
-
-/*
-public extension DateFormatter {
-    /**
-     Creates a date formatter with the specified components block.
-     
-     Example usage:
-     
-     ```swift
-     // yyyy-mm-d
-     DateFormatter({"\($0.year(.yyyy))-\($0.month(.mm))-\($0.day(.d))"})
-     ```
-
-     - Parameter components: The components of the date formatter.
-     */
-    convenience init(_ block: (DateFormatComponents.Type) -> String) {
-        self.init(DateFormatComponents.build(block: block))
-    }
-    
-    /// Model that contains available date format components.
-    enum DateFormatComponents {
-        /// Second.
-        public static func second(_ second: Second) -> String { second.rawValue }
-        
-        /// Minute.
-        public static func minute(_ minute: Minute) -> String { minute.rawValue }
-        
-        /// Hour.
-        public static func hour(_ hour: Hour) -> String { hour.rawValue }
-        
-        /// Day.
-        public static func day(_ day: Day) -> String { day.rawValue }
-        
-        /// Month.
-        public static func month(_ month: Month) -> String { month.rawValue }
-        
-        /// Year.
-        public static func year(_ year: Year) -> String { year.rawValue }
-        
-        /// Quartal.
-        public static func quarter(_ quarter: Quarter) -> String { quarter.rawValue }
-        
-        /// Time zone.
-        public static func timezone(_ timezone: Timezone) -> String { timezone.rawValue }
-
-        static func build(block: (DateFormatComponents.Type) -> String) -> String {
-            block(DateFormatComponents.self)
-        }
-        
-        /// Available second formats.
-        public enum Second: String {
-            /// The seconds, with no padding for zeroes, e.g. `38` or `8`.
-            case s
-
-            /// The seconds with zero padding, e.g. `38` or `08`.
-            case ss
-
-            /// The milliseconds, e.g. `968`.
-            case sss = "SSS"
-        }
-
-        /// Available minute formats.
-        public enum Minute: String {
-            /// The minute, with no padding for zeroes, e.g. `38` or `8`.
-            case m
-
-            /// The minute with zero padding,e.g. `38` or `08`.
-            case mm
-        }
-        
-        /// Available hour formats.
-        public enum Hour: String {
-            /// The 12-hour hour, e.g. `8`.
-            case h
-
-            /// The 12-hour hour padding with a zero if there is only 1 digit, e.g. `08`.
-            case hh
-
-            /// The 24-hour hour, e.g. `20`.
-            case h24 = "H"
-
-            /// The 24-hour hour padding with a zero if there is only 1 digit, e.g. `08`.
-            case hh24 = "HH"
-
-            /// AM / PM for 12-hour time formats.
-            case a
-        }
-        
-        /// Available day formats.
-        public enum Day: String {
-            /// The day of the month without padding, e.g. `4` or `14`. Will use `1` for `January 1st`.
-            case d
-
-            /// The day of the month, two digits, e.g. `04` or `14`. Will use `01` for `January 1st`.
-            case dd
-
-            /// The day of week in the month. Will use `3` for `3rd Tuesday in December`.
-            case f = "F"
-
-            /// The abbreviation for the day of the week, e.g. `Mon` or `Sun`.
-            case e = "E"
-
-            /// The wide name of the day of the week, e.g. `Monday` or `Sunday`.
-            case eeee = "EEEE"
-
-            /// The narrow day of week, e.g. `M` or `S`.
-            case eeeee = "EEEEE"
-
-            /// The short day of week, e.g. `Mo` or `Su`.
-            case eeeeee = "EEEEEE"
-        }
-        
-        public enum Month: String {
-            /// The numeric month of the year, e.g. `1` or `11`. Will use `1` for `January`.
-            case m = "M"
-
-            /// The numeric month of the year with zero padding, e.g. `01` or `11`. Will use `01` for `January`.
-            case mm = "MM"
-
-            /// The shorthand name of the month, e.g. `Dec`.
-            case mmm = "MMM"
-
-            /// Full name of the month, e.g. `December`.
-            case mmmm = "MMMM"
-
-            /// Narrow name of the month, e.g. `D`.
-            case mmmmm = "MMMMM"
-        }
-        
-        /// Available year formats.
-        public enum Year: String {
-            /// Year without padding, e.g `2021` or `101`.
-            case y
-
-            /// Year, two digits (padding with a zero if necessary), e.g `21` or `01`.
-            case yy
-
-            /// Year, minimum of four digits (padding with zeros if necessary), e.g `2008` or `0101`
-            case yyyy
-        }
-        
-        /// Available quarter formats.
-        public enum Quarter: String {
-            /// The quarter of the year, e.g. `4`. Use QQ if you want zero padding.
-            case q = "Q"
-
-            /// The quarter of the year with zero padding, e.g. `04`
-            case qq = "QQ"
-
-            /// Quarter including "Q", e.g. `Q4`.
-            case qqq = "QQQ"
-
-            /// Quarter spelled out, e.g. `4th quarter`.
-            case qqqq = "QQQQ"
-        }
-
-        /// Available zone formats.
-        public enum Timezone: String {
-            /// The 3 letter name of the time zone, e.g. `EET`. Falls back to `GMT-08:00` (hour offset) if the name is not known.
-            case zzz
-
-            /// The expanded time zone name, e.g. `Eastern European Time`. Falls back to `GMT-08:00` (hour offset) if name is not known.
-            case zzzz
-
-            /// RFC 822 GMT format, e.g. `+0300`. Can also match a literal Z for Zulu (UTC) time.
-            case zAbbreviation = "Z"
-
-            /// Time zone with abbreviation and offset, e.g. `GMT+03:00`.
-            case zzzzAbbreviation = "ZZZZ"
-
-            /// ISO 8601 time zone format, e.g. `+03:00`.
-            case zzzzzAbbreviation = "ZZZZZ"
-        }
-    }
-}
-*/

@@ -71,7 +71,7 @@ public extension DateFormatter {
     }
     
     /// Sets the time zone.
-    func timeZone(_ timeZone: TimeZone) -> Self {
+    func timeZone(_ timeZone: TimeZone?) -> Self {
         self.timeZone = timeZone
         return self
     }
@@ -105,4 +105,25 @@ public extension DateFormatter {
         self.doesRelativeDateFormatting = doesRelativeDateFormatting
         return self
     }
+    
+    static func time(includingSeconds: Bool = true) -> DateFormatter {
+        DateFormatter(includingSeconds ? "HH:mm:ss" : "HH:mm")
+    }
+    
+    
+    
+    /// RFC 3339 format: "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
+    static let rfc3339 = DateFormatter("yyyy-MM-dd'T'HH:mm:ssZZZZZ").timeZone(.utc).locale(.posix).calendar(Calendar(identifier: .iso8601)).calendar(Calendar(identifier: .iso8601))
+    
+    /// RFC 1123 format: "EEE',' dd MMM yyyy HH':'mm':'ss zzz"
+    static let rfc1123 = DateFormatter("EEE',' dd MMM yyyy HH':'mm':'ss zzz").timeZone(TimeZone(secondsFromGMT: 0)).locale(.posix)
+    
+    /**
+     HTTP-date format (RFC 7231): "EEE',' dd MMM yyyy HH':'mm':'ss 'GMT'"
+     
+     This format is used in HTTP headers as defined in RFC 7231.
+     It represents a date in GMT (e.g., "Fri, 25 Apr 2025 14:30:00 GMT").
+     Commonly used in HTTP responses to specify the `Date` header.
+     */
+    static let httpHeader = DateFormatter("EEE',' dd MMM yyyy HH':'mm':'ss 'GMT'").timeZone(TimeZone(abbreviation: "GMT")).locale(.posix)
 }
