@@ -765,6 +765,7 @@ public extension Timer {
 
      - Returns:A new Timer object, configured according to the specified parameters.
      */
+    @_disfavoredOverload
     convenience init(fire: Date, interval: TimeDuration, repeats: Bool, block: @escaping ((Timer) -> Void)) {
         self.init(fire: fire, interval: interval.seconds, repeats: repeats, block: block)
     }
@@ -783,6 +784,7 @@ public extension Timer {
 
       - Returns:A new Timer object, configured according to the specified parameters.
       */
+    @_disfavoredOverload
     convenience init(fireAt date: Date, interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
         self.init(fireAt: date, interval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
@@ -797,6 +799,7 @@ public extension Timer {
 
      - Returns:A new Timer object, configured according to the specified parameters.
      */
+    @_disfavoredOverload
     convenience init(timeInterval interval: TimeDuration, repeats: Bool, block: @escaping ((Timer) -> Void)) {
         self.init(timeInterval: interval.seconds, repeats: repeats, block: block)
     }
@@ -813,6 +816,7 @@ public extension Timer {
 
      - Returns:A new Timer object, configured according to the specified parameters.
      */
+    @_disfavoredOverload
     convenience init(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) {
         self.init(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
@@ -828,6 +832,7 @@ public extension Timer {
      - Returns:A new Timer object, configured according to the specified parameters.
      */
     @discardableResult
+    @_disfavoredOverload
     static func scheduledTimer(withTimeInterval interval: TimeDuration, repeats: Bool, block: @escaping ((Timer) -> Void)) -> Timer {
         scheduledTimer(withTimeInterval: interval.seconds, repeats: repeats, block: block)
     }
@@ -844,6 +849,7 @@ public extension Timer {
 
      - Returns:A new Timer object, configured according to the specified parameters.
      */
+    @_disfavoredOverload
     static func scheduledTimer(timeInterval interval: TimeDuration, target: Any, selector: Selector, userInfo: Any?, repeats: Bool) -> Timer {
         scheduledTimer(timeInterval: interval.seconds, target: target, selector: selector, userInfo: userInfo, repeats: repeats)
     }
