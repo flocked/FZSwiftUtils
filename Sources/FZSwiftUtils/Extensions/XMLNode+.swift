@@ -63,6 +63,27 @@ extension XMLNode {
     }
 }
 
+extension XMLNode.Kind: CustomStringConvertible  {
+    public var description: String {
+        switch self {
+        case .invalid: return "invalid"
+        case .document: return "document"
+        case .element: return "element"
+        case .attribute: return "attribute"
+        case .namespace: return "namespace"
+        case .processingInstruction: return "processingInstruction"
+        case .comment: return "comment"
+        case .text: return "text"
+        case .DTDKind: return "DTDKind"
+        case .entityDeclaration: return "entityDeclaration"
+        case .attributeDeclaration: return "attributeDeclaration"
+        case .elementDeclaration: return "elementDeclaration"
+        case .notationDeclaration: return "notationDeclaration"
+        default: return "unknown"
+        }
+    }
+}
+
 /*
 extension XMLNode: Sequence {
     public func makeIterator() -> Iterator {
