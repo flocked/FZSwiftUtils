@@ -61,6 +61,30 @@ extension XMLNode {
     func children(named name: String, kind: Kind) -> [XMLNode] {
         children?.filter { $0.name == name && $0.kind == kind } ?? []
     }
+    
+    /**
+     Returns a string representation of the node that represents the kind of the node and it's children.
+     
+     - Parameter includeAttributes: A Boolean value indiciating whether to include the attribute names for each node.
+     */
+    public func xmlKindString(includeAttributes: Bool = true) -> String {
+        xmlKindString(at: 0, includeAttributes: includeAttributes)
+    }
+    
+    private func xmlKindString(at level: Int, includeAttributes: Bool) -> String {
+        var lines: [String] = []
+        var attributes = ""
+        if includeAttributes, let attrs = (self as? Foundation.XMLElement)?.attributes?.compactMap({ $0.name }), !attrs.isEmpty {
+            attributes = "[\(attrs.joined(separator: ", "))]"
+        }
+        if let name = name {
+            lines += "\(String(repeating: " ", count: index))\(kind): \(name) \(attributes)"
+        } else {
+            lines += "\(String(repeating: " ", count: index))\(kind) \(attributes)"
+        }
+        lines += children?.map({ $0.xmlKindString(at: level+1, includeAttributes: includeAttributes) }) ?? []
+        return lines.joined(separator: "\n")
+    }
 }
 
 extension XMLNode.Kind: CustomStringConvertible  {
