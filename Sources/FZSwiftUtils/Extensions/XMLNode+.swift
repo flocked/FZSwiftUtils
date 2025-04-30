@@ -63,15 +63,33 @@ extension XMLNode {
     }
     
     /**
-     Returns a string representation of the node that represents the kind of the node and it's children.
+     Returns a string that represents the kind of the node and it's children.
      
-     - Parameter includeAttributes: A Boolean value indiciating whether to include the attribute names for each node.
+     For example:
+     ```
+     document
+       element: URL [link]
+       element: URL [link]
+       element: Image [link, width, height]
+       element: Parent [name, age]
+         element: Child
+           text
+       element: Parent [name, age]
+         element: Child
+           text
+     ```
+          
+     - Parameters:
+        - includeAttributes: A Boolean value indiciating whether to include the attribute names for each node.
+        - maxLevel: The maximum nesting level within the nodes tree hierarchy.
+        - maxCount: The maximum amount of children per node, or `nil` to include all.
+
      */
-    public func xmlKindString(includeAttributes: Bool = true) -> String {
-        xmlKindString(at: 0, includeAttributes: includeAttributes)
+    public func xmlKindString(includeAttributes: Bool = true, maxLevel: Int? = nil, maxCount: Int? = nil) -> String {
+        xmlKindString(at: 0, includeAttributes: includeAttributes, maxLevel: maxLevel, maxCount: maxCount)
     }
     
-    private func xmlKindString(at level: Int, includeAttributes: Bool) -> String {
+    private func xmlKindString(at level: Int, includeAttributes: Bool, maxLevel: Int?, maxCount: Int?) -> String {
         var lines: [String] = []
         var attributes = ""
         if includeAttributes, let attrs = (self as? Foundation.XMLElement)?.attributes?.compactMap({ $0.name }), !attrs.isEmpty {
@@ -82,14 +100,16 @@ extension XMLNode {
         } else {
             lines += "\(String(repeating: " ", count: level))\(kind) \(attributes)"
         }
-        for child in children ?? [] {
-            lines += child.xmlKindString(at: level+1, includeAttributes: includeAttributes)
+        
+        if level+1 < maxLevel ?? .max {
+            let children = children?[safe: 0..<(maxCount ?? childCount).clamped(max: childCount)] ?? []
+            lines += children.map({ $0.xmlKindString(at: level+1, includeAttributes: includeAttributes, maxLevel: maxLevel, maxCount: maxCount) })
         }
         return lines.joined(separator: "\n")
     }
 }
 
-extension XMLNode.Kind: CustomStringConvertible  {
+extension XMLNode.Kind: CustomStringConvertible {
     public var description: String {
         switch self {
         case .invalid: return "invalid"
