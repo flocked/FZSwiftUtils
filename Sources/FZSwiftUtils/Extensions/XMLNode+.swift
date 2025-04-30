@@ -30,6 +30,26 @@ extension XMLNode {
         children(named: name, kind: kind)
     }
     
+    /// Returns all descendant child nodes that have the specified name.
+    public subscript (all name: String?, maxLevel: Int? = nil) -> [XMLNode] {
+        allChildren.maxLevel(maxLevel).filter({ $0.name == name }).collect()
+    }
+    
+    /// Returns all descendant child nodes that have the specified kind.
+    public subscript (all kind: Kind, maxLevel: Int? = nil) -> [XMLNode] {
+        allChildren.maxLevel(maxLevel).filter({ $0.kind == kind }).collect()
+    }
+    
+    /// Returns all descendant child nodes that have the specified name and kind.
+    public subscript (all name: String?, kind: Kind, maxLevel: Int? = nil) -> [XMLNode] {
+        allChildren.maxLevel(maxLevel).filter({ $0.kind == kind && $0.name == name }).collect()
+    }
+    
+    /// Returns all descendant attribute nodes that have the specified name.
+    public subscript (allAttributes name: String, maxLevel: Int? = nil) -> [XMLNode] {
+        allChildren.maxLevel(maxLevel).compactMap({ ($0 as? XMLElement)?.attribute(forName: name) }).collect()
+    }
+    
     /// Returns the child node at the specified location.
     public subscript (index: Int) -> XMLNode? {
         child(at: index)
@@ -111,6 +131,10 @@ extension XMLNode {
         
         /// The maximum child level within the nodes tree hierarchy.
         public func maxLevel(_ maxLevel: Int) -> Self {
+            .init(node, maxLevel)
+        }
+        
+        func maxLevel(_ maxLevel: Int?) -> Self {
             .init(node, maxLevel)
         }
         
