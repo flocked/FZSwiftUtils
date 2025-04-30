@@ -445,7 +445,7 @@ public extension URLResources {
 #if os(macOS)
 public extension URLResources {
     /// The quarantine properties of a resource.
-    struct QurantineProperties {
+    struct QurantineProperties: CustomStringConvertible {
         /**
          The URL of the resource originally hosting the quarantined item.
          
@@ -517,6 +517,11 @@ public extension URLResources {
         
         /// The raw value of the qurantine properties.
         public var rawValue: [String: Any] = [:]
+        
+        public var description: String {
+            let rawValue = rawValue.mapKeys({$0.replacingOccurrences(of: "LSQuarantine", with: "").lowercasedFirst()})
+            return "QurantineProperties(\(rawValue))"
+        }
         
         init?(_ dictionary: [String: Any]?) {
             guard let dictionary = dictionary else { return nil }
