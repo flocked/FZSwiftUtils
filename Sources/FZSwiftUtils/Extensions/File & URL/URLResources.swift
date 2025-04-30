@@ -93,7 +93,11 @@ public class URLResources {
     /// A Boolean value indicating if the resource is a volume.
     public var isVolume: Bool { value(for: \.isVolume) ?? false }
 
-    /// A Boolean value indicating if the resource is a packaged directory.
+    /**
+     A Boolean value indicating if the resource is a packaged directory.
+     
+     - Note: You can only set or clear this property on directories; if you try to set this property on non-directory objects, the property is ignored. If the directory is a package for some other reason (extension type, etc), setting this property to false will have no effect.
+     */
     public var isPackage: Bool {
         get { value(for: \.isPackage) ?? false }
         set { setValue(newValue, for: \.isPackage) }
@@ -112,7 +116,11 @@ public class URLResources {
         set { setValue(newValue, for: \.isUserImmutable) }
     }
 
-    /// A Boolean value indicating if the resource is normally not displayed to users.
+    /**
+     A Boolean value indicating if the resource is normally not displayed to users.
+     
+     - Note: If the resource is a hidden because its name starts with a period, setting this property to false will not change the property.
+     */
     public var isHidden: Bool {
         get { value(for: \.isHidden) ?? false }
         set { setValue(newValue, for: \.isHidden) }
@@ -197,7 +205,6 @@ public class URLResources {
     public var path: String? { value(for: \.path) }
 
     /// The resource’s path as a canonical absolute file system path.
-    @available(macOS 10.12, iOS 10.0, tvOS 10.0, watchOS 3.0, *)
     public var canonicalPath: String? { value(for: \.canonicalPath) }
 
     /// A Boolean value indicating whether the resource is a file system trigger directory.
@@ -208,11 +215,9 @@ public class URLResources {
 
      For resources which refer to the same file inode, the generation identifier will change when the data in the file’s data fork is changed (changes to extended attributes or other file system metadata do not change the generation identifier). For resources which refer to the same directory inode, the generation identifier will change when direct children of that directory are added, removed or renamed (changes to the data of the direct children of that directory will not change the generation identifier). The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
-    @available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
     public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { value(for: \.generationIdentifier) }
 
     /// A value that the kernel assigns to identify a document.
-    @available(macOS 10.10, iOS 8.0, watchOS 2.0, tvOS 9.0, *)
     public var documentIdentifier: Int? { value(for: \.documentIdentifier) }
 
     /// A Boolean value indicating whether the file may have extended attributes.
@@ -257,38 +262,22 @@ public class URLResources {
     public var fileProtection: URLFileProtection? { value(for: \.fileProtection) }
 
     /// The total file size.
-    public var fileSize: DataSize? { guard let bytes = fileSizeBytes else { return nil }
-        return DataSize(bytes)
-    }
+    public var fileSize: DataSize? { value(for: \.fileSize)?.dataSize }
 
     /// The total allocated size on-disk for the file.
-    public var fileAllocatedSize: DataSize? { guard let bytes = fileAllocatedSizeBytes else { return nil }
-        return DataSize(bytes)
-    }
+    public var fileAllocatedSize: DataSize? { value(for: \.fileAllocatedSize)?.dataSize }
 
     /// The total displayable size of the file.
-    public var totalFileSize: DataSize? { guard let bytes = totalFileSizeBytes else { return nil }
-        return DataSize(bytes)
-    }
+    public var totalFileSize: DataSize? { value(for: \.totalFileSize)?.dataSize }
 
     /// The total allocated size of the file.
-    public var totalFileAllocatedSize: DataSize? { guard let bytes = totalFileAllocatedSizeBytes else { return nil }
-        return DataSize(bytes)
-    }
-
-    var fileSizeBytes: Int? { value(for: \.fileSize) }
-
-    var fileAllocatedSizeBytes: Int? { value(for: \.fileAllocatedSize) }
-
-    var totalFileSizeBytes: Int? { value(for: \.totalFileSize) }
-
-    var totalFileAllocatedSizeBytes: Int? { value(for: \.totalFileAllocatedSize) }
+    public var totalFileAllocatedSize: DataSize? { value(for: \.totalFileAllocatedSize)?.dataSize }
 
     /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
     public var isAliasFile: Bool { value(for: \.isAliasFile) ?? false }
 
     #if canImport(UniformTypeIdentifiers)
-    /// A content type of the resource.
+    /// The content type of the resource.
     @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
     public var contentType: UTType? { value(for: \.contentType) }
     #endif
@@ -308,7 +297,7 @@ public class URLResources {
         }
     }
     #else
-    /// macOS Finder tags of the resource.
+    /// The macOS Finder tags of the resource.
     public var finderTags: [String] {
         get {
             let tags: [String] = url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] ?? []
@@ -325,16 +314,16 @@ public class URLResources {
 @available(tvOS, obsoleted: 14.0, message: "Use contentType instead")
 @available(watchOS, obsoleted: 7.0, message: "Use contentType instead")
 extension URLResources {
-    /// A content type identifier of the resource.
+    /// The content type identifier of the resource.
     public var contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
 
-    /// A content type identifier tree of the resource.
+    /// The content type identifier tree of the resource.
     public var contentTypeIdentifierTree: [String] {
         guard let identifier = contentTypeIdentifier else { return [] }
         return identifier + getSupertypes(for: identifier)
     }
 
-    func getSupertypes(for identifier: String) -> [String] {
+    private func getSupertypes(for identifier: String) -> [String] {
         guard let params = UTTypeCopyDeclaration(identifier as CFString)?.takeRetainedValue() as? [String: Any], let supertypes = params[String(kUTTypeConformsToKey)] as? [String] else {
             return []
         }
@@ -345,7 +334,6 @@ extension URLResources {
 #if os(macOS)
     public extension URLResources {
         /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
-        @available(macOS 10.11, *)
         var applicationIsScriptable: Bool { value(for: \.applicationIsScriptable) ?? false }
 
         /// URLs to applications that support opening the file.
@@ -355,10 +343,9 @@ extension URLResources {
         }
 
         /// The quarantine properties of the resource.
-        @available(macOS 10.10, *)
-        var quarantineProperties: [String: Any]? {
-            get { value(for: \.quarantineProperties) }
-            set { setValue(newValue, for: \.quarantineProperties) }
+        var quarantineProperties: QurantineProperties? {
+            get { QurantineProperties(value(for: \.quarantineProperties)) }
+            set { setValue(newValue?.rawValue, for: \.quarantineProperties) }
         }
 
         /// The icon stored with the resource.
@@ -375,109 +362,211 @@ extension URLResources {
 public extension URLResources {
     /// The volume properties of the resource.
     var volume: VolumeURLResources {
-        VolumeURLResources(url)
+        VolumeURLResources(self)
     }
 
     ///  The volume properties of a file system resource.
     struct VolumeURLResources {
-        let _url: URL
-        public init(_ _url: URL) {
-            self._url = _url
+        private let resources: URLResources
+        
+        public init(_ resources: URLResources) {
+            self.resources = resources
         }
 
         /// The url of the volume.
-        public var url: URL? {
-            try? _url.resourceValues(for: .volumeURLKey).volume
-        }
+        public var url: URL? { resources.value(for: \.volume) }
 
         /// The name of the volume.
-        public var name: String? { try? _url.resourceValues(for: .volumeNameKey).volumeName
-        }
+        public var name: String? { resources.value(for: \.volumeName) }
 
         /// The name of the volume as it should be displayed in the user interface.
-        public var localizedName: String? { try? _url.resourceValues(for: .volumeLocalizedNameKey).volumeLocalizedName
-        }
+        public var localizedName: String? { resources.value(for: \.volumeLocalizedName) }
 
         /// The persistent UUID of the volume.
-        public var uuid: String? { try? _url.resourceValues(for: .volumeUUIDStringKey).volumeUUIDString
-        }
+        public var uuid: String? { resources.value(for: \.volumeUUIDString) }
 
         /// The total number of resources on the volume.
-        public var resourceCount: Int? { try? _url.resourceValues(for: .volumeResourceCountKey).volumeResourceCount
-        }
+        public var resourceCount: Int? { resources.value(for: \.volumeResourceCount) }
 
         /// The creation date of the volume.
-        public var creationDate: Date? { try? _url.resourceValues(for: .volumeCreationDateKey).volumeCreationDate
-        }
+        public var creationDate: Date? { resources.value(for: \.volumeCreationDate) }
 
         /// A Boolean value indicating whether the volume is read-only.
-        public var isReadOnly: Bool { (try? _url.resourceValues(for: .volumeIsReadOnlyKey).volumeIsReadOnly) ?? true
-        }
+        public var isReadOnly: Bool { resources.value(for: \.volumeIsReadOnly) ?? true }
 
         /// A Boolean value indicating whether the volume supports setting standard access permissions.
-        public var supportsAccessPermissions: Bool { (try? _url.resourceValues(for: .volumeSupportsAccessPermissionsKey).volumeSupportsAccessPermissions) ?? false
-        }
+        public var supportsAccessPermissions: Bool { resources.value(for: \.volumeSupportsAccessPermissions) ?? false }
 
         /// A Boolean value indicating whether the volume can be renamed.
-        public var supportsRenaming: Bool { (try? _url.resourceValues(for: .volumeSupportsRenamingKey).volumeSupportsRenaming) ?? false
-        }
+        public var supportsRenaming: Bool { resources.value(for: \.volumeSupportsRenaming) ?? false }
 
         /// A Boolean value indicating whether the volume supports symbolic links.
-        public var supportsSymbolicLinks: Bool { (try? _url.resourceValues(for: .volumeSupportsSymbolicLinksKey).volumeSupportsSymbolicLinks) ?? false
-        }
+        public var supportsSymbolicLinks: Bool { resources.value(for: \.volumeSupportsSymbolicLinks) ?? false }
 
         /// A Boolean value indicating whether the volume is removable.
-        public var isRemovable: Bool { (try? _url.resourceValues(for: .volumeIsRemovableKey).volumeIsRemovable) ?? false
-        }
+        public var isRemovable: Bool { resources.value(for: \.volumeIsRemovable) ?? false }
         
         /// A Boolean value indicating whether the volume is stored on a local device.
-        public var isLocal: Bool { (try? _url.resourceValues(for: .volumeIsLocalKey).volumeIsLocal) ?? false
-        }
+        public var isLocal: Bool { resources.value(for: \.volumeIsLocal) ?? false }
         
         /// A Boolean value that indicates whether the volume’s device is connected to an internal bus, or nil if not available.
-        public var isInternal: Bool { (try? _url.resourceValues(for: .volumeIsInternalKey).volumeIsInternal) ?? false
-        }
+        public var isInternal: Bool { resources.value(for: \.volumeIsInternal) ?? false }
 
         /// A Boolean value indicating whether the volume is ejectable.
-        public var isEjectable: Bool { (try? _url.resourceValues(for: .volumeIsEjectableKey).volumeIsEjectable) ?? false
-        }
+        public var isEjectable: Bool { resources.value(for: \.volumeIsEjectable) ?? false }
 
         /// A Boolean value indicating whether the volume is the root filesystem.
-        public var isRootFileSystem: Bool { (try? _url.resourceValues(for: .volumeIsRootFileSystemKey).volumeIsRootFileSystem) ?? false
-        }
+        public var isRootFileSystem: Bool { resources.value(for: \.volumeIsRootFileSystem) ?? false }
 
         /// The available capacity of the volume.
         public var availableCapacity: DataSize? {
-            if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityKey).volumeAvailableCapacity {
-                return DataSize(bytes)
-            }
-            return nil
+            resources.value(for: \.volumeAvailableCapacity)?.dataSize
         }
         
         #if os(macOS) || os(iOS)
         /// The volume’s available capacity for storing nonessential resources, in bytes.
         public var availableCapacityForImportantUisage: DataSize? {
-            if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityForImportantUsageKey).volumeAvailableCapacityForImportantUsage {
-                return DataSize(bytes)
-            }
-            return nil
+            resources.value(for: \.volumeAvailableCapacityForImportantUsage)?.dataSize
         }
         
         /// The available capacity of the volume.
         public var volumeAvailableCapacityForOpportunisticUsage: DataSize? {
-            if let bytes = try? _url.resourceValues(for: .volumeAvailableCapacityForOpportunisticUsageKey).volumeAvailableCapacityForOpportunisticUsage {
-                return DataSize(bytes)
-            }
-            return nil
+            resources.value(for: \.volumeAvailableCapacityForOpportunisticUsage)?.dataSize
         }
         #endif
 
         /// The total capacity of the volume.
         public var totalCapacity: DataSize? {
-            if let bytes = try? _url.resourceValues(for: .volumeTotalCapacityKey).volumeTotalCapacity {
-                return DataSize(bytes)
-            }
-            return nil
+            resources.value(for: \.volumeTotalCapacity)?.dataSize
         }
+    }
+}
+
+#if os(macOS)
+public extension URLResources {
+    /// The quarantine properties of a resource.
+    struct QurantineProperties {
+        /**
+         The URL of the resource originally hosting the quarantined item.
+         
+         For web downloads, this property is the URL of the web page on which the user initiated the download. For attachments, this property is the URL of the resource to which the quarantined item was attached (e.g. the email message, calendar event, etc.). The origin URL may be a file URL for local resources, or a custom URL to which the quarantining app will respond when asked to open it. The quarantining app should respond by displaying the resource to the user.
+         
+         - Note: The origin URL should not be set to the data URL, or the quarantining app may start downloading the file again if the user choses to view the origin URL while resolving a quarantine warning.
+         */
+        public var originURL: URL? {
+            get { rawValue[kLSQuarantineOriginURLKey as String] as? URL }
+            set { rawValue[kLSQuarantineOriginURLKey as String] = newValue }
+        }
+        
+        /// The actual URL of the quarantined item.
+        public var dataURL: URL? {
+            get { rawValue[kLSQuarantineDataURLKey as String] as? URL }
+            set { rawValue[kLSQuarantineDataURLKey as String] = newValue }
+        }
+        
+        /**
+         The bundle identifier of the quarantining agent.
+         
+         When setting quarantine properties, the bundle identifier is set automatically to the main bundle identifier of the current process if the key is not present.
+         */
+        public var agentBundleIdentifier: String? {
+            get { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] as? String }
+            set { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] = newValue }
+        }
+        
+        /**
+         The app name of the quarantining agent.
+         
+         When setting quarantine properties, this agent name is set automatically to the current process name if this key is not present.
+         */
+        public var agentName: String? {
+            get { rawValue[kLSQuarantineAgentNameKey as String] as? String }
+            set { rawValue[kLSQuarantineAgentNameKey as String] = newValue }
+        }
+        
+        /**
+         The date and time of the item’s quarantine.
+         
+         When setting quarantine properties, this property is set automatically to the current date and time if this value is not present.
+         */
+        public var timestamp: Date? {
+            get { rawValue[kLSQuarantineTimeStampKey as String] as? Date }
+            set { rawValue[kLSQuarantineTimeStampKey as String] = newValue }
+        }
+        
+        /// The reason for the quarantine.
+        public var type: QuarantineType? {
+            get {
+                guard let rawValue = rawValue["LSQuarantineEventIdentifier"] as? String else { return nil }
+                return QuarantineType(rawValue)
+            }
+            set { rawValue["LSQuarantineEventIdentifier"] = newValue?.rawValue }
+        }
+        
+        /// A Boolean value indicating whether the quarantined item was created by the current user.
+        public var isOwnedByCurrentUser: Bool? {
+            get { rawValue["LSQuarantineIsOwnedByCurrentUser"] as? Bool }
+            set { rawValue["LSQuarantineIsOwnedByCurrentUser"] = newValue }
+        }
+        
+        /// The identifier for the quarantine event.
+        public var eventIdentifier: String? {
+            get { rawValue["LSQuarantineEventIdentifier"] as? String }
+            set { rawValue["LSQuarantineEventIdentifier"] = newValue }
+        }
+        
+        /// The raw value of the qurantine properties.
+        public var rawValue: [String: Any] = [:]
+        
+        init?(_ dictionary: [String: Any]?) {
+            guard let dictionary = dictionary else { return nil }
+            self.rawValue = dictionary
+        }
+        
+        /// The reason for the quarantine.
+        public struct QuarantineType: RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible {
+            
+            /// The data is from a website download.
+            public static let webDownload = Self(kLSQuarantineTypeWebDownload as String)
+            
+            /// The data is from a download.
+            public static let otherDownload = Self(kLSQuarantineTypeOtherDownload as String)
+            
+            /// The data is an attachment from an email message.
+            public static let emailAttachment = Self(kLSQuarantineTypeEmailAttachment as String)
+            
+            /// The data is an attachment from a message.
+            public static let instantMessageAttachment = Self(kLSQuarantineTypeInstantMessageAttachment as String)
+            
+            public static let calendarEventAttachment = Self(kLSQuarantineTypeCalendarEventAttachment as String)
+            
+            /// The data is an attachment from a generic source.
+            public static let otherAttachment = Self(kLSQuarantineTypeOtherAttachment as String)
+            
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
+            
+            public init(_ rawValue: String) {
+                self.rawValue = rawValue
+            }
+            
+            public init(stringLiteral value: String) {
+                self.rawValue = value
+            }
+            
+            public let rawValue: String
+            
+            public var description: String {
+                rawValue.replacingOccurrences(of: "kLSQuarantineType", with: "").lowercasedFirst()
+            }
+        }
+    }
+}
+#endif
+
+fileprivate extension BinaryInteger {
+    var dataSize: DataSize {
+        DataSize(self)
     }
 }
