@@ -78,9 +78,9 @@ extension XMLNode {
             attributes = "[\(attrs.joined(separator: ", "))]"
         }
         if let name = name {
-            lines += "\(String(repeating: " ", count: index))\(kind): \(name) \(attributes)"
+            lines += "\(String(repeating: " ", count: level))\(kind): \(name) \(attributes)"
         } else {
-            lines += "\(String(repeating: " ", count: index))\(kind) \(attributes)"
+            lines += "\(String(repeating: " ", count: level))\(kind) \(attributes)"
         }
         for child in children ?? [] {
             lines += child.xmlKindString(at: level+1, includeAttributes: includeAttributes)
