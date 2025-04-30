@@ -83,6 +83,26 @@ public extension DispatchQueue {
     func async(at date: Date, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
         asyncAfter(wallDeadline: DispatchWallTime(date: date), qos: qos, flags: flags, execute: work)
     }
+    
+    /// The global system queue for maintenance or cleanup tasks that you create.
+    static var background: DispatchQueue {
+        DispatchQueue.global(qos: .background)
+    }
+    
+    /// The global system queue for tasks that the user does not track actively.
+    static var utility: DispatchQueue {
+        DispatchQueue.global(qos: .utility)
+    }
+    
+    /// The global system queue for tasks that prevent the user from actively using your app.
+    static var userInitiated: DispatchQueue {
+        DispatchQueue.global(qos: .userInitiated)
+    }
+    
+    /// The global system queue for user-interactive tasks, such as animations, event handling, or updating your app’s user interface.
+    static var userInteractive: DispatchQueue {
+        DispatchQueue.global(qos: .userInteractive)
+    }
 }
 
 public extension DispatchWallTime {

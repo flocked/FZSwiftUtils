@@ -449,7 +449,9 @@ public extension URLResources {
         /**
          The URL of the resource originally hosting the quarantined item.
          
-         For web downloads, this property is the URL of the web page on which the user initiated the download. For attachments, this property is the URL of the resource to which the quarantined item was attached (e.g. the email message, calendar event, etc.). The origin URL may be a file URL for local resources, or a custom URL to which the quarantining app will respond when asked to open it. The quarantining app should respond by displaying the resource to the user.
+         For web downloads, this property is the URL of the web page on which the user initiated the download. For attachments, this property is the URL of the resource to which the quarantined item was attached (e.g. the email message, calendar event, etc.).
+         
+         The origin URL may be a file URL for local resources, or a custom URL to which the quarantining app will respond when asked to open it. The quarantining app should respond by displaying the resource to the user.
          
          - Note: The origin URL should not be set to the data URL, or the quarantining app may start downloading the file again if the user choses to view the origin URL while resolving a quarantine warning.
          */
@@ -467,7 +469,7 @@ public extension URLResources {
         /**
          The bundle identifier of the quarantining agent.
          
-         When setting quarantine properties, the bundle identifier is set automatically to the main bundle identifier of the current process if the key is not present.
+         When applying the quarantine properties to an item and this value is `nil`, the value is set automatically to the main bundle identifier of the current process.
          */
         public var agentBundleIdentifier: String? {
             get { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] as? String }
@@ -477,7 +479,7 @@ public extension URLResources {
         /**
          The app name of the quarantining agent.
          
-         When setting quarantine properties, this agent name is set automatically to the current process name if this key is not present.
+         When applying the quarantine properties to an item and this value is `nil`, the value is set automatically to the current process name.
          */
         public var agentName: String? {
             get { rawValue[kLSQuarantineAgentNameKey as String] as? String }
@@ -487,14 +489,14 @@ public extension URLResources {
         /**
          The date and time of the item’s quarantine.
          
-         When setting quarantine properties, this property is set automatically to the current date and time if this value is not present.
+         When applying the quarantine properties to an item and this value is `nil`, the value is set automaticallyto the current date and time.
          */
         public var timestamp: Date? {
             get { rawValue[kLSQuarantineTimeStampKey as String] as? Date }
             set { rawValue[kLSQuarantineTimeStampKey as String] = newValue }
         }
         
-        /// The reason for the quarantine.
+        /// The reason for the item's quarantine, such as a web download or email attachment.
         public var type: QuarantineType? {
             get {
                 guard let rawValue = rawValue[kLSQuarantineTypeKey as String] as? String else { return nil }
@@ -513,7 +515,7 @@ public extension URLResources {
             get { rawValue["LSQuarantineEventIdentifier"] as? String }
         }
         
-        /// The raw value of the qurantine properties.
+        /// The raw representation of the qurantine properties.
         public var rawValue: [String: Any] = [:]
         
         public var description: String {
@@ -536,21 +538,22 @@ public extension URLResources {
             self.rawValue = dictionary
         }
         
-        /// The reason for the quarantine.
+        /// The reason for an item's quarantine.
         public struct QuarantineType: RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible {
             
-            /// The data is from a website download.
+            /// The item is from a website download.
             public static let webDownload = Self(kLSQuarantineTypeWebDownload as String)
             
-            /// The data is from a download.
+            /// The item is from a download.
             public static let otherDownload = Self(kLSQuarantineTypeOtherDownload as String)
             
-            /// The data is an attachment from an email message.
+            /// The item is an attachment from an email message.
             public static let emailAttachment = Self(kLSQuarantineTypeEmailAttachment as String)
             
-            /// The data is an attachment from a message.
+            /// The item is an attachment from a message.
             public static let instantMessageAttachment = Self(kLSQuarantineTypeInstantMessageAttachment as String)
             
+            /// The item is an attachment from a calendar event.
             public static let calendarEventAttachment = Self(kLSQuarantineTypeCalendarEventAttachment as String)
             
             /// The data is an attachment from a generic source.
