@@ -28,7 +28,7 @@ extension XMLNode {
     /// Returns the child nodes that have the specified name.
     @_disfavoredOverload
     public subscript (name: String) -> [XMLNode] {
-        children(forName: name)
+        children(named: name)
     }
     
     /// Returns the child nodes that have the specified kind.
@@ -39,7 +39,7 @@ extension XMLNode {
     /// Returns the child nodes that have the specified name and kind.
     @_disfavoredOverload
     public subscript (name: String, kind: Kind) -> [XMLNode] {
-        children(forName: name, kind: kind)
+        children(named: name, kind: kind)
     }
     
     /// Returns the child node at the specified location.
@@ -48,17 +48,17 @@ extension XMLNode {
     }
     
     /// Returns the child nodes that have the specified name.
-    func children(forName name: String) -> [XMLNode] {
-        return children?.filter { $0.name == name } ?? []
+    func children(named name: String) -> [XMLNode] {
+        children?.filter { $0.name == name } ?? []
     }
     
     /// Returns the child nodes that have the specified kind.
     func children(forKind kind: Kind) -> [XMLNode] {
-        return children?.filter { $0.kind == kind } ?? []
+        children?.filter { $0.kind == kind } ?? []
     }
     
     /// Returns the child nodes that have the specified name and kind.
-    func children(forName name: String, kind: Kind) -> [XMLNode] {
-        return children?.filter { $0.name == name && $0.kind == kind } ?? []
+    func children(named name: String, kind: Kind) -> [XMLNode] {
+        children?.filter { $0.name == name && $0.kind == kind } ?? []
     }
 }
