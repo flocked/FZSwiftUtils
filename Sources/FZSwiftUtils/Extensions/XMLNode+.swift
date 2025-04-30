@@ -8,16 +8,6 @@
 import Foundation
 
 extension XMLElement {
-    /// Returns the child nodes that have the specified name.
-    public subscript (name: String) -> [XMLElement] {
-        elements(forName: name)
-    }
-    
-    /// Returns the child nodes that have the specified name and kind.
-    public subscript (name: String, kind: Kind) -> [XMLElement] {
-        elements(forName: name).filter({$0.kind == kind })
-    }
-    
     /// Returns the attribute node with the specified name.
     public subscript (attribute name: String) -> XMLNode? {
         attribute(forName: name)
@@ -26,7 +16,6 @@ extension XMLElement {
 
 extension XMLNode {
     /// Returns the child nodes that have the specified name.
-    @_disfavoredOverload
     public subscript (name: String) -> [XMLNode] {
         children(named: name)
     }
@@ -37,7 +26,6 @@ extension XMLNode {
     }
     
     /// Returns the child nodes that have the specified name and kind.
-    @_disfavoredOverload
     public subscript (name: String, kind: Kind) -> [XMLNode] {
         children(named: name, kind: kind)
     }
@@ -109,6 +97,110 @@ extension XMLNode {
     }
 }
 
+extension XMLNode {
+    /// Returns a sequence of all descendant child nodes.
+    public var allChildren: ChildrenSequence {
+        ChildrenSequence(self)
+    }
+    
+    /// A sequnce of all descendant child nodes of a node.
+    public struct ChildrenSequence: Sequence {
+        private let node: XMLNode
+        private let maxLevel: Int?
+        private let _topChildrenFirst: Bool
+        
+        /// The maximum child level within the nodes tree hierarchy.
+        public func maxLevel(_ maxLevel: Int) -> Self {
+            .init(node, maxLevel)
+        }
+        
+
+        /**
+         Iterates the top-level children before their descendants.
+
+         By default, the sequence performs a depth-first traversal where child nodes are visited before their siblings. Using this property changes the traversal order so that all direct children of the node are visited before their descendants.
+         */
+        public var topChildrenFirst: Self {
+            .init(node, maxLevel, true)
+        }
+        
+        /// The number of children in the sequence.
+        public var count: Int {
+            node.totalChildCount
+        }
+        
+        init(_ node: XMLNode, _ maxLevel: Int? = nil, _ topChildrenFirst: Bool = false) {
+            self.node = node
+            self.maxLevel = maxLevel
+            self._topChildrenFirst = topChildrenFirst
+        }
+        
+        public func makeIterator() -> Iterator {
+            Iterator(node, maxLevel, 0, _topChildrenFirst)
+        }
+        
+        public class Iterator: IteratorProtocol {
+            private let node: XMLNode
+            private let maxLevel: Int?
+            private var topChildrenFirst: Bool
+            
+            private var index: Int = 0
+            private var childIterator: Iterator? = nil
+            private var firstRun = true
+            
+            /// The current child level.
+            public let level: Int
+            
+            public func next() -> XMLNode? {
+                topChildrenFirst ? _nexttopChildrenFirst : _next
+            }
+            
+            private var _next: XMLNode? {
+                if let node = childIterator?.next() {
+                    return node
+                }
+                childIterator = nil
+                guard index < node.childCount, let node = node.child(at: index) else { return nil }
+                index += 1
+                if level+1 < maxLevel ?? .max {
+                    childIterator = Iterator(node, maxLevel, level+1, topChildrenFirst)
+                }
+                return node
+            }
+            
+            private var _nexttopChildrenFirst: XMLNode? {
+                if let node = childIterator?.next() {
+                    return node
+                }
+                childIterator = nil
+                if index == node.childCount-1, firstRun {
+                    index = 0
+                    firstRun = false
+                }
+                guard index < node.childCount, let node = node.child(at: index) else { return nil }
+                index += 1
+                if firstRun {
+                    return node
+                } else if level+1 < maxLevel ?? .max {
+                    childIterator = Iterator(node, maxLevel, level+1, topChildrenFirst)
+                }
+                return childIterator?.next()
+            }
+            
+            init(_ node: XMLNode, _ maxLevel: Int?, _ level: Int = 0, _ topChildrenFirst: Bool = false) {
+                self.node = node
+                self.maxLevel = maxLevel
+                self.level = level
+                self.topChildrenFirst = topChildrenFirst
+            }
+        }
+    }
+    
+    private var totalChildCount: Int {
+        childCount + (children?.reduce(0) { $0 + $1.totalChildCount } ?? 0)
+    }
+}
+
 extension XMLNode.Kind: CustomStringConvertible {
     public var description: String {
         switch self {
@@ -129,27 +221,3 @@ extension XMLNode.Kind: CustomStringConvertible {
         }
     }
 }
-
-/*
-extension XMLNode: Sequence {
-    public func makeIterator() -> Iterator {
-        Iterator(self)
-    }
-    
-    public struct Iterator: IteratorProtocol {
-        let node: XMLNode
-        var index: Int = 0
-        
-        mutating public func next() -> XMLNode? {
-            guard let node = node.child(at: index) else { return nil }
-            index += 1
-            return node
-        }
-        
-        init(_ node: XMLNode) {
-            self.node = node
-        }
-    }
-    
-}
-*/
