@@ -497,28 +497,36 @@ public extension URLResources {
         /// The reason for the quarantine.
         public var type: QuarantineType? {
             get {
-                guard let rawValue = rawValue["LSQuarantineEventIdentifier"] as? String else { return nil }
+                guard let rawValue = rawValue[kLSQuarantineTypeKey as String] as? String else { return nil }
                 return QuarantineType(rawValue)
             }
-            set { rawValue["LSQuarantineEventIdentifier"] = newValue?.rawValue }
+            set { rawValue[kLSQuarantineTypeKey as String] = newValue?.rawValue }
         }
         
         /// A Boolean value indicating whether the quarantined item was created by the current user.
         public var isOwnedByCurrentUser: Bool? {
             get { rawValue["LSQuarantineIsOwnedByCurrentUser"] as? Bool }
-            set { rawValue["LSQuarantineIsOwnedByCurrentUser"] = newValue }
         }
         
         /// The identifier for the quarantine event.
         public var eventIdentifier: String? {
             get { rawValue["LSQuarantineEventIdentifier"] as? String }
-            set { rawValue["LSQuarantineEventIdentifier"] = newValue }
         }
         
         /// The raw value of the qurantine properties.
         public var rawValue: [String: Any] = [:]
         
         public var description: String {
+            var strings: [String] = []
+            if let originURL = originURL { strings += "originURL: \(originURL)" }
+            if let dataURL = dataURL { strings += "dataURL: \(dataURL)" }
+            if let agentName = agentName { strings += "agent: \(agentName)" }
+            if let agentBundleID = agentBundleIdentifier { strings += "agentBundleID: \(agentBundleID)" }
+            if let type = type { strings += "type: \(type)" }
+            if let isOwned = isOwnedByCurrentUser { strings += "isOwnedByUser: \(isOwned)" }
+            if let timestamp = timestamp { strings += "timestamp: \(timestamp)" }
+            return "QurantineProperties(\(strings.joined(separator: ", ")))"
+
             let rawValue = rawValue.mapKeys({$0.replacingOccurrences(of: "LSQuarantine", with: "").lowercasedFirst()})
             return "QurantineProperties(\(rawValue))"
         }
