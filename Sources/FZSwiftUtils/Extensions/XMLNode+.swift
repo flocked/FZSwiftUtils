@@ -82,7 +82,9 @@ extension XMLNode {
         } else {
             lines += "\(String(repeating: " ", count: index))\(kind) \(attributes)"
         }
-        lines += children?.map({ $0.xmlKindString(at: level+1, includeAttributes: includeAttributes) }) ?? []
+        for child in children ?? [] {
+            lines += child.xmlKindString(at: level+1, includeAttributes: includeAttributes)
+        }
         return lines.joined(separator: "\n")
     }
 }
