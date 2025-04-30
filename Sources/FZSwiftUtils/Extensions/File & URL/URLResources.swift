@@ -520,8 +520,7 @@ public extension URLResources {
             var strings: [String] = []
             if let originURL = originURL { strings += "originURL: \(originURL)" }
             if let dataURL = dataURL { strings += "dataURL: \(dataURL)" }
-            if let agentName = agentName { strings += "agent: \(agentName)" }
-            if let agentBundleID = agentBundleIdentifier { strings += "agentBundleID: \(agentBundleID)" }
+            if let agent = agentName, let bundleID = agentBundleIdentifier { strings += "agent: \(agent) (\(bundleID)" } else if let agentName = agentName { strings += "agent: \(agentName)" } else if let agentBundleID = agentBundleIdentifier { strings += "agentBundleID: \(agentBundleID)" }
             if let type = type { strings += "type: \(type)" }
             if let isOwned = isOwnedByCurrentUser { strings += "isOwnedByUser: \(isOwned)" }
             if let timestamp = timestamp { strings += "timestamp: \(timestamp)" }
@@ -569,9 +568,9 @@ public extension URLResources {
             }
             
             public let rawValue: String
-            
+
             public var description: String {
-                rawValue.replacingOccurrences(of: "kLSQuarantineType", with: "").lowercasedFirst()
+                rawValue.replacingOccurrences(of: ["kLSQuarantineType", "lSQuarantineType"], with: "").lowercasedFirst()
             }
         }
     }
