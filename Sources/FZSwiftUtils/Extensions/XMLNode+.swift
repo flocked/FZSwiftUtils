@@ -62,3 +62,27 @@ extension XMLNode {
         children?.filter { $0.name == name && $0.kind == kind } ?? []
     }
 }
+
+/*
+extension XMLNode: Sequence {
+    public func makeIterator() -> Iterator {
+        Iterator(self)
+    }
+    
+    public struct Iterator: IteratorProtocol {
+        let node: XMLNode
+        var index: Int = 0
+        
+        mutating public func next() -> XMLNode? {
+            guard let node = node.child(at: index) else { return nil }
+            index += 1
+            return node
+        }
+        
+        init(_ node: XMLNode) {
+            self.node = node
+        }
+    }
+    
+}
+*/
