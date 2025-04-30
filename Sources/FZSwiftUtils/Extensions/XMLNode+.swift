@@ -276,88 +276,6 @@ extension XMLNode {
     }
 }
 
-/*
-extension XMLNode {
-    /// Returns a sequence of all descendant attribute nodes.
-    public var allAttributes: AttributeSequence {
-        AttributeSequence(self)
-    }
-    
-    /// A sequence of all descendant attribute nodes of a node.
-    public struct AttributeSequence: Sequence {
-        private let node: XMLNode
-        private let maxLevel: Int?
-        private let _byLevel: Bool
-        
-        /// The maximum child level within the nodes tree hierarchy.
-        public func maxLevel(_ maxLevel: Int) -> Self {
-            .init(node, maxLevel)
-        }
-        
-        func maxLevel(_ maxLevel: Int?) -> Self {
-            .init(node, maxLevel)
-        }
-        
-        /**
-         Iterates the attributes level by level.
-         
-         The default value is `false`, which iterates the attributes using a depth-first order.
-         */
-        public var byLevel: Self {
-            .init(node, maxLevel, true)
-        }
-        
-        init(_ node: XMLNode, _ maxLevel: Int? = nil, _ byLevel: Bool = false) {
-            self.node = node
-            self.maxLevel = maxLevel
-            self._byLevel = byLevel
-        }
-        
-        public func makeIterator() -> Iterator {
-            Iterator(node, maxLevel, _byLevel)
-        }
-        
-        /// The iterator of a ``Foundation/XMLNode/AttributeSequence``.
-        public class Iterator: IteratorProtocol {
-            private let node: XMLNode
-            private var attributes: [XMLNode] = []
-            private let childIterator: ChildrenSequence.Iterator
-                        
-            /// The current child level.
-            public private(set) var level: Int = 0
-            
-            /// Skip recursion of the current child node.
-            public func skipDescendants() {
-                childIterator.skipDescendants()
-            }
-            
-            public func next() -> XMLNode? {
-                if let attribute = attributes.popLast() {
-                    return attribute
-                }
-                if let child = childIterator.next() {
-                    attributes = child._attributes
-                    level = childIterator.level
-                    return next()
-                }
-                return nil
-            }
-            
-            init(_ node: XMLNode, _ maxLevel: Int?, _ byLevel: Bool) {
-                self.node = node
-                self.attributes = node._attributes
-                self.childIterator = (byLevel ? node.allChildren.topChildrenFirst : node.allChildren).maxLevel(maxLevel).makeIterator()
-            }
-        }
-    }
-    
-    private var _attributes: [XMLNode] {
-        ((self as? XMLElement)?.attributes ?? []).reversed()
-    }
-}
-*/
-
-/*
 extension XMLNode {
     /// Returns a sequence of all descendant attribute nodes.
     public var allAttributes: AttributeSequence {
@@ -408,7 +326,6 @@ extension XMLNode {
             
             private var index: Int = 0
             private var childIterator: Iterator? = nil
-            private var firstRun = true
             
             private var queue: [(node: XMLNode, level: Int)] = []
             
@@ -478,8 +395,6 @@ extension XMLNode {
         ((self as? XMLElement)?.attributes ?? []).reversed()
     }
 }
-*/
-
 extension XMLNode.Kind: CustomStringConvertible {
     public var description: String {
         switch self {
