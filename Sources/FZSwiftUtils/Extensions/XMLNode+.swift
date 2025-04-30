@@ -15,6 +15,21 @@ extension XMLElement {
 }
 
 extension XMLNode {
+    /// Returns all element nodes among the children of the current node.
+    var elements: [XMLNode] {
+        children(forKind: .element)
+    }
+
+    /// Returns all text nodes among the children of the current node.
+    var texts: [XMLNode] {
+        children(forKind: .text)
+    }
+    
+    /// Returns all comment nodes among the children of the current node.
+    var comments: [XMLNode] {
+        children(forKind: .comment)
+    }
+    
     /// Returns the child nodes that have the specified name.
     public subscript (name: String) -> [XMLNode] {
         children(named: name)
@@ -147,7 +162,7 @@ extension XMLNode {
         ChildrenSequence(self)
     }
     
-    /// A sequnce of all descendant child nodes of a node.
+    /// A sequence of all descendant child nodes of a node.
     public struct ChildrenSequence: Sequence {
         private let node: XMLNode
         private let maxLevel: Int?
@@ -155,21 +170,20 @@ extension XMLNode {
         
         /// The maximum child level within the nodes tree hierarchy.
         public func maxLevel(_ maxLevel: Int) -> Self {
-            .init(node, maxLevel)
+            Self(node, maxLevel, _topChildrenFirst)
         }
         
         func maxLevel(_ maxLevel: Int?) -> Self {
-            .init(node, maxLevel)
+            Self(node, maxLevel, _topChildrenFirst)
         }
         
-
         /**
          Iterates the top-level children before their descendants.
 
          By default, the sequence performs a depth-first traversal where child nodes are visited before their siblings. Using this property changes the traversal order so that all direct children of the node are visited before their descendants.
          */
         public var topChildrenFirst: Self {
-            .init(node, maxLevel, true)
+            Self(node, maxLevel, true)
         }
         
         /// The number of children in the sequence.
@@ -184,40 +198,50 @@ extension XMLNode {
         }
         
         public func makeIterator() -> Iterator {
-            Iterator(node, maxLevel, 0, _topChildrenFirst)
+            Iterator(node, maxLevel, _topChildrenFirst)
         }
         
+        /// The iterator of a ``Foundation/XMLNode/ChildrenSequence``.
         public class Iterator: IteratorProtocol {
             private let node: XMLNode
+            private let rootLevel: Int
             private let maxLevel: Int?
-            private var topChildrenFirst: Bool
+            private let topChildrenFirst: Bool
             
             private var index: Int = 0
             private var childIterator: Iterator? = nil
             private var firstRun = true
             
             /// The current child level.
-            public let level: Int
+            public private(set) var level: Int
             
-            public func next() -> XMLNode? {
-                topChildrenFirst ? _nexttopChildrenFirst : _next
+            /// Skip recursion of the current child node.
+            public func skipDescendants() {
+                childIterator = nil
             }
             
-            private var _next: XMLNode? {
-                if let node = childIterator?.next() {
+            public func next() -> XMLNode? {
+                topChildrenFirst ? nextTopChildrenFirst() : _next()
+            }
+            
+            private func _next() -> XMLNode? {
+                if let childIterator = childIterator, let node = childIterator.next() {
+                    level = childIterator.level
                     return node
                 }
                 childIterator = nil
                 guard index < node.childCount, let node = node.child(at: index) else { return nil }
+                level = rootLevel
                 index += 1
-                if level+1 < maxLevel ?? .max {
-                    childIterator = Iterator(node, maxLevel, level+1, topChildrenFirst)
+                if rootLevel+1 < maxLevel ?? .max {
+                    childIterator = Iterator(node, maxLevel, topChildrenFirst, rootLevel+1)
                 }
                 return node
             }
             
-            private var _nexttopChildrenFirst: XMLNode? {
-                if let node = childIterator?.next() {
+            private func nextTopChildrenFirst() -> XMLNode? {
+                if let childIterator = childIterator, let node = childIterator.next() {
+                    level = childIterator.level
                     return node
                 }
                 childIterator = nil
@@ -228,17 +252,20 @@ extension XMLNode {
                 guard index < node.childCount, let node = node.child(at: index) else { return nil }
                 index += 1
                 if firstRun {
+                    level = rootLevel
                     return node
-                } else if level+1 < maxLevel ?? .max {
-                    childIterator = Iterator(node, maxLevel, level+1, topChildrenFirst)
+                } else if rootLevel+1 < maxLevel ?? .max {
+                    childIterator = Iterator(node, maxLevel, topChildrenFirst, rootLevel+1)
+                    return nextTopChildrenFirst()
                 }
-                return childIterator?.next()
+                return nil
             }
             
-            init(_ node: XMLNode, _ maxLevel: Int?, _ level: Int = 0, _ topChildrenFirst: Bool = false) {
+            init(_ node: XMLNode, _ maxLevel: Int?, _ topChildrenFirst: Bool = false, _ level: Int = 0) {
                 self.node = node
-                self.maxLevel = maxLevel
                 self.level = level
+                self.rootLevel = level
+                self.maxLevel = maxLevel
                 self.topChildrenFirst = topChildrenFirst
             }
         }
@@ -248,6 +275,210 @@ extension XMLNode {
         childCount + (children?.reduce(0) { $0 + $1.totalChildCount } ?? 0)
     }
 }
+
+/*
+extension XMLNode {
+    /// Returns a sequence of all descendant attribute nodes.
+    public var allAttributes: AttributeSequence {
+        AttributeSequence(self)
+    }
+    
+    /// A sequence of all descendant attribute nodes of a node.
+    public struct AttributeSequence: Sequence {
+        private let node: XMLNode
+        private let maxLevel: Int?
+        private let _byLevel: Bool
+        
+        /// The maximum child level within the nodes tree hierarchy.
+        public func maxLevel(_ maxLevel: Int) -> Self {
+            .init(node, maxLevel)
+        }
+        
+        func maxLevel(_ maxLevel: Int?) -> Self {
+            .init(node, maxLevel)
+        }
+        
+        /**
+         Iterates the attributes level by level.
+         
+         The default value is `false`, which iterates the attributes using a depth-first order.
+         */
+        public var byLevel: Self {
+            .init(node, maxLevel, true)
+        }
+        
+        init(_ node: XMLNode, _ maxLevel: Int? = nil, _ byLevel: Bool = false) {
+            self.node = node
+            self.maxLevel = maxLevel
+            self._byLevel = byLevel
+        }
+        
+        public func makeIterator() -> Iterator {
+            Iterator(node, maxLevel, _byLevel)
+        }
+        
+        /// The iterator of a ``Foundation/XMLNode/AttributeSequence``.
+        public class Iterator: IteratorProtocol {
+            private let node: XMLNode
+            private var attributes: [XMLNode] = []
+            private let childIterator: ChildrenSequence.Iterator
+                        
+            /// The current child level.
+            public private(set) var level: Int = 0
+            
+            /// Skip recursion of the current child node.
+            public func skipDescendants() {
+                childIterator.skipDescendants()
+            }
+            
+            public func next() -> XMLNode? {
+                if let attribute = attributes.popLast() {
+                    return attribute
+                }
+                if let child = childIterator.next() {
+                    attributes = child._attributes
+                    level = childIterator.level
+                    return next()
+                }
+                return nil
+            }
+            
+            init(_ node: XMLNode, _ maxLevel: Int?, _ byLevel: Bool) {
+                self.node = node
+                self.attributes = node._attributes
+                self.childIterator = (byLevel ? node.allChildren.topChildrenFirst : node.allChildren).maxLevel(maxLevel).makeIterator()
+            }
+        }
+    }
+    
+    private var _attributes: [XMLNode] {
+        ((self as? XMLElement)?.attributes ?? []).reversed()
+    }
+}
+*/
+
+/*
+extension XMLNode {
+    /// Returns a sequence of all descendant attribute nodes.
+    public var allAttributes: AttributeSequence {
+        AttributeSequence(self)
+    }
+    
+    /// A sequence of all descendant attribute nodes of a node.
+    public struct AttributeSequence: Sequence {
+        private let node: XMLNode
+        private let maxLevel: Int?
+        private let _byLevel: Bool
+        
+        /// The maximum child level within the nodes tree hierarchy.
+        public func maxLevel(_ maxLevel: Int) -> Self {
+            .init(node, maxLevel)
+        }
+        
+        func maxLevel(_ maxLevel: Int?) -> Self {
+            .init(node, maxLevel)
+        }
+        
+        /**
+         Iterates the attributes level by level.
+         
+         The default value is `false`, which iterates the attributes using a depth-first order.
+         */
+        public var byLevel: Self {
+            .init(node, maxLevel, true)
+        }
+        
+        init(_ node: XMLNode, _ maxLevel: Int? = nil, _ byLevel: Bool = false) {
+            self.node = node
+            self.maxLevel = maxLevel
+            self._byLevel = byLevel
+        }
+        
+        public func makeIterator() -> Iterator {
+            Iterator(node, maxLevel, _byLevel, 0)
+        }
+        
+        /// The iterator of a ``Foundation/XMLNode/AttributeSequence``.
+        public class Iterator: IteratorProtocol {
+            private let node: XMLNode
+            private let rootLevel: Int
+            private let maxLevel: Int?
+            private let byLevel: Bool
+            private var attributes: [XMLNode] = []
+            
+            private var index: Int = 0
+            private var childIterator: Iterator? = nil
+            private var firstRun = true
+            
+            private var queue: [(node: XMLNode, level: Int)] = []
+            
+            /// The current child level.
+            public private(set) var level: Int
+            
+            /// Skip recursion of the current child node.
+            public func skipDescendants() {
+                childIterator = nil
+            }
+            
+            public func next() -> XMLNode? {
+                byLevel ? nextByLevel() : _next()
+            }
+            
+            private func _next() -> XMLNode? {
+                if let attribute = attributes.popLast() {
+                    level = rootLevel
+                    return attribute
+                }
+                if let childIterator = childIterator, let node = childIterator.next() {
+                    level = childIterator.level
+                    return node
+                }
+                childIterator = nil
+                guard index < node.childCount, let node = node.child(at: index) else { return nil }
+                index += 1
+                if rootLevel+1 < maxLevel ?? .max {
+                    childIterator = Iterator(node, maxLevel, byLevel, rootLevel+1)
+                }
+                return _next()
+            }
+            
+            public func nextByLevel() -> XMLNode? {
+                if let attribute = attributes.popLast() {
+                    return attribute
+                }
+                while !queue.isEmpty {
+                    let (currentNode, currentLevel) = queue.removeFirst()
+                    self.level = currentLevel
+                    if currentLevel + 1 < maxLevel ?? .max {
+                        for child in (currentNode.children ?? []) {
+                            queue.append((node: child, level: currentLevel + 1))
+                        }
+                    }
+                    attributes = currentNode._attributes
+                    if let attribute = attributes.popLast() {
+                        return attribute
+                    }
+                }
+                return nil
+            }
+            
+            init(_ node: XMLNode, _ maxLevel: Int?, _ byLevel: Bool, _ level: Int) {
+                self.node = node
+                self.level = level
+                self.rootLevel = level
+                self.maxLevel = maxLevel
+                self.byLevel = byLevel
+                self.attributes = node._attributes
+                self.queue.append((node: node, level: 0))
+            }
+        }
+    }
+    
+    private var _attributes: [XMLNode] {
+        ((self as? XMLElement)?.attributes ?? []).reversed()
+    }
+}
+*/
 
 extension XMLNode.Kind: CustomStringConvertible {
     public var description: String {
