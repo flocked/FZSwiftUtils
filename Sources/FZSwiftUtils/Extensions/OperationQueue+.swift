@@ -32,6 +32,13 @@ public extension OperationQueue {
         self.qualityOfService = qualityOfService
         return self
     }
+    
+    /// Sets the dispatch queue that the operation queue uses to invoke operations.
+    @discardableResult
+    func underlyingQueue(_ underlyingQueue: dispatch_queue_t?) -> Self {
+        self.underlyingQueue = underlyingQueue
+        return self
+    }
         
     /// Sets the name of the operation queue.
     @discardableResult
