@@ -88,6 +88,12 @@ extension XMLNode {
         return Bool(stringValue)
     }
     
+    /// Returns the content of the receiver as a URL value.
+    public var urlValue: URL? {
+        guard let stringValue = stringValue else { return nil }
+        return URL(string: stringValue)
+    }
+    
     /**
      Returns a string that represents the kind of the node and it's children.
      
