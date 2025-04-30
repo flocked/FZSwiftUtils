@@ -288,11 +288,11 @@ public extension URL {
     }
 }
 
-@available(macOS, deprecated: 11.0, message: "Use contentType instead")
-@available(iOS, deprecated: 14.0, message: "Use contentType instead")
-@available(macCatalyst, deprecated: 14.0, message: "Use contentType instead")
-@available(tvOS, deprecated: 14.0, message: "Use contentType instead")
-@available(watchOS, deprecated: 7.0, message: "Use contentType instead")
+@available(macOS, obsoleted: 11.0, message: "Use contentType instead")
+@available(iOS, obsoleted: 14.0, message: "Use contentType instead")
+@available(macCatalyst, obsoleted: 14.0, message: "Use contentType instead")
+@available(tvOS, obsoleted: 14.0, message: "Use contentType instead")
+@available(watchOS, obsoleted: 7.0, message: "Use contentType instead")
 public extension URL {
     /// The content type identifier of the url.
     var contentTypeIdentifier: String? { resources.contentTypeIdentifier }

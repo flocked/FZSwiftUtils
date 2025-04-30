@@ -106,7 +106,7 @@ public extension URL {
      - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      */
     func iterateFiles() -> URLSequence {
-        iterate { $0.isFile }
+        iterate { $0.isFile }.prefetchingProperties([.isRegularFileKey])
     }
 
     /**
@@ -160,7 +160,7 @@ public extension URL {
     func iterateFiles(contentTypes: [UTType]) -> URLSequence {
         contentTypes.isEmpty ? iterateFiles() : iterate {
             if let type = $0.contentType, contentTypes.contains(type) || type.conforms(toAny: contentTypes) { return true } else { return false }
-        }
+        }.prefetchingProperties([.contentTypeKey])
     }
 
     /**
@@ -206,7 +206,7 @@ public extension URL {
      - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      */
     func iterateFolders() -> URLSequence {
-        iterate { $0.isDirectory }
+        iterate { $0.isDirectory }.prefetchingProperties([.isDirectoryKey])
     }
     
     /// A sequence of URLs.

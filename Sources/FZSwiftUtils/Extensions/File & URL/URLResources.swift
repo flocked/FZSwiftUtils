@@ -319,11 +319,11 @@ public class URLResources {
     #endif
 }
 
-@available(macOS, deprecated: 11.0, message: "Use contentType instead")
-@available(iOS, deprecated: 14.0, message: "Use contentType instead")
-@available(macCatalyst, deprecated: 14.0, message: "Use contentType instead")
-@available(tvOS, deprecated: 14.0, message: "Use contentType instead")
-@available(watchOS, deprecated: 7.0, message: "Use contentType instead")
+@available(macOS, obsoleted: 11.0, message: "Use contentType instead")
+@available(iOS, obsoleted: 14.0, message: "Use contentType instead")
+@available(macCatalyst, obsoleted: 14.0, message: "Use contentType instead")
+@available(tvOS, obsoleted: 14.0, message: "Use contentType instead")
+@available(watchOS, obsoleted: 7.0, message: "Use contentType instead")
 extension URLResources {
     /// A content type identifier of the resource.
     public var contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
@@ -331,16 +331,14 @@ extension URLResources {
     /// A content type identifier tree of the resource.
     public var contentTypeIdentifierTree: [String] {
         guard let identifier = contentTypeIdentifier else { return [] }
-        return [identifier] + getSupertypes(for: identifier)
+        return identifier + getSupertypes(for: identifier)
     }
 
     func getSupertypes(for identifier: String) -> [String] {
-        let params = UTTypeCopyDeclaration(identifier as CFString)?.takeRetainedValue() as? [String: Any]
-        var supertypes = params?[String(kUTTypeConformsToKey)] as? [String] ?? []
-        for supertype in supertypes {
-            supertypes = getSupertypes(for: supertype) + supertypes
+        guard let params = UTTypeCopyDeclaration(identifier as CFString)?.takeRetainedValue() as? [String: Any], let supertypes = params[String(kUTTypeConformsToKey)] as? [String] else {
+            return []
         }
-        return supertypes.reversed()
+        return supertypes.flatMap { getSupertypes(for: $0) + [$0] }
     }
 }
 
