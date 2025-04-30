@@ -56,18 +56,36 @@ extension XMLNode {
     }
     
     /// Returns the child nodes that have the specified name.
-    func children(named name: String) -> [XMLNode] {
+    public func children(named name: String) -> [XMLNode] {
         children?.filter { $0.name == name } ?? []
     }
     
     /// Returns the child nodes that have the specified kind.
-    func children(forKind kind: Kind) -> [XMLNode] {
+    public func children(forKind kind: Kind) -> [XMLNode] {
         children?.filter { $0.kind == kind } ?? []
     }
     
     /// Returns the child nodes that have the specified name and kind.
-    func children(named name: String, kind: Kind) -> [XMLNode] {
+    public func children(named name: String, kind: Kind) -> [XMLNode] {
         children?.filter { $0.name == name && $0.kind == kind } ?? []
+    }
+    
+    /// Returns the content of the receiver as a integer value.
+    public var integerValue: Int? {
+        guard let stringValue = stringValue else { return nil }
+        return Int(stringValue)
+    }
+    
+    /// Returns the content of the receiver as a double value.
+    public var doubleValue: Double? {
+        guard let stringValue = stringValue else { return nil }
+        return Double(stringValue)
+    }
+    
+    /// Returns the content of the receiver as a boolean value.
+    public var boolValue: Bool? {
+        guard let stringValue = stringValue else { return nil }
+        return Bool(stringValue)
     }
     
     /**
