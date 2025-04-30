@@ -521,15 +521,14 @@ public extension URLResources {
             if let originURL = originURL { strings += "originURL: \(originURL)" }
             if let dataURL = dataURL { strings += "dataURL: \(dataURL)" }
             if let agent = agentName, let bundleID = agentBundleIdentifier { strings += "agent: \(agent), \(bundleID)" } else if let agentName = agentName { strings += "agent: \(agentName)" } else if let agentBundleID = agentBundleIdentifier { strings += "agentBundleID: \(agentBundleID)" }
-            if let type = type { strings += "type: \(type.description)" }
+            if let type = type { strings += "type: \(type)" }
             if let isOwned = isOwnedByCurrentUser { strings += "isOwnedByUser: \(isOwned)" }
             if let timestamp = timestamp { strings += "timestamp: \(timestamp)" }
             return "QurantineProperties(\(strings.joined(separator: ", ")))"
         }
         
         public var debugDescription: String {
-            let string = rawValue.sorted(by: \.key).map({ "\($0.key): \(String(describing: $0.value))" }).joined(separator: ", ")
-            return "QurantineProperties(\(string))"
+            "\(rawValue)"
         }
         
         init?(_ dictionary: [String: Any]?) {
@@ -572,7 +571,7 @@ public extension URLResources {
             public let rawValue: String
 
             public var description: String {
-                rawValue.replacingOccurrences(of: ["kLSQuarantineType", "lSQuarantineType"], with: "").lowercasedFirst()
+                rawValue.replacingOccurrences(of: "LSQuarantineType", with: "").lowercasedFirst()
             }
         }
     }
