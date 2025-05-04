@@ -147,7 +147,7 @@ public extension Date {
     /// The quarter of this date.
     var quarter: Int {
         get { value(for: .quarter) }
-        set { setValue(newValue, for: .second) }
+        set { setValue(newValue, for: .quarter) }
     }
 
     /// The month of this date.
@@ -156,13 +156,13 @@ public extension Date {
         set { setValue(newValue, for: .month) }
     }
 
-    /// The week of this date.
+    /// The week of the month of this date.
     var weekOfMonth: Int {
         get { value(for: .weekOfMonth) }
         set { setValue(newValue, for: .weekOfMonth) }
     }
 
-    /// The week of this date.
+    /// The week of the year of this date.
     var weekOfYear: Int {
         get { value(for: .weekOfYear) }
         set { setValue(newValue, for: .weekOfYear) }
@@ -178,6 +178,28 @@ public extension Date {
     var weekday: Int {
         get { value(for: .weekday) }
         set { setValue(newValue, for: .weekday) }
+    }
+    
+    /// The day of the year of this date.
+    var dayOfYear: Int {
+        get {
+            if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
+                return value(for: .dayOfYear)
+            }
+            return Calendar.current.ordinality(of: .day, in: .year, for: self) ?? 0
+        }
+        set {
+            if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
+                setValue(newValue, for: .dayOfYear)
+            } else {
+                let calendar = Calendar.current
+                guard let startOfYear = calendar.date(from: calendar.dateComponents([.year], from: self)),
+                      let newDate = calendar.date(byAdding: .day, value: newValue - 1, to: startOfYear) else {
+                    return
+                }
+                self = newDate
+            }
+        }
     }
 
     /// The hour of this date.
@@ -201,7 +223,7 @@ public extension Date {
     /// The nanosecond of this date.
     var nanosecond: Int {
         get { value(for: .nanosecond) }
-        set { setValue(newValue, for: .second) }
+        set { setValue(newValue, for: .nanosecond) }
     }
     
     /**

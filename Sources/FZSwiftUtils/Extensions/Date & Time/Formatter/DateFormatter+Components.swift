@@ -67,6 +67,19 @@ public extension DateFormatter {
     }
 }
 
+public extension Date {
+    /// Creates a date from the specific formatted string and date format.
+    init?(_ string: String, format: DateFormat, locale: Locale = .current) {
+        guard let date = DateFormatter(format).locale(locale).date(from: string) else { return nil }
+        self = date
+    }
+    
+    /// Generates a locale-aware string representation of a date using the specified date format and locale.
+    func formatter(_ format: DateFormat, locale: Locale = .current) -> String {
+        DateFormatter(format).string(from: self)
+    }
+}
+
 /**
  A date format to be used with `DateFormatter`.
  
@@ -115,11 +128,11 @@ public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleBySt
     }
     
     public static func += (lhs: inout DateFormat, rhs: DateFormat.DateComponent) {
-        lhs = .init(stringLiteral: lhs.format + rhs.format)
+        lhs = .init(stringLiteral: lhs.format + rhs.rawValue)
     }
     
     public static func + (lhs: DateFormat, rhs: DateFormat.DateComponent) -> Self {
-        .init(stringLiteral: lhs.format + rhs.format)
+        .init(stringLiteral: lhs.format + rhs.rawValue)
     }
     
     public static func += (lhs: inout DateFormat, rhs: String) {
@@ -132,101 +145,181 @@ public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleBySt
     
     public struct StringInterpolation: StringInterpolationProtocol {
         var parts: [String] = []
-
+        
         public init(literalCapacity: Int, interpolationCount: Int) {}
-
+        
         public mutating func appendLiteral(_ literal: String) {
             parts.append(literal)
         }
-
+        
         public mutating func appendInterpolation(_ naming: DateComponent) {
-            parts.append(naming.format)
+            parts.append(naming.rawValue)
         }
     }
 }
 
 extension DateFormat {
     /// Date component of a date format.
-    public struct DateComponent: CustomStringConvertible {
-        /// The format of the component.
-        public let format: String
-        
-        public var description: String { format }
-        
+    public enum DateComponent: String {
         /// Milisecond (e.g. `123`).
-        public static var millisecond = Self("SSS")
+        case millisecond = "SSS"
         /// Second with a zero if there is only 1 digit (e.g. `05`).
-        public static var second = Self("ss")
+        case second = "ss"
         /// Second (e.g. `33`).
-        public static var secondShort = Self("s")
+        case secondShort = "s"
 
         /// Minute with a zero if there is only 1 digit (e.g. `09`).
-        public static var minute = Self("mm")
+        case minute = "mm"
         /// Minute (e.g. `9`).
-        public static var minuteShort = Self("m")
+        case minuteShort = "m"
 
         /// 12-hour with a zero if there is only 1 digit (e.g. `09`).
-        public static var hour12 = Self("hh")
+        case hour12 = "hh"
         /// 12-hour (e.g. `9`).
-        public static var hour12Short = Self("h")
+        case hour12Short = "h"
         /// 24-hour with a zero if there is only 1 digit (e.g. `09`).
-        public static var hour24 = Self("HH")
+        case hour24 = "HH"
         /// 24-hour (e.g. `22`).
-        public static var hour24Short = Self("H")
+        case hour24Short = "H"
         /// AM / PM for 12-hour time formats (e.g. `PM`)
-        public static var amPM = Self("a")
+        case amPM = "a"
 
         /// Day with a zero if there is only 1 digit (e.g. `05`).
-        public static var day = Self("dd")
+        case day = "dd"
         /// Day (e.g. `5`).
-        public static var dayShort = Self("d")
+        case dayShort = "d"
         /// Day of week in the month (e.g. `5`).
-        public static var weekday = Self("F")
+        case weekday = "F"
         /// Name of the day of the week (e.g. `Tuesday`).
-        public static var weekdayName = Self("EEEE")
+        case weekdayName = "EEEE"
         /// Single character name of the day of the week (e.g. `T`).
-        public static var weekdayNameSingle = Self("EEEEE")
+        case weekdayNameSingle = "EEEEE"
         /// Short name of the day of the week (e.g. `Tue`).
-        public static var weekdayNameShort = Self("E")
-        
+        case weekdayNameShort = "E"
+
         /// Month with a zero if there is only 1 digit (e.g. `09`).
-        public static var month = Self("MM")
+        case month = "MM"
         /// Month (e.g. `9`).
-        public static var monthShort = Self("M")
+        case monthShort = "M"
         /// Name of the month (e.g. `December`).
-        public static var monthName = Self("MMMM")
+        case monthName = "MMMM"
         /// Single character name of the month (e.g. `D`).
-        public static var monthNameSingle = Self("MMMMM")
+        case monthNameSingle = "MMMMM"
         /// Short name of the month (e.g. `Dec`).
-        public static var monthNameShort = Self("MMM")
+        case monthNameShort = "MMM"
 
         /// Year with four digits (e.g. `2024`).
-        public static var year = Self("yyyy")
+        case year = "yyyy"
         /// Year (e.g. `24`).
-        public static var yearShort = Self("yy")
-                
+        case yearShort = "yy"
+
         /// Quarter of the year (e.g. `04`)
-        public static var quarter = Self("QQ")
+        case quarter = "QQ"
         /// Quarter of the year (e.g. `4`)
-        public static var quarterShort = Self("Q")
+        case quarterShort = "Q"
         /// Quarter of the year including `Q` (e.g. `Q4`)
-        public static var quarterWithQ = Self("QQQ")
+        case quarterWithQ = "QQQ"
         /// Quarter of the year spelled out (e.g. `4th quarter`)
-        public static var quarterSpelledOut = Self("QQQQ")
-        
+        case quarterSpelledOut = "QQQQ"
+
         /// Name of the time zone (e.g. `Central Standard Time`).
-        public static var timezone = Self("zzzz")
+        case timezone = "zzzz"
         /// 3 letter name of the time zone (e.g. `GMT`).
-        public static var timezoneShort = Self("zzz")
+        case timezoneShort = "zzz"
         /// 3 letter name of the time zone including offset (e.g. `CST-06:00`).
-        public static var timezoneWithOffset = Self("ZZZZ")
+        case timezoneWithOffset = "ZZZZ"
         /// ISO 8601 time zone (e.g. `-06:00`).
-        public static var iso8601 = Self("ZZZZZ")
+        case iso8601 = "ZZZZZ"
         /// RFC 822 GMT time zone. Can also match a literal Z for Zulu (UTC) time (e.g. `-0600`).
-        public static var rfs022 = Self("Z")
-        
-        init(_ value: String) {
-            self.format = value
-        }
+        case rfs022 = "Z"
     }
 }
+
+
+ /// Date component of a date format.
+ public struct DateComponent: CustomStringConvertible {
+     /// The format of the component.
+     public let format: String
+     
+     public var description: String { format }
+     
+     /// Milisecond (e.g. `123`).
+     public static var millisecond = Self("SSS")
+     /// Second with a zero if there is only 1 digit (e.g. `05`).
+     public static var second = Self("ss")
+     /// Second (e.g. `33`).
+     public static var secondShort = Self("s")
+
+     /// Minute with a zero if there is only 1 digit (e.g. `09`).
+     public static var minute = Self("mm")
+     /// Minute (e.g. `9`).
+     public static var minuteShort = Self("m")
+
+     /// 12-hour with a zero if there is only 1 digit (e.g. `09`).
+     public static var hour12 = Self("hh")
+     /// 12-hour (e.g. `9`).
+     public static var hour12Short = Self("h")
+     /// 24-hour with a zero if there is only 1 digit (e.g. `09`).
+     public static var hour24 = Self("HH")
+     /// 24-hour (e.g. `22`).
+     public static var hour24Short = Self("H")
+     /// AM / PM for 12-hour time formats (e.g. `PM`)
+     public static var amPM = Self("a")
+
+     /// Day with a zero if there is only 1 digit (e.g. `05`).
+     public static var day = Self("dd")
+     /// Day (e.g. `5`).
+     public static var dayShort = Self("d")
+     /// Day of week in the month (e.g. `5`).
+     public static var weekday = Self("F")
+     /// Name of the day of the week (e.g. `Tuesday`).
+     public static var weekdayName = Self("EEEE")
+     /// Single character name of the day of the week (e.g. `T`).
+     public static var weekdayNameSingle = Self("EEEEE")
+     /// Short name of the day of the week (e.g. `Tue`).
+     public static var weekdayNameShort = Self("E")
+     
+     /// Month with a zero if there is only 1 digit (e.g. `09`).
+     public static var month = Self("MM")
+     /// Month (e.g. `9`).
+     public static var monthShort = Self("M")
+     /// Name of the month (e.g. `December`).
+     public static var monthName = Self("MMMM")
+     /// Single character name of the month (e.g. `D`).
+     public static var monthNameSingle = Self("MMMMM")
+     /// Short name of the month (e.g. `Dec`).
+     public static var monthNameShort = Self("MMM")
+
+     /// Year with four digits (e.g. `2024`).
+     public static var year = Self("yyyy")
+     /// Year (e.g. `24`).
+     public static var yearShort = Self("yy")
+     
+     static func year(padded width: Int) -> Self {
+         Self("yyyy" + Array(repeating: "y", count: width).joined())
+     }
+             
+     /// Quarter of the year (e.g. `04`)
+     public static var quarter = Self("QQ")
+     /// Quarter of the year (e.g. `4`)
+     public static var quarterShort = Self("Q")
+     /// Quarter of the year including `Q` (e.g. `Q4`)
+     public static var quarterWithQ = Self("QQQ")
+     /// Quarter of the year spelled out (e.g. `4th quarter`)
+     public static var quarterSpelledOut = Self("QQQQ")
+     
+     /// Name of the time zone (e.g. `Central Standard Time`).
+     public static var timezone = Self("zzzz")
+     /// 3 letter name of the time zone (e.g. `GMT`).
+     public static var timezoneShort = Self("zzz")
+     /// 3 letter name of the time zone including offset (e.g. `CST-06:00`).
+     public static var timezoneWithOffset = Self("ZZZZ")
+     /// ISO 8601 time zone (e.g. `-06:00`).
+     public static var iso8601 = Self("ZZZZZ")
+     /// RFC 822 GMT time zone. Can also match a literal Z for Zulu (UTC) time (e.g. `-0600`).
+     public static var rfs022 = Self("Z")
+     
+     init(_ value: String) {
+         self.format = value
+     }
+ }
