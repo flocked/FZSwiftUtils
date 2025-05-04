@@ -498,11 +498,6 @@ extension DataSize: Comparable, AdditiveArithmetic {
         Self(lhs.bytes + rhs.bytes, countStyle: lhs.countStyle)
     }
 
-    /// Adds two data size and stores the result in the left-hand-side variable.
-    public static func += (lhs: inout Self, rhs: Self) {
-        lhs = lhs + rhs
-    }
-
     /// Subtracts the two data sizes.
     public static func - (lhs: Self, rhs: Self) -> Self {
         var bytes = lhs.bytes - rhs.bytes
@@ -510,29 +505,14 @@ extension DataSize: Comparable, AdditiveArithmetic {
         return Self(bytes, countStyle: lhs.countStyle)
     }
 
-    /// Subtracts the second data size from the first and stores the difference in the left-hand-side variable.
-    public static func -= (lhs: inout Self, rhs: Self) {
-        lhs = lhs - rhs
-    }
-
     /// A Boolean value indicating whether the first data size is smaller than the second data size.
     public static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.bytes < rhs.bytes
     }
 
-    /// A Boolean value indicating whether the first data size is smaller or equal to the second data size.
-    public static func <= (lhs: Self, rhs: Self) -> Bool {
-        lhs.bytes <= rhs.bytes
-    }
-
     /// A Boolean value indicating whether the first data size is larger than the second data size.
     public static func > (lhs: Self, rhs: Self) -> Bool {
         lhs.bytes > rhs.bytes
-    }
-
-    /// A Boolean value indicating whether the first data size is larger or equal to the second data size.
-    public static func >= (lhs: Self, rhs: Self) -> Bool {
-        lhs.bytes >= rhs.bytes
     }
 }
 

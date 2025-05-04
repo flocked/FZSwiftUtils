@@ -665,11 +665,6 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
         Self(lhs.seconds + rhs.seconds)
     }
 
-    /// Adds two time durations and stores the result in the left-hand-side variable.
-    public static func += (lhs: inout Self, rhs: Self) {
-        lhs = lhs + rhs
-    }
-
     /// Subtracts the two time durations.
     public static func - (lhs: Self, rhs: Self) -> Self {
         var seconds = lhs.seconds - rhs.seconds
@@ -677,29 +672,14 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
         return Self(seconds)
     }
 
-    /// Subtracts the second time duration from the first and stores the difference in the left-hand-side variable.
-    public static func -= (lhs: inout Self, rhs: Self) {
-        lhs = lhs - rhs
-    }
-
     /// A Boolean value indicating whether the first time duration is smaller than the second time duration.
     public static func < (lhs: Self, rhs: Self) -> Bool {
         lhs.seconds < rhs.seconds
     }
 
-    /// A Boolean value indicating whether the first time duration is smaller or equal to the second time duration.
-    public static func <= (lhs: Self, rhs: Self) -> Bool {
-        lhs.seconds <= rhs.seconds
-    }
-
     /// A Boolean value indicating whether the first time duration is larger than the second time duration.
     public static func > (lhs: Self, rhs: Self) -> Bool {
         lhs.seconds > rhs.seconds
-    }
-
-    /// A Boolean value indicating whether the first time duration is larger or equal to the second time duration.
-    public static func >= (lhs: Self, rhs: Self) -> Bool {
-        lhs.seconds >= rhs.seconds
     }
 
     /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.

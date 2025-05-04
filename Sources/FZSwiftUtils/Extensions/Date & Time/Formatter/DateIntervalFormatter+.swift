@@ -47,7 +47,7 @@ public extension DateIntervalFormatter {
     /// The date components to use.
     var dateComponents: [DateFormat.DateComponent] {
         get { dateTemplate.extractDateComponents() }
-        set { dateTemplate = newValue.map({ $0.rawValue }).joined() }
+        set { dateTemplate = newValue.map({ $0.format }).joined() }
     }
     
     /// Sets the date components to use.
@@ -115,6 +115,6 @@ fileprivate extension String {
                 currentIndex = index(after: currentIndex)
             }
         }
-        return extracted.compactMap({ DateFormat.DateComponent(rawValue: $0) })
+        return extracted.map({ DateFormat.DateComponent( $0) })
     }
 }

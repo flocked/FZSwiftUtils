@@ -174,7 +174,7 @@ public extension Date {
         set { setValue(newValue, for: .day) }
     }
 
-    /// The weekday of this date.
+    /// The weekday of this date (between `1` = Sunday and `7` = Saturday).
     var weekday: Int {
         get { value(for: .weekday) }
         set { setValue(newValue, for: .weekday) }
@@ -193,11 +193,9 @@ public extension Date {
                 setValue(newValue, for: .dayOfYear)
             } else {
                 let calendar = Calendar.current
-                guard let startOfYear = calendar.date(from: calendar.dateComponents([.year], from: self)),
-                      let newDate = calendar.date(byAdding: .day, value: newValue - 1, to: startOfYear) else {
-                    return
-                }
-                self = newDate
+                let timeComponents = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: self)
+                guard let newDate = calendar.date(byAdding: .day, value: newValue - 1, to: beginning(of: .year)!),  let finalDate = calendar.date(bySettingHour: timeComponents.hour ?? 0, minute: timeComponents.minute ?? 0, second: timeComponents.second ?? 0, of: newDate) else { return }
+                self = finalDate
             }
         }
     }
@@ -219,7 +217,7 @@ public extension Date {
         get { value(for: .second) }
         set { setValue(newValue, for: .second) }
     }
-
+    
     /// The nanosecond of this date.
     var nanosecond: Int {
         get { value(for: .nanosecond) }
