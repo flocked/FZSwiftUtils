@@ -13,6 +13,7 @@ public extension DateFormatter {
 
      - Parameter format: The date format string to use for the `DateFormatter`.
      */
+    @_disfavoredOverload
     convenience init(_ format: String) {
         self.init()
         dateFormat = format
@@ -44,13 +45,12 @@ public extension DateFormatter {
         return self
     }
     
-    #if os(macOS)
-    /// Sets the date format string
+    /// Sets the date format string.
+    @_disfavoredOverload
     func format(_ format: String) -> Self {
         dateFormat = format
         return self
     }
-    #endif
     
     /// Sets the calendar.
     func calendar(_ calendar: Calendar) -> Self {

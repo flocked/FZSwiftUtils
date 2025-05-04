@@ -1,5 +1,5 @@
 //
-//  DateFormatter+Components.swift
+//  DateFormatter+DateFormat.swift
 //
 //
 //  Copyright © 2021 Yurii Lysytsia. All rights reserved.
@@ -11,17 +11,59 @@ public extension DateFormatter {
     /**
      Creates a date formatter with the specified components.
      
+     Construct a date format using a string and ``DateFormat/DateComponent``.
+     
      Example usage:
      
      ```swift
-     // yyyy-MM-dd HH:mm
-     DateFormatter("\(.year)-\(.month)-\(.day) \(.hour):\(.minute)")
+     // "04/05/25"
+     DateFormatter("\(.day)/\(.month)/\(.yearShort)")
+     
+     // "2025-05-04 18:42"
+     DateFormatter("\(.year)-\(.month)-\(.day) \(.hour24):\(.minute)")
+     
+     // "Sunday, May 4"
+     DateFormatter("\(.weekdayName), \(.monthName) \(.dayShort)")
+
+     // "Q2 2025"
+     DateFormatter("\(.quarterWithQ) \(.year)")
+
+     // "18:42:15.123"
+     DateFormatter("\(.hour24):\(.minute):\(.second).\( .millisecond )")
      ```
 
      - Parameter format: The date format.
      */
     convenience init(_ format: DateFormat) {
         self.init(format.description)
+    }
+    
+    /**
+     Sets the date format string.
+     
+     Construct a date format using a string and ``DateFormat/DateComponent``.
+     
+     Example usage:
+     
+     ```swift
+     // "04/05/25"
+     DateFormatter("\(.day)/\(.month)/\(.yearShort)")
+     
+     // "2025-05-04 18:42"
+     DateFormatter("\(.year)-\(.month)-\(.day) \(.hour24):\(.minute)")
+     
+     // "Sunday, May 4"
+     DateFormatter("\(.weekdayName), \(.monthName) \(.dayShort)")
+
+     // "Q2 2025"
+     DateFormatter("\(.quarterWithQ) \(.year)")
+
+     // "18:42:15.123"
+     DateFormatter("\(.hour24):\(.minute):\(.second).\( .millisecond )")
+     ```
+     */
+    func format(_ format: DateFormat) -> Self {
+        self.format(format.description)
     }
 }
 
@@ -33,8 +75,20 @@ public extension DateFormatter {
  Example usage:
  
  ```swift
- // yyyy-MM-dd HH:mm
- "\(.year)-\(.month)-\(.day) \(.hour):\(.minute)"
+ // "04/05/25"
+ DateFormatter("\(.day)/\(.month)/\(.yearShort)")
+ 
+ // "2025-05-04 18:42"
+ DateFormatter("\(.year)-\(.month)-\(.day) \(.hour24):\(.minute)")
+ 
+ // "Sunday, May 4"
+ DateFormatter("\(.weekdayName), \(.monthName) \(.dayShort)")
+
+ // "Q2 2025"
+ DateFormatter("\(.quarterWithQ) \(.year)")
+
+ // "18:42:15.123"
+ DateFormatter("\(.hour24):\(.minute):\(.second).\( .millisecond )")
  ```
  */
 public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation, CustomStringConvertible {
@@ -53,13 +107,27 @@ public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleBySt
     }
     
     public static func += (lhs: inout DateFormat, rhs: DateFormat) {
-            lhs.format + rhs.format
+        lhs = .init(stringLiteral: lhs.format + rhs.format)
     }
     
     public static func + (lhs: DateFormat, rhs: DateFormat) -> Self {
-        var lhs = lhs
-        lhs += rhs
-        return lhs
+        .init(stringLiteral: lhs.format + rhs.format)
+    }
+    
+    public static func += (lhs: inout DateFormat, rhs: DateFormat.DateComponent) {
+        lhs = .init(stringLiteral: lhs.format + rhs.format)
+    }
+    
+    public static func + (lhs: DateFormat, rhs: DateFormat.DateComponent) -> Self {
+        .init(stringLiteral: lhs.format + rhs.format)
+    }
+    
+    public static func += (lhs: inout DateFormat, rhs: String) {
+        lhs = .init(stringLiteral: lhs.format + rhs)
+    }
+    
+    public static func + (lhs: DateFormat, rhs: String) -> Self {
+        .init(stringLiteral: lhs.format + rhs)
     }
     
     public struct StringInterpolation: StringInterpolationProtocol {
