@@ -14,7 +14,7 @@ public struct DataSize: Hashable, Sendable {
 
      - Parameters:
        - bytes: The number of bytes.
-       - countStyle: Specify the number of bytes to be used for ``kilobytes``. The default value is `file`.
+       - countStyle: Specify the number of bytes to be used for ``kilobytes``. 
      */
     public init<Value: BinaryInteger>(_ bytes: Value, countStyle: CountStyle = .file) {
         self.bytes = Int(bytes)
@@ -25,16 +25,16 @@ public struct DataSize: Hashable, Sendable {
      Initializes a `DataSize` instance with the specified sizes in various units and count style.
 
      - Parameters:
-        - bytes: The bytes. The default value is `0`.
-        - kilobytes: The kilobytes. The default value is `0`.
-        - megabytes: The megabytes. The default value is `0`.
-        - gigabytes: The gigabytes. The default value is `0`.
-        - terabytes: The terabytes. The default value is `0`.
-        - petabytes: The petabytes. The default value is `0`.
-        - exabytes: The exabytes. The default value is `0`.
-        - zettabytes: The zettabytes. The default value is `0`.
-        - yottabytes: The yottabytes. The default value is `0`.
-        - countStyle: The number of bytes to be used for ``kilobytes``. The default value is `file`.
+        - bytes: The bytes.
+        - kilobytes: The kilobytes.
+        - megabytes: The megabytes.
+        - gigabytes: The gigabytes.
+        - terabytes: The terabytes.
+        - petabytes: The petabytes.
+        - exabytes: The exabytes.
+        - zettabytes: The zettabytes.
+        - yottabytes: The yottabytes.
+        - countStyle: The number of bytes to be used for ``kilobytes``.
      */
     public init(bytes: Int = 0, kilobytes: Double = 0, megabytes: Double = 0, gigabytes: Double = 0, terabytes: Double = 0, petabytes: Double = 0, exabytes: Double = 0, zettabytes: Double = 0, yottabytes: Double = 0, countStyle: CountStyle = .file) {
         self.bytes = bytes
@@ -159,7 +159,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The bytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified bytes.
      */
@@ -170,7 +170,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The kilobytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified kilobytes.
      */
@@ -181,7 +181,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The megabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified megabytes.
      */
@@ -192,7 +192,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The gigabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified gigabytes.
      */
@@ -203,7 +203,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The terabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified terabytes.
      */
@@ -214,7 +214,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The petabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified petabytes.
      */
@@ -225,7 +225,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The exabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified exabytes.
      */
@@ -236,7 +236,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The zettabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified zettabytes.
      */
@@ -247,7 +247,7 @@ public extension DataSize {
 
      - Parameters:
         - value: The yottabytes.
-        - countStyle: The count style for formatting the data size. The default value is `file`.
+        - countStyle: The count style for formatting the data size.
 
      - Returns: `DataSize`with the specified yottabytes.
      */
