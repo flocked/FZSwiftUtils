@@ -119,6 +119,50 @@ public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleBySt
         format
     }
     
+    /// The date components of the format.
+    public func components() -> [DateComponent] {
+        var extracted: [String] = []
+        var currentIndex = format.startIndex
+        var inLiteral = false
+
+        while currentIndex < format.endIndex {
+            let currentChar = format[currentIndex]
+            if currentChar == "'" {
+                inLiteral.toggle()
+                currentIndex = format.index(after: currentIndex)
+                continue
+            }
+            if inLiteral {
+                currentIndex = format.index(after: currentIndex)
+                continue
+            }
+            var foundMatch = false
+            for symbol in Self.componentFormats {
+                if let range = format.range(of: symbol, options: [.anchored], range: currentIndex..<format.endIndex) {
+                    extracted.append(symbol)
+                    currentIndex = range.upperBound
+                    foundMatch = true
+                    break
+                }
+            }
+            if !foundMatch {
+                currentIndex = format.index(after: currentIndex)
+            }
+        }
+        return extracted.map({.init($0)})
+    }
+    
+    static let componentFormats = [
+        "EEEEEE", "eeeeee", "cccccc", "MMMMM", "LLLLL", "GGGGG", "YYYYY", "yyyyy",
+        "QQQQ", "qqqq", "VVVV", "ZZZZZ", "zzzz", "vvvv", "GGGG", "EEEE", "eeee", "cccc",
+        "LLLL", "MMMM", "QQQ", "qqq", "YYYY", "yyyy", "ZZZZ", "DDD", "ZZZ", "zzz",
+        "HH", "KK", "LLL", "MMM", "QQ", "SS", "WW", "ccccc", "eeeee", "EEE", "ccc", "eee",
+        "GGG", "LL", "MM", "aa", "bb", "dd", "hh", "jj", "kk", "mm", "qq", "ss", "vv",
+        "wW", "yy", "YY", "c", "d", "D", "e", "E", "F", "G", "H", "h", "J", "j", "K", "k",
+        "L", "M", "m", "O", "Q", "q", "S", "s", "u", "V", "v", "W", "w", "X", "x", "Y", "y",
+        "Z", "z", "A", "B"
+    ]
+        
     public static func += (lhs: inout DateFormat, rhs: DateFormat) {
         lhs = .init(stringLiteral: lhs.format + rhs.format)
     }
