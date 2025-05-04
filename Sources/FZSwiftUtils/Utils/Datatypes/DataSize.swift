@@ -9,9 +9,22 @@ import Foundation
 
 /// A struct representing a data size.
 public struct DataSize: Hashable, Sendable {
-    
-    /// Specifies display of file or storage byte counts.
-    public typealias CountStyle = ByteCountFormatter.CountStyle
+        
+    /// Specifies display of file or storage byte counts. The display style is platform specific.
+    public enum CountStyle: Int, Hashable, Codable {
+        /// Specifies display of file byte counts. The actual behavior for this is platform-specific; in macOS 10.8, this uses the decimal style, but that may change over time.
+        case file = 0
+        /// Specifies display of memory byte counts. The actual behavior for this is platform-specific; in macOS 10.8, this uses the binary style, but that may change over time.
+        case memory = 1
+
+        /// Causes 1000 bytes to be shown as 1 KB. It is better to use ``file`` or ``memory`` in most cases.
+        case decimal = 2
+
+        /// Causes 1024 bytes to be shown as 1 KB. It is better to use ``file`` or ``memory`` in most cases.
+        case binary = 3
+        
+        var style: ByteCountFormatter.CountStyle { .init(rawValue: rawValue)! }
+    }
     
     /**
      Initializes a `DataSize` instance with the given number of bytes and count style.
@@ -432,7 +445,7 @@ extension DataSize: CustomStringConvertible {
      - Returns: A string representation of the data size.
      */
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false, locale: Locale = .current) -> String {
-        let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: countStyle)
+        let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: countStyle.style)
         formatter.includesUnit = unitStyle != .none
         formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
@@ -553,9 +566,9 @@ extension DataSize: ReferenceConvertible {
 public class __DataSize: NSObject, NSCopying {
     
     let bytes: Int
-    let countStyle: ByteCountFormatter.CountStyle
+    let countStyle: DataSize.CountStyle
     
-    init(bytes: Int, countStyle: ByteCountFormatter.CountStyle) {
+    init(bytes: Int, countStyle: DataSize.CountStyle) {
         self.bytes = bytes
         self.countStyle = countStyle
     }
