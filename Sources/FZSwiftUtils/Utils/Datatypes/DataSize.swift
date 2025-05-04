@@ -9,23 +9,6 @@ import Foundation
 
 /// A struct representing a data size.
 public struct DataSize: Hashable, Sendable {
-        
-    /// Specifies display of file or storage byte counts. The display style is platform specific.
-    public enum CountStyle: Int, Hashable, Codable {
-        /// Specifies display of file byte counts. The actual behavior for this is platform-specific; in macOS 10.8, this uses the decimal style, but that may change over time.
-        case file = 0
-        /// Specifies display of memory byte counts. The actual behavior for this is platform-specific; in macOS 10.8, this uses the binary style, but that may change over time.
-        case memory = 1
-
-        /// Causes 1000 bytes to be shown as 1 KB. It is better to use ``file`` or ``memory`` in most cases.
-        case decimal = 2
-
-        /// Causes 1024 bytes to be shown as 1 KB. It is better to use ``file`` or ``memory`` in most cases.
-        case binary = 3
-        
-        var style: ByteCountFormatter.CountStyle { .init(rawValue: rawValue)! }
-    }
-    
     /**
      Initializes a `DataSize` instance with the given number of bytes and count style.
 
@@ -137,6 +120,36 @@ public struct DataSize: Hashable, Sendable {
     /// Returns a `DataSize`  with zero bytes.
     public static var zero: DataSize {
         DataSize()
+    }
+    
+    /// Specifies display of file or storage byte counts.
+    public enum CountStyle: Int, Hashable, Codable {
+        /**
+         Specifies display of file byte counts.
+         
+         The actual behavior for this is platform-specific; in macOS, this uses the decimal style, but that may change over time.
+         */
+        case file = 0
+        /**
+         Specifies display of memory byte counts.
+         
+         The actual behavior for this is platform-specific; in macOS, this uses the binary style, but that may change over time.
+         */
+        case memory = 1
+
+        /**
+         Causes 1000 bytes to be shown as 1 KB.
+         
+         It is better to use ``file`` or ``memory`` in most cases.
+         */
+        case decimal = 2
+
+        /**
+         Causes 1024 bytes to be shown as 1 KB.
+         
+         It is better to use ``file`` or ``memory`` in most cases.
+         */
+        case binary = 3
     }
 }
 
@@ -445,7 +458,7 @@ extension DataSize: CustomStringConvertible {
      - Returns: A string representation of the data size.
      */
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false, locale: Locale = .current) -> String {
-        let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: countStyle.style)
+        let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: .init(rawValue: countStyle.rawValue)!)
         formatter.includesUnit = unitStyle != .none
         formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
