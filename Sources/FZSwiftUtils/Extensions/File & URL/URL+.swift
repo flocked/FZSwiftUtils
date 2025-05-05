@@ -288,17 +288,15 @@ public extension URL {
     }
 }
 
+#if os(macOS)
 @available(macOS, obsoleted: 11.0, message: "Use contentType instead")
-@available(iOS, obsoleted: 14.0, message: "Use contentType instead")
-@available(macCatalyst, obsoleted: 14.0, message: "Use contentType instead")
-@available(tvOS, obsoleted: 14.0, message: "Use contentType instead")
-@available(watchOS, obsoleted: 7.0, message: "Use contentType instead")
 public extension URL {
     /// The content type identifier of the url.
     var contentTypeIdentifier: String? { resources.contentTypeIdentifier }
     /// The content type identifier tree of the url.
     var contentTypeIdentifierTree: [String] { resources.contentTypeIdentifierTree }
 }
+#endif
 
 #if canImport(UniformTypeIdentifiers)
     import UniformTypeIdentifiers

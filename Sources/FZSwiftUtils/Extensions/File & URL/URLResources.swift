@@ -308,11 +308,8 @@ public class URLResources {
     #endif
 }
 
+#if os(macOS)
 @available(macOS, obsoleted: 11.0, message: "Use contentType instead")
-@available(iOS, obsoleted: 14.0, message: "Use contentType instead")
-@available(macCatalyst, obsoleted: 14.0, message: "Use contentType instead")
-@available(tvOS, obsoleted: 14.0, message: "Use contentType instead")
-@available(watchOS, obsoleted: 7.0, message: "Use contentType instead")
 extension URLResources {
     /// The content type identifier of the resource.
     public var contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
@@ -330,6 +327,7 @@ extension URLResources {
         return supertypes.flatMap { getSupertypes(for: $0) + [$0] }
     }
 }
+#endif
 
 #if os(macOS)
     public extension URLResources {

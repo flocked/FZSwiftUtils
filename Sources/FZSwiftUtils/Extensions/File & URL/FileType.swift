@@ -93,13 +93,11 @@ public enum FileType: Hashable, CustomStringConvertible, CaseIterable, Codable {
         if url.pathExtension != "" || url.hasDirectoryPath, let fileType = FileType(fileExtension: url.pathExtension) {
             self = fileType
         } else if #available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *) {
-            if let contentType = url.contentType, let fileType = FileType.allCases.first(where: { $0.identifier == contentType.identifier || contentType.conforms(to: $0.contentType!)}) {
+            if let contentType = url.contentType, let fileType = FileType.allCases.first(where: { $0.identifier == contentType.identifier }) ?? FileType.allCases.first(where: { contentType.conforms(to: $0.contentType!) }) {
                 self = fileType
             } else {
                 return nil
             }
-        } else if let fileType = FileType(contentTypeTree: url.contentTypeIdentifierTree) {
-            self = fileType
         } else {
             return nil
         }
