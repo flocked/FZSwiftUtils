@@ -292,9 +292,9 @@ public extension URL {
 @available(macOS, obsoleted: 11.0, message: "Use contentType instead")
 public extension URL {
     /// The content type identifier of the url.
-    var contentTypeIdentifier: String? { resources.contentTypeIdentifier }
+    var contentTypeIdentifier: String? { resources._contentTypeIdentifier }
     /// The content type identifier tree of the url.
-    var contentTypeIdentifierTree: [String] { resources.contentTypeIdentifierTree }
+    var contentTypeIdentifierTree: [String] { resources._contentTypeIdentifierTree }
 }
 #endif
 

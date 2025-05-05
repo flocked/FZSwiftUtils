@@ -316,7 +316,15 @@ extension URLResources {
 
     /// The content type identifier tree of the resource.
     public var contentTypeIdentifierTree: [String] {
-        guard let identifier = contentTypeIdentifier else { return [] }
+        _contentTypeIdentifierTree
+    }
+}
+
+extension URLResources {
+    var _contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
+    
+    var _contentTypeIdentifierTree: [String] {
+        guard let identifier = _contentTypeIdentifier else { return [] }
         return identifier + getSupertypes(for: identifier)
     }
 
