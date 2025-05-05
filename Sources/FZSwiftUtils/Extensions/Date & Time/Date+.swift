@@ -9,17 +9,57 @@ import Foundation
 
 public extension Date {
     /**
-     Adds a value to a specific component of the date.
+     Adds the specified value to a given calendar component of the date.
      
      - Parameters:
         - value: The value to be added.
         - component: The component of the date to which the value should be added.
         - calendar: The calendar to use.
-     
-     - Returns: A new `Date` object obtained by adding the specified value to the given component of the date.
+     */
+    mutating func add(_ value: Int, to component: Calendar.Component, calendar: Calendar = .current) {
+        self = self.adding(value, to: component, calendar: calendar)
+    }
+    
+    /**
+     Returns a new date by adding the specified value to the given calendar component.
+
+     - Parameters:
+       - value: The amount to add to the date. Can be negative to subtract.
+        - component: The component of the date to which the value should be added.
+       - calendar: The calendar to use.
+
+     - Returns: A new `Date` adjusted by the specified value.
      */
     func adding(_ value: Int, to component: Calendar.Component, calendar: Calendar = Calendar.current) -> Date {
         calendar.date(byAdding: component, value: value, to: self) ?? self
+    }
+    
+    /**
+     Sets the specified calendar component to a given value of the date.
+
+     - Parameters:
+       - component: The calendar component to modify (e.g., `.hour`, `.day`, `.month`).
+       - value: The new value to assign to the component.
+       - calendar: The calendar to use.
+     */
+    mutating func set(_ component: Calendar.Component, to value: Int, calendar: Calendar = .current) {
+        self = self.setting(component, to: value, calendar: calendar)
+    }
+    
+    /**
+     Returns a new date by setting the specified calendar component to a given value.
+
+     - Parameters:
+       - component: The calendar component to modify (e.g., `.hour`, `.day`, `.month`).
+       - value: The new value to assign to the component.
+       - calendar: The calendar to use.
+
+     - Returns: A new `Date` with the specified component set, or the original date if the operation fails.
+     */
+    func setting(_ component: Calendar.Component, to value: Int, calendar: Calendar = .current) -> Date {
+        var components = calendar.dateComponents(in: calendar.timeZone, from: self)
+        components.setValue(value, for: component)
+        return calendar.date(from: components) ?? self
     }
     
     /**
@@ -37,49 +77,53 @@ public extension Date {
     }
     
     /**
-     Sets the value of a specific component of the date.
+     A Boolean value indicating whether the date is in the same specified calendar component as another date.
      
      - Parameters:
-        - value: The new value to set.
-        - component: The component of the date to be set.
-        - calendar: The calendar to use.
+        - component: The calendar component to compare.
+        - date: The date to compare with.
+        - calendar: The calendar to use for the comparison.
      
-     This method mutates the current date by setting the specified component to the given value.
+     - Returns: `true` if both dates fall within the same specified calendar component; otherwise, `false`.
      */
-    mutating func setValue(_ value: Int, for component: Calendar.Component, calendar: Calendar = Calendar.current) {
-        self = calendar.date(bySetting: component, value: value, of: self) ?? self
+    func isInSame(_ component: Calendar.Component, as date: Date, calendar: Calendar = .current) -> Bool {
+        
+        return calendar.isDate(self, equalTo: date, toGranularity: component)
     }
     
-    /**
-     Checks if a specific component of the date is the same as the corresponding component in another date.
-     
-     - Parameters:
-        - component: The component of the date to compare.
-        - date: The date to compare against.
-        - calendar: The calendar to use for the comparison. Defaults to the current calendar.
-     
-     - Returns: `true` if the specified component of the date is the same as the corresponding component in the other date; otherwise, `false`.
-     */
-    func isInSame(_ component: Calendar.Component, as date: Date, in calendar: Calendar = .current) -> Bool {
-        calendar.isDate(self, equalTo: date, toGranularity: component)
-    }
-    
-    /**
-     Checks if the date is in the current specified component.
-
-     - Parameters:
-        - component: The component to check against the current date.
-        - calendar: The calendar.
-
-     - Returns: `true` if the date is in the current specified component; otherwise, `false`.
-     */
-    func isInCurrent(_ component: Calendar.Component, calendar: Calendar = .current) -> Bool {
-        isInSame(component, as: Date(), in: calendar)
-    }
-    
-    /// Compares the date to another date by the specified component.
+    /// Compares the date to another date by the specified calendar component.
     func compare(_ component: Calendar.Component, to date: Date, in calendar: Calendar = .current) -> ComparisonResult {
         calendar.compare(self, to: date, toGranularity: component)
+    }
+    
+    /**
+     A Boolean value indicating whether the date is in the same specified calendar component as today.
+
+     - Parameters:
+        - component: The calendar component to compare against today.
+        - calendar: The calendar to use for the comparison.
+
+     - Returns: `true` if the date is in the same component unit as today; otherwise, `false`.
+     */
+    func isInCurrent(_ component: Calendar.Component, calendar: Calendar = .current) -> Bool {
+        isInSame(component, as: Date(), calendar: calendar)
+    }
+    
+    /**
+     A Boolean value indicating whether the date is within a given number of calendar component units from today.
+
+     - Parameters:
+        - value: The maximum allowed difference in the specified calendar component.
+        - component: The calendar component to compare against today.
+        - calendar: The calendar to use for the comparison.
+
+     - Returns: `true` if the date is within the given range of today in the specified component; otherwise, `false`.
+     */
+    func isWithin(_ value: Int, of component: Calendar.Component, calendar: Calendar = .current) -> Bool {
+        var from = adding(value, to: component)
+        from = from.beginning(of: component) ?? from
+        let to = from.end(of: component) ?? from
+        return isBetween(from, to)
     }
     
     /// A Boolean value indicating whether the specified date is within the same as the date.
@@ -112,28 +156,16 @@ public extension Date {
         !calendar.isDateInWeekend(self)
     }
     
+    /// A Boolean value indicating whether the date is between the two specified dates.
+    func isBetween(_ date1: Date,_  date2: Date) -> Bool {
+        self >= min(date1, date2) && self <= max(date1, date2)
+    }
     
-
-    /**
-     Checks if the date is between two other dates.
-
-     - Parameters:
-        - date1: The first date to compare.
-        - date2: The second date to compare.
-
-     - Returns: `true` if the date is between `date1` and `date2`, inclusive; otherwise, `false`.
-     */
-    func isBetween(_ date1: Date, _ date2: Date) -> Bool {
-        return self >= min(date1, date2) && self <= max(date1, date2)
+    func sdsds() {
+        self.isBetween(Date()...Date())
     }
 
-    /**
-     Checks if the date is between the specified date interval.
-
-     - Parameter interval: The date interval.
-
-     - Returns: `true` if the date is between the date interval, otherwise, `false`.
-     */
+    /// A Boolean value indicating whether the date is between the specified date interval.
     func isBetween(_ interval: DateInterval) -> Bool {
         interval.contains(self)
     }
@@ -141,43 +173,49 @@ public extension Date {
     /// The year of this date.
     var year: Int {
         get { value(for: .year) }
-        set { setValue(newValue, for: .year) }
+        set { set(.year, to: newValue) }
     }
 
     /// The quarter of this date.
     var quarter: Int {
         get { value(for: .quarter) }
-        set { setValue(newValue, for: .quarter) }
+        set { set(.quarter, to: newValue) }
     }
 
     /// The month of this date.
     var month: Int {
         get { value(for: .month) }
-        set { setValue(newValue, for: .month) }
+        set { set(.month, to: newValue) }
     }
 
     /// The week of the month of this date.
     var weekOfMonth: Int {
         get { value(for: .weekOfMonth) }
-        set { setValue(newValue, for: .weekOfMonth) }
+        set { set(.weekOfMonth, to: newValue) }
     }
 
     /// The week of the year of this date.
     var weekOfYear: Int {
         get { value(for: .weekOfYear) }
-        set { setValue(newValue, for: .weekOfYear) }
+        set { set(.weekOfYear, to: newValue) }
     }
 
     /// The day of this date.
     var day: Int {
         get { value(for: .day) }
-        set { setValue(newValue, for: .day) }
+        set { set(.day, to: newValue) }
     }
 
     /// The weekday of this date (between `1` = Sunday and `7` = Saturday).
     var weekday: Int {
         get { value(for: .weekday) }
-        set { setValue(newValue, for: .weekday) }
+        set { set(.weekday, to: newValue) }
+    }
+    
+    /// The ordinal weekday within the month of this date.
+    var weekdayOrdinal: Int {
+        get { value(for: .weekdayOrdinal) }
+        set { set(.weekdayOrdinal, to: newValue) }
     }
     
     /// The day of the year of this date.
@@ -190,7 +228,7 @@ public extension Date {
         }
         set {
             if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
-                setValue(newValue, for: .dayOfYear)
+                set(.dayOfYear, to: newValue)
             } else {
                 let calendar = Calendar.current
                 let timeComponents = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: self)
@@ -203,25 +241,25 @@ public extension Date {
     /// The hour of this date.
     var hour: Int {
         get { value(for: .hour) }
-        set { setValue(newValue, for: .hour) }
+        set { set(.hour, to: newValue) }
     }
 
     /// The minute of this date.
     var minute: Int {
         get { value(for: .minute) }
-        set { setValue(newValue, for: .minute) }
+        set { set(.minute, to: newValue) }
     }
 
     /// The second of this date.
     var second: Int {
         get { value(for: .second) }
-        set { setValue(newValue, for: .second) }
+        set { set(.second, to: newValue) }
     }
     
     /// The nanosecond of this date.
     var nanosecond: Int {
         get { value(for: .nanosecond) }
-        set { setValue(newValue, for: .nanosecond) }
+        set { set(.nanosecond, to: newValue) }
     }
     
     /**
@@ -234,7 +272,7 @@ public extension Date {
     }
     
     /**
-     Returns a string representation from the specified date formatter components.
+     Returns a string representation from the specified date format.
      
      - Parameter format: The date format.
      */
@@ -242,41 +280,32 @@ public extension Date {
         DateFormatter(format).string(from: self)
     }
     
-    /**
-     Returns a string representation of the date that the system formats using the formatter.
-     
-     - Parameter formatter: The date formatter.
-     */
-    func string(using formatter: DateFormatter) -> String {
-        formatter.string(from: self)
-    }
-    
     /// Returns the starting time and duration of the specificed calendar component.
     func dateInterval(for component: Calendar.Component, calendar: Calendar = .current) -> DateInterval? {
         calendar.dateInterval(of: component, for: self)
     }
     
-    /// Returns a `DateInterval` of the weekend contained by the date, or `nil` if the date is not in a weekend.
+    /// Returns the date interval of the weekend.
     func dateIntervalOfWeekend(calendar: Calendar = .current) -> DateInterval? {
         calendar.dateIntervalOfWeekend(containing: self)
     }
     
-    /// Returns a `DateInterval` of the next weekend, which starts strictly after the date.
+    /// Returns the date interval of the next weekend.
     func nextWeekend(calendar: Calendar = .current) -> DateInterval? {
         calendar.nextWeekend(startingAfter: self)
     }
     
-    /// Returns a `DateInterval` of the previous weekend, which starts strictly after the date.
+    /// Returns the date interval of the next previous weekend.
     func previousWeekend(calendar: Calendar = .current) -> DateInterval? {
         calendar.nextWeekend(startingAfter: self, direction: .backward)
     }
 
     /**
-     Returns the beginning date of a specific component.
+     Returns the beginning date of a specific calendar component.
 
      - Parameters:
-        - component: The component of the date for which to retrieve the start date.
-        - calendar: The calendar.
+        - component: The calendar component.
+        - calendar: The calendar to use.
 
      - Returns: The beginning date of the specified component, or `nil` if the component is not supported or the calculation fails.
      */
@@ -286,14 +315,13 @@ public extension Date {
         guard calendar.dateInterval(of: component, start: &startDate, interval: &timeInterval, for: self) else { return nil }
         return startDate
     }
-
     
     /**
-     Returns the end date of a specific component.
+     Returns the end date of a specific calendar component.
 
      - Parameters:
         - component: The component of the date for which to retrieve the end date.
-        - calendar: The calendar.
+        - calendar: The calendar to use.
         - returnNextIfAtBoundary: A Boolean value indicating whether to return the next date if at boundary.
 
      - Returns: The end date of the specified component, or `nil` if the component is not supported or the calculation fails.
@@ -306,7 +334,7 @@ public extension Date {
 
 
     /// Defines different ways to compare a `Date`.
-    enum Comparison {
+    enum DateComparison {
         /// Checks if the date is now.
         case now
         /// Checks if the date is today.
@@ -337,7 +365,7 @@ public extension Date {
         case next(Calendar.Component)
     }
 
-    static func == (lhs: Date, rhs: Comparison) -> Bool {
+    static func == (lhs: Date, rhs: DateComparison) -> Bool {
         var from: Date
         let to: Date
         switch rhs {

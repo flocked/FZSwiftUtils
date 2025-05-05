@@ -59,7 +59,7 @@ public extension DateFormatter {
      DateFormatter("\(.quarterWithQ) \(.year)")
 
      // "18:42:15.123"
-     DateFormatter("\(.hour24):\(.minute):\(.second).\( .millisecond )")
+     DateFormatter("\(.hour24):\(.minute):\(.second).\(.millisecond)")
      ```
      */
     func format(_ format: DateFormat) -> Self {
@@ -101,7 +101,7 @@ public extension Date {
  DateFormatter("\(.quarterWithQ) \(.year)")
 
  // "18:42:15.123"
- DateFormatter("\(.hour24):\(.minute):\(.second).\( .millisecond )")
+ DateFormatter("\(.hour24):\(.minute):\(.second).\(.millisecond)")
  ```
  */
 public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleByStringInterpolation, CustomStringConvertible {
@@ -206,56 +206,60 @@ public struct DateFormat: Equatable, ExpressibleByStringLiteral, ExpressibleBySt
 extension DateFormat {
     /// Date component of a date format.
     public struct DateComponent: CustomStringConvertible {
+        
         /// Three-digit milisecond (e.g. `123`).
         public static let millisecond = Self("SSS")
         /// Two-digit milisecond (e.g. `12`).
-        public static let millisecondMedium = Self("SS")
+        public static let millisecondTwo = Self("SS")
         /// Single-digit milisecond (e.g. `1`).
         public static let millisecondShort = Self("S")
         
-        /// Two-digit numeric second, zero-padded if necessary (e.g. `01`, `18`).
+        /// Two-digit second, zero-padded if necessary (e.g. `01`, `18`).
         public static let second = Self("ss")
-        /// Numeric second (e.g. `1`, `18`).
+        /// Second (e.g. `1`, `18`).
         public static let secondShort = Self("s")
         
-        /// Two-digit numeric minute, zero-padded if necessary (e.g. `01`, `18`).
+        /// Two-digit minute, zero-padded if necessary (e.g. `01`, `18`).
         public static let minute = Self("mm")
-        /// Numeric minute (e.g. `1`, `18`).
+        /// Minute (e.g. `1`, `18`).
         public static let minuteShort = Self("m")
-        
-        /// Two-digit numeric 12-hour, zero-padded if necessary (e.g. `09`, `11`).
-        public static let hour12 = Self("hh")
-        /// 12-hour (e.g. `9`, `11`).
-        public static let hour12Short = Self("h")
-        /// Two-digit numeric 24-hour, zero-padded if necessary (e.g. `09`, `22`).
-        public static let hour24 = Self("HH")
-        /// 24-hour (e.g. `9`, `22`).
-        public static let hour24Short = Self("H")
-        
-        /// 12-hour in 0–11 format with a zero if there is only 1 digit (e.g. `09`).
-        public static let hourAlt12 = Self("kk")
-        /// 12-hour in 0–11 format (e.g. `9`).
-        public static let hourAlt12Short = Self("k")
-        /// 24-hour in 1–24 format with a zero if there is only 1 digit (e.g. `09`).
-        public static let hourAlt24 = Self("KK")
-        /// 24-hour in 1–24 format (e.g. `22`).
-        public static let hourAlt24Short = Self("K")
-        
         
         /// AM or PM marker.
         public static let amPM = Self("a")
+        /// Two-digit numeric 12-hour, zero-padded if necessary (e.g. `09`, `11`).
+        public static let hour12 = Self.hour12(hourCycle: .oneBased)
+        /// 12-hour (e.g. `9`, `11`).
+        public static let hour12Short = Self.hour12Short(hourCycle: .oneBased)
+        /// Two-digit numeric 24-hour, zero-padded if necessary (e.g. `09`, `22`).
+        public static let hour24 = Self.hour12(hourCycle: .oneBased)
+        /// 24-hour (e.g. `9`, `22`).
+        public static let hour24Short = Self.hour12Short(hourCycle: .oneBased)
         
-        /// Two-digit numeric day, zero-padded if necessary (e.g. `01`, `18`).
+        /// Two-digit numeric 12-hour, zero-padded if necessary (e.g. `09`, `11`).
+        public static func hour12(hourCycle: ClockHourCycle) -> Self {
+            Self(hourCycle == .oneBased ? "hh": "kk")
+        }
+        /// 12-hour (e.g. `9`, `11`).
+        public static func hour12Short(hourCycle: ClockHourCycle) -> Self {
+            Self(hourCycle == .oneBased ? "h": "k")
+        }
+        /// Two-digit numeric 24-hour, zero-padded if necessary (e.g. `09`, `22`).
+        public static func hour24(hourCycle: ClockHourCycle) -> Self {
+            Self(hourCycle == .oneBased ? "HH": "KK")
+        }
+        /// 24-hour (e.g. `9`, `22`).
+        public static func hour24Short(hourCycle: ClockHourCycle) -> Self {
+            Self(hourCycle == .oneBased ? "H": "K")
+        }
+        
+        /// Two-digit day, zero-padded if necessary (e.g. `01`, `18`).
         public static let day = Self("dd")
-        /// Numeric day (e.g. `1`, `18`).
+        /// Day (e.g. `1`, `18`).
         public static let dayShort = Self("d")
-        
-        
         /// Three-digit day of year, zero-padded if necessary (e.g. `005`, `124`).
         public static let dayOfYear = Self("DDD")
-        /// Numeric day of year (e.g. `5`, `124`).
+        /// Day of year (e.g. `5`, `124`).
         public static let dayOfYearShort = Self("D")
-        
         
         /// Day of week in the month (e.g. `5`).
         public static let weekday = Self("F")
@@ -268,25 +272,25 @@ extension DateFormat {
         /// Two characters name of the day of the week (e.g. `Tu`).
         public static let weekdayNameTwo = Self("EEEEEE")
         
-        /// Two-digit numeric numeric month, zero-padded if necessary (e.g. `02`, `11`).
+        /// Two-digit month, zero-padded if necessary (e.g. `02`, `11`).
         public static let month = Self("MM")
-        ///Numeric month (e.g. `2`, `11`).
+        /// Month (e.g. `2`, `11`).
         public static let monthShort = Self("M")
-        /// Name of the month (e.g. `December`).
+        /// Month name (e.g. `December`).
         public static let monthName = Self("MMMM")
-        /// Short name of the month (e.g. `Dec`).
+        /// Short month name (e.g. `Dec`).
         public static let monthNameShort = Self("MMM")
-        /// Single character name of the month (e.g. `D`).
+        /// Single character month name (e.g. `D`).
         public static let monthNameSingle = Self("MMMMM")
-        
-        /// Year with four digits (e.g. `2024`).
+                
+        /// Four-digit year (e.g. `2024`).
         public static let year = Self("yyyy")
-        /// Year (e.g. `24`).
+        /// Two-digit year (e.g. `24`).
         public static let yearShort = Self("yy")
         
-        /// Quarter of the year (e.g. `04`)
+        /// Two-digit quarter of the year (e.g. `04`).
         public static let quarter = Self("QQ")
-        /// Quarter of the year (e.g. `4`)
+        /// Single-digit quarter of the year (e.g. `4`).
         public static let quarterShort = Self("Q")
         /// Quarter of the year including `Q` (e.g. `Q4`)
         public static let quarterWithQ = Self("QQQ")
@@ -295,14 +299,22 @@ extension DateFormat {
         
         /// Name of the time zone (e.g. `Central Standard Time`).
         public static let timezone = Self("zzzz")
-        /// 3 letter name of the time zone (e.g. `GMT`).
+        /// Short name of the time zone (e.g. `GMT`).
         public static let timezoneShort = Self("zzz")
-        /// 3 letter name of the time zone including offset (e.g. `CST-06:00`).
+        /// Short name of the time zone including offset (e.g. `CST-06:00`).
         public static let timezoneWithOffset = Self("ZZZZ")
         /// ISO 8601 time zone (e.g. `-06:00`).
-        public static let iso8601 = Self("ZZZZZ")
+        public static let timezoneISO8601 = Self("ZZZZZ")
         /// RFC 822 GMT time zone. Can also match a literal Z for Zulu (UTC) time (e.g. `-0600`).
-        public static let rfs022 = Self("Z")
+        public static let timezoneRFS022 = Self("Z")
+        
+        /// The start of a clock representation for the format of a hour.
+        public enum ClockHourCycle {
+            /// Clock starts at one.
+            case oneBased
+            /// Clock starts at zero.
+            case zeroBased
+        }
         
         init(_ value: String) {
             self.format = value
@@ -316,3 +328,88 @@ extension DateFormat {
         }
     }
 }
+
+/*
+extension DateFormat.DateComponent {
+    public enum Month: String {
+        /// Abbreviated month name. For example, Sep.
+        case abbreviated = "MMM"
+        /// Wide month name. For example, September.
+        case wide = "MMMM"
+        /// Narrow month name. For example, S.
+        case narrow = "MMMMM"
+        /// Numeric month. For example, 9, 12.
+        case defaultDigits = "M"
+        /// Two-digit numeric month, zero-padded if necessary. For example, 09, 12.
+        case twoDigits = "MM"
+    }
+    
+    public enum Week: String {
+        /// Numeric week of the month. For example, 1, 4.
+        case weekOfMonth = "MMMMM"
+        /// Numeric week. For example, 1, 18.
+        case defaultDigits = "M"
+        /// Two-digit numeric week, zero-padded if necessary. For example, 01, 18.
+        case twoDigits = "MM"
+    }
+    
+    public enum Weekday: String {
+        /// Abbreviated weekday name. For example, Tue.
+        case abbreviated = "E"
+        /// Wide weekday name. For example, Tuesday.
+        case wide = "EEEE"
+        /// Narrow weekday name. For example, T.
+        case narrow = "EEEEE"
+        /// Short weekday name. For example, Tu.
+        case short = "EEEEEE"
+        /// Local numeric one-digit day of week. The value depends on the local starting day of the week. For example, this is 2 if Sunday is the first day of the week.
+        case oneDigit = "F"
+        /// Local numeric two-digit day of week, zero-padded if necessary. The value depends on the local starting day of the week. For example, this is 02 if Sunday is the first day of the week.
+        case twoDigits = "FF"
+    }
+    
+    /// A type that specifies a format for the hour in a date format style.
+    public struct Hour {
+        public let rawValue: String
+        init(_ rawValue: String) {
+            self.rawValue = rawValue
+        }
+        
+        /// Creates a custom format style portraying the minimum number of digits that represents the hour.
+        public static func defaultsDigits(_ clock: Clock, hourCycle: HourCycle = .oneBased) -> Self {
+            switch (clock, hourCycle) {
+            case (.twelveHour, .oneBased): return Self("h")
+            case (.twelveHour, .zeroBased): return Self("k")
+            case (.twentyFourHour, .oneBased): return Self("H")
+            case (.twentyFourHour, .zeroBased): return Self("K")
+            }
+        }
+        
+        /// Creates a custom format style portraying two digits that represent the hour.
+        public static func twoDigits(_ clock: Clock, hourCycle: HourCycle = .oneBased) -> Self {
+            switch (clock, hourCycle) {
+            case (.twelveHour, .oneBased): return Self("hh")
+            case (.twelveHour, .zeroBased): return Self("kk")
+            case (.twentyFourHour, .oneBased): return Self("HH")
+            case (.twentyFourHour, .zeroBased): return Self("KK")
+            }
+        }
+        
+        /// A type that specifies a clock representation for the format of an hour.
+        public enum Clock {
+            /// A clock that portrays the hour using a 12-hour clock.
+            case twelveHour
+            /// A clock that portrays the hour using a 24-hour clock.
+            case twentyFourHour
+        }
+        
+        /// A type that specifies the start of a clock representation for the format of a hour.
+        public enum HourCycle {
+            /// A hour cycle that indicates a clock that starts at one.
+            case oneBased
+            /// A hour cycle that indicates a clock that starts at zero.
+            case zeroBased
+        }
+    }
+}
+*/
