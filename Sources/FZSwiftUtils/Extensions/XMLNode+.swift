@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 30.04.25.
 //
 
+#if os(macOS)
 import Foundation
 
 extension XMLElement {
@@ -415,3 +416,4 @@ extension XMLNode.Kind: CustomStringConvertible {
         }
     }
 }
+#endif
