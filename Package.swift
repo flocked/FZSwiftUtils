@@ -15,11 +15,25 @@ let package = Package(
     dependencies: [
     ],
     targets: [
+        .target(
+            name: "_Libffi",
+            path: "Sources/Libffi",
+            sources: ["src"],
+            publicHeadersPath: "include",
+            cSettings: [
+                .define("USE_DL_PREFIX"),
+                .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-shorten-64-to-32"]),]
+        ),
+        .target(
+            name: "_OCSources",
+            dependencies: ["_Libffi"],
+            path: "Sources/FZSwiftUtils+ObjC/OCSources",
+            publicHeadersPath: ""),
         .target(name: "_SuperBuilder", path: "Sources/FZSwiftUtils+ObjC/SuperBuilder"),
         .target(name: "_ExceptionCatcher", path: "Sources/FZSwiftUtils+ObjC/ExceptionCatcher", publicHeadersPath: "", cSettings: [.headerSearchPath(".")]),
         .target(
             name: "FZSwiftUtils",
-            dependencies: ["_SuperBuilder", "_ExceptionCatcher"]
+            dependencies: ["_SuperBuilder", "_ExceptionCatcher", "_Libffi", "_OCSources"]
         ),
     ]
 )

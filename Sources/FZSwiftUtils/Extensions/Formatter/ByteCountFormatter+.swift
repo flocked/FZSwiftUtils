@@ -132,37 +132,28 @@ private extension ByteCountFormatter {
         let isReplaced = isMethodReplaced(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
         if shouldSwizzle, !isReplaced {
             do {
-                try replaceMethod(
-                    #selector(ByteCountFormatter.string(for:)),
-                    methodSignature: (@convention(c)  (AnyObject, Selector, Any?) -> (String?)).self,
-                    hookSignature: (@convention(block)  (AnyObject, Any?) -> (String?)).self) { store in {
-                        object, obj in
-                        (object as? ByteCountFormatter)?.localizedString(for: obj) ?? store.original(object, #selector(ByteCountFormatter.string(for:)), obj)
-                    }
-                    }
-                try replaceMethod(
-                    #selector(ByteCountFormatter.string(fromByteCount:)),
-                    methodSignature: (@convention(c)  (AnyObject, Selector, Int64) -> (String)).self,
-                    hookSignature: (@convention(block)  (AnyObject, Int64) -> (String)).self) { store in {
-                        object, byteCount in
-                        (object as? ByteCountFormatter)?.localizedString(fromByteCount: byteCount) ?? store.original(object, #selector(ByteCountFormatter.string(fromByteCount:)), byteCount)
-                    }
-                    }
-                try replaceMethod(
-                    #selector(ByteCountFormatter.string(from:)),
-                    methodSignature: (@convention(c)  (AnyObject, Selector, Measurement<UnitInformationStorage>) -> (String)).self,
-                    hookSignature: (@convention(block)  (AnyObject, Measurement<UnitInformationStorage>) -> (String)).self) { store in {
-                        object, measurement in
-                        (object as? ByteCountFormatter)?.localizedString(from: measurement) ??  store.original(object, #selector(ByteCountFormatter.string(from:)), measurement)
-                    }
-                    }
+                try hook(#selector(ByteCountFormatter.string(for:)), closure: { original, object, sel, obj in
+                    (object as? ByteCountFormatter)?.localizedString(for: obj) ?? original(object, sel, obj)
+                } as @convention(block) (
+                    (AnyObject, Selector, Any?) -> String?,
+                    AnyObject, Selector, Any?) -> String?)
+                try hook(#selector(ByteCountFormatter.string(fromByteCount:)), closure: { original, object, sel, byteCount in
+                    (object as? ByteCountFormatter)?.localizedString(fromByteCount: byteCount) ?? original(object, sel, byteCount)
+                } as @convention(block) (
+                    (AnyObject, Selector, Int64) -> String,
+                    AnyObject, Selector, Int64) -> String)
+                try hook(#selector(ByteCountFormatter.string(from:)), closure: { original, object, sel, measurement in
+                    (object as? ByteCountFormatter)?.localizedString(from: measurement) ?? original(object, sel, measurement)
+                } as @convention(block) (
+                    (AnyObject, Selector, Measurement<UnitInformationStorage>) -> String,
+                    AnyObject, Selector, Measurement<UnitInformationStorage>) -> String)
             } catch {
                 debugPrint(error)
             }
         } else if isReplaced {
-            resetMethod(#selector(ByteCountFormatter.string(for:)))
-            resetMethod(#selector(ByteCountFormatter.string(fromByteCount:)))
-            resetMethod(#selector(ByteCountFormatter.string(from:)))
+            revertHooks(for: #selector(ByteCountFormatter.string(for:)))
+            revertHooks(for: #selector(ByteCountFormatter.string(fromByteCount:)))
+            revertHooks(for: #selector(ByteCountFormatter.string(from:)))
         }
     }
     
