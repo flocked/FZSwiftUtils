@@ -54,6 +54,10 @@ Sequence+Concurrency
 - Copyright (c) 2021 John Sundell
 - https://github.com/JohnSundell/CollectionConcurrencyKit
 
+SwiftHook
+- Copyright (c) 2019 Yanni Wang 王氩
+- https://github.com/623637646/SwiftHook
+
 Swizzle
 - Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
 - https://github.com/MarioIannotta/SwizzleSwift

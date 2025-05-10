@@ -1,6 +1,6 @@
 //
 //  ObjectHook.swift
-//  SwiftHook
+//  
 //
 //  Created by Florian Zand on 05.05.25.
 //
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Hooks methods and properties of an object.
-public struct ObjectHook<T: AnyObject> {
+struct ObjectHook<T: AnyObject> {
     let object: T
     var shouldApply = true
     
@@ -328,7 +328,7 @@ public struct ObjectHook<T: AnyObject> {
     }
 }
 
-public extension ObjectHook where T: NSObject {
+extension ObjectHook where T: NSObject {
     // MARK: before deinit
     /**
      Execute the closure before the object deinit.
@@ -394,44 +394,44 @@ public extension ObjectHook where T: NSObject {
 
 extension ObjectHook where T: NSObject {
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+    func hookBefore(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+    func hookAfter(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
+    func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
+    func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hook(_ selector: String, closure: Any) throws -> HookToken {
+    func hook(_ selector: String, closure: Any) throws -> HookToken {
         try hook(NSSelectorFromString(selector), closure: closure)
     }
 }
 
 extension ObjectHook where T: NSObject {
     @discardableResult
-    public func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -439,7 +439,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    public func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -447,7 +447,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    public func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -455,7 +455,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    public func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -463,7 +463,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    public func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, _ suggested: Value)->(Value)) throws -> HookToken {
+    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, _ suggested: Value)->(Value)) throws -> HookToken {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? T {
                 return closure(obj, value)
@@ -474,7 +474,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    public func hook<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+    func hook<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
         try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
             if let val = val as? Value, let ob = obj as? T {
                 let original: (Value)->() = { original(obj, sel, $0) }

@@ -17,7 +17,7 @@ let package = Package(
     targets: [
         .target(
             name: "_Libffi",
-            path: "Sources/Libffi",
+            path: "Sources/FZSwiftUtils+ObjC/Libffi",
             sources: ["src"],
             publicHeadersPath: "include",
             cSettings: [

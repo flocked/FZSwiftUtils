@@ -1,6 +1,6 @@
 //
 //  ClassHook.swift
-//  SwiftHook
+//
 //
 //  Created by Florian Zand on 05.05.25.
 //
@@ -8,7 +8,7 @@
 import Foundation
 
 /// Hooks class methods and properties.
-public struct ClassHook<T: AnyObject> {
+struct ClassHook<T: AnyObject> {
     let targetClass: T.Type
     var shouldApply = true
 
@@ -262,37 +262,37 @@ public struct ClassHook<T: AnyObject> {
 
 extension ClassHook where T: NSObject {
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    func hookBefore(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    func hookAfter(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
+    func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
+    func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
 
     @discardableResult
-    public func hook(_ selector: String, closure: Any) throws -> HookToken {
+    func hook(_ selector: String, closure: Any) throws -> HookToken {
         try hook(NSSelectorFromString(selector), closure: closure)
     }
 }
