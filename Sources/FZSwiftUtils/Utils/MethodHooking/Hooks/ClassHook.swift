@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 05.05.25.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 /// Hooks class methods.
@@ -297,3 +298,4 @@ extension ClassHook where T: NSObject {
         try hook(NSSelectorFromString(selector), closure: closure)
     }
 }
+#endif

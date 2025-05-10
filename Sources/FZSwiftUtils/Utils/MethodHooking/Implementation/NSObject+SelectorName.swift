@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 06.05.25.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 extension PartialKeyPath where Root: NSObject {
@@ -77,3 +78,4 @@ fileprivate extension NSObject {
         return nil
     }
 }
+#endif

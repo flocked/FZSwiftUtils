@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 private class ClosuresContext {
@@ -84,3 +85,4 @@ func isHookClosuresEmpty(for object: AnyObject) -> Bool {
 fileprivate func closuresContext(for object: AnyObject) -> ClosuresContext? {
     getAssociatedValue("closuresContext", object: object)
 }
+#endif

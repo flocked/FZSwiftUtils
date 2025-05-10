@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 private let retainSelector = NSSelectorFromString("retain")
@@ -170,3 +171,4 @@ func parametersCheck(for targetClass: AnyClass, selector: Selector, mode: HookMo
     }
 }
 
+#endif

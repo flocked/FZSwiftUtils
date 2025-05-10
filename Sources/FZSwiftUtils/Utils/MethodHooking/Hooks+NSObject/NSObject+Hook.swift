@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 06.05.25.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 public extension NSObject {
@@ -505,3 +506,4 @@ extension NSObjectProtocol where Self: NSObject {
                                  AnyObject, Selector,  Any) -> Void)
     }
 }
+#endif

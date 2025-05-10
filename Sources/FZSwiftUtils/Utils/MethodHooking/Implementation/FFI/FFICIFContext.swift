@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
 #if SWIFT_PACKAGE
@@ -59,3 +60,4 @@ class FFICIFContext {
         self.argTypes.deallocate()
     }
 }
+#endif

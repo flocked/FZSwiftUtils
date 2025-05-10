@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
 
@@ -86,3 +87,4 @@ func overrideSuperMethod(targetClass: AnyClass, selector: Selector) throws {
     let overrideMethodContext = try OverrideMethodContext.init(targetClass: targetClass, selector: selector)
     OverrideMethodContext.pool.insert(overrideMethodContext)
 }
+#endif

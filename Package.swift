@@ -33,7 +33,11 @@ let package = Package(
         .target(name: "_ExceptionCatcher", path: "Sources/FZSwiftUtils+ObjC/ExceptionCatcher", publicHeadersPath: "", cSettings: [.headerSearchPath(".")]),
         .target(
             name: "FZSwiftUtils",
-            dependencies: ["_SuperBuilder", "_ExceptionCatcher", "_Libffi", "_OCSources"]
+            dependencies: ["_SuperBuilder",
+                           "_ExceptionCatcher",
+                           .target(name: "_Libffi", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
+                           .target(name: "_OCSources", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
+                          ]
         ),
     ]
 )

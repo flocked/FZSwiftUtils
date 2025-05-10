@@ -76,6 +76,7 @@ public extension ByteCountFormatter {
         return self
     }
     
+    #if os(macOS) || os(iOS)
     /**
      The locale of the formatter.
      
@@ -125,8 +126,9 @@ public extension ByteCountFormatter {
         unitStyle = style
         return self
     }
+    #endif
 }
-
+#if os(macOS) || os(iOS)
 private extension ByteCountFormatter {
     func swizzle(_ shouldSwizzle: Bool) {
         let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
@@ -180,7 +182,7 @@ private extension ByteCountFormatter {
         }
         return nil
     }
-    
+
     var needsLocalized: Bool {
        !isFetching && includesUnit && (locale != .current || unitStyle != .short)
     }
@@ -189,7 +191,6 @@ private extension ByteCountFormatter {
         get { getAssociatedValue("isFetching") ?? false }
         set { setAssociatedValue(newValue, key: "isFetching") }
     }
-    
     func split(handler: @escaping (()->(String?))) -> (count: String, unit: String)? {
         isFetching = true
         let previous = (includesCount, includesUnit)
@@ -206,6 +207,7 @@ private extension ByteCountFormatter {
         return (_count, unit)
     }
 }
+#endif
 
 public extension ByteCountFormatter.CountStyle {
     var factor: Int {

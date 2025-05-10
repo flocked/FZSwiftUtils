@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 05.05.25.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 /// Hooking mode.
@@ -324,3 +325,4 @@ extension HookToken {
         }
     }
 }
+#endif

@@ -5,6 +5,7 @@
 //
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 extension NSObject {
@@ -71,3 +72,4 @@ extension NSObject {
         }
     }
 }
+#endif

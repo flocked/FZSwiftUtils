@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 #if SWIFT_PACKAGE
 import _OCSources
@@ -146,3 +147,4 @@ extension Array where Element == Signature.TypeValue {
         self.map {$0.code}.joined()
     }
 }
+#endif

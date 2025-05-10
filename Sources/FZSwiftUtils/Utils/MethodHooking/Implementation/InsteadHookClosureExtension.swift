@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 #if SWIFT_PACKAGE
 import _OCSources
@@ -34,3 +35,4 @@ func createInsteadClosure(targetIMP: IMP, objectPointer: UnsafeMutableRawPointer
 func getInsteadContext(insteadClosure: AnyObject) -> InsteadContext? {
     getAssociatedValue("associatedInsteadContextHandle", object: insteadClosure)
 }
+#endif

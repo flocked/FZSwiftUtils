@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 private class DynamicClassContext {
@@ -92,3 +93,4 @@ func unwrapDynamicClass(object: AnyObject) throws {
     }
     object_setClass(object, context.baseClass)
 }
+#endif

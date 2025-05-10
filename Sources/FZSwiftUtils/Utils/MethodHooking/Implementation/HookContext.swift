@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
 #if SWIFT_PACKAGE
@@ -324,3 +325,4 @@ private func callBeforeOrAfterClosure(_ hookClosure: AnyObject, _ hookContext: H
         ffi_call(hookContext.beforeAfterCifContext.cif, unsafeBitCast(sh_blockInvoke(hookClosurePointer.pointee), to: (@convention(c) () -> Void).self), nil, hookArgsBuffer.baseAddress)
     }
 }
+#endif

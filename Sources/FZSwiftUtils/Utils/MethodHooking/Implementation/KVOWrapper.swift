@@ -6,6 +6,7 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 #if SWIFT_PACKAGE
 import _OCSources
@@ -162,3 +163,4 @@ fileprivate class Observer: NSObject {
 
 fileprivate var swiftHookKVOContext = 0
 fileprivate let swiftHookKeyPath = "swiftHookPrivateProperty"
+#endif

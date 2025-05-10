@@ -6,6 +6,7 @@
 //  Copyright © 2021 Yanni. All rights reserved.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 let swiftHookSerialQueue = DispatchQueue(label: "com.yanni.SwiftHook")
@@ -40,3 +41,4 @@ enum SwiftHookError: Error {
     
     case noKVOKeyPath // The partial keyPath isn't KVO / @objc.
 }
+#endif
