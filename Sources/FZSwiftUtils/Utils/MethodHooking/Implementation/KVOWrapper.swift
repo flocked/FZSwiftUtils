@@ -1,5 +1,5 @@
 //
-//  KVODynamicClass.swift
+//  KVOWrapper.swift
 //
 //
 //  Created by Wang Ya on 12/27/20.
@@ -13,12 +13,41 @@ import _OCSources
 #endif
 
 extension NSObject {
-    func isSupportedKVO() throws -> Bool {
+    func wrapKVOIfNeeded(selector: Selector) throws -> AnyClass {
+        guard try isSupportedKVO() else {
+            throw HookError.hookKVOUnsupportedInstance
+        }
+        if swiftHookObserver == nil {
+            swiftHookObserver = Observer(target: self)
+        }
+        guard let KVOedClass = object_getClass(self) else {
+            throw HookError.internalError(file: #file, line: #line)
+        }
+        if getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector) == nil,
+           let propertyName = try getKVOName(setter: selector) {
+            guard let observer = swiftHookObserver else {
+                throw HookError.internalError(file: #file, line: #line)
+            }
+            // With this code. `getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector)` will be non-nil.
+            addObserver(observer, forKeyPath: propertyName, options: .new, context: &swiftHookKVOContext)
+            removeObserver(observer, forKeyPath: propertyName, context: &swiftHookKVOContext)
+        }
+        return KVOedClass
+    }
+    
+    func unwrapKVOIfNeeded() {
+        guard swiftHookObserver != nil else {
+            return
+        }
+        swiftHookObserver = nil
+    }
+    
+    private func isSupportedKVO() throws -> Bool {
         if let isSupportedKVO: Bool = FZSwiftUtils.getAssociatedValue("isSupportedKVO", object: self) {
             return isSupportedKVO
         }
         guard let isaClass = object_getClass(self) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         let result: Bool
         if try isKVOed() {
@@ -32,7 +61,7 @@ extension NSObject {
                     removeObserver(RealObserver.shared, forKeyPath: swiftHookKeyPath, context: &swiftHookKVOContext)
                 }
                 guard let isaClassNew = object_getClass(self) else {
-                    throw SwiftHookError.internalError(file: #file, line: #line)
+                    throw HookError.internalError(file: #file, line: #line)
                 }
                 result = isaClass != isaClassNew
             } catch {
@@ -43,33 +72,8 @@ extension NSObject {
         return result
     }
     
-    func wrapKVOIfNeeded(selector: Selector) throws {
-        if swiftHookObserver == nil {
-            swiftHookObserver = Observer(target: self)
-        }
-        guard let KVOedClass = object_getClass(self) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
-        }
-        if getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector) == nil,
-           let propertyName = try getKVOName(setter: selector) {
-            guard let observer = swiftHookObserver else {
-                throw SwiftHookError.internalError(file: #file, line: #line)
-            }
-            // With this code. `getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector)` will be non-nil.
-            addObserver(observer, forKeyPath: propertyName, options: .new, context: &swiftHookKVOContext)
-            removeObserver(observer, forKeyPath: propertyName, context: &swiftHookKVOContext)
-        }
-    }
-    
-    func unwrapKVOIfNeeded() {
-        guard swiftHookObserver != nil else {
-            return
-        }
-        swiftHookObserver = nil
-    }
-    
     // return nil if the selector is not a setter.
-    private func getKVOName(setter: Selector) throws -> String? {
+    fileprivate func getKVOName(setter: Selector) throws -> String? {
         let setterName = NSStringFromSelector(setter)
         guard setterName.hasPrefix("set") && setterName.hasSuffix(":") else {
             return nil
@@ -81,7 +85,7 @@ extension NSObject {
         let firstCharacterLowercase = firstCharacter.lowercased()
         let propertyName = firstCharacterLowercase + propertyNameWithUppercase.dropFirst()
         guard let baseClass = object_getClass(self) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         if let property = class_getProperty(baseClass, propertyName) {
             // If setter is "setNumber:". This will return "number"
@@ -106,13 +110,13 @@ extension NSObject {
         return nil
     }
     
-    private func isKVOed() throws -> Bool {
+    fileprivate func isKVOed() throws -> Bool {
         // Can't check this in some special cases. Because when some objects be removed all observers. The class is still NSKVONotifying_XXX and the observationInfo is nil. For more detail: search test cases "test_unsuport_KVO_cancellation"
     //    guard object.observationInfo != nil else {
     //        return false
     //    }
         guard let isaClass = object_getClass(self) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         let typeClass: AnyClass = type(of: self)
         guard isaClass != typeClass else {

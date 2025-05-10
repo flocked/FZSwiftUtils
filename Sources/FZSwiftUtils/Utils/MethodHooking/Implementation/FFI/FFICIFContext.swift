@@ -27,13 +27,13 @@ class FFICIFContext {
         }
         for (index, argumentType) in signature.argumentTypes.enumerated() {
             guard let typeContext = SHFFITypeContext(typeEncoding: argumentType.code) else {
-                throw SwiftHookError.internalError(file: #file, line: #line)
+                throw HookError.internalError(file: #file, line: #line)
             }
             self.typeContexts.insert(typeContext)
             self.argTypes[index] = typeContext.ffiType
         }
         guard let returnType = SHFFITypeContext(typeEncoding: signature.returnType.code) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         self.typeContexts.insert(returnType)
         self.returnType = returnType.ffiType
@@ -48,7 +48,7 @@ class FFICIFContext {
             UInt32(signature.argumentTypes.count),
             self.returnType,
             self.argTypes.baseAddress)) == FFI_OK else {
-                throw SwiftHookError.ffiError
+                throw HookError.ffiError
         }
         
         deallocateHelperArgTypes = nil

@@ -13,7 +13,6 @@ import _OCSources
 #endif
 
 struct Signature {
-    
     struct TypeValue: Equatable {
         
         let code: String
@@ -30,7 +29,7 @@ struct Signature {
         init(string: String, isOriginalClosure: Bool = false) throws {
             self.isOriginalClosure = isOriginalClosure
             guard let nameRange = string.range(of: "^[^\\<]+", options: .regularExpression) else {
-                throw SwiftHookError.internalError(file: #file, line: #line)
+                throw HookError.internalError(file: #file, line: #line)
             }
             // convert "@?<@@?@:q>" to "@?"
             var code = String(string[nameRange])
@@ -112,32 +111,32 @@ struct Signature {
     
     init(method: Method) throws {
         guard let objCTypes = method_getTypeEncoding(method) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         try Signature.checkObjCTypes(types: objCTypes)
         guard let methodSignature = SHMethodSignature(objCTypes: objCTypes) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         try self.init(methodSignature: methodSignature, signatureType: .method)
     }
     
     init(closure: AnyObject) throws {
         guard closure.isKind(of: NSClassFromString("NSBlock")!) else {
-            throw SwiftHookError.wrongTypeForHookClosure
+            throw HookError.wrongTypeForHookClosure
         }
         guard let objCTypes = sh_blockSignature(closure) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         try Signature.checkObjCTypes(types: objCTypes)
         guard let methodSignature = SHMethodSignature(objCTypes: objCTypes)else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         try self.init(methodSignature: methodSignature, signatureType: .closure)
     }
     
     private static func checkObjCTypes(types: UnsafePointer<Int8>) throws {
         guard !String(cString: types).contains("=}") else {
-            throw SwiftHookError.emptyStruct
+            throw HookError.emptyStruct
         }
     }
 }

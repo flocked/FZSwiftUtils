@@ -18,7 +18,7 @@ class FFIClosureContext {
         var targetIMP: UnsafeMutableRawPointer?
         self.ffiClosure = try withUnsafeMutablePointer(to: &targetIMP) { (pointer) -> UnsafeMutablePointer<ffi_closure> in
             guard let closure = ffi_closure_alloc(MemoryLayout<ffi_closure>.stride, pointer) else {
-                throw SwiftHookError.ffiError
+                throw HookError.ffiError
             }
             return closure.assumingMemoryBound(to: ffi_closure.self)
         }
@@ -30,7 +30,7 @@ class FFIClosureContext {
         }
         self.targetIMP = unsafeBitCast(targetIMP!, to: IMP.self)
         guard ffi_prep_closure_loc(self.ffiClosure, cif, fun, userData, targetIMP) == FFI_OK else {
-            throw SwiftHookError.ffiError
+            throw HookError.ffiError
         }
         deallocateHelperFfiClosure = nil
     }

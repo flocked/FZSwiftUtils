@@ -8,17 +8,31 @@
 #if os(macOS) || os(iOS)
 import Foundation
 
-extension PartialKeyPath where Root: NSObject {
-    func getterName() throws -> String {
+extension PartialKeyPath {
+    func getterName() throws -> String where Root: NSObject {
         guard let getterName = _kvcKeyPathString else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return getterName
     }
     
-    func setterName() throws -> String {
+    func setterName() throws -> String where Root: NSObject {
         guard let setterName = NSObject.setterName(for: try getterName(), _class: Root.self) else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
+        }
+        return setterName
+    }
+    
+    func getterName<T>() throws -> String where Root == T.Type, T: NSObject {
+        guard let getterName = _kvcKeyPathString else {
+            throw HookError.noKVOKeyPath
+        }
+        return getterName
+    }
+    
+    func setterName<T>() throws -> String where Root == T.Type, T: NSObject {
+        guard let setterName = NSObject.setterName(for: try getterName(), _class: T.self) else {
+            throw HookError.noKVOKeyPath
         }
         return setterName
     }

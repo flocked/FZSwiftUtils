@@ -14,13 +14,14 @@ import _OCSources
 #endif
 
 class HookContext {
-    static var pool: [Key: HookContext] = [:]
+    fileprivate static var pool: [Key: HookContext] = [:]
 
-    struct Key: Hashable {
-        let id: ObjectIdentifier
+    fileprivate struct Key: Hashable {
+        let classID: ObjectIdentifier
         let selector: Selector
+        
         init(_ class_: AnyClass, _ selector: Selector) {
-            self.id = ObjectIdentifier(class_)
+            self.classID = ObjectIdentifier(class_)
             self.selector = selector
         }
     }
@@ -33,9 +34,9 @@ class HookContext {
     let isHookingDealloc: Bool
     
     // hook closure pools
-    fileprivate var beforeHookClosures = [AnyObject]()
-    fileprivate var insteadHookClosures = [AnyObject]()
-    fileprivate var afterHookClosures = [AnyObject]()
+    fileprivate var beforeHookClosures: [ObjectIdentifier: AnyObject] = [:]
+    fileprivate var insteadHookClosures: [ObjectIdentifier: AnyObject] = [:]
+    fileprivate var afterHookClosures: [ObjectIdentifier: AnyObject] = [:]
     
     // original
     fileprivate let methodCifContext: FFICIFContext
@@ -57,10 +58,10 @@ class HookContext {
         self.isSpecifiedInstance = isSpecifiedInstance
 
         guard let method = getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         self.method = method
-        self.isHookingDealloc = selector == deallocSelector
+        self.isHookingDealloc = selector == .dealloc
         
         // original
         let methodSignature = try Signature(method: self.method)
@@ -103,11 +104,10 @@ class HookContext {
     }
     
     func append(hookClosure: AnyObject, mode: HookMode) throws {
-        func append(to keyPath: ReferenceWritableKeyPath<HookContext, [AnyObject]>) throws {
-            guard !self[keyPath: keyPath].contains(where: { hookClosure === $0 }) else {
-                throw SwiftHookError.duplicateHookClosure
+        func append(to keyPath: ReferenceWritableKeyPath<HookContext, [ObjectIdentifier: AnyObject]>) throws {
+            guard self[keyPath: keyPath].updateValue(hookClosure, forKey: .init(hookClosure)) == nil else {
+                throw HookError.duplicateHookClosure
             }
-            self[keyPath: keyPath].append(hookClosure)
         }
         switch mode {
         case .before:
@@ -116,16 +116,14 @@ class HookContext {
             try append(to: \.afterHookClosures)
         case .instead:
             try append(to: \.insteadHookClosures)
-        case .add: break
         }
     }
     
     func remove(hookClosure: AnyObject, mode: HookMode) throws {
-        func modify(_ keyPath: ReferenceWritableKeyPath<HookContext, [AnyObject]>) throws {
-            guard self[keyPath: keyPath].contains(where: { hookClosure === $0 }) else {
-                throw SwiftHookError.internalError(file: #file, line: #line)
+        func modify(_ keyPath: ReferenceWritableKeyPath<HookContext, [ObjectIdentifier: AnyObject]>) throws {
+            guard self[keyPath: keyPath].removeValue(forKey: .init(hookClosure)) != nil else {
+                throw HookError.internalError(file: #file, line: #line)
             }
-            self[keyPath: keyPath].removeAll { hookClosure === $0 }
         }
         switch mode {
         case .before:
@@ -134,17 +132,16 @@ class HookContext {
             try modify(\.afterHookClosures)
         case .instead:
             try modify(\.insteadHookClosures)
-        case .add: break
         }
     }
     
-    func isHoolClosurePoolEmpty() -> Bool {
+    var isHookClosurePoolEmpty: Bool {
         beforeHookClosures.isEmpty && insteadHookClosures.isEmpty && afterHookClosures.isEmpty
     }
     
     func isIMPChanged() throws -> Bool {
         guard let currentMethod = getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) else {
-            throw SwiftHookError.internalError(file: #file, line: #line)
+            throw HookError.internalError(file: #file, line: #line)
         }
         return method != currentMethod ||
             method_getImplementation(currentMethod) != methodClosureContext.targetIMP
@@ -155,9 +152,7 @@ class HookContext {
     }
     
     static func get(for targetClass: AnyClass, selector: Selector, isSpecifiedInstance: Bool) throws -> HookContext {
-        if getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) == nil {
-            try overrideSuperMethod(targetClass: targetClass, selector: selector)
-        }
+        try overrideSuperMethodIfNeeded(selector, of: targetClass)
         if let hookContext = Self.pool[Key(targetClass, selector)] {
             return hookContext
         }
@@ -165,7 +160,7 @@ class HookContext {
     }
 }
 
-private func methodCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, ret: UnsafeMutableRawPointer?, args: UnsafeMutablePointer<UnsafeMutableRawPointer?>?, userdata: UnsafeMutableRawPointer?) {
+fileprivate func methodCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, ret: UnsafeMutableRawPointer?, args: UnsafeMutablePointer<UnsafeMutableRawPointer?>?, userdata: UnsafeMutableRawPointer?) {
     
     // Parameters
     guard let userdata = userdata, let cif = cif else {
@@ -176,7 +171,7 @@ private func methodCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, ret: Unsa
     let argsBuffer = UnsafeMutableBufferPointer<UnsafeMutableRawPointer?>(start: args, count: Int(cif.pointee.nargs))
     
     // Get instead hook closures.
-    var insteadHookClosures = hookContext.insteadHookClosures
+    var insteadHookClosures = Array(hookContext.insteadHookClosures.values)
     if hookContext.isSpecifiedInstance {
         let objectPointer = argsBuffer[0]!
         unowned(unsafe) let object = objectPointer.assumingMemoryBound(to: AnyObject.self).pointee
@@ -210,7 +205,7 @@ private func methodCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, ret: Unsa
     }
 }
 
-private func insteadClosureCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, ret: UnsafeMutableRawPointer?, args: UnsafeMutablePointer<UnsafeMutableRawPointer?>?, userdata: UnsafeMutableRawPointer?) {
+fileprivate func insteadClosureCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, ret: UnsafeMutableRawPointer?, args: UnsafeMutablePointer<UnsafeMutableRawPointer?>?, userdata: UnsafeMutableRawPointer?) {
     
     // Parameters
     guard let userdata = userdata, let cif = cif else {
@@ -227,7 +222,7 @@ private func insteadClosureCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, r
     }
     
     // Get instead hook closures.
-    var insteadHookClosures = hookContext.insteadHookClosures
+    var insteadHookClosures = Array(hookContext.insteadHookClosures.values)
     if hookContext.isSpecifiedInstance {
         let objectPointer = hookContext.isHookingDealloc ? insteadContext.objectPointer : argsBuffer[1]!
         unowned(unsafe) let object = objectPointer.assumingMemoryBound(to: AnyObject.self).pointee
@@ -276,11 +271,11 @@ private func insteadClosureCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, r
     }
 }
 
-private func callBeforeHookClosuresAndOriginalMethodAndAfterHookClosures(hookContext: HookContext, ret: UnsafeMutableRawPointer?, argsBuffer: UnsafeMutableBufferPointer<UnsafeMutableRawPointer?>) {
+fileprivate func callBeforeHookClosuresAndOriginalMethodAndAfterHookClosures(hookContext: HookContext, ret: UnsafeMutableRawPointer?, argsBuffer: UnsafeMutableBufferPointer<UnsafeMutableRawPointer?>) {
     
     // Get before and after hook closures.
-    var beforeHookClosures = hookContext.beforeHookClosures
-    var afterHookClosures = hookContext.afterHookClosures
+    var beforeHookClosures = Array(hookContext.beforeHookClosures.values)
+    var afterHookClosures = Array(hookContext.afterHookClosures.values)
     if hookContext.isSpecifiedInstance {
         let objectPointer = argsBuffer[0]!
         unowned(unsafe) let object = objectPointer.assumingMemoryBound(to: AnyObject.self).pointee
@@ -318,7 +313,7 @@ private func callBeforeHookClosuresAndOriginalMethodAndAfterHookClosures(hookCon
     }
 }
 
-private func callBeforeOrAfterClosure(_ hookClosure: AnyObject, _ hookContext: HookContext, _ hookArgsBuffer: UnsafeMutableBufferPointer<UnsafeMutableRawPointer?>) {
+fileprivate func callBeforeOrAfterClosure(_ hookClosure: AnyObject, _ hookContext: HookContext, _ hookArgsBuffer: UnsafeMutableBufferPointer<UnsafeMutableRawPointer?>) {
     var hookClosure = hookClosure
     withUnsafeMutablePointer(to: &hookClosure) { hookClosurePointer in
         hookArgsBuffer[0] = UnsafeMutableRawPointer(hookClosurePointer)

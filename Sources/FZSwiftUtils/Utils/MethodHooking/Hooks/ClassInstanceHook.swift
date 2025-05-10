@@ -277,7 +277,7 @@ extension ClassInstanceHook where T: NSObject {
      */
     @discardableResult
     func hookDeallocBefore(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try HookToken(for: targetClass, selector: deallocSelector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        try HookToken(for: targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     /**
@@ -307,7 +307,7 @@ extension ClassInstanceHook where T: NSObject {
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
         } as @convention(block) (NSObject) -> Void
-        return try HookToken(for: targetClass, selector: deallocSelector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try HookToken(for: targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: after deinit
@@ -333,7 +333,7 @@ extension ClassInstanceHook where T: NSObject {
      */
     @discardableResult
     func hookDeallocAfter(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try HookToken(for: targetClass, selector: deallocSelector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+        try HookToken(for: targetClass, selector: .dealloc, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: replace deinit
@@ -366,7 +366,7 @@ extension ClassInstanceHook where T: NSObject {
      */
     @discardableResult
     func hookDeallocInstead(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> HookToken {
-        try HookToken(for: targetClass, selector: deallocSelector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+        try HookToken(for: targetClass, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
@@ -409,7 +409,7 @@ extension ClassInstanceHook where T: NSObject {
 
 extension ClassInstanceHook where T: NSObject {
     @discardableResult
-    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -417,7 +417,7 @@ extension ClassInstanceHook where T: NSObject {
     }
     
     @discardableResult
-    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -425,7 +425,7 @@ extension ClassInstanceHook where T: NSObject {
     }
     
     @discardableResult
-    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -433,7 +433,7 @@ extension ClassInstanceHook where T: NSObject {
     }
     
     @discardableResult
-    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -441,7 +441,7 @@ extension ClassInstanceHook where T: NSObject {
     }
     
     @discardableResult
-    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, _ suggested: Value)->(Value)) throws -> HookToken {
+    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ original: Value)->(Value)) throws -> HookToken {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? T {
                 return closure(obj, value)
@@ -470,7 +470,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookBefore(_ keyPath: PartialKeyPath<T>, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         guard let getterName = keyPath.getterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookBefore(getterName, closure: closure as Any)
     }
@@ -478,7 +478,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookBefore(set keyPath: PartialKeyPath<T>, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         guard let setterName = keyPath.setterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookBefore(setterName, closure: closure as Any)
     }
@@ -486,7 +486,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookAfter(_ keyPath: PartialKeyPath<T>, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         guard let getterName = keyPath.getterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookAfter(getterName, closure: closure as Any)
     }
@@ -494,7 +494,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookAfter(set keyPath: PartialKeyPath<T>, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         guard let setterName = keyPath.setterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookAfter(setterName, closure: closure as Any)
     }
@@ -502,7 +502,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookBefore(_ keyPath: PartialKeyPath<T>, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
         guard let getterName = keyPath.getterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookBefore(getterName, closure: closure)
     }
@@ -510,7 +510,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookBefore(set keyPath: PartialKeyPath<T>, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
         guard let setterName = keyPath.setterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookBefore(setterName, closure: closure)
     }
@@ -518,7 +518,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookAfter(_ keyPath: PartialKeyPath<T>, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
         guard let getterName = keyPath.getterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookAfter(getterName, closure: closure)
     }
@@ -526,7 +526,7 @@ extension ClassInstanceHook where T: NSObject {
     @discardableResult
     public func hookAfter(set keyPath: PartialKeyPath<T>, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
         guard let setterName = keyPath.setterName else {
-            throw SwiftHookError.noKVOKeyPath
+            throw HookError.noKVOKeyPath
         }
         return try hookAfter(setterName, closure: closure)
     }

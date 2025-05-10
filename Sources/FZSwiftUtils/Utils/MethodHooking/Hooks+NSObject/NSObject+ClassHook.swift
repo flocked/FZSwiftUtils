@@ -21,7 +21,7 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookClassBefore(#selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:))) {
          print("hooked before class sum")
      }
      ```
@@ -31,13 +31,13 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookClassBefore(_ selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
-        try hookClassBefore(selector, closure: closure as Any)
+    class func hookBefore(_ selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
+        try hookBefore(selector, closure: closure as Any)
     }
     
     @discardableResult
-    class func hookClassBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookClassBefore(NSSelectorFromString(selector), closure: closure as Any)
+    class func hookBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
+        try hookBefore(NSSelectorFromString(selector), closure: closure as Any)
     }
     
     /**
@@ -52,7 +52,7 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookClassAfter(#selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:))) {
          print("hooked after class sum")
      }
      ```
@@ -61,13 +61,13 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookClassAfter(_ selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
-        try hookClassAfter(selector, closure: closure as Any)
+    class func hookAfter(_ selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
+        try hookAfter(selector, closure: closure as Any)
     }
     
     @discardableResult
-    class func hookClassAfter(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookClassAfter(NSSelectorFromString(selector), closure: closure as Any)
+    class func hookAfter(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
+        try hookAfter(NSSelectorFromString(selector), closure: closure as Any)
     }
     
     // MARK: - custom closure
@@ -84,7 +84,7 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookClassBefore(#selector(MyObject.sum(with:number2:))) { (obj: NSObject, sel: Selector, number1: Int, number2: Int) in
+     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:))) { (obj: NSObject, sel: Selector, number1: Int, number2: Int) in
          print("hooked before class sum with \(number1) and \(number2)")
      }
      ```
@@ -98,12 +98,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookClassBefore(_ selector: Selector, closure: Any) throws -> HookToken {
+    class func hookBefore(_ selector: Selector, closure: Any) throws -> HookToken {
         try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookClassBefore(_ selector: String, closure: Any) throws -> HookToken {
+    class func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
         try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
@@ -119,7 +119,7 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookClassAfter(#selector(MyObject.sum(with:number2:))) { (obj: NSObject, sel: Selector, number1: Int, number2: Int) in
+     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:))) { (obj: NSObject, sel: Selector, number1: Int, number2: Int) in
          print("hooked after class sum with \(number1) and \(number2)")
      }
      ```
@@ -133,12 +133,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookClassAfter(_ selector: Selector, closure: Any) throws -> HookToken {
+    class func hookAfter(_ selector: Selector, closure: Any) throws -> HookToken {
         try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookClassAfter(_ selector: String, closure: Any) throws -> HookToken {
+    class func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
         try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
     
@@ -154,7 +154,7 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookClass(#selector(MyObject.sum(of:and:))) { (original: @escaping (NSObject.Type, Selector, Int, Int) -> Int, obj: NSObject.Type, sel: Selector, number1: Int, number2: Int) -> Int in
+     try MyObject.hook(#selector(MyObject.sum(of:and:))) { (original: @escaping (NSObject.Type, Selector, Int, Int) -> Int, obj: NSObject.Type, sel: Selector, number1: Int, number2: Int) -> Int in
          print("hooked instead of class sum")
          return original(obj, sel, number1, number2) * 3
      }
@@ -173,12 +173,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookClass(_ selector: Selector, closure: Any) throws -> HookToken {
+    class func hook(_ selector: Selector, closure: Any) throws -> HookToken {
         try ClassHook(self)!.hook(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookClass(_ selector: String, closure: Any) throws -> HookToken {
+    class func hook(_ selector: String, closure: Any) throws -> HookToken {
         try ClassHook(self)!.hook(selector, closure: closure)
     }
 }
@@ -196,7 +196,7 @@ public extension NSObjectProtocol where Self: NSObject {
          }
      }
      
-     try MyObject.hookClassBefore(#selector(MyObject.sum(with:number2:))) { class_, sel in
+     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:))) { class_, sel in
          print("hooked before class sum on \(class_)")
      }
      ```
@@ -206,13 +206,13 @@ public extension NSObjectProtocol where Self: NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookClassBefore(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    static func hookBefore(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
         try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookClassBefore(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
-        try hookClassBefore(NSSelectorFromString(selector), closure: closure)
+    static func hookBefore(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
+        try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
     /**
@@ -227,7 +227,7 @@ public extension NSObjectProtocol where Self: NSObject {
          }
      }
      
-     try MyObject.hookClassAfter(#selector(MyObject.sum(with:number2:))) { class_, sel in
+     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:))) { class_, sel in
          print("hooked after class sum on \(class_)")
      }
      ```
@@ -236,13 +236,172 @@ public extension NSObjectProtocol where Self: NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookClassAfter(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    static func hookAfter(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
         try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookClassAfter(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
-        try hookClassAfter(NSSelectorFromString(selector), closure: closure)
+    static func hookAfter(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
+        try hookAfter(NSSelectorFromString(selector), closure: closure)
+    }
+}
+
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Hooks before getting the specified property of the class.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: The handler that is invoked before the property is get. It receives:
+         - `object`: The object.
+         - `value`: The value of the property to be get.
+
+     Example usage:
+     ```swift
+     try MyObject.hookBefore(\.classProperty) { class_, value in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+        try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
+            guard let val = val as? Value, let obj = obj as? Self else { return }
+            closure(obj, val)
+        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks before setting the specified property of the class.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: The handler that is invoked before the property is set. It receives:
+         - `object`: The object.
+         - `value`: The new value of the property to be set.
+
+     Example usage:
+     ```swift
+     try MyObject.hookBefore(set \.classProperty) { class_, value in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+        try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
+            guard let val = val as? Value, let obj = obj as? Self else { return }
+            closure(obj, val)
+        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks after getting the specified property of the class.
+     
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: The handler that is invoked after the property is read. It receives:
+         - `object`: The object.
+         - `value`: The current value of the property.
+
+     Example usage:
+     ```swift
+     try MyObject.hookAfter(\.classProperty) { class_, value in
+        // hooks after.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+        try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
+            guard let val = val as? Value, let obj = obj as? Self else { return }
+            closure(obj, val)
+        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks after setting the specified property of the class.
+     
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: The handler that is invoked after the property is set. It receives:
+         - `object`: The object.
+         - `value`: The new value of the property.
+
+     Example usage:
+     ```swift
+     try MyObject.hookAfter(set \.classProperty) { class_, value in
+        // hooks after.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+        try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
+            guard let val = val as? Value, let obj = obj as? Self else { return }
+            closure(obj, val)
+        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks getting the specified property of the class.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: A closure that is invoked whenever the property is read. It receives:
+         - `object`: The instance on which the property is being accessed.
+         - `original`: The value returned by the original getter.
+         - Returns: The value to return from the getter. This can be the original value or a modified one.
+
+     Example usage:
+     ```swift
+     try MyObject.hook(\.classProperty) { class_, originalValue in
+        return original.uppercased()
+     }
+     ```
+     */
+    @discardableResult
+    public static func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ class_: Self, _ original: Value)->(Value)) throws -> HookToken {
+        try hook(try keyPath.getterName(), closure: { original, obj, sel in
+            if let value = original(obj, sel) as? Value, let obj = obj as? Self {
+                return closure(obj, value)
+            }
+            return original(obj, sel)
+        } as @convention(block) ((AnyObject, Selector) -> Any,
+                                 AnyObject, Selector) -> Any)
+    }
+    
+    /**
+     Hooks setting the specified property of the class.
+     
+     - Parameters:
+        - keyPath: The key path to the writable property to hook.
+       - closure: The handler that is invoked whenever the property is set. It receives:
+         - `object`: The instance on which the property is being set.
+         - `value`: The new value that is about to be written to the property.
+         - `original`: A block that invokes the original setter behavior. If the block isn't called, the property will not be updated.
+
+     Example usage:
+     ```swift
+     try MyObject.hook(set \.classProperty) { class_, value, original in
+        if stringValue != "" {
+            // Sets the stringValue.
+            original(stringValue)
+        }
+     }
+     ```
+     */
+    @discardableResult
+    public static func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ class_: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+        try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
+            if let val = val as? Value, let ob = obj as? Self {
+                let original: (Value)->() = { original(obj, sel, $0) }
+                closure(ob, val, original)
+            } else {
+                original(obj, sel, val)
+            }
+        } as @convention(block) ((AnyObject, Selector, Any) -> Void,
+                                 AnyObject, Selector,  Any) -> Void)
     }
 }
 #endif

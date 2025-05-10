@@ -294,7 +294,7 @@ struct ObjectHook<T: AnyObject> {
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
         } as @convention(block) (NSObject) -> Void
-        return try HookToken(for: object, selector: deallocSelector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try HookToken(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: after deinit
@@ -322,7 +322,7 @@ struct ObjectHook<T: AnyObject> {
     @discardableResult
     public func hookDeallocAfter(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         if let object = object as? NSObject {
-            return try HookToken(for: object, selector: deallocSelector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+            return try HookToken(for: object, selector: .dealloc, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
         } else {
             return HookToken(deallocAfter: object, hookClosure: closure as AnyObject)
         }
@@ -353,7 +353,7 @@ extension ObjectHook where T: NSObject {
      */
     @discardableResult
     func hookDeallocBefore(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try HookToken(for: object, selector: deallocSelector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        try HookToken(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: replace deinit
@@ -389,7 +389,7 @@ extension ObjectHook where T: NSObject {
      */
     @discardableResult
     func hookDeallocInstead(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> HookToken {
-        try HookToken(for: object, selector: deallocSelector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+        try HookToken(for: object, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
@@ -432,7 +432,7 @@ extension ObjectHook where T: NSObject {
 
 extension ObjectHook where T: NSObject {
     @discardableResult
-    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -440,7 +440,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -448,7 +448,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -456,7 +456,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (T, Value)->()) throws -> HookToken {
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -464,7 +464,7 @@ extension ObjectHook where T: NSObject {
     }
     
     @discardableResult
-    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (T, _ suggested: Value)->(Value)) throws -> HookToken {
+    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ original: Value)->(Value)) throws -> HookToken {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? T {
                 return closure(obj, value)

@@ -332,7 +332,7 @@ public extension NSObject {
      ```swift
      class MyObject: NSObject { deinit { print("dealloc") } }
      
-     try MyObject().hookDeallocInstead { original in
+     try MyObject().hookDealloc { original in
          print("instead of dealloc")
          original()
      }
@@ -343,7 +343,7 @@ public extension NSObject {
      - Note: The object will retain the closure. Avoid retain cycles. Call `original()` to prevent memory leaks.
      */
     @discardableResult
-    func hookDeallocInstead(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
+    func hookDealloc(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
         try ObjectHook(self).hookDeallocInstead(closure: closure)
     }
 }
@@ -366,7 +366,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (Self, Value)->()) throws -> HookToken {
+    public func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -390,7 +390,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (Self, Value)->()) throws -> HookToken {
+    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -414,7 +414,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (Self, Value)->()) throws -> HookToken {
+    public func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -438,7 +438,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (Self, Value)->()) throws -> HookToken {
+    public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -463,7 +463,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (Self, _ original: Value)->(Value)) throws -> HookToken {
+    public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> HookToken {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? Self {
                 return closure(obj, value)
