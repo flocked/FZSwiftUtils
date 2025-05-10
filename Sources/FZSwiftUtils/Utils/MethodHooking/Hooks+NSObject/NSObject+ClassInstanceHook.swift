@@ -152,16 +152,20 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-         func sum(of number1: Int, and number2: Int) -> Int {
-             return number1 + number2
-         }
+        @objc func sum(of number1: Int, and number2: Int) -> Int {
+            return number1 + number2
+        }
      }
+          
+     try! MyObject.hookInstances(#selector(MyObject.sum(of:and:)), closure: {
+        original, object, selector, number1, number2 in
+        let originalValue = original(object, selector, number1, number2)
+        return originalValue * 2
+     } as @convention(block) (
+         (MyObject, Selector, Int, Int) -> Int,
+        MyObject, Selector, Int, Int) -> Int)
      
-     try MyObject.hookInstances(#selector(MyObject.sum(of:and:))) { (original: @escaping (MyObject, Selector, Int, Int) -> Int, obj: MyObject, sel: Selector, number1: Int, number2: Int) -> Int in
-         // You may call the original method with some different parameters. You can even not call the original method.
-         return original(obj, sel, number1, number2) * 2
-     }
-     MyObject().sum(of: 1, and: 2)  // returns 6
+     MyObject().sum(of: 1, and: 2) // Returns 6
      ```
 
      - parameter selector: The method you want to hook on.

@@ -7,8 +7,25 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
+import AppKit
 
 public extension NSObject {
+    func sdsdsd() {
+        let textField = NSTextField()
+        
+        
+        try? textField.hook(#selector(NSTextField.textDidChange(_:)), closure: {
+            original, obj, sel, number in
+            print("Before executing `double`")
+            let originalResult = original(obj, sel, number)
+            print("After executing `double`, got result \(originalResult)")
+            print("Triple the number!")
+            return number * 3
+        } as @convention(block) (
+            (AnyObject, Selector, Int) -> Int,
+            AnyObject, Selector, Int) -> Int)
+    }
+    
     
     // MARK: - empty closure
 
@@ -156,16 +173,22 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-         @objc func sum(of number1: Int, and number2: Int) -> Int { return number1 + number2 }
+        @objc func sum(of number1: Int, and number2: Int) -> Int {
+            return number1 + number2
+        }
      }
      
-     try MyObject().hook(#selector(MyObject.sum(of:and:))) { original, obj, sel, n1, n2 in
-         print("instead of sum")
-         return original(obj, sel, n1, n2) * 2
-     } as @convention(block) ((AnyObject, Selector, Int, Int) -> Int, AnyObject, Selector, Int, Int) -> Int
+     let object = MyObject()
      
-     // returns 6
-     MyObject().sum(of: 1, and: 2)
+     try! object.hook(#selector(MyObject.sum(of:and:)), closure: {
+        original, object, selector, number1, number2 in
+        let originalValue = original(object, selector, number1, number2)
+        return originalValue * 2
+     } as @convention(block) (
+         (MyObject, Selector, Int, Int) -> Int,
+        MyObject, Selector, Int, Int) -> Int)
+     
+     object.sum(of: 1, and: 2) // Returns 6
      ```
      
      - parameter selector: The method you want to hook on.
@@ -457,8 +480,8 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try textfield.hook(\.stringValue) { object, original in
-        return original.uppercased()
+     try textfield.hook(\.stringValue) { object, originalValue in
+        return originalValue.uppercased()
      }
      ```
      */

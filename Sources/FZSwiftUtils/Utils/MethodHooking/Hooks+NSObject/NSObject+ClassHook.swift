@@ -149,6 +149,24 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
+        @objc class func sum(of number1: Int, and number2: Int) -> Int {
+            return number1 + number2
+        }
+     }
+          
+     try! MyObject.hook(#selector(MyObject.sum(of:and:)), closure: {
+        original, object, selector, number1, number2 in
+        let originalValue = original(object, selector, number1, number2)
+        return originalValue * 2
+     } as @convention(block) (
+         (AnyObject, Selector, Int, Int) -> Int,
+         AnyObject, Selector, Int, Int) -> Int)
+     
+     MyObject.sum(of: 1, and: 2) // returns 6
+     ```
+     
+     ```swift
+     class MyObject: NSObject {
          class func sum(of number1: Int, and number2: Int) -> Int {
              return number1 + number2
          }
@@ -159,8 +177,7 @@ public extension NSObject {
          return original(obj, sel, number1, number2) * 3
      }
      
-     // Returns 9
-     MyObject.sum(of: 1, and: 2)
+     MyObject.sum(of: 1, and: 2) // Returns 6
      ```
 
      - parameter selector: The method you want to hook on.
