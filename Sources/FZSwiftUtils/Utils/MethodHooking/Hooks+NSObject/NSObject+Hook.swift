@@ -42,7 +42,7 @@ public extension NSObject {
     
     @discardableResult
     func hookBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
+        try hookBefore(selector, closure: closure as Any)
     }
 
     // after
@@ -76,7 +76,7 @@ public extension NSObject {
     
     @discardableResult
     func hookAfter(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure as Any)
+        try hookAfter(selector, closure: closure as Any)
     }
 
     // MARK: - custom closure
@@ -220,7 +220,7 @@ public extension NSObjectProtocol where Self: NSObject {
     
     @discardableResult
     func hookBefore(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
+        try ObjectHook(self).hookBefore(selector, closure: closure)
     }
     
     /**
@@ -252,7 +252,7 @@ public extension NSObjectProtocol where Self: NSObject {
     
     @discardableResult
     func hookAfter(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
+        try ObjectHook(self).hookAfter(selector, closure: closure)
     }
     
     /**

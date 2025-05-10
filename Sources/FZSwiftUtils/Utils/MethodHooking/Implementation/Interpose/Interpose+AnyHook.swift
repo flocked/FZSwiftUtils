@@ -1,7 +1,7 @@
 import Foundation
 
 /// Base class, represents a hook to exactly one method.
-public class AnyHook {
+public class AnyHook: Hashable {
     /// The class this hook is based on.
     public let `class`: AnyClass
 
@@ -89,6 +89,14 @@ public class AnyHook {
         case let .error(error):
             Interpose.log("Leaking -[\(`class`).\(selector)] IMP: \(replacementIMP!) due to error: \(error)")
         }
+    }
+    
+    public static func == (lhs: AnyHook, rhs: AnyHook) -> Bool {
+        lhs.id == rhs.id
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
     }
 }
 

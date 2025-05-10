@@ -18,7 +18,7 @@ public enum HookMode: String {
     case instead
 }
 
-///  A hooking token.
+///  A token for hooking a method.
 public class HookToken: Hashable {
     private enum HookType {
         case object

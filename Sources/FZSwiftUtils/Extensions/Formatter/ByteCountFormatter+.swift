@@ -76,7 +76,6 @@ public extension ByteCountFormatter {
         return self
     }
     
-    #if os(macOS) || os(iOS)
     /**
      The locale of the formatter.
      
@@ -126,10 +125,10 @@ public extension ByteCountFormatter {
         unitStyle = style
         return self
     }
-    #endif
 }
-#if os(macOS) || os(iOS)
+
 private extension ByteCountFormatter {
+    #if os(macOS) || os(iOS)
     func swizzle(_ shouldSwizzle: Bool) {
         let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
         if shouldSwizzle, !isReplaced {
@@ -158,6 +157,42 @@ private extension ByteCountFormatter {
             revertHooks(for: #selector(ByteCountFormatter.string(from:)))
         }
     }
+    #else
+    func swizzle(_ shouldSwizzle: Bool) {
+        let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
+        if shouldSwizzle, !isReplaced {
+            do {
+                try hook(#selector(ByteCountFormatter.string(for:)),
+                     methodSignature: (@convention(c)  (AnyObject, Selector, Any?) -> (String?)).self,
+                     hookSignature: (@convention(block)  (AnyObject, Any?) -> (String?)).self) { store in {
+                         object, obj in
+                         (object as? ByteCountFormatter)?.localizedString(for: obj) ?? store.original(object, #selector(ByteCountFormatter.string(for:)), obj)
+                     }
+                     }
+                 try hook(#selector(ByteCountFormatter.string(fromByteCount:)),
+                     methodSignature: (@convention(c)  (AnyObject, Selector, Int64) -> (String)).self,
+                     hookSignature: (@convention(block)  (AnyObject, Int64) -> (String)).self) { store in {
+                         object, byteCount in
+                         (object as? ByteCountFormatter)?.localizedString(fromByteCount: byteCount) ?? store.original(object, #selector(ByteCountFormatter.string(fromByteCount:)), byteCount)
+                     }
+                     }
+                 try hook(#selector(ByteCountFormatter.string(from:)),
+                     methodSignature: (@convention(c)  (AnyObject, Selector, Measurement<UnitInformationStorage>) -> (String)).self,
+                     hookSignature: (@convention(block)  (AnyObject, Measurement<UnitInformationStorage>) -> (String)).self) { store in {
+                         object, measurement in
+                         (object as? ByteCountFormatter)?.localizedString(from: measurement) ??  store.original(object, #selector(ByteCountFormatter.string(from:)), measurement)
+                     }
+                     }
+            } catch {
+                debugPrint(error)
+            }
+        } else if isReplaced {
+            revertHooks(for: #selector(ByteCountFormatter.string(for:)))
+            revertHooks(for: #selector(ByteCountFormatter.string(fromByteCount:)))
+            revertHooks(for: #selector(ByteCountFormatter.string(from:)))
+        }
+    }
+    #endif
     
     func localizedString(fromByteCount count: Int64) -> String? {
         guard needsLocalized else { return nil }
@@ -167,7 +202,6 @@ private extension ByteCountFormatter {
         }
         return nil
     }
-    
     
     func localizedString(for obj: Any?) -> String? {
         guard needsLocalized, let split = split(handler: { self.string(for: obj) }), let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) else { return nil }
@@ -191,6 +225,7 @@ private extension ByteCountFormatter {
         get { getAssociatedValue("isFetching") ?? false }
         set { setAssociatedValue(newValue, key: "isFetching") }
     }
+    
     func split(handler: @escaping (()->(String?))) -> (count: String, unit: String)? {
         isFetching = true
         let previous = (includesCount, includesUnit)
@@ -207,7 +242,6 @@ private extension ByteCountFormatter {
         return (_count, unit)
     }
 }
-#endif
 
 public extension ByteCountFormatter.CountStyle {
     var factor: Int {

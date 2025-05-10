@@ -462,10 +462,8 @@ extension DataSize: CustomStringConvertible {
         formatter.includesUnit = unitStyle != .none
         formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
-        #if os(macOS) || os(iOS)
         formatter.locale = locale
         formatter.unitStyle = unitStyle.formatter
-        #endif
         return formatter.string(fromByteCount: Int64(bytes))
     }
     
