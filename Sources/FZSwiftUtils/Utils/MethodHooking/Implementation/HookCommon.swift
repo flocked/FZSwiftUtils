@@ -1,6 +1,6 @@
 //
 //  HookCommon.swift
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 24/6/21.
 //  Copyright © 2021 Yanni. All rights reserved.

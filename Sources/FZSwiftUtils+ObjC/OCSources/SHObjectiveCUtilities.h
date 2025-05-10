@@ -1,6 +1,6 @@
 //
 //  SHObjectiveCUtilities.h
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 8/5/20.
 //  Copyright © 2020 Yanni. All rights reserved.

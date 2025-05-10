@@ -1,6 +1,6 @@
 //
 //  NSObject+SelectorName.swift
-//  SwiftHook
+//
 //
 //  Created by Florian Zand on 06.05.25.
 //

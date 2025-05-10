@@ -1,6 +1,6 @@
 //
 //  FFIClosureContext.swift
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 2/6/20.
 //  Copyright © 2020 Yanni. All rights reserved.

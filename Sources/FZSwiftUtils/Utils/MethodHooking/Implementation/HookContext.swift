@@ -1,6 +1,6 @@
 //
 //  HookContext.swift
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 27/4/20.
 //  Copyright © 2020 Yanni. All rights reserved.
@@ -161,14 +161,6 @@ class HookContext {
             return hookContext
         }
         return try HookContext(targetClass: targetClass, selector: selector, isSpecifiedInstance: isSpecifiedInstance)
-    }
-    
-    static func classHookContextsCount() -> Int {
-        Self.pool.values.filter { !$0.isSpecifiedInstance }.count
-    }
-    
-    static func instanceHookContextsCount() -> Int {
-        Self.pool.values.filter { $0.isSpecifiedInstance }.count
     }
 }
 

@@ -1,6 +1,6 @@
 //
 //  InsteadHookClosureExtension.swift
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 26/8/20.
 //  Copyright © 2020 Yanni. All rights reserved.

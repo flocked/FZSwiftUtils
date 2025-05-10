@@ -1,9 +1,8 @@
 //
 //  NSObject+ClassHook.swift
-//  SwiftHook
 //
-//  Created by Yanni Wang on 25/6/21.
-//  Copyright © 2021 Yanni. All rights reserved.
+//
+//  Created by Florian Zand on 06.05.25.
 //
 
 import Foundation

@@ -1,6 +1,6 @@
 //
 //  ParametersCheck.swift
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 17/8/20.
 //  Copyright © 2020 Yanni. All rights reserved.

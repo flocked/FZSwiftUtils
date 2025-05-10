@@ -1,6 +1,6 @@
 //
 //  AssociatedHookClosure.swift
-//  SwiftHook
+//
 //
 //  Created by Yanni Wang on 18/5/20.
 //  Copyright © 2020 Yanni. All rights reserved.
@@ -16,10 +16,6 @@ private class ClosuresContext {
 
     var isEmpty: Bool {
         [before, instead, after, add].allSatisfy { $0.values.allSatisfy(\.isEmpty) }
-    }
-    
-    var count: Int {
-        [before, instead, after].flatMap { $0.values }.reduce(0) { $0 + $1.count }
     }
     
     func closures(for selector: Selector) -> (before: [AnyObject], after: [AnyObject], instead: [AnyObject]) {
@@ -83,10 +79,6 @@ func removeHookClosure(_ hookClosure: AnyObject, selector: Selector, mode: HookM
 
 func isHookClosuresEmpty(for object: AnyObject) -> Bool {
     closuresContext(for: object)?.isEmpty ?? true
-}
-
-func hookClosureCount(for object: AnyObject) -> Int {
-    closuresContext(for: object)?.count ?? 0
 }
 
 fileprivate func closuresContext(for object: AnyObject) -> ClosuresContext? {

@@ -1,6 +1,6 @@
 //
 //  HookToken.swift
-//  SwiftHook
+//
 //
 //  Created by Florian Zand on 05.05.25.
 //
@@ -50,7 +50,7 @@ public class HookToken {
         try swiftHookSerialQueue.sync {
             if let addHook = addHook {
                 try addHook.apply()
-                (object as? NSObject)?.addHookToken(self)
+                (object as? NSObject)?.addHook(self)
                 /*
                 guard let object = object, let class_ = `class` else { return }
                 let targetClass: AnyClass
@@ -73,18 +73,18 @@ public class HookToken {
                 addTargetClass = targetClass
                 class_replaceMethod(targetClass, selector, addReplacement, typeEncoding)
                 (object as? NSObject)?.addedMethods.insert(selector)
-                (object as? NSObject)?.addHookToken(self)
+                (object as? NSObject)?.addHook(self)
                  */
             } else if hooksDealloc {
                 guard let object = object else { return }
                 deinitDelegate = getAssociatedValue("deinitDelegate", object: object, initialValue: DeallocDelegate())
                 deinitDelegate?.hookClosures.append(hookClosure)
-                (object as? NSObject)?.addHookToken(self)
+                (object as? NSObject)?.addHook(self)
             } else if let class_ = `class` {
                 let hookContext = try HookContext.get(for: class_, selector: selector, isSpecifiedInstance: false)
                 try hookContext.append(hookClosure: hookClosure, mode: mode)
                 self.hookContext = hookContext
-                (class_ as? NSObject.Type)?.addHookToken(self)
+                (class_ as? NSObject.Type)?.addHook(self)
             } else if let object = object {
                 let targetClass: AnyClass
                 if let object = object as? NSObject {
@@ -106,7 +106,7 @@ public class HookToken {
                 // set hook closure
                 try appendHookClosure(hookClosure, selector: selector, mode: mode, to: object)
                 self.hookContext = hookContext
-                (object as? NSObject)?.addHookToken(self)
+                (object as? NSObject)?.addHook(self)
             }
         }
     }
@@ -136,17 +136,17 @@ public class HookToken {
                 }
                  */
                 guard remove else { return }
-                (object as? NSObject)?.removeHookToken(self)
+                (object as? NSObject)?.removeHook(self)
             } else if hooksDealloc {
                 deinitDelegate?.hookClosures.removeAll(where: { $0 === self.hookClosure })
                 deinitDelegate = nil
                 guard remove else { return }
-                (object as? NSObject)?.removeHookToken(self)
+                (object as? NSObject)?.removeHook(self)
             } else {
                 _ = try cancel()
                 guard remove, !isActive else { return }
-                (object as? NSObject)?.removeHookToken(self)
-                (self.class as? NSObject.Type)?.removeHookToken(self)
+                (object as? NSObject)?.removeHook(self)
+                (self.class as? NSObject.Type)?.removeHook(self)
             }
         }
     }
