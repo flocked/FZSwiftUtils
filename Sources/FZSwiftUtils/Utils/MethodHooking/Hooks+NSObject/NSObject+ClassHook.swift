@@ -37,7 +37,7 @@ public extension NSObject {
     
     @discardableResult
     class func hookBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure as Any)
+        try hookBefore(selector, closure: closure as Any)
     }
     
     /**
@@ -67,7 +67,7 @@ public extension NSObject {
     
     @discardableResult
     class func hookAfter(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure as Any)
+        try hookAfter(selector, closure: closure as Any)
     }
     
     // MARK: - custom closure
@@ -229,7 +229,7 @@ public extension NSObjectProtocol where Self: NSObject {
     
     @discardableResult
     static func hookBefore(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
+        try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
     /**
@@ -259,7 +259,7 @@ public extension NSObjectProtocol where Self: NSObject {
     
     @discardableResult
     static func hookAfter(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
+        try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
 }
 
@@ -281,9 +281,9 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookBefore<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class_: Self.Type,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? Self else { return }
+            guard let val = val as? Value, let obj = obj as? Self.Type else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
     }
@@ -305,9 +305,9 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class_: Self.Type,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? Self else { return }
+            guard let val = val as? Value, let obj = obj as? Self.Type else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
     }
@@ -329,9 +329,9 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookAfter<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class_: Self.Type,_ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? Self else { return }
+            guard let val = val as? Value, let obj = obj as? Self.Type else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
     }
@@ -353,9 +353,9 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ class_: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class_: Self.Type,_ value: Value)->()) throws -> HookToken {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? Self else { return }
+            guard let val = val as? Value, let obj = obj as? Self.Type else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
     }
@@ -378,9 +378,9 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ class_: Self, _ original: Value)->(Value)) throws -> HookToken {
+    public static func hook<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class_: Self.Type, _ original: Value)->(Value)) throws -> HookToken {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
-            if let value = original(obj, sel) as? Value, let obj = obj as? Self {
+            if let value = original(obj, sel) as? Value, let obj = obj as? Self.Type {
                 return closure(obj, value)
             }
             return original(obj, sel)
@@ -409,9 +409,9 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ class_: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class_: Self.Type, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
         try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
-            if let val = val as? Value, let ob = obj as? Self {
+            if let val = val as? Value, let ob = obj as? Self.Type {
                 let original: (Value)->() = { original(obj, sel, $0) }
                 closure(ob, val, original)
             } else {

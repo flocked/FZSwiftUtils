@@ -7,26 +7,8 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
-import AppKit
 
 public extension NSObject {
-    func sdsdsd() {
-        let textField = NSTextField()
-        
-        
-        try? textField.hook(#selector(NSTextField.textDidChange(_:)), closure: {
-            original, obj, sel, number in
-            print("Before executing `double`")
-            let originalResult = original(obj, sel, number)
-            print("After executing `double`, got result \(originalResult)")
-            print("Triple the number!")
-            return number * 3
-        } as @convention(block) (
-            (AnyObject, Selector, Int) -> Int,
-            AnyObject, Selector, Int) -> Int)
-    }
-    
-    
     // MARK: - empty closure
 
     // before
@@ -517,11 +499,11 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, handler: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
         try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
             if let val = val as? Value, let ob = obj as? Self {
                 let original: (Value)->() = { original(obj, sel, $0) }
-                handler(ob, val, original)
+                closure(ob, val, original)
             } else {
                 original(obj, sel, val)
             }

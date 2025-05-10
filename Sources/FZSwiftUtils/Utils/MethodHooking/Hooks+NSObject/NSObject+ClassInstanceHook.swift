@@ -39,7 +39,7 @@ public extension NSObject {
     
     @discardableResult
     class func hookInstancesBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookInstancesBefore(NSSelectorFromString(selector), closure: closure as Any)
+        try hookInstancesBefore(selector, closure: closure as Any)
     }
     
     /**
@@ -70,7 +70,7 @@ public extension NSObject {
     
     @discardableResult
     class func hookInstancesAfter(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookInstancesAfter(NSSelectorFromString(selector), closure: closure as Any)
+        try hookInstancesAfter(selector, closure: closure as Any)
     }
     
     // MARK: - custom closure
@@ -218,7 +218,7 @@ public extension NSObjectProtocol where Self: NSObject {
     
     @discardableResult
     static func hookInstancesBefore(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
-        try hookInstancesBefore(NSSelectorFromString(selector), closure: closure)
+        try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
     /**
@@ -248,7 +248,7 @@ public extension NSObjectProtocol where Self: NSObject {
     
     @discardableResult
     static func hookInstancesAfter(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
-        try hookInstancesAfter(NSSelectorFromString(selector), closure: closure)
+        try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
 }
 
