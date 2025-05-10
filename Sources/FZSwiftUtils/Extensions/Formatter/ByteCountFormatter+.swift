@@ -129,7 +129,7 @@ public extension ByteCountFormatter {
 
 private extension ByteCountFormatter {
     func swizzle(_ shouldSwizzle: Bool) {
-        let isReplaced = isMethodReplaced(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
+        let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
         if shouldSwizzle, !isReplaced {
             do {
                 try hook(#selector(ByteCountFormatter.string(for:)), closure: { original, object, sel, obj in
