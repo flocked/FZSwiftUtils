@@ -35,10 +35,8 @@ open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject
             guard oldValue != isActive, let observedObject = observedObject else { return }
             if isActive {
                 observations.forEach({ observedObject.addObserver(self, forKeyPath: $0.key, options: $0.value.options, context: nil) })
-                observedObject.kvoObservers.add(self)
             } else {
                 observations.forEach({ observedObject.removeObserver(self, forKeyPath: $0.key) })
-                observedObject.kvoObservers.remove(self)
             }
         }
     }
@@ -53,7 +51,6 @@ open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject
     public init(_ observedObject: Object) {
         self.observedObject = observedObject
         super.init()
-        observedObject.kvoObservers.add(self)
     }
     
     // MARK: - Observation
@@ -356,7 +353,6 @@ open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject
     
     deinit {
         removeAll()
-        observedObject?.kvoObservers.remove(self)
     }
 }
 

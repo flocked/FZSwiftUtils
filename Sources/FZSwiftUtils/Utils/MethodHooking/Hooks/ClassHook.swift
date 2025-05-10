@@ -7,13 +7,14 @@
 
 import Foundation
 
-/// Hooks class methods and properties.
+/// Hooks class methods.
 struct ClassHook<T: AnyObject> {
-    let targetClass: T.Type
+    let targetClass: AnyClass
     var shouldApply = true
 
-    public init(_ targetClass: T.Type) {
-        self.targetClass = T.self
+    public init?(_ targetClass: T.Type) {
+        guard let targetClass = object_getClass(targetClass) else { return nil }
+        self.targetClass = targetClass
     }
     
     /**
@@ -25,8 +26,8 @@ struct ClassHook<T: AnyObject> {
         .init(targetClass, false)
     }
     
-    init(_ targetClass: T.Type, _ shouldApply: Bool) {
-        self.targetClass = T.self
+    init(_ targetClass: AnyClass, _ shouldApply: Bool) {
+        self.targetClass = targetClass
         self.shouldApply = shouldApply
     }
     

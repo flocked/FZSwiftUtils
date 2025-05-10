@@ -12,9 +12,10 @@ private class ClosuresContext {
     var before: [Selector: [AnyObject]] = [:]
     var after: [Selector: [AnyObject]] = [:]
     var instead: [Selector: [AnyObject]] = [:]
-    
+    var add: [Selector: [AnyObject]] = [:]
+
     var isEmpty: Bool {
-        [before, instead, after].allSatisfy { $0.values.allSatisfy(\.isEmpty) }
+        [before, instead, after, add].allSatisfy { $0.values.allSatisfy(\.isEmpty) }
     }
     
     var count: Int {
@@ -49,6 +50,8 @@ func appendHookClosure(_ hookClosure: AnyObject, selector: Selector, mode: HookM
         try append(to: \.after)
     case .instead:
         try append(to: \.instead)
+    case .add:
+        try append(to: \.add)
     }
 }
 
@@ -73,6 +76,8 @@ func removeHookClosure(_ hookClosure: AnyObject, selector: Selector, mode: HookM
         try remove(\.after)
     case .instead:
         try remove(\.instead)
+    case .add:
+        try remove(\.add)
     }
 }
 

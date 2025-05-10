@@ -99,12 +99,12 @@ public extension NSObject {
      */
     @discardableResult
     class func hookClassBefore(_ selector: Selector, closure: Any) throws -> HookToken {
-        try ClassHook(self).hookBefore(selector, closure: closure)
+        try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
     @discardableResult
     class func hookClassBefore(_ selector: String, closure: Any) throws -> HookToken {
-        try ClassHook(self).hookBefore(selector, closure: closure)
+        try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
     /**
@@ -134,12 +134,12 @@ public extension NSObject {
      */
     @discardableResult
     class func hookClassAfter(_ selector: Selector, closure: Any) throws -> HookToken {
-        try ClassHook(self).hookAfter(selector, closure: closure)
+        try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
     
     @discardableResult
     class func hookClassAfter(_ selector: String, closure: Any) throws -> HookToken {
-        try ClassHook(self).hookAfter(selector, closure: closure)
+        try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
     
     /**
@@ -174,12 +174,12 @@ public extension NSObject {
      */
     @discardableResult
     class func hookClass(_ selector: Selector, closure: Any) throws -> HookToken {
-        try ClassHook(self).hook(selector, closure: closure)
+        try ClassHook(self)!.hook(selector, closure: closure)
     }
     
     @discardableResult
     class func hookClass(_ selector: String, closure: Any) throws -> HookToken {
-        try ClassHook(self).hook(selector, closure: closure)
+        try ClassHook(self)!.hook(selector, closure: closure)
     }
 }
 
@@ -207,7 +207,7 @@ public extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     static func hookClassBefore(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
-        try ClassHook(self).hookBefore(selector, closure: closure)
+        try ClassHook(self)!.hookBefore(selector, closure: closure)
     }
     
     @discardableResult
@@ -237,7 +237,7 @@ public extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     static func hookClassAfter(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> HookToken {
-        try ClassHook(self).hookAfter(selector, closure: closure)
+        try ClassHook(self)!.hookAfter(selector, closure: closure)
     }
     
     @discardableResult

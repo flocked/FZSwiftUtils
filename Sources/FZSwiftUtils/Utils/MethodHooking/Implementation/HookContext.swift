@@ -115,6 +115,7 @@ class HookContext {
             try append(to: \.afterHookClosures)
         case .instead:
             try append(to: \.insteadHookClosures)
+        case .add: break
         }
     }
     
@@ -132,6 +133,7 @@ class HookContext {
             try modify(\.afterHookClosures)
         case .instead:
             try modify(\.insteadHookClosures)
+        case .add: break
         }
     }
     

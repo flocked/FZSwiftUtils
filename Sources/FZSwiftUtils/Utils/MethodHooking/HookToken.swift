@@ -15,6 +15,8 @@ public enum HookMode: String {
     case after
     /// Instead.
     case instead
+    /// Add
+    case add
 }
 
 ///  A hooking token.
@@ -26,6 +28,9 @@ public class HookToken {
     private weak var hookContext: HookContext?
     private weak var deinitDelegate: DeallocDelegate?
     private var hooksDealloc = false
+    private var addReplacement: IMP?
+    private var addTargetClass: AnyClass?
+    private var addHook: AnyHook?
     
     /// The hooking mode.
     public let mode: HookMode
@@ -35,7 +40,7 @@ public class HookToken {
     
     /// A Boolean value indicating whether the hook is active.
     public var isActive: Bool {
-        get { hookContext != nil || deinitDelegate != nil }
+        get { addHook?.isActive ?? (hookContext != nil || deinitDelegate != nil) }
         set { newValue ? try? apply() : try? revert() }
     }
     
@@ -43,11 +48,37 @@ public class HookToken {
     public func apply() throws {
         guard !isActive else { return }
         try swiftHookSerialQueue.sync {
-            if hooksDealloc {
+            if let addHook = addHook {
+                try addHook.apply()
+                (object as? NSObject)?.addHookToken(self)
+                /*
+                guard let object = object, let class_ = `class` else { return }
+                let targetClass: AnyClass
+                if let object = object as? NSObject {
+                    guard try object.isSupportedKVO() else {
+                        throw SwiftHookError.hookKVOUnsupportedInstance
+                    }
+                    try object.wrapKVOIfNeeded(selector: selector)
+                    guard let KVOedClass = object_getClass(object) else {
+                        throw SwiftHookError.internalError(file: #file, line: #line)
+                    }
+                    targetClass = KVOedClass
+                } else {
+                    targetClass = try wrapDynamicClassIfNeeded(object: object)
+                }
+                try appendHookClosure(hookClosure, selector: selector, mode: mode, to: object)
+                guard let typeEncoding = typeEncoding(for: selector, _class: class_) else {
+                    throw NSObject.SwizzleError.unknownError("typeEncoding failed")
+                }
+                addTargetClass = targetClass
+                class_replaceMethod(targetClass, selector, addReplacement, typeEncoding)
+                (object as? NSObject)?.addedMethods.insert(selector)
+                (object as? NSObject)?.addHookToken(self)
+                 */
+            } else if hooksDealloc {
                 guard let object = object else { return }
                 deinitDelegate = getAssociatedValue("deinitDelegate", object: object, initialValue: DeallocDelegate())
                 deinitDelegate?.hookClosures.append(hookClosure)
-                isActive = true
                 (object as? NSObject)?.addHookToken(self)
             } else if let class_ = `class` {
                 let hookContext = try HookContext.get(for: class_, selector: selector, isSpecifiedInstance: false)
@@ -88,7 +119,25 @@ public class HookToken {
     func revert(remove: Bool) throws {
         guard isActive else { return }
         try swiftHookSerialQueue.sync {
-            if hooksDealloc {
+            if let addHook = addHook {
+                try addHook.revert()
+                /*
+                guard let object = object else { return }
+                guard let deleteIMP = class_getMethodImplementation(addTargetClass, NSSelectorFromString(NSStringFromSelector(selector)+"_Remove")), let method = class_getInstanceMethod(addTargetClass, selector) else { throw NSObject.SwizzleError.resetUnsupported("Couldn't reset the added method \(selector)") }
+               method_setImplementation(method, deleteIMP)
+                (object as? NSObject)?.addedMethods.remove(selector)
+                self.addTargetClass = nil
+                try removeHookClosure(hookClosure, selector: selector, mode: mode, for: object)
+                guard isHookClosuresEmpty(for: object) else { return }
+                if let object = object as? NSObject {
+                    object.unwrapKVOIfNeeded()
+                } else {
+                    try unwrapDynamicClass(object: object)
+                }
+                 */
+                guard remove else { return }
+                (object as? NSObject)?.removeHookToken(self)
+            } else if hooksDealloc {
                 deinitDelegate?.hookClosures.removeAll(where: { $0 === self.hookClosure })
                 deinitDelegate = nil
                 guard remove else { return }
@@ -189,6 +238,15 @@ public class HookToken {
         self.hooksDealloc = true
     }
     
+    init<MethodSignature>(add object: AnyObject, selector: Selector, hookClosure: MethodSignature) throws {
+        self.mode = .add
+        self.hookClosure = hookClosure as AnyObject
+        self.selector = selector
+        self.object = object
+        self.class = type(of: object)
+        self.addHook = try OptionalObjectHook(object: object, selector: selector, implementation: hookClosure)
+    }
+    
     class DeallocDelegate {
         var hookClosures: [AnyObject] = []
         
@@ -207,5 +265,62 @@ extension HookToken: Hashable {
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
+    }
+}
+
+extension AnyHook {
+    var isActive: Bool {
+        get { state == .interposed }
+    }
+}
+
+extension HookToken {
+    /// A hook that adds an unimplemented optional instance method from a protocol to a single object.
+    final public class OptionalObjectHook<MethodSignature>: AnyHook {
+        /// The object that is being hooked.
+        public let object: AnyObject
+
+        /// Subclass that we create on the fly
+        var interposeSubclass: InterposeSubclass?
+
+        // Logic switch to use super builder
+        let generatesSuperIMP = InterposeSubclass.supportsSuperTrampolines
+        
+        var dynamicSubclass: AnyClass {
+            interposeSubclass!.dynamicClass
+        }
+        
+        override func replaceImplementation() throws {
+            interposeSubclass = try InterposeSubclass(object: object)
+            guard let typeEncoding = typeEncoding(for: selector, _class: `class`) else {
+                throw NSObject.SwizzleError.unknownError("typeEncoding failed")
+            }
+            class_replaceMethod(dynamicSubclass, selector, replacementIMP, typeEncoding)
+            (object as? NSObject)?.addedMethods.insert(selector)
+        }
+        
+        override func resetImplementation() throws {
+            guard let deleteIMP = class_getMethodImplementation(dynamicSubclass, NSSelectorFromString(NSStringFromSelector(selector)+"_Remove")), let method = class_getInstanceMethod(dynamicSubclass, selector) else { throw NSObject.SwizzleError.resetUnsupported("Couldn't reset the added method \(selector)") }
+           method_setImplementation(method, deleteIMP)
+            (object as? NSObject)?.addedMethods.remove(selector)
+        }
+        
+        /// Initialize a new hook to add an unimplemented instance method from a conforming protocol.
+        public init(object: AnyObject, selector: Selector,
+                    implementation: MethodSignature) throws {
+            guard !object.responds(to: selector) else {
+                throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
+            }
+            self.object = object
+            try super.init(class: type(of: object), selector: selector, shouldValidate: false)
+            let block = implementation as AnyObject
+            replacementIMP = imp_implementationWithBlock(block)
+            guard replacementIMP != nil else {
+                throw NSObject.SwizzleError.unknownError("imp_implementationWithBlock failed for \(block) - slots exceeded?")
+            }
+
+            // Weakly store reference to hook inside the block of the IMP.
+            Interpose.storeHook(hook: self, to: block)
+        }
     }
 }

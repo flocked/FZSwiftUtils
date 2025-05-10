@@ -116,6 +116,7 @@ func parametersCheck(for targetClass: AnyClass, selector: Selector, mode: HookMo
             guard closureArgumentTypes.isEmpty else {
                 throw SwiftHookError.incompatibleClosureSignature("When hooking `dealloc` using `instead`, the hook closure must have no parameters besides the `original` closure parameter. Found: `\(closureArgumentTypes.toSignatureString())`.")
             }
+        case .add: break
         }
         
     } else {
@@ -164,6 +165,7 @@ func parametersCheck(for targetClass: AnyClass, selector: Selector, mode: HookMo
             guard closureArgumentTypes == methodArgumentTypes else {
                 throw SwiftHookError.incompatibleClosureSignature("When hooking using `instead`, the hook closure’s parameters (after the first `original` closure) must match the method’s parameters. Closure: `\(closureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
             }
+        case .add: break
         }
     }
 }

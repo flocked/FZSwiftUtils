@@ -128,11 +128,9 @@ private extension KeyValueObservation {
                         guard let self = self else { return }
                         self.handler(change)
                     }
-                    object.kvoObservers.add(self)
                 } else {
                     observation?.invalidate()
                     observation = nil
-                    object.kvoObservers.remove(self)
                 }
             }
         }

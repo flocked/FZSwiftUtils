@@ -17,6 +17,7 @@ extension KVObserver {
     var keyPathString: String { "" }
 }
 
+/*
 extension NSObject {
     var kvoObservers: [WeakKVObserver] {
         get { getAssociatedValue("kvoObservers") ?? [] }
@@ -47,3 +48,4 @@ extension Array where Element == NSObject.WeakKVObserver {
         removeFirst(where: { $0.observation === observation })
     }
 }
+*/
