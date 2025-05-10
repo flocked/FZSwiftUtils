@@ -45,7 +45,7 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> HookToken {
-            let token = HookToken(try ObjectHook(object: self, selector: selector, implementation: implementation), self)
+            let token = HookToken(try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation), self)
             try token.apply()
             return token
     }
@@ -63,7 +63,7 @@ extension NSObject {
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
         _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> HookToken {
-            let token =  HookToken(try ClassHook(class: self as AnyClass, selector: selector, implementation: implementation), self)
+            let token =  HookToken(try Interpose.ClassHook(class: self as AnyClass, selector: selector, implementation: implementation), self)
             try token.apply()
             return token
     }

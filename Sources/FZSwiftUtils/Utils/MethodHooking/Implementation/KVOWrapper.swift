@@ -17,15 +17,15 @@ extension NSObject {
         guard try isSupportedKVO() else {
             throw HookError.hookKVOUnsupportedInstance
         }
-        if swiftHookObserver == nil {
-            swiftHookObserver = Observer(target: self)
+        if hookObserver == nil {
+            hookObserver = Observer(target: self)
         }
         guard let KVOedClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
         if getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector) == nil,
            let propertyName = try getKVOName(setter: selector) {
-            guard let observer = swiftHookObserver else {
+            guard let observer = hookObserver else {
                 throw HookError.internalError(file: #file, line: #line)
             }
             // With this code. `getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector)` will be non-nil.
@@ -36,10 +36,10 @@ extension NSObject {
     }
     
     func unwrapKVOIfNeeded() {
-        guard swiftHookObserver != nil else {
+        guard hookObserver != nil else {
             return
         }
-        swiftHookObserver = nil
+        hookObserver = nil
     }
     
     private func isSupportedKVO() throws -> Bool {
@@ -72,49 +72,35 @@ extension NSObject {
         return result
     }
     
-    // return nil if the selector is not a setter.
     fileprivate func getKVOName(setter: Selector) throws -> String? {
         let setterName = NSStringFromSelector(setter)
         guard setterName.hasPrefix("set") && setterName.hasSuffix(":") else {
             return nil
         }
         let propertyNameWithUppercase = String(setterName.dropFirst("set".count).dropLast(":".count))
-        guard let firstCharacter = propertyNameWithUppercase.first else {
-            return nil
-        }
-        let firstCharacterLowercase = firstCharacter.lowercased()
-        let propertyName = firstCharacterLowercase + propertyNameWithUppercase.dropFirst()
+        let propertyName =  propertyNameWithUppercase.lowercasedFirst()
         guard let baseClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
         if let property = class_getProperty(baseClass, propertyName) {
-            // If setter is "setNumber:". This will return "number"
-            return String.init(cString: property_getName(property))
+            return String(cString: property_getName(property))
         }
         if let property = class_getProperty(baseClass, propertyNameWithUppercase) {
-            // If setter is "setNumber:". This will return "Number"
-            return String.init(cString: property_getName(property))
+            return String(cString: property_getName(property))
         }
         if responds(to: NSSelectorFromString(propertyName)) {
-            // If setter is "setNumber:". This will return "number"
             return propertyName
         }
         if responds(to: NSSelectorFromString(propertyNameWithUppercase)) {
-            // If setter is "setNumber:". This will return "number"
             return propertyNameWithUppercase
         }
         if responds(to: NSSelectorFromString("is" + propertyNameWithUppercase)) {
-            // If setter is "setNumber:". This will return "number"
             return propertyName
         }
         return nil
     }
     
     fileprivate func isKVOed() throws -> Bool {
-        // Can't check this in some special cases. Because when some objects be removed all observers. The class is still NSKVONotifying_XXX and the observationInfo is nil. For more detail: search test cases "test_unsuport_KVO_cancellation"
-    //    guard object.observationInfo != nil else {
-    //        return false
-    //    }
         guard let isaClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
@@ -132,9 +118,9 @@ extension NSObject {
         return false
     }
     
-    private var swiftHookObserver: Observer? {
-        get { FZSwiftUtils.getAssociatedValue("swiftHookObserver", object: self) }
-        set { FZSwiftUtils.setAssociatedValue(newValue, key: "swiftHookObserver", object: self) }
+    private var hookObserver: Observer? {
+        get { FZSwiftUtils.getAssociatedValue("hookObserver", object: self) }
+        set { FZSwiftUtils.setAssociatedValue(newValue, key: "hookObserver", object: self) }
     }
 }
 
