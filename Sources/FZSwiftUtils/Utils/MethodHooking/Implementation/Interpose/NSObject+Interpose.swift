@@ -155,6 +155,11 @@ public class Hook {
         _class?.hooks[selector, default: []].remove(hook)
     }
     
+    func apply(_ shouldApply: Bool) throws -> Hook {
+        try apply()
+        return self
+    }
+    
     weak var hook: AnyHook?
     weak var object: NSObject?
     var _class: NSObject.Type?
@@ -171,6 +176,19 @@ public class Hook {
         self.hook = hook
         self._class = classType
         self.class = hook.class
+    }
+    
+    init(addMethod object: NSObject, selector: Selector, hookClosure: AnyObject) throws {
+        self.hook = try AddMethodHook(object: object, selector: selector, hookClosure: hookClosure)
+        self.object = object
+        self.class = Swift.type(of: object)
+        self.selector = selector
+    }
+    
+    init<T: NSObject>(addMethod class_: T.Type, selector: Selector, hookClosure: AnyObject) throws {
+        self.hook = try AddInstanceMethodHook(class_: class_, selector: selector, hookClosure: hookClosure)
+        self.class = class_
+        self.selector = selector
     }
 }
 #endif
