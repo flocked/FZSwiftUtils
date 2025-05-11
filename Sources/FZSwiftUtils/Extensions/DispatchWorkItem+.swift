@@ -7,14 +7,7 @@
 
 import Foundation
 
-extension DispatchWorkItem {
-    /// Executes the work item's block asynchronously on the background thread.
-    @discardableResult
-    public func perform() -> Self {
-        DispatchQueue.main.async(execute: self)
-        return self
-    }
-    
+extension DispatchWorkItem {    
     /// Executes the work item's block asynchronously on the background thread.
     @discardableResult
     public func performBackground(qos: DispatchQoS.QoSClass = .default) -> Self {

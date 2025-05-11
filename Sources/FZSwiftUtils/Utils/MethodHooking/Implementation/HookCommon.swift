@@ -9,47 +9,7 @@
 #if os(macOS) || os(iOS)
 import Foundation
 
-let hookSerialQueue = HookSerialQueue(label: "com.florianzand.FZSwiftUtils.HookSerialQueue")
-
-
-final class HookSerialQueue {
-    private let queue: DispatchQueue
-    private let key = DispatchSpecificKey<Void>()
-
-    init(label: String) {
-        self.queue = DispatchQueue(label: label)
-        self.queue.setSpecific(key: key, value: ())
-    }
-
-    func sync(_ block: () -> Void) {
-        if DispatchQueue.getSpecific(key: key) != nil {
-            block()
-        } else {
-            queue.sync(execute: block)
-        }
-    }
-
-    func sync<T>(_ block: () -> T) -> T {
-        if DispatchQueue.getSpecific(key: key) != nil {
-            return block()
-        } else {
-            return queue.sync(execute: block)
-        }
-    }
-
-    func async(_ block: @escaping () -> Void) {
-        queue.async(execute: block)
-    }
-    
-    
-    func sync<T>(_ block: () throws -> T) rethrows -> T {
-        if DispatchQueue.getSpecific(key: key) != nil {
-            return try block()
-        } else {
-            return try queue.sync(execute: block)
-        }
-    }
-}
+let hookSerialQueue = DispatchQueue(label: "com.florianzand.FZSwiftUtils.HookSerialQueue")
 
 extension Selector {
     static let dealloc = NSSelectorFromString("dealloc")

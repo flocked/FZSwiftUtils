@@ -114,6 +114,89 @@ public extension DispatchWallTime {
     }
 }
 
+extension DispatchQueue {
+    /**
+     Executes the provided `DispatchWorkItem` synchronously on the queue, but avoids deadlock by performing
+     the work item directly if already on the queue.
+
+     - Parameter workItem: The `DispatchWorkItem` to execute.
+     */
+    public func syncSafely(execute workItem: DispatchWorkItem) {
+        setKeyIfNeeded()
+        if DispatchQueue.getSpecific(key: safeKey) != nil {
+            workItem.perform()
+        } else {
+            sync(execute: workItem)
+        }
+    }
+    
+    /**
+     Executes the provided closure synchronously on the queue, but avoids deadlock by executing the closure
+     directly if already on the queue.
+
+     - Parameter block: The closure to execute.
+     */
+    public func syncSafely(execute block: () -> Void) {
+        setKeyIfNeeded()
+        if DispatchQueue.getSpecific(key: safeKey) != nil {
+            block()
+        } else {
+            sync(execute: block)
+        }
+    }
+    
+    /**
+     Executes the provided throwing closure synchronously on the queue, avoiding deadlock by executing
+     it directly if already on the queue.
+
+     - Parameter work: The closure to execute.
+     - Returns: The result of the closure.
+     - Throws: Rethrows any error thrown by the closure.
+     */
+    public func syncSafely<T>(execute work: () throws -> T) rethrows -> T {
+        setKeyIfNeeded()
+        if DispatchQueue.getSpecific(key: safeKey) != nil {
+            return try work()
+        } else {
+            return try sync(execute: work)
+        }
+    }
+    
+    /**
+     Executes the provided throwing closure synchronously on the queue using the specified flags, avoiding
+     deadlock by executing it directly if already on the queue.
+
+     - Parameters:
+       - flags: Flags to use for the sync call (e.g., `.barrier`, `.noQoS`).
+       - work: The closure to execute.
+     - Returns: The result of the closure.
+     - Throws: Rethrows any error thrown by the closure.
+     */
+    public func syncSafely<T>(flags: DispatchWorkItemFlags, execute work: () throws -> T) rethrows -> T {
+        setKeyIfNeeded()
+        if DispatchQueue.getSpecific(key: safeKey) != nil {
+            return try work()
+        } else {
+            return try sync(flags: flags, execute: work)
+        }
+    }
+    
+    private var didSetSafeKey: Bool {
+        get { getAssociatedValue("didSetSafeKey") ?? false }
+        set { setAssociatedValue(newValue, key: "didSetSafeKey") }
+    }
+    
+    private var safeKey: DispatchSpecificKey<Void> {
+        getAssociatedValue("safeKey", initialValue: DispatchSpecificKey<Void>())
+    }
+    
+    private func setKeyIfNeeded() {
+        guard !didSetSafeKey else { return }
+        setSpecific(key: safeKey, value: ())
+        didSetSafeKey = true
+    }
+}
+
 /*
 public struct Dispatch {
     public static var main: Queue {

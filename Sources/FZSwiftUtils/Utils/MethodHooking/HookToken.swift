@@ -53,7 +53,7 @@ public class HookToken: Hashable {
     /// Applies the hook.
     public func apply() throws {
         guard !isActive else { return }
-        try hookSerialQueue.sync {
+        try hookSerialQueue.syncSafely {
             switch type {
             case .object:
                 guard let object = object else { return }
@@ -93,7 +93,7 @@ public class HookToken: Hashable {
     
     func revert(remove: Bool) throws {
         guard isActive else { return }
-        try hookSerialQueue.sync {
+        try hookSerialQueue.syncSafely {
             switch type {
             case .object:
                 guard let hookContext = hookContext as? HookContext, let object = object else { return }
@@ -144,7 +144,7 @@ public class HookToken: Hashable {
     }
     
     init(for object: AnyObject, selector: Selector, mode: HookMode, hookClosure: AnyObject) throws {
-        try hookSerialQueue.sync {
+        try hookSerialQueue.syncSafely {
             try Self.parametersCheck(for: object, selector: selector, mode: mode, closure: hookClosure)
         }
         self.mode = mode
@@ -156,7 +156,7 @@ public class HookToken: Hashable {
     }
     
     init(for class_: AnyClass, selector: Selector, mode: HookMode, hookClosure: AnyObject, isInstance: Bool = false) throws {
-        try hookSerialQueue.sync {
+        try hookSerialQueue.syncSafely {
             try Self.parametersCheck(for: class_, selector: selector, mode: mode, closure: hookClosure)
         }
         self.mode = mode

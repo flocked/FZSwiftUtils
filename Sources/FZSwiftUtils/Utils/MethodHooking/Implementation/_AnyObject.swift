@@ -70,7 +70,7 @@ class _AnyObject {
                 do {
                     try object.hook(#selector(NSObject.responds(to:)), closure: {
                         original, object, sel, selector in
-                        if let selector = selector, object.addedMethods.contains(selector) {
+                        if let selector = selector, _AnyObject(object).addedMethods.contains(selector) {
                             return true
                         }
                         return original(object, sel, selector)
