@@ -8,7 +8,7 @@
 import Foundation
 
 /// An object that observes multiple properties of a given object.
-open class KeyValueObserver<Object>: NSObject, KVObserver where Object: NSObject {
+open class KeyValueObserver<Object>: NSObject where Object: NSObject {
 
     /**
      The observed object.

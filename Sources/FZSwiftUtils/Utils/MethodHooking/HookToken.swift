@@ -143,9 +143,11 @@ public class HookToken: Hashable {
         return self
     }
     
-    init(for object: AnyObject, selector: Selector, mode: HookMode, hookClosure: AnyObject) throws {
-        try hookSerialQueue.syncSafely {
-            try Self.parametersCheck(for: object, selector: selector, mode: mode, closure: hookClosure)
+    init(for object: AnyObject, selector: Selector, mode: HookMode, hookClosure: AnyObject, check: Bool = true) throws {
+        if check {
+            try hookSerialQueue.syncSafely {
+                try Self.parametersCheck(for: object, selector: selector, mode: mode, closure: hookClosure)
+            }
         }
         self.mode = mode
         self.type = .object
@@ -175,6 +177,17 @@ public class HookToken: Hashable {
         self.class = Swift.type(of: object)
     }
     
+    init(addedMethod object: AnyObject, selector: Selector, hookClosure: AnyObject) throws {
+        self.addedHook = try AddedMethodHookAlt(object: object, selector: selector, hookClosure: hookClosure)
+        self.object = object
+        self.class = Swift.type(of: object)
+        self.selector = selector
+        self.hookClosure = hookClosure
+        self.mode = .instead
+        self.type = .added
+    }
+    
+    /*
     init<Method>(addedMethod object: AnyObject, selector: Selector, implementation: Method) throws {
         self.addedHook = try AddedMethodHook(object: object, selector: selector, implementation: implementation)
         self.object = object
@@ -184,6 +197,7 @@ public class HookToken: Hashable {
         self.mode = .instead
         self.type = .added
     }
+     */
     
     public static func == (lhs: HookToken, rhs: HookToken) -> Bool {
         lhs.id == rhs.id
