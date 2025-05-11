@@ -27,7 +27,7 @@ extension NSObject {
      */
     @discardableResult
     public func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(addedMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
     }
     
     @discardableResult
@@ -51,13 +51,13 @@ extension NSObject {
      - Returns: The token for resetting.
      */
     @discardableResult
-    public static func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(addedMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+    public static func addMethod(all selector: Selector, closure: Any) throws -> Hook {
+        try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
     }
     
     @discardableResult
-    public static func addMethod(_ selector: String, closure: Any) throws -> Hook {
-        try addMethod(NSSelectorFromString(selector), closure: closure)
+    public static func addMethod(all selector: String, closure: Any) throws -> Hook {
+        try addMethod(all: NSSelectorFromString(selector), closure: closure)
     }
 }
 
@@ -163,61 +163,3 @@ class AddInstanceMethodHook: AnyHook {
         Interpose.storeHook(hook: self, to: block)
     }
 }
- 
-/*
-class AddedMethodHookAlt: AnyHook {
-    weak var object: AnyObject?
-    let token: Hook
-    var didSubclass = false
-    let typeEncoding: String
-    
-    var interposeSubclass: InterposeSubclass?
-    
-    let generatesSuperIMP = InterposeSubclass.supportsSuperTrampolines
-    
-    var dynamicSubclass: AnyClass {
-        interposeSubclass!.dynamicClass
-    }
-        
-    override func replaceImplementation() throws {
-        guard let object = object else { return }
-        var hooks: [Hook] = []
-        defer { hooks.forEach({ try? $0.apply() }) }
-        
-        if !didSubclass {
-            if !InterposeSubclass.isSubclass(object: object) {
-                hooks = _AnyObject(object).allHooks
-                try hooks.forEach({ try $0.revert(remove: false) })
-            }
-            interposeSubclass = try InterposeSubclass(object: object)
-            didSubclass = true
-            let noop: @convention(block) (AnyObject) -> Void = { _ in }
-            let newIMP = imp_implementationWithBlock(noop)
-            _ = typeEncoding.withCString { typeEncodingPtr in
-                class_replaceMethod(dynamicSubclass, selector, newIMP, typeEncoding)
-            }
-        }
-        try token.apply()
-        _AnyObject(object).addedMethods.insert(selector)
-    }
-    
-    override func resetImplementation() throws {
-        try token.revert()
-        guard let object = object else { return }
-        _AnyObject(object).addedMethods.remove(selector)
-    }
-    
-    init(object: AnyObject, selector: Selector, hookClosure: AnyObject) throws {
-        guard !object.responds(to: selector) else {
-            throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
-        }
-        guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: type(of: object)) else {
-            throw NSObject.SwizzleError.unknownError("typeEncoding for \(selector) of \(type(of: object)) failed")
-        }
-        self.typeEncoding = String(cString: typeEncoding)
-        self.object = object
-        self.token = try Hook(for: object, selector: selector, mode: .instead, hookClosure: hookClosure, check: false)
-        try super.init(class: type(of: object), selector: selector, shouldValidate: false)
-    }
-}
- */
