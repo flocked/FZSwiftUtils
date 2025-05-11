@@ -68,6 +68,8 @@ class HookContext {
         self.methodOriginalIMP = method_getImplementation(self.method)
         self.methodCifContext = try FFICIFContext.init(signature: methodSignature)
         
+        
+        
         // Before & after
         self.beforeAfterCifContext = try FFICIFContext.init(signature: Signature(argumentTypes: {
             var types = methodSignature.argumentTypes

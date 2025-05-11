@@ -25,6 +25,7 @@ public class HookToken: Hashable {
         case `class`
         case classInstance
         case dealloc
+        case added
     }
     
     private let id = UUID()
@@ -32,6 +33,7 @@ public class HookToken: Hashable {
     private weak var object: AnyObject?
     private let hookClosure: AnyObject
     private weak var hookContext: AnyObject?
+    var addedHook: AnyHook?
     
     /// The class of the hooked method.
     public let `class`: AnyClass
@@ -44,7 +46,7 @@ public class HookToken: Hashable {
     
     /// A Boolean value indicating whether the hook is active.
     public var isActive: Bool {
-        get { hookContext != nil }
+        get { addedHook?.isActive ?? (hookContext != nil) }
         set { newValue ? try? apply() : try? revert() }
     }
     
@@ -64,19 +66,22 @@ public class HookToken: Hashable {
                 let hookContext = try HookContext.get(for: targetClass, selector: selector, isSpecifiedInstance: true)
                 try appendHookClosure(hookClosure, selector: selector, mode: mode, to: object)
                 self.hookContext = hookContext
-                (object as? NSObject)?.addHook(self)
+                _AnyObject(object).addHook(self)
             case .class, .classInstance:
                 let hookContext = try HookContext.get(for: self.class, selector: selector, isSpecifiedInstance: false)
                 try hookContext.append(hookClosure: hookClosure, mode: mode)
                 self.hookContext = hookContext
-                guard let class_ = self.class as? NSObject.Type else { return }
-                type == .class ? class_.addHook(self) : class_.addInstanceHook(self)
+                type == .class ? _AnyClass(self.class).addHook(self) : _AnyClass(self.class).addInstanceHook(self)
             case .dealloc:
                 guard let object = object else { return }
                 let delegate = getAssociatedValue("deinitDelegate", object: object, initialValue: DeallocDelegate())
                 delegate.hookClosures.append(hookClosure)
                 hookContext = delegate
-                (object as? NSObject)?.addHook(self)
+                _AnyObject(object).addHook(self)
+            case .added:
+                guard let hook = addedHook, let object = object else { return }
+                try hook.apply()
+                _AnyObject(object).addHook(self)
             }
         }
     }
@@ -94,8 +99,8 @@ public class HookToken: Hashable {
                 guard let hookContext = hookContext as? HookContext, let object = object else { return }
                 try removeHookClosure(hookClosure, selector: hookContext.selector, mode: mode, for: object)
                 self.hookContext = nil
-                if remove, let object = object as? NSObject {
-                    object.removeHook(self)
+                if remove {
+                    _AnyObject(object).removeHook(self)
                 }
                 guard object_getClass(object) == hookContext.targetClass else { return }
                 guard !(try hookContext.isIMPChanged()) else { return }
@@ -109,8 +114,8 @@ public class HookToken: Hashable {
                 guard let hookContext = hookContext as? HookContext else { return }
                 try hookContext.remove(hookClosure: hookClosure, mode: mode)
                 self.hookContext = nil
-                if remove, let class_ = self.class as? NSObject.Type {
-                    type == .class ? class_.removeHook(self) : class_.removeInstanceHook(self)
+                if remove {
+                    type == .class ? _AnyClass(self.class).removeHook(self) : _AnyClass(self.class).removeInstanceHook(self)
                 }
                 guard !(try hookContext.isIMPChanged()) else { return }
                 guard hookContext.isHookClosurePoolEmpty else { return }
@@ -119,8 +124,13 @@ public class HookToken: Hashable {
                 guard let delegate = hookContext as? DeallocDelegate else { return }
                 delegate.hookClosures.removeFirst(where: { $0 === self.hookClosure })
                 hookContext = nil
-                guard remove, let object = object as? NSObject else { return }
-                object.removeHook(self)
+                guard remove, let object = object else { return }
+                _AnyObject(object).removeHook(self)
+            case .added:
+                guard let hook = addedHook else { return }
+                try hook.revert()
+                guard remove, let object = object else { return }
+                _AnyObject(object).removeHook(self)
             }
         }
     }
@@ -163,6 +173,16 @@ public class HookToken: Hashable {
         self.selector = .dealloc
         self.object = object
         self.class = Swift.type(of: object)
+    }
+    
+    init<Method>(addedMethod object: AnyObject, selector: Selector, implementation: Method) throws {
+        self.addedHook = try AddedMethodHook(object: object, selector: selector, implementation: implementation)
+        self.object = object
+        self.class = Swift.type(of: object)
+        self.selector = selector
+        self.hookClosure = implementation as AnyObject
+        self.mode = .instead
+        self.type = .added
     }
     
     public static func == (lhs: HookToken, rhs: HookToken) -> Bool {

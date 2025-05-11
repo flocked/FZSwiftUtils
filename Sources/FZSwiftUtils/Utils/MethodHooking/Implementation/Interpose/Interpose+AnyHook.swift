@@ -18,6 +18,10 @@ public class AnyHook: Hashable {
 
     // fetched at apply time, changes late, thus class requirement
     var origIMP: IMP?
+    
+    var isActive: Bool {
+        state == .interposed
+    }
 
     /// The possible task states
     public enum State: Equatable {
@@ -49,6 +53,7 @@ public class AnyHook: Hashable {
 
     /// Apply the interpose hook.
     @discardableResult public func apply() throws -> AnyHook {
+       // guard state != .
         try execute(newState: .interposed) { try replaceImplementation() }
         return self
     }

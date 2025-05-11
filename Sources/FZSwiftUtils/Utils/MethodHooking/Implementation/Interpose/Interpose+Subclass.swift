@@ -7,7 +7,7 @@
 
 import Foundation
 
-class InterposeSubclass {
+public class InterposeSubclass {
     
     static var pool: Set<ObjectIdentifier> = []
     static var byClass: [ObjectIdentifier: AnyClass] = [:]
@@ -28,14 +28,14 @@ class InterposeSubclass {
     let object: AnyObject
 
     /// Subclass that we create on the fly
-    private(set) var dynamicClass: AnyClass
+    public private(set) var dynamicClass: AnyClass
 
     /// If the class has been altered (e.g. via NSKVONotifying_ KVO logic)
     /// then perceived and actual class don't match.
     ///
     /// Making KVO and Object-based hooking work at the same time is difficult.
     /// If we make a dynamic subclass over KVO, invalidating the token crashes in cache_getImp.
-    init(object: AnyObject) throws {
+    public init(object: AnyObject) throws {
         self.object = object
         dynamicClass = type(of: object) // satisfy set to something
         dynamicClass = try getExistingSubclass() ?? createSubclass()
@@ -81,6 +81,10 @@ class InterposeSubclass {
             return actualClass
         }
         return nil
+    }
+    
+    static func isSubclass(object: AnyObject) -> Bool {
+        InterposeSubclass.pool.contains(ObjectIdentifier(object_getClass(object)!))
     }
 
     private func replaceGetClass(in class: AnyClass, decoy perceivedClass: AnyClass) {
