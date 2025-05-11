@@ -21,7 +21,7 @@ struct ClassHook<T: AnyObject> {
     /**
      Returns the hooks without applying them.
      
-     To apply the hooks, use the tokens ``HookToken/apply()``.
+     To apply the hooks, use the tokens ``Hook/apply()``.
      */
     public var prepare: Self {
         .init(targetClass, false)
@@ -56,12 +56,12 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hookBefore(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         return try hookBefore(selector, closure: closure as Any)
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -87,7 +87,7 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hookBefore(_ selector: Selector, closure: @escaping (_ class: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: Selector, closure: @escaping (_ class: T.Type, _ selector: Selector) -> Void) throws -> Hook {
         let closure = { obj, sel in
             guard let obj = obj as? T.Type else { fatalError() }
             closure(obj, sel)
@@ -96,7 +96,7 @@ struct ClassHook<T: AnyObject> {
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> Hook {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -127,15 +127,15 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hookBefore(_ selector: Selector, closure: Any) throws -> HookToken {
+    public func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try HookToken(for: targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook(for: targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
+    public func hookBefore(_ selector: String, closure: Any) throws -> Hook {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -163,12 +163,12 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         return try hookAfter(selector, closure: closure as Any)
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
             
@@ -194,7 +194,7 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: @escaping (_ class: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: Selector, closure: @escaping (_ class: T.Type, _ selector: Selector) -> Void) throws -> Hook {
         let closure = { obj, sel in
             guard let obj = obj as? T.Type else { fatalError() }
             closure(obj, sel)
@@ -203,7 +203,7 @@ struct ClassHook<T: AnyObject> {
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> Hook {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -234,15 +234,15 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: Any) throws -> HookToken {
+    public func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try HookToken(for: targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook(for: targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
+    public func hookAfter(_ selector: String, closure: Any) throws -> Hook {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -276,22 +276,22 @@ struct ClassHook<T: AnyObject> {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    public func hook(_ selector: Selector, closure: Any) throws -> HookToken {
+    public func hook(_ selector: Selector, closure: Any) throws -> Hook {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try HookToken(for: targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook(for: targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
-    public func hook(_ selector: String, closure: Any) throws -> HookToken {
+    public func hook(_ selector: String, closure: Any) throws -> Hook {
         try hook(NSSelectorFromString(selector), closure: closure)
     }
 }
 
 extension ClassHook {
     @discardableResult
-    func hookBefore<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> HookToken {
+    func hookBefore<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T.Type else { return }
             closure(obj, val)
@@ -299,7 +299,7 @@ extension ClassHook {
     }
     
     @discardableResult
-    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> HookToken {
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T.Type else { return }
             closure(obj, val)
@@ -307,7 +307,7 @@ extension ClassHook {
     }
     
     @discardableResult
-    func hookAfter<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> HookToken {
+    func hookAfter<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T.Type else { return }
             closure(obj, val)
@@ -315,7 +315,7 @@ extension ClassHook {
     }
     
     @discardableResult
-    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> HookToken {
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T.Type else { return }
             closure(obj, val)
@@ -323,7 +323,7 @@ extension ClassHook {
     }
     
     @discardableResult
-    func hook<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ original: Value)->(Value)) throws -> HookToken {
+    func hook<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ original: Value)->(Value)) throws -> Hook {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? T.Type {
                 return closure(obj, value)
@@ -334,7 +334,7 @@ extension ClassHook {
     }
     
     @discardableResult
-    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
         try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
             if let val = val as? Value, let ob = obj as? T.Type {
                 let original: (Value)->() = { original(obj, sel, $0) }

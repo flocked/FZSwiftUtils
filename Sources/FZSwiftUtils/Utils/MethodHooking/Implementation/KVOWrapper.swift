@@ -73,7 +73,7 @@ extension NSObject {
         guard let baseClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        let propertyNameWithUppercase = String(setterName.dropFirst("set".count).dropLast(":".count))
+        let propertyNameWithUppercase = String(setterName.dropFirst(3).dropLast(1))
         let propertyName =  propertyNameWithUppercase.lowercasedFirst()
         if let property = class_getProperty(baseClass, propertyName) {
             return String(cString: property_getName(property))

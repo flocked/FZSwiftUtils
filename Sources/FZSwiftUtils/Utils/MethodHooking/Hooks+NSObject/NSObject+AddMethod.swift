@@ -25,12 +25,12 @@ extension NSObject {
      - Returns: The token for resetting.
      */
     @discardableResult
-    public func addMethod(_ selector: Selector, closure: Any) throws -> HookToken {
-        try HookToken(addedMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+    public func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
+        try Hook(addedMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
     }
     
     @discardableResult
-    public func addMethod(_ selector: String, closure: Any) throws -> HookToken {
+    public func addMethod(_ selector: String, closure: Any) throws -> Hook {
         try addMethod(NSSelectorFromString(selector), closure: closure)
     }
 }
@@ -50,7 +50,7 @@ class AddedMethodHook: AnyHook {
     
     override func replaceImplementation() throws {
         guard let object = object else { return }
-        var hooks: [HookToken] = []
+        var hooks: [Hook] = []
         defer { hooks.forEach({ try? $0.apply() }) }
         if !didSubclass {
             didSubclass = true
@@ -82,6 +82,7 @@ class AddedMethodHook: AnyHook {
         guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: type(of: object)) else {
             throw NSObject.SwizzleError.unknownError("typeEncoding for \(selector) of \(type(of: object)) failed")
         }
+        try Hook.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure as AnyObject)        
         self.typeEncoding = String(cString: typeEncoding)
         self.object = object
         try super.init(class: type(of: object), selector: selector, shouldValidate: false)
@@ -98,7 +99,7 @@ class AddedMethodHook: AnyHook {
 /*
 class AddedMethodHookAlt: AnyHook {
     weak var object: AnyObject?
-    let token: HookToken
+    let token: Hook
     var didSubclass = false
     let typeEncoding: String
     
@@ -112,7 +113,7 @@ class AddedMethodHookAlt: AnyHook {
         
     override func replaceImplementation() throws {
         guard let object = object else { return }
-        var hooks: [HookToken] = []
+        var hooks: [Hook] = []
         defer { hooks.forEach({ try? $0.apply() }) }
         
         if !didSubclass {
@@ -147,7 +148,7 @@ class AddedMethodHookAlt: AnyHook {
         }
         self.typeEncoding = String(cString: typeEncoding)
         self.object = object
-        self.token = try HookToken(for: object, selector: selector, mode: .instead, hookClosure: hookClosure, check: false)
+        self.token = try Hook(for: object, selector: selector, mode: .instead, hookClosure: hookClosure, check: false)
         try super.init(class: type(of: object), selector: selector, shouldValidate: false)
     }
 }

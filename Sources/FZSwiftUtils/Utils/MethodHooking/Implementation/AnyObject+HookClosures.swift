@@ -73,4 +73,57 @@ fileprivate class ClosuresContext {
 fileprivate func closuresContext(for object: AnyObject) -> ClosuresContext? {
     getAssociatedValue("closuresContext", object: object)
 }
+
+extension _AnyObject {
+    func hookClosures(for selector: Selector) -> (before: [AnyObject], after: [AnyObject], instead: [AnyObject]) {
+        closuresContext?.closures(for: selector) ?? ([], [], [])
+    }
+    
+    func appendHookClosure(_ hookClosure: AnyObject, selector: Selector, mode: HookMode) throws {
+        var context = FZSwiftUtils.getAssociatedValue("closuresContext", object: object, initialValue: ClosuresContext())
+        
+        func append(to keyPath: WritableKeyPath<ClosuresContext, [Selector: [ObjectIdentifier: AnyObject]]>) throws {
+            guard context[keyPath: keyPath][selector, default: [:]].updateValue(hookClosure, forKey: .init(hookClosure)) == nil else {
+                throw HookError.duplicateHookClosure
+            }
+        }
+
+        switch mode {
+        case .before:
+            try append(to: \.before)
+        case .after:
+            try append(to: \.after)
+        case .instead:
+            try append(to: \.instead)
+        }
+    }
+    
+    func removeHookClosure(_ hookClosure: AnyObject, selector: Selector, mode: HookMode) throws {
+        guard var context = closuresContext else {
+            throw HookError.internalError(file: #file, line: #line)
+        }
+        func remove(_ keyPath: WritableKeyPath<ClosuresContext, [Selector: [ObjectIdentifier: AnyObject]]>) throws {
+            guard context[keyPath: keyPath][selector, default: [:]].removeValue(forKey: .init(hookClosure)) != nil else {
+                throw HookError.duplicateHookClosure
+            }
+        }
+        
+        switch mode {
+        case .before:
+            try remove(\.before)
+        case .after:
+            try remove(\.after)
+        case .instead:
+            try remove(\.instead)
+        }
+    }
+    
+    var isHookClosuresEmpty: Bool {
+        closuresContext?.isEmpty ?? true
+    }
+    
+    fileprivate var closuresContext: ClosuresContext? {
+        getAssociatedValue("closuresContext")
+    }
+}
 #endif

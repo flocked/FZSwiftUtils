@@ -1,5 +1,5 @@
 //
-//  HookToken.swift
+//  Hook.swift
 //
 //
 //  Created by Florian Zand on 05.05.25.
@@ -18,8 +18,8 @@ public enum HookMode: String {
     case instead
 }
 
-///  A token for hooking a method.
-public class HookToken: Hashable {
+/// A hook that interposes a method on a object, class or all instances of a class.
+public class Hook: Hashable {
     private enum HookType {
         case object
         case `class`
@@ -33,12 +33,12 @@ public class HookToken: Hashable {
     private weak var object: AnyObject?
     private let hookClosure: AnyObject
     private weak var hookContext: AnyObject?
-    var addedHook: AnyHook?
+    private var addedHook: AnyHook?
     
     /// The class of the hooked method.
     public let `class`: AnyClass
     
-    /// The selector of the hooked method.
+    /// The selector of the method being interposed.
     public let selector: Selector
     
     /// The hooking mode.
@@ -50,7 +50,7 @@ public class HookToken: Hashable {
         set { newValue ? try? apply() : try? revert() }
     }
     
-    /// Applies the hook.
+    /// Applies the hook by interposing the method implementation.
     public func apply() throws {
         guard !isActive else { return }
         try hookSerialQueue.syncSafely {
@@ -86,7 +86,7 @@ public class HookToken: Hashable {
         }
     }
     
-    /// Reverts the hook.
+    /// Reverts the hook, restoring the original method implementation.
     public func revert() throws {
         try revert(remove: true)
     }
@@ -135,7 +135,7 @@ public class HookToken: Hashable {
         }
     }
     
-    func apply(_ shouldApply: Bool) throws -> HookToken {
+    func apply(_ shouldApply: Bool) throws -> Hook {
         try apply()
         if !shouldApply {
             _ = try revert()
@@ -177,7 +177,7 @@ public class HookToken: Hashable {
         self.class = Swift.type(of: object)
     }
     
-    init(addedMethod object: AnyObject, selector: Selector, hookClosure: AnyObject) throws {
+    init(addedMethod object: NSObject, selector: Selector, hookClosure: AnyObject) throws {
         self.addedHook = try AddedMethodHook(object: object, selector: selector, hookClosure: hookClosure)
         self.object = object
         self.class = Swift.type(of: object)
@@ -187,7 +187,7 @@ public class HookToken: Hashable {
         self.type = .added
     }
     
-    public static func == (lhs: HookToken, rhs: HookToken) -> Bool {
+    public static func == (lhs: Hook, rhs: Hook) -> Bool {
         lhs.id == rhs.id
     }
     

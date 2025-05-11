@@ -25,7 +25,7 @@ struct ObjectHook<T: AnyObject> {
     /**
      Returns the hooks without applying them.
      
-     To apply the hooks, use the tokens ``HookToken/apply()``.
+     To apply the hooks, use the tokens ``Hook/apply()``.
      */
     public var prepare: Self {
         .init(object, false)
@@ -60,12 +60,12 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookBefore(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try hookBefore(selector, closure: closure as Any)
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -94,7 +94,7 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookBefore(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> Hook {
         let closure = { obj, sel in
             guard let obj = obj as? T else { fatalError() }
             closure(obj, sel)
@@ -103,7 +103,7 @@ struct ObjectHook<T: AnyObject> {
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookBefore(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> Hook {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -137,12 +137,12 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookBefore(_ selector: Selector, closure: Any) throws -> HookToken {
-        try HookToken(for: object, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+    public func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
+        try Hook(for: object, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
+    public func hookBefore(_ selector: String, closure: Any) throws -> Hook {
         try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -171,12 +171,12 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try hookAfter(selector, closure: closure as Any)
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -207,7 +207,7 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> Hook {
         let closure = { obj, sel in
             guard let obj = obj as? T else { fatalError() }
             closure(obj, sel)
@@ -216,7 +216,7 @@ struct ObjectHook<T: AnyObject> {
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+    public func hookAfter(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> Hook {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -253,12 +253,12 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: Any) throws -> HookToken {
-        try HookToken(for: object, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+    public func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
+        try Hook(for: object, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
+    public func hookAfter(_ selector: String, closure: Any) throws -> Hook {
         try hookAfter(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -293,12 +293,12 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hook(_ selector: Selector, closure: Any) throws -> HookToken {
-        try HookToken(for: object, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+    public func hook(_ selector: Selector, closure: Any) throws -> Hook {
+        try Hook(for: object, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
-    public func hook(_ selector: String, closure: Any) throws -> HookToken {
+    public func hook(_ selector: String, closure: Any) throws -> Hook {
         try hook(NSSelectorFromString(selector), closure: closure)
     }
     
@@ -320,12 +320,12 @@ struct ObjectHook<T: AnyObject> {
      - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
      */
     @discardableResult
-    public func hookDeInitBefore(closure: @escaping (_ object: T) -> Void) throws -> HookToken {
+    public func hookDeInitBefore(closure: @escaping (_ object: T) -> Void) throws -> Hook {
         let closure = { obj in
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
         } as @convention(block) (NSObject) -> Void
-        return try HookToken(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: after deinit
@@ -347,8 +347,8 @@ struct ObjectHook<T: AnyObject> {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookDeInitAfter(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try HookToken(deinitAfter: object, hookClosure: closure as AnyObject).apply(shouldApply)
+    public func hookDeInitAfter(closure: @escaping @convention(block) () -> Void) throws -> Hook {
+        try Hook(deinitAfter: object, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
@@ -371,8 +371,8 @@ extension ObjectHook where T: NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInitBefore(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try HookToken(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+    func hookDeInitBefore(closure: @escaping @convention(block) () -> Void) throws -> Hook {
+        try Hook(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: replace deinit
@@ -396,14 +396,14 @@ extension ObjectHook where T: NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> HookToken {
-        try HookToken(for: object, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+    func hookDeInit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> Hook {
+        try Hook(for: object, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
 extension ObjectHook {
     @discardableResult
-    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
+    func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -411,7 +411,7 @@ extension ObjectHook {
     }
     
     @discardableResult
-    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -419,7 +419,7 @@ extension ObjectHook {
     }
     
     @discardableResult
-    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
+    func hookAfter<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> Hook {
         try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -427,7 +427,7 @@ extension ObjectHook {
     }
     
     @discardableResult
-    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> Hook {
         try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? T else { return }
             closure(obj, val)
@@ -435,7 +435,7 @@ extension ObjectHook {
     }
     
     @discardableResult
-    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ original: Value)->(Value)) throws -> HookToken {
+    func hook<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ original: Value)->(Value)) throws -> Hook {
         try hook(try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? T {
                 return closure(obj, value)
@@ -446,7 +446,7 @@ extension ObjectHook {
     }
     
     @discardableResult
-    func hook<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+    func hook<Value>(set keyPath: WritableKeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
         try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
             if let val = val as? Value, let ob = obj as? T {
                 let original: (Value)->() = { original(obj, sel, $0) }

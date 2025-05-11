@@ -33,12 +33,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookBefore(all selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
+    class func hookBefore(all selector: Selector, closure: @escaping () -> Void) throws -> Hook {
         try hookBefore(all: selector, closure: closure as Any)
     }
     
     @discardableResult
-    class func hookBefore(all selector: String, closure: @escaping () -> Void) throws -> HookToken {
+    class func hookBefore(all selector: String, closure: @escaping () -> Void) throws -> Hook {
         try hookBefore(all: selector, closure: closure as Any)
     }
     
@@ -68,12 +68,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookBefore(all selector: Selector, closure: Any) throws -> HookToken {
+    class func hookBefore(all selector: Selector, closure: Any) throws -> Hook {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookBefore(all selector: String, closure: Any) throws -> HookToken {
+    class func hookBefore(all selector: String, closure: Any) throws -> Hook {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
@@ -99,12 +99,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookAfter(all selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
+    class func hookAfter(all selector: Selector, closure: @escaping () -> Void) throws -> Hook {
         try hookAfter(all: selector, closure: closure as Any)
     }
     
     @discardableResult
-    class func hookAfter(all selector: String, closure: @escaping () -> Void) throws -> HookToken {
+    class func hookAfter(all selector: String, closure: @escaping () -> Void) throws -> Hook {
         try hookAfter(all: selector, closure: closure as Any)
     }
     
@@ -136,12 +136,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookAfter(all selector: Selector, closure: Any) throws -> HookToken {
+    class func hookAfter(all selector: Selector, closure: Any) throws -> Hook {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookAfter(all selector: String, closure: Any) throws -> HookToken {
+    class func hookAfter(all selector: String, closure: Any) throws -> Hook {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
@@ -178,12 +178,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hook(all selector: Selector, closure: Any) throws -> HookToken {
+    class func hook(all selector: Selector, closure: Any) throws -> Hook {
         try ClassInstanceHook(self).hook(selector, closure: closure)
     }
     
     @discardableResult
-    class func hook(all selector: String, closure: Any) throws -> HookToken {
+    class func hook(all selector: String, closure: Any) throws -> Hook {
         try ClassInstanceHook(self).hook(selector, closure: closure)
     }
 }
@@ -212,12 +212,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookBefore(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookBefore(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookBefore(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookBefore(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
@@ -242,12 +242,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookAfter(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookAfter(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookAfter(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookAfter(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
@@ -268,7 +268,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
      */
     @discardableResult
-    static func hookDeInitBefore(closure: @escaping (_ object: Self) -> Void) throws -> HookToken {
+    static func hookDeInitBefore(closure: @escaping (_ object: Self) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookDeInitBefore(closure: closure)
     }
 }
@@ -290,7 +290,7 @@ public extension NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookDeInitBefore(closure: @escaping () -> Void) throws -> HookToken {
+    class func hookDeInitBefore(closure: @escaping () -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookDeInitBefore(closure: closure)
     }
     
@@ -310,7 +310,7 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookDeInitAfter(closure: @escaping () -> Void) throws -> HookToken {
+    class func hookDeInitAfter(closure: @escaping () -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookDeInitAfter(closure: closure)
     }
     
@@ -332,7 +332,7 @@ public extension NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookDeInit(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
+    class func hookDeInit(closure: @escaping (_ original: () -> Void) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookDeInit(closure: closure)
     }
 }
@@ -355,7 +355,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookBefore<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
         try hookBefore(all: try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -379,7 +379,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookBefore<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
         try hookBefore(all: try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -403,7 +403,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookAfter<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
         try hookAfter(all: try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -427,7 +427,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+    public static func hookAfter<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
         try hookAfter(all: try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
@@ -452,7 +452,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hook<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> HookToken {
+    public static func hook<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook {
         try hook(all: try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? Self {
                 return closure(obj, value)
@@ -482,7 +482,7 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hook<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+    public static func hook<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
         try hook(all: try keyPath.setterName(), closure: { original, obj, sel, val in
             if let val = val as? Value, let ob = obj as? Self {
                 let original: (Value)->() = { original(obj, sel, $0) }

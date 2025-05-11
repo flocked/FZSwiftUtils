@@ -9,9 +9,27 @@
 #if os(macOS) || os(iOS)
 import Foundation
 
-extension HookToken {
+extension Hook {
     private static let blacklistSelectors = [NSSelectorFromString("retain"), NSSelectorFromString("release"), NSSelectorFromString("autorelease")]
     private static let taggedPointerStringClass: AnyClass? = NSClassFromString("NSTaggedPointerString")
+    
+    static func parametersCheck(typeEncoding: UnsafePointer<CChar>, closure: AnyObject) throws {
+        let closureSignature = try Signature(closure: closure)
+        let methodSignature = try Signature(typeEncoding: typeEncoding)
+        
+        let closureArguments = Array(closureSignature.argumentTypes.dropFirst())
+        let methodArguments = Array(methodSignature.argumentTypes.dropFirst(2))
+        
+        guard closureArguments.count == methodArguments.count else {
+            throw HookError.incompatibleClosureSignature("When adding a method, the closure needs to have the same amount of parameters as the original method. Closure: \(closureArguments.count), expected: \(methodArguments.count)")
+        }
+        guard closureSignature.returnType == methodSignature.returnType else {
+            throw HookError.incompatibleClosureSignature("When adding a method, The return type of the closure needs to have the same return type as the original method. Closure: \(closureSignature.returnType.code), original: \(methodSignature.returnType.code)")
+        }
+        guard closureArguments == methodArguments else {
+            throw HookError.incompatibleClosureSignature("When adding a method, the closure needs to have the same parameters as the original method. Closure: \(closureSignature.argumentTypes.toSignatureString()), original: \(methodSignature.argumentTypes.toSignatureString())")
+        }
+    }
     
     static func parametersCheck(for object: AnyObject, selector: Selector, mode: HookMode, closure: AnyObject) throws {
         guard !(object is AnyClass) else {
@@ -165,5 +183,6 @@ extension HookToken {
         }
     }
 }
+
 
 #endif

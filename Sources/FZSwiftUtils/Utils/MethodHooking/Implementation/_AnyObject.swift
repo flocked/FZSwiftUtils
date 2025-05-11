@@ -29,8 +29,8 @@ class _AnyObject {
         hooks.keys.forEach({ revertHooks(for: $0) })
     }
     
-    var allHooks: [HookToken] {
-        var hooks: [HookToken] = []
+    var allHooks: [Hook] {
+        var hooks: [Hook] = []
         for val in self.hooks.values {
             hooks += val.flatMap({$0.value})
         }
@@ -48,15 +48,15 @@ class _AnyObject {
         isMethodHooked(NSSelectorFromString(selector), type: type)
     }
     
-    func addHook(_ token: HookToken) {
+    func addHook(_ token: Hook) {
         hooks[token.selector, default: [:]][token.mode, default: []].insert(token)
     }
     
-    func removeHook(_ token: HookToken) {
+    func removeHook(_ token: Hook) {
         hooks[token.selector, default: [:]][token.mode, default: []].remove(token)
     }
     
-    private var hooks: [Selector: [HookMode: Set<HookToken>]] {
+    private var hooks: [Selector: [HookMode: Set<Hook>]] {
         get { getAssociatedValue("hooks") ?? [:] }
         set { setAssociatedValue(newValue, key: "hooks") }
     }

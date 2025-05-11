@@ -44,8 +44,8 @@ extension NSObject {
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> HookToken {
-            let token = HookToken(try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation), self)
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> Hook {
+            let token = Hook(try Interpose.ObjectHook(object: self, selector: selector, implementation: implementation), self)
             try token.apply()
             return token
     }
@@ -62,8 +62,8 @@ extension NSObject {
         _ selector: Selector,
         methodSignature: MethodSignature.Type = MethodSignature.self,
         hookSignature: HookSignature.Type = HookSignature.self,
-        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> HookToken {
-            let token =  HookToken(try Interpose.ClassHook(class: self as AnyClass, selector: selector, implementation: implementation), self)
+        _ implementation: (TypedHook<MethodSignature, HookSignature>) -> HookSignature?) throws -> Hook {
+            let token =  Hook(try Interpose.ClassHook(class: self as AnyClass, selector: selector, implementation: implementation), self)
             try token.apply()
             return token
     }
@@ -125,7 +125,7 @@ extension NSObject {
 }
 
 ///  A token for hooking a method.
-public class HookToken {
+public class Hook {
     
     /// The selector of the hooked method.
     public let selector: Selector

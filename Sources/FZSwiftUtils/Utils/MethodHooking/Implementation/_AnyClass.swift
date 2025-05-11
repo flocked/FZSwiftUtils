@@ -27,8 +27,8 @@ class _AnyClass {
         hooks.keys.forEach({ revertHooks(for: $0) })
     }
     
-    var allHooks: [HookToken] {
-        var hooks: [HookToken] = []
+    var allHooks: [Hook] {
+        var hooks: [Hook] = []
         for val in self.hooks.values {
             hooks += val.flatMap({$0.value})
         }
@@ -46,15 +46,15 @@ class _AnyClass {
         isMethodHooked(NSSelectorFromString(selector), type: type)
     }
     
-    func addHook(_ token: HookToken) {
+    func addHook(_ token: Hook) {
         hooks[token.selector, default: [:]][token.mode, default: []].insert(token)
     }
     
-    func removeHook(_ token: HookToken) {
+    func removeHook(_ token: Hook) {
         hooks[token.selector, default: [:]][token.mode, default: []].remove(token)
     }
     
-    private var hooks: [Selector: [HookMode: Set<HookToken>]] {
+    private var hooks: [Selector: [HookMode: Set<Hook>]] {
         get { getAssociatedValue("hooks") ?? [:] }
         set { setAssociatedValue(newValue, key: "hooks") }
     }
@@ -97,15 +97,15 @@ extension _AnyClass {
         isInstanceMethodHooked(NSSelectorFromString(selector), type: type)
     }
     
-    func addInstanceHook(_ token: HookToken) {
+    func addInstanceHook(_ token: Hook) {
         instanceHooks[token.selector, default: [:]][token.mode, default: []].insert(token)
     }
     
-    func removeInstanceHook(_ token: HookToken) {
+    func removeInstanceHook(_ token: Hook) {
         instanceHooks[token.selector, default: [:]][token.mode, default: []].remove(token)
     }
     
-    private var instanceHooks: [Selector: [HookMode: Set<HookToken>]] {
+    private var instanceHooks: [Selector: [HookMode: Set<Hook>]] {
         get { getAssociatedValue("instanceHooks") ?? [:] }
         set { setAssociatedValue(newValue, key: "instanceHooks") }
     }
