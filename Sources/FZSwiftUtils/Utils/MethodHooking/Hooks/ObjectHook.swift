@@ -38,82 +38,60 @@ struct ObjectHook<T: AnyObject> {
     /**
      Execute the closure before the execution of object's method.
      
-     # Example
+     Example usage:
+
      ```
      class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
      }
-     }
+     
      let object = MyObject()
-     let token = try! hookBefore(object: object, selector: #selector(MyObject.sum(_:_:)), closure: {
-     print("hooked")
-     })
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
+     try! ObjectHook(object).hookBefore(#selector(MyObject.sum(_:_:)) {
+        print("hooked")
+     
      ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
+     
      - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure. **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     - parameter closure: The hook closure.
      - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
     public func hookBefore(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         try hookBefore(selector, closure: closure as Any)
     }
     
-    // after
-    /**
-     Execute the closure after the execution of object's method.
-     
-     # Example
-     ```
-     class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
-     }
-     }
-     let object = MyObject()
-     let token = try! hookAfter(object: object, selector: #selector(MyObject.sum(_:_:)), closure: {
-     print("hooked")
-     })
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
-     ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure. **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try hookAfter(selector, closure: closure as Any)
+    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+        try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
-    // MARK: - self and selector closure
-    
-    // before
     /**
      Execute the closure with the object and the selector before the execution of object's method.
      
-     # Example
+     Example usage:
+
      ```
      class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
      }
-     }
+     
      let object = MyObject()
-     let token = try! hookBefore(object: object, selector: #selector(MyObject.sum(_:_:)), closure: { obj, sel in
-     print("hooked")
-     })
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
+     try! ObjectHook(object).hookBefore(#selector(MyObject.sum(_:_:))) { obj, sel in
+        print("hooked")
+     }
      ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
+     
      - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure. **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     - parameter closure: The hook closure.
      - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
     public func hookBefore(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
@@ -124,59 +102,29 @@ struct ObjectHook<T: AnyObject> {
         return try hookBefore(selector, closure: closure as Any)
     }
     
-    // after
-    /**
-     Execute the closure with the object and the selector after the execution of object's method.
-     
-     # Example
-     ```
-     class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
-     }
-     }
-     let object = MyObject()
-     let token = try! hookAfter(object: object, selector: #selector(MyObject.sum(_:_:)), closure: { obj, sel in
-     print("hooked")
-     })
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
-     ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure. **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
-    public func hookAfter(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
-        let closure = { obj, sel in
-            guard let obj = obj as? T else { fatalError() }
-            closure(obj, sel)
-        } as @convention(block) (AnyObject, Selector) -> Void
-        return try hookAfter(selector, closure: closure as Any)
+    public func hookBefore(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+        try hookBefore(NSSelectorFromString(selector), closure: closure)
     }
     
-    // MARK: - custom closure
-    
-    // before
     /**
      Execute the closure with all parameters before the execution of object's method.
      
-     # Example
+     Example usage:
+
      ```
      class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
      }
-     }
+     
      let object = MyObject()
-     let token = try! hookBefore(object: object, selector: #selector(MyObject.sum(_:_:)), closure: { obj, sel, number1, number2 in
-     print("hooked")
+     try! ObjectHook(object).hookBefore(#selector(MyObject.sum(_:_:)), closure: { obj, sel, number1, number2 in
+        print("hooked")
      } as @convention(block) (AnyObject, Selector, Int, Int) -> Void)
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
+     
      - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
      - parameter closure: The hook closure as following:
         1. The first parameter has to be `AnyObject` or your class (When it's your class.
@@ -193,25 +141,106 @@ struct ObjectHook<T: AnyObject> {
         try HookToken(for: object, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
-    // after
+    @discardableResult
+    public func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
+        try hookBefore(NSSelectorFromString(selector), closure: closure)
+    }
+    
+    /**
+     Execute the closure after the execution of object's method.
+     
+     Example usage:
+
+     ```
+     class MyObject {
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
+     }
+     
+     let object = MyObject()
+     try! ObjectHook(object).hookAfter(#selector(MyObject.sum(_:_:))) {
+        print("hooked")
+     }
+     ```
+     
+     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
+     - parameter closure: The hook closure.
+     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     */
+    @discardableResult
+    public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+        try hookAfter(selector, closure: closure as Any)
+    }
+    
+    @discardableResult
+    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+        try hookAfter(NSSelectorFromString(selector), closure: closure)
+    }
+    
+    // MARK: - self and selector closure
+    
+    /**
+     Execute the closure with the object and the selector after the execution of object's method.
+     
+     Example usage:
+
+     ```
+     class MyObject {
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
+     }
+     
+     let object = MyObject()
+     try! ObjectHook(object).hookAfter(#selector(MyObject.sum(_:_:))) { obj, sel in
+        print("hooked")
+     }
+     ```
+     
+     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
+     - parameter closure: The hook closure.
+     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     */
+    @discardableResult
+    public func hookAfter(_ selector: Selector, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+        let closure = { obj, sel in
+            guard let obj = obj as? T else { fatalError() }
+            closure(obj, sel)
+        } as @convention(block) (AnyObject, Selector) -> Void
+        return try hookAfter(selector, closure: closure as Any)
+    }
+    
+    @discardableResult
+    public func hookAfter(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
+        try hookAfter(NSSelectorFromString(selector), closure: closure)
+    }
+    
+    // MARK: - custom closure
+    
+    
     /**
      Execute the closure with all parameters after the execution of object's method.
      
-     # Example
+     Example usage:
+
      ```
      class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
      }
-     }
+     
      let object = MyObject()
-     let token = try! hookAfter(object: object, selector: #selector(MyObject.sum(_:_:)), closure: { obj, sel, number1, number2 in
-     print("hooked")
+     try! ObjectHook(object).hookAfter(#selector(MyObject.sum(_:_:)), closure: { obj, sel, number1, number2 in
+        print("hooked")
      } as @convention(block) (AnyObject, Selector, Int, Int) -> Void)
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
+     
      - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
      - parameter closure: The hook closure as following:
         1. The first parameter has to be `AnyObject` or your class (When it's your class.
@@ -228,26 +257,29 @@ struct ObjectHook<T: AnyObject> {
         try HookToken(for: object, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
-    // instead
+    @discardableResult
+    public func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
+        try hookAfter(NSSelectorFromString(selector), closure: closure)
+    }
+    
     /**
      Replace the implementation of object's method by the closure.
      
-     # Example
+     Example usage:
+
      ```
      class MyObject {
-     @objc dynamic func sum(_ number1: Int, _ number2: Int) -> Int {
-     return number1 + number2
+        @objc func sum(_ number1: Int, _ number2: Int) -> Int {
+            return number1 + number2
+        }
      }
-     }
+     
      let object = MyObject()
-     let token = try! hook(object: object, selector: #selector(MyObject.sum(_:_:)), closure: { original, obj, sel, number1, numebr2 in
-     // You may call the original method with some different parameters. You can even not call the original method.
-     return original(obj, sel, number1, numebr2)
+     try! ObjectHook(object).hook(#selector(MyObject.sum(_:_:)), closure: { original, obj, sel, number1, numebr2 in
+        return original(obj, sel, number1, numebr2) * 2
      } as @convention(block) ((AnyObject, Selector, Int, Int) -> Int, AnyObject, Selector, Int, Int) -> Int )
-     _ = object.sum(1, 2)
-     token.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It doesn’t have to be inherited from NSObject.
+     
      - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
      - parameter closure: The hook closure as following:
         1. The first parameter has to be a closure. This closure means original method. The closure's parameters and return type are the same as the original method's (The parameters contain `AnyObject` and `Selector` at the beginning).
@@ -265,23 +297,22 @@ struct ObjectHook<T: AnyObject> {
         try HookToken(for: object, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
+    @discardableResult
+    public func hook(_ selector: String, closure: Any) throws -> HookToken {
+        try hook(NSSelectorFromString(selector), closure: closure)
+    }
+    
     /**
      Execute the closure with the object before the object deinit.
      
-     # Example
+     Example usage:
+
      ```
-     class MyObject: NSObject {
+     try! ObjectHook(object).hookDeInitBefore { obj in
+        print("hooked")
      }
-     var token: HookToken?
-     autoreleasepool {
-     let object = MyObject()
-     token = try! hookDeallocBefore(object: object, closure: { obj in
-     print("hooked")
-     })
-     }
-     token?.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It has to be inherited from NSObject.
+     
      - parameter closure: The hook closure.
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      
@@ -289,7 +320,7 @@ struct ObjectHook<T: AnyObject> {
      - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
      */
     @discardableResult
-    public func hookDeallocBefore(closure: @escaping (_ object: T) -> Void) throws -> HookToken {
+    public func hookDeInitBefore(closure: @escaping (_ object: T) -> Void) throws -> HookToken {
         let closure = { obj in
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
@@ -302,30 +333,22 @@ struct ObjectHook<T: AnyObject> {
     /**
      Execute the closure after the object deinit.
      
-     # Example
+     Example usage:
+
      ```
-     class MyObject: NSObject {
+     try! ObjectHook(object).hookDeInitAfter {
+        print("hooked")
      }
-     var token: HookToken?
-     autoreleasepool {
-     let object = MyObject()
-     token = try! hookDeallocAfter(object: object, closure: {
-     print("hooked")
-     })
-     }
-     token?.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It has to be inherited from NSObject.
-     - parameter closure: The hook closure. **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     
+     - parameter closure: The hook closure.
      - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    public func hookDeallocAfter(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        if let object = object as? NSObject {
-            return try HookToken(for: object, selector: .dealloc, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
-        } else {
-            return HookToken(deallocAfter: object, hookClosure: closure as AnyObject)
-        }
+    public func hookDeInitAfter(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+        try HookToken(deinitAfter: object, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
@@ -334,25 +357,21 @@ extension ObjectHook where T: NSObject {
     /**
      Execute the closure before the object deinit.
      
-     # Example
+     Example usage:
+
      ```
-     class MyObject: NSObject {
+     try! ObjectHook(object).hookDeInitBefore {
+        print("hooked")
      }
-     var token: HookToken?
-     autoreleasepool {
-     let object = MyObject()
-     token = try! hookDeallocBefore(object: object, closure: {
-     print("hooked")
-     })
-     }
-     token?.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It has to be inherited from NSObject.
-     - parameter closure: The hook closure. **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     
+     - parameter closure: The hook closure.
      - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeallocBefore(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
+    func hookDeInitBefore(closure: @escaping @convention(block) () -> Void) throws -> HookToken {
         try HookToken(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
@@ -361,76 +380,28 @@ extension ObjectHook where T: NSObject {
     /**
      Replace the implementation of object's deinit method by the closure.
      
-     # Example
+     Example usage:
+
      ```
-     class MyObject: NSObject {
+     try! ObjectHook(object).hookDeInit { original in
+        print("before release of object")
+        original()
+        print("after release of object")
      }
-     var token: HookToken?
-     autoreleasepool {
-     let object = MyObject()
-     token = try! hookDeallocInstead(object: object, closure: { original in
-     print("before release")
-     original()
-     print("after release")
-     })
-     }
-     token?.cancelHook() // cancel hook
      ```
-     - parameter object: The object you want to hook on. It has to be inherited from NSObject.
-     - parameter closure: The hook closure.
      
-     **WARNING**: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     - Parameter closure: The hook closure with the original dealloc method as parameter. You have to call it to avoid memory leak.
+     - Returns: The token of this hook behavior. You may cancel this hook through this token.
      
-     - parameter original: The original dealloc method.
-     
-     **WARNING**: Have to call original to avoid memory leak.
-     
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeallocInstead(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> HookToken {
+    func hookDeInit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> HookToken {
         try HookToken(for: object, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
-extension ObjectHook where T: NSObject {
-    @discardableResult
-    func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
-    }
-
-    @discardableResult
-    func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
-    }
-
-    @discardableResult
-    func hookBefore(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
-    }
-
-    @discardableResult
-    func hookAfter(_ selector: String, closure: @escaping (_ object: T, _ selector: Selector) -> Void) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
-    }
-    
-    @discardableResult
-    func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
-    }
-
-    @discardableResult
-    func hookAfter(_ selector: String, closure: Any) throws -> HookToken {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
-    }
-
-    @discardableResult
-    func hook(_ selector: String, closure: Any) throws -> HookToken {
-        try hook(NSSelectorFromString(selector), closure: closure)
-    }
-}
-
-extension ObjectHook where T: NSObject {
+extension ObjectHook {
     @discardableResult
     func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T,_ value: Value)->()) throws -> HookToken {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in

@@ -33,6 +33,11 @@ extension NSObject {
         revertHooks(for: NSSelectorFromString(selector), type: type)
     }
     
+    /// Reverts all active hooks.
+    public func revertAllHooks() {
+        hooks.keys.forEach({ revertHooks(for: $0) })
+    }
+    
     /// A Boolean value indicating whether the method for the specific selector is hooked.
     public func isMethodHooked(_ selector: Selector, type: HookMode? = nil) -> Bool {
         if let type = type {
@@ -55,14 +60,14 @@ extension NSObject {
     }
     
     private var hooks: [Selector: [HookMode: Set<HookToken>]] {
-        get { FZSwiftUtils.getAssociatedValue("hooks", object: self) ?? [:] }
-        set { FZSwiftUtils.setAssociatedValue(newValue, key: "hooks", object: self) }
+        get { getAssociatedValue("hooks") ?? [:] }
+        set { setAssociatedValue(newValue, key: "hooks") }
     }
 }
 
 extension NSObject {
     /**
-     Reverts all class instances hooks for the specified selector.
+     Reverts all hooks for the specified class method.
      
      - Parameter type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
      */
@@ -77,7 +82,7 @@ extension NSObject {
     }
     
     /**
-     Reverts all class instances hooks for the specified selector.
+     Reverts all hooks for the specified class method.
      
      - Parameter type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
      */
@@ -85,7 +90,12 @@ extension NSObject {
         revertHooks(for: NSSelectorFromString(selector), type: type)
     }
     
-    /// A Boolean value indicating whether method for the specific selector is hooked for all instances of the class.
+    /// Reverts all class method hooks.
+    public static func revertAllHooks() {
+        hooks.keys.forEach({ revertHooks(for: $0) })
+    }
+    
+    /// A Boolean value indicating whether the specified class method is hooked.
     public static func isMethodHooked(_ selector: Selector, type: HookMode? = nil) -> Bool {
         if let type = type {
             return hooks[selector]?[type]?.isEmpty == false
@@ -93,7 +103,7 @@ extension NSObject {
         return hooks[selector]?.isEmpty == false
     }
     
-    /// A Boolean value indicating whether the method for the specific selector is hooked for all instances of the class.
+    /// A Boolean value indicating whether the specified class method is hooked.
     public static func isMethodHooked(_ selector: String, type: HookMode? = nil) -> Bool {
         isMethodHooked(NSSelectorFromString(selector), type: type)
     }
@@ -107,62 +117,65 @@ extension NSObject {
     }
     
     private static var hooks: [Selector: [HookMode: Set<HookToken>]] {
-        get { FZSwiftUtils.getAssociatedValue("hooks", object: self) ?? [:] }
-        set { FZSwiftUtils.setAssociatedValue(newValue, key: "hooks", object: self) }
+        get { getAssociatedValue("hooks") ?? [:] }
+        set { setAssociatedValue(newValue, key: "hooks") }
     }
 }
 
-/*
 extension NSObject {
     /**
-     Reverts all class method hooks for the specified selector.
-     
+     Reverts all hooks for the specified method for all instances of the class.
+
      - Parameter type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
      */
-    public static func revertClassHooks(for selector: Selector, type: HookMode? = nil) {
+    public static func revertInstanceHooks(for selector: Selector, type: HookMode? = nil) {
         if let type = type {
-            classHooks[selector, default: [:]][type]?.forEach({ try? $0.revert(remove: false) })
-            classHooks[selector, default: [:]][type] = []
+            instanceHooks[selector, default: [:]][type]?.forEach({ try? $0.revert(remove: false) })
+            instanceHooks[selector, default: [:]][type] = []
         } else {
-            classHooks[selector]?.flatMap({$0.value}).forEach({ try? $0.revert(remove: false) })
-            classHooks[selector] = [:]
+            instanceHooks[selector]?.flatMap({$0.value}).forEach({ try? $0.revert(remove: false) })
+            instanceHooks[selector] = [:]
         }
     }
     
     /**
-     Reverts all methodhooks for the specified selector.
-     
+     Reverts all hooks for the specified method for all instances of the class.
+
      - Parameter type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
      */
-    public static func revertClassHooks(for selector: String, type: HookMode? = nil) {
-        revertClassHooks(for: NSSelectorFromString(selector), type: type)
+    public static func revertInstanceHooks(for selector: String, type: HookMode? = nil) {
+        revertInstanceHooks(for: NSSelectorFromString(selector), type: type)
     }
     
-    /// A Boolean value indicating whether the class method for the specific selector is hooked.
-    public static func isClassMethodHooked(_ selector: Selector, type: HookMode? = nil) -> Bool {
+    /// Reverts all instance method hooks.
+    public static func revertAllInstanceHooks() {
+        instanceHooks.keys.forEach({ revertHooks(for: $0) })
+    }
+    
+    /// A Boolean value indicating whether the specified method is hooked for all instances of the class.
+    public static func isInstanceMethodHooked(_ selector: Selector, type: HookMode? = nil) -> Bool {
         if let type = type {
-            return classHooks[selector]?[type]?.isEmpty == false
+            return instanceHooks[selector]?[type]?.isEmpty == false
         }
-        return classHooks[selector]?.isEmpty == false
+        return instanceHooks[selector]?.isEmpty == false
     }
     
-    /// A Boolean value indicating whether the class method for the specific selector is hooked.
-    public static func isClassMethodHooked(_ selector: String, type: HookMode? = nil) -> Bool {
-        isClassMethodHooked(NSSelectorFromString(selector), type: type)
+    /// A Boolean value indicating whether the specified method is hooked for all instances of the class.
+    public static func isInstanceMethodHooked(_ selector: String, type: HookMode? = nil) -> Bool {
+        isInstanceMethodHooked(NSSelectorFromString(selector), type: type)
     }
     
-    static func addClossHookToken(_ token: HookToken) {
-        classHooks[token.selector, default: [:]][token.mode, default: []].insert(token)
+    static func addInstanceHook(_ token: HookToken) {
+        instanceHooks[token.selector, default: [:]][token.mode, default: []].insert(token)
     }
     
-    static func removeClossHookToken(_ token: HookToken) {
-        classHooks[token.selector, default: [:]][token.mode, default: []].remove(token)
+    static func removeInstanceHook(_ token: HookToken) {
+        instanceHooks[token.selector, default: [:]][token.mode, default: []].remove(token)
     }
     
-    private static var classHooks: [Selector: [HookMode: Set<HookToken>]] {
-        get { FZSwiftUtils.getAssociatedValue("hooks", object: self) ?? [:] }
-        set { FZSwiftUtils.setAssociatedValue(newValue, key: "hooks", object: self) }
+    private static var instanceHooks: [Selector: [HookMode: Set<HookToken>]] {
+        get { getAssociatedValue("instanceHooks") ?? [:] }
+        set { setAssociatedValue(newValue, key: "instanceHooks") }
     }
 }
-*/
 #endif

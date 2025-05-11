@@ -84,9 +84,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:))) { (obj: NSObject, sel: Selector, number1: Int, number2: Int) in
-         print("hooked before class sum with \(number1) and \(number2)")
-     }
+     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:)), closure: { object, selector, number1, number2 in
+         print("hooked before class sum of \(number1) and \(number2)")
+     } as @convention(block) ((MyObject, Selector, Int, Int) -> Int))
      ```
      
      - parameter selector: The method you want to hook on.
@@ -119,9 +119,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:))) { (obj: NSObject, sel: Selector, number1: Int, number2: Int) in
-         print("hooked after class sum with \(number1) and \(number2)")
-     }
+     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:)), closure: { object, selector, number1, number2 in
+         print("hooked after class sum of \(number1) and \(number2)")
+     } as @convention(block) ((MyObject, Selector, Int, Int) -> Int))
      ```
      
      - parameter selector: The method you want to hook on.

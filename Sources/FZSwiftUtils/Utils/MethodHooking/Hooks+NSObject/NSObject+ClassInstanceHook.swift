@@ -12,7 +12,7 @@ public extension NSObject {
     
     
     /**
-     Execute the closure before the execution of object's method.
+     Hooks before the specified method of all instances of the class.
      
      Example usage:
      
@@ -23,7 +23,7 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookInstancesBefore(#selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookBefore(all: #selector(MyObject.sum(with:number2:))) {
          print("hooked before sum")
      }
      ```
@@ -33,18 +33,18 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookInstancesBefore(_ selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
-        try hookInstancesBefore(selector, closure: closure as Any)
+    class func hookBefore(all selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
+        try hookBefore(all: selector, closure: closure as Any)
     }
     
     @discardableResult
-    class func hookInstancesBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookInstancesBefore(selector, closure: closure as Any)
+    class func hookBefore(all selector: String, closure: @escaping () -> Void) throws -> HookToken {
+        try hookBefore(all: selector, closure: closure as Any)
     }
     
     /**
-     Execute the closure after the execution of object's method.
-     
+     Hooks before the specified method of all instances of the class.
+
      Example usage:
      
      ```swift
@@ -54,7 +54,42 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookInstancesAfter(#selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookBefore(all: #selector(MyObject.sum(with:number2:)), closure: { object, selector, number1, number2 in
+         print("hooked before sum of \(number1) and \(number2)")
+     } as @convention(block) ((MyObject, Selector, Int, Int) -> Int))
+     ```
+     
+     - parameter selector: The method you want to hook on.
+     - parameter closure: The hook closure. The following is a description of the closure
+         1. The first parameter has to be `Self` or `NSObject`.
+         2. The second parameter has to be `Selector`.
+         3. The rest parameters are the same as the method's.
+         4. The return type has to be `Void`.
+     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     */
+    @discardableResult
+    class func hookBefore(all selector: Selector, closure: Any) throws -> HookToken {
+        try ClassInstanceHook(self).hookBefore(selector, closure: closure)
+    }
+    
+    @discardableResult
+    class func hookBefore(all selector: String, closure: Any) throws -> HookToken {
+        try ClassInstanceHook(self).hookBefore(selector, closure: closure)
+    }
+    
+    /**
+     Hooks after the specified method of all instances of the class.
+
+     Example usage:
+     
+     ```swift
+     class MyObject: NSObject {
+         func sum(with number1: Int, number2: Int) -> Int {
+             return number1 + number2
+         }
+     }
+     
+     try MyObject.hookAfter(all: #selector(MyObject.sum(with:number2:))) {
          print("hooked after sum")
      }
      ```
@@ -64,20 +99,20 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookInstancesAfter(_ selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
-        try hookInstancesAfter(selector, closure: closure as Any)
+    class func hookAfter(all selector: Selector, closure: @escaping () -> Void) throws -> HookToken {
+        try hookAfter(all: selector, closure: closure as Any)
     }
     
     @discardableResult
-    class func hookInstancesAfter(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
-        try hookInstancesAfter(selector, closure: closure as Any)
+    class func hookAfter(all selector: String, closure: @escaping () -> Void) throws -> HookToken {
+        try hookAfter(all: selector, closure: closure as Any)
     }
     
     // MARK: - custom closure
     
     /**
-     Execute the closure with all parameters before the execution of object's method.
-     
+     Hooks after the specified method of all instances of the class.
+
      Example usage:
      
      ```swift
@@ -87,9 +122,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookInstancesBefore(#selector(MyObject.sum(with:number2:))) { (obj: MyObject, sel: Selector, number1: Int, number2: Int) in
-         print("hooked before sum with \(number1) and \(number2)")
-     }
+     try MyObject.hookAfter(all: #selector(MyObject.sum(with:number2:)), closure: { object, selector, number1, number2 in
+         print("hooked before sum of \(number1) and \(number2)")
+     } as @convention(block) ((MyObject, Selector, Int, Int) -> Int))
      ```
      
      - parameter selector: The method you want to hook on.
@@ -101,52 +136,17 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookInstancesBefore(_ selector: Selector, closure: Any) throws -> HookToken {
-        try ClassInstanceHook(self).hookBefore(selector, closure: closure)
-    }
-    
-    @discardableResult
-    class func hookInstancesBefore(_ selector: String, closure: Any) throws -> HookToken {
-        try ClassInstanceHook(self).hookBefore(selector, closure: closure)
-    }
-    
-    /**
-     Execute the closure with all parameters after the execution of object's method.
-     
-     Example usage:
-     
-     ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
-     }
-     
-     try MyObject.hookInstancesAfter(#selector(MyObject.sum(with:number2:))) { (obj: MyObject, sel: Selector, number1: Int, number2: Int) in
-         print("hooked after sum with \(number1) and \(number2)")
-     }
-     ```
-     
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. The following is a description of the closure
-         1. The first parameter has to be `Self` or `NSObject`.
-         2. The second parameter has to be `Selector`.
-         3. The rest parameters are the same as the method's.
-         4. The return type has to be `Void`.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
-    @discardableResult
-    class func hookInstancesAfter(_ selector: Selector, closure: Any) throws -> HookToken {
+    class func hookAfter(all selector: Selector, closure: Any) throws -> HookToken {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookInstancesAfter(_ selector: String, closure: Any) throws -> HookToken {
+    class func hookAfter(all selector: String, closure: Any) throws -> HookToken {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
     /**
-     Replace the implementation of object's method by the closure.
+     Replaces the specified method for all instances of the class.
 
      Example usage:
      
@@ -157,7 +157,7 @@ public extension NSObject {
         }
      }
           
-     try! MyObject.hookInstances(#selector(MyObject.sum(of:and:)), closure: {
+     try! MyObject.hook(all: #selector(MyObject.sum(of:and:)), closure: {
         original, object, selector, number1, number2 in
         let originalValue = original(object, selector, number1, number2)
         return originalValue * 2
@@ -178,12 +178,12 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookInstances(_ selector: Selector, closure: Any) throws -> HookToken {
+    class func hook(all selector: Selector, closure: Any) throws -> HookToken {
         try ClassInstanceHook(self).hook(selector, closure: closure)
     }
     
     @discardableResult
-    class func hookInstances(_ selector: String, closure: Any) throws -> HookToken {
+    class func hook(all selector: String, closure: Any) throws -> HookToken {
         try ClassInstanceHook(self).hook(selector, closure: closure)
     }
 }
@@ -201,7 +201,7 @@ public extension NSObjectProtocol where Self: NSObject {
          }
      }
      
-     try MyObject.hookInstancesBefore(#selector(MyObject.sum(with:number2:))) { object, selector in
+     try MyObject.hookBefore(all: #selector(MyObject.sum(with:number2:))) { object, selector in
          print("hooked \(object) before sum")
      }
      ```
@@ -212,12 +212,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookInstancesBefore(_ selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookBefore(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookInstancesBefore(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookBefore(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
@@ -231,7 +231,7 @@ public extension NSObjectProtocol where Self: NSObject {
          }
      }
      
-     try MyObject.hookInstancesAfter(#selector(MyObject.sum(with:number2:))) { object, selector in
+     try MyObject.hookAfter(all: #selector(MyObject.sum(with:number2:))) { object, selector in
          print("hooked \(object) after sum")
      }
      ```
@@ -242,43 +242,23 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookInstancesAfter(_ selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookAfter(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookInstancesAfter(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
+    static func hookAfter(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> HookToken {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
-    }
-}
-
-public extension NSObject {
-    // MARK: before deinit
-    /**
-     Execute the closure before the object dealloc.
-     
-     Example:
-     
-     ```swift
-     NSTextField.hookInstancesDeallocBefore {
-         print("hooked before dealloc of NSTextField")
-     }
-     ```
-     
-     - Parameter closure: The hook closure.
-     - Returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
-    @discardableResult
-    class func hookInstancesDeallocBefore(closure: @escaping () -> Void) throws -> HookToken {
-        try ClassInstanceHook(self).hookDeallocBefore(closure: closure)
     }
     
     /**
-     Execute the closure with the object before the object dealloc.
+     Execute the closure with the object before the object DeInit.
+     
+     Example usage:
      
      ```swift
-     NSTextField.hookInstancesDeallocBefore { object in
-         print("hooked before dealloc of \(object)")
+     MyObject.hookDeInitBefore { object in
+         print("hooked before DeInit of \(object)")
      }
      ```
      
@@ -288,19 +268,41 @@ public extension NSObject {
      - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
      */
     @discardableResult
-    class func hookInstancesDeallocBefore(closure: @escaping (_ object: NSObject) -> Void) throws -> HookToken {
-        try ClassInstanceHook(self).hookDeallocBefore(closure: closure)
+    static func hookDeInitBefore(closure: @escaping (_ object: Self) -> Void) throws -> HookToken {
+        try ClassInstanceHook(self).hookDeInitBefore(closure: closure)
+    }
+}
+
+public extension NSObject {
+    // MARK: before deinit
+    /**
+     Execute the closure before the object DeInit.
+     
+     Example usage:
+     
+     ```swift
+     MyObject.hookDeInitBefore {
+         print("hooked before DeInit")
+     }
+     ```
+     
+     - Parameter closure: The hook closure.
+     - Returns: The token of this hook behavior. You may cancel this hook through this token.
+     */
+    @discardableResult
+    class func hookDeInitBefore(closure: @escaping () -> Void) throws -> HookToken {
+        try ClassInstanceHook(self).hookDeInitBefore(closure: closure)
     }
     
     // MARK: after deinit
     /**
-     Execute the closure after the object dealloc.
+     Execute the closure after the object DeInit.
      
      Example usage:
      
      ```swift
-     NSTextField.hookInstancesDeallocAfter {
-         print("hooked after dealloc of NSTextField")
+     MyObject.hookDeInitAfter {
+         print("hooked after DeInit")
      }
      ```
      
@@ -308,31 +310,30 @@ public extension NSObject {
      - returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookInstancesDeallocAfter(closure: @escaping () -> Void) throws -> HookToken {
-        try ClassInstanceHook(self).hookDeallocAfter(closure: closure)
+    class func hookDeInitAfter(closure: @escaping () -> Void) throws -> HookToken {
+        try ClassInstanceHook(self).hookDeInitAfter(closure: closure)
     }
     
     // MARK: replace deinit
     /**
-     Replace the implementation of object's dealloc method by the closure.
+     Replace the implementation of object's DeInit method by the closure.
      
      Example usage:
      
      ```swift
-     NSTextField.hookInstancesDealloc { (original: @escaping () -> Void) in
-         print("before release of NSTextField")
+     MyObject.hookDeInit { original in
+         print("before release of MyObject")
          original()
-         print("after release of NSTextField")
+         print("after release of MyObject")
      }
      ```
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
      
-     - Note: You have to call `original()` to avoid memory leak.
+     - Parameter closure: The hook closure with the original DeInit method as parameter. You have to call it to avoid memory leak.
+     - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    class func hookInstancesDealloc(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
-        try ClassInstanceHook(self).hookDeallocInstead(closure: closure)
+    class func hookDeInit(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
+        try ClassInstanceHook(self).hookDeInit(closure: closure)
     }
 }
 
@@ -348,14 +349,14 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookInstancesBefore(\.stringValue) { textfield, stringValue in
+     try NSTextField.hookBefore(all: \.stringValue) { textfield, stringValue in
         // hooks before.
      }
      ```
      */
     @discardableResult
-    public static func hookInstancesBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
-        try hookInstancesBefore(try keyPath.getterName(), closure: { obj, sel, val in
+    public static func hookBefore<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+        try hookBefore(all: try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
@@ -372,14 +373,14 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookInstancesBefore(set \.stringValue) { textfield, stringValue in
-        // hooks before.
+     try NSTextField.hookBefore(setAll \.stringValue) { textfield, stringValue in
+        // hooks before
      }
      ```
      */
     @discardableResult
-    public static func hookInstancesBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
-        try hookInstancesBefore(try keyPath.setterName(), closure: { obj, sel, val in
+    public static func hookBefore<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+        try hookBefore(all: try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
@@ -396,14 +397,14 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookInstancesAfter(\.stringValue) { textfield, stringValue in
+     try NSTextField.hookAfter(all: \.stringValue) { textfield, stringValue in
         // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookInstancesAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
-        try hookInstancesAfter(try keyPath.getterName(), closure: { obj, sel, val in
+    public static func hookAfter<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+        try hookAfter(all: try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
@@ -420,14 +421,14 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookInstancesAfter(set \.stringValue) { textfield, stringValue in
+     try NSTextField.hookAfter(setAll \.stringValue) { textfield, stringValue in
         // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookInstancesAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
-        try hookInstancesAfter(try keyPath.setterName(), closure: { obj, sel, val in
+    public static func hookAfter<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> HookToken {
+        try hookAfter(all: try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
@@ -445,20 +446,19 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookInstances(\.stringValue) { object, original in
+     try NSTextField.hook(all: \.stringValue) { object, original in
         return original.uppercased()
      }
      ```
      */
     @discardableResult
-    public static func hookInstances<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> HookToken {
-        try hookInstances(try keyPath.getterName(), closure: { original, obj, sel in
+    public static func hook<Value>(all keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> HookToken {
+        try hook(all: try keyPath.getterName(), closure: { original, obj, sel in
             if let value = original(obj, sel) as? Value, let obj = obj as? Self {
                 return closure(obj, value)
             }
             return original(obj, sel)
-        } as @convention(block) ((AnyObject, Selector) -> Any,
-                                 AnyObject, Selector) -> Any)
+        } as @convention(block) ((AnyObject, Selector) -> Any, AnyObject, Selector) -> Any)
     }
     
     /**
@@ -473,7 +473,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookInstances(set \.stringValue) { textfield, stringValue, original in
+     try NSTextField.hook(setAll: \.stringValue) { textfield, stringValue, original in
         if stringValue != "" {
             // Sets the stringValue.
             original(stringValue)
@@ -482,16 +482,15 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookInstances<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
-        try hookInstances(try keyPath.setterName(), closure: { original, obj, sel, val in
+    public static func hook<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> HookToken {
+        try hook(all: try keyPath.setterName(), closure: { original, obj, sel, val in
             if let val = val as? Value, let ob = obj as? Self {
                 let original: (Value)->() = { original(obj, sel, $0) }
                 closure(ob, val, original)
             } else {
                 original(obj, sel, val)
             }
-        } as @convention(block) ((AnyObject, Selector, Any) -> Void,
-                                 AnyObject, Selector,  Any) -> Void)
+        } as @convention(block) ((AnyObject, Selector, Any) -> Void, AnyObject, Selector,  Any) -> Void)
     }
 }
 

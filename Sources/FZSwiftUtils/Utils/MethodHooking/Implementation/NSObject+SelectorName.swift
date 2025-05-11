@@ -9,28 +9,28 @@
 import Foundation
 
 extension PartialKeyPath {
-    func getterName() throws -> String where Root: NSObject {
+    func getterName() throws -> String where Root: AnyObject {
         guard let getterName = _kvcKeyPathString else {
             throw HookError.noKVOKeyPath
         }
         return getterName
     }
     
-    func setterName() throws -> String where Root: NSObject {
+    func setterName() throws -> String where Root: AnyObject {
         guard let setterName = NSObject.setterName(for: try getterName(), _class: Root.self) else {
             throw HookError.noKVOKeyPath
         }
         return setterName
     }
     
-    func getterName<T>() throws -> String where Root == T.Type, T: NSObject {
+    func getterName<T>() throws -> String where Root == T.Type, T: AnyObject {
         guard let getterName = _kvcKeyPathString else {
             throw HookError.noKVOKeyPath
         }
         return getterName
     }
     
-    func setterName<T>() throws -> String where Root == T.Type, T: NSObject {
+    func setterName<T>() throws -> String where Root == T.Type, T: AnyObject {
         guard let setterName = NSObject.setterName(for: try getterName(), _class: T.self) else {
             throw HookError.noKVOKeyPath
         }

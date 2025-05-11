@@ -11,7 +11,6 @@ import Foundation
 public extension NSObject {
     // MARK: - empty closure
 
-    // before
     /**
      Execute the closure before the execution of object's method.
      
@@ -44,8 +43,39 @@ public extension NSObject {
     func hookBefore(_ selector: String, closure: @escaping () -> Void) throws -> HookToken {
         try hookBefore(selector, closure: closure as Any)
     }
+    
+    /**
+     Execute the closure with all parameters before the execution of object's method.
+     
+     Example usage:
+     
+     ```swift
+     class MyObject: NSObject {
+         func sum(with number1: Int, number2: Int) -> Int {
+             return number1 + number2
+         }
+     }
+     
+     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:))) { object, selector, num1, num2 in
+         print("hooked before sum with \(n1), \(n2)")
+     }
+     ```
+     - parameter selector: The method you want to hook on.
+     - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
+     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     
+     - Note: The object will retain the closure. Avoid retain cycles.
+     */
+    @discardableResult
+    func hookBefore(_ selector: Selector, closure: Any) throws -> HookToken {
+        try ObjectHook(self).hookBefore(selector, closure: closure)
+    }
+    
+    @discardableResult
+    func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
+        try ObjectHook(self).hookBefore(selector, closure: closure)
+    }
 
-    // after
     /**
      Execute the closure after the execution of object's method.
      
@@ -81,40 +111,6 @@ public extension NSObject {
 
     // MARK: - custom closure
 
-    // before
-    /**
-     Execute the closure with all parameters before the execution of object's method.
-     
-     Example usage:
-     
-     ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
-     }
-     
-     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:))) { object, selector, num1, num2 in
-         print("hooked before sum with \(n1), \(n2)")
-     }
-     ```
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
-     
-     - Note: The object will retain the closure. Avoid retain cycles.
-     */
-    @discardableResult
-    func hookBefore(_ selector: Selector, closure: Any) throws -> HookToken {
-        try ObjectHook(self).hookBefore(selector, closure: closure)
-    }
-    
-    @discardableResult
-    func hookBefore(_ selector: String, closure: Any) throws -> HookToken {
-        try ObjectHook(self).hookBefore(selector, closure: closure)
-    }
-
-    // after
     /**
      Execute the closure with all parameters after the execution of object's method.
      
@@ -147,7 +143,6 @@ public extension NSObject {
         try ObjectHook(self).hookAfter(selector, closure: closure)
     }
 
-    // instead
     /**
      Replace the implementation of object's method by the closure.
      
@@ -260,10 +255,8 @@ public extension NSObjectProtocol where Self: NSObject {
      
      Example usage:
      
-     ```swift
-     class MyObject: NSObject { deinit { print("dealloc") } }
-     
-     try MyObject().hookDeallocBefore { obj in
+     ```swift     
+     try! object.hookDeInitBefore { obj in
         print("before dealloc of \(obj)")
      }
      ```
@@ -273,8 +266,8 @@ public extension NSObjectProtocol where Self: NSObject {
      - Note: The object will retain the closure. Avoid retain cycles. Do not capture strong references to the object.
      */
     @discardableResult
-    func hookDeallocBefore(_ closure: @escaping (Self) -> Void) throws -> HookToken {
-        try ObjectHook(self).hookDeallocBefore(closure: closure)
+    func hookDeInitBefore(_ closure: @escaping (Self) -> Void) throws -> HookToken {
+        try ObjectHook(self).hookDeInitBefore(closure: closure)
     }
 }
 
@@ -287,20 +280,18 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject { deinit { print("dealloc") } }
-     
-     try MyObject().hookDeallocBefore {
+     try! object.hookDeInitBefore {
         print("before dealloc")
      }
      ```
      - parameter closure: The hook closure. Parameter: `() -> Void`.
      - returns: The token of this hook. You may cancel or reapply the hook through the token.
      
-     - Note: The object will retain the closure. Avoid retain cycles.
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeallocBefore(closure: @escaping () -> Void) throws -> HookToken {
-        try ObjectHook(self).hookDeallocBefore(closure: closure)
+    func hookDeInitBefore(closure: @escaping () -> Void) throws -> HookToken {
+        try ObjectHook(self).hookDeInitBefore(closure: closure)
     }
 
     // MARK: after deinit
@@ -311,20 +302,18 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject { deinit { print("dealloc") } }
-     
-     try MyObject().hookDeallocAfter {
+     try! object.hookDeInitAfter {
         print("after dealloc")
      }
      ```
      - parameter closure: The hook closure. Parameter: `() -> Void`.
      - returns: The token of this hook. You may cancel or reapply the hook through the token.
      
-     - Note: The object will retain the closure. Avoid retain cycles.
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeallocAfter(closure: @escaping () -> Void) throws -> HookToken {
-        try ObjectHook(self).hookDeallocAfter(closure: closure)
+    func hookDeInitAfter(closure: @escaping () -> Void) throws -> HookToken {
+        try ObjectHook(self).hookDeInitAfter(closure: closure)
     }
 
     // MARK: replace deinit
@@ -335,21 +324,20 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject { deinit { print("dealloc") } }
-     
-     try MyObject().hookDealloc { original in
-         print("instead of dealloc")
-         original()
+     try! object.hookDeInit { original in
+        print("before release of object")
+        original()
+        print("after release of object")
      }
      ```
-     - parameter closure: The hook closure. Parameter: `(() -> Void) -> Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameter closure: The hook closure with the original dealloc method as parameter. You have to call it to avoid memory leak.
+     - Returns: The token of this hook. You may cancel or reapply the hook through the token.
      
-     - Note: The object will retain the closure. Avoid retain cycles. Call `original()` to prevent memory leaks.
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDealloc(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
-        try ObjectHook(self).hookDeallocInstead(closure: closure)
+    func hookDeInit(closure: @escaping (_ original: () -> Void) -> Void) throws -> HookToken {
+        try ObjectHook(self).hookDeInit(closure: closure)
     }
 }
 
@@ -507,8 +495,7 @@ extension NSObjectProtocol where Self: NSObject {
             } else {
                 original(obj, sel, val)
             }
-        } as @convention(block) ((AnyObject, Selector, Any) -> Void,
-                                 AnyObject, Selector,  Any) -> Void)
+        } as @convention(block) ((AnyObject, Selector, Any) -> Void, AnyObject, Selector,  Any) -> Void)
     }
 }
 #endif
