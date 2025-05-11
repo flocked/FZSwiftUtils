@@ -28,6 +28,6 @@ enum HookError: Error {
     case internalError(file: String, line: Int) // Please raise aa issue: https://github.com/623637646/SwiftHook/issues/new
     case hookInstanceOfNSTaggedPointerString // Unsupport to hook instance of NSTaggedPointerString.
     case hookKVOUnsupportedInstance // Unable to hook a instance which is not support KVO.
-    case noKVOKeyPath // The partial keyPath isn't KVO / @objc.
+    case nonObjcProperty // The partial keyPath isn't KVO / @objc.
 }
 #endif

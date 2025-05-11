@@ -11,28 +11,28 @@ import Foundation
 extension PartialKeyPath {
     func getterName() throws -> String where Root: AnyObject {
         guard let getterName = _kvcKeyPathString else {
-            throw HookError.noKVOKeyPath
+            throw HookError.nonObjcProperty
         }
         return getterName
     }
     
     func setterName() throws -> String where Root: AnyObject {
         guard let setterName = NSObject.setterName(for: try getterName(), _class: Root.self) else {
-            throw HookError.noKVOKeyPath
+            throw HookError.nonObjcProperty
         }
         return setterName
     }
     
     func getterName<T>() throws -> String where Root == T.Type, T: AnyObject {
         guard let getterName = _kvcKeyPathString else {
-            throw HookError.noKVOKeyPath
+            throw HookError.nonObjcProperty
         }
         return getterName
     }
     
     func setterName<T>() throws -> String where Root == T.Type, T: AnyObject {
         guard let setterName = NSObject.setterName(for: try getterName(), _class: T.self) else {
-            throw HookError.noKVOKeyPath
+            throw HookError.nonObjcProperty
         }
         return setterName
     }
@@ -40,8 +40,20 @@ extension PartialKeyPath {
 
 fileprivate extension NSObject {
     static func setterName(for getterName: String, _class: AnyClass) -> String? {
-        let getterSelector = Selector(getterName)
+        var names: [String] = []
+        if getterName.hasPrefix("is") {
+            names += "set\(getterName.dropFirst(2).uppercasedFirst()):"
+        } else if getterName.hasPrefix("get") {
+            names += "set\(getterName.dropFirst(3).uppercasedFirst()):"
+        }
+        names += "set\(getterName.uppercasedFirst()):"
+        for name in names {
+            if class_respondsToSelector(_class, NSSelectorFromString(name)) {
+                return name
+            }
+        }
         
+        let getterSelector = Selector(getterName)
         var currentClass: AnyClass? = _class
         while let c = currentClass {
             var propertyCount: UInt32 = 0
@@ -56,20 +68,18 @@ fileprivate extension NSObject {
                 let nameCStr = property_getName(property)
                 let propName = String(cString: nameCStr)
                 
-                // Check if this property has a custom getter
                 let getterSel: Selector
-                if let getterAttr = getPropertyAttribute(property, key: "G") {
+                if let getterAttr = property.attribute(for: "G") {
                     getterSel = Selector(getterAttr)
                 } else {
                     getterSel = Selector(propName)
                 }
                 
                 if getterSel == getterSelector {
-                    if let setterAttr = getPropertyAttribute(property, key: "S") {
+                    if let setterAttr = property.attribute(for: "S") {
                         return setterAttr
                     } else {
-                        let capitalized = propName.prefix(1).uppercased() + propName.dropFirst()
-                        return "set\(capitalized):"
+                        return "set\(propName.uppercasedFirst()):"
                     }
                 }
             }
@@ -77,12 +87,13 @@ fileprivate extension NSObject {
         }
         return nil
     }
-    
-    static func getPropertyAttribute(_ property: objc_property_t, key: String) -> String? {
-        var count: UInt32 = 0
-        guard let attrs = property_copyAttributeList(property, &count) else { return nil }
-        defer { free(attrs) }
+}
 
+fileprivate extension objc_property_t {
+    func attribute(for key: String) -> String? {
+        var count: UInt32 = 0
+        guard let attrs = property_copyAttributeList(self, &count) else { return nil }
+        defer { free(attrs) }
         for i in 0..<count {
             let attr = attrs[Int(i)]
             if String(cString: attr.name) == key {
