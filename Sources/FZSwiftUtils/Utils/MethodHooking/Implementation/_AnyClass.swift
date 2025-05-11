@@ -125,6 +125,31 @@ extension _AnyClass {
     func getAssociatedValue<T>(_ key: String, initialValue: () -> T) -> T {
         FZSwiftUtils.getAssociatedValue(key, object: targetClass, initialValue: initialValue)
     }
+    
+    var addedMethods: Set<Selector> {
+        get { getAssociatedValue("addedMethods") ?? [] }
+        set {
+            setAssociatedValue(newValue, key: "addedMethods")
+            guard let targetClass = targetClass as? NSObject.Type else { return }
+            if newValue.count == 1 {
+                do {
+                    try targetClass.hook(all: #selector(NSObject.responds(to:)), closure: {
+                        original, object, sel, selector in
+                        if let selector = selector, _AnyClass(targetClass).addedMethods.contains(selector) {
+                            return true
+                        }
+                        return original(object, sel, selector)
+                    } as @convention(block) (
+                        (NSObject, Selector, Selector?) -> Bool,
+                        NSObject, Selector, Selector?) -> Bool)
+                } catch {
+                    Swift.print(error)
+                }
+            } else if newValue.isEmpty {
+                revertHooks(for: #selector(NSObject.responds(to:)))
+            }
+        }
+    }
 }
 
 #endif

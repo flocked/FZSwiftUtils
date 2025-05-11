@@ -132,17 +132,6 @@ public struct Signature {
         try self.init(methodSignature: methodSignature, signatureType: .closure)
     }
     
-    public init(object: NSObject, protocolSelector: Selector) throws {
-        guard let typeEncoding = getTypeEncoding(for: object, selector: protocolSelector) else {
-            throw HookError.internalError(file: #file, line: #line)
-        }
-        try Signature.checkObjCTypes(types: typeEncoding)
-        guard let methodSignature = SHMethodSignature(objCTypes: typeEncoding)else {
-            throw HookError.internalError(file: #file, line: #line)
-        }
-        try self.init(methodSignature: methodSignature, signatureType: .method)
-    }
-    
     init(typeEncoding: UnsafePointer<CChar>) throws {
         try Signature.checkObjCTypes(types: typeEncoding)
         guard let methodSignature = SHMethodSignature(objCTypes: typeEncoding)else {
@@ -162,19 +151,6 @@ extension Array where Element == Signature.TypeValue {
     func toSignatureString() -> String {
         self.map {$0.code}.joined()
     }
-}
-
-func getTypeEncoding(for object: NSObject, selector: Selector) -> UnsafeMutablePointer<CChar>? {
-    var protocolCount: UInt32 = 0
-    if let protocols = class_copyProtocolList(type(of: object), &protocolCount) {
-        for i in 0..<Int(protocolCount) {
-            let methodDescription = protocol_getMethodDescription(protocols[i], selector, false, true)
-            if methodDescription.types != nil {
-                return methodDescription.types!
-            }
-        }
-    }
-    return nil
 }
 
 #endif

@@ -178,7 +178,7 @@ public class Hook: Hashable {
     }
     
     init(addedMethod object: NSObject, selector: Selector, hookClosure: AnyObject) throws {
-        self.addedHook = try AddedMethodHook(object: object, selector: selector, hookClosure: hookClosure)
+        self.addedHook = try AddMethodHook(object: object, selector: selector, hookClosure: hookClosure)
         self.object = object
         self.class = Swift.type(of: object)
         self.selector = selector
@@ -187,6 +187,15 @@ public class Hook: Hashable {
         self.type = .added
     }
     
+    init<T: NSObject>(addedMethod class_: T.Type, selector: Selector, hookClosure: AnyObject) throws {
+        self.addedHook = try AddInstanceMethodHook(class_: class_, selector: selector, hookClosure: hookClosure)
+        self.class = class_
+        self.selector = selector
+        self.hookClosure = hookClosure
+        self.mode = .instead
+        self.type = .added
+    }
+        
     public static func == (lhs: Hook, rhs: Hook) -> Bool {
         lhs.id == rhs.id
     }
