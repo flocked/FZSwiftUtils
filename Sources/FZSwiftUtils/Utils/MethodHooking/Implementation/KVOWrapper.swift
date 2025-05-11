@@ -8,9 +8,7 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
-#if SWIFT_PACKAGE
 import _OCSources
-#endif
 
 extension NSObject {
     func wrapKVOIfNeeded(selector: Selector) throws -> AnyClass {
@@ -23,22 +21,17 @@ extension NSObject {
         guard let KVOedClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        if getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector) == nil,
-           let propertyName = try getKVOName(setter: selector) {
+        if getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector) == nil, let propertyName = try getKVOName(setter: selector) {
             guard let observer = hookObserver else {
                 throw HookError.internalError(file: #file, line: #line)
             }
-            // With this code. `getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector)` will be non-nil.
-            addObserver(observer, forKeyPath: propertyName, options: .new, context: &swiftHookKVOContext)
-            removeObserver(observer, forKeyPath: propertyName, context: &swiftHookKVOContext)
+            addObserver(observer, forKeyPath: propertyName, options: .new, context: &RealObserver.context)
+            removeObserver(observer, forKeyPath: propertyName, context: &RealObserver.context)
         }
         return KVOedClass
     }
     
     func unwrapKVOIfNeeded() {
-        guard hookObserver != nil else {
-            return
-        }
         hookObserver = nil
     }
     
@@ -55,10 +48,10 @@ extension NSObject {
         } else {
             do {
                 try NSObject.catchException {
-                    addObserver(RealObserver.shared, forKeyPath: swiftHookKeyPath, options: .new, context: &swiftHookKVOContext)
+                    addObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, options: .new, context: &RealObserver.context)
                 }
                 defer {
-                    removeObserver(RealObserver.shared, forKeyPath: swiftHookKeyPath, context: &swiftHookKVOContext)
+                    removeObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, context: &RealObserver.context)
                 }
                 guard let isaClassNew = object_getClass(self) else {
                     throw HookError.internalError(file: #file, line: #line)
@@ -77,11 +70,11 @@ extension NSObject {
         guard setterName.hasPrefix("set") && setterName.hasSuffix(":") else {
             return nil
         }
-        let propertyNameWithUppercase = String(setterName.dropFirst("set".count).dropLast(":".count))
-        let propertyName =  propertyNameWithUppercase.lowercasedFirst()
         guard let baseClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
+        let propertyNameWithUppercase = String(setterName.dropFirst("set".count).dropLast(":".count))
+        let propertyName =  propertyNameWithUppercase.lowercasedFirst()
         if let property = class_getProperty(baseClass, propertyName) {
             return String(cString: property_getName(property))
         }
@@ -126,13 +119,15 @@ extension NSObject {
 
 fileprivate class RealObserver: NSObject {
     static let shared = RealObserver()
+    static let keyPath = "hookPrivateProperty"
+    static var context = 0
     
     private override init() {
         super.init()
     }
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
-        guard keyPath != swiftHookKeyPath else { return }
+        guard keyPath != RealObserver.keyPath else { return }
         super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
     }
 }
@@ -143,14 +138,11 @@ fileprivate class Observer: NSObject {
     init(target: NSObject) {
         self.target = target
         super.init()
-        target.addObserver(RealObserver.shared, forKeyPath: swiftHookKeyPath, options: .new, context: &swiftHookKVOContext)
+        target.addObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, options: .new, context: &RealObserver.context)
     }
     
     deinit {
-        self.target.removeObserver(RealObserver.shared, forKeyPath: swiftHookKeyPath, context: &swiftHookKVOContext)
+        self.target.removeObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, context: &RealObserver.context)
     }
 }
-
-fileprivate var swiftHookKVOContext = 0
-fileprivate let swiftHookKeyPath = "swiftHookPrivateProperty"
 #endif

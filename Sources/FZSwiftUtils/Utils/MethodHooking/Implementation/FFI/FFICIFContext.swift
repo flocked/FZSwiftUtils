@@ -9,9 +9,7 @@
 #if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
-#if SWIFT_PACKAGE
 import _OCSources
-#endif
 
 class FFICIFContext {
     private let argTypes: UnsafeMutableBufferPointer<UnsafeMutablePointer<ffi_type>?>

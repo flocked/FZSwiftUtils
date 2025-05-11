@@ -8,9 +8,7 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
-#if SWIFT_PACKAGE
 import _OCSources
-#endif
 
 struct Signature {
     struct TypeValue: Equatable {
