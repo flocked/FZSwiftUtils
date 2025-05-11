@@ -105,7 +105,7 @@ class AddMethodHook: AnyHook {
         guard !object.responds(to: selector) else {
             throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
         }
-        guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: type(of: object)) else {
+        guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: type(of: object), optionalOnly: true) else {
             throw NSObject.SwizzleError.unknownError("typeEncoding for \(selector) of \(type(of: object)) failed")
         }
         try Hook.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure as AnyObject)
@@ -147,7 +147,7 @@ class AddInstanceMethodHook: AnyHook {
         guard !class_.instancesRespond(to: selector) else {
             throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
         }
-        guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: class_) else {
+        guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: class_, optionalOnly: true) else {
             throw NSObject.SwizzleError.unknownError("typeEncoding for \(selector) of \(class_) failed")
         }
         try Hook.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure as AnyObject)

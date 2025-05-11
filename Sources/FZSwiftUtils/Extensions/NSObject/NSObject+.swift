@@ -365,11 +365,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
 }
 
-func typeEncoding(for selector: Selector, _class: AnyClass) -> UnsafePointer<CChar>? {
+func typeEncoding(for selector: Selector, _class: AnyClass, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
     var protocolCount: UInt32 = 0
     if let protocols = class_copyProtocolList(_class, &protocolCount) {
         for i in 0..<Int(protocolCount) {
-            if let typeEncoding = protocols[i].typeEncoding(for: selector) {
+            if let typeEncoding = protocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
                 return typeEncoding
             }
         }
@@ -393,10 +393,15 @@ extension Protocol {
         return false
     }
     
-    func typeEncoding(for selector: Selector) -> UnsafePointer<CChar>? {
-        var methodDesc = protocol_getMethodDescription(self, selector, true, true)
-        if methodDesc.types == nil {
+    func typeEncoding(for selector: Selector, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
+        var methodDesc: objc_method_description!
+        if optionalOnly {
             methodDesc = protocol_getMethodDescription(self, selector, false, true)
+        } else {
+            methodDesc = protocol_getMethodDescription(self, selector, true, true)
+            if methodDesc.types == nil {
+                methodDesc = protocol_getMethodDescription(self, selector, false, true)
+            }
         }
         if let types = methodDesc.types {
             return withUnsafePointer(to: &types.pointee) { pointer in
@@ -406,7 +411,7 @@ extension Protocol {
         var protocolCount: UInt32 = 0
         guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return nil }
         for i in 0..<Int(protocolCount) {
-            if let typeEncoding = superProtocols[i].typeEncoding(for: selector) {
+            if let typeEncoding = superProtocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
                 return typeEncoding
             }
         }

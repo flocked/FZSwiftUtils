@@ -143,11 +143,9 @@ public class Hook: Hashable {
         return self
     }
     
-    init(for object: AnyObject, selector: Selector, mode: HookMode, hookClosure: AnyObject, check: Bool = true) throws {
-        if check {
-            try hookSerialQueue.syncSafely {
-                try Self.parametersCheck(for: object, selector: selector, mode: mode, closure: hookClosure)
-            }
+    init(for object: AnyObject, selector: Selector, mode: HookMode, hookClosure: AnyObject) throws {
+        try hookSerialQueue.syncSafely {
+            try Self.parametersCheck(for: object, selector: selector, mode: mode, closure: hookClosure)
         }
         self.mode = mode
         self.type = .object
