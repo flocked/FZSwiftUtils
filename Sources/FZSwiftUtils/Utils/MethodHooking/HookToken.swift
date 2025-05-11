@@ -178,7 +178,7 @@ public class HookToken: Hashable {
     }
     
     init(addedMethod object: AnyObject, selector: Selector, hookClosure: AnyObject) throws {
-        self.addedHook = try AddedMethodHookAlt(object: object, selector: selector, hookClosure: hookClosure)
+        self.addedHook = try AddedMethodHook(object: object, selector: selector, hookClosure: hookClosure)
         self.object = object
         self.class = Swift.type(of: object)
         self.selector = selector
@@ -186,18 +186,6 @@ public class HookToken: Hashable {
         self.mode = .instead
         self.type = .added
     }
-    
-    /*
-    init<Method>(addedMethod object: AnyObject, selector: Selector, implementation: Method) throws {
-        self.addedHook = try AddedMethodHook(object: object, selector: selector, implementation: implementation)
-        self.object = object
-        self.class = Swift.type(of: object)
-        self.selector = selector
-        self.hookClosure = implementation as AnyObject
-        self.mode = .instead
-        self.type = .added
-    }
-     */
     
     public static func == (lhs: HookToken, rhs: HookToken) -> Bool {
         lhs.id == rhs.id
@@ -218,123 +206,3 @@ public class HookToken: Hashable {
     }
 }
 #endif
-
-/*
- extension AnyHook {
-     var isActive: Bool {
-         get { state == .interposed }
-     }
- }
- 
- init<MethodSignature>(add object: AnyObject, selector: Selector, hookClosure: MethodSignature) throws {
-     self.mode = .add
-     self.hookClosure = hookClosure as AnyObject
-     self.selector = selector
-     self.object = object
-     self.class = type(of: object)
-     self.addHook = try OptionalObjectHook(object: object, selector: selector, implementation: hookClosure)
- }
-
- extension HookToken {
-     /// A hook that adds an unimplemented optional instance method from a protocol to a single object.
-     final public class OptionalObjectHook<MethodSignature>: AnyHook {
-         /// The object that is being hooked.
-         public let object: AnyObject
-
-         /// Subclass that we create on the fly
-         var interposeSubclass: InterposeSubclass?
-
-         // Logic switch to use super builder
-         let generatesSuperIMP = InterposeSubclass.supportsSuperTrampolines
-         
-         var dynamicSubclass: AnyClass {
-             interposeSubclass!.dynamicClass
-         }
-         
-         override func replaceImplementation() throws {
-             interposeSubclass = try InterposeSubclass(object: object)
-             guard let typeEncoding = typeEncoding(for: selector, _class: `class`) else {
-                 throw NSObject.SwizzleError.unknownError("typeEncoding failed")
-             }
-             class_replaceMethod(dynamicSubclass, selector, replacementIMP, typeEncoding)
-             (object as? NSObject)?.addedMethods.insert(selector)
-         }
-         
-         override func resetImplementation() throws {
-             guard let deleteIMP = class_getMethodImplementation(dynamicSubclass, NSSelectorFromString(NSStringFromSelector(selector)+"_Remove")), let method = class_getInstanceMethod(dynamicSubclass, selector) else { throw NSObject.SwizzleError.resetUnsupported("Couldn't reset the added method \(selector)") }
-            method_setImplementation(method, deleteIMP)
-             (object as? NSObject)?.addedMethods.remove(selector)
-         }
-         
-         /// Initialize a new hook to add an unimplemented instance method from a conforming protocol.
-         public init(object: AnyObject, selector: Selector,
-                     implementation: MethodSignature) throws {
-             guard !object.responds(to: selector) else {
-                 throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
-             }
-             self.object = object
-             try super.init(class: type(of: object), selector: selector, shouldValidate: false)
-             let block = implementation as AnyObject
-             replacementIMP = imp_implementationWithBlock(block)
-             guard replacementIMP != nil else {
-                 throw NSObject.SwizzleError.unknownError("imp_implementationWithBlock failed for \(block) - slots exceeded?")
-             }
-
-             // Weakly store reference to hook inside the block of the IMP.
-             Interpose.storeHook(hook: self, to: block)
-         }
-     }
- }
- 
- 
- /// Add
- if let addHook = addHook {
-     try addHook.apply()
-     (object as? NSObject)?.addHook(self)
-     /*
-     guard let object = object, let class_ = `class` else { return }
-     let targetClass: AnyClass
-     if let object = object as? NSObject {
-         guard try object.isSupportedKVO() else {
-             throw HookError.hookKVOUnsupportedInstance
-         }
-         try object.wrapKVOIfNeeded(selector: selector)
-         guard let KVOedClass = object_getClass(object) else {
-             throw HookError.internalError(file: #file, line: #line)
-         }
-         targetClass = KVOedClass
-     } else {
-         targetClass = try wrapDynamicClassIfNeeded(object: object)
-     }
-     try appendHookClosure(hookClosure, selector: selector, mode: mode, to: object)
-     guard let typeEncoding = typeEncoding(for: selector, _class: class_) else {
-         throw NSObject.SwizzleError.unknownError("typeEncoding failed")
-     }
-     addTargetClass = targetClass
-     class_replaceMethod(targetClass, selector, addReplacement, typeEncoding)
-     (object as? NSObject)?.addedMethods.insert(selector)
-     (object as? NSObject)?.addHook(self)
-      */
- }
- 
- /// Revert
- if let addHook = addHook {
-     try addHook.revert()
-     /*
-     guard let object = object else { return }
-     guard let deleteIMP = class_getMethodImplementation(addTargetClass, NSSelectorFromString(NSStringFromSelector(selector)+"_Remove")), let method = class_getInstanceMethod(addTargetClass, selector) else { throw NSObject.SwizzleError.resetUnsupported("Couldn't reset the added method \(selector)") }
-    method_setImplementation(method, deleteIMP)
-     (object as? NSObject)?.addedMethods.remove(selector)
-     self.addTargetClass = nil
-     try removeHookClosure(hookClosure, selector: selector, mode: mode, for: object)
-     guard isHookClosuresEmpty(for: object) else { return }
-     if let object = object as? NSObject {
-         object.unwrapKVOIfNeeded()
-     } else {
-         try unwrapDynamicClass(object: object)
-     }
-      */
-     guard remove else { return }
-     (object as? NSObject)?.removeHook(self)
- } else
- */

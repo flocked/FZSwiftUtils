@@ -349,7 +349,7 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is get. It receives:
          - `object`: The object.
-         - `value`: The value of the property to be get.
+         - `value`: The value to be returned by the property.
 
      Example usage:
      ```swift
@@ -373,7 +373,7 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is set. It receives:
          - `object`: The object.
-         - `value`: The new value of the property to be set.
+         - `value`: The new value to be set to the property.
 
      Example usage:
      ```swift
@@ -474,7 +474,7 @@ extension NSObjectProtocol where Self: NSObject {
         - closure: The handler that is invoked whenever the property is set. It receives:
             - `object`: The instance on which the property is being set.
             - `value`: The new value that is about to be written to the property.
-            - `original`: A block that invokes the original setter behavior. If the block isn't called, the property will not be updated.
+            - `original`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
 
      Example usage:
      ```swift
