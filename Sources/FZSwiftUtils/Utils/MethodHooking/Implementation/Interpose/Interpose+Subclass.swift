@@ -8,11 +8,10 @@
 import Foundation
 
 class InterposeSubclass {
-
-    private enum Constants {
-        static let subclassSuffix = "InterposeKit_"
-    }
-
+    
+    static var pool: Set<ObjectIdentifier> = []
+    static var byClass: [ObjectIdentifier: AnyClass] = [:]
+    
     enum ObjCSelector {
         static let getClass = Selector((("class")))
     }
@@ -49,7 +48,7 @@ class InterposeSubclass {
         let className = NSStringFromClass(perceivedClass)
         // Right now we are wasteful. Might be able to optimize for shared IMP?
         let uuid = UUID().uuidString.replacingOccurrences(of: "-", with: "")
-        let subclassName = Constants.subclassSuffix + className + uuid
+        let subclassName = "InterposeKit_" + className + uuid
 
         let subclass: AnyClass? = subclassName.withCString { cString in
             // swiftlint:disable:next force_cast
@@ -68,6 +67,8 @@ class InterposeSubclass {
         }
 
         object_setClass(object, nnSubclass)
+        InterposeSubclass.pool.insert(ObjectIdentifier(nnSubclass))
+        InterposeSubclass.byClass[ObjectIdentifier(actualClass)] = nnSubclass
         let oldName = NSStringFromClass(class_getSuperclass(object_getClass(object)!)!)
         Interpose.log("Generated \(NSStringFromClass(nnSubclass)) for object (was: \(oldName))")
         return nnSubclass
@@ -76,7 +77,7 @@ class InterposeSubclass {
     /// We need to reuse a dynamic subclass if the object already has one.
     private func getExistingSubclass() -> AnyClass? {
         let actualClass: AnyClass = object_getClass(object)!
-        if NSStringFromClass(actualClass).hasPrefix(Constants.subclassSuffix) {
+        if InterposeSubclass.pool.contains(ObjectIdentifier(actualClass)) {
             return actualClass
         }
         return nil
