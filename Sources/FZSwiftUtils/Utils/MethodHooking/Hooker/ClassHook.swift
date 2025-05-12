@@ -131,7 +131,7 @@ struct ClassHook<T: AnyObject> {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try Hook(for: targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook.Class(targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
@@ -238,7 +238,7 @@ struct ClassHook<T: AnyObject> {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try Hook(for: targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook.Class(targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
@@ -280,7 +280,7 @@ struct ClassHook<T: AnyObject> {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try Hook(for: targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook.Class(targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult

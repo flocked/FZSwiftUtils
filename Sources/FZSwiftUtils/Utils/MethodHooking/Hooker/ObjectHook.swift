@@ -138,7 +138,7 @@ struct ObjectHook<T: AnyObject> {
      */
     @discardableResult
     public func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(for: object, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Object(object, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
@@ -254,7 +254,7 @@ struct ObjectHook<T: AnyObject> {
      */
     @discardableResult
     public func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(for: object, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Object(object, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
@@ -294,7 +294,7 @@ struct ObjectHook<T: AnyObject> {
      */
     @discardableResult
     public func hook(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(for: object, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Object(object, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     @discardableResult
@@ -325,7 +325,7 @@ struct ObjectHook<T: AnyObject> {
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
         } as @convention(block) (NSObject) -> Void
-        return try Hook(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        return try Hook.Object(object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: after deinit
@@ -348,7 +348,7 @@ struct ObjectHook<T: AnyObject> {
      */
     @discardableResult
     public func hookDeInitAfter(closure: @escaping @convention(block) () -> Void) throws -> Hook {
-        try Hook(deinitAfter: object, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Deinit(object, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 
@@ -372,7 +372,7 @@ extension ObjectHook where T: NSObject {
      */
     @discardableResult
     func hookDeInitBefore(closure: @escaping @convention(block) () -> Void) throws -> Hook {
-        try Hook(for: object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Object(object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
     }
     
     // MARK: replace deinit
@@ -397,7 +397,7 @@ extension ObjectHook where T: NSObject {
      */
     @discardableResult
     func hookDeInit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> Hook {
-        try Hook(for: object, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Object(object, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
     }
 }
 

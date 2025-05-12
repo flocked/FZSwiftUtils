@@ -106,4 +106,36 @@ class _AnyObject {
         self.object = object
     }
 }
+
+extension _AnyObject {
+    var hookClosures: HookClosures {
+        get { getAssociatedValue("hookClosures", initialValue: .init()) }
+        set { setAssociatedValue(newValue, key: "hookClosures") }
+    }
+    
+    class HookClosures {
+        var closures: [Selector: [HookMode : [ObjectIdentifier: AnyObject]]]  = [:]
+                
+        var isEmpty: Bool {
+            closures.values.allSatisfy { $0.values.allSatisfy(\.isEmpty) }
+        }
+        
+        subscript(selector: Selector) -> (before: [AnyObject], after: [AnyObject], instead: [AnyObject]) {
+            let values = closures[selector, default: [:]]
+            return (Array(values[.before, default: [:]].values), Array(values[.after, default: [:]].values), Array(values[.instead, default: [:]].values))
+        }
+        
+        func append(_ hookClosure: AnyObject, selector: Selector, mode: HookMode) throws {
+            guard closures[selector, default: [:]][mode]?.updateValue(hookClosure, forKey: .init(hookClosure)) == nil else {
+                throw HookError.duplicateHookClosure
+            }
+        }
+        
+        func remove(_ hookClosure: AnyObject, selector: Selector, mode: HookMode) throws {
+            guard closures[selector, default: [:]][mode]?.removeValue(forKey: .init(hookClosure)) != nil else {
+                throw HookError.duplicateHookClosure
+            }
+        }
+    }
+}
 #endif

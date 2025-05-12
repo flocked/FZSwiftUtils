@@ -169,17 +169,16 @@ extension Hook {
         let closureSignature = try Signature(closure: closure)
         let methodSignature = try Signature(typeEncoding: typeEncoding)
         
-        let closureArguments = Array(closureSignature.argumentTypes.dropFirst())
+        let closureArguments = Array(closureSignature.argumentTypes.dropFirst(2))
         let methodArguments = Array(methodSignature.argumentTypes.dropFirst(2))
         
-        guard closureArguments.count == methodArguments.count else {
-            throw HookError.incompatibleClosureSignature("When adding a method, the closure needs to have the same amount of parameters as the original protocol method. Closure: \(closureArguments.count), expected: \(methodArguments.count)")
+        let methodEncoding = "@" + methodSignature.argumentTypes.toSignatureString().dropFirst(2)
+        let closureEncoding = closureSignature.argumentTypes.toSignatureString().dropFirst(2)
+        guard methodEncoding == closureEncoding else {
+            throw HookError.incompatibleClosureSignature("When adding a method, the closure needs to have the same parameters as the original protocol method. Closure: \(closureSignature.argumentTypes.toSignatureString()), original: \(methodSignature.argumentTypes.toSignatureString())")
         }
         guard closureSignature.returnType == methodSignature.returnType else {
             throw HookError.incompatibleClosureSignature("When adding a method, The return type of the closure needs to have the same return type as the original protocol method. Closure: \(closureSignature.returnType.code), original: \(methodSignature.returnType.code)")
-        }
-        guard closureArguments == methodArguments else {
-            throw HookError.incompatibleClosureSignature("When adding a method, the closure needs to have the same parameters as the original protocol method. Closure: \(closureSignature.argumentTypes.toSignatureString()), original: \(methodSignature.argumentTypes.toSignatureString())")
         }
     }
 }

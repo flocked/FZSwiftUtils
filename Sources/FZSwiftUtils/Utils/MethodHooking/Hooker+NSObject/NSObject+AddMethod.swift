@@ -20,14 +20,14 @@ extension NSObject {
      
      try tableView.addMethod(selector, closure: { session, point in
           // Method called
-      } as @convention(block) (NSDraggingSession, NSPoint) -> Void)
+      } as @convention(block) (NSTableView, NSDraggingSession, NSPoint) -> Void)
      ```
                     
      - Returns: The token for resetting.
      */
     @discardableResult
     public func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        try Hook.AddMethod(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
     }
     
     @discardableResult
@@ -45,14 +45,14 @@ extension NSObject {
      ```swift
      try NSTableView.addMethod(selector, closure: { session, point in
           // Method called
-      } as @convention(block) (NSDraggingSession, NSPoint) -> Void)
+      } as @convention(block) (NSTableView, NSDraggingSession, NSPoint) -> Void)
      ```
                     
      - Returns: The token for resetting.
      */
     @discardableResult
     public static func addMethod(all selector: Selector, closure: Any) throws -> Hook {
-        try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        try Hook.AddMethod(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
     }
     
     @discardableResult

@@ -128,7 +128,7 @@ struct ClassInstanceHook<T: AnyObject> {
      */
     @discardableResult
     public func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(for: targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        try Hook.Class(targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
     
     @discardableResult
@@ -232,7 +232,7 @@ struct ClassInstanceHook<T: AnyObject> {
      */
     @discardableResult
     public func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(for: targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        try Hook.Class(targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
     
     @discardableResult
@@ -271,7 +271,7 @@ struct ClassInstanceHook<T: AnyObject> {
      */
     @discardableResult
     public func hook(_ selector: Selector, closure: Any) throws -> Hook {
-        try Hook(for: targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        try Hook.Class(targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
     
     @discardableResult
@@ -301,7 +301,7 @@ extension ClassInstanceHook where T: NSObject {
      */
     @discardableResult
     func hookDeInitBefore(closure: @escaping @convention(block) () -> Void) throws -> Hook {
-        try Hook(for: targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        try Hook.Class(targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
     
     /**
@@ -326,7 +326,7 @@ extension ClassInstanceHook where T: NSObject {
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
         } as @convention(block) (NSObject) -> Void
-        return try Hook(for: targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        return try Hook.Class(targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
         
     /**
@@ -347,7 +347,7 @@ extension ClassInstanceHook where T: NSObject {
      */
     @discardableResult
     func hookDeInitAfter(closure: @escaping @convention(block) () -> Void) throws -> Hook {
-        try Hook(for: targetClass, selector: .dealloc, mode: .after, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        try Hook.Class(targetClass, selector: .dealloc, mode: .after, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
         
     /**
@@ -370,7 +370,7 @@ extension ClassInstanceHook where T: NSObject {
      */
     @discardableResult
     func hookDeInit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> Hook {
-        try Hook(for: targetClass, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
+        try Hook.Class(targetClass, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
 }
 
