@@ -84,6 +84,11 @@ public extension StringProtocol {
     func trimmingCharacters(in sets: [CharacterSet]) -> String {
         trimmingCharacters(in: sets.union)
     }
+    
+    /// A Boolean value indicating whether the string matches the specific character set.
+    func matches(_ characterSet: CharacterSet) -> Bool {
+        unicodeScalars.allSatisfy { characterSet.contains($0) }
+    }
 }
 
 public extension StringProtocol {
