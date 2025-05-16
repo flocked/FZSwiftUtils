@@ -17,11 +17,6 @@ extension CharacterSet {
     public func contains(_ others: [CharacterSet]) -> Bool {
         contains(others.union)
     }
-    
-    /// Returns a character set containing lowercase and uppercase characters.
-    public static var letters: CharacterSet {
-        .lowercaseLetters + .uppercaseLetters
-    }
         
     public static func + (lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
         lhs.union(rhs)
