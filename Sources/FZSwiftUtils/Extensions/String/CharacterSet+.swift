@@ -7,7 +7,11 @@
 
 import Foundation
 
-extension CharacterSet {
+extension CharacterSet: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self = .init(charactersIn: value)
+    }
+    
     /// A Boolean value indicating whether the character set contains the other character set.
     public func contains(_ other: CharacterSet) -> Bool {
         self - other != self
@@ -23,7 +27,7 @@ extension CharacterSet {
     }
     
     public static func += (lhs: inout Self, rhs: CharacterSet) {
-        lhs = lhs.union(rhs)
+        lhs = lhs + rhs
     }
     
     public static func - (lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
@@ -31,7 +35,7 @@ extension CharacterSet {
     }
     
     public static func -= (lhs: inout Self, rhs: CharacterSet) {
-        lhs = lhs.subtracting(rhs)
+        lhs = lhs - rhs
     }
 }
 
