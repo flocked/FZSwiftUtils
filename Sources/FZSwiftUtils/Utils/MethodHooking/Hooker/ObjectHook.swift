@@ -302,32 +302,6 @@ struct ObjectHook<T: AnyObject> {
         try hook(NSSelectorFromString(selector), closure: closure)
     }
     
-    /**
-     Execute the closure with the object before the object deinit.
-     
-     Example usage:
-
-     ```
-     try! ObjectHook(object).hookDeInitBefore { obj in
-        print("hooked")
-     }
-     ```
-     
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     
-     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
-     - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
-     */
-    @discardableResult
-    public func hookDeInitBefore(closure: @escaping (_ object: T) -> Void) throws -> Hook {
-        let closure = { obj in
-            guard let obj = obj as? T else { fatalError() }
-            closure(obj)
-        } as @convention(block) (NSObject) -> Void
-        return try Hook.Object(object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
-    }
-    
     // MARK: after deinit
     
     /**
@@ -353,6 +327,33 @@ struct ObjectHook<T: AnyObject> {
 }
 
 extension ObjectHook where T: NSObject {
+    /**
+     Execute the closure with the object before the object deinit.
+     
+     Example usage:
+
+     ```
+     try! ObjectHook(object).hookDeInitBefore { obj in
+        print("hooked")
+     }
+     ```
+     
+     - parameter closure: The hook closure.
+     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     
+     - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
+     - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
+     */
+    @discardableResult
+    func hookDeInitBefore(closure: @escaping (_ object: T) -> Void) throws -> Hook {
+        let closure = { obj in
+            guard let obj = obj as? T else { fatalError() }
+            closure(obj)
+        } as @convention(block) (NSObject) -> Void
+        return try Hook.Object(object, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+    }
+    
+    
     // MARK: before deinit
     /**
      Execute the closure before the object deinit.

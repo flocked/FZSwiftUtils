@@ -218,6 +218,7 @@ public extension Date {
         set { set(.weekdayOrdinal, to: newValue) }
     }
     
+#if compiler(>=6.0)
     /// The day of the year of this date.
     var dayOfYear: Int {
         get {
@@ -237,6 +238,18 @@ public extension Date {
             }
         }
     }
+    #else
+    /// The day of the year of this date.
+    var dayOfYear: Int {
+        get { Calendar.current.ordinality(of: .day, in: .year, for: self) ?? 0 }
+        set {
+            let calendar = Calendar.current
+            let timeComponents = calendar.dateComponents([.hour, .minute, .second, .nanosecond], from: self)
+            guard let newDate = calendar.date(byAdding: .day, value: newValue - 1, to: beginning(of: .year)!),  let finalDate = calendar.date(bySettingHour: timeComponents.hour ?? 0, minute: timeComponents.minute ?? 0, second: timeComponents.second ?? 0, of: newDate) else { return }
+            self = finalDate
+        }
+    }
+    #endif
 
     /// The hour of this date.
     var hour: Int {

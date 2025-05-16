@@ -13,8 +13,7 @@ struct ClassHook<T: AnyObject> {
     let targetClass: AnyClass
     var shouldApply = true
 
-    public init?(_ targetClass: T.Type) {
-        guard let targetClass = object_getClass(targetClass) else { return nil }
+    public init(_ targetClass: T.Type) {
         self.targetClass = targetClass
     }
     
