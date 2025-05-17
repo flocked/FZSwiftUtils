@@ -133,7 +133,7 @@ extension _AnyClass {
             guard let targetClass = targetClass as? NSObject.Type else { return }
             if newValue.count == 1 {
                 do {
-                    try targetClass.hook(all: #selector(NSObject.responds(to:)), closure: {
+                    try targetClass.hook(all: "respondsToSelector:", closure: {
                         original, object, sel, selector in
                         if let selector = selector, _AnyClass(targetClass).addedMethods.contains(selector) {
                             return true
@@ -146,7 +146,7 @@ extension _AnyClass {
                     Swift.print(error)
                 }
             } else if newValue.isEmpty {
-                revertHooks(for: #selector(NSObject.responds(to:)))
+                revertHooks(for: "respondsToSelector:")
             }
         }
     }

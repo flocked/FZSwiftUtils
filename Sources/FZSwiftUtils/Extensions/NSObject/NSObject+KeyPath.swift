@@ -53,4 +53,11 @@ public extension NSObjectProtocol where Self: NSObject {
     func setValue<Value>(_ value: Value?, forKeyPath keyPath: KeyPath<Self, Value?>) {
         setValue(value, forKeyPath: keyPath.stringValue)
     }
+    
+    /// Sets the value of the specific key path and returns the object.
+    @discardableResult
+    func setValue<Value>(_ keyPath: ReferenceWritableKeyPath<Self, Value>, to value: Value) -> Self {
+        self[keyPath: keyPath] = value
+        return self
+    }
 }

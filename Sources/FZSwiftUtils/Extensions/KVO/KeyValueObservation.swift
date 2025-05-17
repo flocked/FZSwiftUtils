@@ -38,7 +38,7 @@ public class KeyValueObservation: NSObject {
         set { observer.isActive = newValue }
     }
     
-    let observer: KVObserver
+    fileprivate let observer: KVObserver
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
         guard keyPath._kvcKeyPathString != nil else { return nil }
@@ -183,4 +183,13 @@ private extension KeyValueObservation {
             handler(change)
         }
     }
+}
+
+fileprivate protocol KVObserver: NSObject {
+    var isActive: Bool { get set }
+    var keyPathString: String { get }
+}
+
+fileprivate extension KVObserver {
+    var keyPathString: String { "" }
 }

@@ -27,7 +27,11 @@ extension NSObject {
      */
     @discardableResult
     public func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
+        #if os(macOS) || os(iOS)
         try Hook.AddMethod(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        #else
+        try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        #endif
     }
     
     @discardableResult
@@ -52,12 +56,11 @@ extension NSObject {
      */
     @discardableResult
     public static func addMethod(all selector: Selector, closure: Any) throws -> Hook {
+        #if os(macOS) || os(iOS)
         try Hook.AddMethod(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
-    }
-    
-    @discardableResult
-    public static func addMethod(all selector: String, closure: Any) throws -> Hook {
-        try addMethod(all: NSSelectorFromString(selector), closure: closure)
+        #else
+        try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        #endif
     }
 }
 
@@ -190,6 +193,21 @@ class AddInstanceMethodHook: AnyHook {
         // Weakly store reference to hook inside the block of the IMP.
         Interpose.storeHook(hook: self, to: block)
     }
+}
+
+fileprivate func typeEncoding(for selector: Selector, _class: AnyClass, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
+    var protocolCount: UInt32 = 0
+    if let protocols = class_copyProtocolList(_class, &protocolCount) {
+        for i in 0..<Int(protocolCount) {
+            if let typeEncoding = protocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
+                return typeEncoding
+            }
+        }
+    }
+    if let superclass = class_getSuperclass(_class), superclass != _class {
+        return typeEncoding(for: selector, _class: superclass)
+    }
+   return nil
 }
 
 #if os(watchOS) || os(tvOS)

@@ -8,139 +8,6 @@
 import Foundation
 import _ExceptionCatcher
 
-extension NSObjectProtocol where Self: NSObject {
-    /// The type of the object.
-    public var classType: Self.Type {
-        return type(of: self)
-    }
-    
-    /// Sets the value of the specific key path and returns the object.
-    @discardableResult
-    public func setValue<Value>(_ keyPath: ReferenceWritableKeyPath<Self, Value>, to value: Value) -> Self {
-        self[keyPath: keyPath] = value
-        return self
-    }
-}
-
-/// `NSCoding` errors.
-enum NSCodingError: LocalizedError {
-    /// Casting the object failed.
-    case castingFailed(_ fromClass: AnyClass, _ toClass: AnyClass)
-    /// Decoding the object failed.
-    case decodingFailed
-    /// Class isn't a subclass.
-    case notASubclass(_ subclass: AnyClass, _ class: AnyClass)
-    
-    var errorDescription: String? {
-        switch self {
-        case .decodingFailed:
-            return "Couldn't decode the object."
-        case .castingFailed(let class1, let class2):
-            return "Couldn't cast the object from \(class1) to \(class2)"
-        case .notASubclass(let class1, let class2):
-            return "\(class1) isn't a subclass of \(class2)"
-        }
-    }
-}
-
-public extension NSCoding {
-    /**
-     Archives the object into `Data`.
-     
-     If the object conforms to `NSSecureCoding`, set `requiringSecureCoding` to `true` for added security.
-
-     - Parameter requiringSecureCoding: A Boolean value indicating whether secure coding is required.
-     - Throws: An error if the encoding process fails.
-     - Returns: A `Data` representation of the object.
-     */
-    func archivedData(requiringSecureCoding: Bool = false) throws -> Data {
-        try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: requiringSecureCoding)
-    }
-}
-
-public extension NSCoding where Self: NSObject {
-    /**
-     Creates an archived-based copy of the object.
-
-     - Throws: An error if copying fails.
-     */
-    func archiveBasedCopy() throws -> Self {
-        let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-        unarchiver.requiresSecureCoding = false
-        guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
-            throw NSCodingError.decodingFailed
-        }
-        guard let copy = copy as? Self else {
-            throw NSCodingError.castingFailed(type(of: copy as AnyObject), Self.self)
-        }
-        return copy
-    }
-    
-    /**
-     Creates an archived-based copy of the object as the specified subclass.
-     
-     - Parameter subclass: The type of the subclass for the copy.
-
-     - Throws: An error if copying fails or the specified class isn't a subclass.
-     */
-    func archiveBasedCopy<Subclass: NSObject & NSCoding>(as subclass: Subclass.Type) throws -> Subclass {
-        guard Subclass.self is Self.Type else {
-            throw NSCodingError.notASubclass(Subclass.self, Self.self)
-        }
-        let subclassName = NSStringFromClass(Subclass.self)
-        NSKeyedArchiver.setClassName(subclassName, for: Self.self)
-        let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false)
-        NSKeyedArchiver.setClassName(nil, for: Self.self)
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-        unarchiver.requiresSecureCoding = false
-        unarchiver.setClass(Subclass.self, forClassName: subclassName)
-        guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
-            throw NSCodingError.decodingFailed
-        }
-        guard let copy = copy as? Subclass else {
-            throw NSCodingError.castingFailed(type(of: copy as AnyObject), Subclass.self)
-        }
-        return copy
-    }
-    
-    /// Returns a new instance that’s a copy of the receiver.
-    func copyAsSelf() -> Self? {
-        copy() as? Self
-    }
-}
-
-public extension NSObjectProtocol where Self: NSObject {
-    /**
-     Registers an observer object to receive KVO notifications for the key path relative to the object receiving this message.
-
-     - Parameters:
-        - observer: The object to register for KVO notifications. The observer must implement the key-value observing method `observeValue(forKeyPath:of:change:context:)`.
-        - keypath: The key path to stop observing.
-        - options: The observation options.
-        - context: Arbitrary data that is passed to observer in `observeValue(forKeyPath:of:change:context:)`.
-     */
-    func addObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>,
-                            options: NSKeyValueObservingOptions = [],
-                            context: UnsafeMutableRawPointer? = nil) {
-        guard let keypathString = keypath._kvcKeyPathString else { return }
-        addObserver(observer, forKeyPath: keypathString, options: options, context: context)
-    }
-    
-    /**
-     Stops the observer object from receiving change notifications for the property specified by the key path.
-
-     - Parameters:
-        - observer: The observer to remove.
-        - keypath: The key path to stop observing.
-        - context: Arbitrary data that more specifically identifies the observer to be removed.
-     */
-    func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>, context: UnsafeMutableRawPointer? = nil) {
-        guard let keypathString = keypath._kvcKeyPathString else { return }
-        removeObserver(observer, forKeyPath: keypathString, context: context)
-    }
-}
-
 public extension NSObject {
     /// The identifier of the object.
     var objectIdentifier: ObjectIdentifier {
@@ -232,25 +99,6 @@ public extension NSObject {
         return false
     }
 
-    /**
-     Checks if the object is a subclass of the specified class.
-
-     - Parameters:
-        - class_: The class to check against.
-
-     - Returns: `true` if the object is a subclass of the specified class, `false` otherwise.
-     */
-    func isSubclass(of class_: AnyClass) -> Bool {
-        var currentClass: AnyClass = type(of: self)
-        while let superClass: AnyClass = class_getSuperclass(currentClass), superClass != currentClass {
-            if superClass == class_ {
-                return true
-            }
-            currentClass = superClass
-        }
-        return false
-    }
-
     /// Returns the value of the Ivar with the specified name.
     func getIvarValue<T>(for name: String) -> T? {
         guard let ivar = class_getInstanceVariable(type(of: self), name) else { return nil }
@@ -299,18 +147,78 @@ public extension NSObject {
         }
         return false
     }
-}
-
-extension NSObjectProtocol where Self: NSObject {
-    /// Returns all subclasses for the class.
-    public static func allSubclasses() -> [Self.Type] {
-        NSObject.allSubclasses(of: self)
+    
+    /// A Boolean value indicatingwhether the object is a subclass of, or identical to the specified class.
+    func isSubclass(of aClass: AnyClass) -> Bool {
+        Self.isSubclass(of: aClass)
     }
-}
- 
-extension NSObject {
+    
+    /// Returns an array of all superclasses of the class, in order from immediate superclass up to `NSObject`.
+    class var superclasses: [AnyClass] {
+        Array(sequence(first: superclass(), next: { $0?.superclass() })).nonNil
+    }
+    
+    /**
+     Returns all protocols the class conforms to.
+
+     - Parameters:
+       - includeSuperclasses: A Boolean value indicating whether to include protocols of superclasses in the search
+       - includeInheritedProtocols: A Boolean value indicating whether to include protocols inherited by each protocol recursively.
+
+     - Returns: An array of `Protocol` objects representing all protocols the class conforms to, optionally including those of its superclasses and inherited protocols.
+     */
+    class func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
+        var visited = Set<String>()
+        var result: [Protocol] = []
+        
+        for cls in includeSuperclasses ? [self] + superclasses : [self] {
+            var count: UInt32 = 0
+            if let protocolList = class_copyProtocolList(cls, &count) {
+                for i in 0..<Int(count) {
+                    let proto = protocolList[i]
+                    let name = NSStringFromProtocol(proto)
+                    if visited.insert(name).inserted {
+                        result.append(proto)
+                        if includeInheritedProtocols {
+                            appendInheritedProtocols(of: proto, into: &result, visited: &visited)
+                        }
+                    }
+                }
+            }
+        }
+
+        return result
+    }
+
+    private class func appendInheritedProtocols(of proto: Protocol, into result: inout [Protocol], visited: inout Set<String>) {
+        var count: UInt32 = 0
+        if let inherited = protocol_copyProtocolList(proto, &count) {
+            for i in 0..<Int(count) {
+                let inheritedProto = inherited[i]
+                let name = NSStringFromProtocol(inheritedProto)
+                if visited.insert(name).inserted {
+                    result.append(inheritedProto)
+                    appendInheritedProtocols(of: inheritedProto, into: &result, visited: &visited)
+                }
+            }
+        }
+    }
+    
+    /**
+     Executes a block of code that may throw an Objective-C `NSException` and catches it.
+
+     This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
+
+     - Parameter - tryBlock: A closure containing Objective-C code that may throw an exception. This block is executed immediately and must not escape its scope.
+     */
+    static func catchException(tryBlock: ()->()) throws {
+        try _catchException {
+            tryBlock()
+        }
+    }
+
     /// Returns all classes.
-    public static func allClasses() -> [AnyClass] {
+    static func allClasses() -> [AnyClass] {
         let expectedClassCount = objc_getClassList(nil, 0) * 2
         let allClasses = UnsafeMutablePointer<AnyClass>.allocate(capacity: Int(expectedClassCount))
         let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)
@@ -321,7 +229,7 @@ extension NSObject {
     }
     
     /// Returns all subclasses for the specified class.
-    public static func allSubclasses<T>(of baseClass: T) -> [T] {
+    static func allSubclasses<T>(of baseClass: T) -> [T] {
         var matches: [T] = []
         for currentClass in allClasses() {
             #if os(macOS)
@@ -340,14 +248,50 @@ extension NSObject {
     static func allClasses(implementing _protocol: Protocol) -> [AnyClass] {
         allClasses().filter({ class_conformsToProtocol($0, _protocol) })
     }
-    
-    private static func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
-        guard let superclass = class_getSuperclass(type), superclass != type else { return type }
-        return class_getRootSuperclass(superclass)
-    }
 }
 
 extension NSObjectProtocol where Self: NSObject {
+    /// The type of the object.
+    public var classType: Self.Type {
+        type(of: self)
+    }
+    
+    /**
+     Registers an observer object to receive KVO notifications for the key path relative to the object receiving this message.
+
+     - Parameters:
+        - observer: The object to register for KVO notifications. The observer must implement the key-value observing method `observeValue(forKeyPath:of:change:context:)`.
+        - keypath: The key path to stop observing.
+        - options: The observation options.
+        - context: Arbitrary data that is passed to observer in `observeValue(forKeyPath:of:change:context:)`.
+     */
+    public func addObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>,
+                            options: NSKeyValueObservingOptions = [],
+                            context: UnsafeMutableRawPointer? = nil) {
+        guard let keypathString = keypath._kvcKeyPathString else { return }
+        addObserver(observer, forKeyPath: keypathString, options: options, context: context)
+    }
+    
+    /**
+     Stops the observer object from receiving change notifications for the property specified by the key path.
+
+     - Parameters:
+        - observer: The observer to remove.
+        - keypath: The key path to stop observing.
+        - context: Arbitrary data that more specifically identifies the observer to be removed.
+     */
+    public func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>, context: UnsafeMutableRawPointer? = nil) {
+        guard let keypathString = keypath._kvcKeyPathString else { return }
+        removeObserver(observer, forKeyPath: keypathString, context: context)
+    }
+    
+    /// Returns all subclasses for the class.
+    public static func allSubclasses() -> [Self.Type] {
+        NSObject.allSubclasses(of: self)
+    }
+}
+
+fileprivate extension NSObjectProtocol where Self: NSObject {
     static func isProtocolSelector(_ selector: Selector) -> Bool {
         var protocolCount: UInt32 = 0
         if let protocols = class_copyProtocolList(self, &protocolCount) {
@@ -359,25 +303,6 @@ extension NSObjectProtocol where Self: NSObject {
         guard let superclass = superclass, superclass != type(of: self) else { return false }
         return superclass.isProtocolSelector(selector)
     }
-    
-    static func typeEncoding(for selector: Selector) -> UnsafePointer<CChar>? {
-        FZSwiftUtils.typeEncoding(for: selector, _class: self)
-    }
-}
-
-func typeEncoding(for selector: Selector, _class: AnyClass, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
-    var protocolCount: UInt32 = 0
-    if let protocols = class_copyProtocolList(_class, &protocolCount) {
-        for i in 0..<Int(protocolCount) {
-            if let typeEncoding = protocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
-                return typeEncoding
-            }
-        }
-    }
-    if let superclass = class_getSuperclass(_class), superclass != _class {
-        return typeEncoding(for: selector, _class: superclass)
-    }
-   return nil
 }
 
 extension Protocol {
@@ -418,7 +343,7 @@ extension Protocol {
         return nil
     }
     
-    private static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
+    static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
         // Check required methods
         var methodDesc = protocol_getMethodDescription(proto, selector, true, true)
         if methodDesc.name != nil, let types = methodDesc.types {
@@ -445,17 +370,7 @@ extension Protocol {
     }
 }
 
-extension NSObject {
-    /**
-     Executes a block of code that may throw an Objective-C `NSException` and catches it.
-
-     This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
-
-     - Parameter - tryBlock: A closure containing Objective-C code that may throw an exception. This block is executed immediately and must not escape its scope.
-     */
-    public static func catchException(tryBlock: ()->()) throws {
-        try _catchException {
-            tryBlock()
-        }
-    }
+fileprivate func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
+    guard let superclass = class_getSuperclass(type), superclass != type else { return type }
+    return class_getRootSuperclass(superclass)
 }
