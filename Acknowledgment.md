@@ -30,6 +30,10 @@ DisplayableEnum/NSObject+onChanged
 - Copyright (c) 2018-2022 Boinx Software Ltd. & Imagine GbR
 - https://github.com/boinx/BXSwiftUtils
 
+ExtendedAttributes
+- Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+- https://github.com/sindresorhus/ExtendedAttributes/tree/main
+
 LoremSwiftum
 - Copyright (c) 2014-2021 Lukas Kubanek
 - https://github.com/lukaskubanek/LoremSwiftum

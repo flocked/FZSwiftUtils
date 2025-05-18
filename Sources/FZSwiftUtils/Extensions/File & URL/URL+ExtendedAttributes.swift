@@ -20,7 +20,6 @@ public extension URL {
 
     /// An object for reading and writing extended attributes of a file system resource.
     class ExtendedAttributes {
-        public typealias Key = String
 
         /// The url of the file system resource.
         public private(set) var url: URL
@@ -35,76 +34,14 @@ public extension URL {
             self.url = url
         }
 
-        /*
-         public subscript<T>(key: Key, initalValue: T? = nil) -> T? where T: Codable {
-             get {
-                 if let value: T = getExtendedAttribute(for: key) {
-                     return value
-                 } else if let initalValue = initalValue {
-                     do {
-                         try setExtendedAttribute(initalValue, for: key)
-                         return initalValue
-                     } catch {
-                         return nil
-                     }
-                 }
-                 return nil
-             }
-             set { try? setExtendedAttributeExplicit(newValue, for: key) }
-         }
-         */
-
-        public subscript<T>(key: Key, initalValue: T? = nil) -> T? {
-            get {
-                if let value: T = getExtendedAttribute(for: key) {
-                    return value
-                } else if let initalValue = initalValue {
-                    do {
-                        try setExtendedAttributeExplicit(initalValue, for: key)
-                        return initalValue
-                    } catch {
-                        return nil
-                    }
-                }
-                return nil
-            }
-            set { try? setExtendedAttributeExplicit(newValue, for: key) }
+        public subscript<T>(key: String) -> T? {
+            get { try? get(key) }
+            set { try? set(newValue, for: key) }
         }
-
-        /**
-         Sets an attribute to a value.
-
-         - Parameters:
-            - value: The value, or `nil` if the attribute should be removed.
-            - key: The name of the attribute.
-
-         - Throws: Throws if the file doesn't exist or the attribute couldn't written.
-         */
-        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws where T: Codable {
-            if let value = value {
-                let data = try JSONEncoder().encode(value)
-                try setExtendedAttributeData(data, for: key)
-            } else {
-                try removeExtendedAttribute(key)
-            }
-        }
-
-        /**
-         Sets an attribute to a value.
-
-         - Parameters:
-            - value: The value, or `nil` if the attribute should be removed.
-            - key: The name of the attribute.
-
-         - Throws: Throws if the file doesn't exist or the attribute couldn't written.
-         */
-        public func setExtendedAttribute<T>(_ value: T?, for key: Key) throws {
-            if let value = value {
-                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
-                try setExtendedAttributeData(data, for: key)
-            } else {
-                try removeExtendedAttribute(key)
-            }
+        
+        public subscript<T>(key: String) -> T? where T: Codable {
+            get { try? get(key) }
+            set { try? set(newValue, for: key) }
         }
 
         /**
@@ -113,63 +50,51 @@ public extension URL {
          - Parameter key: The name of the attribute.
          - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
          */
-        public func extendedAttribute<T>(for key: Key) -> T? where T: Codable {
-            guard let data = extendedAttributeData(for: key) else { return nil }
-            return try? JSONDecoder().decode(T.self, from: data)
-        }
-
-        /**
-         The value of an key.
-
-         - Parameter key: The name of the attribute.
-         - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
-         */
-        public func extendedAttribute<T>(for key: Key) -> T? {
-            guard let data = extendedAttributeData(for: key), let any = try? PropertyListSerialization.propertyList(from: data, format: nil),
-                  let value = any as? T else { return nil }
+        public func get<T>(_ key: String) throws -> T?{
+            let data = try getData(for: key)
+            let value = try PropertyListSerialization.propertyList(from: data, format: nil)
+            guard let value = value as? T else { throw CocoaError(.coderInvalidValue) }
             return value
         }
+        
+        /**
+         The value of an key.
 
-        func getExtendedAttribute<T>(for key: Key) -> T? {
-            guard let data = extendedAttributeData(for: key) else { return nil }
-
-            if let codableType = T.self as? Decodable.Type, let value = try? JSONDecoder().decode(codableType.self, from: data) {
-                    return value as? T
-            }
-            if let value = try? PropertyListSerialization.propertyList(from: data, format: nil) as? T {
-                return value
-            }
-            return nil
+         - Parameter key: The name of the attribute.
+         - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
+         */
+        public func get<T>(_ key: String) throws -> T where T: Codable {
+            try PropertyListDecoder().decode(T.self, from: try getData(for: key))
         }
 
-        func setExtendedAttributeExplicit<T>(_ value: T?, for key: Key) throws {
-            if isCodable(for: value, key: key) {
-                if let codable = value as? Codable {
-                    try setExtendedAttribute(codable, for: key)
-                }
-            } else if isNonCodable(for: value, key: key) {
-                try setExtendedAttribute(value, for: key)
-            } else {
-                if let codable = value as? Codable {
-                    try setExtendedAttribute(codable, for: key)
-                } else {
-                    try setExtendedAttribute(value, for: key)
-                }
-            }
-        }
+        /**
+         Sets an attribute to a value.
 
-        func isNonCodable<T>(for _: T, key: Key) -> Bool {
-            if let data = extendedAttributeData(for: key) {
-                return ((try? PropertyListSerialization.propertyList(from: data, format: nil)) is T) == true
-            }
-            return false
-        }
+         - Parameters:
+            - value: The value, or `nil` if the attribute should be removed.
+            - key: The name of the attribute.
 
-        func isCodable<T>(for _: T, key: Key) -> Bool {
-            if let type = T.self as? Codable.Type, let data = extendedAttributeData(for: key) {
-                return (try? JSONDecoder().decode(type.self, from: data)) != nil
-            }
-            return false
+         - Throws: Throws if the file doesn't exist or the attribute couldn't written.
+         */
+        public func set<T>(_ value: T, for key: String, flags: Flags? = nil) throws {
+            let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
+            try setData(data, for: key, flags: flags)
+        }
+        
+        /**
+         Sets an attribute to a value.
+
+         - Parameters:
+            - value: The value, or `nil` if the attribute should be removed.
+            - key: The name of the attribute.
+
+         - Throws: Throws if the file doesn't exist or the attribute couldn't written.
+         */
+        public func set<T>(_ value: T, for key: String, flags: Flags? = nil) throws where T: Codable {
+            let encoder = PropertyListEncoder()
+            encoder.outputFormat = .binary
+            let data = try encoder.encode(value)
+            try setData(data, for: key, flags: flags)
         }
 
         /**
@@ -178,7 +103,7 @@ public extension URL {
          - Parameter key: The name of the attribute.
          - Throws: Throws if the value couldn't be removed.
          */
-        public func removeExtendedAttribute(_ key: Key) throws {
+        public func remove(_ key: String) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = removexattr(fileSystemPath, key, 0)
                 guard result >= 0 else { throw NSError.posix(errno) }
@@ -191,91 +116,61 @@ public extension URL {
          - Parameter key: The name of the attribute.
          - Returns: `true` if the attribute exists, or `false if it isn't.
          */
-        public func hasExtendedAttribute(_ key: Key) -> Bool {
-            let result = url.withUnsafeFileSystemRepresentation {
+        public func has(_ key: String) throws -> Bool {
+            let result = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Bool in
                 let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
-                return length >= 0
+                if length >= 0 {
+                    return true
+                } else if errno == 93 {
+                    return false
+                }
+                throw NSError.posix(errno)
             }
-
             return result
         }
 
-        /// A dictionary of all attributes.
-        public func allExtendedAttributes() throws -> [Key: Any] {
-            let keys = try listExtendedAttributes()
-            var values: [String: Any] = [:]
-            for key in keys {
-                if let data = extendedAttributeData(for: key) {
-                   if let value = try? PropertyListSerialization.propertyList(from: data, format: nil) {
-                     values[key] = value
-                   } else {
-                    values[key] = data
-                   }
-                }
-            }
-            return values
-        }
-
         /// An array of all attribute names.
-        public func listExtendedAttributes() throws -> [Key] {
+        public func allNames(withFlags: Bool = false) throws -> [String] {
             let list = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> [String] in
-
                 let length = listxattr(fileSystemPath, nil, 0, 0)
                 guard length >= 0 else { throw NSError.posix(errno) }
-
-                // Create buffer with required size
-
                 var data = Data(count: length)
                 let count = data.count
-
-                // Retrieve attribute list
-
                 try data.withUnsafeMutableBytes {
                     let bytes = $0.baseAddress?.bindMemory(to: CChar.self, capacity: count)
                     let result = listxattr(fileSystemPath, bytes, count, 0)
                     if result < 0 { throw NSError.posix(errno) }
                 }
-
-                let list = data.split(separator: 0).compactMap {
+                var list = data.split(separator: 0).compactMap {
                     String(data: Data($0), encoding: .utf8)
                 }
-
+                if !withFlags {
+                    list = try list.map { try Self.nameWithoutFlags($0) }
+                }
                 return list
             }
-
             return list
         }
 
-        public func extendedAttributeData(for key: Key) -> Data? {
-            let data = try? url.withUnsafeFileSystemRepresentation {
+        public func getData(for key: String) throws -> Data {
+            let data = try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in
-
-                // Determine attribute size
-
                 let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
                 guard length >= 0 else { throw NSError.posix(errno) }
-
-                // Create buffer with required size
-
                 var data = Data(count: length)
-
-                // Retrieve attribute
-
-                let count = data.count
                 let result = data.withUnsafeMutableBytes {
-                    getxattr(fileSystemPath, key, $0.baseAddress, count, 0, 0)
+                    getxattr(fileSystemPath, key, $0.baseAddress, length, 0, 0)
                 }
-
                 guard result >= 0 else { throw NSError.posix(errno) }
                 return data
             }
-
             return data
         }
 
-        public func setExtendedAttributeData(_ data: Data, for key: Key) throws {
+        public func setData(_ data: Data, for key: String, flags: Flags? = nil) throws {
+            let key = if let flags { try Self.nameWithFlags(key, flags: flags) } else { key }
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = data.withUnsafeBytes {
                     setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
@@ -283,5 +178,62 @@ public extension URL {
                 guard result >= 0 else { throw NSError.posix(errno) }
             }
         }
+    }
+}
+
+extension URL.ExtendedAttributes {
+    public struct Flags: OptionSet {
+        /**
+        Declare that the attribute should not be exported. This is deliberately a bit vague, but this is used by `XATTR_OPERATION_INTENT_SHARE` to indicate not to preserve the attribute.
+        */
+        public static let noExport = Self(rawValue: XATTR_FLAG_NO_EXPORT)
+
+        /**
+        Declares the  attribute to be tied to the contents of the file (or vice versa), such that it should be re-created when the contents of the file change. Examples might include cryptographic keys, checksums, saved position or search information, and text encoding.
+
+        This property causes the attribute to be preserved for copy and share, but not for safe save. In a safe save, the attriubte exists on the original, and will not be copied to the new version.
+        */
+        public static let contentDependent = Self(rawValue: XATTR_FLAG_CONTENT_DEPENDENT)
+
+        /**
+        Declares that the attribute is never to be copied, for any intention type.
+        */
+        public static let neverPreserve = Self(rawValue: XATTR_FLAG_NEVER_PRESERVE)
+
+        /**
+        Declares that the attribute is to be synced, used by the `XATTR_OPERATION_ITENT_SYNC` intention. Syncing tends to want to minimize the amount of metadata synced around, hence the default behavior is for the attribute NOT to be synced, even if it would else be preserved for the `XATTR_OPERATION_ITENT_COPY` intention.
+        */
+        public static let syncable = Self(rawValue: XATTR_FLAG_SYNCABLE)
+
+        /**
+        Declares that the attribute should only be copied if the intention is `XATTR_OPERATION_INTENT_BACKUP`. That intention is distinct from the `XATTR_OPERATION_INTENT_SYNC` intention in that there is no desire to minimize the amount of metadata being moved.
+        */
+        public static let onlyBackup = Self(rawValue: XATTR_FLAG_ONLY_BACKUP)
+
+        public var rawValue: xattr_flags_t
+
+        public init(rawValue: xattr_flags_t) {
+            self.rawValue = rawValue
+        }
+    }
+    
+    static func flagsFromName(_ name: String) -> Flags {
+        Flags(rawValue: xattr_flags_from_name(name))
+    }
+
+    static func nameWithoutFlags(_ name: String) throws -> String {
+        guard let newName = xattr_name_without_flags(name) else {
+            throw NSError.posix(errno)
+        }
+        defer { newName.deallocate() }
+        return String(cString: newName)
+    }
+
+    static func nameWithFlags(_ name: String, flags: Flags) throws -> String {
+        guard let newName = xattr_name_with_flags(name, flags.rawValue) else {
+            throw NSError.posix(errno)
+        }
+        defer { newName.deallocate() }
+        return String(cString: newName)
     }
 }

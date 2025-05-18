@@ -39,19 +39,6 @@ public extension NSObject {
     }
     
     /**
-     Sets the value safely for the specified key, only if the object contains a property with the given key.
-
-     - Parameters:
-        - value: The value to set.
-        - key: The key of the property to set.
-     */
-    func setValue(safely value: Any?, forKey key: String) {
-        try? NSObject.catchException {
-            setValue(value, forKey: key)
-        }
-    }
-    
-    /**
      Returns the value for the derived property identified by a given key path.
 
      - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
@@ -66,6 +53,19 @@ public extension NSObject {
     }
     
     /**
+     Sets the value safely for the specified key, only if the object contains a property with the given key.
+
+     - Parameters:
+        - value: The value to set.
+        - key: The key of the property to set.
+     */
+    func setValue(safely value: Any?, forKey key: String) {
+        try? NSObject.catchException {
+            setValue(value, forKey: key)
+        }
+    }
+    
+    /**
      Sets the value for the property identified by a given key path to a given value.
 
      - Parameters:
@@ -76,6 +76,60 @@ public extension NSObject {
         try? NSObject.catchException {
             setValue(value, forKeyPath: keyPath)
         }
+    }
+    
+    /**
+     Sets the value for the property identified by a given key path to a given value.
+
+     - Parameters:
+        - value: The value to set.
+        - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
+     */
+    class func setValue(safely value: Any?, forKeyPath keyPath: String) {
+        try? NSObject.catchException {
+            setValue(value, forKeyPath: keyPath)
+        }
+    }
+    
+    /**
+     Returns the value for the property identified by a given key.
+
+     - Parameter key: The key of the property.
+     - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
+     */
+    class func value(forKeySafely key: String) -> Any? {
+        var value: Any?
+        try? NSObject.catchException {
+            value = self.value(forKey: key)
+        }
+        return value
+    }
+    
+    /**
+     Sets the value safely for the specified key, only if the object contains a property with the given key.
+
+     - Parameters:
+        - value: The value to set.
+        - key: The key of the property to set.
+     */
+    class func setValue(safely value: Any?, forKey key: String) {
+        try? NSObject.catchException {
+            setValue(value, forKey: key)
+        }
+    }
+    
+    /**
+     Returns the value for the derived property identified by a given key path.
+
+     - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
+     - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
+     */
+    class func value(forKeyPathSafely keyPath: String) -> Any? {
+        var value: Any?
+        try? NSObject.catchException {
+            value = self.value(forKeyPath: keyPath)
+        }
+        return value
     }
 
     /**
