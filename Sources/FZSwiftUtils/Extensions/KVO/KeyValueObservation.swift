@@ -9,16 +9,19 @@ import Foundation
 
 /**
  An object that observes the value of a key-value compatible property,
+  
+ To observe the value of a `NSObject` property that is key-value compatible, use `observeChanges(for:)`.
  
- To observe the value of a property that is key-value compatible, use `observeChanges(for:)`
+ Exanple usage:
  
  ```swift
- let observation = textField.observeChanges(for: \.stringValue)
- { oldValue, newValue in
+ let observation = textField.observeChanges(for: \.stringValue) {
+    oldValue, newValue in
     // handle changes
  }
  ```
- To stop the observation of the property, either call ``invalidate()```, or deinitalize the object.
+ 
+ When the object is deinited or invalidated, it will stop observing.
  */
 public class KeyValueObservation: NSObject {
 

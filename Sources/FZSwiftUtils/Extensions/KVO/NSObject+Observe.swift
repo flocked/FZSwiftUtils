@@ -9,10 +9,13 @@
 
 import Foundation
 
+
 extension NSObjectProtocol where Self: NSObject {    
     /**
      Observes changes for the specified property.
-     
+          
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+               
      Example usage:
      
      ```swift
@@ -29,7 +32,7 @@ extension NSObjectProtocol where Self: NSObject {
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
@@ -38,6 +41,8 @@ extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes for the specified property.
      
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     
      Example usage:
      
      ```swift
@@ -54,7 +59,7 @@ extension NSObjectProtocol where Self: NSObject {
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         observeChanges(for: keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
@@ -62,6 +67,8 @@ extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes for a property identified by the given key path.
+     
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
      
      Example usage:
      
@@ -80,7 +87,7 @@ extension NSObjectProtocol where Self: NSObject {
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
@@ -88,6 +95,8 @@ extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes will change for the specified property.
+     
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
 
      Example usage:
      
@@ -104,7 +113,7 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path of the property to observe.
         - handler: A closure that will be called when the property value changes. It takes the old value.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, handler: handler)
@@ -115,13 +124,15 @@ extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes for the specified property.
      
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     
      - Parameters:
         - keyPath: The name of the key path of the property to observe.
         - type: The value type of the property.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation {
         KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, handler: handler)
@@ -130,13 +141,15 @@ extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes for the specified property.
      
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     
      - Parameters:
         - keyPath: The name key path of the property to observe.
         - type: The value type of the property.
         - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation {
         observeChanges(for: keyPath, type: type, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
@@ -145,6 +158,8 @@ extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes for a property identified by the given key path.
      
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     
      - Parameters:
         -  keyPath: The key path of the property to observe.
         - type: The value type of the property.
@@ -152,7 +167,7 @@ extension NSObjectProtocol where Self: NSObject {
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation {
         KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
@@ -166,7 +181,7 @@ extension NSObjectProtocol where Self: NSObject {
         - type: The value type of the property.
         - handler: A closure that will be called when the property value changes. It takes the old value.
      
-     - Returns: An `NSKeyValueObservation` object representing the observation.
+     - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeWillChange<Value>(_ keyPath: String, type: Value.Type, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation {
         KeyValueObservation(self, keyPath: keyPath, willChange: handler)
