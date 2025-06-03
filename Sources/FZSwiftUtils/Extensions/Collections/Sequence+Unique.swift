@@ -50,11 +50,11 @@ public extension Sequence {
 
      - Parameter map: A mapping closure. map accepts an element of this sequence as its parameter and returns a value of the same or of a different type.
      */
-    func uniqued<T: Equatable>(by map: (Element) -> T) -> [Element] {
+    func uniqued<T: Equatable>(by keyForValue: (Element) throws -> T) rethrows -> [Element] {
         var uniqueElements: [T] = []
         var ordered: [Element] = []
         for element in self {
-            let check = map(element)
+            let check = try keyForValue(element)
             if !uniqueElements.contains(check) {
                 uniqueElements.append(check)
                 ordered.append(element)
@@ -68,9 +68,9 @@ public extension Sequence {
 
      - Parameter map: A mapping closure. map accepts an element of this sequence as its parameter and returns a value of the same or of a different type.
      */
-    func uniqued<T: Hashable>(by map: (Element) -> T) -> [Element] {
+    func uniqued<T: Hashable>(by keyForValue: (Element) throws -> T) rethrows -> [Element] {
         var seen = Set<T>()
-        return filter { seen.insert(map($0)).inserted }
+        return try filter { seen.insert(try keyForValue($0)).inserted }
     }
 }
 
