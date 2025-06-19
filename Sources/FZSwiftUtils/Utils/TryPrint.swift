@@ -22,3 +22,4 @@ public func tryPrint<T>(_ expression: @autoclosure () throws -> T) -> T? {
         return nil
     }
 }
+
