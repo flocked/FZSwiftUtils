@@ -43,29 +43,22 @@ public extension Collection where Index == Int {
      - Returns: Returns an array of chunks.
      */
     func chunked(amount: Int) -> [[Element]] {
-        let amount = amount.clamped(to: 0...count)
-        let chunksize = Int((Float(count) / Float(amount)).rounded(.towardZero))
+        let amount = Swift.max(1, Swift.min(amount, count))
+        let chunkSize = count / amount
+        let remainder = count % amount
 
-        /*
-         let remaining = Int(Double(self.count).remainder(dividingBy: Double(amount)))
-         var count = 0
-         var array: [Element] = []
-         var output: [[Element]] = []
-         for value in self {
-             array.append(value)
-             count += 1
-             if count == chunksize {
-                 output.append(array)
-                 array = []
-                 count = 0
-             }
-         }
-          */
-
-        return chunked(size: chunksize)
+        var start = startIndex
+        return (0..<amount).reduce(into: []) { chunks, i in
+            let thisChunkSize = chunkSize + (i < remainder ? 1 : 0)
+            let end = start + thisChunkSize
+            chunks += Array(self[start..<end])
+            start = end
+        }
     }
+}
 
-    /** 
+public extension Sequence {
+    /**
      Splits the collection into arrays for each specified unique keypath value.
 
      - Parameter keyPath: The keyPath of the value.
@@ -84,7 +77,7 @@ public extension Collection where Index == Int {
     func chunked<C: Comparable>(by keyPath: KeyPath<Element, C>, ascending: Bool = true) -> [(C, [Element])] {
         chunked(by: { $0[keyPath: keyPath] }, ascending: ascending)
     }
-
+    
     /**
      Splits the collection into arrays for each specified unique comparison value.
 
@@ -92,45 +85,89 @@ public extension Collection where Index == Int {
      - Returns: Returns an array of chunks for each unique comparison value.
      */
     func chunked<C: Comparable>(by comparison: (Element) -> C?, ascending: Bool = true) -> [(C, [Element])] {
-        let items: [(value: C?, element: Element)] = compactMap { (comparison($0), $0) }
-        var uniqueValues = items.compactMap(\.value).uniqued()
-        if ascending == false {
-            uniqueValues = uniqueValues.reversed()
+        let items = compactMap { (comparison($0), $0) }
+        var uniqueValues = items.compactMap(\.0).uniqued()
+        if !ascending {
+          uniqueValues.reverse()
         }
-        var elements: [(C, [Element])] = []
-        for uniqueValue in uniqueValues {
-            let filtered = items.filter { $0.value == uniqueValue }.compactMap(\.element)
-            elements.append((uniqueValue, filtered))
+        
+        return uniqueValues.reduce(into: []) { results, uniqueValue in
+            results += (uniqueValue, items.filter { $0.0 == uniqueValue }.map(\.1))
         }
-        return elements
+    }
+    
+    /**
+     Splits the collection into arrays for each specified unique comparison value.
+
+     - Parameter comparison: A comparison handler returning a comparable value.
+     - Returns: Returns an array of chunks for each unique comparison value.
+     */
+    func chunked<C: Comparable & Hashable>(by comparison: (Element) -> C?, ascending: Bool = true) -> [(C, [Element])] {
+        let groups: [C: [Element]] = reduce(into: [:]) { groups, element in
+            guard let key = comparison(element) else { return }
+            groups[key, default: []] += element
+        }
+        return groups.keys.sorted(ascending ? .ascending : .descending).map { ($0, groups[$0]!) }
     }
 }
 
-public extension Collection {
+public extension Sequence {
     /**
      Splits the collection into array, chunked by the given predicate.
 
      - Parameter belongInSameGroup: A closure that takes two adjacent elements of the collection and returns whether or not they belong in the same group.
     */
     func chunked(by belongInSameGroup: (Element, Element) throws -> Bool) rethrows -> [[Element]] {
-      guard !isEmpty else { return [] }
-      var result: [[Element]] = []
-      
-      var start = startIndex
-      var current = self[start]
-      
-      for (index, element) in indexed().dropFirst() {
-        if try !belongInSameGroup(current, element) {
-          result.append(Array(self[start..<index]))
-          start = index
+        var iterator = makeIterator()
+        
+        guard var previous = iterator.next() else { return [] }
+        
+        var result: [[Element]] = []
+        var currentChunk: [Element] = [previous]
+        
+        while let next = iterator.next() {
+            if try belongInSameGroup(previous, next) {
+                currentChunk += next
+            } else {
+                result += currentChunk
+                currentChunk = [next]
+            }
+            previous = next
         }
-        current = element
-      }
-      
-      if start != endIndex {
-        result.append(Array((self[start...])))
-      }
-      
-      return result
+        
+        if !currentChunk.isEmpty {
+            result += currentChunk
+        }
+        
+        return result
     }
+}
+
+public extension RandomAccessCollection {
+    /**
+     Splits the collection into array, chunked by the given predicate.
+
+     - Parameter belongInSameGroup: A closure that takes two adjacent elements of the collection and returns whether or not they belong in the same group.
+    */
+    func chunked(by belongInSameGroup: (Element, Element) throws -> Bool) rethrows -> [[Element]] {
+    guard !isEmpty else { return [] }
+
+    var result: [[Element]] = []
+    var start = startIndex
+    var previous = self[start]
+    var index = index(after: start)
+
+    while index != endIndex {
+      let current = self[index]
+      if try !belongInSameGroup(previous, current) {
+        result += Array(self[start..<index])
+        start = index
+      }
+      previous = current
+      formIndex(after: &index)
+    }
+
+    result += Array(self[start..<endIndex])
+    return result
+  }
 }

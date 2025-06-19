@@ -22,7 +22,7 @@ extension Collection {
 
      - Parameter amount: The number of elements to return.
      */
-    public func first(_ amount: Int) -> Self.SubSequence {
+    public func first(_ amount: Int) -> SubSequence {
         guard !isEmpty, amount > 0 else { return dropFirst(count) }
         return dropLast(count - amount.clamped(max: count))
     }
@@ -32,7 +32,7 @@ extension Collection {
 
      - Parameter amount: The number of elements to return.
      */
-    public func last(_ amount: Int) -> Self.SubSequence {
+    public func last(_ amount: Int) -> SubSequence {
         guard !isEmpty, amount > 0 else { return dropFirst(count) }
         return dropFirst(count - amount.clamped(max: count))
     }
