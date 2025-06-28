@@ -42,3 +42,9 @@ public extension DisplayableEnum {
         "\(self)"
     }
 }
+
+public extension DisplayableEnum where Self: RawRepresentable, RawValue == String {
+    var localizedName: String {
+        rawValue
+    }
+}
