@@ -50,7 +50,7 @@ public extension Comparable {
     }
     
     /**
-     Clamps the value to a minimum value.
+     Clamps the value to the specified minimum value.
 
      - Parameter minValue: The minimum value to clamp the value to.
      - Returns: The clamped value.
@@ -60,7 +60,7 @@ public extension Comparable {
     }
     
     /**
-     Clamps the value to a maximum value.
+     Clamps the value to the specified maximum value.
 
      - Parameter maxValue: The maximum value to clamp the value to.
      - Returns: The clamped value.
@@ -112,5 +112,105 @@ public extension Comparable {
      */
     mutating func clamp(max maxValue: Self) {
         self = clamped(max: maxValue)
+    }
+}
+
+public extension Sequence where Element: Comparable {
+    /**
+     Clamps the elements of the sequence to the specified range.
+
+     - Parameter range: The range to clamp the elements to.
+     - Returns: The clamped elements.
+     */
+    func clamped(to range: ClosedRange<Element>) -> [Element] {
+        map({ $0.clamped(to: range)})
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified range.
+
+     - Parameter range: The range to clamp the elements to.
+     - Returns: The clamped elements.
+     */
+    func clamped(to range: PartialRangeFrom<Element>) -> [Element] {
+        map({ $0.clamped(to: range)})
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified range.
+
+     - Parameter range: The range to clamp the elements to.
+     - Returns: The clamped elements.
+     */
+    func clamped(to range: PartialRangeUpTo<Element>) -> [Element] {
+        map({ $0.clamped(to: range)})
+    }
+      
+    /**
+     Clamps the elements of the sequence to the specified minimum value.
+
+     - Parameter maxValue: The minimum value to clamp the elements to.
+     - Returns: The clamped elements.
+     */
+    func clamped(min minValue: Element) -> [Element] {
+        map({ $0.clamped(min: minValue)})
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified maximum value.
+
+     - Parameter maxValue: The maximum value to clamp the elements to.
+     - Returns: The clamped elements.
+     */
+    func clamped(max maxValue: Element) -> [Element] {
+        map({ $0.clamped(max: maxValue)})
+    }
+}
+
+public extension Sequence where Element: Comparable, Self: RangeReplaceableCollection {
+    /**
+     Clamps the elements of the sequence to the specified range.
+
+     - Parameter range: The range to clamp the elements to.
+     */
+    mutating func clamp(to range: ClosedRange<Element>) {
+        self = Self(clamped(to: range))
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified range.
+
+     - Parameter range: The range to clamp the elements to.
+     */
+    mutating func clamp(to range: PartialRangeFrom<Element>) {
+        self = Self(clamped(to: range))
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified range.
+
+     - Parameter range: The range to clamp the elements to.
+     */
+    mutating func clamp(to range: PartialRangeUpTo<Element>) {
+        self = Self(clamped(to: range))
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified minimum value.
+
+     - Parameter maxValue: The minimum value to clamp the elements to.
+     - Returns: The clamped elements.
+     */
+    mutating func clamp(min minValue: Element) {
+        self = Self(clamped(min: minValue))
+    }
+    
+    /**
+     Clamps the elements of the sequence to the specified maximum value.
+
+     - Parameter maxValue: The maximum value to clamp the elements to.
+     */
+    mutating func clamp(max maxValue: Element) {
+        self = Self(clamped(max: maxValue))
     }
 }
