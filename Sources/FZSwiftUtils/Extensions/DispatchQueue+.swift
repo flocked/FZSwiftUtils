@@ -195,7 +195,43 @@ extension DispatchQueue {
         setSpecific(key: safeKey, value: ())
         didSetSafeKey = true
     }
+    
+    /**
+     Submits a single block to the dispatch queue and causes the block to be executed the specified number of times.
+     
+     This method implements an efficient parallel for-loop. The dispatch queue executes the submitted block the specified number of times and waits for all iterations to complete before returning. If the target queue is a concurrent queue, the blocks run in parallel and must therefore be reentrant-safe.
+     
+     - Parameters:
+        - iterations: The number of times to execute the block. Higher iteration values give the system the ability to balance more efficiently across multiple cores. To get the maximum benefit of this function, configure the number of iterations to be at least three times the number of available cores.
+        - work: The block to execute in parallel. The block's iteration parameter specifies the current iteration index.
+        - progress: The block with the finished iterations count.
+        - completion: The block to execute when all iterations finished.
+     */
+    @_disfavoredOverload
+    public class func concurrentPerform(iterations: Int, execute work: ((_ iteration: Int) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
+        if progress != nil || completion != nil {
+            var completed = 0
+            let lock = DispatchQueue(label: "DispatchQueue.concurrentPerform.")
+            DispatchQueue.concurrentPerform(iterations: iterations) { index in
+                work(index)
+                lock.sync {
+                    completed += 1
+                    DispatchQueue.main.async {
+                        progress?(completed)
+                    }
+                    if completed == iterations {
+                        DispatchQueue.main.async {
+                            completion?()
+                        }
+                    }
+                }
+            }
+        } else {
+            DispatchQueue.concurrentPerform(iterations: iterations, execute: work)
+        }
+    }
 }
+
 
 /*
 public struct Dispatch {

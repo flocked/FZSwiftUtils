@@ -9,7 +9,7 @@ import Foundation
 
 public extension Sequence {
     /**
-     Returns an array containing the results of mapping the given keypath element.
+     Returns an array containing the results of mapping each value for the given element keypath.
 
      - Parameter keyPath: The keypath to the element.
      - Returns: An array containing the keypath elements of this sequence.
@@ -19,7 +19,7 @@ public extension Sequence {
     }
     
     /**
-     Returns an array containing the non-`nil` results of mapping the given keypath element.
+     Returns an array containing the non-`nil` results of mapping each value for the given element keypath.
 
      - Parameter keyPath: The keypath to the element that can be optional.
      - Returns: An array of the non-`nil` results of the keypath elements.
@@ -29,7 +29,7 @@ public extension Sequence {
     }
     
     /**
-     Returns an array containing the non-`nil` results of mapping the given keypath element.
+     Returns an array containing the non-`nil` results of mapping each non-`nil` value for the given element keypath.
 
      - Parameter keyPath: The keypath to the element that can be optional.
      - Returns: An array of the non-`nil` results of the keypath elements.
@@ -39,7 +39,7 @@ public extension Sequence {
     }
 
     /**
-     Returns an array containing the concatenated results of mapping each element of the keypath's sequence.
+     Returns an array containing the concatenated results of mapping each sequence for the specified element keypath.
 
      Returns an array containing the non-`nil` results of mapping the given keypath element.
 
@@ -51,7 +51,7 @@ public extension Sequence {
     }
     
     /**
-     Returns an array containing the concatenated results of mapping each element of the keypath's sequence.
+     Returns an array containing the concatenated results of mapping each non-`nil` sequence for the specified element keypath.
 
      Returns an array containing the non-`nil` results of mapping the given keypath element.
 
