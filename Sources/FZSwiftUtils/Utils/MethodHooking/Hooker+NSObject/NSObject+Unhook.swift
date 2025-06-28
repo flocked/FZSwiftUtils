@@ -78,6 +78,81 @@ extension NSObject {
     }
 }
 
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Reverts all hooks for the specified property.
+     
+     - Parameters:
+        - keyPath: The key path to the property to revert the hook.
+        - type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
+     */
+    public func revertHooks<Value>(for keyPath: KeyPath<Self, Value>, type: HookMode? = nil) {
+        guard let selector = try? keyPath.getterName() else { return }
+        revertHooks(for: selector, type: type)
+    }
+    
+    /**
+     Reverts all hooks for the specified set property.
+     
+     - Parameters:
+        - keyPath: The key path to the property to revert the hook.
+        - type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
+     */
+    public func revertHooks<Value>(forSet keyPath: WritableKeyPath<Self, Value>, type: HookMode? = nil) {
+        guard let selector = try? keyPath.setterName() else { return }
+        revertHooks(for: selector, type: type)
+    }
+    
+    /// A Boolean value indicating whether the property for the specific keypath is hooked.
+    public func isMethodHooked<Value>(_ keyPath: KeyPath<Self, Value>, type: HookMode? = nil) -> Bool {
+        guard let selector = try? keyPath.getterName() else { return false }
+        return _AnyObject(self).isMethodHooked(selector, type: type)
+    }
+    
+    /// A Boolean value indicating whether the set property for the specific keypath is hooked.
+    public func isMethodHooked<Value>(set keyPath: KeyPath<Self, Value>, type: HookMode? = nil) -> Bool {
+        guard let selector = try? keyPath.setterName() else { return false }
+        return _AnyObject(self).isMethodHooked(selector, type: type)
+    }
+    
+    /**
+     Reverts all hooks for the specified property.
+     
+     - Parameters:
+        - keyPath: The key path to the property to revert the hook.
+        - type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
+     */
+    public static func revertHooks<Value>(for keyPath: KeyPath<Self, Value>, type: HookMode? = nil) {
+        guard let selector = try? keyPath.getterName() else { return }
+        revertHooks(for: selector, type: type)
+    }
+    
+    /**
+     Reverts all hooks for the specified set property.
+     
+     - Parameters:
+        - keyPath: The key path to the property to revert the hook.
+        - type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
+     */
+    public static func revertHooks<Value>(forSet keyPath: WritableKeyPath<Self, Value>, type: HookMode? = nil) {
+        guard let selector = try? keyPath.setterName() else { return }
+        revertHooks(for: selector, type: type)
+    }
+    
+    /// A Boolean value indicating whether the property for the specific keypath is hooked.
+    public static func isMethodHooked<Value>(_ keyPath: KeyPath<Self, Value>, type: HookMode? = nil) -> Bool {
+        guard let selector = try? keyPath.getterName() else { return false }
+        return _AnyObject(self).isMethodHooked(selector, type: type)
+    }
+    
+    /// A Boolean value indicating whether the set property for the specific keypath is hooked.
+    public static func isMethodHooked<Value>(set keyPath: KeyPath<Self, Value>, type: HookMode? = nil) -> Bool {
+        guard let selector = try? keyPath.setterName() else { return false }
+        return _AnyObject(self).isMethodHooked(selector, type: type)
+    }
+}
+
+
 extension NSObject {
     /**
      Reverts all hooks for the specified method for all instances of the class.
@@ -112,5 +187,32 @@ extension NSObject {
         _AnyClass(self).isInstanceMethodHooked(selector, type: type)
     }
 }
+
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Reverts all hooks for the specified property.
+     
+     - Parameters:
+        - keyPath: The key path to the property to revert the hook.
+        - type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
+     */
+    public static func revertInstanceHooks<Value>(for keyPath: KeyPath<Self, Value>, type: HookMode? = nil) {
+        guard let selector = try? keyPath.getterName() else { return }
+        revertHooks(for: selector, type: type)
+    }
+    
+    /**
+     Reverts all hooks for the specified set property.
+     
+     - Parameters:
+        - keyPath: The key path to the property to revert the hook.
+        - type: The type of hooks to revert (`before`, `after` or `instead`). The default value is `nil` and reverts all hook types.
+     */
+    public static func revertInstanceHooks<Value>(forSet keyPath: WritableKeyPath<Self, Value>, type: HookMode? = nil) {
+        guard let selector = try? keyPath.setterName() else { return }
+        revertHooks(for: selector, type: type)
+    }
+}
+
 
 #endif
