@@ -37,23 +37,47 @@ public protocol WeakReference {
     var object: Object? { get }
 }
 
+public extension Sequence where Element: WeakReference {
+    /// An array of all weak elements that aren't `nil`.
+    var nonNil: [Element.Object] {
+        compactMap({ $0.object })
+    }
+}
+
 public extension Array where Element: WeakReference {
-    /// Removes all weak objects that are 'nil'.
+    /// Removes all weak objects that are `nil`.
     mutating func reap() {
         self = filter { $0.object != nil }
     }
 }
 
 public extension Set where Element: WeakReference {
-    /// Removes all weak objects that are 'nil'.
+    /// Removes all weak objects that are `nil`.
     mutating func reap() {
         self = filter { $0.object != nil }
     }
 }
 
 public extension Dictionary where Value: WeakReference {
-    /// Removes all weak objects that are 'nil'.
+    /// Removes all values where the weak value is `nil`.
     mutating func reap() {
         self = filter { $0.value.object != nil }
+    }
+    
+    /// The dictionary with values whose weak object isn't `nil`.
+    var nonNil: [Key: Value.Object] {
+        compactMapValues({ $0.object })
+    }
+}
+
+public extension Dictionary where Key: WeakReference, Key.Object: Hashable {
+    /// Removes all keys where the weak value is `nil`.
+    mutating func reap() {
+        self = filter { $0.key.object != nil }
+    }
+    
+    /// The dictionary with keys whose weak object isn't `nil`.
+    var nonNil: [Key.Object: Value] {
+        compactMapKeys( { $0.object } )
     }
 }
