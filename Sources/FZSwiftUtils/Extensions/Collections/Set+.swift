@@ -69,6 +69,22 @@ public extension Set {
         try elements.editEach(body)
         self = .init(elements)
     }
+    
+    /// Removes all elements matching the predicate and returns the removed elements.
+    @discardableResult
+    mutating func removeAllAndReturn(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Set<Element> {
+        var removed: Set<Element> = []
+        var kept: Self = .init()
+        for element in self {
+            if try shouldBeRemoved(element) {
+                removed.insert(element)
+            } else {
+                kept.insert(element)
+            }
+        }
+        self = kept
+        return removed
+    }
 }
 
 public extension Set {

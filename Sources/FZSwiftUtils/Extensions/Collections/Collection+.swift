@@ -71,6 +71,22 @@ public extension RangeReplaceableCollection {
         guard let index = try firstIndex(where: predicate) else { return nil }
         return remove(at: index)
     }
+    
+    /// Removes all elements matching the predicate and returns the removed elements.
+    @discardableResult
+    mutating func removeAllAndReturn(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> [Element] {
+        var removed: [Element] = []
+        var kept: Self = .init()
+        for element in self {
+            if try shouldBeRemoved(element) {
+                removed.append(element)
+            } else {
+                kept.append(element)
+            }
+        }
+        self = kept
+        return removed
+    }
 }
 
 extension RangeReplaceableCollection where Self: BidirectionalCollection {
