@@ -213,12 +213,24 @@ public class URLResources {
     /**
      An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
 
-     For resources which refer to the same file inode, the generation identifier will change when the data in the file’s data fork is changed (changes to extended attributes or other file system metadata do not change the generation identifier). For resources which refer to the same directory inode, the generation identifier will change when direct children of that directory are added, removed or renamed (changes to the data of the direct children of that directory will not change the generation identifier). The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
+     For files the generation identifier will change when the data in the file’s data fork is changed. Changes to extended attributes or other file system metadata do not change the generation identifier.
+     
+     For directories the generation identifier will change when direct children of that directory are added, removed or renamed. Changes to the data of the direct children will not change the generation identifier.
+     
+     The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
     public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { value(for: \.generationIdentifier) }
 
-    /// A value that the kernel assigns to identify a document.
-    public var documentIdentifier: Int? { value(for: \.documentIdentifier) }
+    /**
+     The identifier of the resource.
+     
+     The value is assigned by the kernel to identify the resource regardless of where it moves on a volume.
+     
+     The identifier survives safe-save operation, and is sticky to the path the kernel assigns. `FileManager``replaceItemAt(_:withItemAt:)` is the preferred safe-save API.
+     
+     The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource. The identifier is only unique within a single volume and not all volumes support this property.
+     */
+    public var identifier: Int? { value(for: \.documentIdentifier) }
 
     /// A Boolean value indicating whether the file may have extended attributes.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
