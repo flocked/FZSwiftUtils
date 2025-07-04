@@ -86,12 +86,7 @@ public struct Swizzle {
                 throw Error.methodNotFound(selector: pair.new, class: cls)
             }
             guard let lhs = class_getInstanceMethod(cls, pair.old) else {
-                class_replaceMethod(cls, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
-                if pair.isStatic {
-                    (cls as? NSObject.Type)?.swizzledStaticOptionals.insert(pair.old)
-                } else {
-                    (cls as? NSObject.Type)?.swizzledOptionals.insert(pair.old)
-                }
+                swizzleOptional(cls, pair: pair, method: rhs)
                 return
             }
             guard !didRevertOptionalSwizzle(cls, pair: pair) else { return }
@@ -100,6 +95,15 @@ public struct Swizzle {
             } else {
                 method_exchangeImplementations(lhs, rhs)
             }
+        }
+    }
+    
+    private func swizzleOptional(_ cls: AnyClass, pair: SelectorPair, method: Method) {
+        class_replaceMethod(cls, pair.old,  method_getImplementation(method), method_getTypeEncoding(method))
+        if pair.isStatic {
+            (cls as? NSObject.Type)?.swizzledStaticOptionals.insert(pair.old)
+        } else {
+            (cls as? NSObject.Type)?.swizzledOptionals.insert(pair.old)
         }
     }
     
