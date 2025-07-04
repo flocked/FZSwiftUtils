@@ -21,13 +21,20 @@ infix operator <~> : SwizzlePrecedence
  Example:
  ```swift
  try? Swizzle(NSView.self) {
-     #selector(viewDidMoveToSuperview) <-> #selector(swizzledViewDidMoveToSuperview)
+     #selector(NSView.viewDidMoveToSuperview) <-> #selector(NSView.swizzled_ViewDidMoveToSuperview)
  }
  ```
  */
 public struct Swizzle {
     /**
      Swizzles selectors of the specified class.
+     
+     Example usage:
+     ```swift
+     try? Swizzle(NSView.self) {
+         #selector(NSView.viewDidMoveToSuperview) <-> #selector(NSView.swizzled_ViewDidMoveToSuperview)
+     }
+     ```
      
      - Parameters:
         - class:  The class to swizzle.
@@ -45,8 +52,15 @@ public struct Swizzle {
     /**
      Swizzles selectors of the class with the specified name.
      
+     Example usage:
+     ```swift
+     try? Swizzle("NSView") {
+         #selector(NSView.viewDidMoveToSuperview) <-> #selector(NSView.swizzled_ViewDidMoveToSuperview)
+     }
+     ```
+     
      - Parameters:
-        - className:  The name of the class.
+        - className:  The name of the class to swizzle.
         - selectorPairs: The selector pairs to swizzle.
      
      - Throws:Throws if swizzling fails.
