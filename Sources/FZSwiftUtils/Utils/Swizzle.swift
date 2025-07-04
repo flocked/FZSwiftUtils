@@ -88,7 +88,7 @@ public struct Swizzle {
             guard let lhs = class_getInstanceMethod(cls, pair.old) else {
                 class_replaceMethod(cls, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
                 if pair.isStatic {
-                    (cls as? NSObject.Type)?.swizzledClassOptionals.insert(pair.old)
+                    (cls as? NSObject.Type)?.swizzledStaticOptionals.insert(pair.old)
                 } else {
                     (cls as? NSObject.Type)?.swizzledOptionals.insert(pair.old)
                 }
@@ -105,23 +105,23 @@ public struct Swizzle {
     
     private func didRevertOptionalSwizzle(_ cls: AnyClass, pair: SelectorPair) -> Bool {
         guard var _cls = cls as? NSObject.Type else { return false }
-        guard (pair.isStatic ? _cls.swizzledClassOptionals : _cls.swizzledOptionals).contains(pair.new) else { return false }
+        guard (pair.isStatic ? _cls.swizzledStaticOptionals : _cls.swizzledOptionals).contains(pair.new) else { return false }
         guard let deleteIMP = class_getMethodImplementation(cls, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(cls, pair.new) else {
             return false
         }
         do {
             if pair.isStatic {
-                if _cls.swizzledClassRespondsTo == nil {
-                    _cls.swizzledClassRespondsTo = try _cls.hook(#selector(NSObject.responds(to:)), closure: {
+                if _cls.swizzledStaticRespondsTo == nil {
+                    _cls.swizzledStaticRespondsTo = try _cls.hook(#selector(NSObject.responds(to:)), closure: {
                         original, object, selector, respondSelector in
-                        if let responder = respondSelector, object.swizzledClassOptionalsReset.contains(responder) {
+                        if let responder = respondSelector, object.swizzledStaticOptionalsReset.contains(responder) {
                             return false
                         }
                         return original(object, selector, respondSelector)
                     } as @convention(block) ( (NSObject.Type, Selector, Selector?) -> Bool, NSObject.Type, Selector, Selector?) -> Bool)
                 }
-                _cls.swizzledClassOptionalsReset += pair.new
-                _cls.swizzledClassOptionals.remove(pair.new)
+                _cls.swizzledStaticOptionalsReset += pair.new
+                _cls.swizzledStaticOptionals.remove(pair.new)
             } else {
                 if _cls.swizzledRespondsTo == nil {
                     _cls.swizzledRespondsTo = try _cls.hook(all: #selector(NSObject.responds(to:)), closure: {
@@ -165,38 +165,6 @@ public struct Swizzle {
                 return "The method '\(selector)' could not be found on class '\(cls)'."
             }
         }
-    }
-}
-
-fileprivate extension NSObject {
-    static var swizzledRespondsTo: Hook? {
-        get { getAssociatedValue("swizzledRespondsTo") }
-        set { setAssociatedValue(newValue, key: "swizzledRespondsTo") }
-    }
-    
-    static var swizzledClassRespondsTo: Hook? {
-        get { getAssociatedValue("swizzledClassRespondsTo") }
-        set { setAssociatedValue(newValue, key: "swizzledClassRespondsTo") }
-    }
-    
-    static var swizzledOptionals: Set<Selector> {
-        get { getAssociatedValue("optionalAdded", initialValue: []) }
-        set { setAssociatedValue(newValue, key: "optionalAdded") }
-    }
-    
-    static var swizzledOptionalsReset: Set<Selector> {
-        get { getAssociatedValue("optionalRemoved", initialValue: []) }
-        set { setAssociatedValue(newValue, key: "optionalRemoved") }
-    }
-    
-    static var swizzledClassOptionals: Set<Selector> {
-        get { getAssociatedValue("optionalAddedStatic", initialValue: []) }
-        set { setAssociatedValue(newValue, key: "optionalAddedStatic") }
-    }
-    
-    static var swizzledClassOptionalsReset: Set<Selector> {
-        get { getAssociatedValue("optionalRemovedStatic", initialValue: []) }
-        set { setAssociatedValue(newValue, key: "optionalRemovedStatic") }
     }
 }
 
@@ -329,6 +297,38 @@ public extension String {
     /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: String, rhs: String) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: NSSelectorFromString(rhs), isStatic: true)
+    }
+}
+
+fileprivate extension NSObject {
+    static var swizzledRespondsTo: Hook? {
+        get { getAssociatedValue("swizzledRespondsTo") }
+        set { setAssociatedValue(newValue, key: "swizzledRespondsTo") }
+    }
+    
+    static var swizzledStaticRespondsTo: Hook? {
+        get { getAssociatedValue("swizzledStaticRespondsTo") }
+        set { setAssociatedValue(newValue, key: "swizzledStaticRespondsTo") }
+    }
+    
+    static var swizzledOptionals: Set<Selector> {
+        get { getAssociatedValue("swizzledOptionals", initialValue: []) }
+        set { setAssociatedValue(newValue, key: "swizzledOptionals") }
+    }
+    
+    static var swizzledOptionalsReset: Set<Selector> {
+        get { getAssociatedValue("swizzledOptionalsReset", initialValue: []) }
+        set { setAssociatedValue(newValue, key: "swizzledOptionalsReset") }
+    }
+    
+    static var swizzledStaticOptionals: Set<Selector> {
+        get { getAssociatedValue("swizzledStaticOptionals", initialValue: []) }
+        set { setAssociatedValue(newValue, key: "swizzledStaticOptionals") }
+    }
+    
+    static var swizzledStaticOptionalsReset: Set<Selector> {
+        get { getAssociatedValue("swizzledStaticOptionalsReset", initialValue: []) }
+        set { setAssociatedValue(newValue, key: "swizzledStaticOptionalsReset") }
     }
 }
 
