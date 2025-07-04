@@ -567,3 +567,28 @@ extension Collection where Self: RandomAccessCollection, Element: BinaryFloating
         }
     }
 }
+
+/*
+ public extension Collection {
+     /// Returns a new array with the specified element prepended to the beginning of this collection.
+     func prepending(_ newElement: Element) -> [Element] {
+         newElement + Array(self)
+     }
+     
+     /// Returns a new array with the specified elements prepended to the beginning of this collection.
+     func prepending<S>(contentsOf newElements: S) -> [Element] where S : Collection<Element> {
+         newElements + Array(self)
+     }
+     
+     /// Returns a new array with the specified element appended to the end of this collection.
+     func appending(_ newElement: Element) -> [Element] {
+         Array(self) + newElement
+     }
+     
+     
+     /// Returns a new array with the specified elements appended to the end of this collection.
+     func appending<S>(contentsOf newElements: S) -> [Element] where S : Collection<Element> {
+         Array(self) + newElements
+     }
+ }
+ */
