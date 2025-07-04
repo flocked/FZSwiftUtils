@@ -25,7 +25,7 @@ public extension Sequence where Element: Identifiable {
 }
 
 public extension RangeReplaceableCollection where Element: Identifiable {
-    /// The element with the specified identifier, or `nil` if the sequence doesn't contain an element with the identifier.
+    /// The element with the specified identifier, or `nil` if the collection doesn't contain an element with the identifier.
     subscript(id id: Element.ID) -> Element? {
         get { first(where: { $0.id == id }) }
         set {
