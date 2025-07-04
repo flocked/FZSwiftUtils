@@ -21,6 +21,7 @@ public extension Selector {
         Swizzle.SelectorPair(old: lhs, new: rhs)
     }
 
+    /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: Selector, rhs: String) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: lhs, new: Selector(rhs))
     }
@@ -41,10 +42,20 @@ public extension String {
     static func <-> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
         Swizzle.SelectorPair(old: Selector(lhs), new: rhs)
     }
+    
+    /// Creates a selector pair for swizzleing from the first and second selector.
+    static func <-> (lhs: String, rhs: String) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: NSSelectorFromString(rhs))
+    }
 
     /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: Selector(lhs), new: rhs, static: true)
+        Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: rhs, static: true)
+    }
+    
+    /// Creates a selector pair for swizzleing from the first and second static selector.
+    static func <~> (lhs: String, rhs: String) -> Swizzle.SelectorPair {
+        Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: NSSelectorFromString(rhs), static: true)
     }
 }
 
