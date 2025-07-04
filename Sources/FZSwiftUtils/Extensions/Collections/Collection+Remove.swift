@@ -309,6 +309,7 @@ public extension Collection where Element: AnyObject {
      - Parameter element: An element to search for in the collection.
      - Returns: The first index where element is found. If element is not found in the collection, returns `nil`.
      */
+    @_disfavoredOverload
     func firstIndex(of element: Element) -> Index? {
         firstIndex(where: { $0 === element })
     }
@@ -320,6 +321,7 @@ public extension Collection where Element: AnyObject {
 
      - Returns: An array of the indexes of the elements.
      */
+    @_disfavoredOverload
     func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
         elements.reduce(into: []) { $0 += firstIndex(of: $1) }
     }
@@ -331,6 +333,7 @@ public extension Collection where Element: AnyObject {
 
      - Returns: An array of the indexes of the elements.
      */
+    @_disfavoredOverload
     func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element>, Self: RangeReplaceableCollection {
         var values = self
         return elements.reduce(into: []) {
