@@ -8,11 +8,39 @@
 import Foundation
 
 extension URLComponents {
+    /**
+     Creates a URL components instance from a URL string and query items.
+
+     - Parameters:
+        - string: The URL location.
+        - queryItems: The query items.
+
+     - Returns: The `URLComponents` instance, or `nil` if the string is not a valid a url.
+
+     - Example:
+     ```
+     let components = URLComponents(string: "https://example.com") {
+         URLQueryItem(name: "q", value: "search")
+         URLQueryItem(name: "page", value: "1")
+     }
+     ```
+     */
     public init?(string: String, @Builder queryItems: () -> [URLQueryItem]) {
         self.init(string: string)
         self.queryItems = queryItems()
     }
     
+    /**
+     Creates a URL components instance from a `URL` and query items.
+     
+     - Parameters:
+        - url: The `URL` to parse.
+        - resolve: A Boolean value indicating whether the initializer resolves the URL against its base URL before parsing. If `url` is a relative URL, setting resolve to `true` creates components using the `absoluteURL` property.
+        - queryItems: The query items.
+     
+     - Returns: The `URLComponents` instance, or `nil` if the url is not a valid a url.
+     
+     */
     public init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @Builder queryItems: () -> [URLQueryItem]) {
         self.init(url: url, resolvingAgainstBaseURL: resolve)
         self.queryItems = queryItems()
@@ -152,6 +180,7 @@ extension URLComponents {
         return self
     }
     
+    /// A function builder type that produces an array of [URLQueryItem](https://developer.apple.com/documentation/foundation/urlqueryitem).
     @resultBuilder
     public enum Builder {
         public static func buildBlock(_ components: [URLQueryItem]...) -> [URLQueryItem] {

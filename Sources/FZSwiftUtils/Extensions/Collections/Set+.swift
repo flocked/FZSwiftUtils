@@ -146,6 +146,7 @@ extension Set: Comparable where Element: Comparable {
 }
 
 extension Set {
+    /// A function builder type that produces a set.
     @resultBuilder
     public enum Builder {
         public typealias Component = [Element]

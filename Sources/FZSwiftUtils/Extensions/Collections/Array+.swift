@@ -36,6 +36,7 @@ public extension ArraySlice {
 }
 
 extension Array {
+    /// A function builder type that produces an array.
     @resultBuilder
     public enum Builder {
         public typealias Component = [Element]
