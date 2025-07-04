@@ -1,5 +1,5 @@
 //
-//  Sequence+Printable.swift
+//  Sequence+Print.swift
 //
 //
 //  Created by Florian Zand on 04.07.25.
