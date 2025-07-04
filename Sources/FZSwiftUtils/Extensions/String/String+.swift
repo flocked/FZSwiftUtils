@@ -219,9 +219,9 @@ public extension String {
         - string: The replacement string.
      */
     func replacingPrefix(_ prefix: String, with string: String) -> String {
-        var string = self
-        string.replacePrefix(prefix, with: string)
-        return string
+        var _string = self
+        _string.replacePrefix(prefix, with: string)
+        return _string
     }
     
     /**
@@ -268,9 +268,9 @@ public extension String {
         - string: The replacement string.
      */
     func replacingSuffix(_ suffix: String, with string: String) -> String {
-        var string = self
-        string.replaceSuffix(suffix, with: string)
-        return string
+        var _string = self
+        _string.replaceSuffix(suffix, with: string)
+        return _string
     }
     
     /**
