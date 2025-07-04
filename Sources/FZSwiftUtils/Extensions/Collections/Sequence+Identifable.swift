@@ -25,6 +25,21 @@ public extension Sequence where Element: Identifiable {
 }
 
 public extension RangeReplaceableCollection where Element: Identifiable {
+    /// The element with the specified identifier, or `nil` if the sequence doesn't contain an element with the identifier.
+    subscript(id id: Element.ID) -> Element? {
+        get { first(where: { $0.id == id }) }
+        set {
+            if let index = firstIndex(where: { $0.id == id }) {
+                remove(at: index)
+                if let newValue = newValue {
+                    insert(newValue, at: index)
+                }
+            } else if let newValue = newValue {
+                append(newValue)
+            }
+        }
+    }
+    
     /// Removes all elements with the specified element identifier.
     mutating func remove(id: Element.ID) {
         removeAll(where: { $0.id == id })
@@ -44,6 +59,17 @@ public extension RangeReplaceableCollection where Element: Identifiable {
      */
     mutating func removeFirst(id: Element.ID) -> Element? {
         removeFirst(where: { $0.id == id })
+    }
+    
+    /**
+     Removes the last element with the specified element identifier.
+     
+     - Parameter id: The element identifier.
+     
+     - Returns: The removed element, or `nil` if there isn't any element with the specified identifier in the collection.
+     */
+    mutating func removeLast(id: Element.ID) -> Element? where Self: BidirectionalCollection {
+        removeLast(where: { $0.id == id })
     }
 }
 /*
