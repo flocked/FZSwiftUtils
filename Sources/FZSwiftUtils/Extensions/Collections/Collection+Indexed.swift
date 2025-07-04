@@ -16,14 +16,17 @@ extension Collection {
      This example iterates over the indices and elements of a set, building an array consisting of indices of names with five or fewer letters.
      
      ```swift
-     let names: Set = ["Sofia", "Camilla", "Martina", "Mateo", "Nicolás"]
-     var shorterIndices: [Set<String>.Index] = []
+     let names = ["Noah", "Jameson", "Lea", "Jonathan", "Mat", "Nicolás"]
+     var shortNameIndexes: [Int] = []
      
      for (i, name) in names.indexed() {
-     if name.count <= 5 {
-     shorterIndices.append(i)
+        if name.count <= 5 {
+            shortNameIndexes.append(i)
+        }
      }
-     }
+     
+     // [0, 2, 4]
+     shortNameIndexes
      ```
      - Returns: A collection of paired indices and elements of this collection.
      */
