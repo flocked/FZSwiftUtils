@@ -179,7 +179,7 @@ extension Swizzle {
         public let old: Selector
         /// The new selector to replace the old.
         public let new: Selector
-        /// A Boolean value indicating whether the selectors are static.
+        /// A `Boolean` value indicating whether the selectors are static.
         public let isStatic: Bool
         
         var fails: (old: String?, new: String?) = (nil, nil)
@@ -190,9 +190,9 @@ extension Swizzle {
          - Parameters:
             - old: The old selector.
             - new: The new selector to replace the old.
-            - isStatic: A Boolean value indicating whether the selectors are static.
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
          */
-        public init(old: Selector, new: Selector, isStatic: Bool = false) {
+        public init(_ old: Selector, _ new: Selector, isStatic: Bool = false) {
             self.old = old
             self.new = new
             self.isStatic = isStatic
@@ -204,16 +204,16 @@ extension Swizzle {
          - Parameters:
             - old: The old keypath.
             - new: The new keypath
-            - isStatic: A Boolean value indicating whether the selectors are static.
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
          */
-        public init<V: AnyObject>(get old: PartialKeyPath<V>, new: PartialKeyPath<V>, isStatic: Bool = false) {
+        public init<V: AnyObject>(_ old: PartialKeyPath<V>, _ new: PartialKeyPath<V>, isStatic: Bool = false) {
             if let old = try? old.getterName() {
                 self.old = NSSelectorFromString(old)
             } else {
                 fails.old = String(describing: old)
                 self.old = NSSelectorFromString(fails.old!)
             }
-            if let new = try? old.getterName() {
+            if let new = try? new.getterName() {
                 self.new = NSSelectorFromString(new)
             } else {
                 fails.new = String(describing: new)
@@ -227,22 +227,98 @@ extension Swizzle {
          
          - Parameters:
             - old: The old keypath.
-            - new: The new keypath
-            - isStatic: A Boolean value indicating whether the selectors are static.
+            - new: The new selector
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
          */
-        public init<V: AnyObject>(set old: PartialKeyPath<V>, new: PartialKeyPath<V>, isStatic: Bool = false) {
+        public init<V: AnyObject>(_ old: PartialKeyPath<V>, _ new: Selector, isStatic: Bool = false) {
+            if let old = try? old.getterName() {
+                self.old = NSSelectorFromString(old)
+            } else {
+                fails.old = String(describing: old)
+                self.old = NSSelectorFromString(fails.old!)
+            }
+            self.new = new
+            self.isStatic = isStatic
+        }
+        
+        /**
+         Creates a selector pair.
+         
+         - Parameters:
+            - old: The old keypath.
+            - new: The new name of the selector
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
+         */
+        public init<V: AnyObject>(_ old: PartialKeyPath<V>, _ new: String, isStatic: Bool = false) {
+            if let old = try? old.getterName() {
+                self.old = NSSelectorFromString(old)
+            } else {
+                fails.old = String(describing: old)
+                self.old = NSSelectorFromString(fails.old!)
+            }
+            self.new = NSSelectorFromString(new)
+            self.isStatic = isStatic
+        }
+        
+        /**
+         Creates a selector pair.
+         
+         - Parameters:
+            - old: The old keypath.
+            - new: The new keypath
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
+         */
+        public init<V: AnyObject>(set old: PartialKeyPath<V>, _ new: PartialKeyPath<V>, isStatic: Bool = false) {
             if let old = try? old.setterName() {
                 self.old = NSSelectorFromString(old)
             } else {
                 fails.old = String(describing: old)
                 self.old = NSSelectorFromString(fails.old!)
             }
-            if let new = try? old.setterName() {
+            if let new = try? new.setterName() {
                 self.new = NSSelectorFromString(new)
             } else {
                 fails.new = String(describing: new)
                 self.new = NSSelectorFromString(fails.new!)
             }
+            self.isStatic = isStatic
+        }
+        
+        /**
+         Creates a selector pair.
+         
+         - Parameters:
+            - old: The old keypath.
+            - new: The new selector
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
+         */
+        public init<V: AnyObject>(set old: PartialKeyPath<V>, _ new: Selector, isStatic: Bool = false) {
+            if let old = try? old.setterName() {
+                self.old = NSSelectorFromString(old)
+            } else {
+                fails.old = String(describing: old)
+                self.old = NSSelectorFromString(fails.old!)
+            }
+            self.new = new
+            self.isStatic = isStatic
+        }
+        
+        /**
+         Creates a selector pair.
+         
+         - Parameters:
+            - old: The old keypath.
+            - new: The new name of the selector.
+            - isStatic: A `Boolean` value indicating whether the selectors are static.
+         */
+        public init<V: AnyObject>(set old: PartialKeyPath<V>, _ new: String, isStatic: Bool = false) {
+            if let old = try? old.setterName() {
+                self.old = NSSelectorFromString(old)
+            } else {
+                fails.old = String(describing: old)
+                self.old = NSSelectorFromString(fails.old!)
+            }
+            self.new = NSSelectorFromString(new)
             self.isStatic = isStatic
         }
         
@@ -263,44 +339,44 @@ extension Swizzle {
 public extension Selector {
     /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: Selector, rhs: Selector) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: lhs, new: rhs)
+        Swizzle.SelectorPair(lhs, rhs)
     }
 
     /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: Selector, rhs: String) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: lhs, new: Selector(rhs))
+        Swizzle.SelectorPair(lhs, Selector(rhs))
     }
 
     /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: Selector, rhs: Selector) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: lhs, new: rhs, isStatic: true)
+        Swizzle.SelectorPair(lhs, rhs, isStatic: true)
     }
 
     /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: Selector, rhs: String) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: lhs, new: Selector(rhs), isStatic: true)
+        Swizzle.SelectorPair(lhs, Selector(rhs), isStatic: true)
     }
 }
 
 public extension String {
     /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: Selector(lhs), new: rhs)
+        Swizzle.SelectorPair(NSSelectorFromString(lhs), rhs)
     }
     
     /// Creates a selector pair for swizzleing from the first and second selector.
     static func <-> (lhs: String, rhs: String) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: NSSelectorFromString(rhs))
+        Swizzle.SelectorPair(NSSelectorFromString(lhs), NSSelectorFromString(rhs))
     }
 
     /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: String, rhs: Selector) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: rhs, isStatic: true)
+        Swizzle.SelectorPair(NSSelectorFromString(lhs), rhs, isStatic: true)
     }
     
     /// Creates a selector pair for swizzleing from the first and second static selector.
     static func <~> (lhs: String, rhs: String) -> Swizzle.SelectorPair {
-        Swizzle.SelectorPair(old: NSSelectorFromString(lhs), new: NSSelectorFromString(rhs), isStatic: true)
+        Swizzle.SelectorPair(NSSelectorFromString(lhs), NSSelectorFromString(rhs), isStatic: true)
     }
 }
 
