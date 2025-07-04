@@ -77,9 +77,9 @@ public struct Swizzle {
             guard let cls = pair.isStatic ? object_getClass(type) : type else {
                 throw Error.classNotFound(type.description())
             }
-            if let old = pair.fails.old {
+            if let old = pair.failedOldKeyPath {
                 throw Error.keyPathNotFound(keyPath: old, className: NSStringFromClass(cls))
-            } else if let new = pair.fails.new {
+            } else if let new = pair.failedNewKeyPath {
                 throw Error.keyPathNotFound(keyPath: new, className: NSStringFromClass(cls))
             }
             guard let rhs = class_getInstanceMethod(cls, pair.new) else {
@@ -182,7 +182,8 @@ extension Swizzle {
         /// A `Boolean` value indicating whether the selectors are static.
         public let isStatic: Bool
         
-        var fails: (old: String?, new: String?) = (nil, nil)
+        var failedOldKeyPath: String?
+        var failedNewKeyPath: String?
         
         /**
          Creates a selector pair.
@@ -210,14 +211,14 @@ extension Swizzle {
             if let old = try? old.getterName() {
                 self.old = NSSelectorFromString(old)
             } else {
-                fails.old = String(describing: old)
-                self.old = NSSelectorFromString(fails.old!)
+                failedOldKeyPath = String(describing: old)
+                self.old = NSSelectorFromString(failedOldKeyPath!)
             }
             if let new = try? new.getterName() {
                 self.new = NSSelectorFromString(new)
             } else {
-                fails.new = String(describing: new)
-                self.new = NSSelectorFromString(fails.new!)
+                failedNewKeyPath = String(describing: new)
+                self.new = NSSelectorFromString(failedNewKeyPath!)
             }
             self.isStatic = isStatic
         }
@@ -234,8 +235,8 @@ extension Swizzle {
             if let old = try? old.getterName() {
                 self.old = NSSelectorFromString(old)
             } else {
-                fails.old = String(describing: old)
-                self.old = NSSelectorFromString(fails.old!)
+                failedOldKeyPath = String(describing: old)
+                self.old = NSSelectorFromString(failedOldKeyPath!)
             }
             self.new = new
             self.isStatic = isStatic
@@ -253,8 +254,8 @@ extension Swizzle {
             if let old = try? old.getterName() {
                 self.old = NSSelectorFromString(old)
             } else {
-                fails.old = String(describing: old)
-                self.old = NSSelectorFromString(fails.old!)
+                failedOldKeyPath = String(describing: old)
+                self.old = NSSelectorFromString(failedOldKeyPath!)
             }
             self.new = NSSelectorFromString(new)
             self.isStatic = isStatic
@@ -272,14 +273,14 @@ extension Swizzle {
             if let old = try? old.setterName() {
                 self.old = NSSelectorFromString(old)
             } else {
-                fails.old = String(describing: old)
-                self.old = NSSelectorFromString(fails.old!)
+                failedOldKeyPath = String(describing: old)
+                self.old = NSSelectorFromString(failedOldKeyPath!)
             }
             if let new = try? new.setterName() {
                 self.new = NSSelectorFromString(new)
             } else {
-                fails.new = String(describing: new)
-                self.new = NSSelectorFromString(fails.new!)
+                failedNewKeyPath = String(describing: new)
+                self.new = NSSelectorFromString(failedNewKeyPath!)
             }
             self.isStatic = isStatic
         }
@@ -296,8 +297,8 @@ extension Swizzle {
             if let old = try? old.setterName() {
                 self.old = NSSelectorFromString(old)
             } else {
-                fails.old = String(describing: old)
-                self.old = NSSelectorFromString(fails.old!)
+                failedOldKeyPath = String(describing: old)
+                self.old = NSSelectorFromString(failedOldKeyPath!)
             }
             self.new = new
             self.isStatic = isStatic
@@ -315,8 +316,8 @@ extension Swizzle {
             if let old = try? old.setterName() {
                 self.old = NSSelectorFromString(old)
             } else {
-                fails.old = String(describing: old)
-                self.old = NSSelectorFromString(fails.old!)
+                failedOldKeyPath = String(describing: old)
+                self.old = NSSelectorFromString(failedOldKeyPath!)
             }
             self.new = NSSelectorFromString(new)
             self.isStatic = isStatic
