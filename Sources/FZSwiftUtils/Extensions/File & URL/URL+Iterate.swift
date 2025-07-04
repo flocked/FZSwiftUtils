@@ -83,10 +83,6 @@ public extension URL {
         URLSequence(url: self, folderOnly: true, predicate: { _,_,_ in true })
     }
     
-    func sdsds() {
-        iterateFiles().types(.audio, .video)
-    }
-    
     /// A sequence of URLs.
     struct URLSequence: Sequence {
         let url: URL

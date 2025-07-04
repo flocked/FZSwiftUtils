@@ -395,3 +395,108 @@ public extension unichar {
         }
     }
 }
+
+public extension String {
+    /**
+     A cleaned-up string representation of the given value, flattening optional nesting and quoting string literals.
+     
+     Example:
+     ```swift
+     let array: [String?]? = ["value", nil, "value"]
+     
+     // -> ["value", nil, "value"]
+     String(cleanDescribing: array)
+     
+     // -> Optional([Optional("value"), nil, Optional("value"]))
+     String(describing: array)
+     ```
+     */
+    init<Subject>(cleanDescribing instance: Subject) where Subject : TextOutputStreamable {
+        if let instance = instance as? String {
+            self = "\"\(instance)\""
+        } else {
+            self = String(describing: instance).nonNil
+        }
+    }
+    
+    /**
+     A cleaned-up string representation of the given value, flattening optional nesting and quoting string literals.
+     
+     Example:
+     ```swift
+     let array: [String?]? = ["value", nil, "value"]
+     
+     // -> ["value", nil, "value"]
+     String(cleanDescribing: array)
+     
+     // -> Optional([Optional("value"), nil, Optional("value"]))
+     String(describing: array)
+     ```
+     */
+    init<Subject>(cleanDescribing instance: Subject) where Subject : CustomStringConvertible {
+        if let instance = instance as? String {
+            self = "\"\(instance)\""
+        } else {
+            self = String(describing: instance).nonNil
+        }
+    }
+    
+    /**
+     A cleaned-up string representation of the given value, flattening optional nesting and quoting string literals.
+     
+     Example:
+     ```swift
+     let array: [String?]? = ["value", nil, "value"]
+     
+     // -> ["value", nil, "value"]
+     String(cleanDescribing: array)
+     
+     // -> Optional([Optional("value"), nil, Optional("value"]))
+     String(describing: array)
+     ```
+     */
+    init<Subject>(cleanDescribing instance: Subject) where Subject : CustomStringConvertible, Subject : TextOutputStreamable {
+        if let instance = instance as? String {
+            self = "\"\(instance)\""
+        } else {
+            self = String(describing: instance).nonNil
+        }
+    }
+    
+    /**
+     A cleaned-up string representation of the given value, flattening optional nesting and quoting string literals.
+     
+     Example:
+     ```swift
+     let array: [String?]? = ["value", nil, "value"]
+     
+     // -> ["value", nil, "value"]
+     String(cleanDescribing: array)
+     
+     // -> Optional([Optional("value"), nil, Optional("value"]))
+     String(describing: array)
+     ```
+     */
+    init<Subject>(cleanDescribing instance: Subject) {
+        if let instance = instance as? String {
+            self = "\"\(instance)\""
+        } else {
+            self = String(describing: instance).nonNil
+        }
+    }
+    
+    internal var nonNil: String {
+        var result = self
+        while true {
+            let matches = result.matches(pattern: #"Optional\(([^()]*?)\)"#)
+            if matches.isEmpty { break }
+            for match in matches.reversed() {
+                if let content = match.groups[safe: 0]?.string {
+                    if content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { continue }
+                    result.replaceSubrange(match.range, with: String(content))
+                }
+            }
+        }
+        return result
+    }
+}
