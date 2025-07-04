@@ -247,7 +247,7 @@ import Foundation
     // MARK: Removing Elements
     
     /// Replaces the specified subrange of elements with the given collection.
-    public mutating func replaceSubrange<C>(_ subrange: Range<Self.Index>, with newElements: C) where C : Collection, Self.Element == C.Element {
+    public mutating func replaceSubrange<C>(_ subrange: Range<Self.Index>, with newElements: C) where C : Collection, Element == C.Element {
         var array = _array
         array.replaceSubrange(subrange, with: newElements)
         self = Self(array)

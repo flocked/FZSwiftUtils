@@ -152,20 +152,21 @@ public extension Collection {
 
 public extension RangeReplaceableCollection {
     /**
-     Removes all elements that have a value for the specified optional property.
+     
+     Removes all elements for which the specified optional property is non-`nil`.
 
-     - Parameter keypath: The keypath to the optional property.
+     - Parameter keyPath: A key path to an optional property of the element.
      */
-    mutating func removeAll<Value>(with keypath: KeyPath<Element, Value?>) {
-        removeAll(where: { $0[keyPath: keypath] != nil })
+    mutating func removeAll<Value>(with keyPath: KeyPath<Element, Value?>) {
+        removeAll(where: { $0[keyPath: keyPath] != nil })
     }
     
     /**
-     Removes all elements without a value for the specified optional property.
+     Removes all elements for which the specified optional property is `nil`.
 
-     - Parameter keypath: The keypath to the optional property.
+     - Parameter keyPath: A key path to an optional property of the element.
      */
-    mutating func removeAll<Value>(without keypath: KeyPath<Element, Value?>) {
-        removeAll(where: { $0[keyPath: keypath] == nil })        
+    mutating func removeAll<Value>(without keyPath: KeyPath<Element, Value?>) {
+        removeAll(where: { $0[keyPath: keyPath] == nil })
     }
 }

@@ -78,8 +78,17 @@ public extension Collection where Element: Equatable {
     func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
         indexes(where: { elements.contains($0) })
     }
-    
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element>, Element: Hashable {
+}
+
+public extension Collection where Element: Hashable {
+    /**
+     Returns indexes of the specified elements.
+
+     - Parameter elements: The elements to return their indexes.
+
+     - Returns: The indexes of the elements.
+     */
+    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
         let lookup = Set(elements)
         return indexes(where: { lookup.contains($0) })
     }

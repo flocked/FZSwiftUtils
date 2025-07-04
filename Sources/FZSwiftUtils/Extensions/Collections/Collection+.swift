@@ -58,65 +58,6 @@ public extension Collection where Index == Int {
     }
 }
 
-public extension RangeReplaceableCollection {
-    /**
-     Removes the first element that satisfy the given predicate.
-     
-     - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the collection.
-     
-     - Returns: The removed element for which predicate returns `true`. If no elements in the collection satisfy the given predicate, returns `nil`.
-     */
-    @discardableResult
-    mutating func removeFirst(where predicate: (Element) throws -> Bool) rethrows -> Element? {
-        guard let index = try firstIndex(where: predicate) else { return nil }
-        return remove(at: index)
-    }
-    
-    /// Removes all elements matching the predicate and returns the removed elements.
-    @discardableResult
-    mutating func removeAllAndReturn(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> [Element] {
-        var removed: [Element] = []
-        var kept: Self = .init()
-        for element in self {
-            if try shouldBeRemoved(element) {
-                removed.append(element)
-            } else {
-                kept.append(element)
-            }
-        }
-        self = kept
-        return removed
-    }
-}
-
-extension RangeReplaceableCollection where Self: BidirectionalCollection {
-    /**
-     Removes the last element that satisfy the given predicate.
-     
-     - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the collection.
-     
-     - Returns: The removed element for which predicate returns `true`. If no elements in the collection satisfy the given predicate, returns `nil`.
-     */
-    mutating func removeLast(where predicate: (Element) throws -> Bool) rethrows -> Element? {
-        guard let lastIndex = try lastIndex(where: predicate) else { return nil }
-        return remove(at: lastIndex)
-    }
-}
-
-public extension RangeReplaceableCollection where Self: MutableCollection {
-    /// Removes all the elements at the specified range.
-    mutating func remove(at range: ClosedRange<Int>) {
-        let range = range.clamped(to: 0...count - 1)
-        remove(atOffsets: IndexSet(range))
-    }
-    
-    /// Removes all the elements at the specified range.
-    mutating func remove(at range: Range<Int>) {
-        let range = range.clamped(to: 0..<count)
-        remove(atOffsets: IndexSet(range))
-    }
-}
-
 public extension MutableCollection {
     subscript(safe index: Index) -> Element? {
         get {
@@ -323,110 +264,7 @@ public extension RangeReplaceableCollection {
     }
 }
 
-public extension RangeReplaceableCollection where Element: Equatable {
-    /**
-     Removes the specificed element and returns them.
-
-     - Parameter element: The element to remove.
-     - Returns: Returns the removed element.
-     */
-    @discardableResult
-    mutating func remove(_ element: Element) -> Element? {
-        var removedElement: Element?
-        while let index = firstIndex(of: element) {
-            removedElement = remove(at: index)
-        }
-        return removedElement
-    }
-
-    /**
-     Removes the specificed elements and returns them.
-
-     - Parameter elements: The elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        var removedElements: [Element] = []
-        for element in elements {
-            while let index = firstIndex(of: element) {
-                let removed = remove(at: index)
-                removedElements.append(removed)
-            }
-        }
-        return removedElements
-    }
-}
-
 public extension RangeReplaceableCollection {
-    /**
-     Removes the elements at the specified indexes and returns them.
-
-     - Parameter indexes: The indexes of the elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove(at indexes: [Index]) -> [Element] {
-        indexes.filter({$0 >= startIndex && $0 < endIndex}).indexed().compactMap({ remove(at: self.index($0.element, offsetBy: -$0.index) ) })
-    }
-    
-    /**
-     Removes the elements at the specified range and returns them.
-
-     - Parameter range: The index range of the elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove(at range: Range<Index>) -> [Self.Element] {
-        let range = range.clamped(to: startIndex..<endIndex)
-        let removed = self[safe: range]
-        removeSubrange(range)
-        return removed
-    }
-    
-    /**
-     Removes the elements at the specified range and returns them.
-
-     - Parameter range: The index range of the elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove(at range: ClosedRange<Index>) -> [Self.Element] {
-        remove(at: (range.lowerBound..<index(after: range.upperBound)))
-    }
-    
-    /**
-     Removes the elements at the specified range and returns them.
-
-     - Parameter range: The index range of the elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove(at range: PartialRangeFrom<Index>) -> [Self.Element] {
-        remove(at: range.lowerBound..<endIndex)
-    }
-    
-    /**
-     Removes the elements at the specified range and returns them.
-
-     - Parameter range: The index range of the elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove(at range: PartialRangeUpTo<Index>) -> [Self.Element] {
-        remove(at: startIndex..<range.upperBound)
-    }
-    
-    /**
-     Removes the elements at the specified range and returns them.
-
-     - Parameter range: The index range of the elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove(at range: PartialRangeThrough<Index>) -> [Self.Element] {
-        remove(at: startIndex..<index(after:range.upperBound))
-    }
 
     /**
      Moves the element at the specified index to the specified position.
@@ -557,30 +395,6 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
     }
 
     /**
-     Removes the specified element.
-
-     - Parameter element: The element remove.
-     - Returns: Returns the removed element.
-     */
-    @discardableResult
-    mutating func remove(_ element: Element) -> Element? {
-        let indexes = indexes(of: [element])
-        return remove(at: indexes).first
-    }
-
-    /**
-     Removes the specified elements.
-
-     - Parameter elements: The elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        let indexes = indexes(of: elements)
-        return remove(at: indexes)
-    }
-
-    /**
      Replaces the first appearance of the specified element with another.
 
      - Parameters:
@@ -615,7 +429,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
         - element: The element to replace.
         - newElements: The replacing elements.
      */
-    mutating func replace<C>(first element: Element, with newElements: C) where C: Collection, Self.Element == C.Element {
+    mutating func replace<C>(first element: Element, with newElements: C) where C: Collection, Element == C.Element {
         if let index = firstIndex(of: element) {
             remove(at: index)
             insert(contentsOf: newElements, at: index)
@@ -629,7 +443,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
         - element: The element to replace.
         - newElements: The replacing elements.
      */
-    mutating func replace<C>(_ element: Element, with newElements: C) where C: Collection, Self.Element == C.Element {
+    mutating func replace<C>(_ element: Element, with newElements: C) where C: Collection, Element == C.Element {
         for index in indexes(of: element) {
             remove(at: index)
             insert(contentsOf: newElements, at: index)
@@ -723,126 +537,6 @@ public extension RangeReplaceableCollection where Element: Equatable {
     }
 }
 
-public extension RangeReplaceableCollection {
-    /**
-     Returns the collection rotated by the specified amount of positions.
-     
-     Example:
-     
-     ```swift
-     let values = [1, 2, 3, 4, 5]
-     print(values.rotated(by: 1)) // [5, 1, 2, 3, 4]
-     ```
-
-     - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
-     - Returns: The rotated collection.
-     */
-    func rotated(by positions: Int) -> Self {
-        guard !isEmpty else { return self }
-        let positions = positions.quotientAndRemainder(dividingBy: count).remainder
-        guard positions != .zero else { return self }
-        let index: Index
-        if positions > 0 {
-            index = self.index(endIndex, offsetBy: -positions, limitedBy: startIndex) ?? startIndex
-        } else {
-            index = self.index(startIndex, offsetBy: -positions, limitedBy: endIndex) ?? endIndex
-        }
-        return Self(self[index...] + self[..<index])
-    }
-    
-    /**
-     Returns the collection rotated to start at the specified index.
-     
-     - Parameter index: The index of the element that should be at the start after rotating.
-    */
-    func rotated(toStartAt index: Int) -> Self {
-        guard index >= 0, index < count else { return self }
-        return rotated(by: -index)
-    }
-
-    /**
-     Rotates the collection by the specified amount of positions.
-     
-     Example:
-     
-     ```swift
-     var values = [1, 2, 3, 4, 5]
-     values.rotate(by: 1)
-     print(values) // [5, 1, 2, 3, 4]
-     ```
-
-     - Parameter positions: The amount of positions to rotate. A value larger than `0` rotates the collection to the right, a value smaller than `0` left.
-     */
-    mutating func rotate(by positions: Int) {
-        self = rotated(by: positions)
-    }
-    
-    /**
-     Returns the collection rotated to start at the specified index.
-     
-     - Parameter index: The index of the element that should be at the start after rotating.
-    */
-    mutating func rotate(toStartAt index: Int) {
-        guard index >= 0, index < count else { return }
-        rotate(by: -index)
-    }
-}
-
-public extension RangeReplaceableCollection {
-    /**
-     Removes and returns the first element of the collection safetly.
-     
-     - Returns: The removed element, or `nil` if the collection is empty.
-     */
-    @discardableResult
-    mutating func removeFirstSafetly() -> Element? {
-        !isEmpty ? removeFirst() : nil
-    }
-    
-    /**
-     Removes and returns the specified number of elements from the beginning of the collection.
-     
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.`
-     - Returns: The removed elements.
-     */
-    @discardableResult
-    mutating func removeFirstSafetly(_ k: Int) -> [Element] {
-        guard !isEmpty else { return [] }
-        return (0..<k.clamped(max: count)).compactMap({ _ in removeFirst() })
-    }
-    
-    /**
-     Removes and returns the last element of the collection safetly.
-     
-     - Returns: The last element of the collection, or `nil` if the collection is empty.
-     */
-    @discardableResult
-    mutating func removeLastSafetly() -> Element? where Self: BidirectionalCollection {
-        !isEmpty ? removeLast() : nil
-    }
-    
-    /**
-     Removes the specified number of elements from the end of the collection.
-          
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
-     */
-    mutating func removeLastSafetly(_ k: Int) where Self: BidirectionalCollection {
-        guard !isEmpty else { return }
-        removeLast(k.clamped(max: count))
-    }
-    
-    /**
-     Removes and returns the specified number of elements from the end of the collection.
-          
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
-     */
-    @discardableResult
-    mutating func removeLastSafetly(_ k: Int) -> [Element] where Index == Int {
-        guard !isEmpty else { return [] }
-        return ((count-k).clamped(min: 0)..<count).compactMap({ remove(at: $0) })
-    }
-}
-
 extension Collection where Element: BinaryInteger {
     /**
      A Boolean value indicating whether the integers in the array are incrementing by the specified value.
@@ -852,7 +546,7 @@ extension Collection where Element: BinaryInteger {
         - sorted: A Boolean value indicating whether to check the integers in a sorted order.
      */
     public func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
-        let elements = sorted ? self.sorted() : Array(self)
+        let elements = sorted ? self.sorted() : self as? Array ?? Array(self)
         return !(1..<count).contains(where: { elements[$0] != elements[$0 - 1] + value })
     }
 }
@@ -863,10 +557,13 @@ extension Collection where Self: RandomAccessCollection, Element: BinaryFloating
      
      - Parameters:
         - value: The incrementing value.
+        - tolerance: The maximum allowed difference when comparing floating-point increments. Default is zero (exact match).
         - sorted: A Boolean value indicating whether to check the elements in a sorted order.
      */
-    public func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
-        let elements = sorted ? self.sorted() : Array(self)
-        return !(1..<count).contains(where: { elements[$0] != elements[$0 - 1] + value })
+    public func isIncrementing(by value: Element = 1, tolerance: Element = 0, sorted: Bool = false) -> Bool {
+        let elements = sorted ? self.sorted() : self as? Array ?? Array(self)
+        return !(1..<elements.count).contains {
+            abs((elements[$0] - elements[$0 - 1]) - value) > tolerance
+        }
     }
 }
