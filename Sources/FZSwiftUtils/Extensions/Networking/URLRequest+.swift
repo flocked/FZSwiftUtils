@@ -9,10 +9,13 @@ import Foundation
 
 public extension URLRequest {
     /**
-     Adds a range HTTP header for the specified data. This e.g. allows to resume a data download.
+     Adds a `Range` HTTP header to the request, specifying that the request should continue from the end of the given `Data` object.
 
-     - Parameter data: The data used for the HTTP header.
-     - Parameter validator: A validator to ensure the requested data hasn't changed on the server since the last request. You can obtain the validator on previous url responses via `URLResponse` `validator`.
+     This is useful for resuming interrupted downloads or uploads, allowing the server to send only the remaining bytes.
+
+     - Parameters:
+       - data: The existing partial `Data` to determine the starting byte for the range.
+       - validator: A validator (e.g. `ETag` or `last-modified date`). If provided, it will be added as the `If-Range` header to ensure the requested range is only served if the validator still matches.
      */
     mutating func addRangeHeader(for data: Data, validator: String? = nil) {
         var headers = allHTTPHeaderFields ?? [:]
@@ -23,11 +26,17 @@ public extension URLRequest {
         allHTTPHeaderFields = headers
     }
 
-    /**
-     Adds a range HTTP header for the specified file. This e.g. allows to resume downloading the file.
 
-     - Parameter file: A local file used for the HTTP header.
-     - Parameter validator: A validator to ensure the requested data hasn't changed on the server since the last request. You can obtain the validator on previous url responses via `URLResponse` `validator`.
+    /**
+     Adds a `Range` HTTP header to the request, specifying that the request should continue from the end of the given file.
+
+     This is useful for resuming file downloads or uploads from disk, allowing the server to send only the remaining bytes.
+
+     - Parameters:
+       - file: The file `URL` pointing to the partially downloaded file. It's current size is used to calculate the starting byte for the range.
+       - validator: A validator (e.g. `ETag` or `last-modified date`). If provided, it will be added as the `If-Range` header to ensure the requested range is only served if the validator still matches.
+
+     - Note: The file must be a local file `URL` with a valid file size.. If the file doesn't exist or the size is 'zero', this method does nothing.
      */
     mutating func addRangeHeader(for file: URL, validator: String? = nil) {
         guard let fileSize = file.resources.fileSize, fileSize != .zero else { return }
@@ -68,7 +77,6 @@ public extension URLRequest {
         }
         set {
             if let byteRange = newValue {
-                // bytes=345234-34555
                 setValue("bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)", forHTTPHeaderField: "Range")
             } else {
                 setValue(nil, forHTTPHeaderField: "Range")
@@ -77,13 +85,13 @@ public extension URLRequest {
     }
 
     /**
-     Returns the curl command equivalent of the URLRequest.
+     Returns the curl command equivalent of the request.
 
-     The curl command string includes the URL, HTTP method, headers, and body (if present) of the URLRequest.
+     The curl command string includes the URL, HTTP method, headers, and body (if present) of the request.
 
-     - Important: The generated curl command may not accurately represent all aspects of the URLRequest, such as multipart form data.
+     - Important: The generated curl command may not accurately represent all aspects of the request, such as multipart form data.
 
-     - Returns: A string representing the curl command equivalent of the URLRequest.
+     - Returns: A string representing the curl command equivalent of the request.
      */
     var curlString: String {
         guard let url = url else { return "" }
@@ -121,39 +129,100 @@ public extension URLRequest {
 }
 
 /// Enumeration of all HTTP request header field keys.
-public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable, ExpressibleByStringLiteral {
+public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible {
+    /// Media types that are acceptable for the response.
     case accept
+    /// Character sets that are acceptable.
     case acceptCharset
+    /// List of acceptable encodings.
     case acceptEncoding
+    /// List of acceptable human languages.
     case acceptLanguage
+    /// Credentials for authenticating the client with the server.
     case authorization
+    /// Directives for caching mechanisms.
     case cacheControl
+    /// Options for the connection (e.g., keep-alive).
     case connection
+    /// Cookies previously sent by the server.
     case cookie
+    /// The size of the request body in octets (8-bit bytes).
     case contentLength
+    /// Base64-encoded 128-bit MD5 digest of the message body.
     case contentMD5
+    /// The media type of the request body.
     case contentType
+    /// The date and time at which the message was originated.
     case date
+    /// Indicates that particular server behaviors are required by the client.
     case expect
+    /// Discloses the client’s original IP address and other forwarding information.
     case forwarded
+    /// The email address of the user making the request.
     case from
+    /// The domain name of the server and optionally the port number.
     case host
+    /// A conditional request header matching the entity tag.
     case ifMatch
+    /// A conditional request header checking the modification date.
     case ifModifiedSince
+    /// A conditional request header checking if none match the given ETags.
     case ifNoneMatch
+    /// A conditional request header used with range requests.
     case ifRange
+    /// A conditional request header ensuring the resource hasn't changed.
     case ifUnmodifiedSince
+    /// Limits the number of times a request can be forwarded.
     case maxForwards
+    /// Implementation-specific directives that might influence caching.
     case pragma
+    /// Credentials for authenticating with a proxy.
     case proxyAuthorization
+    /// Specifies the part(s) of a document that the server should return.
     case range
+    /// The address of the previous web page from which a link to the current page was followed.
     case referer
+    /// Indicates the transfer codings the user agent is willing to accept.
     case TE
+    /// The form of encoding used to safely transfer the payload body.
     case transferEncoding
+    /// Allows the client to specify which protocol upgrades it supports.
     case upgrade
+    /// The user agent string of the client software.
     case userAgent
+    /// Informs the server of intermediate protocols and recipients.
     case via
+    /// General warnings about possible problems with the request.
     case warning
+    /// Names of headers used in CORS preflight request indicating requested headers.
+    case accessControlRequestHeaders
+    /// Indicates the HTTP method to be used in a CORS request.
+    case accessControlRequestMethod
+    /// Originating URI of the request initiating the fetch.
+    case origin
+    /// Identifies Ajax requests, commonly set to "XMLHttpRequest".
+    case xRequestedWith
+    /// Identifies the originating IP address of a client connecting through a proxy.
+    case xForwardedFor
+    /// Identifies the protocol (HTTP or HTTPS) used by the client connecting through a proxy.
+    case xForwardedProto
+    /// Indicates the client’s real IP address when behind a reverse proxy.
+    case xRealIP
+    /// Indicates the user’s tracking preference ("Do Not Track").
+    case dnt
+    /// Entity tag for cache validation.
+    case etag
+    /// Indicates the patch document media types accepted by the server.
+    case acceptPatch
+    /// Indicates how content should be presented (e.g., inline, attachment).
+    case contentDisposition
+    /// Describes the natural language(s) of the intended audience for the enclosed content.
+    case contentLanguage
+    /// Used to describe relationships between resources.
+    case link
+    /// Indicates how long the client should wait before making a follow-up request.
+    case retryAfter
+    /// A custom or non-standard HTTP header.
     case custom(String)
     
     public init(stringLiteral value: String) {
@@ -161,11 +230,16 @@ public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable,
     }
 
     public init(rawValue: String) {
-        if let first = Self.allCases.first(where: { $0.rawValue == rawValue }) {
-            self = first
+        let normalized = rawValue.lowercased()
+        if let match = Self.allCases.first(where: { $0.rawValue.lowercased() == normalized }) {
+            self = match
         } else {
             self = .custom(rawValue)
         }
+    }
+    
+    public var description: String {
+        rawValue
     }
 
     public static var allCases: [Self] = [.accept, .acceptCharset, .acceptEncoding, .acceptLanguage, .authorization, .cacheControl, .connection, .cookie, .contentLength, .contentMD5, .contentType, .date, .expect, .forwarded, .from, .host, .ifMatch, .ifModifiedSince, .ifNoneMatch, .ifRange, .ifUnmodifiedSince, .maxForwards, .pragma, .proxyAuthorization, .range, .referer, .TE, .transferEncoding, .upgrade, .userAgent, .via, .warning]
@@ -204,6 +278,20 @@ public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable,
         case .userAgent: return "User-Agent"
         case .via: return "Via"
         case .warning: return "Warning"
+        case .accessControlRequestHeaders: return "Access-Control-Request-Headers"
+        case .accessControlRequestMethod: return "Access-Control-Request-Method"
+        case .origin: return "Origin"
+        case .xRequestedWith: return "X-Requested-With"
+        case .xForwardedFor: return "X-Forwarded-For"
+        case .xForwardedProto: return "X-Forwarded-Proto"
+        case .xRealIP: return "X-Real-IP"
+        case .dnt: return "DNT"
+        case .etag: return "ETag"
+        case .acceptPatch: return "Accept-Patch"
+        case .contentDisposition: return "Content-Disposition"
+        case .contentLanguage: return "Content-Language"
+        case .link: return "Link"
+        case .retryAfter: return "Retry-After"
         case let .custom(string): return string
         }
     }
