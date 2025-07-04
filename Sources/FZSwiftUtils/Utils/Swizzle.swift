@@ -98,55 +98,79 @@ public struct Swizzle {
 
     @discardableResult
     init(_ class_: AnyClass, swizzlePairs: [SelectorPair]) throws {
-        guard object_isClass(class_) else { throw Error.missingClass(String(describing: class_)) }
+        guard object_isClass(class_) else {
+            throw Error.classNotFound(String(describing: class_))
+        }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
     @discardableResult
     init(_ className: String, swizzlePairs: [SelectorPair], reset _: Bool = false) throws {
-        guard let class_ = NSClassFromString(className) else { throw Error.missingClass(className) }
+        guard let class_ = NSClassFromString(className) else {
+            throw Error.classNotFound(className)
+        }
         try swizzle(type: class_, pairs: swizzlePairs)
     }
 
     private func swizzle(type: AnyObject.Type, pairs: [SelectorPair]) throws {
         try pairs.forEach { pair in
-            guard let `class` = pair.static ? object_getClass(type) : type else { throw Error.missingClass(type.description()) }
-            guard let lhs = class_getInstanceMethod(`class`, pair.old) else {
-                try swizzleOptional(`class`, pair: pair)
+            guard let cls = pair.static ? object_getClass(type) : type else {
+                throw Error.classNotFound(type.description())
+            }
+            guard let rhs = class_getInstanceMethod(cls, pair.new) else {                
+                guard !didResetOptional(cls, pair: pair) else { return }
+                throw Error.methodNotFound(selector: pair.new, class: cls)
+            }
+            guard let lhs = class_getInstanceMethod(cls, pair.old) else {
+                class_replaceMethod(cls, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
+                var selectors = getAssociatedValue("swizzledOptionals", object: cls, initialValue: [Selector:Selector]())
+                selectors[pair.new] = pair.old
+                setAssociatedValue(selectors, key: "swizzledOptionals", object: cls)
                 return
             }
-            guard let rhs = class_getInstanceMethod(`class`, pair.new) else { throw Error.missingMethod(`class`, pair.static, false, pair) }
-            guard !resetOptional(`class`, pair: pair) else { return }
 
-            if pair.static, class_addMethod(`class`, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
-                class_replaceMethod(`class`, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
+            if pair.static, class_addMethod(cls, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
+                class_replaceMethod(cls, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
             } else {
                 method_exchangeImplementations(lhs, rhs)
             }
-            //   debugPrint("Swizzled\(pair.static ? " static" : "") method for: \(pair)")
         }
     }
     
-    private func swizzleOptional(_ `class`: AnyClass, pair: SelectorPair) throws {
-        let rhs = class_getInstanceMethod(`class`, pair.new)
-        guard let rhs = rhs else { throw Error.missingMethod(`class`, pair.static, true, pair) }
-        class_replaceMethod(`class`, pair.old,  method_getImplementation(rhs), method_getTypeEncoding(rhs))
-        var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
-        selectors[pair.new] = pair.old
-        setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
-    }
-    
-    private func resetOptional(_ `class`: AnyClass, pair: SelectorPair) -> Bool {
-        var selectors = getAssociatedValue("swizzledOptionals", object: `class`, initialValue: [Selector:Selector]())
-        guard selectors[pair.old] == pair.new, let deleteIMP = class_getMethodImplementation(`class`, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(`class`, pair.new) else { return false }
+    private func didResetOptional(_ cls: AnyClass, pair: SelectorPair) -> Bool {
+        var selectors = getAssociatedValue("swizzledOptionals", object: cls, initialValue: [Selector:Selector]())
+        guard selectors[pair.old] == pair.new, let deleteIMP = class_getMethodImplementation(cls, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(cls, pair.new) else { return false }
         method_setImplementation(method, deleteIMP)
         selectors[pair.old] = nil
-        setAssociatedValue(selectors, key: "swizzledOptionals", object: `class`)
+        setAssociatedValue(selectors, key: "swizzledOptionals", object: cls)
         return true
     }
 }
 
 extension Swizzle {
+    enum Error: LocalizedError {
+        case classNotFound(_ className: String)
+        case methodNotFound(selector: Selector, class: AnyClass)
+        
+        var errorDescription: String? {
+            switch self {
+            case .classNotFound:
+                return "Class Not Found"
+            case .methodNotFound:
+                return "Method Not Found"
+            }
+        }
+        
+        var failureReason: String? {
+            switch self {
+            case .classNotFound(let type):
+                return "Could not retrieve class metadata for type '\(type)'."
+            case .methodNotFound(let selector, let cls):
+                return "The method '\(selector)' could not be found on class '\(cls)'."
+            }
+        }
+    }
+    /*
     /// An error for swizzleing.
     enum Error: LocalizedError {
         /// The class is missing.
@@ -191,7 +215,33 @@ extension Swizzle {
             }
         }
     }
+     */
 }
+
+/*
+ enum Error: LocalizedError {
+     case classNotFound(class: String)
+     case methodNotFound(class: AnyClass, selector: Selector, onClass: AnyClass)
+     
+     var errorDescription: String? {
+         switch self {
+         case .classNotFound:
+             return "Class Not Found"
+         case .methodNotFound:
+             return "Method Not Found"
+         }
+     }
+
+     var failureReason: String? {
+         switch self {
+         case .classNotFound(let type):
+             return "Could not retrieve class metadata for type '\(type)'."
+         case .methodNotFound(let _class, let selector, let cls):
+             return "The method '\(selector)' could not be found on class '\(cls)'."
+         }
+     }
+ }
+ */
 
 public extension Swizzle {
     /// A pair of selectors for swizzleing.

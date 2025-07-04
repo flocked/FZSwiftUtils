@@ -61,7 +61,6 @@ Swift Foundation extensions and useful classes & utilities.
 ### Errors
 
 - ``Foundation/NSError``
-- ``NSCodingErrors``
 
 ### File & URL
 

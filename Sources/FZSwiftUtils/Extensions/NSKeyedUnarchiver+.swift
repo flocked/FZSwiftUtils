@@ -18,7 +18,7 @@ extension NSKeyedUnarchiver {
     public static func unarchive<Object: NSObject>(_ data: Data, requiresSecureCoding: Bool = false) throws -> Object where Object: NSCoding {
         let value = try unarchive(data)
         guard let value = value as? Object else {
-            throw UnarchiverErrors.wrongMapping(original: type(of: value), new: Object.self)
+            throw Errors.typeMismatch(actual: type(of: value), expected: Object.self)
         }
         return value
     }
@@ -34,22 +34,30 @@ extension NSKeyedUnarchiver {
         let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
         unarchiver.requiresSecureCoding = requiresSecureCoding
         guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? AnyObject else {
-            throw UnarchiverErrors.failedDecoding
+            throw Errors.missingRootObject
         }
         return value
     }
     
-    /// Keyed unarchiver errors.
-    enum UnarchiverErrors: Error, LocalizedError {
-        /// The decoding of the archive failed.
-        case failedDecoding
-        
-        case wrongMapping(original: AnyClass, new: AnyClass)
+    enum Errors: LocalizedError {
+        case missingRootObject
+        case typeMismatch(actual: AnyClass, expected: AnyClass)
         
         var errorDescription: String? {
             switch self {
-            case .failedDecoding: return "The root object couldn't be decoded."
-            case .wrongMapping(let original, let new): return "The object of type \(original) couldn't be cast to \(new)."
+            case .missingRootObject:
+                return "Missing Root Object"
+            case .typeMismatch:
+                return "Type Mismatch"
+            }
+        }
+        
+        var failureReason: String? {
+            switch self {
+            case .missingRootObject:
+                return "The data does not contain a valid root object under the expected archive key."
+            case .typeMismatch(let actual, let expected):
+                return "Expected object of type \(expected), but decoded object was of type \(actual)."
             }
         }
     }

@@ -41,7 +41,7 @@ public extension FileManager {
             var trashedFileURL: NSURL?
             try trashItem(at: url, resultingItemURL: &trashedFileURL)
             guard let trashedFileURL = trashedFileURL as? URL else {
-                throw Errors.failedToMoveToTrash
+                throw Errors.trashItemFailed(url: url)
             }
             return trashedFileURL
         }
@@ -49,11 +49,17 @@ public extension FileManager {
         /// An enumeration of file manager errors.
         internal enum Errors: LocalizedError {
             /// The file couldn't be moved to the trash.
-            case failedToMoveToTrash
+            case trashItemFailed(url: URL)
             
             var errorDescription: String? {
                 switch self {
-                case .failedToMoveToTrash: return "The file couldn't be moved to the trash."
+                case .trashItemFailed(let url): return "Tashing Failed."
+                }
+            }
+            
+            var failureReason: String? {
+                switch self {
+                case .trashItemFailed(let url): return "Failed to trash item \(url)."
                 }
             }
         }

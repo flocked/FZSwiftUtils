@@ -448,3 +448,16 @@ extension OrderedSet: CustomStringConvertible {
         "OrderedSet (\(count) elements): " + description
     }
 }
+
+
+fileprivate enum Errors: LocalizedError {
+    case duplicateElementsFound
+    
+    var errorDescription: String? {
+        "Duplicate elements found."
+    }
+    
+    var failureReason: String? {
+        "The array being decoded contains duplicate elements, which is not allowed in an OrderedSet."
+    }
+}
