@@ -18,6 +18,35 @@ public extension URL {
     }
     
     /**
+     Creates a `URL` from the provided string and query items.
+     
+     - Parameters:
+        - string: The URL location.
+        - queryItems: The query items.
+     
+     - Returns: The `URL`, or `nil` if the string is not a valid a url.
+     */
+    init?(string: String, @URLComponents.Builder queryItems: () -> [URLQueryItem]) {
+        guard let url = URLComponents(string: string, queryItems: queryItems)?.url else { return nil }
+        self = url
+    }
+    
+    /**
+     Creates a `URL` from the provided `URL` and query items.
+     
+     - Parameters:
+        - url: The `URL` to parse.
+        - resolve: A Boolean value indicating whether the initializer resolves the URL against its base URL before parsing. If `url` is a relative URL, setting resolve to `true` creates components using the `absoluteURL` property.
+        - queryItems: The query items.
+     
+     - Returns: The `URL`, or `nil` if the url is not a valid a url.
+     */
+    init?(url: URL, resolvingAgainstBaseURL resolve: Bool, @URLComponents.Builder queryItems: () -> [URLQueryItem]) {
+        guard let url = URLComponents(url: url, resolvingAgainstBaseURL: resolve, queryItems: queryItems)?.url else { return nil }
+        self = url
+    }
+    
+    /**
      Creates a file URL that references the local file or directory at path.
      
      - Parameters:
@@ -76,9 +105,9 @@ public extension URL {
     /**
      Creates a URL that refers to the location specified by resolving an alias file.
      
-     If the url argument doesn’t refer to an alias file (as defined by the isAliasFileKey property), the returned URL is the same as the url argument.
+     If the url argument doesn’t refer to an alias file (as defined by the [isAliasFileKey](https://developer.apple.com/documentation/foundation/urlresourcekey/isaliasfilekey)] property), the returned URL is the same as the url argument.
      
-     This method doesn’t support the withSecurityScope option.
+     This method doesn’t support the [withSecurityScope](https://developer.apple.com/documentation/foundation/nsurl/bookmarkcreationoptions/withsecurityscope) option.
      
      - Parameters:
         - url: URL to the alias file.
@@ -94,7 +123,7 @@ public extension URL {
      
      - Parameters:
         - url: The bookmark data used to construct a URL.
-        - options: Options taken into account when resolving the bookmark data. To resolve a security-scoped bookmark to support App Sandbox, include the `withSecurityScope` option.
+        - options: Options taken into account when resolving the bookmark data. To resolve a security-scoped bookmark to support App Sandbox, include the [withSecurityScope](https://developer.apple.com/documentation/foundation/nsurl/bookmarkcreationoptions/withsecurityscope) option.
         - url: The base URL that the bookmark data is relative to. If you’re resolving a security-scoped bookmark to obtain a security-scoped URL, use this parameter as follows: To resolve an app-scoped bookmark, use a value of nil. To resolve a document-scoped bookmark, use the absolute path (despite this parameter’s name) to the document from which you retrieved the bookmark.
      App Sandbox doesn’t restrict which URL values you can pass to this parameter.
         - bookmarkDataIsStale: On return, if `true`, the bookmark data is stale. Your app should create a new bookmark using the returned URL and use it in place of any stored copies of the existing bookmark.
@@ -168,7 +197,7 @@ public extension URL {
     /**
      Returns a URL constructed by removing the last path components of self.
      
-     If the URL has an empty path (e.g., http://www.example.com), then this function will return the URL unchanged.
+     If the URL has an empty path (e.g., `http://www.example.com`), then this function will return the URL unchanged.
      
      - Parameter amount: The number of path components to remove.
      */
@@ -219,19 +248,18 @@ public extension URL {
     /**
      The components of the url.
 
-     - Parameter resolve: Controls whether the URL should be resolved against its base URL before parsing. If true, and if the url parameter contains a relative URL, the original URL is resolved against its base URL before parsing by calling the absoluteURL method. Otherwise, the string portion is used by itself.
-     - Returns: A `URLComponents` for the url.
+     - Parameter resolve: A Boolean value indicating whether the url should be resolved against its base URL before parsing. If `true`, and if the url parameter contains a relative URL, the original URL is resolved against its base URL before parsing by calling the `absoluteURL` method. Otherwise, the string portion is used by itself.
      */
     func urlComponents(resolvingAgainstBase resolve: Bool = false) -> URLComponents? {
         URLComponents(url: self, resolvingAgainstBaseURL: resolve)
     }
 
-    /// An array of query items for the URL in the order in which they appear in the original query string.
+    /// The query items for the url.
     var queryItems: [URLQueryItem]? {
         urlComponents()?.queryItems
     }
 
-    /// Returns the url without schema.
+    /// Returns the url without it's [schema](https://developer.apple.com/documentation/foundation/url/scheme).
     func droppedScheme() -> URL? {
         if let scheme = scheme {
             let droppedScheme = String(absoluteString.dropFirst(scheme.count + 3))
@@ -265,7 +293,7 @@ public extension URL {
     
     #if os(macOS) || os(iOS)
     /// A Boolean value indicating whether the file is in the trash.
-    var isInTrash: Bool {
+    var isTrashed: Bool {
         if #available(macOS 13.0, iOS 16.0, *) {
             return self.path.contains(Self.trashDirectory.path)
         }
@@ -277,7 +305,7 @@ public extension URL {
     /**
      The url as a canonical absolute file system url.
      
-     If the `isFile` is `false`, this method returns itself.
+     If the ``isFile`` is `false`, this method returns itself.
      */
     internal var canonicalized: URL {
         standardizedFileURL.resolvingSymlinksInPath()
@@ -342,7 +370,7 @@ public extension URL {
        - directoryHint: A hint indicating whether the file path represents a directory or a file.
        - relativeTo: A URL that provides a file system location that the path extends.
      
-     If `base` is provided, the file path will be resolved relative to this base URL.
+     If `base` is provided, the file path will be resolved relative to this base `URL`.
      */
     @available(macOS, obsoleted: 13.0)
     @available(iOS, obsoleted: 16.0)
@@ -360,7 +388,7 @@ public extension URL {
        - directoryHint: A hint indicating whether the file path represents a directory or a file.
        - relativeTo: A URL that provides a file system location that the path extends.
      
-     If `base` is provided, the file path will be resolved relative to this base URL.
+     If `base` is provided, the file path will be resolved relative to this base `URL`.
      */
     @available(macOS, obsoleted: 13.0)
     @available(iOS, obsoleted: 16.0)
