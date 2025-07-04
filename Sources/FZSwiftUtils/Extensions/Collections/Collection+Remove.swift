@@ -352,6 +352,7 @@ public extension RangeReplaceableCollection where Element: Equatable {
      - Returns: The removed element.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove(_ element: Element) -> Element? {
         var removedElement: Element?
         while let index = firstIndex(of: element) {
@@ -367,6 +368,7 @@ public extension RangeReplaceableCollection where Element: Equatable {
      - Returns: An array of the removed elements.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         remove(at: indexes(of: elements))
     }
@@ -380,6 +382,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
      - Returns: Returns the removed element.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove(_ element: Element) -> Element? {
         remove(at: indexes(of: [element])).first
     }
@@ -391,6 +394,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
      - Returns: Returns the removed elements.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         remove(at: indexes(of: elements))
     }
@@ -404,6 +408,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
      - Returns: Returns the removed element.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove(_ element: Element) -> Element? {
         remove(at: indexes(of: [element])).first
     }
@@ -415,6 +420,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
      - Returns: Returns the removed elements.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         remove(at: indexes(of: elements))
     }
