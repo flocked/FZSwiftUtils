@@ -91,18 +91,18 @@ struct PartialKeyPathComparator<Compared>: SortComparator {
         let aValue = lhs[keyPath: keyPath] as? any Comparable
         let bValue = rhs[keyPath: keyPath] as? any Comparable
         switch (aValue, bValue) {
-        case (nil, nil):
-            return .orderedSame
-        case (nil, _):
-            return .orderedAscending
-        case (_, nil):
-            return .orderedDescending
         case let (lhs?, rhs?):
             if lhs.isEqual(rhs) {
                 return .orderedSame
             }
             let result: ComparisonResult = lhs.isLessThan(rhs) ? .orderedAscending : .orderedDescending
             return order == .forward ? result : result.reversed
+        case (nil, nil):
+            return .orderedSame
+        case (nil, _):
+            return .orderedAscending
+        case (_, nil):
+            return .orderedDescending
         }
     }
 }

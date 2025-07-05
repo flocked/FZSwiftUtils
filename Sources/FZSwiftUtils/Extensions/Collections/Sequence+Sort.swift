@@ -19,14 +19,14 @@ public extension Sequence where Element: Comparable {
             let aValue = a.optional
             let bValue = b.optional
             switch (aValue, bValue) {
+            case let (a?, b?):
+                return order == .ascending ? a < b : a > b
             case (nil, nil):
                 return false
             case (nil, _):
                 return false
             case (_, nil):
                 return true
-            case let (a?, b?):
-                return order == .ascending ? a < b : a > b
             }
         }
     }
@@ -64,14 +64,14 @@ public extension MutableCollection where Self: RandomAccessCollection, Element: 
             let aValue = a.optional
             let bValue = b.optional
             switch (aValue, bValue) {
+            case let (a?, b?):
+                return order == .ascending ? a < b : a > b
             case (nil, nil):
                 return false
             case (nil, _):
                 return false
             case (_, nil):
                 return true
-            case let (a?, b?):
-                return order == .ascending ? a < b : a > b
             }
         }
     }
@@ -136,14 +136,14 @@ public extension Sequence {
                     let aValue = a[keyPath: keyPath]
                     let bValue = b[keyPath: keyPath]
                     switch (aValue, bValue) {
+                    case let (a?, b?):
+                        return order == .ascending ? a < b : a > b
                     case (nil, nil):
                         return false
                     case (nil, _):
                         return false
                     case (_, nil):
                         return true
-                    case let (a?, b?):
-                        return order == .ascending ? a < b : a > b
                     }
                 }
     }
@@ -163,15 +163,15 @@ public extension Sequence {
                     let aValue = a[keyPath: keyPath]
                     let bValue = b[keyPath: keyPath]
                     switch (aValue, bValue) {
+                    case let (a?, b?):
+                        let comparsion = a.compare(b, options: options, range: range, locale: locale)
+                        return order == .ascending ? (comparsion == .orderedAscending) : (comparsion == .orderedDescending)
                     case (nil, nil):
                         return false
                     case (nil, _):
                         return false
                     case (_, nil):
                         return true
-                    case let (a?, b?):
-                        let comparsion = a.compare(b, options: options, range: range, locale: locale)
-                        return order == .ascending ? (comparsion == .orderedAscending) : (comparsion == .orderedDescending)
                     }
                 }
     }

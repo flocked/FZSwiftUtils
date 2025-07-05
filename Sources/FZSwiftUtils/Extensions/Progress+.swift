@@ -198,10 +198,18 @@ extension Progress {
      Returns a string for the throughput.
      
      - Parameters:
+        - locale: The locale to use.
         - units: The allowed units to be used for formatting.
         - fractionLength: The allowed number of digits after the decimal separator.
      */
-    public func throughputString(units: ThroughputFormatter.Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) -> String {
-        ThroughputFormatter(units: units, fractionLength: fractionLength).string(for: throughput ?? 0)
+    public func throughputString(locale: Locale = .current, units: ThroughputFormatter.Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) -> String {
+        throughputFormatter.locale = locale
+        throughputFormatter.units = units
+        throughputFormatter.fractionLength = fractionLength
+        return throughputFormatter.string(for: throughput ?? 0)
+    }
+    
+    internal var throughputFormatter: ThroughputFormatter {
+        getAssociatedValue("throughputFormatter", initialValue: ThroughputFormatter())
     }
 }
