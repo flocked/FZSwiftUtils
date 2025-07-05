@@ -194,6 +194,7 @@ public extension RangeReplaceableCollection where Self: MutableCollection {
     }
     
     /// Removes all the elements at the specified range.
+    @_disfavoredOverload
     mutating func remove(at range: Range<Int>) {
         remove(atOffsets: IndexSet(range.clamped(to: 0..<count)))
     }
@@ -236,6 +237,7 @@ public extension RangeReplaceableCollection {
      - Returns: Returns the removed elements.
      */
     @discardableResult
+    @_disfavoredOverload
     mutating func remove(at range: Range<Index>) -> [Element] {
         let range = range.clamped(to: startIndex..<endIndex)
         let removed = self[safe: range]
