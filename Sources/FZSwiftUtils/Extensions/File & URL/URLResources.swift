@@ -31,6 +31,8 @@ public extension URL {
 public class URLResources {
     /// The url to the resource
     public private(set) var url: URL
+    private var iteratorKey: String?
+    static var iteratorKeys: SynchronizedDictionary<String, Set<URLResourceKey>> = [:]
 
     /**
      Creates an object for accessing and modifying properties of the resource at the specified url.
@@ -40,10 +42,17 @@ public class URLResources {
      */
     public init(url: URL) {
         self.url = url
+        guard url.path.hasPrefix("/__prefetchCheck_") else { return }
+        iteratorKey = url.path.removingPrefix("/__prefetchCheck_")
     }
 
     func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) -> V? {
         guard let resourceKey = keyPath.resourceKey else { return nil }
+        if let iteratorKey = iteratorKey {
+            let keys = Self.iteratorKeys[iteratorKey] ?? [] + resourceKey
+            Self.iteratorKeys[iteratorKey] = keys
+            return nil
+        }
         do {
             return try url.resourceValues(for: resourceKey)[keyPath: keyPath]
         } catch {

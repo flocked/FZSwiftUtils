@@ -87,6 +87,7 @@ public extension URL {
     struct URLSequence: Sequence {
         let url: URL
         var predicate: (URL, Int, inout Bool) -> Bool
+        var prefetchID: String?
         var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         var maxDepth: Int? = nil
         var resourceKeys: [URLResourceKey] = []
@@ -125,7 +126,9 @@ public extension URL {
                 predicate = sequence.predicate
                 folderOnly = sequence.folderOnly
                 maxLevel = sequence.maxDepth
-                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: !sequence.folderOnly ? sequence.resourceKeys : sequence.resourceKeys + .isDirectoryKey, options: sequence.options)
+                var resourceKeys: [URLResourceKey] = sequence.folderOnly ? [.isDirectoryKey] : []
+                resourceKeys += URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID) + sequence.resourceKeys
+                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: resourceKeys.uniqued(), options: sequence.options)
             }
 
             public mutating func next() -> URL? {
@@ -166,6 +169,7 @@ extension URL.URLSequence {
     public func filter(_ isIncluded: @escaping (URL) -> Bool) -> Self {
         var sequence = self
         sequence.predicate = { url,_,_ in isIncluded(url) }
+        sequence.prefetchID = UUID().uuidString
         return sequence
     }
     
@@ -180,6 +184,7 @@ extension URL.URLSequence {
     public func filter(_ isIncluded: @escaping ((_ url: URL, _ level: Int, _ skipDescendants: inout Bool) -> Bool)) -> Self {
         var sequence = self
         sequence.predicate = { isIncluded($0, $1, &$2) }
+        sequence.prefetchID = UUID().uuidString
         return sequence
     }
         
@@ -241,6 +246,7 @@ extension URL {
     public struct FileURLSequence: Sequence {
         let url: URL
         private var predicate: (URL, Int, inout Bool) -> Bool
+        private var prefetchID: String?
         private var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         private var maxDepth: Int? = nil
         private var resourceKeys: [URLResourceKey] = []
@@ -284,7 +290,12 @@ extension URL {
                     typePredicate = { _ in true }
                 }
                 maxLevel = sequence.maxDepth
-                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: sequence.resourceKeys + .isRegularFileKey, options: sequence.options)
+                var resourceKeys = URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID)
+                resourceKeys += sequence.resourceKeys + .isRegularFileKey
+                if sequence.contentTypesFilter != nil, #available(macOS 11.0, *) {
+                    resourceKeys += .contentTypeKey
+                }
+                directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: resourceKeys.uniqued(), options: sequence.options)
             }
 
             public mutating func next() -> URL? {
@@ -325,6 +336,7 @@ extension URL.FileURLSequence {
     public func filter(_ isIncluded: @escaping (URL) -> Bool) -> Self {
         var sequence = self
         sequence.predicate = { url,_,_ in isIncluded(url) }
+        sequence.prefetchID = UUID().uuidString
         return sequence
     }
     
@@ -339,6 +351,7 @@ extension URL.FileURLSequence {
     public func filter(_ isIncluded: @escaping ((_ url: URL, _ level: Int, _ skipDescendants: inout Bool) -> Bool)) -> Self {
         var sequence = self
         sequence.predicate = { isIncluded($0, $1, &$2) }
+        sequence.prefetchID = UUID().uuidString
         return sequence
     }
     
@@ -430,5 +443,18 @@ extension URL.FileURLSequence {
         var iterator = makeIterator()
         while iterator.next() != nil { }
         return iterator.maximumLevel
+    }
+}
+
+fileprivate extension URL {
+    static func sequenceResourceKeys(for predicate:(URL, Int, inout Bool) -> Bool, prefetchID: String?) -> [URLResourceKey] {
+        guard let prefetchID = prefetchID else { return [] }
+        if let resourceKeys = URLResources.iteratorKeys[prefetchID] {
+            return Array(resourceKeys)
+        } else {
+            var shouldStop = false
+            _ = predicate(URL(fileURLWithPath: "__prefetchCheck_\(prefetchID)"), 0, &shouldStop)
+            return Array(URLResources.iteratorKeys[prefetchID, default: []])
+        }
     }
 }
