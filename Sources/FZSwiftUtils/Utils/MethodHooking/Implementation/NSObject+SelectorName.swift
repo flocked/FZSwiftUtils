@@ -38,7 +38,7 @@ extension PartialKeyPath {
     }
 }
 
-fileprivate extension NSObject {
+extension NSObject {
     static func setterName(for getterName: String, _class: AnyClass) -> String? {
         var names: [String] = []
         if getterName.hasPrefix("is") {

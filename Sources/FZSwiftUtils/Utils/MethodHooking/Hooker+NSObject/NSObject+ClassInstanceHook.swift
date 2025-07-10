@@ -23,9 +23,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookBefore(all: #selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookBefore(all: #selector(MyObject.sum(with:number2:)), closure: {
          print("hooked before sum")
-     }
+     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
 
      - parameter selector: The method you want to hook on.
@@ -89,9 +89,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject.hookAfter(all: #selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookAfter(all: #selector(MyObject.sum(with:number2:)), closure: {
          print("hooked after sum")
-     }
+     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
      
      - parameter selector: The method you want to hook on.
@@ -373,7 +373,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookBefore(setAll \.stringValue) { textfield, stringValue in
+     try NSTextField.hookBefore(setAll: \.stringValue) { textfield, stringValue in
         // hooks before
      }
      ```
@@ -382,6 +382,31 @@ extension NSObjectProtocol where Self: NSObject {
     public static func hookBefore<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
         try hookBefore(all: try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
+            closure(obj, val)
+        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks before setting the specified property for all instances of the class.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value will change (i.e., when the new value is not equal to the current one).
+       - closure: The handler that is invoked before the property is set. It receives:
+         - `object`: The object.
+         - `value`: The new value of the property to be set.
+
+     Example usage:
+     ```swift
+     try NSTextField.hookBefore(setAll: \.stringValue) { textfield, stringValue in
+        // hooks before
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookBefore<Value>(setAll keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: Equatable {
+        try hookBefore(all: try keyPath.setterName(), closure: { obj, sel, val in
+            guard let val = val as? Value, let obj = obj as? Self, !uniqueValues || val != obj[keyPath: keyPath] else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
     }
@@ -421,7 +446,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try NSTextField.hookAfter(setAll \.stringValue) { textfield, stringValue in
+     try NSTextField.hookAfter(setAll: \.stringValue) { textfield, stringValue in
         // hooks after.
      }
      ```
@@ -432,6 +457,60 @@ extension NSObjectProtocol where Self: NSObject {
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks after setting the specified property for all instances of the class.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: The handler that is invoked after the property is set. It receives:
+         - `object`: The object.
+         - `oldValue`: The previous value of the property.
+         - `value`: The new value of the property.
+
+     Example usage:
+     ```swift
+     try NSTextField.hookAfter(setAll: \.stringValue) { textfield, oldStringValue, stringValue in
+        // hooks after.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookAfter<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hook(setAll: keyPath) { object, value, original in
+            let oldValue = object[keyPath: keyPath]
+            original(value)
+            closure(object, oldValue, value)
+        }
+    }
+    
+    /**
+     Hooks after setting the specified property for all instances of the class.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value did change (i.e., when the new value is not equal to the previous value).
+       - closure: The handler that is invoked after the property is set. It receives:
+         - `object`: The object.
+         - `oldValue`: The previous value of the property.
+         - `value`: The new value of the property.
+
+     Example usage:
+     ```swift
+     try NSTextField.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+        // hooks after.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookAfter<Value>(setAll keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hook(setAll: keyPath) { object, value, original in
+            let oldValue = object[keyPath: keyPath]
+            original(value)
+            guard !uniqueValues || oldValue != value else { return }
+            closure(object, oldValue, value)
+        }
     }
     
     /**

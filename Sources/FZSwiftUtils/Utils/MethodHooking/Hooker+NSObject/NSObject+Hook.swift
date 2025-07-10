@@ -56,9 +56,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:))) { object, selector, num1, num2 in
+     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:)), closure: { object, selector, num1, num2 in
          print("hooked before sum with \(n1), \(n2)")
-     }
+     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
      - parameter selector: The method you want to hook on.
      - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
@@ -123,9 +123,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:))) { object, selector, num1, num2 in
+     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:)), closure: { object, selector, num1, num2 in
      print("hooked after sum with \(n1), \(n2)")
-     }
+     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
      - parameter selector: The method you want to hook on.
      - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
@@ -377,7 +377,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try textfield.hookBefore(set \.stringValue) { textfield, stringValue in
+     try textfield.hookBefore(set: \.stringValue) { textfield, stringValue in
         // hooks before.
      }
      ```
@@ -386,6 +386,32 @@ extension NSObjectProtocol where Self: NSObject {
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
+            closure(obj, val)
+        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks before setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value will change (i.e., when the new value is not equal to the current one).
+       - closure: The handler that is invoked before the property is set. It receives:
+         - `object`: The object.
+         - `value`: The new value to be set to the property.
+
+     Example usage:
+     ```swift
+     try textfield.hookBefore(set: \.stringValue) { textfield, stringValue in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: Equatable {
+        try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
+            guard let val = val as? Value, let obj = obj as? Self else { return }
+            guard !uniqueValues || val != obj[keyPath: keyPath] else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
     }
@@ -425,7 +451,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set \.stringValue) { textfield, stringValue in
+     try textfield.hookAfter(set: \.stringValue) { textfield, stringValue in
         // hooks after.
      }
      ```
@@ -436,6 +462,60 @@ extension NSObjectProtocol where Self: NSObject {
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    /**
+     Hooks after setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+       - closure: The handler that is invoked after the property is set. It receives:
+         - `object`: The object.
+         - `oldValue`: The previous value of the property.
+         - `value`: The new value of the property.
+
+     Example usage:
+     ```swift
+     try textfield.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+        // hooks after.
+     }
+     ```
+     */
+    @discardableResult
+    public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hook(set: keyPath) { object, value, original in
+            let oldValue = object[keyPath: keyPath]
+            original(value)
+            closure(object, oldValue, value)
+        }
+    }
+    
+    /**
+     Hooks after setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value did change (i.e., when the new value is not equal to the previous value).
+       - closure: The handler that is invoked after the property is set. It receives:
+         - `object`: The object.
+         - `oldValue`: The previous value of the property.
+         - `value`: The new value of the property.
+
+     Example usage:
+     ```swift
+     try textfield.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+        // hooks after.
+     }
+     ```
+     */
+    @discardableResult
+    public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hook(set: keyPath) { object, value, original in
+            let oldValue = object[keyPath: keyPath]
+            original(value)
+            guard !uniqueValues || oldValue != value else { return }
+            closure(object, oldValue, value)
+        }
     }
     
     /**
@@ -478,7 +558,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      Example usage:
      ```swift
-     try textfield.hook(set \.stringValue) { textfield, stringValue, original in
+     try textfield.hook(set: \.stringValue) { textfield, stringValue, original in
         if stringValue != "" {
             // Sets the stringValue.
             original(stringValue)
