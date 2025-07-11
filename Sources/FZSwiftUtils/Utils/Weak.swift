@@ -14,6 +14,7 @@ public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
     private weak var _object: Object?
     private let id = UUID()
     
+    /// Creates a weak reference to the specified object.
     public init(_ object: Object) {
         self._object = object
     }

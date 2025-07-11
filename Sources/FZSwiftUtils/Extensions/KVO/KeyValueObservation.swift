@@ -69,19 +69,19 @@ public class KeyValueObservation: NSObject {
             _ = object[keyPath: keyPath]
         }
         switch (keyPathString, object) {
-        case ("keyWindow", let object as NSWindow) where Value.self is Bool:
+        case ("keyWindow", let object as NSWindow) where Value.self is Bool.Type:
             self.observer = NotificationObserver(object: object, keyPath: "keyWindow") {
                 [.init(NSWindow.didBecomeKeyNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didResignKeyNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
-        case ("mainWindow", let object as NSWindow) where Value.self is Bool:
+        case ("mainWindow", let object as NSWindow) where Value.self is Bool.Type:
             self.observer = NotificationObserver(object: object, keyPath: "mainWindow") {
                 [.init(NSWindow.didBecomeMainNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didResignMainNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
-        case ("inLiveResize", let object as NSWindow) where Value.self is Bool:
+        case ("inLiveResize", let object as NSWindow) where Value.self is Bool.Type:
             self.observer = NotificationObserver(object: object, keyPath: "inLiveResize") {
                 [.init(NSWindow.willStartLiveResizeNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didEndLiveResizeNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
-        case ("inLiveResize", let object as NSView) where Value.self is Bool:
+        case ("inLiveResize", let object as NSView) where Value.self is Bool.Type:
             do {
                 self.observer = HookObserver(object: object, keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
                     handler(false as! Value, true as! Value)
@@ -95,7 +95,7 @@ public class KeyValueObservation: NSObject {
         case ("backgroundStyle", let obj as NSCell) where Value.self is NSView.BackgroundStyle.Type:
             guard let hook = obj.hookBackgroundStyle(uniqueValues, handler) else { return nil }
             observer = HookObserver(object: object, keyPath: keyPathString, hooks: [hook])
-        case ("subviews", let object as NSView) where Value.self is [NSView]:
+        case ("subviews", let object as NSView) where Value.self is [NSView].Type:
             do {
                 let id = UUID().uuidString
                 self.observer = HookObserver(object: object, keyPath: keyPathString, hooks: [
