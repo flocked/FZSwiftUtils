@@ -8,78 +8,6 @@
 import Foundation
 import _NSObjectProxy
 
-extension NSObject {
-    /**
-     Invokes the specified method of the object.
-     
-     - Parameters:
-        - selector: The selector that identifies the method to invoke.
-        - arguments: The arguments to pass to the method when it is invoked.
-     */
-    public func perform(_ selector: Selector, with arguments: [Any] = []) {
-        _performing(selector, withArguments: arguments)
-    }
-    
-    /**
-     Invokes the specified method of the object.
-     
-     - Parameters:
-        - selector: The selector that identifies the method to invoke.
-        - arguments: The arguments to pass to the method when it is invoked.
-     */
-    public func perform(_ selector: String, with arguments: [Any] = []) {
-        _performing(NSSelectorFromString(selector), withArguments: arguments)
-    }
-    
-    /**
-     Invokes the specified method of the object and returns its value.
-     
-     - Parameters:
-        - selector: The selector that identifies the method to invoke.
-        - arguments: The arguments to pass to the method when it is invoked.
-     - Returns: The return value of the method when it is invoked.
-     */
-    public func perform<V>(_ selector: Selector, with arguments: [Any] = []) -> V? {
-        _performSelectorAndReturn(selector, withArguments: arguments) as? V
-    }
-    
-    /**
-     Invokes the specified method of the object and returns its value.
-     
-     - Parameters:
-        - selector: The selector that identifies the method to invoke.
-        - arguments: The arguments to pass to the method when it is invoked.
-     - Returns: The return value of the method when it is invoked.
-     */
-    public func perform<V>(_ selector: String, with arguments: [Any] = []) -> V? {
-        _performSelectorAndReturn(NSSelectorFromString(selector), withArguments: arguments) as? V
-    }
-    
-    /**
-     Invokes the specified method of the object and returns its value.
-
-     - Parameters:
-        - selector: The selector that identifies the method to invoke.
-        - arguments: The arguments to pass to the method when it is invoked.
-     - Returns: The return value of the method when it is invoked.
-     */
-    public func performAndReturn(_ selector: Selector, with arguments: [Any] = []) -> Any? {
-        _performSelectorAndReturn(selector, withArguments: arguments)
-    }
-    
-    /**
-     Invokes the specified method of the object and returns its value.
-
-     - Parameters:
-        - selector: The selector that identifies the method to invoke.
-        - arguments: The arguments to pass to the method when it is invoked.
-     - Returns: The return value of the method when it is invoked.
-     */
-    public func performAndReturn(_ selector: String, with arguments: [Any] = []) -> Any? {
-        _performSelectorAndReturn(NSSelectorFromString(selector), withArguments: arguments)
-    }
-}
-
 extension NSObjectProtocol where Self: NSObject {
     /// A proxy ([NSProxy](https://developer.apple.com/documentation/foundation/nsproxy)) of the object.
     public func proxy() -> Self {
@@ -182,7 +110,7 @@ extension Invocation {
         var description =  selector + "()"
         var components = selector.components(separatedBy: ":")
         if !arguments.isEmpty, components.count == arguments.count {
-            for (index, component) in components.indexed() {
+            for index in 0..<components.count {
                 let argument = String(delegateDescribing: arguments[index], detailed: detailed)
                 if index == 0 {
                     components[index] = components[index].splitByWithPrefix + argument
@@ -221,6 +149,40 @@ extension Invocation {
             values += "returnValue: nil"
         }
         return "Invocation(" + values.joined(separator: ", ") + ")"
+    }
+    
+    /// Sets the arguments of the invocation.
+    @discardableResult
+    public func arguments(_ arguments: [Any]) -> Self {
+        self.arguments = arguments
+        return self
+    }
+    
+    /// Sets the return value of the invocation.
+    @discardableResult
+    public func returnValue(_ value: Any?) -> Self {
+        self.returnValue = value
+        return self
+    }
+    
+    /// Sets the target of the invocation.
+    @discardableResult
+    public func target(_ target: Any?) -> Self {
+        self.target = target
+        return self
+    }
+    
+    /// Sets the selector of the invocation.
+    @discardableResult
+    public func selector(_ selector: Selector) -> Self {
+        self.selector = selector
+        return self
+    }
+    
+    /// Sends the invocation’s message (with its arguments) to its target and returns the it's return value.
+    public func invoke<V>() -> V? {
+        invoke()
+        return returnValue as? V
     }
 }
 

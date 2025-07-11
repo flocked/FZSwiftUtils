@@ -40,7 +40,37 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
 - (instancetype)initWithMethodSignature:(NSMethodSignature *)methodSignature {
     self = [super init];
     if (self) {
-        _invocation = [NSInvocation invocationWithMethodSignature:methodSignature];;
+        _invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
+        _isVoidReturnType = NO;
+    }
+    return self;
+}
+
+- (nullable instancetype)initWithTarget:(NSObject *)target selector:(SEL)selector {
+    self = [super init];
+    if (self) {
+        NSMethodSignature *signature = [target methodSignatureForSelector:selector];
+        if (!signature) {
+            return nil;
+        }
+        _invocation = [NSInvocation invocationWithMethodSignature:signature];
+        [_invocation setTarget: target];
+        [_invocation setSelector: selector];
+        _isVoidReturnType = NO;
+    }
+    return self;
+}
+
+- (nullable instancetype)initWithClass:(Class)target selector:(SEL)selector {
+    self = [super init];
+    if (self) {
+        NSMethodSignature *signature = [target instanceMethodSignatureForSelector: selector];
+        if (!signature) {
+            return nil;
+        }
+        _invocation = [NSInvocation invocationWithMethodSignature:signature];
+        [_invocation setTarget: target];
+        [_invocation setSelector: selector];
         _isVoidReturnType = NO;
     }
     return self;
