@@ -82,7 +82,7 @@ extension NSObject {
 
 extension NSObjectProtocol where Self: NSObject {
     /// A proxy ([NSProxy](https://developer.apple.com/documentation/foundation/nsproxy)) of the object.
-    func proxy() -> Self {
+    public func proxy() -> Self {
         _objectProxy()
     }
     
@@ -154,23 +154,12 @@ extension NSObjectProtocol where Self: NSObject {
             invocation.invoke()
         }
     }
-    
-    /// Returns the real `self`, if the object is a proxy.
-    var realSelf: Self {
-        guard isProxy() else { return self }
-        return Self.toRealSelf(self)
-    }
 }
 
 fileprivate extension NSObject {
     var proxyResponders: [UUID: [Selector: (target: NSObject, selector: Selector)]] {
         get { getAssociatedValue("proxyResponders") ?? [:] }
         set { setAssociatedValue(newValue, key: "proxyResponders") }
-    }
-    
-    @objc func _realSelf() -> NSObject { self }
-    static func toRealSelf<Object: NSObject>(_ v: Object) -> Object {
-        v.perform(#selector(_realSelf))!.takeUnretainedValue() as! Object
     }
 }
 
