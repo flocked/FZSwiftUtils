@@ -16,7 +16,7 @@ public class AnyHook: Hashable {
     // else we validate init order
     var replacementIMP: IMP!
 
-    // fetched at apply time, changes late, thus class requirement
+    // Fetched at apply time, changes late, thus class requirement
     var origIMP: IMP?
     
     var isActive: Bool {

@@ -1,6 +1,6 @@
 //
 //  TryPrint.swift
-//  FZSwiftUtils
+//  
 //
 //  Created by Florian Zand on 19.06.25.
 //

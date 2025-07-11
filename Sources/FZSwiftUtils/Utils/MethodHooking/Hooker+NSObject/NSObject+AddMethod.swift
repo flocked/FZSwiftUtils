@@ -23,17 +23,24 @@ extension NSObject {
       } as @convention(block) (NSTableView, NSDraggingSession, NSPoint) -> Void)
      ```
                     
-     - Returns: The token for resetting.
+     - Returns: The hook token for removing the added method.
      */
     @discardableResult
     public func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
         #if os(macOS) || os(iOS)
-        try Hook.AddMethod(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        try Hook.Add(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
         #else
         try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
         #endif
     }
     
+    /**
+     Adds an unimplemented protocol method to the object.
+     
+     Use this method to add an unimplemented protocol method to the object. To replace an existing method use ``hook(_:closure:)``.
+     
+     - Returns: The hook token for removing the added method.
+     */
     @discardableResult
     public func addMethod(_ selector: String, closure: Any) throws -> Hook {
         try addMethod(NSSelectorFromString(selector), closure: closure)
@@ -52,15 +59,27 @@ extension NSObject {
       } as @convention(block) (NSTableView, NSDraggingSession, NSPoint) -> Void)
      ```
                     
-     - Returns: The token for resetting.
+     - Returns: The hook token for removing the added method.
      */
     @discardableResult
     public static func addMethod(all selector: Selector, closure: Any) throws -> Hook {
         #if os(macOS) || os(iOS)
-        try Hook.AddMethod(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
+        try Hook.Add(for: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
         #else
         try Hook(addMethod: self, selector: selector, hookClosure: closure as AnyObject).apply(true)
         #endif
+    }
+    
+    /**
+     Adds an unimplemented protocol method to all instances of the class.
+     
+     Use this method to add an unimplemented protocol method to the object. To replace an existing method use ``hook(_:closure:)``.
+
+     - Returns: The hook token for removing the added method.
+     */
+    @discardableResult
+    public static func addMethod(all selector: String, closure: Any) throws -> Hook {
+        try addMethod(all: NSSelectorFromString(selector), closure: closure)
     }
 }
 
@@ -124,7 +143,7 @@ class AddMethodHook: AnyHook {
     
     init(object: AnyObject, selector: Selector, hookClosure: Any) throws {
         guard !object.responds(to: selector) else {
-            throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
+            throw NSObject.SwizzleError.methodAlreadyExistsOnObject(object, selector)
         }
         guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: type(of: object), optionalOnly: true) else {
             throw NSObject.SwizzleError.unknownError("typeEncoding for \(selector) of \(type(of: object)) failed")
@@ -153,11 +172,7 @@ class AddInstanceMethodHook: AnyHook {
         _ = typeEncoding.withCString { typeEncodingPtr in
             class_replaceMethod(class_, selector, replacementIMP, typeEncodingPtr)
         }
-        #if os(macOS) || os(iOS)
         _AnyClass(class_).addedMethods.insert(selector)
-        #else
-        (class_ as? NSObject.Type)?.addedMethods.insert(selector)
-        #endif
     }
     
     override func resetImplementation() throws {
@@ -165,16 +180,12 @@ class AddInstanceMethodHook: AnyHook {
         let noop: @convention(block) (AnyObject) -> Void = { _ in }
         let noopIMP = imp_implementationWithBlock(noop)
         method_setImplementation(method, noopIMP)
-        #if os(macOS) || os(iOS)
         _AnyClass(class_).addedMethods.remove(selector)
-        #else
-        (class_ as? NSObject.Type)?.addedMethods.remove(selector)
-        #endif
     }
     
     init<T: NSObject>(class_: T.Type, selector: Selector, hookClosure: Any) throws {
         guard !class_.instancesRespond(to: selector) else {
-            throw NSObject.SwizzleError.unableToAddMethod(type(of: self), selector)
+            throw NSObject.SwizzleError.methodAlreadyExistsOnObject(class_, selector)
         }
         guard let typeEncoding = FZSwiftUtils.typeEncoding(for: selector, _class: class_, optionalOnly: true) else {
             throw NSObject.SwizzleError.unknownError("typeEncoding for \(selector) of \(class_) failed")

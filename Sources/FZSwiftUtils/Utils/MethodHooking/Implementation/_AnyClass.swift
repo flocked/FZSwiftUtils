@@ -5,10 +5,16 @@
 //  Created by Florian Zand on 11.05.25.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 class _AnyClass {
+    let targetClass: AnyClass
+    
+    init(_ targetClass: AnyClass) {
+        self.targetClass = targetClass
+    }
+    
+    #if os(macOS) || os(iOS)
     func revertHooks(for selector: Selector, type: HookMode? = nil) {
         if let type = type {
             hooks[selector, default: [:]][type]?.forEach({ try? $0.revert(remove: false) })
@@ -58,15 +64,11 @@ class _AnyClass {
         get { getAssociatedValue("hooks") ?? [:] }
         set { setAssociatedValue(newValue, key: "hooks") }
     }
-    
-    let targetClass: AnyClass
-    
-    init(_ targetClass: AnyClass) {
-        self.targetClass = targetClass
-    }
+    #endif
 }
 
 extension _AnyClass {
+    #if os(macOS) || os(iOS)
     func revertInstanceHooks(for selector: Selector, type: HookMode? = nil) {
         if let type = type {
             instanceHooks[selector, default: [:]][type]?.forEach({ try? $0.revert(remove: false) })
@@ -109,6 +111,8 @@ extension _AnyClass {
         get { getAssociatedValue("instanceHooks") ?? [:] }
         set { setAssociatedValue(newValue, key: "instanceHooks") }
     }
+    #endif
+    
     
     func setAssociatedValue<T>(_ value: T?, key: String) {
         FZSwiftUtils.setAssociatedValue(value, key: key, object: targetClass)
@@ -151,5 +155,3 @@ extension _AnyClass {
         }
     }
 }
-
-#endif

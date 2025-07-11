@@ -1,89 +1,115 @@
 import Foundation
 
 extension NSObject {
-    /// The list of errors while hooking a method.
-    public enum SwizzleError: LocalizedError {
-        /// The method couldn't be found. Usually happens for when you use stringified selectors that do not exist.
+    /// Errors encountered while hooking (swizzling) methods.
+    public enum SwizzleError: LocalizedError, Equatable {
+
+        /// The target method could not be found.
         case methodNotFound(AnyClass, Selector)
-        
-        /// The implementation could not be found. Class must be in a weird state for this to happen.
+
+        /// The implementation (IMP) of the method could not be found, indicating an inconsistent state.
         case nonExistingImplementation(AnyClass, Selector)
-        
-        /// Someone else changed the implementation; reverting removed this implementation.
-        /// This is bad, likely someone else also hooked this method. If you are in such a codebase, do not use revert.
+
+        /// A conflict was detected where the method implementation was unexpectedly modified by another operation.
         case unexpectedImplementation(AnyClass, Selector, IMP?)
-        
-        /// Unable to register subclass for object-based interposing.
-        case failedToAllocateClassPair(class: AnyClass, subclassName: String)
-        
-        /// Unable to add method  for object-based interposing.
+
+        /// Failed to allocate a new class pair (subclass) required for object-based interposing.
+        case subclassAllocationFailed(class: AnyClass, subclassName: String)
+
+        /// Failed to add a method to the class.
         case unableToAddMethod(AnyClass, Selector)
-        
-        /// Object-based hooking does not work if an object is using KVO.
-        /// The KVO mechanism also uses subclasses created at runtime but doesn't check for additional overrides.
-        /// Adding a hook eventually crashes the KVO management code so we reject hooking altogether in this case.
+
+        /// The object already responds to the selector intended for addition.
+        case methodAlreadyExistsOnObject(AnyObject, Selector)
+
+        /// The type encoding (method signature) could not be determined.
+        case typeEncodingFailed(AnyClass, Selector)
+
+        /// The object is currently using Key-Value Observing (KVO), which conflicts with swizzling.
         case keyValueObservationDetected(AnyObject)
-        
-        /// Object is lying about it's actual class metadata.
-        /// This usually happens when other swizzling libraries (like Aspects) also interfere with a class.
-        /// While this might just work, it's not worth risking a crash, so similar to KVO this case is rejected.
-        ///
-        /// @note Printing classes in Swift uses the class posing mechanism.
-        /// Use `NSClassFromString` to get the correct name.
+
+        /// The object is reporting incorrect class metadata, suggesting interference from other libraries.
         case objectPosingAsDifferentClass(AnyObject, actualClass: AnyClass)
-        
-        /// Can't revert or apply if already done so.
+
+        /// The operation failed due to an invalid state (e.g., trying to apply a hook twice).
         case invalidState(expectedState: String)
-        
-        /// Unable to remove hook.
+
+        /// The reset (revert) operation is unsupported for the current configuration.
         case resetUnsupported(_ reason: String)
-        
-        /// The method to add is already implemented by the object.
-        case methodAlreadyImplemented(AnyClass, Selector)
-        
-        /// Generic failure
-        case unknownError(_ reason: String)
+
+        /// The target object no longer exists (has been deallocated).
         case objectDoesntExistAnymore
-    }
-}
 
-extension NSObject.SwizzleError: Equatable {
-    // Lazy equating via string compare
-    public static func == (lhs: NSObject.SwizzleError, rhs: NSObject.SwizzleError) -> Bool {
-        return lhs.errorDescription == rhs.errorDescription
-    }
-
-    public var errorDescription: String? {
-        switch self {
-        case .methodNotFound(let klass, let selector):
-            return "Method not found: -[\(klass) \(selector)]"
-        case .nonExistingImplementation(let klass, let selector):
-            return "Implementation not found: -[\(klass) \(selector)]"
-        case .unexpectedImplementation(let klass, let selector, let IMP):
-            return "Unexpected Implementation in -[\(klass) \(selector)]: \(String(describing: IMP))"
-        case .failedToAllocateClassPair(let klass, let subclassName):
-            return "Failed to allocate class pair: \(klass), \(subclassName)"
-        case .unableToAddMethod(let klass, let selector):
-            return "Unable to add method: -[\(klass) \(selector)]"
-        case .keyValueObservationDetected(let obj):
-            return "Unable to hook object that uses Key Value Observing: \(obj)"
-        case .objectPosingAsDifferentClass(let obj, let actualClass):
-            return "Unable to hook \(type(of: obj)) posing as \(NSStringFromClass(actualClass))/"
-        case .invalidState(let expectedState):
-            return "Invalid State. Expected: \(expectedState)"
-        case .resetUnsupported(let reason):
-            return "Reset Unsupported: \(reason)"
-        case .objectDoesntExistAnymore:
-            return "Object doesnt exist anymore"
-        case .methodAlreadyImplemented(let klass, let selector):
-            return "Method is already implemented by the object: -[\(klass) \(selector)]"
-        case .unknownError(let reason):
-            return reason
+        /// A generic failure with a specific reason provided.
+        case unknownError(_ reason: String)
+        
+        public var errorDescription: String? {
+            switch self {
+            case .methodNotFound(let klass, let selector):
+                return "Method '\(selector)' not found on \(klass)."
+            case .nonExistingImplementation(let klass, let selector):
+                return "Implementation for '\(selector)' on \(klass) could not be found."
+            case .unexpectedImplementation(let klass, let selector, let imp):
+                return "Unexpected implementation detected for '\(selector)' on \(klass). Current IMP: \(String(describing: imp))."
+            case .subclassAllocationFailed(let klass, let subclassName):
+                return "Failed to allocate class pair for subclass \(subclassName) of \(klass)."
+            case .unableToAddMethod(let klass, let selector):
+                return "Unable to add method '\(selector)' to \(klass)."
+            case .methodAlreadyExistsOnObject(let object, let selector):
+                return "Cannot add method '\(selector)' because the object \(object) already implements it."
+            case .typeEncodingFailed(let klass, let selector):
+                return "Type encoding failed for '\(selector)' on \(klass)."
+            case .keyValueObservationDetected(let object):
+                return "Object cannot be hooked while Key-Value Observing (KVO) is active: \(object)."
+            case .objectPosingAsDifferentClass(let object, let actualClass):
+                return "Object \(type(of: object)) is posing as a different class (\(NSStringFromClass(actualClass))). Hooking rejected."
+            case .invalidState(let expectedState):
+                return "The operation failed due to an invalid state. Expected state: \(expectedState)."
+            case .resetUnsupported:
+                return "Reset or revert hook is unsupported."
+            case .objectDoesntExistAnymore:
+                return "The target object no longer exists."
+            case .unknownError:
+                return "An unknown error occurred."
+            }
         }
-    }
 
-    @discardableResult func log() -> NSObject.SwizzleError {
-        Interpose.log(self.errorDescription!)
-        return self
+        public var failureReason: String? {
+            switch self {
+            case .methodNotFound:
+                return "The selector does not exist on the target class. This often happens when using stringified selectors that are incorrect or non-existent."
+            case .nonExistingImplementation:
+                return "The class appears to be in an inconsistent state where a method exists but its implementation pointer is missing."
+            case .unexpectedImplementation:
+                return "The method implementation was unexpectedly modified, likely due to another swizzling operation. Reverting this hook may cause issues."
+            case .subclassAllocationFailed:
+                return "Unable to register a runtime subclass required for object-based interposing."
+            case .unableToAddMethod:
+                return "The runtime operation to add the method failed. This may be due to restrictions on the class or system limitations."
+            case .methodAlreadyExistsOnObject:
+                return "The target object already responds to the selector, preventing the addition of a new implementation."
+            case .typeEncodingFailed:
+                return "The method signature could not be correctly determined, which is necessary for swizzling."
+            case .keyValueObservationDetected:
+                return "KVO uses runtime subclasses that conflict with object-based hooking. Attempting to swizzle an object with active KVO can lead to crashes."
+            case .objectPosingAsDifferentClass:
+                return "This behavior often indicates interference from other swizzling libraries, which can cause instability. Hooking is rejected to prevent crashes."
+            case .invalidState:
+                return "The current state is not valid for this operation."
+            case .resetUnsupported(let reason), .unknownError(let reason):
+                return reason
+            case .objectDoesntExistAnymore:
+                return "The object was deallocated before the operation could complete."
+            }
+        }
+        
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            return lhs.errorDescription == rhs.errorDescription
+        }
+        
+        @discardableResult func log() -> NSObject.SwizzleError {
+            Interpose.log(self.errorDescription!)
+            return self
+        }
     }
 }

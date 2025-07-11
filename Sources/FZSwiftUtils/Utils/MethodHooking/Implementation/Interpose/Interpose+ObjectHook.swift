@@ -29,11 +29,14 @@ extension Interpose {
             Interpose.storeHook(hook: self, to: block)
         }
         
-        //    /// Release the hook block if possible.
-        //    public override func cleanup() {
-        //        // remove subclass!
-        //        super.cleanup()
-        //    }
+        /*
+         Release the hook block if possible.
+         
+         public override func cleanup() {
+            // remove subclass!
+            super.cleanup()
+         }
+         */
         
         /// The original implementation of the hook. Might be looked up at runtime. Do not cache this.
         public override var original: MethodSignature {
@@ -83,8 +86,7 @@ extension Interpose {
         override func replaceImplementation() throws {
             let method = try validate()
             
-            // Check if there's an existing subclass we can reuse.
-            // Create one at runtime if there is none.
+            // Check if there's an existing subclass we can reuse. Create one at runtime if there is none.
             interposeSubclass = try InterposeSubclass(object: object)
             
             // The implementation of the call that is hooked must exist.
@@ -97,8 +99,7 @@ extension Interpose {
             let encoding = method_getTypeEncoding(method)
             
             if self.generatesSuperIMP {
-                // If the subclass is empty, we create a super trampoline first.
-                // If a hook already exists, we must skip this.
+                // If the subclass is empty, we create a super trampoline first. If a hook already exists, we must skip this.
                 if !hasExistingMethod {
                     interposeSubclass!.addSuperTrampoline(selector: selector)
                 }
@@ -135,13 +136,14 @@ extension Interpose {
             let method = try validate(expectedState: .interposed)
             
             guard super.origIMP != nil else {
-                // Removing methods at runtime is not supported.
-                // https://stackoverflow.com/questions/1315169/
-                // how-do-i-remove-instance-methods-at-runtime-in-objective-c-2-0
-                //
-                // This codepath will be hit if the super helper is missing.
-                // We could recreate the whole class at runtime and rebuild all hooks,
-                // but that seesm excessive when we have a trampoline at our disposal.
+                /*
+                 Removing methods at runtime is not supported.
+                 
+                 https://stackoverflow.com/questions/1315169/how-do-i-remove-instance-methods-at-runtime-in-objective-c-2-0
+                 
+                 This codepath will be hit if the super helper is missing.
+                 We could recreate the whole class at runtime and rebuild all hooks, but that seesm excessive when we have a trampoline at our disposal.
+                 */
                 Interpose.log("Reset of -[\(`class`).\(selector)] not supported. No IMP")
                 throw NSObject.SwizzleError.resetUnsupported("No Original IMP found. SuperBuilder missing?")
             }
@@ -164,12 +166,16 @@ extension Interpose {
                 nextHook?.origIMP = self.origIMP
             }
             
-            // FUTURE: remove class pair!
-            // This might fail if we get KVO observed.
-            // objc_disposeClassPair does not return a bool but logs if it fails.
-            //
-            // objc_disposeClassPair(dynamicSubclass)
-            // self.dynamicSubclass = nil
+            /*
+             FUTURE: remove class pair!
+             
+             This might fail if we get KVO observed.
+             
+             objc_disposeClassPair does not return a bool but logs if it fails.
+             
+             objc_disposeClassPair(dynamicSubclass)
+             self.dynamicSubclass = nil
+             */
         }
     }
 }

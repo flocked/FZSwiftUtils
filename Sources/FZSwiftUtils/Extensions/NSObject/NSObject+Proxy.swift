@@ -48,6 +48,8 @@ extension NSObjectProtocol where Self: NSObject {
      */
     public func proxy(invocationHandler: @escaping (_ invocation: Invocation)->(), respondsHandler: @escaping (_ selector: Selector, _ responds: Bool)->(Bool)) -> Self {
         _objectProxy { invocation in
+            Swift.print("PROX", invocation.selector.string, invocation.arguments, invocation.returnValue ?? "nil", (invocation.target as? NSObject)?.isProxy() ?? "nil" )
+            
             if invocation.selector == #selector(NSObject.responds(to:)), let selector = invocation.arguments.first as? String, let responds = invocation.returnValue as? Int {
                 invocation.returnValue = respondsHandler(NSSelectorFromString(selector), responds == 1) ? 1 : 0
                 invocation.invoke()
@@ -69,15 +71,19 @@ extension NSObjectProtocol where Self: NSObject {
     public func proxy(respondsHandler: @escaping (_ target: Self, _ selector: Selector)->((target: NSObject, selector: Selector)?)) -> Self {
         let id = UUID()
         return _objectProxy { invocation in
+            Swift.print("AAAAA", NSStringFromSelector(invocation.selector))
             if let target = invocation.target as? Self {
+                Swift.print("AAAAA", NSStringFromSelector(invocation.selector), target.proxyResponders[id, default: [:]][invocation.selector] ?? "nil")
                 if let responding = target.proxyResponders[id, default: [:]][invocation.selector] {
                     invocation.target = responding.target
                     invocation.selector = responding.selector
                     target.proxyResponders[id, default: [:]][invocation.selector] = nil
-                } else if invocation.selector == #selector(NSObject.responds(to:)), let selector = invocation.arguments.first as? String, let responds = invocation.returnValue as? Int, responds == 0, let responding = respondsHandler(target, invocation.selector) {
+                } else if invocation.selector == #selector(NSObject.responds(to:)), let selector = invocation.arguments.first as? String, let responds = invocation.returnValue as? Int, responds == 0, let responding = respondsHandler(target, NSSelectorFromString(selector)) {
                     target.proxyResponders[id, default: [:]][NSSelectorFromString(selector)] = responding
                     invocation.returnValue = 1
                 }
+            } else {
+                Swift.print("AAAAA", NSStringFromSelector(invocation.selector), invocation.target ?? "nil", invocation.arguments)
             }
             invocation.invoke()
         }

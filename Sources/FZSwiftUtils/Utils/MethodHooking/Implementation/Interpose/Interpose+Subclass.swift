@@ -30,7 +30,8 @@ public class InterposeSubclass {
     /// Subclass that we create on the fly
     public private(set) var dynamicClass: AnyClass
 
-    /// If the class has been altered (e.g. via NSKVONotifying_ KVO logic)
+    
+    /// If the class has been altered (e.g. via NSKVONotifying KVO logic)
     /// then perceived and actual class don't match.
     ///
     /// Making KVO and Object-based hooking work at the same time is difficult.
@@ -63,7 +64,7 @@ public class InterposeSubclass {
         }
 
         guard let nnSubclass = subclass else {
-            throw NSObject.SwizzleError.failedToAllocateClassPair(class: perceivedClass, subclassName: subclassName)
+            throw NSObject.SwizzleError.subclassAllocationFailed(class: perceivedClass, subclassName: subclassName)
         }
 
         object_setClass(object, nnSubclass)

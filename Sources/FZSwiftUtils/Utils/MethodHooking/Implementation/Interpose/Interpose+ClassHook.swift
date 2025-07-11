@@ -4,8 +4,8 @@ import Foundation
 extension Interpose {
     /// A hook to an instance method and stores both the original and new implementation.
     class ClassHook<MethodSignature, HookSignature>: TypedHook<MethodSignature, HookSignature> {
-        /* HookSignature?: This must be optional or swift runtime will crash.
-         Or swiftc may segfault. Compiler bug? */
+        // HookSignature?: This must be optional or swift runtime will crash or swiftc may segfault  (Compiler bug?).
+        
         /// Initialize a new hook to interpose an instance method.
         public init(`class`: AnyClass, selector: Selector,
                     implementation: (ClassHook<MethodSignature, HookSignature>) -> HookSignature?) throws {

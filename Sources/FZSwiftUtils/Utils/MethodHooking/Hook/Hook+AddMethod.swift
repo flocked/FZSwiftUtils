@@ -9,7 +9,7 @@
 import Foundation
 
 extension Hook {
-    class AddMethod: Hook {
+    class Add: Hook {
         let hook: AnyHook
         weak var object: AnyObject?
         
