@@ -99,6 +99,19 @@ public extension Numeric where Magnitude: FloatingPoint {
             norm: \.magnitude
         )
     }
+    
+    /**
+     A Boolean value that indicates whether `self` and the specified `other` value are approximately equal.
+
+     - Parameters:
+        - other: The value to compare.
+        - epsilon: The margin by which both values can differ and still be considered the same value.
+     */
+    @inlinable @inline(__always)
+    func isApproximatelyEqual(to other: Self,
+                              epsilon: Magnitude) -> Bool {
+        isApproximatelyEqual(to: other, absoluteTolerance: epsilon)
+    }
 }
 
 public extension AdditiveArithmetic {

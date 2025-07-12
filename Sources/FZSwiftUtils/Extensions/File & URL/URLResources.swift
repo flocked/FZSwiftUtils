@@ -613,3 +613,70 @@ fileprivate extension BinaryInteger {
         DataSize(self)
     }
 }
+
+#if os(macOS)
+@available(macOS 26.0, *)
+extension URLResources {
+    /// The icon of a folder.
+    enum FolderIcon: Hashable, CustomStringConvertible {
+        /// Emoji.
+        case emoji(String)
+        /// System symbol image.
+        case symbolImage(String)
+        
+        var description: String {
+            switch self {
+            case .emoji(let string):
+                return "Emoji: \(string)"
+            case .symbolImage(let string):
+                return "SymbolImage: \(string)"
+            }
+        }
+        
+        var dict: [String: String]? {
+            switch self {
+            case .emoji(let string):
+                guard string.allSatisfy({$0.isEmoji}) else { return nil }
+                return ["emoji": string]
+            case .symbolImage(let string):
+                // guard NSImage(systemSymbolName: string) != nil else { return nil}
+                return ["sym": string]
+            }
+        }
+    }
+    
+    /// The icon of the folder.
+    var folderIcon: FolderIcon? {
+        get {
+            do {
+                let data = try url.extendedAttributes.getData(for: "com.apple.icon.folder#S")
+                guard let jsonString = String(data: data, encoding: .utf8) else { return nil }
+                let dict = try JSONSerialization.jsonObject(with: data, options: [])
+                guard let dict = dict as? [String: Any] else { return nil }
+                if let symbolName = dict["sym"] as? String {
+                    return .symbolImage(symbolName)
+                } else if let emoji = dict["emoji"] as? String {
+                    return .emoji(emoji)
+                }
+            } catch {
+                Swift.print(error)
+            }
+            return nil
+        }
+        set {
+            do {
+                if let newValue = newValue {
+                    guard let dict = newValue.dict else { return }
+                    let jsonData = try JSONSerialization.data(withJSONObject: dict, options: [])
+                    guard let data = String(data: jsonData, encoding: .utf8)?.data(using: .utf8) else { return }
+                    try url.extendedAttributes.setData(data, for: "com.apple.icon.folder#S")
+                } else {
+                    try url.extendedAttributes.remove("com.apple.icon.folder#S")
+                }
+            } catch {
+                Swift.print(error)
+            }
+        }
+    }
+}
+#endif

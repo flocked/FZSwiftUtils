@@ -419,26 +419,58 @@ public extension CGRect {
      - Returns: A new rectangle expanded by the specified amount in the given edge directions.
      */
     func expand(_ edges: NSUIRectEdge, by amount: CGFloat) -> CGRect {
+        expand(edges, to: CGSize(width: edges.contains(any: [.left, .right]) ? width + amount : width, height: edges.contains(any: [.bottom, .top]) ? height + amount : height))
+    }
+    
+    /**
+     Returns a new rectangle expanded to the specified size in the given edge directions.
+
+     - Parameters:
+        - edges: The edge directions in which to expand the rectangle.
+        - amount: The size to which to expand the rectangle.
+
+     - Returns: A new rectangle expanded to the specified size in the given edge directions.
+     */
+    func expand(_ edges: NSUIRectEdge, to size: CGSize) -> CGRect {
         var frame = self
-        if edges.contains(.left) {
-            frame.x -= amount
-            frame.size.width += amount
+
+        let widthDelta = size.width - frame.size.width
+        if widthDelta != 0 {
+            if edges.contains(.left) && edges.contains(.right) {
+                frame.origin.x -= widthDelta / 2
+                frame.size.width += widthDelta
+            } else if edges.contains(.left) {
+                frame.origin.x -= widthDelta
+                frame.size.width += widthDelta
+            } else if edges.contains(.right) {
+                frame.size.width += widthDelta
+            }
         }
-        if edges.contains(.right) {
-            frame.size.width += amount
-        }
-        
-        if edges.contains(.bottom) {
-            frame.size.height += amount
-            #if os(macOS)
-            frame.y -= amount
-            #endif
-        }
-        if edges.contains(.top) {
-            frame.size.height += amount
-            #if !os(macOS)
-            frame.y -= amount
-            #endif
+
+        let heightDelta = size.height - frame.size.height
+        if heightDelta != 0 {
+            if edges.contains(.top) && edges.contains(.bottom) {
+                #if os(macOS)
+                frame.origin.y -= heightDelta / 2
+                #else
+                frame.origin.y -= heightDelta / 2
+                #endif
+                frame.size.height += heightDelta
+            } else if edges.contains(.top) {
+                #if os(macOS)
+                frame.size.height += heightDelta
+                #else
+                frame.origin.y -= heightDelta
+                frame.size.height += heightDelta
+                #endif
+            } else if edges.contains(.bottom) {
+                #if os(macOS)
+                frame.origin.y -= heightDelta
+                frame.size.height += heightDelta
+                #else
+                frame.size.height += heightDelta
+                #endif
+            }
         }
         return frame
     }

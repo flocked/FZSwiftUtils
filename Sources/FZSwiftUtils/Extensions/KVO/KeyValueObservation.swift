@@ -67,6 +67,8 @@ public class KeyValueObservation: NSObject {
         let keyPathString = keyPath.stringValue
         if keyPathString == "inLiveScroll" || keyPathString == "inLiveMagnify", object is NSScrollView {
             _ = object[keyPath: keyPath]
+        } else if keyPathString == "isFullscreen", object is NSWindow {
+            _ = object[keyPath: keyPath]
         }
         switch (keyPathString, object) {
         case ("keyWindow", let object as NSWindow) where Value.self is Bool.Type:
