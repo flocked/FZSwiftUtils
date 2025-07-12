@@ -5,29 +5,48 @@
 //  Created by Florian Zand on 26.01.25.
 //
 
-#import <Foundation/Foundation.h>
-#import "internal/ObjectProxy.h"
+#import "include/ObjectProxy.h"
 #import "internal/Invocation+Private.h"
+#import "internal/MethodSignature+Private.h"
 
 @implementation ObjectProxy
 
-- (instancetype)initWithTarget:(id)target {
-    _target = target;
+- (instancetype)initWithTarget:(NSObject *)target {
+    __target = target;
     return self;
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
-    return [_target methodSignatureForSelector:sel];
+    MethodSignature *signature = [self getMethodSignatureForSelector:sel];
+    if (signature != nil) {
+        return [signature methodSignature];
+    }
+    return nil;
+}
+
+- (MethodSignature *)getMethodSignatureForSelector:(SEL)sel {
+    NSMethodSignature *methodSignature = [__target methodSignatureForSelector:sel];
+    if (methodSignature != nil) {
+        return [[MethodSignature alloc] initWithMethodSignature:methodSignature];;
+    }
+    return nil;
 }
 
 - (void)forwardInvocation:(NSInvocation *)invocation {
-    [invocation setTarget:_target];
-    if (self.invocationHandler) {
-        Invocation *proxyInvocation = [[Invocation alloc] initWithInvocation:invocation];
-        self.invocationHandler(proxyInvocation);
-    } else {
-        [invocation invoke];
-    }
+    [self forwardingInvocation:[[Invocation alloc] initWithInvocation:invocation]];
+}
+
+- (void)forwardingInvocation:(Invocation *)invocation {
+    [invocation setTarget:__target];
+    [invocation invoke];
+}
+
+@end
+
+@implementation NSObject (ProxyMapping)
+
+- (instancetype)_mapToProxy:(ObjectProxy *)proxy {
+    return (id)proxy;
 }
 
 @end

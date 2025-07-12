@@ -6,6 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "MethodSignature.h"
 
 /**
  An Objective-C message rendered as an object.
@@ -25,13 +26,17 @@
 /// The selector of the invocation.
 @property (nonatomic) SEL _Nonnull selector;
 /// The arguments of the invocation.
-@property (nonatomic, strong) NSArray * _Nonnull arguments;
+@property (nonatomic, strong) NSArray * _Nonnull _arguments;
 /// The return value of the invocation.
-@property (nonatomic, strong) id _Nullable returnValue;
+@property (nonatomic, strong) id _Nullable _returnValue;
 /// A Boolean value indicating whether the return value returns void.
 @property (nonatomic, readonly) BOOL isVoidReturnType;
 
+- (nonnull instancetype)initWithSignature:(nonnull MethodSignature *)methodSignature;
+
 /// Sends the invocation’s message (with arguments) to its target and sets the return value.
 - (void)invoke;
+/// Sets the receiver’s target, sends the receiver’s message (with arguments) to that target, and sets the return value.
+- (void) invokeWithTarget:(id _Nonnull) target;
 
 @end

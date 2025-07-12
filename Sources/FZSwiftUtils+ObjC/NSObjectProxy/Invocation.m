@@ -7,6 +7,7 @@
 
 #import "include/Invocation.h"
 #import "internal/Invocation+Private.h"
+#import "internal/MethodSignature+Private.h"
 
 NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     while (*type == 'r' || *type == 'n' || *type == 'N' ||
@@ -46,31 +47,10 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     return self;
 }
 
-- (nullable instancetype)initWithTarget:(NSObject *)target selector:(SEL)selector {
+- (instancetype)initWithSignature:(MethodSignature *)methodSignature {
     self = [super init];
     if (self) {
-        NSMethodSignature *signature = [target methodSignatureForSelector:selector];
-        if (!signature) {
-            return nil;
-        }
-        _invocation = [NSInvocation invocationWithMethodSignature:signature];
-        [_invocation setTarget: target];
-        [_invocation setSelector: selector];
-        _isVoidReturnType = NO;
-    }
-    return self;
-}
-
-- (nullable instancetype)initWithClass:(Class)target selector:(SEL)selector {
-    self = [super init];
-    if (self) {
-        NSMethodSignature *signature = [target instanceMethodSignatureForSelector: selector];
-        if (!signature) {
-            return nil;
-        }
-        _invocation = [NSInvocation invocationWithMethodSignature:signature];
-        [_invocation setTarget: target];
-        [_invocation setSelector: selector];
+        _invocation = [NSInvocation invocationWithMethodSignature:[methodSignature methodSignature]];
         _isVoidReturnType = NO;
     }
     return self;
@@ -82,7 +62,7 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
 - (id)target { return _invocation.target; }
 - (void)setTarget:(id)target { _invocation.target = target; }
 
-- (NSArray *)arguments {
+- (NSArray *)_arguments {
     if (_cachedArguments) return _cachedArguments;
 
     NSMutableArray *args = [NSMutableArray array];
@@ -91,7 +71,6 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     for (NSUInteger i = 2; i < sig.numberOfArguments; i++) {
         const char *rawType = [sig getArgumentTypeAtIndex:i];
         const char *argType = SkipTypeQualifiers(rawType);
-
         id value = [self getArgumentAtIndex:i type:argType];
         [args addObject:value ?: NSNull.null];
     }
@@ -100,7 +79,7 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     return _cachedArguments;
 }
 
-- (void)setArguments:(NSArray *)arguments {
+- (void)set_arguments:(NSArray *)arguments {
     NSMethodSignature *sig = _invocation.methodSignature;
     NSAssert(arguments.count == sig.numberOfArguments - 2, @"Argument count mismatch");
 
@@ -113,7 +92,7 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     _cachedArguments = [arguments copy];
 }
 
-- (id)returnValue {
+- (id)_returnValue {
     if (_cachedReturnValue) {
         if (_cachedReturnValue == NSNull.null) {
             return nil;
@@ -135,20 +114,20 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     return _cachedReturnValue;
 }
 
-- (void)setReturnValue:(id)returnValue {
+- (void)set_returnValue:(id)returnValue {
     const char *rawType = _invocation.methodSignature.methodReturnType;
     const char *type = SkipTypeQualifiers(rawType);
-    if (_cachedReturnValue == nil) {
-        [self setArgument:NSNull.null atIndex:-1 type:type];
-        _cachedReturnValue = NSNull.null;
-    } else {
-        [self setArgument:returnValue atIndex:-1 type:type];
-        _cachedReturnValue = returnValue;
-    }
+    [self setArgument:returnValue atIndex:-1 type:type];
+    _cachedReturnValue = returnValue;
 }
 
 - (void)invoke {
     [_invocation invoke];
+    _cachedReturnValue = nil;
+}
+
+- (void) invokeWithTarget:(id)target {
+    [_invocation invokeWithTarget: target];
     _cachedReturnValue = nil;
 }
 
@@ -208,7 +187,6 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
         free(buffer);
         return val;
     } else if (strcmp(argType, "?") == 0 || strcmp(argType, "@?") == 0) {
-        NSLog(@"BLOCKTYPE");
         void *block = NULL;
         if (index == -1) {
             [_invocation getReturnValue:&block];
@@ -252,7 +230,7 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
         } \
         return; \
     } while(0)
-
+    
     if (strcmp(argType, "@") == 0) {
         id obj = (arg == NSNull.null) ? nil : arg;
         if (index == -1) {
@@ -335,38 +313,5 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     else if (strcmp(argType, "B") == 0) SET_ARG(bool, @selector(boolValue), boolValue);
     #undef SET_ARG
 }
-
-/*
-- (NSString *)description {
-    NSArray<NSString *> *components = [NSStringFromSelector(self.selector) componentsSeparatedByString:@":"];
-    NSArray *arguments = self.arguments;
-
-    if (components.count - 1 == arguments.count) {
-        NSMutableArray<NSString *> *formattedComponents = [components mutableCopy];
-        for (NSUInteger i = 0; i < components.count - 1; i++) {
-            NSString *component = components[i];
-            id argument = arguments[i];
-            if (i == 0) {
-                formattedComponents[i] = [NSString stringWithFormat:@"%@(%@", component, argument];
-            } else {
-                formattedComponents[i] = [NSString stringWithFormat:@"%@: %@", component, argument];
-            }
-        }
-
-        NSString *joined = [[formattedComponents subarrayWithRange:NSMakeRange(0, components.count - 1)] componentsJoinedByString:@", "];
-        NSString *value = [joined stringByAppendingString:@")"];
-
-        if (self.returnValue != nil) {
-            value = [NSString stringWithFormat:@"%@ -> %@", value, self.returnValue];
-        } else if (_isVoidReturnType == false) {
-            value = [NSString stringWithFormat:@"Invocation[%@ -> nil]", value];
-        }
-
-        return value;
-    }
-
-    return [super description];
-}
- */
 
 @end
