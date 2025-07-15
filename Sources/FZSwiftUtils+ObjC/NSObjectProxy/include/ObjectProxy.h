@@ -13,7 +13,7 @@
 
 @property (nonatomic, strong, nonnull) NSObject *_target;
 
-- (nonnull instancetype)initWithTarget:(nonnull NSObject *)target;
+- (nonnull instancetype)initWithTargetObject:(nonnull NSObject *)targetObject;
 - (void)forwardingInvocation:(Invocation *_Nonnull)invocation;
 - (MethodSignature *_Nullable)getMethodSignatureForSelector:(SEL _Nonnull )sel;
 

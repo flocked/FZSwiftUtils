@@ -11,8 +11,8 @@
 
 @implementation ObjectProxy
 
-- (instancetype)initWithTarget:(NSObject *)target {
-    __target = target;
+- (instancetype)initWithTargetObject:(NSObject *)targetObject {
+    __target = targetObject;
     return self;
 }
 

@@ -12,7 +12,7 @@ import _NSObjectProxy
 open class NSObjectProxy<Object: NSObject>: ObjectProxy {
     /// Creates a proxy for the specified object.
     public init(object: Object) {
-        super.init(target: object)
+        super.init(targetObject: object)
     }
         
     /// The object of the proxy.
@@ -25,8 +25,8 @@ open class NSObjectProxy<Object: NSObject>: ObjectProxy {
         object._map(to: self)
     }
     
-    override init(target: NSObject) {
-        super.init(target: target)
+    override init(targetObject: NSObject) {
+        super.init(targetObject: targetObject)
     }
 }
 
@@ -51,19 +51,10 @@ extension NSObjectProtocol where Self: NSObject {
 
 fileprivate class HandlerProxy<Object: NSObject>: ObjectProxy {
     let invocationHandler: ((Invocation)->())?
-    let respondsToHandler: ((Selector)->(Bool))?
     
-    init(object: Object, invocationHandler: ((Invocation)->())? = nil, respondsToHandler: ((Selector)->(Bool))? = nil) {
+    init(object: Object, invocationHandler: ((Invocation)->())? = nil) {
         self.invocationHandler = invocationHandler
-        self.respondsToHandler = respondsToHandler
-        super.init(target: object)
-    }
-    
-    override func responds(to aSelector: Selector) -> Bool {
-        if super.responds(to: aSelector) {
-            return true
-        }
-        return respondsToHandler?(aSelector) ?? false
+        super.init(targetObject: object)
     }
     
     override func forwardingInvocation(_ invocation: Invocation) {

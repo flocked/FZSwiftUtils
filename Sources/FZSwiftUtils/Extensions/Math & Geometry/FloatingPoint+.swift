@@ -92,6 +92,24 @@ public extension BinaryFloatingPoint {
         rounded(toMultiple: 1.0 / Self(application.backingScaleFactor))
     }
     #endif
+    
+    /**
+     Returns the fractional remainder of the value after dividing by the given divisor.
+     
+     If the value is negative, the result is `0.0`.
+
+     For example:
+     ```swift
+     210.0.fractionalRemainder(dividingBy: 100.0) // returns 0.1
+     95.0.fractionalRemainder(dividingBy: 100.0)  // returns 0.95
+     ```
+
+     - Parameter other: The value to use when dividing this value.
+     - Returns: A normalized fractional remainder between `0.0` and `1.0`.
+     */
+    func fractionalRemainder(dividingBy other: Self) -> Self {
+        max(truncatingRemainder(dividingBy: other), 0) / other
+    }
 }
 
 
