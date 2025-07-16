@@ -35,7 +35,7 @@ public extension NSCoding where Self: NSObject {
         guard let copy = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
             throw CodingErrors.unarchivingFailed
         }
-        guard let copy = copy as? Self else {
+        guard let copy = copy as? Self else {            
             throw CodingErrors.typeMismatch(actual: type(of: copy as AnyObject), expected: Self.self)
         }
         return copy

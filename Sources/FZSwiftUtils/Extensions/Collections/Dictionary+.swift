@@ -22,6 +22,17 @@ public extension Dictionary {
         set { self[key.rawValue] = newValue  }
     }
     
+    /**
+     Initializes an ordered dictionary from a sequence of key-value pairs.
+
+     - Parameters:
+        - keysAndValues: A sequence of key-value pairs to use for the new ordered dictionary. Every key in `keysAndValues` must be unique.
+        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+     */
+    init<S: Sequence>(_ keysAndValues: S, retainLastOccurences: Bool) where S.Element == (Key, Value) {
+        self = Self(keysAndValues) { val1, val2 in retainLastOccurences ? val2 : val1 }
+    }
+    
     /// Returns values for the specified keys.
     subscript(keys: [Key]) -> [(key: Key, value: Value)] {
         values(for: keys)
@@ -61,10 +72,18 @@ public extension Dictionary {
         - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
      */
     func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Transformed: Value] {
-        try .init(
-            map { try (transform($0.key), $0.value) },
-            uniquingKeysWith: combine
-        )
+        try .init(map { try (transform($0.key), $0.value) }, uniquingKeysWith: combine )
+    }
+    
+    /**
+     Transforms keys without modifying values.
+
+     - Parameters:
+        - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
+        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+     */
+    func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed, retainLastOccurences: Bool) rethrows -> [Transformed: Value] {
+        try mapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
 
     /**
@@ -75,11 +94,7 @@ public extension Dictionary {
      - Note: The collection of transformed keys must not contain duplicates.
      */
     func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed?) rethrows -> [Transformed: Value] {
-        try .init(
-            uniqueKeysWithValues: compactMap { key, value in
-                try transform(key).map { ($0, value) }
-            }
-        )
+        try .init(uniqueKeysWithValues: compactMap { key, value in try transform(key).map { ($0, value) } })
     }
     
     /**
@@ -90,8 +105,18 @@ public extension Dictionary {
         - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
      */
     func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed?, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Transformed: Value] {
-        try .init(compactMap { if let key = try transform($0.key) { return (key, $0.value) } else { return nil } }, uniquingKeysWith: combine
-        )
+        try .init(compactMap { if let key = try transform($0.key) { return (key, $0.value) } else { return nil } }, uniquingKeysWith: combine)
+    }
+    
+    /**
+     Transforms keys without modifying values.
+
+     - Parameters:
+        - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
+        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+     */
+    func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed, retainLastOccurences: Bool) rethrows -> [Transformed: Value] {
+        try compactMapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
     /**
@@ -100,11 +125,18 @@ public extension Dictionary {
      - Parameter transform: A closure that transforms a value. transform accepts each value of the dictionary as its parameter and returns a transformed value of the same or of a different type.
      - Returns: A dictionary containing the keys and transformed values of this dictionary.
      */
-    func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> Dictionary<Key, T> {
-        try .init(uniqueKeysWithValues: compactMap { key, value in
-                try transform(value).map { (key, $0) }
-            }
-        )
+    func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> [Key: T] {
+        try .init(uniqueKeysWithValues: map { key, val in (key, try transform(val))  } )
+    }
+    
+    /**
+     Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.
+     
+     - Parameter transform: A closure that transforms a value. transform accepts each value of the dictionary as its parameter and returns a transformed value of the same or of a different type.
+     - Returns: A dictionary containing the keys and transformed values of this dictionary.
+     */
+    func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> [Key: T] {
+        try .init(uniqueKeysWithValues: compactMap { key, value in try transform(value).map { (key, $0) } })
     }
     
     /**
