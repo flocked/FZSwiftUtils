@@ -139,9 +139,11 @@ fileprivate extension String {
             self = "\"\(instance)\""
         } else {
             switch instance {
+            #if os(macOS)
             case let instance as NSRect: self = "CGRect\(instance as CGRect)"
             case let instance as NSPoint: self = "CGPoint\(instance as CGPoint)"
             case let instance as NSSize: self = "CGSize\(instance as CGSize)"
+            #endif
             default:
                 let string = "\(instance)"
                 if string == "<null>" {
