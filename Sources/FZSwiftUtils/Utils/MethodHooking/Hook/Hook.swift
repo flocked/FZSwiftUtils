@@ -73,7 +73,6 @@ public class Hook: Hashable {
     }
     
     deinit {
-        Swift.print("hook deinit", revertOnDeinit)
         guard revertOnDeinit else { return }
         try? revert()
     }
