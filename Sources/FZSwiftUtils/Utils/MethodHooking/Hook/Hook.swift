@@ -37,6 +37,16 @@ public class Hook: Hashable {
     /// A Boolean value indicating whether the hook is active.
     public var isActive: Bool = false
     
+    /// A Boolean value indicating whether the hook should revert, restoring the original method implementation.
+    public var revertOnDeinit: Bool = false
+    
+    /// Sets Boolean value indicating whether the hook should revert, restoring the original method implementation.
+    @discardableResult
+    public func revertOnDeinit(_ revert: Bool) -> Self {
+        revertOnDeinit = revert
+        return self
+    }
+    
     /// Applies the hook by interposing the method implementation.
     public func apply() throws { }
     
@@ -60,6 +70,11 @@ public class Hook: Hashable {
         self.hookClosure = hookClosure
         self.mode = mode
         self.class = class_
+    }
+    
+    deinit {
+        guard revertOnDeinit else { return }
+        try? revert()
     }
         
     public static func == (lhs: Hook, rhs: Hook) -> Bool {

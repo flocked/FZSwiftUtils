@@ -132,6 +132,16 @@ public class Hook {
     
     /// The class of the hooked method.
     public let `class`: AnyClass
+    
+    /// A Boolean value indicating whether the hook should revert, restoring the original method implementation.
+    public var revertOnDeinit: Bool = false
+    
+    /// Sets Boolean value indicating whether the hook should revert, restoring the original method implementation.
+    @discardableResult
+    public func revertOnDeinit(_ revert: Bool) -> Self {
+        revertOnDeinit = revert
+        return self
+    }
             
     /// A Boolean value indicating whether the hook is active.
     public var isActive: Bool {
@@ -189,6 +199,11 @@ public class Hook {
         self.hook = try AddInstanceMethodHook(class_: class_, selector: selector, hookClosure: hookClosure)
         self.class = class_
         self.selector = selector
+    }
+    
+    deinit {
+        guard revertOnDeinit else { return }
+        try? revert()
     }
 }
 #endif
