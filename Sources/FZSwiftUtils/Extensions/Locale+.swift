@@ -10,13 +10,28 @@ import Foundation
 
 extension Locale {
     /// The localized display name.
-    public var localizedFullDisplayName : String? {
+    public var localizedDisplayName: String? {
         if identifier.hasPrefix("zh-Han") {
             guard let trimmed = localizedString(forIdentifier: identifier)?.replacingOccurrences(of: "[（）]", with: "", options: .regularExpression) else { return nil }
             return String(trimmed.suffix(2) + trimmed.prefix(2))
         } else {
             return localizedString(forIdentifier: identifier)
         }
+    }
+    
+    /// Returns the localized display name for the specified locale.
+    public func localizedDisplayName(for locale: Locale) -> String? {
+        if locale.identifier.hasPrefix("zh-Han") {
+            guard let trimmed = localizedString(forIdentifier: locale.identifier)?.replacingOccurrences(of: "[（）]", with: "", options: .regularExpression) else { return nil }
+            return String(trimmed.suffix(2) + trimmed.prefix(2))
+        } else {
+            return localizedString(forIdentifier: locale.identifier)
+        }
+    }
+    
+    /// Returns the localized display name in the specified locale.
+    public func localizedDisplayName(in locale: Locale) -> String? {
+        locale.localizedDisplayName(for: self)
     }
     
     /// A type that represents a continent, for use in specifying a locale.
