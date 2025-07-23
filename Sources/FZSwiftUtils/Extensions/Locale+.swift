@@ -9,6 +9,16 @@ import Foundation
 
 
 extension Locale {
+    /// The localized display name.
+    public var localizedFullDisplayName : String? {
+        if identifier.hasPrefix("zh-Han") {
+            guard let trimmed = localizedString(forIdentifier: identifier)?.replacingOccurrences(of: "[（）]", with: "", options: .regularExpression) else { return nil }
+            return String(trimmed.suffix(2) + trimmed.prefix(2))
+        } else {
+            return localizedString(forIdentifier: identifier)
+        }
+    }
+    
     /// A type that represents a continent, for use in specifying a locale.
     @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
     public enum Continent: String {
