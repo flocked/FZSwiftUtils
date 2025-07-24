@@ -15,7 +15,7 @@ public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
     private let id = UUID()
     
     /// Creates a weak reference to the specified object.
-    public init(_ object: Object) {
+    required public init(_ object: Object) {
         self._object = object
     }
 
@@ -36,6 +36,7 @@ public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
 public protocol WeakReference {
     associatedtype Object
     var object: Object? { get }
+    init(_ object: Object)
 }
 
 public extension Sequence where Element: WeakReference {
@@ -80,5 +81,16 @@ public extension Dictionary where Key: WeakReference, Key.Object: Hashable {
     /// The dictionary with keys whose weak object isn't `nil`.
     var nonNil: [Key.Object: Value] {
         compactMapKeys( { $0.object } )
+    }
+    
+    subscript(key: Key.Object) -> Value? {
+        get { first(where: {$0.key.object == key })?.value }
+        set {
+            if let key = first(where: {$0.key.object == key })?.key {
+                self[key] = newValue
+            } else {
+                self[Key(key)] = newValue
+            }
+        }
     }
 }
