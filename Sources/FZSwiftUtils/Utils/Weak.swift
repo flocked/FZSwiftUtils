@@ -34,7 +34,7 @@ public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
 
 /// A weak reference to an object.
 public protocol WeakReference {
-    associatedtype Object
+    associatedtype Object: AnyObject
     var object: Object? { get }
     init(_ object: Object)
 }
