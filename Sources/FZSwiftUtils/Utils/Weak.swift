@@ -82,15 +82,3 @@ public extension Dictionary where Key: WeakReference, Key.Object: Hashable {
         compactMapKeys( { $0.object } )
     }
 }
-
-public extension Dictionary where Key: WeakReference, Key.Object: NSObject {
-    /// Removes all keys where the weak value is `nil`.
-    mutating func reap() {
-        self = filter { $0.key.object != nil }
-    }
-    
-    /// The dictionary with keys whose weak object isn't `nil`.
-    var nonNil: [Key.Object: Value] {
-        compactMapKeys( { $0.object } )
-    }
-}
