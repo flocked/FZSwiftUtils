@@ -8,11 +8,11 @@
 import Foundation
 
 #if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 #endif
 
 #if canImport(UIKit)
-    import MobileCoreServices
+import MobileCoreServices
 #endif
 
 public extension URL {
@@ -186,7 +186,7 @@ public extension FileType {
         case .other(_, let identifier): return identifier
         }
     }
-    
+
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// The content type of the file type.
     var contentType: UTType? {
@@ -270,7 +270,7 @@ public extension FileType {
     var isMultimedia: Bool {
         Self.multimediaTypes.contains(self)
     }
-    
+
     /// A Boolean value indicating whether the file type is an image type (either `image` or `gif`).
     var isImageType: Bool {
         Self.imageTypes.contains(self)

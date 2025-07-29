@@ -163,7 +163,7 @@ public struct FileAttributes {
 
     /// The number of free nodes in the file system.
     public var systemFreeNodes: Int? { self[.systemFreeNodes] }
-    
+
     /// The file’s extended attributes.
     public var extendedAttributes: [String: Data]? {
         self[.extendedAttributes]
@@ -209,7 +209,7 @@ public struct FileAttributes {
 extension FileManager {
     /**
      Returns the attributes for the item at the specific url.
-     
+
      - Throws: If the attributes couldn't be loaded.
      */
     public func attributes(for url: URL) throws -> FileAttributes {

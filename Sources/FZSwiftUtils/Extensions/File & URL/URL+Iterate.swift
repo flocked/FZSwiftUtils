@@ -8,7 +8,7 @@
 
 import Foundation
 #if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 #endif
 
 public extension URL {

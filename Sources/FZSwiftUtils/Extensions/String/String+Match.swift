@@ -8,7 +8,6 @@
 import Foundation
 import NaturalLanguage
 
-
 public extension String {
     /**
      Finds all matches in the string based on the provided regular expression pattern.

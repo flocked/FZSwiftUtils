@@ -7,13 +7,13 @@
 
 import Foundation
 #if canImport(UniformTypeIdentifiers)
-    import UniformTypeIdentifiers
+import UniformTypeIdentifiers
 #endif
 
 #if os(macOS)
-    import AppKit
+import AppKit
 #elseif canImport(MobileCoreServices)
-    import MobileCoreServices
+import MobileCoreServices
 #endif
 
 public extension URL {
@@ -85,10 +85,10 @@ public class URLResources {
 
     /// A Boolean value indicating if the resource is a directory.
     public var isDirectory: Bool { value(for: \.isDirectory) ?? false }
-    
+
     /**
      The count of file system objects in the directory.
-     
+
      This value is a count of objects that are actually in the file system, so it excludes virtual items like “.” and “..”. This property is useful for quickly identifying an empty directory for backup and syncing. If the URL isn’t a directory, or the file system can’t cheaply compute the value, the value is `nil`.
      */
     @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *)
@@ -104,7 +104,7 @@ public class URLResources {
 
     /**
      A Boolean value indicating if the resource is a packaged directory.
-     
+
      - Note: You can only set or clear this property on directories; if you try to set this property on non-directory objects, the property is ignored. If the directory is a package for some other reason (extension type, etc), setting this property to false will have no effect.
      */
     public var isPackage: Bool {
@@ -127,7 +127,7 @@ public class URLResources {
 
     /**
      A Boolean value indicating if the resource is normally not displayed to users.
-     
+
      - Note: If the resource is a hidden because its name starts with a period, setting this property to false will not change the property.
      */
     public var isHidden: Bool {
@@ -223,20 +223,20 @@ public class URLResources {
      An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
 
      For files the generation identifier will change when the data in the file’s data fork is changed. Changes to extended attributes or other file system metadata do not change the generation identifier.
-     
+
      For directories the generation identifier will change when direct children of that directory are added, removed or renamed. Changes to the data of the direct children will not change the generation identifier.
-     
+
      The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
     public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? { value(for: \.generationIdentifier) }
 
     /**
      The identifier of the resource.
-     
+
      The value is assigned by the kernel to identify the resource regardless of where it moves on a volume.
-     
+
      The identifier survives safe-save operation, and is sticky to the path the kernel assigns. `FileManager``replaceItemAt(_:withItemAt:)` is the preferred safe-save API.
-     
+
      The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource. The identifier is only unique within a single volume and not all volumes support this property.
      */
     public var identifier: Int? { value(for: \.documentIdentifier) }
@@ -302,7 +302,7 @@ public class URLResources {
     @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
     public var contentType: UTType? { value(for: \.contentType) }
     #endif
-    
+
     #if os(macOS)
     /// The Finder tags of the resource.
     public var finderTags: [String] {
@@ -343,7 +343,7 @@ extension URLResources {
 
 extension URLResources {
     var _contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
-    
+
     var _contentTypeIdentifierTree: [String] {
         guard let identifier = _contentTypeIdentifier else { return [] }
         return identifier + getSupertypes(for: identifier)
@@ -359,31 +359,31 @@ extension URLResources {
 #endif
 
 #if os(macOS)
-    public extension URLResources {
-        /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
-        var applicationIsScriptable: Bool { value(for: \.applicationIsScriptable) ?? false }
+public extension URLResources {
+    /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
+    var applicationIsScriptable: Bool { value(for: \.applicationIsScriptable) ?? false }
 
-        /// URLs to applications that support opening the file.
-        @available(macOS 12.0, *)
-        var supportedApplicationURLs: [URL]? {
-            contentType?.supportedApplicationURLs
-        }
-
-        /// The quarantine properties of the resource.
-        var quarantineProperties: QurantineProperties? {
-            get { QurantineProperties(value(for: \.quarantineProperties)) }
-            set { setValue(newValue?.rawValue, for: \.quarantineProperties) }
-        }
-
-        /// The icon stored with the resource.
-        var customIcon: NSUIImage? { value(for: \.customIcon) }
-
-        /// The normal icon for the resource.
-        var effectiveIcon: NSUIImage? { value(for: \.effectiveIcon) as? NSUIImage }
-
-        /// The label color of the resource.
-        var labelColor: NSUIColor? { value(for: \.labelColor) }
+    /// URLs to applications that support opening the file.
+    @available(macOS 12.0, *)
+    var supportedApplicationURLs: [URL]? {
+        contentType?.supportedApplicationURLs
     }
+
+    /// The quarantine properties of the resource.
+    var quarantineProperties: QurantineProperties? {
+        get { QurantineProperties(value(for: \.quarantineProperties)) }
+        set { setValue(newValue?.rawValue, for: \.quarantineProperties) }
+    }
+
+    /// The icon stored with the resource.
+    var customIcon: NSUIImage? { value(for: \.customIcon) }
+
+    /// The normal icon for the resource.
+    var effectiveIcon: NSUIImage? { value(for: \.effectiveIcon) as? NSUIImage }
+
+    /// The label color of the resource.
+    var labelColor: NSUIColor? { value(for: \.labelColor) }
+}
 #endif
 
 public extension URLResources {
@@ -395,7 +395,7 @@ public extension URLResources {
     ///  The volume properties of a file system resource.
     struct VolumeURLResources {
         private let resources: URLResources
-        
+
         public init(_ resources: URLResources) {
             self.resources = resources
         }
@@ -432,10 +432,10 @@ public extension URLResources {
 
         /// A Boolean value indicating whether the volume is removable.
         public var isRemovable: Bool { resources.value(for: \.volumeIsRemovable) ?? false }
-        
+
         /// A Boolean value indicating whether the volume is stored on a local device.
         public var isLocal: Bool { resources.value(for: \.volumeIsLocal) ?? false }
-        
+
         /// A Boolean value that indicates whether the volume’s device is connected to an internal bus, or nil if not available.
         public var isInternal: Bool { resources.value(for: \.volumeIsInternal) ?? false }
 
@@ -449,13 +449,13 @@ public extension URLResources {
         public var availableCapacity: DataSize? {
             resources.value(for: \.volumeAvailableCapacity)?.dataSize
         }
-        
+
         #if os(macOS) || os(iOS)
         /// The volume’s available capacity for storing nonessential resources, in bytes.
         public var availableCapacityForImportantUisage: DataSize? {
             resources.value(for: \.volumeAvailableCapacityForImportantUsage)?.dataSize
         }
-        
+
         /// The available capacity of the volume.
         public var volumeAvailableCapacityForOpportunisticUsage: DataSize? {
             resources.value(for: \.volumeAvailableCapacityForOpportunisticUsage)?.dataSize
@@ -475,54 +475,54 @@ public extension URLResources {
     struct QurantineProperties: CustomStringConvertible, CustomDebugStringConvertible {
         /**
          The URL of the resource originally hosting the quarantined item.
-         
+
          For web downloads, this property is the URL of the web page on which the user initiated the download. For attachments, this property is the URL of the resource to which the quarantined item was attached (e.g. the email message, calendar event, etc.).
-         
+
          The origin URL may be a file URL for local resources, or a custom URL to which the quarantining app will respond when asked to open it. The quarantining app should respond by displaying the resource to the user.
-         
+
          - Note: The origin URL should not be set to the data URL, or the quarantining app may start downloading the file again if the user choses to view the origin URL while resolving a quarantine warning.
          */
         public var originURL: URL? {
             get { rawValue[kLSQuarantineOriginURLKey as String] as? URL }
             set { rawValue[kLSQuarantineOriginURLKey as String] = newValue }
         }
-        
+
         /// The actual URL of the quarantined item.
         public var dataURL: URL? {
             get { rawValue[kLSQuarantineDataURLKey as String] as? URL }
             set { rawValue[kLSQuarantineDataURLKey as String] = newValue }
         }
-        
+
         /**
          The bundle identifier of the quarantining agent.
-         
+
          When applying the quarantine properties to an item and this value is `nil`, the value is set automatically to the main bundle identifier of the current process.
          */
         public var agentBundleIdentifier: String? {
             get { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] as? String }
             set { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] = newValue }
         }
-        
+
         /**
          The app name of the quarantining agent.
-         
+
          When applying the quarantine properties to an item and this value is `nil`, the value is set automatically to the current process name.
          */
         public var agentName: String? {
             get { rawValue[kLSQuarantineAgentNameKey as String] as? String }
             set { rawValue[kLSQuarantineAgentNameKey as String] = newValue }
         }
-        
+
         /**
          The date and time of the item’s quarantine.
-         
+
          When applying the quarantine properties to an item and this value is `nil`, the value is set automaticallyto the current date and time.
          */
         public var timestamp: Date? {
             get { rawValue[kLSQuarantineTimeStampKey as String] as? Date }
             set { rawValue[kLSQuarantineTimeStampKey as String] = newValue }
         }
-        
+
         /// The reason for the item's quarantine, such as a web download or email attachment.
         public var type: QuarantineType? {
             get {
@@ -531,20 +531,20 @@ public extension URLResources {
             }
             set { rawValue[kLSQuarantineTypeKey as String] = newValue?.rawValue }
         }
-        
+
         /// A Boolean value indicating whether the quarantined item was created by the current user.
         public var isOwnedByCurrentUser: Bool? {
             get { rawValue["LSQuarantineIsOwnedByCurrentUser"] as? Bool }
         }
-        
+
         /// The identifier for the quarantine event.
         public var eventIdentifier: String? {
             get { rawValue["LSQuarantineEventIdentifier"] as? String }
         }
-        
+
         /// The raw representation of the qurantine properties.
         public var rawValue: [String: Any] = [:]
-        
+
         public var description: String {
             var strings: [String] = []
             if let originURL = originURL { strings += "originURL: \(originURL)" }
@@ -555,49 +555,49 @@ public extension URLResources {
             if let timestamp = timestamp { strings += "timestamp: \(timestamp)" }
             return "QurantineProperties(\(strings.joined(separator: ", ")))"
         }
-        
+
         public var debugDescription: String {
             "\(rawValue)"
         }
-        
+
         init?(_ dictionary: [String: Any]?) {
             guard let dictionary = dictionary else { return nil }
             self.rawValue = dictionary
         }
-        
+
         /// The reason for an item's quarantine.
         public struct QuarantineType: RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible {
-            
+
             /// The item is from a website download.
             public static let webDownload = Self(kLSQuarantineTypeWebDownload as String)
-            
+
             /// The item is from a download.
             public static let otherDownload = Self(kLSQuarantineTypeOtherDownload as String)
-            
+
             /// The item is an attachment from an email message.
             public static let emailAttachment = Self(kLSQuarantineTypeEmailAttachment as String)
-            
+
             /// The item is an attachment from a message.
             public static let instantMessageAttachment = Self(kLSQuarantineTypeInstantMessageAttachment as String)
-            
+
             /// The item is an attachment from a calendar event.
             public static let calendarEventAttachment = Self(kLSQuarantineTypeCalendarEventAttachment as String)
-            
+
             /// The data is an attachment from a generic source.
             public static let otherAttachment = Self(kLSQuarantineTypeOtherAttachment as String)
-            
+
             public init(rawValue: String) {
                 self.rawValue = rawValue
             }
-            
+
             public init(_ rawValue: String) {
                 self.rawValue = rawValue
             }
-            
+
             public init(stringLiteral value: String) {
                 self.rawValue = value
             }
-            
+
             public let rawValue: String
 
             public var description: String {
@@ -623,7 +623,7 @@ extension URLResources {
         case emoji(String)
         /// System symbol image.
         case symbolImage(String)
-        
+
         var description: String {
             switch self {
             case .emoji(let string):
@@ -632,7 +632,7 @@ extension URLResources {
                 return "SymbolImage: \(string)"
             }
         }
-        
+
         var dict: [String: String]? {
             switch self {
             case .emoji(let string):
@@ -644,7 +644,7 @@ extension URLResources {
             }
         }
     }
-    
+
     /// The icon of the folder.
     var folderIcon: FolderIcon? {
         get {

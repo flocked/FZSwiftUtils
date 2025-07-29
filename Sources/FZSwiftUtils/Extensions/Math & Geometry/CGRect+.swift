@@ -8,9 +8,9 @@
 import CoreGraphics
 import Foundation
 #if os(macOS)
-    import AppKit
+import AppKit
 #elseif canImport(UIKit)
-    import UIKit
+import UIKit
 #endif
 
 public extension CGRect {
@@ -154,29 +154,29 @@ public extension CGRect {
     }
 
     #if canImport(UIKit)
-        /// The top edge of the rectangle.
-        var top: CGFloat {
-            get { y }
-            set { y = newValue }
-        }
+    /// The top edge of the rectangle.
+    var top: CGFloat {
+        get { y }
+        set { y = newValue }
+    }
 
-        /// The bottom edge of the rectangle.
-        var bottom: CGFloat {
-            get { y + height }
-            set { y = newValue - height }
-        }
+    /// The bottom edge of the rectangle.
+    var bottom: CGFloat {
+        get { y + height }
+        set { y = newValue - height }
+    }
     #else
-        /// The top edge of the rectangle.
-        var top: CGFloat {
-            get { y + height }
-            set { y = newValue - height }
-        }
+    /// The top edge of the rectangle.
+    var top: CGFloat {
+        get { y + height }
+        set { y = newValue - height }
+    }
 
-        /// The bottom edge of the rectangle.
-        var bottom: CGFloat {
-            get { y }
-            set { y = newValue }
-        }
+    /// The bottom edge of the rectangle.
+    var bottom: CGFloat {
+        get { y }
+        set { y = newValue }
+    }
     #endif
 
     /// The top-left point of the rectangle.
@@ -789,33 +789,33 @@ public extension CGRect {
         case random
     }
     /*
-    /**
-     Splits the rectangle to the specified vertical and horizontal amount of rectangles.
+     /**
+      Splits the rectangle to the specified vertical and horizontal amount of rectangles.
      
-     - Parameters:
-     - horizontalAmount: The amount of horizontal rectangles.
-     - verticalAmount: The amount of vertical rectangles.
-     - horizontalOrder: The horizontal order of the rectangles.
-     - verticalOrder: The vertical order of the rectangles.
+      - Parameters:
+      - horizontalAmount: The amount of horizontal rectangles.
+      - verticalAmount: The amount of vertical rectangles.
+      - horizontalOrder: The horizontal order of the rectangles.
+      - verticalOrder: The vertical order of the rectangles.
      
-     - Returns: An array with the divided rectangles.
+      - Returns: An array with the divided rectangles.
+      */
+     func splitted(horizontalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalAmount: Int = 1, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+         splitted(by: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+     }
+    
+     func splitted(verticalAmount: Int, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+         splitted(horizontalAmount: 1, verticalAmount: verticalAmount, verticalOrder: verticalOrder)
+     }
+    
+     func splitted(_ amount: SplitAmount, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
+         splitted(.both(5) )
+     }
+    
+     func splitted(_ percentage: SplitPercentage, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
+         splitted(.both(5) )
+     }
      */
-    func splitted(horizontalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalAmount: Int = 1, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-        splitted(by: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
-    }
-    
-    func splitted(verticalAmount: Int, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-        splitted(horizontalAmount: 1, verticalAmount: verticalAmount, verticalOrder: verticalOrder)
-    }
-    
-    func splitted(_ amount: SplitAmount, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
-        splitted(.both(5) )
-    }
-    
-    func splitted(_ percentage: SplitPercentage, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
-        splitted(.both(5) )
-    }
-    */
     
     struct SplitPercentage: ExpressibleByFloatLiteral {
         /// The percentage of the width of each vertical split.
@@ -920,42 +920,42 @@ public extension CGRect {
         }
         
         /*
-        public static func amount(vertical: Int, horizontal: Int = 1) -> Self {
-            .init(.amount(vertical: vertical, horizontal: horizontal))
-        }
+         public static func amount(vertical: Int, horizontal: Int = 1) -> Self {
+             .init(.amount(vertical: vertical, horizontal: horizontal))
+         }
         
-        public static func amount(horizontal: Int) -> Self {
-            .init(.amount(vertical: 1, horizontal: horizontal))
-        }
+         public static func amount(horizontal: Int) -> Self {
+             .init(.amount(vertical: 1, horizontal: horizontal))
+         }
         
-        public static func amount(_ amount: Int) -> Self {
-            .init(.amount(vertical: amount, horizontal: amount))
-        }
+         public static func amount(_ amount: Int) -> Self {
+             .init(.amount(vertical: amount, horizontal: amount))
+         }
         
-        public static func percentage(vertical: CGFloat, horizontal: CGFloat = 1.0) -> Self {
-            .init(.percebtage(vertical: vertical, horizontal: horizontal))
-        }
+         public static func percentage(vertical: CGFloat, horizontal: CGFloat = 1.0) -> Self {
+             .init(.percebtage(vertical: vertical, horizontal: horizontal))
+         }
         
-        public static func percentage(horizontal: CGFloat) -> Self {
-            .init(.percebtage(vertical: 1.0, horizontal: horizontal))
-        }
+         public static func percentage(horizontal: CGFloat) -> Self {
+             .init(.percebtage(vertical: 1.0, horizontal: horizontal))
+         }
         
-        public static func percentage(_ percentage: CGFloat) -> Self {
-            .init(.percebtage(vertical: percentage, horizontal: percentage))
-        }
+         public static func percentage(_ percentage: CGFloat) -> Self {
+             .init(.percebtage(vertical: percentage, horizontal: percentage))
+         }
         
-        public static func size(vertical: CGFloat) -> Self {
-            .init(.size(.init(-1, vertical)))
-        }
+         public static func size(vertical: CGFloat) -> Self {
+             .init(.size(.init(-1, vertical)))
+         }
         
-        public static func size(horizontal: CGFloat) -> Self {
-            .init(.size(.init(horizontal, -1)))
-        }
+         public static func size(horizontal: CGFloat) -> Self {
+             .init(.size(.init(horizontal, -1)))
+         }
         
-        public static func size(_ size: CGSize) -> Self {
-            .init(.size(size))
-        }
-         */
+         public static func size(_ size: CGSize) -> Self {
+             .init(.size(size))
+         }
+          */
         
     }
     
@@ -1072,12 +1072,12 @@ public extension CGRect {
         let closestMinX = CGPoint(x: origin.x, y: min(max(point.y, origin.y), maxY))
         let closestMaxX = CGPoint(x: maxX, y: min(max(point.y, origin.y), maxY))
         return [closestMinX, closestMaxX, closestMinY, closestMaxY].compactMap({ point.distance(to: $0)}).min() ?? .infinity
-      }
+    }
     
     /// The distance of the rectangle to the specified other rectangle.
     func distance(to rect: CGRect) -> CGFloat {
         intersects(rect) ? 0 : [bottomLeft, bottomCenter, bottomRight, topLeft, topCenter, topRight, centerLeft, centerRight].compactMap({ rect.distance(to: $0) }).min() ?? .infinity
-     }
+    }
 }
 
 extension CGRect: Hashable {

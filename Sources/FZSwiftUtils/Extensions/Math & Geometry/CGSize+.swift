@@ -8,7 +8,7 @@
 import CoreGraphics
 import Foundation
 #if os(macOS)
-    import AppKit
+import AppKit
 #endif
 
 public extension CGSize {
@@ -24,17 +24,17 @@ public extension CGSize {
 
     /**
      Returns the scaled integral of the size.
-     
+
      The width and height values are scaled based on the current device's screen scale.
      */
     var scaledIntegral: CGSize {
         CGSize(width: width.scaledIntegral, height: height.scaledIntegral)
     }
-    
+
     #if os(macOS)
     /**
      Returns the scaled integral of the size for the specified screen.
-     
+
      The width and height values are scaled based on the screen's backing scale factor.
 
      - Parameter screen: The screen for the scale.
@@ -42,10 +42,10 @@ public extension CGSize {
     func scaledIntegral(for screen: NSScreen) -> CGSize {
         CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
     }
-    
+
     /**
      Returns the scaled integral of the size for the specified view.
-     
+
      The width and height values are scaled based on the view's window backing scale factor.
 
      - Parameter view: The view for the scale.
@@ -54,10 +54,10 @@ public extension CGSize {
         guard let window = view.window else { return self }
         return scaledIntegral(for: window)
     }
-    
+
     /**
      Returns the scaled integral of the size for the specified window.
-     
+
      The width and height values are scaled based on the window's backing scale factor.
 
      - Parameter window: The window for the scale.
@@ -65,12 +65,12 @@ public extension CGSize {
     func scaledIntegral(for window: NSWindow) -> Self {
         CGSize(width.scaledIntegral(for: window), height.scaledIntegral(for: window))
     }
-    
+
     /**
      Returns the scaled integral of the size for the specified window.
 
      The width and height values are scaled based on either the key, main or first visible window, or else the main screen and it's backing scale factor.
-     
+
      - Parameter application: The application for the scale factor.
      */
     func scaledIntegral(for application: NSApplication) -> Self {
@@ -80,17 +80,17 @@ public extension CGSize {
 
     /**
      Returns the aspect ratio of the size.
-     
+
      The aspect ratio is calculated as the `width` divided by the `height`.
      */
     var aspectRatio: CGFloat {
         if height == 0 { return 1 }
         return width / height
     }
-    
+
     /**
      The area of the size.
-     
+
      The area is calculated as the `width` multiplied by the `height`.
      */
     var area: CGFloat {
@@ -129,7 +129,7 @@ public extension CGSize {
         let newWidth = width * scale
         return CGSize(width: newWidth, height: newHeight)
     }
-    
+
     /**
      Scales the size by the specified factor.
 
@@ -176,66 +176,66 @@ public extension CGSize {
                 newSize = newSize.scaled(toWidth: size.width)
             }
         }
-      return newSize
+        return newSize
     }
-    
+
     /**
      Clamps the size to the specified minimum size.
-     
+
      - Parameter minSize: The minimum size needed.
      */
     func clamped(min minSize: CGSize) -> CGSize {
         clamped(minWidth: minSize.width, minHeight: minSize.height)
     }
-    
+
     /**
      Clamps the size to the specified minimum size.
-     
+
      - Parameter minSize: The minimum size needed.
      */
     mutating func clamp(min minSize: CGSize) {
         self = clamped(min: minSize)
     }
-    
+
     /**
      Clamps the size to the specified maximum size.
-     
+
      - Parameter maxSize: The maximum size allowed.
      */
     func clamped(max maxSize: CGSize) -> CGSize {
         clamped(maxWidth: maxSize.width, maxHeight: maxSize.height)
     }
-    
+
     /**
      Clamps the size to the specified maximum size.
-     
+
      - Parameter maxSize: The maximum size allowed.
      */
     mutating func clamp(max maxSize: CGSize) {
         self = clamped(max: maxSize)
     }
-    
+
     /**
      Clamps the size to the specified minimum and maximum size.
-     
+
      - Parameter sizeRange: The size range to clamp the value to.
      */
     func clamped(to sizeRange: ClosedRange<CGSize>) -> CGSize {
         clamped(min: sizeRange.lowerBound).clamped(max: sizeRange.upperBound)
     }
-    
+
     /**
      Clamps the size to the specified minimum and maximum size.
-     
+
      - Parameter sizeRange: The size range to clamp the value to.
      */
     mutating func clamp(to range: ClosedRange<CGSize>) {
         self = clamped(to: range)
     }
-        
+
     /**
      Clamps the size to the specified minimum and maximum values.
-     
+
      - Parameters:
         - minWidth: The minimum width needed.
         - minHeight: The minimum height needed.
@@ -258,35 +258,35 @@ public extension CGSize {
         }
         return size
     }
-    
+
     /**
      Clamps the size to the specified minimum and maximum values.
-     
+
      - Parameters:
         - minWidth: The minimum width needed.
         - minHeight: The minimum height needed.
         - maxWidth: The maximum width allowed.
         - maxHeight: The maximum height allowed.
      */
-  mutating func clamp(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) {
-      self = clamped(minWidth: minWidth, minHeight: minHeight, maxWidth: maxWidth, maxHeight: maxHeight)
+    mutating func clamp(minWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxWidth: CGFloat? = nil, maxHeight: CGFloat? = nil) {
+        self = clamped(minWidth: minWidth, minHeight: minHeight, maxWidth: maxWidth, maxHeight: maxHeight)
     }
 
     /// The size as `CGPoint`, using the width as x-coordinate and height as y-coordinate.
     var point: CGPoint {
         CGPoint(width, height)
     }
-    
+
     /// A `CGRect` with the size and origin `zero`.
     var rect: CGRect {
         CGRect(.zero, self)
     }
-    
+
     /// Returns the size with the specified width.
     func width(_ width: CGFloat) -> CGSize {
         CGSize(width, height)
     }
-    
+
     /// Returns the size with the specified height.
     func height(_ height: CGFloat) -> CGSize {
         CGSize(width, height)
@@ -365,7 +365,7 @@ public extension CGSize {
     static func *= (lhs: inout CGSize, rhs: Double) {
         lhs = lhs * rhs
     }
-    
+
     static func /= (lhs: inout CGSize, rhs: CGFloat) {
         lhs = lhs / rhs
     }
@@ -398,7 +398,7 @@ public extension Collection where Element == CGSize {
         }
         return totalSize
     }
-    
+
     #if os(macOS) || os(iOS) || os(tvOS)
     /**
      Returns the sizes scaled proportionally to fit within a specified target size, based on the given orientation.
@@ -428,7 +428,7 @@ public extension Collection where Element == CGSize {
             CGSize(width: originalSize.width * scaleFactor, height: originalSize.height * scaleFactor)
         }
     }
-    
+
     /**
      Returns the sizes scaled proportionally to fit within a specified target width, based on the given orientation.
 
@@ -439,7 +439,7 @@ public extension Collection where Element == CGSize {
     func scaledToFit(width: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
         return scaledToFit(CGSize(width: width, height: .greatestFiniteMagnitude), orientation: orientation)
     }
-    
+
     /**
      Returns the sizes scaled proportionally to fit within a specified target height, based on the given orientation.
 
@@ -458,7 +458,7 @@ public extension Collection where Element == CGSize {
     func alignVertical(alignment: CGSize.HorizontalAlignment = .center) -> [CGRect] {
         map{CGRect(.zero, $0)}.alignVertical(alignment: .init(rawValue: alignment.rawValue)!)
     }
-    
+
     /// Aligns the sizes horizontally.
     func alignHorizontal(alignment: CGSize.VerticalAlignment = .center) -> [CGRect] {
         map{CGRect(.zero, $0)}.alignHorizontal(alignment: .init(rawValue: alignment.rawValue)!)
@@ -475,7 +475,7 @@ extension CGSize {
         /// Top.
         case top
     }
-    
+
     /// The horizontal alignment of sizes.
     public enum HorizontalAlignment: Int {
         /// Left.
