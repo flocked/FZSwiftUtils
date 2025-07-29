@@ -10,7 +10,7 @@ import _ExceptionCatcher
 
 public extension NSObject {
     /// The identifier of the object.
-    var objectId: ObjectIdentifier {
+    var objectID: ObjectIdentifier {
         ObjectIdentifier(self)
     }
     
