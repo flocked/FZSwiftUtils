@@ -9,11 +9,11 @@ import Foundation
 
 public extension URLSessionConfiguration {
     /// A dictionary of additional headers to send with requests.
-    var httpAdditionalHeadersMapped: [HTTPRequestHeaderFieldKey: Any] {
+    var httpAdditionalHeadersMapped: [HTTPRequestHeaderField: Any] {
         get {
-            httpAdditionalHeaders?.reduce(into: [HTTPRequestHeaderFieldKey:Any](), { partialResult, value in
+            httpAdditionalHeaders?.reduce(into: [HTTPRequestHeaderField:Any](), { dict, value in
                 guard let key = value.key as? String else { return }
-                partialResult[HTTPRequestHeaderFieldKey(rawValue: key)] = value.value
+                dict[HTTPRequestHeaderField(key)] = value.value
             }) ?? [:]
         }
         set { httpAdditionalHeaders = newValue.mapKeys({ $0.rawValue as AnyHashable }) }

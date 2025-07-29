@@ -67,17 +67,25 @@ public extension URLRequest {
      */
     var bytesRanges: ClosedRange<Int>? {
         get {
-            if let string = allHTTPHeaderFields?["Range"] {
-                let matches = string.matches(pattern: "bytes=(\\d+)-(\\d+)").compactMap(\.string)
-                if matches.count == 2, let from = Int(matches[0]), let to = Int(matches[1]) {
-                    return from ... to
-                }
+            guard let matches = allHTTPHeaderFields?["Range"]?.matches(pattern: #"bytes=(\d+)-(\d*)"#).compactMap(\.string) else { return nil }
+            guard matches.count == 2, let from = Int(matches[0]) else {
+                return nil
             }
-            return nil
+            if let to = Int(matches[1]), !matches[1].isEmpty {
+                return from...to
+            } else {
+                return from...Int.max
+            }
         }
         set {
             if let byteRange = newValue {
-                setValue("bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)", forHTTPHeaderField: "Range")
+                let headerValue: String
+                if byteRange.upperBound == Int.max {
+                    headerValue = "bytes=\(byteRange.lowerBound)-"
+                } else {
+                    headerValue = "bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)"
+                }
+                setValue(headerValue, forHTTPHeaderField: "Range")
             } else {
                 setValue(nil, forHTTPHeaderField: "Range")
             }
@@ -95,204 +103,170 @@ public extension URLRequest {
      */
     var curlString: String {
         guard let url = url else { return "" }
-
-        var baseCommand = "curl \(url.absoluteString)"
+        
+        // Quote URL to handle spaces/special characters
+        let escapedURL = "'\(url.absoluteString.replacingOccurrences(of: "'", with: "'\\''"))'"
+        
+        var baseCommand = "curl \(escapedURL)"
+        
         if httpMethod == "HEAD" {
             baseCommand += " --head"
         }
-
+        
         var command = [baseCommand]
+        
         if let method = httpMethod, method != "GET", method != "HEAD" {
             command.append("-X \(method)")
         }
-
+        
         if let headers = allHTTPHeaderFields {
-            for (key, value) in headers where key != "Cookie" {
-                command.append("-H '\(key): \(value)'")
+            for (key, value) in headers where key.caseInsensitiveCompare("Cookie") != .orderedSame {
+                let escapedKey = key.replacingOccurrences(of: "'", with: "'\\''")
+                let escapedValue = value.replacingOccurrences(of: "'", with: "'\\''")
+                command.append("-H '\(escapedKey): \(escapedValue)'")
             }
         }
-
+        
         if let data = httpBody,
-           let body = String(data: data, encoding: .utf8)
-        {
-            command.append("-d '\(body)'")
+           let body = String(data: data, encoding: .utf8) {
+            let escapedBody = body.replacingOccurrences(of: "'", with: "'\\''")
+            command.append("-d '\(escapedBody)'")
         }
-
+        
         return command.joined(separator: " \\\n\t")
     }
 
     /// A dictionary containing all of the HTTP header fields for a request.
-    var httpHeaderFields: [HTTPRequestHeaderFieldKey: String] {
-        get { allHTTPHeaderFields?.mapKeys({ HTTPRequestHeaderFieldKey(rawValue: $0) }) ?? [:] }
+    var httpHeaderFields: [HTTPRequestHeaderField: String] {
+        get { allHTTPHeaderFields?.mapKeys({ HTTPRequestHeaderField($0) }) ?? [:] }
         set { allHTTPHeaderFields = newValue.mapKeys({$0.rawValue}) }
     }
 }
 
-/// Enumeration of all HTTP request header field keys.
-public enum HTTPRequestHeaderFieldKey: Hashable, CaseIterable, RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible {
-    /// Media types that are acceptable for the response.
-    case accept
-    /// Character sets that are acceptable.
-    case acceptCharset
-    /// List of acceptable encodings.
-    case acceptEncoding
-    /// List of acceptable human languages.
-    case acceptLanguage
-    /// Credentials for authenticating the client with the server.
-    case authorization
-    /// Directives for caching mechanisms.
-    case cacheControl
-    /// Options for the connection (e.g., keep-alive).
-    case connection
-    /// Cookies previously sent by the server.
-    case cookie
-    /// The size of the request body in octets (8-bit bytes).
-    case contentLength
-    /// Base64-encoded 128-bit MD5 digest of the message body.
-    case contentMD5
-    /// The media type of the request body.
-    case contentType
-    /// The date and time at which the message was originated.
-    case date
-    /// Indicates that particular server behaviors are required by the client.
-    case expect
-    /// Discloses the client’s original IP address and other forwarding information.
-    case forwarded
-    /// The email address of the user making the request.
-    case from
-    /// The domain name of the server and optionally the port number.
-    case host
-    /// A conditional request header matching the entity tag.
-    case ifMatch
-    /// A conditional request header checking the modification date.
-    case ifModifiedSince
-    /// A conditional request header checking if none match the given ETags.
-    case ifNoneMatch
-    /// A conditional request header used with range requests.
-    case ifRange
-    /// A conditional request header ensuring the resource hasn't changed.
-    case ifUnmodifiedSince
-    /// Limits the number of times a request can be forwarded.
-    case maxForwards
-    /// Implementation-specific directives that might influence caching.
-    case pragma
-    /// Credentials for authenticating with a proxy.
-    case proxyAuthorization
-    /// Specifies the part(s) of a document that the server should return.
-    case range
-    /// The address of the previous web page from which a link to the current page was followed.
-    case referer
-    /// Indicates the transfer codings the user agent is willing to accept.
-    case TE
-    /// The form of encoding used to safely transfer the payload body.
-    case transferEncoding
-    /// Allows the client to specify which protocol upgrades it supports.
-    case upgrade
-    /// The user agent string of the client software.
-    case userAgent
-    /// Informs the server of intermediate protocols and recipients.
-    case via
-    /// General warnings about possible problems with the request.
-    case warning
-    /// Names of headers used in CORS preflight request indicating requested headers.
-    case accessControlRequestHeaders
-    /// Indicates the HTTP method to be used in a CORS request.
-    case accessControlRequestMethod
-    /// Originating URI of the request initiating the fetch.
-    case origin
-    /// Identifies Ajax requests, commonly set to "XMLHttpRequest".
-    case xRequestedWith
-    /// Identifies the originating IP address of a client connecting through a proxy.
-    case xForwardedFor
-    /// Identifies the protocol (HTTP or HTTPS) used by the client connecting through a proxy.
-    case xForwardedProto
-    /// Indicates the client’s real IP address when behind a reverse proxy.
-    case xRealIP
-    /// Indicates the user’s tracking preference ("Do Not Track").
-    case dnt
-    /// Entity tag for cache validation.
-    case etag
-    /// Indicates the patch document media types accepted by the server.
-    case acceptPatch
-    /// Indicates how content should be presented (e.g., inline, attachment).
-    case contentDisposition
-    /// Describes the natural language(s) of the intended audience for the enclosed content.
-    case contentLanguage
-    /// Used to describe relationships between resources.
-    case link
-    /// Indicates how long the client should wait before making a follow-up request.
-    case retryAfter
-    /// A custom or non-standard HTTP header.
-    case custom(String)
-    
+/// A representation of HTTP request header fields.
+public struct HTTPRequestHeaderField: RawRepresentable, ExpressibleByStringLiteral, Hashable {
+    /// The name of the HTTP request header field as a string (e.g., `"Content-Type"`, `"User-Agent"`).
+    public let rawValue: String
+
+    /// Creates a HTTP request header field key.
     public init(stringLiteral value: String) {
-        self = .init(rawValue: value)
+        self.rawValue = value
     }
 
+    /// Creates a HTTP request header field key.
+    public init(_ rawValue: String) {
+        self.rawValue = rawValue
+    }
+
+    /// Creates a HTTP request header field key.
     public init(rawValue: String) {
-        let normalized = rawValue.lowercased()
-        if let match = Self.allCases.first(where: { $0.rawValue.lowercased() == normalized }) {
-            self = match
-        } else {
-            self = .custom(rawValue)
-        }
+        self.rawValue = rawValue
     }
     
-    public var description: String {
-        rawValue
-    }
+    /// Media types that are acceptable for the response.
+    public static let accept: Self = "Accept"
+    /// Character sets that are acceptable.
+    public static let acceptCharset: Self = "Accept-Charset"
+    /// List of acceptable encodings.
+    public static let acceptEncoding: Self = "Accept-Encoding"
+    /// List of acceptable human languages.
+    public static let acceptLanguage: Self = "Accept-Language"
+    /// Indicates the patch document media types accepted by the server.
+    public static let acceptPatch: Self = "Accept-Patch"
+    /// Names of headers used in CORS preflight request indicating requested headers.
+    public static let accessControlRequestHeaders: Self = "Access-Control-Request-Headers"
+    /// Indicates the HTTP method to be used in a CORS request.
+    public static let accessControlRequestMethod: Self = "Access-Control-Request-Method"
+    /// Credentials for authenticating the client with the server.
+    public static let authorization: Self = "Authorization"
+    /// Directives for caching mechanisms.
+    public static let cacheControl: Self = "Cache-Control"
+    /// Options for the connection (e.g., keep-alive).
+    public static let connection: Self = "Connection"
+    /// Cookies previously sent by the server.
+    public static let cookie: Self = "Cookie"
+    /// The size of the request body in octets (8-bit bytes).
+    public static let contentLength: Self = "Content-Length"
+    /// Base64-encoded 128-bit MD5 digest of the message body.
+    public static let contentMD5: Self = "Content-MD5"
+    /// Indicates how content should be presented (e.g., inline, attachment).
+    public static let contentDisposition: Self = "Content-Disposition"
+    /// The media type of the request body.
+    public static let contentType: Self = "Content-Type"
+    /// Describes the natural language(s) of the intended audience for the enclosed content.
+    public static let contentLanguage: Self = "Content-Language"
+    /// The date and time at which the message was originated.
+    public static let date: Self = "Date"
+    /// Indicates the user’s tracking preference ("Do Not Track").
+    public static let dnt: Self = "DNT"
+    /// Entity tag for cache validation.
+    public static let etag: Self = "ETag"
+    /// Indicates that particular server behaviors are required by the client.
+    public static let expect: Self = "Expect"
+    /// Discloses the client’s original IP address and other forwarding information.
+    public static let forwarded: Self = "Forwarded"
+    /// The email address of the user making the request.
+    public static let from: Self = "From"
+    /// The domain name of the server and optionally the port number.
+    public static let host: Self = "Host"
+    /// A conditional request header matching the entity tag.
+    public static let ifMatch: Self = "If-Match"
+    /// A conditional request header checking the modification date.
+    public static let ifModifiedSince: Self = "If-Modified-Since"
+    /// A conditional request header checking if none match the given ETags.
+    public static let ifNoneMatch: Self = "If-None-Match"
+    /// A conditional request header used with range requests.
+    public static let ifRange: Self = "If-Range"
+    /// A conditional request header ensuring the resource hasn't changed.
+    public static let ifUnmodifiedSince: Self = "If-Unmodified-Since"
+    /// Used to describe relationships between resources.
+    public static let link: Self = "Link"
+    /// Limits the number of times a request can be forwarded.
+    public static let maxForwards: Self = "Max-Forwards"
+    /// Originating URI of the request initiating the fetch.
+    public static let origin: Self = "Origin"
+    /// Implementation-specific directives that might influence caching.
+    public static let pragma: Self = "Pragma"
+    /// Credentials for authenticating with a proxy.
+    public static let proxyAuthorization: Self = "Proxy-Authorization"
+    /// Specifies the part(s) of a document that the server should return.
+    public static let range: Self = "Range"
+    /// The address of the previous web page from which a link to the current page was followed.
+    public static let referer: Self = "Referer"
+    /// Indicates how long the client should wait before making a follow-up request.
+    public static let retryAfter: Self = "Retry-After"
+    /// Indicates the transfer codings the user agent is willing to accept.
+    public static let te: Self = "TE"
+    /// The form of encoding used to safely transfer the payload body.
+    public static let transferEncoding: Self = "Transfer-Encoding"
+    /// Allows the client to specify which protocol upgrades it supports.
+    public static let upgrade: Self = "Upgrade"
+    /// The user agent string of the client software.
+    public static let userAgent: Self = "User-Agent"
+    /// Informs the server of intermediate protocols and recipients.
+    public static let via: Self = "Via"
+    /// General warnings about possible problems with the request.
+    public static let warning: Self = "Warning"
+    /// Identifies Ajax requests, commonly set to "XMLHttpRequest".
+    public static let xRequestedWith: Self = "X-Requested-With"
+    /// Identifies the originating IP address of a client connecting through a proxy.
+    public static let xForwardedFor: Self = "X-Forwarded-For"
+    /// Identifies the protocol (HTTP or HTTPS) used by the client connecting through a proxy.
+    public static let xForwardedProto: Self = "X-Forwarded-Proto"
+    /// Indicates the client’s real IP address when behind a reverse proxy.
+    public static let xRealIP: Self = "X-Real-IP"
 
-    public static var allCases: [Self] = [.accept, .acceptCharset, .acceptEncoding, .acceptLanguage, .authorization, .cacheControl, .connection, .cookie, .contentLength, .contentMD5, .contentType, .date, .expect, .forwarded, .from, .host, .ifMatch, .ifModifiedSince, .ifNoneMatch, .ifRange, .ifUnmodifiedSince, .maxForwards, .pragma, .proxyAuthorization, .range, .referer, .TE, .transferEncoding, .upgrade, .userAgent, .via, .warning]
-
-    public var rawValue: String {
-        switch self {
-        case .accept: return "Accept"
-        case .acceptCharset: return "Accept-Charset"
-        case .acceptEncoding: return "Accept-Encoding"
-        case .acceptLanguage: return "Accept-Language"
-        case .authorization: return "Authorization"
-        case .cacheControl: return "Cache-Control"
-        case .connection: return "Connection"
-        case .cookie: return "Cookie"
-        case .contentLength: return "Content-Length"
-        case .contentMD5: return "Content-MD5"
-        case .contentType: return "Content-Type"
-        case .date: return "Date"
-        case .expect: return "Expect"
-        case .forwarded: return "Forwarded"
-        case .from: return "From"
-        case .host: return "Host"
-        case .ifMatch: return "If-Match"
-        case .ifModifiedSince: return "If-Modified-Since"
-        case .ifNoneMatch: return "If-None-Match"
-        case .ifRange: return "If-Range"
-        case .ifUnmodifiedSince: return "If-Unmodified-Since"
-        case .maxForwards: return "Max-Forwards"
-        case .pragma: return "Pragma"
-        case .proxyAuthorization: return "Proxy-Authorization"
-        case .range: return "Range"
-        case .referer: return "Referer"
-        case .TE: return "TE"
-        case .transferEncoding: return "Transfer-Encoding"
-        case .upgrade: return "Upgrade"
-        case .userAgent: return "User-Agent"
-        case .via: return "Via"
-        case .warning: return "Warning"
-        case .accessControlRequestHeaders: return "Access-Control-Request-Headers"
-        case .accessControlRequestMethod: return "Access-Control-Request-Method"
-        case .origin: return "Origin"
-        case .xRequestedWith: return "X-Requested-With"
-        case .xForwardedFor: return "X-Forwarded-For"
-        case .xForwardedProto: return "X-Forwarded-Proto"
-        case .xRealIP: return "X-Real-IP"
-        case .dnt: return "DNT"
-        case .etag: return "ETag"
-        case .acceptPatch: return "Accept-Patch"
-        case .contentDisposition: return "Content-Disposition"
-        case .contentLanguage: return "Content-Language"
-        case .link: return "Link"
-        case .retryAfter: return "Retry-After"
-        case let .custom(string): return string
-        }
-    }
+    /// Returns all standard HTTP request header fields.
+    public static let allCases: [Self] = [
+        .accept, .acceptCharset, .acceptEncoding, .acceptLanguage, .acceptPatch,
+        .accessControlRequestHeaders, .accessControlRequestMethod,
+        .authorization, .cacheControl, .connection, .cookie,
+        .contentLength, .contentMD5, .contentDisposition, .contentType, .contentLanguage,
+        .date, .dnt, .etag, .expect, .forwarded, .from, .host,
+        .ifMatch, .ifModifiedSince, .ifNoneMatch, .ifRange, .ifUnmodifiedSince,
+        .link, .maxForwards, .origin, .pragma, .proxyAuthorization, .range,
+        .referer, .retryAfter, .te, .transferEncoding, .upgrade,
+        .userAgent, .via, .warning,
+        .xRequestedWith, .xForwardedFor, .xForwardedProto, .xRealIP
+    ]
 }

@@ -8,12 +8,6 @@
 import Foundation
 
 public extension URLSession {
-    /// Download Errors.
-    internal enum DownloadErrors: Error {
-        case noFile
-        case noData
-    }
-
     /**
      Downloads a file from the request.
 
@@ -69,5 +63,25 @@ public extension URLSession {
         }
         guard let data = data else { throw DownloadErrors.noData }
         return (data, response)
+    }
+    
+    /// Download Errors.
+    fileprivate enum DownloadErrors: LocalizedError {
+        case noFile
+        case noData
+
+        public var errorDescription: String? {
+            switch self {
+            case .noFile: return "The file could not be downloaded."
+            case .noData: return "No data was received from the server."
+            }
+        }
+
+        public var failureReason: String? {
+            switch self {
+            case .noFile: return "The download task completed without providing a file location."
+            case .noData: return "The data task completed without providing any data."
+            }
+        }
     }
 }

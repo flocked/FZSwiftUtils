@@ -44,6 +44,16 @@ public extension NSObject {
      - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
      - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
      */
+    func value<Value>(forKeyPath keyPath: String) -> Value? {
+        value(forKeyPathSafely: keyPath) as? Value
+    }
+    
+    /**
+     Returns the value for the derived property identified by a given key path.
+
+     - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
+     - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
+     */
     func value(forKeyPathSafely keyPath: String) -> Any? {
         var value: Any?
         try? NSObject.catchException {
@@ -79,19 +89,6 @@ public extension NSObject {
     }
     
     /**
-     Sets the value for the property identified by a given key path to a given value.
-
-     - Parameters:
-        - value: The value to set.
-        - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
-     */
-    class func setValue(safely value: Any?, forKeyPath keyPath: String) {
-        try? NSObject.catchException {
-            setValue(value, forKeyPath: keyPath)
-        }
-    }
-    
-    /**
      Returns the value for the property identified by a given key.
 
      - Parameter key: The key of the property.
@@ -101,6 +98,40 @@ public extension NSObject {
         var value: Any?
         try? NSObject.catchException {
             value = self.value(forKey: key)
+        }
+        return value
+    }
+    
+    /**
+     Returns the value for the property identified by a given key.
+
+     - Parameter key: The key of the property.
+     - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
+     */
+    class func value<Value>(forKey key: String) -> Value? {
+        value(forKeySafely: key) as? Value
+    }
+    
+    /**
+     Returns the value for the derived property identified by a given key path.
+
+     - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
+     - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
+     */
+    class func value<Value>(forKeyPath keyPath: String) -> Value? {
+        value(forKeyPathSafely: keyPath) as? Value
+    }
+    
+    /**
+     Returns the value for the derived property identified by a given key path.
+
+     - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
+     - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
+     */
+    class func value(forKeyPathSafely keyPath: String) -> Any? {
+        var value: Any?
+        try? NSObject.catchException {
+            value = self.value(forKeyPath: keyPath)
         }
         return value
     }
@@ -119,17 +150,16 @@ public extension NSObject {
     }
     
     /**
-     Returns the value for the derived property identified by a given key path.
+     Sets the value for the property identified by a given key path to a given value.
 
-     - Parameter keyPath: A key path of the form relationship.property (with one or more relationships); for example “department.name” or “department.manager.lastName”.
-     - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
+     - Parameters:
+        - value: The value to set.
+        - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
      */
-    class func value(forKeyPathSafely keyPath: String) -> Any? {
-        var value: Any?
+    class func setValue(safely value: Any?, forKeyPath keyPath: String) {
         try? NSObject.catchException {
-            value = self.value(forKeyPath: keyPath)
+            setValue(value, forKeyPath: keyPath)
         }
-        return value
     }
 
     /**
@@ -312,16 +342,16 @@ extension NSObjectProtocol where Self: NSObject {
     
     /**
      Registers an observer object to receive KVO notifications for the key path relative to the object receiving this message.
+     
+     Neither the object receiving this message, nor `observer`, are retained. An object that calls this method must also eventually call  the ``ObjectiveC/NSObjectProtocol/removeObserver(_:for:context:)`` method to unregister the observer when participating in KVO.
 
      - Parameters:
-        - observer: The object to register for KVO notifications. The observer must implement the key-value observing method `observeValue(forKeyPath:of:change:context:)`.
+        - observer: The object to register for KVO notifications. The observer must implement the key-value observing method [observeValue(forKeyPath:of:change:context:)](https://developer.apple.com/documentation/ObjectiveC/NSObject-swift.class/observeValue(forKeyPath:of:change:context:)).
         - keypath: The key path to stop observing.
         - options: The observation options.
-        - context: Arbitrary data that is passed to observer in `observeValue(forKeyPath:of:change:context:)`.
+        - context: Arbitrary data that is passed to observer in [observeValue(forKeyPath:of:change:context:)](https://developer.apple.com/documentation/ObjectiveC/NSObject-swift.class/observeValue(forKeyPath:of:change:context:)).
      */
-    public func addObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>,
-                            options: NSKeyValueObservingOptions = [],
-                            context: UnsafeMutableRawPointer? = nil) {
+    public func addObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>, options: NSKeyValueObservingOptions = [], context: UnsafeMutableRawPointer? = nil) {
         guard let keypathString = keypath._kvcKeyPathString else { return }
         addObserver(observer, forKeyPath: keypathString, options: options, context: context)
     }
