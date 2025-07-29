@@ -18,7 +18,7 @@ extension DispatchWorkItem {
     /// Executes the work item's block asynchronously on the main thread after the specified delay.
     @discardableResult
     public func perform(after delay: TimeInterval) -> Self {
-        DispatchQueue.main.asyncAfter(.seconds(delay), execute: self)
+        DispatchQueue.main.async(after: .seconds(delay), execute: self)
         return self
     }
     
@@ -26,14 +26,14 @@ extension DispatchWorkItem {
     @discardableResult
     @_disfavoredOverload
     public func perform(after delay: TimeDuration) -> Self {
-        DispatchQueue.main.asyncAfter(delay, execute: self)
+        DispatchQueue.main.async(after: delay, execute: self)
         return self
     }
     
     /// Executes the work item's block asynchronously on the background thread after the specified delay.
     @discardableResult
     public func performBackground(after delay: TimeInterval, qos: DispatchQoS.QoSClass = .default) -> Self {
-        DispatchQueue.global(qos: qos).asyncAfter(delay, execute: self)
+        DispatchQueue.global(qos: qos).async(after: delay, execute: self)
         return self
     }
     
@@ -41,7 +41,7 @@ extension DispatchWorkItem {
     @discardableResult
     @_disfavoredOverload
     public func performBackground(after delay: TimeDuration, qos: DispatchQoS.QoSClass = .default) -> Self {
-        DispatchQueue.global(qos: qos).asyncAfter(delay, execute: self)
+        DispatchQueue.global(qos: qos).async(after: delay, execute: self)
         return self
     }
     
