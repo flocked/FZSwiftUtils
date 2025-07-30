@@ -57,7 +57,7 @@ public extension Array where Element: WeakReference {
      
      - Parameter elements: The sequence of elements to turn into an array.
      */
-    init<S>(_ elements: S) where S : Sequence, Self.Element.Object == S.Element {
+    init<S>(_ elements: S) where S : Sequence, Element.Object == S.Element {
         self = Self(elements.map({Element($0)}))
     }
 }
@@ -73,8 +73,71 @@ public extension Set where Element: WeakReference {
      
      - Parameter elements: The sequence of elements to turn into a set.
      */
-    init<S>(_ elements: S) where S : Sequence, Self.Element.Object == S.Element {
+    init<S>(_ elements: S) where S : Sequence, Element.Object == S.Element {
         self = Self(elements.map({Element($0)}))
+    }
+    
+    /**
+     Creates a set containing the elements of a sequence.
+     
+     - Parameter elements: The sequence of elements to turn into a set.
+     */
+    init<S>(_ elements: S) where S : Sequence, Element.Object == S.Element, Element.Object: Hashable {
+        self = Self(elements.uniqued().map({Element($0)}))
+    }
+    
+    /**
+     Inserts the given element in the set if it is not already present.
+     
+     - Parameter newMember: An element to insert into the set.
+     - Returns: `(true, newMember)` if `newMember` was not contained in the set. If an element equal to newMember was already contained in the set, the method returns `(false, oldMember)`, where `oldMember` is the element that was equal to `newMember`. In some cases, `oldMember` may be distinguishable from `newMember` by identity comparison or some other means.
+     */
+    @discardableResult
+    mutating func insert(_ newMember: Element.Object) -> (inserted: Bool, memberAfterInsert: Element.Object) {
+        if let oldMember = first(where: {$0.object === newMember})?.object {
+            return (false, oldMember)
+        }
+        insert(Element(newMember))
+        return (true, newMember)
+    }
+    
+    /**
+     Inserts the given elements in the set if it is not already present.
+     
+     - Parameters: The elemerts to insert into the set.
+     */
+    mutating func insert<S: Sequence<Element.Object>>(_ elements: S) {
+        elements.forEach({ insert($0) })
+    }
+    
+    /**
+     Removes the specified element from the set.
+     
+     - Parameter member: The element to remove from the set.
+     - Returns: The value of the `member` parameter if it was a member of the set; otherwise, `nil`.
+     */
+    @discardableResult
+    mutating func remove(_ member: Element.Object) -> Element.Object? {
+        removeAll(where: { $0.object === member }).first?.object
+    }
+    
+    /**
+     Removes the specified elements from the set.
+     
+     - Parameter elements: The elements to remove from the set.
+     */
+    mutating func remove<S: Sequence<Element.Object>>(_ elements: S) {
+        elements.forEach({ remove($0) })
+    }
+    
+    /**
+     Returns a Boolean value that indicates whether the given element exists in the set.
+     
+     - Parameter member: An element to look for in the set.
+     - Returns: `true` if `member` exists in the set; otherwise, `false`.
+     */
+    func contains(_ member: Element.Object) -> Bool {
+        contains(where: { $0.object === member })
     }
 }
 
