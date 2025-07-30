@@ -34,12 +34,7 @@ public class URLResources {
     private var iteratorKey: String?
     static var iteratorKeys: SynchronizedDictionary<String, Set<URLResourceKey>> = [:]
 
-    /**
-     Creates an object for accessing and modifying properties of the resource at the specified url.
-
-     - Parameter url: The url to the resource.
-     - Returns: `URLResources` for the specified resource.
-     */
+    /// Creates an object for accessing and modifying properties of the resource at the specified url.
     public init(url: URL) {
         self.url = url
         guard url.path.hasPrefix("/__prefetchCheck_") else { return }
@@ -235,8 +230,8 @@ public class URLResources {
 
      The value is assigned by the kernel to identify the resource regardless of where it moves on a volume.
 
-     The identifier survives safe-save operation, and is sticky to the path the kernel assigns. `FileManager``replaceItemAt(_:withItemAt:)` is the preferred safe-save API.
-
+     The identifier survives safe-save operation, and is sticky to the path the kernel assigns. [replaceItemAt(_:withItemAt:backupItemName:options:)](https://developer.apple.com/documentation/foundation/filemanager/replaceitemat(_:withitemat:backupitemname:options:)-4210g) is the preferred safe-save API.
+     
      The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource. The identifier is only unique within a single volume and not all volumes support this property.
      */
     public var identifier: Int? { value(for: \.documentIdentifier) }

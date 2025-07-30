@@ -12,39 +12,36 @@ public extension NSError {
      Creates an error that can be used for throwing.
      
      - Parameters:
-        - description: Description of the error.
-        - failureReason: Failure reason.
+        - description: The description of the error.
+        - failureReason: The failure reason.
+        - recoverySuggestion: A recovery suggestion.
         - fileURL: The file URL which produced this error, or `nil` if not applicable.
-        - helpAnchor: String to display in response to an alert panel help anchor button being pressed.
+        - helpAnchor: A string to display in response to an alert panel help anchor button being pressed.
         - userInfo: The userInfo dictionary for the error.
         - domain: The error domain, or `nil` to use the bundle identifier.
+        - code: The error code for the error.
      */
-    convenience init(_ description: String, failureReason: String? = nil, fileURL: URL? = nil, helpAnchor: String? = nil, userInfo: [String: Any]? = nil, domain: String? = nil) {
-            
+    convenience init(_ description: String, failureReason: String? = nil, recoverySuggestion: String? = nil, fileURL: URL? = nil, helpAnchor: String? = nil, userInfo: [String: Any]? = nil, domain: String? = nil, code: Int = 1) {
         var userInfo: [String: Any] = userInfo ?? [:]
-        
-        if let helpAnchor = helpAnchor {
-            userInfo[NSHelpAnchorErrorKey] = helpAnchor
-        }
+        userInfo[NSLocalizedDescriptionKey] = description
         if let failureReason = failureReason {
             userInfo[NSLocalizedFailureReasonErrorKey] = failureReason
+        }
+        if let recoverySuggestion = recoverySuggestion {
+            userInfo[NSLocalizedRecoverySuggestionErrorKey] = recoverySuggestion
         }
         if let filePath = fileURL?.path {
             userInfo[NSFilePathErrorKey] = filePath
         }
-        self.init(domain: domain ?? Bundle.main.bundleIdentifier ?? "Error", code: 1, userInfo: userInfo)
+        if let helpAnchor = helpAnchor {
+            userInfo[NSHelpAnchorErrorKey] = helpAnchor
+        }
+        self.init(domain: domain ?? Bundle.main.bundleIdentifier ?? "NSError.GlobalDomain", code: code, userInfo: userInfo)
     }
     
-    
-    /**
-     Creates an `NSError` object for the specified POSIX error code.
-
-     - Parameter errorCode: The POSIX error code.
-     - Returns: An `NSError` object representing the POSIX error.
-     */
+    /// Creates an `NSError` object for the specified POSIX error code.
     static func posix(_ errorCode: Int32) -> NSError {
-        NSError(domain: NSPOSIXErrorDomain, code: Int(errorCode),
-                userInfo: [NSLocalizedDescriptionKey: String(cString: strerror(errorCode))])
+        NSError(domain: NSPOSIXErrorDomain, code: Int(errorCode), userInfo: [NSLocalizedDescriptionKey: String(cString: strerror(errorCode))])
     }
     
     /// The file URL which produced this error, or `nil` if not applicable.

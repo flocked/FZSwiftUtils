@@ -208,12 +208,26 @@ public struct FileAttributes {
 
 extension FileManager {
     /**
+     Sets the attributes of the specified file or directory.
+     
      Returns the attributes for the item at the specific url.
 
      - Throws: If the attributes couldn't be loaded.
      */
     public func attributes(for url: URL) throws -> FileAttributes {
         try FileAttributes(url: url, fileManager: self)
+    }
+    
+    /**
+     Sets the attributes of the specified file or directory.
+     
+     - Parameters:
+        - attributes: The attributes to write.
+        - url: The file resource URL.
+
+     */
+    func setAttributes(_ attributes: FileAttributes, ofItemAt url: URL) throws {
+        try setAttributes(attributes.attributes, ofItemAtPath: url.path)
     }
 }
 
