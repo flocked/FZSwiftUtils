@@ -15,15 +15,18 @@ public extension NSError {
         - description: The description of the error.
         - failureReason: The failure reason.
         - recoverySuggestion: A recovery suggestion.
-        - fileURL: The file URL which produced this error, or `nil` if not applicable.
+        - fileURL: The file URL which produced this error.
         - helpAnchor: A string to display in response to an alert panel help anchor button being pressed.
-        - userInfo: The userInfo dictionary for the error.
         - domain: The error domain, or `nil` to use the bundle identifier.
         - code: The error code for the error.
+        - userInfo: The userInfo dictionary for the error.
      */
-    convenience init(_ description: String, failureReason: String? = nil, recoverySuggestion: String? = nil, fileURL: URL? = nil, helpAnchor: String? = nil, userInfo: [String: Any]? = nil, domain: String? = nil, code: Int = 1) {
+    @_disfavoredOverload
+    convenience init(_ description: String? = nil, failureReason: String? = nil, recoverySuggestion: String? = nil, fileURL: URL? = nil, helpAnchor: String? = nil, domain: String? = nil, code: Int = 1, userInfo: [String: Any]? = nil) {
         var userInfo: [String: Any] = userInfo ?? [:]
-        userInfo[NSLocalizedDescriptionKey] = description
+        if let description = description {
+            userInfo[NSLocalizedDescriptionKey] = description
+        }
         if let failureReason = failureReason {
             userInfo[NSLocalizedFailureReasonErrorKey] = failureReason
         }
