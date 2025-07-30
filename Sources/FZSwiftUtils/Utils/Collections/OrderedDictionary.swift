@@ -133,7 +133,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      // => ["a", "b", "c"]
      ```
      */
-    public var orderedKeys: [Key] {
+    public var keys: [Key] {
         _orderedKeys
     }
     
@@ -149,8 +149,8 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      // => [1, 2, 3]
      ```
      */
-    public var orderedValues: LazyMapCollection<Self, Value> {
-        lazy.map { $0.value }
+    public var values: [Value] {
+        map { $0.value }
     }
     
     // MARK: - Unordered Dictionary
@@ -488,8 +488,8 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
             
             defer { _assertInvariant() }
             
-            let innerKeys = orderedKeys[bounds]
-            let outerKeys = Set(orderedKeys).subtracting(innerKeys)
+            let innerKeys = keys[bounds]
+            let outerKeys = Set(keys).subtracting(innerKeys)
 
             let newKeys = Set(newElements.map { $0.key })
 
@@ -934,6 +934,92 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     /// Returns a new ordered dictionary container the key-value pairs that satisfy the given predicate while preserving the original order.
     public func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> Self {
         return Self(uniqueKeysWithValues: try self.lazy.filter(isIncluded))
+    }
+    
+    // MARK: - Merge
+    
+    /**
+     Returns the current dictionary merged with another dictionary using the specified merge strategy.
+     
+     - Parameters:
+        - other: The dictionary to merge with the current dictionary.
+        - strategy: The strategy to use for merging the dictionaries.
+     
+     - Returns: A new dictionary containing the merged results.
+     */
+    public func merged(with other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
+        var merged = self
+        for (key, value) in other {
+            switch strategy {
+            case .overwrite:
+                merged[key] = value
+            case .keepOld:
+                if merged[key] == nil {
+                    merged[key] = value
+                }
+            case .keepNew:
+                merged[key] = value
+            case .custom(let mergeClosure):
+                let existingValue = merged[key]
+                merged[key] = mergeClosure(key, existingValue, value)
+            }
+        }
+        return merged
+    }
+    
+    /**
+     Returns the current dictionary merged with another dictionary using the specified merge strategy.
+     
+     - Parameters:
+        - other: The dictionary to merge with the current dictionary.
+        - strategy: The strategy to use for merging the dictionaries.
+     
+     - Returns: A new dictionary containing the merged results.
+     */
+    public func merged(with other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
+        var merged = self
+        for (key, value) in other {
+            switch strategy {
+            case .overwrite:
+                merged[key] = value
+            case .keepOld:
+                if merged[key] == nil {
+                    merged[key] = value
+                }
+            case .keepNew:
+                merged[key] = value
+            case .custom(let mergeClosure):
+                let existingValue = merged[key]
+                merged[key] = mergeClosure(key, existingValue, value)
+            }
+        }
+        return merged
+    }
+    
+    /**
+     Merges the current dictionary with another dictionary using the specified merge strategy.
+     
+     - Parameters:
+        - other: The dictionary to merge with the current dictionary.
+        - strategy: The strategy to use for merging the dictionaries.
+     
+     - Returns: A new dictionary containing the merged results.
+     */
+    public mutating func merge(with other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
+        self = merged(with: other, strategy: strategy)
+    }
+    
+    /**
+     Merges the current dictionary with another dictionary using the specified merge strategy.
+     
+     - Parameters:
+        - other: The dictionary to merge with the current dictionary.
+        - strategy: The strategy to use for merging the dictionaries.
+     
+     - Returns: A new dictionary containing the merged results.
+     */
+    public mutating func merge(with other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
+        self = merged(with: other, strategy: strategy)
     }
     
     // MARK: - Capacity

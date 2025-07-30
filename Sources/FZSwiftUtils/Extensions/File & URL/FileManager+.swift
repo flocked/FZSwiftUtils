@@ -183,6 +183,52 @@ public extension FileManager {
         try URL.writeBookmarkData(bookmarkData, to: dstURL)
     }
     
+    /**
+     Returns the attributes of the item at a given URL.
+     
+     - Parameter url: The URL of a file or directory.
+     - Returns: A dictionary object that describes the attributes (file, directory, symlink, and so on) of the file specified by `url`.
+     */
+    func attributesOfItem(at url: URL) throws -> [FileAttributeKey : Any] {
+        try attributesOfItem(atPath: url.path)
+    }
+    
+    /**
+     Sets the attributes of the specified file or directory.
+     
+     - Parameters:
+        - attributes: A dictionary containing as keys the attributes to set for path and as values the corresponding value for the attribute.
+        - url: The URL of a file or directory.
+     */
+    func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAt url: URL) throws {
+        try setAttributes(attributes, ofItemAtPath: url.path)
+    }
+    
+    /**
+     Copies the attributes of the specified file or directory to the other item.
+     
+     - Parameters:
+        - url: The URL of a file or directory for the attributes.
+        - destionationURL: The destionation item for the attributes.
+     */
+    func copyAttributes(of sourceURL: URL, to destionationURL: URL, strategy: AttributesMergeStrategy = .overwrite) throws {
+        let sourceAttr = try attributesOfItem(at: sourceURL)
+        if strategy == .overwrite {
+            try setAttributes(sourceAttr, ofItemAt: destionationURL)
+        } else {
+            var destAttr = try attributesOfItem(at: destionationURL)
+            destAttr.merge(with: sourceAttr, strategy: strategy == .keepSource ? .keepOld : .keepNew)
+            try setAttributes(destAttr, ofItemAt: destionationURL)
+        }
+    }
+    
+    enum AttributesMergeStrategy {
+        case keepSource
+        case keepDestionation
+        /// Overwrite the value in the first dictionary with the value in the second dictionary.
+        case overwrite
+    }
+    
     /// The handlers for the file manager.
     var handlers: Handlers {
         get { getAssociatedValue("handlers") ?? Handlers() }
