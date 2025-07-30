@@ -26,83 +26,82 @@ public extension FileManager {
         return folderURL
     }
 
-        #if os(macOS) || os(iOS)
-        /**
-         Moves an item to the trash.
+    #if os(macOS) || os(iOS)
+    /**
+     Moves an item to the trash.
 
-         The actual name of the item may be changed when moving it to the trash.
+     The actual name of the item may be changed when moving it to the trash.
 
-         - Parameter url: The item to move to the trash.
-         - Throws: Throws an error if the item couldn't be moved to the trash.
-         - Returns: Returns the url of the trashed item.
-         */
-        @discardableResult
-        func trashItem(at url: URL) throws -> URL {
-            var trashedFileURL: NSURL?
-            try trashItem(at: url, resultingItemURL: &trashedFileURL)
-            guard let trashedFileURL = trashedFileURL as? URL else {
-                throw Errors.trashItemFailed(url: url)
-            }
-            return trashedFileURL
+     - Parameter url: The item to move to the trash.
+     - Throws: Throws an error if the item couldn't be moved to the trash.
+     - Returns: Returns the url of the trashed item.
+     */
+    @discardableResult
+    func trashItem(at url: URL) throws -> URL {
+        var trashedFileURL: NSURL?
+        try trashItem(at: url, resultingItemURL: &trashedFileURL)
+        guard let trashedFileURL = trashedFileURL as? URL else {
+            throw Error.trashItemFailed(url: url)
         }
+        return trashedFileURL
+    }
     
-        /// An enumeration of file manager errors.
-        internal enum Errors: LocalizedError {
-            /// The file couldn't be moved to the trash.
-            case trashItemFailed(url: URL)
+    /// An enumeration of file manager errors.
+    fileprivate enum Error: LocalizedError {
+        case trashItemFailed(url: URL)
             
-            var errorDescription: String? {
-                switch self {
-                case .trashItemFailed(let url): return "Tashing Failed."
-                }
-            }
-            
-            var failureReason: String? {
-                switch self {
-                case .trashItemFailed(let url): return "Failed to trash item \(url)."
-                }
+        var errorDescription: String? {
+            switch self {
+            case .trashItemFailed: return "Tashing Failed."
             }
         }
-        #endif
+            
+        var failureReason: String? {
+            switch self {
+            case .trashItemFailed(let url): return "Failed to trash item \(url)."
+            }
+        }
+    }
+    #endif
 
     #if os(macOS)
-        /// The type of appliction support directory.
-        enum AppSupportDirectoryType {
-            /// Uses the application identifier.
-            case identifier
-            /// Uses the application name.
-            case name
-        }
+    /// The type of appliction support directory.
+    enum AppSupportDirectoryType {
+        /// Uses the application identifier.
+        case identifier
+        /// Uses the application name.
+        case name
+    }
 
-        /**
-         Returns the application support directory for the current app.
+    /**
+     Returns the application support directory for the current app.
          
-         - Parameters:
-            - type: The type of application support directory (either identifier or name).
-            - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist.
-         */
-        func appSupportDirectory(using type: AppSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
-            let appSupportURL: URL
-            if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
-                appSupportURL = .applicationSupportDirectory
-            } else {
-                guard let url = urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-                appSupportURL = url
-            }
-            guard let name = type == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
-            let directoryURL = appSupportURL.appendingPathComponent(name, isDirectory: true)
-            if directoryExists(at: directoryURL) {
-                return directoryURL
-            } else if createIfNeeded {
-                do {
-                    try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-                    return directoryURL
-                } catch {
-                    debugPrint(error)
-                }
-            }
-            return nil
+     - Parameters:
+        - type: The type of application support directory (either `identifier` or `name`).
+        - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist.
+     */
+    func appSupportDirectory(using type: AppSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
+        let appSupportURL: URL
+        if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
+            appSupportURL = .applicationSupportDirectory
+        } else {
+            guard let url = urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
+            appSupportURL = url
         }
+        guard let name = type == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
+        let directoryURL = appSupportURL.appendingPathComponent(name, isDirectory: true)
+        if directoryExists(at: directoryURL) {
+            return directoryURL
+        } else if createIfNeeded {
+            do {
+                try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+                return directoryURL
+            } catch {
+                debugPrint(error)
+            }
+        }
+        return nil
+    }
     #endif
     /**
      Returns a Boolean value that indicates whether a file or directory exists at a specified url.
@@ -213,20 +212,22 @@ public extension FileManager {
      */
     func copyAttributes(of sourceURL: URL, to destionationURL: URL, strategy: AttributesMergeStrategy = .overwrite) throws {
         let sourceAttr = try attributesOfItem(at: sourceURL)
-        if strategy == .overwrite {
+        if strategy == .replace {
             try setAttributes(sourceAttr, ofItemAt: destionationURL)
         } else {
             var destAttr = try attributesOfItem(at: destionationURL)
-            destAttr.merge(with: sourceAttr, strategy: strategy == .keepSource ? .keepOld : .keepNew)
+            destAttr.merge(with: sourceAttr, strategy: strategy == .keepOriginal ? .keepOriginal : .overwrite)
             try setAttributes(destAttr, ofItemAt: destionationURL)
         }
     }
     
     enum AttributesMergeStrategy {
-        case keepSource
-        case keepDestionation
-        /// Overwrite the value in the first dictionary with the value in the second dictionary.
+        /// Keeps the original attributes, only adding new attributes.
+        case keepOriginal
+        /// Overwrites the original attributes with the new attributes.
         case overwrite
+        /// Replaces all attributes with source attributes.
+        case replace
     }
     
     /// The handlers for the file manager.

@@ -950,18 +950,15 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     public func merged(with other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
         var merged = self
         for (key, value) in other {
-            switch strategy {
-            case .overwrite:
-                merged[key] = value
-            case .keepOld:
+            switch strategy.rawValue {
+            case "keepOriginal":
                 if merged[key] == nil {
                     merged[key] = value
                 }
-            case .keepNew:
+            case "custom":
+                merged[key] = strategy.handler!(key, merged[key], value)
+            default:
                 merged[key] = value
-            case .custom(let mergeClosure):
-                let existingValue = merged[key]
-                merged[key] = mergeClosure(key, existingValue, value)
             }
         }
         return merged
@@ -979,18 +976,15 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     public func merged(with other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
         var merged = self
         for (key, value) in other {
-            switch strategy {
-            case .overwrite:
-                merged[key] = value
-            case .keepOld:
+            switch strategy.rawValue {
+            case "keepOriginal":
                 if merged[key] == nil {
                     merged[key] = value
                 }
-            case .keepNew:
+            case "custom":
+                merged[key] = strategy.handler!(key, merged[key], value)
+            default:
                 merged[key] = value
-            case .custom(let mergeClosure):
-                let existingValue = merged[key]
-                merged[key] = mergeClosure(key, existingValue, value)
             }
         }
         return merged
