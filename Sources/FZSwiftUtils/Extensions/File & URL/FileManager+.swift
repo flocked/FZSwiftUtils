@@ -166,7 +166,7 @@ public extension FileManager {
      If a file already exists at the url, this method overwrites the contents of that file if the current process has the appropriate privileges to do so.
      */
     @discardableResult
-    func createFile(at url: URL, contents: Data?, attributes: [FileAttributeKey:Any]? = nil) -> Bool {
+    func createFile(at url: URL, contents: Data? = nil, attributes: [FileAttributeKey:Any]? = nil) -> Bool {
         createFile(atPath: url.path, contents: contents, attributes: attributes)
     }
     
