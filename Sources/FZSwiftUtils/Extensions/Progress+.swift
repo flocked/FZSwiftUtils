@@ -16,8 +16,11 @@ extension Progress {
     
     /// The estimate time remaining.
     public var estimateDurationRemaining: TimeDuration? {
-        guard let seconds = estimatedTimeRemaining else { return nil }
-        return TimeDuration(seconds)
+        get {
+            guard let seconds = estimatedTimeRemaining else { return nil }
+            return TimeDuration(seconds)
+        }
+        set { estimatedTimeRemaining = newValue?.seconds }
     }
 
     /// Updates the estimate time remaining and throughput.
