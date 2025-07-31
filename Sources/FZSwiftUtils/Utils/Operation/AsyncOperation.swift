@@ -17,8 +17,8 @@ import Foundation
 open class AsyncOperation: Operation, Pausable {
     
     private let stateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath + ".AsyncOperationState", attributes: .concurrent)
-    private let pauseSemaphore = DispatchSemaphore(value: 0) // Semaphore to pause/resume
     private var _state: State = .ready
+    private let pauseCondition = NSCondition()
     
     /// The handler that is called when the operation starts executing.
     open var startHandler: (()->())? = nil
@@ -60,7 +60,7 @@ open class AsyncOperation: Operation, Pausable {
     @objc dynamic open internal(set) var state: State {
         get { stateQueue.sync { _state } }
         set {
-            guard newValue != state else { return }
+            guard newValue != _state else { return }
             if validateState(newValue) {
                 stateQueue.async(flags: .barrier) { self._state = newValue }
             } else {
@@ -80,9 +80,9 @@ open class AsyncOperation: Operation, Pausable {
         case .cancelled:
             return true
         case .paused:
-            return state != .cancelled && state != .finished && state != .failed
+            return state == .executing || state == .ready
         case .failed:
-            return state != .cancelled && state != .finished
+            return state == .executing || state == .ready
         }
     }
     
@@ -122,12 +122,14 @@ open class AsyncOperation: Operation, Pausable {
     
     /// Cancels the operation.
     override open func cancel() {
+        pauseCondition.lock()
+        defer { pauseCondition.unlock() }
         if state == .ready {
             state = .executing
         }
         super.cancel()
-        if isPaused {
-            pauseSemaphore.signal()
+        if state == .paused {
+            pauseCondition.signal()
         }
         state = .cancelled
     }
@@ -141,7 +143,9 @@ open class AsyncOperation: Operation, Pausable {
      - If `false`, the operation may retry if the maximum amount of retries isn't reached, otherwise the state is set to `failed`.
      */
     open func finish(success: Bool = true) {
-        guard isExecuting, !isPaused else { return }
+        pauseCondition.lock()
+        defer { pauseCondition.unlock() }
+        guard isExecuting, state != .paused else { return }
         if success {
             state = .finished
         } else if currentAttempt < maximumRetries {
@@ -154,14 +158,19 @@ open class AsyncOperation: Operation, Pausable {
 
     /// Pauses the operation.
     open func pause() {
+        pauseCondition.lock()
+        defer { pauseCondition.unlock() }
         guard isExecuting, state != .paused else { return }
         state = .paused
     }
     
     /// Resumes the operation, if it's paused.
     open func resume() {
+        pauseCondition.lock()
+        defer { pauseCondition.unlock() }
         guard isExecuting, state == .paused else { return }
         state = .executing
+        pauseCondition.signal()
     }
     
     /**
@@ -185,8 +194,11 @@ open class AsyncOperation: Operation, Pausable {
      ```
      */
     open func waitIfPaused() {
-        guard isPaused else { return }
-        pauseSemaphore.wait()
+        pauseCondition.lock()
+        while state == .paused && !isCancelled {
+            pauseCondition.wait()
+        }
+        pauseCondition.unlock()
     }
     
     override open class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
