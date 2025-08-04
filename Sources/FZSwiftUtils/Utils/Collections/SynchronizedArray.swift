@@ -289,7 +289,7 @@ public extension SynchronizedArray {
 
     /// Returns the first index in which an element of the collection satisfies the given predicate.
     ///
-    /// - Parameter predicate: A closure that takes an element as its argument and returns a Boolean value that indicates whether the passed element represents a match.
+    /// - Parameter predicate: A closure that takes an element as its argument and returns a Boolean value indicating whether the passed element represents a match.
     /// - Returns: The index of the first element for which predicate returns `true. If no elements in the collection satisfy the given predicate, returns `nil`.
     func firstIndex(where predicate: (Element) -> Bool) -> Int? {
         queue.sync { self.array.firstIndex(where: predicate) }
@@ -358,7 +358,7 @@ public extension SynchronizedArray {
 
     /// Returns a Boolean value indicating whether the sequence contains an element that satisfies the given predicate.
     ///
-    /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value that indicates whether the passed element represents a match.
+    /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the passed element represents a match.
     /// - Returns: true if the sequence contains an element that satisfies predicate; otherwise, false.
     func contains(where predicate: (Element) -> Bool) -> Bool {
         queue.sync { self.array.contains(where: predicate) }
@@ -366,7 +366,7 @@ public extension SynchronizedArray {
 
     /// Returns a Boolean value indicating whether every element of a sequence satisfies a given predicate.
     ///
-    /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value that indicates whether the passed element satisfies a condition.
+    /// - Parameter predicate: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the passed element satisfies a condition.
     /// - Returns: true if the sequence contains only elements that satisfy predicate; otherwise, false.
     func allSatisfy(_ predicate: (Element) -> Bool) -> Bool {
         queue.sync { self.array.allSatisfy(predicate) }

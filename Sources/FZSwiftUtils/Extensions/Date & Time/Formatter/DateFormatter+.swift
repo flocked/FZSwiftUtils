@@ -94,13 +94,13 @@ public extension DateFormatter {
         return self
     }
     
-    /// Sets the Boolean value that indicates whether the formatter uses heuristics when parsing a string.
+    /// Sets the Boolean value indicating whether the formatter uses heuristics when parsing a string.
     func isLenient(_ isLenient: Bool) -> Self {
         self.isLenient = isLenient
         return self
     }
     
-    /// Sets the Boolean value that indicates whether the formatter uses phrases such as “today” and “tomorrow” for the date component.
+    /// Sets the Boolean value indicating whether the formatter uses phrases such as “today” and “tomorrow” for the date component.
     func doesRelativeDateFormatting(_ doesRelativeDateFormatting: Bool) -> Self {
         self.doesRelativeDateFormatting = doesRelativeDateFormatting
         return self

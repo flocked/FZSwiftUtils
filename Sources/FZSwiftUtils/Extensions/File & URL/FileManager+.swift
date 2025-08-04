@@ -104,7 +104,7 @@ public extension FileManager {
     }
     #endif
     /**
-     Returns a Boolean value that indicates whether a file or directory exists at a specified url.
+     Returns a Boolean value indicating whether a file or directory exists at a specified url.
 
      - Parameter url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return `false`.
      - Returns: `true` if a file or directory at the specified url exists, or `false` if the file or directory does not exist or its existence could not be determined.
@@ -114,7 +114,7 @@ public extension FileManager {
     }
 
     /**
-     Returns a Boolean value that indicates whether a directory exists at a specified path.
+     Returns a Boolean value indicating whether a directory exists at a specified path.
 
      - Parameter path: The path of  directory. If path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
      - Returns:`true` if a directory at the specified path exists, or `false` if the directory does not exist or its existence could not be determined.
@@ -125,7 +125,7 @@ public extension FileManager {
     }
 
     /**
-     Returns a Boolean value that indicates whether a directory exists at a specified url.
+     Returns a Boolean value indicating whether a directory exists at a specified url.
 
      - Parameter url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
      - Returns: `true` if a directory at the specified url exists, or `false if the directory does not exist or its existence could not be determined.
@@ -135,7 +135,7 @@ public extension FileManager {
     }
     
     /**
-     Returns a Boolean value that indicates whether the files or directories in specified paths have the same contents.
+     Returns a Boolean value indicating whether the files or directories in specified paths have the same contents.
      
      - Parameters:
         - url1: The url of a file or directory to compare with the contents of `url2`.

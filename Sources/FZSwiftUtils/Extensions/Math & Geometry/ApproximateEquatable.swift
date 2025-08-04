@@ -13,7 +13,7 @@ import SwiftUI
 public protocol ApproximateEquatable {
     associatedtype Epsilon: FloatingPointInitializable
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to compare.
@@ -66,7 +66,7 @@ extension AnimatablePair: ApproximateEquatable where First: ApproximateEquatable
 
 public extension Numeric where Magnitude: FloatingPoint {
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to which `self` is compared.
@@ -78,7 +78,7 @@ public extension Numeric where Magnitude: FloatingPoint {
     }
 
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to which `self` is compared.
@@ -101,7 +101,7 @@ public extension Numeric where Magnitude: FloatingPoint {
     }
     
     /**
-     A Boolean value that indicates whether `self` and the specified `other` value are approximately equal.
+     A Boolean value indicating whether `self` and the specified `other` value are approximately equal.
 
      - Parameters:
         - other: The value to compare.
@@ -116,7 +116,7 @@ public extension Numeric where Magnitude: FloatingPoint {
 
 public extension AdditiveArithmetic {
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to which `self` is compared.
@@ -151,7 +151,7 @@ public extension AdditiveArithmetic {
 
 public extension ApproximateEquatable {
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to compare.
@@ -163,7 +163,7 @@ public extension ApproximateEquatable {
     }
     
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to compare.
@@ -175,7 +175,7 @@ public extension ApproximateEquatable {
     }
     
     /**
-     A Boolean value that indicates whether the value is approximately equal to the specified other value.
+     A Boolean value indicating whether the value is approximately equal to the specified other value.
 
      - Parameters:
         - other: The value to compare.

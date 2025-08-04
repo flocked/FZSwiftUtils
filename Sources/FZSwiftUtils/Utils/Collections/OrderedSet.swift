@@ -139,63 +139,63 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     // MARK: - Metadata Functions
     
-    /// Returns a Boolean value that indicates whether this set is a subset of the given set.
+    /// Returns a Boolean value indicating whether this set is a subset of the given set.
     public func isSubset(of other: Set<Element>) -> Bool {
         _set.isSubset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether this set is a subset of the given set.
+    /// Returns a Boolean value indicating whether this set is a subset of the given set.
     public func isSubset(of other: Self) -> Bool {
         _set.isSubset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set is a subset of the given sequence.
+    /// Returns a Boolean value indicating whether the set is a subset of the given sequence.
     public func isSubset<S>(of possibleSuperset: S) -> Bool where Element == S.Element, S : Sequence {
         isSubset(of: Self(possibleSuperset))
     }
     
-    /// Returns a Boolean value that indicates whether the set is a strict subset of the given set.
+    /// Returns a Boolean value indicating whether the set is a strict subset of the given set.
     public func isStrictSubset(of other: Set<Element>) -> Bool {
         _set.isStrictSubset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set is a strict subset of the given set.
+    /// Returns a Boolean value indicating whether the set is a strict subset of the given set.
     public func isStrictSubset(of other: Self) -> Bool {
         _set.isStrictSubset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set is a strict subset of the given sequence.
+    /// Returns a Boolean value indicating whether the set is a strict subset of the given sequence.
     public func isStrictSubset<S>(of possibleSuperset: S) -> Bool where Element == S.Element, S : Sequence {
         isStrictSubset(of: Self(possibleSuperset))
     }
 
     
-    /// Returns a Boolean value that indicates whether this set is a superset of the given set.
+    /// Returns a Boolean value indicating whether this set is a superset of the given set.
     public func isSuperset(of other: Set<Element>) -> Bool {
         _set.isSuperset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether this set is a superset of the given set.
+    /// Returns a Boolean value indicating whether this set is a superset of the given set.
     public func isSuperset(of other: Self) -> Bool {
         _set.isSuperset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set is a superset of the given sequence.
+    /// Returns a Boolean value indicating whether the set is a superset of the given sequence.
     public func isSuperset<S>(of possibleSubset: S) -> Bool where Element == S.Element, S : Sequence {
         isSuperset(of: Self(possibleSubset))
     }
     
-    /// Returns a Boolean value that indicates whether the set is a strict superset of the given set.
+    /// Returns a Boolean value indicating whether the set is a strict superset of the given set.
     public func isStrictSuperset(of other: Set<Element>) -> Bool {
         _set.isStrictSuperset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set is a strict superset of the given set.
+    /// Returns a Boolean value indicating whether the set is a strict superset of the given set.
     public func isStrictSuperset(of other: Self) -> Bool {
         _set.isStrictSuperset(of: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set is a strict superset of the given sequence.
+    /// Returns a Boolean value indicating whether the set is a strict superset of the given sequence.
     public func isStrictSuperset<S>(of possibleSubset: S) -> Bool where Element == S.Element, S : Sequence {
         isStrictSuperset(of: Self(possibleSubset))
     }
@@ -210,17 +210,17 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
         !_set.isDisjoint(with: otherSet)
     }
     
-    /// Returns a Boolean value that indicates whether this set has no members in common with the given set.
+    /// Returns a Boolean value indicating whether this set has no members in common with the given set.
     public func isDisjoint(with other: Set<Element>) -> Bool {
         _set.isDisjoint(with: other)
     }
     
-    /// Returns a Boolean value that indicates whether this set has no members in common with the given set.
+    /// Returns a Boolean value indicating whether this set has no members in common with the given set.
     public func isDisjoint(with other: Self) -> Bool {
         _set.isDisjoint(with: other)
     }
     
-    /// Returns a Boolean value that indicates whether the set has no members in common with the given sequence.
+    /// Returns a Boolean value indicating whether the set has no members in common with the given sequence.
     public func isDisjoint<S>(with other: S) -> Bool where Element == S.Element, S : Sequence {
         isDisjoint(with: Self(other))
         

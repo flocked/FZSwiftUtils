@@ -160,7 +160,7 @@ public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertib
         return RotationAngle(degree: normalizedDegrees)
     }
 
-    /// Returns a Boolean value that indicates whether two angles are equal.
+    /// Returns a Boolean value indicating whether two angles are equal.
     public static func == (lhs: RotationAngle, rhs: RotationAngle) -> Bool {
         lhs.radian == rhs.radian
     }

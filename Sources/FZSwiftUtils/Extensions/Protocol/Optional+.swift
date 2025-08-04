@@ -82,7 +82,7 @@ extension Optional: OptionalProtocol {
     /// The optional value.
     public var optional: Self { self }
     
-    /// A Boolean value that indicates whether the optional value is `nil`.
+    /// A Boolean value indicating whether the optional value is `nil`.
     var isNil: Bool {
         self.optional == nil
     }

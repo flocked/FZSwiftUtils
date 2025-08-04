@@ -51,7 +51,7 @@ public extension UTType {
     }
 
     /**
-     Returns a Boolean value that indicates whether a type conforms to any of the types.
+     Returns a Boolean value indicating whether a type conforms to any of the types.
 
      - Parameters:
         - types:UTType's.

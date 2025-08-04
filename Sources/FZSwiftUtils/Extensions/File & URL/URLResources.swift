@@ -248,7 +248,7 @@ public class URLResources {
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var isSparse: Bool { value(for: \.isSparse) ?? false }
 
-    /// A Boolean value that indicates whether the cloned files and their original files may share data blocks.
+    /// A Boolean value indicating whether the cloned files and their original files may share data blocks.
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public var mayShareFileContent: Bool { value(for: \.mayShareFileContent) ?? false }
 
@@ -431,7 +431,7 @@ public extension URLResources {
         /// A Boolean value indicating whether the volume is stored on a local device.
         public var isLocal: Bool { resources.value(for: \.volumeIsLocal) ?? false }
 
-        /// A Boolean value that indicates whether the volume’s device is connected to an internal bus, or nil if not available.
+        /// A Boolean value indicating whether the volume’s device is connected to an internal bus, or nil if not available.
         public var isInternal: Bool { resources.value(for: \.volumeIsInternal) ?? false }
 
         /// A Boolean value indicating whether the volume is ejectable.

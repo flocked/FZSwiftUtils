@@ -10,13 +10,13 @@ import Foundation
 public extension ImageSource {
     /// Options for creating images.
     struct ImageOptions: Codable, Hashable {
-        /// A Boolean value that indicates whether to cache the decoded image.
+        /// A Boolean value indicating whether to cache the decoded image.
         public var shouldCache: Bool = true
-        /// A Boolean value that indicates whether image decoding and caching happens at image creation time.
+        /// A Boolean value indicating whether image decoding and caching happens at image creation time.
         public var shouldDecodeImmediately: Bool = false
         /// The factor by which to scale down any returned images.
         public var subsampleFactor: SubsampleFactor?
-        /// A Boolean that indicates whether to use floating-point values in returned images.
+        /// A Boolean indicating whether to use floating-point values in returned images.
         public var shouldAllowFloat: Bool = false
 
         /// The factor by which to scale down returned images.
@@ -37,9 +37,9 @@ public extension ImageSource {
          Returns the options for generating images.
          
          - Parameters:
-            - shouldCache: A Boolean value that indicates whether to cache the decoded image.
-            - shouldDecodeImmediately: A Boolean value that indicates whether image decoding and caching happens at image creation time.
-            - shouldAllowFloat: A Boolean that indicates whether to use floating-point values in returned images.
+            - shouldCache: A Boolean value indicating whether to cache the decoded image.
+            - shouldDecodeImmediately: A Boolean value indicating whether image decoding and caching happens at image creation time.
+            - shouldAllowFloat: A Boolean indicating whether to use floating-point values in returned images.
             - subsampleFactor: The factor by which to scale down any returned images.
          */
         public init(shouldCache: Bool = true, shouldDecodeImmediately: Bool = false, shouldAllowFloat: Bool = false, subsampleFactor: SubsampleFactor? = nil) {
@@ -59,17 +59,17 @@ public extension ImageSource {
 
     /// Options for creating thumbnails.
     struct ThumbnailOptions: Codable, Hashable {
-        /// A Boolean value that indicates whether to cache the decoded image.
+        /// A Boolean value indicating whether to cache the decoded image.
         public var shouldCache: Bool = true
-        /// A Boolean value that indicates whether image decoding and caching happens at image creation time.
+        /// A Boolean value indicating whether image decoding and caching happens at image creation time.
         public var shouldDecodeImmediately: Bool = true
         /// The factor by which to scale down any returned images.
         public var subsampleFactor: SubsampleFactor?
-        /// A Boolean that indicates whether to use floating-point values in returned images.
+        /// A Boolean indicating whether to use floating-point values in returned images.
         public var shouldAllowFloat: Bool = false
         /// The maximum size of a thumbnail image, specified in pixels, or `nil` to use the original image size.
         public var maxSize: Int?
-        /// A Boolean value that indicates whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
+        /// A Boolean value indicating whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
         public var shouldTransform: Bool = false
         
         var createAlways: Bool = true
@@ -114,10 +114,10 @@ public extension ImageSource {
          - Parameters:
             - create: Option when a thumbnail should be created.
             - maxSize: The maximum size of a thumbnail image, specified in pixels, or `nil` to use the original image size.
-            - shouldCache: A Boolean value that indicates whether to cache the decoded image.
-            - shouldDecodeImmediately: A Boolean value that indicates whether image decoding and caching happens at image creation time.
-            - shouldAllowFloat: A Boolean that indicates whether to use floating-point values in returned images.
-            - shouldTransform:A Boolean value that indicates whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
+            - shouldCache: A Boolean value indicating whether to cache the decoded image.
+            - shouldDecodeImmediately: A Boolean value indicating whether image decoding and caching happens at image creation time.
+            - shouldAllowFloat: A Boolean indicating whether to use floating-point values in returned images.
+            - shouldTransform:A Boolean value indicating whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
             - subsampleFactor: The factor by which to scale down any returned images.
          */
         public init(create: CreateOption = .always, maxSize: Int? = nil, shouldCache: Bool = true, shouldDecodeImmediately: Bool = true, shouldAllowFloat: Bool = false, shouldTransform: Bool = false, subsampleFactor: SubsampleFactor? = nil) {

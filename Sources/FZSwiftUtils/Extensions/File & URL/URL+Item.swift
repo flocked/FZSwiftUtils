@@ -22,7 +22,7 @@ extension URL {
             self.url = url
         }
         
-        /// A Boolean value that indicates whether the item exists.
+        /// A Boolean value indicating whether the item exists.
         public var exists: Bool {
             FileManager.default.fileExists(at: url)
         }

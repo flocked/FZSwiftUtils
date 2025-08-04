@@ -230,7 +230,7 @@ extension URL {
         }
         
         /**
-         A Boolean value that indicates whether the files or directories between the item and the specified url have the same contents.
+         A Boolean value indicating whether the files or directories between the item and the specified url have the same contents.
          
          - Parameter url: The url of a file or directory to compare with the contents of item.
          - Returns: `true` if file or directory of the item has the same contents as that specified in `url`, otherwise `false`.

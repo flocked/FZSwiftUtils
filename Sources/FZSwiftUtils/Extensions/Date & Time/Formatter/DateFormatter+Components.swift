@@ -405,9 +405,9 @@ extension DateFormat.DateComponent {
         
         /// A type that specifies the start of a clock representation for the format of a hour.
         public enum HourCycle {
-            /// A hour cycle that indicates a clock that starts at one.
+            /// A hour cycle indicating a clock that starts at one.
             case oneBased
-            /// A hour cycle that indicates a clock that starts at zero.
+            /// A hour cycle indicating a clock that starts at zero.
             case zeroBased
         }
     }
