@@ -63,6 +63,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) where Value: Equatable {
+        var observer: KVObserver?
         #if os(macOS)
         let keyPathString = keyPath.stringValue
         if keyPathString == "inLiveScroll" || keyPathString == "inLiveMagnify", object is NSScrollView {
@@ -72,20 +73,20 @@ public class KeyValueObservation: NSObject {
         }
         switch (keyPathString, object) {
         case ("keyWindow", let object as NSWindow) where Value.self is Bool.Type:
-            self.observer = NotificationObserver(object: object, keyPath: "keyWindow") {
+            observer = NotificationObserver(object: object, keyPath: "keyWindow") {
                 [.init(NSWindow.didBecomeKeyNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didResignKeyNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
         case ("mainWindow", let object as NSWindow) where Value.self is Bool.Type:
-            self.observer = NotificationObserver(object: object, keyPath: "mainWindow") {
+            observer = NotificationObserver(object: object, keyPath: "mainWindow") {
                 [.init(NSWindow.didBecomeMainNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didResignMainNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
         case ("inLiveResize", let object as NSWindow) where Value.self is Bool.Type:
-            self.observer = NotificationObserver(object: object, keyPath: "inLiveResize") {
+            observer = NotificationObserver(object: object, keyPath: "inLiveResize") {
                 [.init(NSWindow.willStartLiveResizeNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didEndLiveResizeNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
         case ("inLiveResize", let object as NSView) where Value.self is Bool.Type:
             do {
-                self.observer = HookObserver(object: object, keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
+                observer = HookObserver(object: object, keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
                     handler(false as! Value, true as! Value)
                 }, try object.hookAfter(#selector(NSView.viewDidEndLiveResize)) { handler(true as! Value, false as! Value) }])
             } catch {
@@ -100,7 +101,7 @@ public class KeyValueObservation: NSObject {
         case ("subviews", let object as NSView) where Value.self is [NSView].Type:
             do {
                 let id = UUID().uuidString
-                self.observer = HookObserver(object: object, keyPath: keyPathString, hooks: [
+                observer = HookObserver(object: object, keyPath: keyPathString, hooks: [
                     try object.hookAfter(set: \.subviews) { view, oldSubviews, subviews in
                         view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
                         guard !uniqueValues || oldSubviews != subviews else { return }
@@ -122,22 +123,10 @@ public class KeyValueObservation: NSObject {
                 Swift.print(error)
                 return nil
             }
-        default:
-            guard keyPath.kvcStringValue != nil else { return nil }
-            observer = Observer(object, keyPath: keyPath) { change in
-                guard let new = change.newValue else { return }
-                if let old = change.oldValue {
-                    if !uniqueValues || old != new {
-                        handler(old, new)
-                    }
-                } else {
-                    handler(new, new)
-                }
-            }
+        default: break
         }
-        #else
-        guard keyPath._kvcKeyPathString != nil else { return nil }
-        observer = Observer(object, keyPath: keyPath) { change in
+        #endif
+        observer = observer ?? Observer(object, keyPath: keyPath) { change in
             guard let new = change.newValue else { return }
             if let old = change.oldValue {
                 if !uniqueValues || old != new {
@@ -147,7 +136,8 @@ public class KeyValueObservation: NSObject {
                 handler(new, new)
             }
         }
-        #endif
+        guard let observer = observer else { return nil }
+        self.observer = observer
         if sendInitalValue {
             let value = object[keyPath: keyPath]
             handler(value, value)
