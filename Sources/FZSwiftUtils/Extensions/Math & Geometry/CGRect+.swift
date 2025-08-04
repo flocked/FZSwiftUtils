@@ -1210,3 +1210,37 @@ extension CGRect {
         case right
     }
 }
+
+public extension CGRect {
+    static func + (lhs: CGRect, rhs: CGPoint) -> CGRect {
+        CGRect(CGPoint(lhs.x + rhs.x, lhs.y + rhs.y), lhs.size)
+    }
+    
+    static func += (lhs: inout CGRect, rhs: CGPoint) {
+        lhs = lhs + rhs
+    }
+    
+    static func + (lhs: CGRect, rhs: CGSize) -> CGRect {
+        CGRect(lhs.origin, CGSize(lhs.width + rhs.width, lhs.height + rhs.height))
+    }
+    
+    static func += (lhs: inout CGRect, rhs: CGSize) {
+        lhs = lhs + rhs
+    }
+    
+    static func - (lhs: CGRect, rhs: CGPoint) -> CGRect {
+        CGRect(CGPoint(lhs.x - rhs.x, lhs.y - rhs.y), lhs.size)
+    }
+    
+    static func -= (lhs: inout CGRect, rhs: CGPoint) {
+        lhs = lhs - rhs
+    }
+    
+    static func - (lhs: CGRect, rhs: CGSize) -> CGRect {
+        CGRect(lhs.origin, CGSize(lhs.width - rhs.width, lhs.height - rhs.height))
+    }
+    
+    static func -= (lhs: inout CGRect, rhs: CGSize) {
+        lhs = lhs - rhs
+    }
+}
