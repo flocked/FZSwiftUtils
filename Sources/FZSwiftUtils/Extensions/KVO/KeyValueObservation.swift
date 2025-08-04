@@ -84,6 +84,13 @@ public class KeyValueObservation: NSObject {
             observer = NotificationObserver(object: object, keyPath: "inLiveResize") {
                 [.init(NSWindow.willStartLiveResizeNotification, object: $0) { _ in handler(false as! Value, true as! Value)
                 }, .init(NSWindow.didEndLiveResizeNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
+        case ("isOnActiveSpace", let object as NSWindow) where Value.self is Bool.Type:
+            object._isOnActiveSpace = object.isOnActiveSpace
+            observer = NotificationObserver(object: object, keyPath: "isOnActiveSpace") {
+                [.init(NSWorkspace.activeSpaceDidChangeNotification, object: $0) {_ in
+                    guard object.isOnActiveSpace != object._isOnActiveSpace else { return }
+                    handler(object._isOnActiveSpace as! Value, object.isOnActiveSpace as! Value)
+                    object._isOnActiveSpace = object.isOnActiveSpace } ] }
         case ("inLiveResize", let object as NSView) where Value.self is Bool.Type:
             do {
                 observer = HookObserver(object: object, keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
@@ -361,6 +368,13 @@ fileprivate extension KVObserver {
 }
 
 #if os(macOS)
+fileprivate extension NSWindow {
+    var _isOnActiveSpace: Bool {
+        get { getAssociatedValue("isOnActiveSpace", initialValue: isOnActiveSpace) }
+        set { setAssociatedValue(newValue, key: "isOnActiveSpace") }
+    }
+}
+
 fileprivate extension NSCell {
     func hookBackgroundStyle<Value>(_ uniqueValues: Bool, _ handler: @escaping (Value, Value)->()) -> Hook? {
         try? hook("setBackgroundStyle:", closure: { original, object, selector, style in
