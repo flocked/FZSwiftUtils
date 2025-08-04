@@ -7,22 +7,48 @@
 
 import Foundation
 
+extension NSRange: RandomAccessCollection {
+    public typealias Index = Int
+    public typealias Element = Int
+
+    public var startIndex: Index { location }
+    public var endIndex: Index { location + length }
+
+    public subscript(index: Index) -> Element {
+        precondition(indices.contains(index), "Index out of range")
+        return index
+    }
+
+    public func index(after i: Index) -> Index {
+        i + 1
+    }
+
+    public func index(before i: Index) -> Index {
+        i - 1
+    }
+}
+
 public extension NSRange {
-    /// The range as `ClosedRange`.
+    /// `ClosedRange` representation of the range.
     var closedRange: ClosedRange<Int> {
         guard location >= 0, length >= 0 else { return 0...0 }
         return location...(location + length - 1)
     }
 
-    /// The range as `Range`.
+    /// `Range` representation of the range.
     var range: Range<Int> {
         guard location >= 0, length >= 0 else { return 0..<0 }
         return location..<location + length
     }
     
-    /// The range as `CFRange`.
+    /// `CFRange` representation of the range.
     var cfRange: CFRange {
         CFRange(location: location, length: length)
+    }
+    
+    /// `Array` representation of the range.
+    var array: [Int] {
+        map({$0})
     }
     
     /// The maximum value.
@@ -30,34 +56,12 @@ public extension NSRange {
         NSMaxRange(self)
     }
 
-    /// Not found range.
-    static let notFound = NSRange(location: NSNotFound, length: 0)
-
-    /// A Boolean value indicating whether the range contains no elements.
-    var isEmpty: Bool {
-        length == 0
-    }
-
     /// A Boolean value indicating whether the range is not found.
     var isNotFound: Bool {
         location == NSNotFound
     }
 
-    /**
-     A Boolean value indicating whether range constains the specified index.
-     - Parameter index: The index to test.
-     - Returns: `true` if the range contains the index, or `false` if not.
-     */
-    func contains(_ index: Int) -> Bool {
-        index >= lowerBound && index <= upperBound
-    }
-
-    /**
-     A Boolean value indicating whether the given range is contained within the range.
-
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if range is contained in the range; otherwise, `false`.
-     */
+    /// A Boolean value indicating whether the given range is contained within the range.
     func contains(_ range: NSRange) -> Bool {
         guard !isNotFound, !range.isNotFound else { return false }
         return range.lowerBound >= lowerBound && range.upperBound <= upperBound
@@ -73,23 +77,16 @@ public extension NSRange {
         NSRange(location: location + offset, length: length)
     }
 
-    /**
-     A Boolean value indicating whether this range and the given range contain an element in common.
-
-     - Parameter other: A range to check for elements in common.
-     - Returns: `true` if this range and other have at least one element in common; otherwise, `false`.
-     */
+    /// A Boolean value indicating whether this range and the given range contain an element in common.
     func overlaps(_ other: NSRange) -> Bool {
         intersection(other) != nil
     }
     
-    /// `Array` representation of the range.
-    var array: [Int] {
-        return (location..<location+length).array
-    }
-    
     /// The zero range.
     static var zero = NSRange(location: 0, length: 0)
+    
+    /// Not found range.
+    static let notFound = NSRange(location: NSNotFound, length: 0)
 }
 
 public extension Sequence<NSRange> {
