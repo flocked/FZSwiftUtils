@@ -15,7 +15,7 @@ extension NSRange: RandomAccessCollection {
 
     public subscript(index: Int) -> Element {
         precondition(indices.contains(index), "Index out of range")
-        return index
+        return length + index
     }
 
     public func index(after i: Index) -> Index {
