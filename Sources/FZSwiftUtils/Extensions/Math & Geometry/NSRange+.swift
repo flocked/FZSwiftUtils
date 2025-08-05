@@ -9,18 +9,18 @@ import Foundation
 
 extension NSRange: RandomAccessCollection {
     public var startIndex: Int { 0 }
-    public var endIndex: Int { (length).clamped(min: 0) }
+    public var endIndex: Int { length }
 
     public subscript(index: Int) -> Int {
         precondition(indices.contains(index), "Index out of range")
         return location + index
     }
 
-    public func index(after i: Index) -> Index {
+    public func index(after i: Int) -> Int {
         i + 1
     }
 
-    public func index(before i: Index) -> Index {
+    public func index(before i: Int) -> Int {
         i - 1
     }
 }
