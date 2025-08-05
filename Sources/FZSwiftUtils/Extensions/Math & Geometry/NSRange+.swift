@@ -8,13 +8,12 @@
 import Foundation
 
 extension NSRange: RandomAccessCollection {
-    public typealias Index = Int
     public typealias Element = Int
 
-    public var startIndex: Index { 0 }
-    public var endIndex: Index { location + length }
+    public var startIndex: Int { 0 }
+    public var endIndex: Int { (length-1).clamped(min: 0) }
 
-    public subscript(index: Index) -> Element {
+    public subscript(index: Int) -> Element {
         precondition(indices.contains(index), "Index out of range")
         return index
     }
