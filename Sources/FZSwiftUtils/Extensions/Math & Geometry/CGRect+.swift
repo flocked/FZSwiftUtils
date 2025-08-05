@@ -1244,3 +1244,45 @@ public extension CGRect {
         lhs = lhs - rhs
     }
 }
+
+extension CGRect {
+    /// Applies the changes of the specified handler to the current rectangle.
+    mutating func update(_ updateHandler: (_ rect: inout CGRect)->()) {
+        self = updated(updateHandler)
+    }
+    
+    /// Returns the rectangle with the changes applied by the specified handler.
+    func updated(_ updateHandler: (_ rect: inout CGRect)->()) -> CGRect {
+        var point = self
+        updateHandler(&point)
+        return point
+    }
+}
+
+extension CGPoint {
+    /// Applies the changes of the specified handler to the current point.
+    mutating func update(_ updateHandler: (_ point: inout CGPoint)->()) {
+        self = updated(updateHandler)
+    }
+    
+    /// Returns the point with the changes applied by the specified handler.
+    func updated(_ updateHandler: (_ point: inout CGPoint)->()) -> CGPoint {
+        var point = self
+        updateHandler(&point)
+        return point
+    }
+}
+
+extension CGSize {
+    /// Applies the changes of the specified handler to the current size.
+    mutating func update(_ updateHandler: (_ size: inout CGSize)->()) {
+        self = updated(updateHandler)
+    }
+    
+    /// Returns the size with the changes applied by the specified handler.
+    func updated(_ updateHandler: (_ size: inout CGSize)->()) -> CGSize {
+        var point = self
+        updateHandler(&point)
+        return point
+    }
+}
