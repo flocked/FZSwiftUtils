@@ -7,9 +7,9 @@
 
 import Foundation
 
-extension NSRange: RandomAccessCollection {
+extension NSRange: RandomAccessCollection, RangeExpression {
     public var startIndex: Int { 0 }
-    public var endIndex: Int { length }
+    public var endIndex: Int { isNotFound ? 0 : length }
 
     public subscript(index: Int) -> Int {
         precondition(indices.contains(index), "Index out of range")
@@ -23,19 +23,24 @@ extension NSRange: RandomAccessCollection {
     public func index(before i: Int) -> Int {
         i - 1
     }
+    
+    public func relative<C>(to collection: C) -> Range<Int> where C : Collection, Int == C.Index {
+        guard location != NSNotFound else { return 0..<0 }
+        let lowerBound = Swift.max(collection.startIndex, location)
+        let upperBound = Swift.min(collection.endIndex, location + length)
+        return lowerBound..<Swift.max(lowerBound, upperBound)
+    }
 }
 
 public extension NSRange {
     /// `ClosedRange` representation of the range.
     var closedRange: ClosedRange<Int> {
-        guard location >= 0, length >= 0 else { return 0...0 }
-        return location...(location + length - 1)
+        length > 0 ? location...(location + length - 1) : location...location
     }
 
     /// `Range` representation of the range.
     var range: Range<Int> {
-        guard location >= 0, length >= 0 else { return 0..<0 }
-        return location..<location + length
+        location..<(location + length)
     }
     
     /// `CFRange` representation of the range.
@@ -45,7 +50,7 @@ public extension NSRange {
     
     /// `Array` representation of the range.
     var array: [Int] {
-        map({$0})
+        map({ $0 })
     }
     
     /// The maximum value.

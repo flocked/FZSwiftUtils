@@ -7,84 +7,30 @@
 
 import Foundation
 
-public extension Range {
-    init(safe a: Bound,_ b: Bound) {
-        self = Swift.min(a,b)..<Swift.max(a,b)
+public extension ClosedRange where Bound: BinaryInteger {
+    /// The range as double range.
+    var toDouble: ClosedRange<Double> {
+        Double(lowerBound)...Double(upperBound)
     }
-    
-    func clamped(to range: ClosedRange<Bound>) -> Range {
-        clamped(to: range.lowerBound..<range.upperBound)
-    }
-    
-    /**
-     A Boolean value indicating whether the specified range is contained within the range.
+}
 
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: Range) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+public extension Range where Bound: BinaryInteger {
+    /// The range as double range.
+    var toDouble: Range<Double> {
+        Double(lowerBound)..<Double(upperBound)
     }
-    
-    /**
-     A Boolean value indicating whether the specified range is contained within the range.
+}
 
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: ClosedRange<Bound>) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+public extension ClosedRange where Bound: Strideable {
+    /// `Range` representation of the range.
+    var toRange: Range<Bound> {
+        lowerBound..<upperBound.advanced(by: 1)
     }
-    
-    /**
-     Returns a Boolean value indicating whether the given values are contained within the range.
+}
 
-     - Parameter values: The values to check for containment.
-     - Returns: `true` if values are contained in the range; otherwise, `false`.
-     */
-    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
-        for value in values.uniqued() {
-            if contains(value) == false {
-                return false
-            }
-        }
-        return true
-    }
-    
-    /**
-     Clamps the lower bound to the minimum value.
-
-     - Parameter minValue: The minimum value to clamp the lower bound.
-     */
-    func clamped(min minValue: Bound) -> Range {
-        Swift.max(minValue, lowerBound)..<upperBound
-    }
-    
-    /**
-     Clamps the lower bound to the minimum value.
-
-     - Parameter minValue: The minimum value to clamp the lower bound.
-     */
-   mutating func clamp(min minValue: Bound) {
-       self = clamped(min: minValue)
-    }
-    
-    /**
-     Clamps the upper bound to the maximum value.
-
-     - Parameter maxValue: The maximum value to clamp the upper bound.
-     */
-    func clamped(max maxValue: Bound) -> Range {
-        lowerBound..<Swift.min(maxValue, upperBound)
-    }
-    
-    /**
-     Clamps the upper bound to the maximum value.
-
-     - Parameter maxValue: The maximum value to clamp the upper bound.
-     */
-    mutating func clamp(max maxValue: Bound)  {
-        self = clamped(max: maxValue)
+public extension Range where Bound: Strideable {
+    var toClosedRange: ClosedRange<Bound> {
+        lowerBound...Swift.min(lowerBound, upperBound.advanced(by: -1))
     }
 }
 
@@ -95,48 +41,41 @@ public extension Range where Bound == String.Index {
     }
 }
 
-public extension ClosedRange  {
-    init(safe a: Bound,_ b: Bound) {
-        self = Swift.min(a,b)...Swift.min(a,b)
+/// A type that represents a range.
+public protocol RangeRepresentable: RangeExpression {
+    /// The range’s lower bound.
+    var lowerBound: Bound { get }
+    /// The range’s upper bound.
+    var upperBound: Bound { get }
+    /// Creates an instance with the given bounds.
+    init(uncheckedBounds bounds: (lower: Bound, upper: Bound))
+}
+
+extension ClosedRange: RangeRepresentable { }
+extension Range: RangeRepresentable { }
+extension NSRange: RangeRepresentable {
+    public init(uncheckedBounds bounds: (lower: Int, upper: Int)) {
+        self.init(location: bounds.lower, length: bounds.upper-bounds.lower)
     }
-    
-    func clamped(to range: Range<Bound>) -> ClosedRange {
-        clamped(to: range.lowerBound...range.upperBound)
+}
+
+public extension RangeRepresentable {
+    /**
+     Clamps the range to the lower- and upper bound of the specified range.
+
+     - Parameter range: The range fo clamp to.
+     */
+    func clamped<Range: RangeRepresentable>(to range: Range) -> Self where Range.Bound == Bound {
+        .init(uncheckedBounds: (lower: lowerBound.clamped(min: range.lowerBound), upper: upperBound.clamped(max: range.upperBound)))
     }
     
     /**
-     A Boolean value indicating whether the specified range is contained within the range.
+     Clamps the range to the lower- and upper bound of the specified range.
 
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
+     - Parameter range: The range fo clamp to.
      */
-    func contains(_ range: ClosedRange) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
-    }
-    
-    /**
-     A Boolean value indicating whether the specified range is contained within the range.
-
-     - Parameter range: The range to check for containment.
-     - Returns: `true` if the specified range is contained in the range; otherwise, `false`.
-     */
-    func contains(_ range: Range<Bound>) -> Bool {
-        range.lowerBound >= lowerBound && range.upperBound <= upperBound
-    }
-    
-    /**
-     Returns a Boolean value indicating whether the given values are contained within the range.
-
-     - Parameter values: The values to check for containment.
-     - Returns: `true` if values are contained in the range; otherwise, `false`.
-     */
-    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
-        for value in values.uniqued() {
-            if contains(value) == false {
-                return false
-            }
-        }
-        return true
+    mutating func clamp<Range: RangeRepresentable>(to range: Range) where Range.Bound == Bound {
+        self = clamped(to: range)
     }
     
     /**
@@ -144,8 +83,8 @@ public extension ClosedRange  {
 
      - Parameter minValue: The minimum value to clamp the lower bound.
      */
-    func clamped(min minValue: Bound) -> ClosedRange {
-        Swift.max(minValue, lowerBound)...upperBound
+    mutating func clamp(min minValue: Bound) {
+        self = clamped(min: minValue)
     }
     
     /**
@@ -153,8 +92,8 @@ public extension ClosedRange  {
 
      - Parameter minValue: The minimum value to clamp the lower bound.
      */
-   mutating func clamp(min minValue: Bound) {
-       self = clamped(min: minValue)
+    func clamped(min minValue: Bound) -> Self {
+        .init(uncheckedBounds: (lower: lowerBound.clamped(min: minValue), upper: upperBound.clamped(min: minValue)))
     }
     
     /**
@@ -162,28 +101,33 @@ public extension ClosedRange  {
 
      - Parameter maxValue: The maximum value to clamp the upper bound.
      */
-    func clamped(max maxValue: Bound) -> ClosedRange {
-        lowerBound...Swift.min(maxValue, upperBound)
-    }
-    
-    /**
-     Clamps the upper bound to the maximum value.
-
-     - Parameter maxValue: The maximum value to clamp the upper bound.
-     */
-    mutating func clamp(max maxValue: Bound)  {
+    mutating func clamp(max maxValue: Bound) {
         self = clamped(max: maxValue)
     }
-}
+    
+    /**
+     Clamps the upper bound to the maximum value.
 
-public extension Range where Bound: BinaryInteger, Bound.Stride: SignedInteger {
-    /// `Array` representation of the range.
-    var array: [Bound] {
-        return compactMap({$0})
+     - Parameter maxValue: The maximum value to clamp the upper bound.
+     */
+    func clamped(max maxValue: Bound) -> Self {
+        .init(uncheckedBounds: (lower: lowerBound.clamped(max: maxValue), upper: upperBound.clamped(max: maxValue)))
+    }
+    
+    func contains<Range: RangeRepresentable>(_ range: Range) -> Bool where Range.Bound == Bound {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    func contains<S>(_ values: S) -> Bool where S: Sequence<Bound> {
+        !values.contains(where: { !contains($0) })
+    }
+    
+    init(checkedBounds a: Bound,_ b: Bound) {
+        self = Self(uncheckedBounds: (Swift.min(a,b), Swift.max(a,b)))
     }
 }
 
-public extension ClosedRange where Bound: BinaryInteger {
+public extension RangeRepresentable where Bound: BinaryInteger {
     /**
      Offsets the range by the specified value.
 
@@ -191,22 +135,12 @@ public extension ClosedRange where Bound: BinaryInteger {
      - Returns: The new range.
      */
     func offset(by offset: Bound) -> Self {
-        lowerBound + offset ... upperBound + offset
-    }
-    
-    /// The range as floating range.
-    var toFloating: ClosedRange<Float> {
-        Float(lowerBound)...Float(upperBound)
-    }
-    
-    /// `Range` representation of the range.
-    var toRange: Range<Bound> {
-        lowerBound..<(upperBound + 1)
+        .init(uncheckedBounds: (lowerBound + offset, upperBound + offset))
     }
     
     /// `NSRange` representation of the range.
     var nsRange: NSRange {
-        NSRange(location: Int(lowerBound), length: Int(upperBound - lowerBound + 1))
+        NSRange(uncheckedBounds: (Int(lowerBound), Int(upperBound)))
     }
     
     /// The value at the midpoint between the lower and upper bounds, using integer division.
@@ -215,14 +149,7 @@ public extension ClosedRange where Bound: BinaryInteger {
     }
 }
 
-public extension ClosedRange where Bound: BinaryInteger, Bound.Stride: SignedInteger {
-    /// `Array` representation of the range.
-    var array: [Bound] {
-        return compactMap({$0})
-    }
-}
-
-public extension ClosedRange where Bound: BinaryFloatingPoint {
+extension RangeRepresentable where Bound: BinaryFloatingPoint {
     /**
      Shifts the range by the specified offset value.
 
@@ -230,12 +157,7 @@ public extension ClosedRange where Bound: BinaryFloatingPoint {
      - Returns: The new range.
      */
     func shfted(by offset: Bound) -> Self {
-        lowerBound + offset ... upperBound + offset
-    }
-    
-    /// `Range` representation of the range.
-    var toRange: Range<Bound> {
-        lowerBound..<(upperBound - 1)
+        .init(uncheckedBounds: (lowerBound + offset ,upperBound + offset ))
     }
     
     /// Returns an array of `amount` evenly spaced values in the range, including the lower and upper bounds.
@@ -252,217 +174,32 @@ public extension ClosedRange where Bound: BinaryFloatingPoint {
     
     /// The value at the midpoint between the lower and upper bounds, using integer division.
     var center: Bound {
-        (lowerBound + upperBound) / 2
+        (lowerBound + upperBound) / 2.0
     }
 }
 
-public extension Range where Bound: BinaryInteger {
-    /**
-     Shifts the range by the specified offset value.
-
-     - Parameter offset: The offset to shift.
-     - Returns: The new range.
-     */
-    func shfted(by offset: Bound) -> Self {
-        lowerBound + offset ..< upperBound + offset
-    }
-    
-    /// The range as floating range.
-    var toFloating: Range<Float> {
-        Float(lowerBound)..<Float(upperBound)
-    }
-    
-    /// `ClosedRange` representation of the range.
-    var toClosedRange: ClosedRange<Bound> {
-        lowerBound...(upperBound - 1)
-    }
-    
-    /// `NSRange` representation of the range.
-    var nsRange: NSRange {
-        NSRange(location: Int(lowerBound), length: Int(upperBound - lowerBound))
-    }
-    
-    /// The value at the midpoint between the lower and upper bounds, using integer division.
-    var center: Bound {
-        (lowerBound + upperBound) / 2
+public extension RangeRepresentable where Bound: BinaryInteger, Bound.Stride: SignedInteger {
+    /// `Array` representation of the range.
+    var array: [Bound] {
+        (lowerBound..<upperBound).map({ $0 })
     }
 }
 
-public extension Range where Bound: BinaryFloatingPoint {
-    /**
-     Shifts the range by the specified offset value.
-
-     - Parameter offset: The offset to shift.
-     - Returns: The new range.
-     */
-    func shfted(by offset: Bound) -> Self {
-        lowerBound + offset ..< upperBound + offset
-    }
-    
-    /// `ClosedRange` representation of the range.
-    var toClosedRange: ClosedRange<Bound> {
-        lowerBound...(upperBound - 1)
-    }
-    
-    /// Returns an array of `amount` evenly spaced values in the range, excluding the upper bound.
-     func divided(into amount: Int) -> [Bound] {
-         guard amount > 0 else { return [] }
-         if amount == 1 {
-             return [lowerBound]
-         }
-
-         let step = (upperBound - lowerBound) / Bound(amount)
-         return (0..<amount).map { i in
-             lowerBound + Bound(i) * step
-         }
-     }
-    
-    /// The value at the midpoint between the lower and upper bounds, using integer division.
-    var center: Bound {
-        (lowerBound + upperBound) / 2
-    }
-}
-
-public extension Sequence<ClosedRange<Int>> {
+public extension Sequence where Element: RangeRepresentable {
     /// The range that contains all ranges.
-    var union: ClosedRange<Int>? {
+    var union: Element? {
         guard let min = min, let max = max else { return nil }
-        return min...max
+        return .init(uncheckedBounds: (min, max))
     }
     
     /// Returns the minimum lower bound in the sequence.
-    var min: Int? {
+    var min: Element.Bound? {
         map(\.lowerBound).min()
     }
     
     /// Returns the maximum upper bound in the sequence.
-    var max: Int? {
+    var max: Element.Bound? {
         map(\.upperBound).min()
     }
 }
 
-public extension Sequence<ClosedRange<Float>> {
-    /// The range that contains all ranges.
-    var union: ClosedRange<Float>? {
-        guard let min = min, let max = max else { return nil }
-        return min...max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: Float? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: Float? {
-        map(\.upperBound).min()
-    }
-}
-
-public extension Sequence<ClosedRange<Double>> {
-    /// The range that contains all ranges.
-    var union: ClosedRange<Double>? {
-        guard let min = min, let max = max else { return nil }
-        return min...max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: Double? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: Double? {
-        map(\.upperBound).min()
-    }
-}
-
-public extension Sequence<ClosedRange<CGFloat>> {
-    /// The range that contains all ranges.
-    var union: ClosedRange<CGFloat>? {
-        guard let min = min, let max = max else { return nil }
-        return min...max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: CGFloat? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: CGFloat? {
-        map(\.upperBound).min()
-    }
-}
-
-public extension Sequence<Range<Int>> {
-    /// The range that contains all ranges.
-    var union: Range<Int>? {
-        guard let min = min, let max = max else { return nil }
-        return min ..< max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: Int? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: Int? {
-        map(\.upperBound).min()
-    }
-}
-
-public extension Sequence<Range<Float>> {
-    /// The range that contains all ranges.
-    var union: Range<Float>? {
-        guard let min = min, let max = max else { return nil }
-        return min ..< max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: Float? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: Float? {
-        map(\.upperBound).min()
-    }
-}
-
-public extension Sequence<Range<Double>> {
-    /// The range that contains all ranges.
-    var union: Range<Double>? {
-        guard let min = min, let max = max else { return nil }
-        return min ..< max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: Double? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: Double? {
-        map(\.upperBound).min()
-    }
-}
-
-public extension Sequence<Range<CGFloat>> {
-    /// The range that contains all ranges.
-    var union: Range<CGFloat>? {
-        guard let min = min, let max = max else { return nil }
-        return min ..< max
-    }
-    
-    /// Returns the minimum lower bound in the sequence.
-    var min: CGFloat? {
-        map(\.lowerBound).min()
-    }
-    
-    /// Returns the maximum upper bound in the sequence.
-    var max: CGFloat? {
-        map(\.upperBound).min()
-    }
-}
