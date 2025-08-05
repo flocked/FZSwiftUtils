@@ -11,7 +11,7 @@ extension NSRange: RandomAccessCollection {
     public typealias Index = Int
     public typealias Element = Int
 
-    public var startIndex: Index { location }
+    public var startIndex: Index { 0 }
     public var endIndex: Index { location + length }
 
     public subscript(index: Index) -> Element {
