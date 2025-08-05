@@ -369,6 +369,28 @@ public extension Array where Element: NSAttributedString {
     }
 }
 
+public extension NSObjectProtocol where Self: NSAttributedString {
+    /**
+     The font of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
+    var font: NSUIFont? {
+        get { self[.font] }
+        set { self[.font] = newValue }
+    }
+    
+    /**
+     The foreground color of the attributed string.
+     
+     Modifying this value only works, if it is a `NSMutableAttributedString`.
+     */
+    var foregroundColor: NSUIColor? {
+        get { self[.foregroundColor] }
+        set { self[.foregroundColor] = newValue }
+    }
+}
+
 public extension NSAttributedString {
     /**
      The value for the specified attribute.
@@ -406,16 +428,6 @@ public extension NSAttributedString {
             self.setAttribute(name, to: newValue?.rawValue, at: range)
         }
     }
-    
-    /**
-     The foreground color of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var foregroundColor: NSUIColor? {
-        get { self[.foregroundColor] }
-        set { self[.foregroundColor] = newValue }
-    }
 
     /**
      The background color of the attributed string.
@@ -445,16 +457,6 @@ public extension NSAttributedString {
     var strokeWidth: CGFloat? {
         get { self[.strokeWidth] }
         set { self[.strokeWidth] = newValue }
-    }
-
-    /**
-     The font of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var font: NSUIFont? {
-        get { self[.font] }
-        set { self[.font] = newValue }
     }
 
     /**
