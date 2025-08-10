@@ -72,6 +72,13 @@ public class KeyValueObservation: NSObject {
             _ = object[keyPath: keyPath]
         }
         switch (keyPathString, object) {
+        case ("occlusionState", let object as NSApplication) where Value.self is NSApplication.OcclusionState.Type:
+            object._occlusionState = object.occlusionState
+            observer = NotificationObserver(object: object, keyPath: "occlusionState") {
+                [.init(NSApplication.didChangeOcclusionStateNotification, object: $0) {_ in
+                    guard object.occlusionState != object._occlusionState else { return }
+                    handler(object._occlusionState as! Value, object.occlusionState as! Value)
+                    object._occlusionState = object.occlusionState } ] }
         case ("hidden", let object as NSApplication) where Value.self is Bool.Type:
             observer = NotificationObserver(object: object, keyPath: "hidden") {
             [.init(NSApplication.didHideNotification, object: $0) { _ in handler(false as! Value, true as! Value)
@@ -376,6 +383,13 @@ fileprivate extension NSWindow {
     var _isOnActiveSpace: Bool {
         get { getAssociatedValue("isOnActiveSpace", initialValue: isOnActiveSpace) }
         set { setAssociatedValue(newValue, key: "isOnActiveSpace") }
+    }
+}
+
+fileprivate extension NSApplication {
+    var _occlusionState: OcclusionState {
+        get { getAssociatedValue("_occlusionState", initialValue: occlusionState) }
+        set { setAssociatedValue(newValue, key: "_occlusionState") }
     }
 }
 
