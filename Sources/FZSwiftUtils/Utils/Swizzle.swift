@@ -108,7 +108,7 @@ public struct Swizzle {
     }
     
     private func didRevertOptionalSwizzle(_ cls: AnyClass, pair: SelectorPair) -> Bool {
-        guard var _cls = cls as? NSObject.Type else { return false }
+        guard let _cls = cls as? NSObject.Type else { return false }
         guard (pair.isStatic ? _cls.swizzledStaticOptionals : _cls.swizzledOptionals).contains(pair.new) else { return false }
         guard let deleteIMP = class_getMethodImplementation(cls, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(cls, pair.new) else {
             return false

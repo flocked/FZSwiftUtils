@@ -160,10 +160,6 @@ public extension Date {
     func isBetween(_ date1: Date,_  date2: Date) -> Bool {
         self >= min(date1, date2) && self <= max(date1, date2)
     }
-    
-    func sdsds() {
-        self.isBetween(Date()...Date())
-    }
 
     /// A Boolean value indicating whether the date is between the specified date interval.
     func isBetween(_ interval: DateInterval) -> Bool {

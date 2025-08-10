@@ -46,137 +46,137 @@ extension URLComponents {
     }
     
     /// Sets the host subcomponent.
-    @discardableResult
-    public mutating func host(_ host: String?) -> Self {
-        self.host = host
-        return self
+    public func host(_ host: String?) -> Self {
+        var components = self
+        components.host = host
+        return components
     }
     
     /// Sets the fragment subcomponent.
-    @discardableResult
-    public mutating func fragment(_ fragment: String?) -> Self {
-        self.fragment = fragment
-        return self
+    public func fragment(_ fragment: String?) -> Self {
+        var components = self
+        components.fragment = fragment
+        return components
     }
     
     /// Sets the password subcomponent.
-    @discardableResult
-    public mutating func password(_ password: String?) -> Self {
-        self.password = password
-        return self
+    public func password(_ password: String?) -> Self {
+        var components = self
+        components.password = password
+        return components
     }
     
     /// Sets the path subcomponent.
-    @discardableResult
-    public mutating func path(_ path: String) -> Self {
-        self.path = path
-        return self
+    public func path(_ path: String) -> Self {
+        var components = self
+        components.path = path
+        return components
     }
     
     /// Sets the port subcomponent.
-    @discardableResult
-    public mutating func port(_ port: Int?) -> Self {
-        self.port = port
-        return self
+    public func port(_ port: Int?) -> Self {
+        var components = self
+        components.port = port
+        return components
     }
     
     /// Sets the query subcomponent.
-    @discardableResult
-    public mutating func query(_ query: String?) -> Self {
-        self.query = query
-        return self
+    public func query(_ query: String?) -> Self {
+        var components = self
+        components.query = query
+        return components
     }
     
     /// Sets the query items for the URL in the order in which they appear in the original query string.
-    @discardableResult
-    public mutating func queryItems(_ items: [URLQueryItem]) -> Self {
-        self.queryItems = items
-        return self
+    public func queryItems(_ items: [URLQueryItem]) -> Self {
+        var components = self
+        components.queryItems = items
+        return components
     }
     
     /// Sets the query items for the URL in the order in which they appear in the original query string.
-    @discardableResult
-    public mutating func queryItems(_ items: [String:String?]) -> Self {
-        self.queryItems = items.map({ URLQueryItem(name: $0, value: $1) })
-        return self
+    public func queryItems(_ items: [String:String?]) -> Self {
+        var components = self
+        components.queryItems = items.map({ URLQueryItem(name: $0, value: $1) })
+        return components
     }
     
     /// Sets the query items for the URL in the order in which they appear in the original query string.
-    @discardableResult
-    public mutating func queryItems(@Builder _ items: () -> [URLQueryItem]) -> Self {
-        self.queryItems = items()
-        return self
+    public func queryItems(@Builder _ items: () -> [URLQueryItem]) -> Self {
+        var components = self
+        components.queryItems = items()
+        return components
     }
     
     /// Sets the scheme subcomponent.
-    @discardableResult
-    public mutating func scheme(_ scheme: String?) -> Self {
-        self.scheme = scheme
-        return self
+    public func scheme(_ scheme: String?) -> Self {
+        var components = self
+        components.scheme = scheme
+        return components
     }
     
     /// Sets the user subcomponent.
-    @discardableResult
-    public mutating func user(_ user: String?) -> Self {
-        self.user = user
-        return self
+    public func user(_ user: String?) -> Self {
+        var components = self
+        components.user = user
+        return components
     }
     
     /// Sets the host subcomponent, encoded.
-    @discardableResult
     @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
-    public mutating func encodedHost(_ host: String?) -> Self {
-        self.encodedHost = host
-        return self
+    public func encodedHost(_ host: String?) -> Self {
+        var components = self
+        components.encodedHost = host
+        return components
     }
     
     /// Sets the fragment subcomponent, percent-encoded.
-    @discardableResult
-    public mutating func percentEncodedFragment(_ fragment: String?) -> Self {
-        self.percentEncodedFragment = fragment
-        return self
+    public func percentEncodedFragment(_ fragment: String?) -> Self {
+        var components = self
+        components.percentEncodedFragment = fragment
+        return components
     }
     
     /// Sets the password subcomponent, percent-encoded.
-    @discardableResult
-    public mutating func percentEncodedPassword(_ password: String?) -> Self {
-        self.percentEncodedPassword = password
-        return self
+    public func percentEncodedPassword(_ password: String?) -> Self {
+        var components = self
+        components.percentEncodedPassword = password
+        return components
     }
     
     /// Sets the path subcomponent, percent-encoded.
-    @discardableResult
-    public mutating func percentEncodedPath(_ path: String) -> Self {
-        self.percentEncodedPath = path
-        return self
+    public func percentEncodedPath(_ path: String) -> Self {
+        var components = self
+        components.percentEncodedPath = path
+        return components
     }
     
     /// Sets the query subcomponent, percent-encoded.
-    @discardableResult
-    public mutating func percentEncodedQuery(_ query: String?) -> Self {
-        self.percentEncodedQuery = query
-        return self
+    public func percentEncodedQuery(_ query: String?) -> Self {
+        var components = self
+        components.percentEncodedQuery = query
+        return components
     }
     
     /// Sets the percent-encoded query items for the URL in the order in which they appear in the original query string.
-    @discardableResult
-    public mutating func percentEncodedQueryItems(_ items: [URLQueryItem]) -> Self {
-        self.percentEncodedQueryItems = items
-        return self
+    public func percentEncodedQueryItems(_ items: [URLQueryItem]) -> Self {
+        var components = self
+        components.percentEncodedQueryItems = items
+        return components
     }
     
     /// Sets the percent-encoded query items for the URL in the order in which they appear in the original query string.
-    @discardableResult
-    public mutating func percentEncodedQueryItems(@Builder _ items: () -> [URLQueryItem]) -> Self {
-        self.percentEncodedQueryItems = items()
-        return self
+    public func percentEncodedQueryItems(@Builder _ items: () -> [URLQueryItem]) -> Self {
+        var components = self
+        components.percentEncodedQueryItems = items()
+        return components
     }
     
     /// Sets the user subcomponent, percent-encoded.
-    @discardableResult
-    public mutating func percentEncodedUser(_ user: String?) -> Self {
-        self.percentEncodedUser = user
-        return self
+    public func percentEncodedUser(_ user: String?) -> Self {
+        var components = self
+        components.percentEncodedUser = user
+        return components
     }
     
     /// A function builder type that produces an array of [URLQueryItem](https://developer.apple.com/documentation/foundation/urlqueryitem).

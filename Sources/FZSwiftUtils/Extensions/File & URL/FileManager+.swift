@@ -41,13 +41,12 @@ public extension FileManager {
         var trashedFileURL: NSURL?
         try trashItem(at: url, resultingItemURL: &trashedFileURL)
         guard let trashedFileURL = trashedFileURL as? URL else {
-            throw Error.trashItemFailed(url: url)
+            throw Errors.trashItemFailed(url: url)
         }
         return trashedFileURL
     }
     
-    /// An enumeration of file manager errors.
-    fileprivate enum Error: LocalizedError {
+    fileprivate enum Errors: LocalizedError {
         case trashItemFailed(url: URL)
             
         var errorDescription: String? {
@@ -106,7 +105,7 @@ public extension FileManager {
     /**
      Returns a Boolean value indicating whether a file or directory exists at a specified url.
 
-     - Parameter url: The url of a file or directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return `false`.
+     - Parameter url: The url of a file or directory. If the url's path begins with a tilde (`~`), it must first be expanded with [expandingTildeInPath](https://developer.apple.com/documentation/foundation/nsstring/expandingtildeinpath), or this method will return `false`.
      - Returns: `true` if a file or directory at the specified url exists, or `false` if the file or directory does not exist or its existence could not be determined.
      */
     func fileExists(at url: URL) -> Bool {
@@ -116,7 +115,7 @@ public extension FileManager {
     /**
      Returns a Boolean value indicating whether a directory exists at a specified path.
 
-     - Parameter path: The path of  directory. If path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
+     - Parameter path: The path of  directory. If path begins with a tilde (`~`), it must first be expanded with [expandingTildeInPath](https://developer.apple.com/documentation/foundation/nsstring/expandingtildeinpath), or this method will return false.
      - Returns:`true` if a directory at the specified path exists, or `false` if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(atPath path: String) -> Bool {
@@ -127,12 +126,67 @@ public extension FileManager {
     /**
      Returns a Boolean value indicating whether a directory exists at a specified url.
 
-     - Parameter url: The url of a directory. If the url's path begins with a tilde (~), it must first be expanded with `expandingTildeInPath`, or this method will return false.
-     - Returns: `true` if a directory at the specified url exists, or `false if the directory does not exist or its existence could not be determined.
+     - Parameter url: The url of a directory. If the url's path begins with a tilde (`~`), it must first be expanded with [expandingTildeInPath](https://developer.apple.com/documentation/foundation/nsstring/expandingtildeinpath), or this method will return false.
+     - Returns: `true` if a directory at the specified url exists, or `false` if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(at url: URL) -> Bool {
         directoryExists(atPath: url.path)
     }
+    
+    /**
+     Returns a Boolean value that indicates whether the invoking object appears able to read a specified file.
+     
+     If the file at `url` is inaccessible to your app, perhaps because it does not have search privileges for one or more parent directories, this method returns false. This method traverses symbolic links in the `url`. This method also uses the real user ID and group ID, as opposed to the effective user and group IDs, to determine if the file is readable.
+     
+     - Parameter url: A file url.
+     - Returns: `true` if the current process has read privileges for the file at `url`; otherwise `false` if the process does not have read privileges or the existence of the file could not be determined.
+     - Note: Attempting to predicate behavior based on the current state of the file system or a particular file on the file system is not recommended. Doing so can cause odd behavior or race conditions. It’s far better to attempt an operation (such as loading a file or creating a directory), check for errors, and handle those errors gracefully than it is to try to figure out ahead of time whether the operation will succeed. For more information on file system race conditions, see [Race Conditions and Secure File Operations in Secure Coding Guide](https://developer.apple.com/library/archive/documentation/Security/Conceptual/SecureCodingGuide/Articles/RaceConditions.html#//apple_ref/doc/uid/TP40002585).
+     */
+    func isReadableFile(at url: URL) -> Bool {
+        isReadableFile(atPath: url.path)
+    }
+    
+    /**
+     Returns a Boolean value that indicates whether the invoking object appears able to write to a specified file.
+     
+     If the file at `url` is inaccessible to your app, perhaps because it does not have search privileges for one or more parent directories, this method returns false. This method traverses symbolic links in the `url`. This method also uses the real user ID and group ID, as opposed to the effective user and group IDs, to determine if the file is writable.
+     
+     - Parameter url: A file url.
+     - Returns: `true` if the current process has write privileges for the file at `url`; otherwise `false` if the process does not have write privileges or the existence of the file could not be determined.
+     - Note: Attempting to predicate behavior based on the current state of the file system or a particular file on the file system is not recommended. Doing so can cause odd behavior or race conditions. It’s far better to attempt an operation (such as loading a file or creating a directory), check for errors, and handle those errors gracefully than it is to try to figure out ahead of time whether the operation will succeed. For more information on file system race conditions, see [Race Conditions and Secure File Operations in Secure Coding Guide](https://developer.apple.com/library/archive/documentation/Security/Conceptual/SecureCodingGuide/Articles/RaceConditions.html#//apple_ref/doc/uid/TP40002585).
+     */
+    func isWritableFile(at url: URL) -> Bool {
+        isWritableFile(atPath: url.path)
+    }
+    
+    /**
+     Returns a Boolean value that indicates whether the operating system appears able to execute a specified file.
+     
+     If the file at `url` is inaccessible to your app, perhaps because it does not have search privileges for one or more parent directories, this method returns false. This method traverses symbolic links in the `url`. This method also uses the real user ID and group ID, as opposed to the effective user and group IDs, to determine if the file is executable.
+     
+     - Parameter url: A file url.
+     - Returns: `true` if the current process has execute privileges for the file at `url`; otherwise `false` if the process does not have execute privileges or the existence of the file could not be determined.
+     - Note: Attempting to predicate behavior based on the current state of the file system or a particular file on the file system is not recommended. Doing so can cause odd behavior or race conditions. It’s far better to attempt an operation (such as loading a file or creating a directory), check for errors, and handle those errors gracefully than it is to try to figure out ahead of time whether the operation will succeed. For more information on file system race conditions, see [Race Conditions and Secure File Operations in Secure Coding Guide](https://developer.apple.com/library/archive/documentation/Security/Conceptual/SecureCodingGuide/Articles/RaceConditions.html#//apple_ref/doc/uid/TP40002585).
+     */
+    func isExecutableFile(at url: URL) -> Bool {
+        isExecutableFile(atPath: url.path)
+    }
+    
+    /**
+     Returns a Boolean value that indicates whether the invoking object appears able to delete a specified file.
+     
+     For a directory or file to be deletable, the current process must either be able to write to the parent directory of `url` or it must have the same owner as the item at `url`. If `url` is a directory, every item contained in `url` must be deletable by the current process.
+     
+     If the file at `url` is inaccessible to your app, perhaps because it does not have search privileges for one or more parent directories, this method returns `false`. If the item at `url` is a symbolic link, it is not traversed.
+     
+     - Parameter url: A file url.
+     - Returns: `true` if the current process has delete privileges for the file at `url`; otherwise `false` if the process does not have delete privileges or the existence of the file could not be determined.
+     - Note: Attempting to predicate behavior based on the current state of the file system or a particular file on the file system is not recommended. Doing so can cause odd behavior or race conditions. It’s far better to attempt an operation (such as loading a file or creating a directory), check for errors, and handle those errors gracefully than it is to try to figure out ahead of time whether the operation will succeed. For more information on file system race conditions, see [Race Conditions and Secure File Operations in Secure Coding Guide](https://developer.apple.com/library/archive/documentation/Security/Conceptual/SecureCodingGuide/Articles/RaceConditions.html#//apple_ref/doc/uid/TP40002585).
+     */
+    func isDeletableFile(at url: URL) -> Bool {
+        isDeletableFile(atPath: url.path)
+    }
+
     
     /**
      Returns a Boolean value indicating whether the files or directories in specified paths have the same contents.
@@ -230,41 +284,137 @@ public extension FileManager {
         case replace
     }
     
+    /**
+     Performs a deep enumeration of the specified directory and returns the paths of all of the contained subdirectories.
+     
+     This method recurses the specified directory and its subdirectories. The method skips the `“.”` and `“..”` directories at each level of the recursion.
+     
+     Because this method recurses the directory’s contents, you might not want to use it in performance-critical code. Instead, consider using the [enumerator(at:includingPropertiesForKeys:options:errorHandler:)](https://developer.apple.com/documentation/foundation/filemanager/enumerator(at:includingpropertiesforkeys:options:errorhandler:)) method to enumerate the directory contents yourself. Doing so gives you more control over the retrieval of items and more opportunities to complete the enumeration or perform other tasks at the same time.
+     
+     - Parameter url: The url of the directory to list.
+     - Returns: An array of strings, each containing the path of an item in the directory specified by path.
+     */
+    func subpathsOfDirectory(at url: URL) throws -> [String] {
+        try subpathsOfDirectory(atPath: url.path)
+    }
+    
+    /**
+     Performs a shallow search of the specified directory and returns URLs for the contained items.
+     
+     This method performs a shallow search of the directory and therefore does not traverse symbolic links or return the contents of any subdirectories. This method also does not return URLs for the current directory (`”.”`), parent directory (`”..”`), or resource forks (files that begin with `“._”`) but it does return other hidden files. If you need to perform a deep enumeration, use the [enumerator(at:includingPropertiesForKeys:options:errorHandler:)](https://developer.apple.com/documentation/foundation/filemanager/enumerator(at:includingpropertiesforkeys:options:errorhandler:)) method instead.
+     
+     The order of the files in the returned array is undefined.
+     
+     - Parameters:
+     - url: The URL for the directory whose contents you want to enumerate.
+     - mask: Options for the enumeration. Because this method performs only shallow enumerations, options that prevent descending into subdirectories or packages are not allowed; the only supported option is [skipsHiddenFiles](https://developer.apple.com/documentation/foundation/filemanager/directoryenumerationoptions/skipshiddenfiles).
+     - Returns: An array of URLs, each of which identifies a file, directory, or symbolic link contained in url. If the directory contains no entries, this method returns an empty array.
+     */
+    func contentsOfDirectory(at url: URL, options mask: DirectoryEnumerationOptions = []) throws -> [URL] {
+        try contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
+    }
+    
+    /**
+     Returns a directory enumerator object that can be used to perform a deep enumeration of the directory at the specified URL.
+     
+     Because the enumeration is deep—that is, it lists the contents of all subdirectories—this enumerator object is useful for performing actions that involve large file-system subtrees. If the method is passed a directory on which another file system is mounted (a mount point), it traverses the mount point. This method does not resolve symbolic links or mount points encountered in the enumeration process, nor does it recurse through them if they point to a directory.
+     
+     For example, if you pass a URL that points to `/Volumes/MyMountedFileSystem`, the returned enumerator will include the entire directory structure for the file system mounted at that location. If, on the other hand, you pass `/Volumes`, the returned enumerator will include `/Volumes/MyMountedFileSystem` as one of its results, but will not traverse into the file system mounted there.
+     
+     The [FileManager.DirectoryEnumerator](https://developer.apple.com/documentation/foundation/filemanager/directoryenumerator) class has methods for skipping descendants of the existing path and for returning the number of levels deep the current object is in the directory hierarchy being enumerated (where the directory passed to the method is considered to be level `0`).
+
+     - Parameters:
+        - url: The location of the directory for which you want an enumeration. This URL must not be a symbolic link that points to the desired directory. You can use the [resolvingSymlinksInPath()](https://developer.apple.com/documentation/foundation/url/resolvingsymlinksinpath()) method to resolve any symlinks in the URL.
+        - mask: Options for the enumeration.
+        - handler: An optional error handler block for the file manager to call when an error occurs. The handler block should return `true` if you want the enumeration to continue or `false` if you want the enumeration to stop.  If you specify `nil` for this parameter, the enumerator object continues to enumerate items as if you had specified a block that returned `true`. The block takes the following parameters:
+            - url: A URL that identifies the item for which the error occurred.
+            - error: The error:
+     - Returns: An directory enumerator object that enumerates the contents of the directory at `url`. If `url` is a filename, the method returns an enumerator object that enumerates no files—the first call to [nextObject()](https://developer.apple.com/documentation/foundation/nsenumerator/nextobject()) returns `nil`.
+     */
+    func enumerator(at url: URL, options mask: DirectoryEnumerationOptions = [], errorHandler handler: ((URL, any Error) -> Bool)? = nil) -> DirectoryEnumerator? {
+        enumerator(at: url, includingPropertiesForKeys: nil, options: mask, errorHandler: handler)
+    }
+    
+    /**
+     The url to the program’s current directory.
+     
+     The current directory url is the starting point for any relative paths you specify. For example, if the current directory is `/tmp` and you specify a relative pathname of `reports/info.txt`, the resulting full path for the item is `/tmp/reports/info.txt`.
+     
+     When an app is launched, this property is initially set to the app’s current working directory. If the current working directory is not accessible for any reason, the value of this property is `nil`. You can change the value of this property by calling the ``Foundation/FileManager/changeCurrentDirectory(_:)`` method.
+     
+     - Warning: This property reports the current working directory for the current process, not just the receiver.
+     */
+    var currentDirectoryURL: URL {
+        .file(currentDirectoryPath)
+    }
+    
+    /**
+     Changes the url of the current working directory to the specified url.
+     
+     All relative pathnames refer implicitly to the current working directory.
+          
+     - Parameter url: The url of the directory to which to change.
+     - Returns: `true` if successful, otherwise `false`.
+     - Warning: This method changes the current working directory for the current process, not just the receiver.
+     */
+    @discardableResult
+    func changeCurrentDirectory(_ url: URL) -> Bool {
+        changeCurrentDirectoryPath(url.path)
+    }
+    
+    /**
+     Returns an array of URLs that identify the mounted volumes available on the device.
+          
+     - Parameter options: Option flags for the enumeration.
+     - Returns: An array of urls identifying the mounted volumes.
+     - Important: This method returns `nil` on platforms other than macOS.
+     */
+    func mountedVolumeURLs(options: FileManager.VolumeEnumerationOptions = []) -> [URL]? {
+        mountedVolumeURLs(includingResourceValuesForKeys: nil, options: options)
+    }
+    
     /// The handlers for the file manager.
     var handlers: Handlers {
         get { getAssociatedValue("handlers") ?? Handlers() }
         set {
             setAssociatedValue(newValue, key: "handlers")
-            _delegate = newValue.needsDelegate ? Delegate(for: self) : nil
+            handlerDelegate = newValue.needsDelegate ? Delegate(for: self) : nil
         }
     }
     
     /// Handlers for a file manager.
     struct Handlers {
-        /// The handler that determinates if a file should should move an item to the new url.
+        /// The handler that determinates whether a file should should move an item to the new url.
         public var shouldMove: ((_ from: URL, _ to: URL)->Bool)?
-        /// The handler that determinates if a file should should copy an item to the new url.
+        /// The handler that determinates whether a file should should copy an item to the new url.
         public var shouldCopy: ((_ from: URL, _ to: URL)->Bool)?
-        /// The handler that determinates if a file should should remove an item.
+        /// The handler that determinates whether a file should should remove an item.
         public var shouldRemove: ((_ url: URL)->Bool)?
-        /// The handler that determinates if a hard link should be created between the items at the two urls.
+        /// The handler that determinates whether a hard link should be created between the items at the two urls.
         public var shouldLink: ((_ url: URL, _ to: URL)->Bool)?
+        /// The handler that determinates whether the file manager should continue after an error occurs while moving an item.
+        public var shouldProceedAfterMovingError: ((_ from: URL, _ to: URL, _ error: any Error)->Bool)?
+        /// The handler that determinates whether the file manager should continue after an error occurs while copying an item.
+        public var shouldProceedAfterCopyingError: ((_ from: URL, _ to: URL, _ error: any Error)->Bool)?
+        /// The handler that determinates whether the file manager should continue after an error occurs while removing an item.
+        public var shouldProceedAfterRemovingError: ((_ url: URL, _ error: any Error)->Bool)?
+        /// The handler that determinates whether the file manager should continue after an error occurs while linking an item.
+        public var shouldProceedAfterLinkingError: ((_ url: URL, _ to: URL, _ error: any Error)->Bool)?
         
         var needsDelegate: Bool {
-            shouldMove != nil || shouldCopy != nil || shouldRemove != nil || shouldLink != nil
+            shouldMove != nil || shouldCopy != nil || shouldRemove != nil || shouldLink != nil || shouldProceedAfterMovingError != nil || shouldProceedAfterCopyingError != nil || shouldProceedAfterRemovingError != nil || shouldProceedAfterLinkingError != nil
         }
     }
     
-    private var _delegate: Delegate? {
-        get { getAssociatedValue("_delegate") }
-        set { setAssociatedValue(newValue, key: "handlers")  }
+    private var handlerDelegate: Delegate? {
+        get { getAssociatedValue("handlerDelegate") }
+        set { setAssociatedValue(newValue, key: "handlerDelegate")  }
     }
     
     private class Delegate: NSObject, FileManagerDelegate {
         var observation: KeyValueObservation?
         var delegate: FileManagerDelegate?
         weak var fileManager: FileManager?
-        
         
         func fileManager(_ fileManager: FileManager, shouldMoveItemAt srcURL: URL, to dstURL: URL) -> Bool {
             fileManager.handlers.shouldMove?(srcURL, dstURL) ?? delegate?.fileManager?(fileManager, shouldMoveItemAt: srcURL, to: dstURL) ?? true
@@ -282,6 +432,22 @@ public extension FileManager {
             fileManager.handlers.shouldRemove?(url) ?? delegate?.fileManager?(fileManager, shouldRemoveItemAt: url) ?? true
         }
         
+        func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: any Error, movingItemAt srcURL: URL, to dstURL: URL) -> Bool {
+            fileManager.handlers.shouldProceedAfterMovingError?(srcURL, dstURL, error) ?? false
+        }
+        
+        func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: any Error, copyingItemAt srcURL: URL, to dstURL: URL) -> Bool {
+            fileManager.handlers.shouldProceedAfterCopyingError?(srcURL, dstURL, error) ?? false
+        }
+        
+        func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: any Error, removingItemAt url: URL) -> Bool {
+            fileManager.handlers.shouldProceedAfterRemovingError?(url, error) ?? false
+        }
+        
+        func fileManager(_ fileManager: FileManager, shouldProceedAfterError error: any Error, linkingItemAt srcURL: URL, to dstURL: URL) -> Bool {
+            fileManager.handlers.shouldProceedAfterLinkingError?(srcURL, dstURL, error) ?? false
+        }
+        
         init(for fileManager: FileManager) {
             super.init()
             delegate = fileManager.delegate
@@ -294,7 +460,7 @@ public extension FileManager {
         }
         
         deinit {
-            fileManager?.delegate = self
+            fileManager?.delegate = delegate
         }
     }
 }

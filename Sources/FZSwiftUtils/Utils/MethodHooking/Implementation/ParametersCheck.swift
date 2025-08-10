@@ -169,8 +169,8 @@ extension Hook {
         let closureSignature = try Signature(closure: closure)
         let methodSignature = try Signature(typeEncoding: typeEncoding)
         
-        let closureArguments = Array(closureSignature.argumentTypes.dropFirst(2))
-        let methodArguments = Array(methodSignature.argumentTypes.dropFirst(2))
+        // let closureArguments = Array(closureSignature.argumentTypes.dropFirst(2))
+        // let methodArguments = Array(methodSignature.argumentTypes.dropFirst(2))
         
         let methodEncoding = "@" + methodSignature.argumentTypes.toSignatureString().dropFirst(2)
         let closureEncoding = closureSignature.argumentTypes.toSignatureString().dropFirst(2)

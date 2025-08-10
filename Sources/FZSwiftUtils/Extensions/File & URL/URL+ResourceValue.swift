@@ -126,13 +126,6 @@ extension PartialKeyPath where Root == URLResourceValues {
         }
         #endif
 
-        if #available(macOS 11.3, iOS 14.5, *) {
-            switch self {
-            case \.ubiquitousItemIsExcludedFromSync: return .ubiquitousItemIsExcludedFromSyncKey
-            default: break
-            }
-        }
-
         if #available(macOS 11.0, iOS 14.0, *) {
             switch self {
             case \.mayShareFileContent: return .mayShareFileContentKey
@@ -145,6 +138,11 @@ extension PartialKeyPath where Root == URLResourceValues {
             default: break
             }
         }
+        
+        if #available(macOS 11.3, iOS 14.5, *), self == \.ubiquitousItemIsExcludedFromSync {
+            return .ubiquitousItemIsExcludedFromSyncKey
+        }
+        
         return nil
     }
 }

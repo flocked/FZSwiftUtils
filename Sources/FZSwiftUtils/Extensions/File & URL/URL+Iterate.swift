@@ -30,7 +30,7 @@ public extension URL {
      - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      */
     func iterate() -> URLSequence {
-        URLSequence(url: self, predicate: { _,_,_ in true })
+        URLSequence(url: self)
     }
     
     /**
@@ -58,7 +58,7 @@ public extension URL {
      - ``Foundation/URL/FileURLSequence/includingPackageContents``: Includes files of package directories (e.g., .app, .bundle, etc.).
      */
     func iterateFiles() -> FileURLSequence {
-        FileURLSequence(url: self, predicate: { _,_,_ in true })
+        FileURLSequence(url: self)
     }
 
     /**
@@ -80,33 +80,21 @@ public extension URL {
      - ``includingPackageContents``: Includes the contents of package directories (e.g., .app, .bundle, etc.).
      */
     func iterateFolders() -> URLSequence {
-        URLSequence(url: self, folderOnly: true, predicate: { _,_,_ in true })
+        URLSequence(url: self, folderOnly: true)
     }
     
     /// A sequence of URLs.
     struct URLSequence: Sequence {
-        let url: URL
-        var predicate: (URL, Int, inout Bool) -> Bool
-        var prefetchID: String?
-        var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
-        var maxDepth: Int? = nil
-        var resourceKeys: [URLResourceKey] = []
-        let folderOnly: Bool
+        private let url: URL
+        private var predicate: (URL, Int, inout Bool) -> Bool = { _,_,_ in true }
+        private var prefetchID: String?
+        private var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
+        private var maxDepth: Int?
+        private var resourceKeys: [URLResourceKey] = []
+        private let folderOnly: Bool
         
-        public enum Decision: ExpressibleByBooleanLiteral {
-            case include
-            case skip
-            case includeAndSkipDescendants
-            case skipAndSkipDescendants
-            
-            public init(booleanLiteral value: BooleanLiteralType) {
-                self = value ? .include : .skip
-            }
-        }
-        
-        init(url: URL, folderOnly: Bool = false, predicate: @escaping (URL, Int, inout Bool) -> Bool) {
+        init(url: URL, folderOnly: Bool = false) {
             self.url = url
-            self.predicate = predicate
             self.folderOnly = folderOnly
         }
 
@@ -116,18 +104,17 @@ public extension URL {
         
         /// Iterator of a URL sequence.
         public struct Iterator: IteratorProtocol {
-            let predicate: (URL, Int, inout Bool) -> Bool
-            let folderOnly: Bool
-            let directoryEnumerator: FileManager.DirectoryEnumerator?
-            let maxLevel: Int?
+            private let predicate: (URL, Int, inout Bool) -> Bool
+            private let folderOnly: Bool
+            private let directoryEnumerator: FileManager.DirectoryEnumerator?
+            private let maxLevel: Int?
             var maximumLevel = 0
             
             init(_ sequence: URLSequence) {
                 predicate = sequence.predicate
                 folderOnly = sequence.folderOnly
                 maxLevel = sequence.maxDepth
-                var resourceKeys: [URLResourceKey] = sequence.folderOnly ? [.isDirectoryKey] : []
-                resourceKeys += URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID) + sequence.resourceKeys
+                let resourceKeys = (sequence.resourceKeys + URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID) + (sequence.folderOnly ? [.isDirectoryKey] : [])).uniqued()
                 directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: resourceKeys.uniqued(), options: sequence.options)
             }
 
@@ -143,9 +130,9 @@ public extension URL {
                         if shouldSkipDescendants {
                             skipDescendants()
                         }
-                        if includeURL {
-                            return nextURL
-                        }
+                        guard includeURL else { continue }
+                        maximumLevel = Swift.max(maximumLevel, level)
+                        return nextURL
                     }
                 }
                 return nil
@@ -156,7 +143,7 @@ public extension URL {
                 directoryEnumerator?.skipDescendants()
             }
 
-            /// The number of levels deep the iterator is in the directory hierarchy being enumerated.
+            /// The current depth level in the directory hierarchy relative to the root URL.
             public var level: Int {
                 directoryEnumerator?.level ?? 0
             }
@@ -174,12 +161,14 @@ extension URL.URLSequence {
     }
     
     /**
-     Filteres the sequence to files/folders matching the specified predicate.
-     
-     - Parameter isIncluded: The predicate that determinates whether to include the url in the sequence. It provides:
-        - url: The current url.
-        - depth: The url's depth level relative to the root.
-        - skipDescendants: A Boolean value that you can set indicating whether to skip recusion of the url's content if it's a folder.
+     Filters the sequence to files and folders matching the specified predicate.
+
+     - Parameters:
+       - isIncluded: A closure that determines whether to include the URL in the sequence. It provides:
+         - url: The current URL.
+         - depth: The current depth level in the directory hierarchy relative to the root URL.
+         - skipDescendants: A Boolean value that you can set to `true` to skip recursion into the URL’s contents if it’s a folder.
+     - Returns: `true` if the URL should be included; otherwise, `false`.
      */
     public func filter(_ isIncluded: @escaping ((_ url: URL, _ level: Int, _ skipDescendants: inout Bool) -> Bool)) -> Self {
         var sequence = self
@@ -233,7 +222,7 @@ extension URL.URLSequence {
         reduce(0) { count, _ in count + 1 }
     }
     
-    /// The maximum enumeration depth of the found URLs.
+    /// The maximum directory depth of the found URLs relative to the root directory.
     public var depth: Int {
         var iterator = makeIterator()
         while iterator.next() != nil { }
@@ -242,10 +231,10 @@ extension URL.URLSequence {
 }
 
 extension URL {
-    /// A sequence of URLs.
+    /// A sequence of file URLs.
     public struct FileURLSequence: Sequence {
-        let url: URL
-        private var predicate: (URL, Int, inout Bool) -> Bool
+        private let url: URL
+        private var predicate: (URL, Int, inout Bool) -> Bool = { _,_,_ in true }
         private var prefetchID: String?
         private var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         private var maxDepth: Int? = nil
@@ -254,32 +243,20 @@ extension URL {
         private var extensionsFilter: ((URL)->Bool)?
         private var typesFilter: ((URL)->Bool)?
         
-        public enum Decision: ExpressibleByBooleanLiteral {
-            case include
-            case skip
-            case includeAndSkipDescendants
-            case skipAndSkipDescendants
-            
-            public init(booleanLiteral value: BooleanLiteralType) {
-                self = value ? .include : .skip
-            }
-        }
-        
-        init(url: URL, predicate: @escaping (URL, Int, inout Bool) -> Bool) {
+        init(url: URL) {
             self.url = url
-            self.predicate = predicate
         }
 
         public func makeIterator() -> Iterator {
             Iterator(self)
         }
         
-        /// Iterator of a URL sequence.
+        /// Iterator of a file URL sequence.
         public struct Iterator: IteratorProtocol {
-            let predicate: (URL, Int, inout Bool) -> Bool
-            let typePredicate: ((URL)->Bool)
-            let directoryEnumerator: FileManager.DirectoryEnumerator?
-            let maxLevel: Int?
+            private let predicate: (URL, Int, inout Bool) -> Bool
+            private let typePredicate: ((URL)->Bool)
+            private let directoryEnumerator: FileManager.DirectoryEnumerator?
+            private let maxLevel: Int?
             var maximumLevel = 0
             
             init(_ sequence: FileURLSequence) {
@@ -290,8 +267,7 @@ extension URL {
                     typePredicate = { _ in true }
                 }
                 maxLevel = sequence.maxDepth
-                var resourceKeys = URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID)
-                resourceKeys += sequence.resourceKeys + .isRegularFileKey
+                var resourceKeys = sequence.resourceKeys + URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID) + [.isRegularFileKey]
                 if sequence.contentTypesFilter != nil, #available(macOS 11.0, *) {
                     resourceKeys += .contentTypeKey
                 }
@@ -310,9 +286,9 @@ extension URL {
                         if shouldSkipDescendants {
                             skipDescendants()
                         }
-                        if includeURL {
-                            return nextURL
-                        }
+                        guard includeURL else { continue }
+                        maximumLevel = Swift.max(level, maximumLevel)
+                        return nextURL
                     }
                 }
                 return nil
@@ -323,7 +299,7 @@ extension URL {
                 directoryEnumerator?.skipDescendants()
             }
 
-            /// The number of levels deep the iterator is in the directory hierarchy being enumerated.
+            /// The current depth level in the directory hierarchy relative to the root URL.
             public var level: Int {
                 directoryEnumerator?.level ?? 0
             }
@@ -332,7 +308,7 @@ extension URL {
 }
 
 extension URL.FileURLSequence {
-    /// Filteres the sequence to files/folders matching the specified predicate.
+    /// Filteres the sequence to files matching the specified predicate.
     public func filter(_ isIncluded: @escaping (URL) -> Bool) -> Self {
         var sequence = self
         sequence.predicate = { url,_,_ in isIncluded(url) }
@@ -341,12 +317,14 @@ extension URL.FileURLSequence {
     }
     
     /**
-     Filteres the sequence to files/folders matching the specified predicate.
+     Filters the sequence to files matching the specified predicate.
      
-     - Parameter isIncluded: The predicate that determinates whether to include the url in the sequence. It provides:
-        - url: The current url.
-        - depth: The url's depth level relative to the root.
-        - skipDescendants: A Boolean value that you can set indicating whether to skip recusion of the url's content if it's a folder.
+     - Parameters:
+       - isIncluded: A closure that determines whether to include the URL in the sequence. It provides:
+         - url: The current URL.
+         - depth: The current depth level in the directory hierarchy relative to the root URL.
+         - skipDescendants: A Boolean value that you can set to `true` to skip recursion into the next directory.
+     - Returns: `true` if the URL should be included; otherwise, `false`.
      */
     public func filter(_ isIncluded: @escaping ((_ url: URL, _ level: Int, _ skipDescendants: inout Bool) -> Bool)) -> Self {
         var sequence = self
@@ -364,8 +342,8 @@ extension URL.FileURLSequence {
             
     /**
      Includes subdirectory contents up to the specified depth.
-     
-     - Parameter maxDepth: The maximum directory depth to descend. A value of `0` includes only the top-level directory contents.
+
+     - Parameter maxDepth: The maximum directory depth to descend. A value of `0` includes only the files of the top-level directory.
      */
     public func recursive(maxDepth: Int) -> Self {
         var sequence = recursive
@@ -453,8 +431,25 @@ fileprivate extension URL {
             return Array(resourceKeys)
         } else {
             var shouldStop = false
-            _ = predicate(URL(fileURLWithPath: "__prefetchCheck_\(prefetchID)"), 0, &shouldStop)
+            _ = predicate(.file("_prefetchCheck_\(prefetchID)"), 0, &shouldStop)
             return Array(URLResources.iteratorKeys[prefetchID, default: []])
         }
     }
 }
+
+/*
+ public enum FilterDecision: ExpressibleByBooleanLiteral {
+     /// Include the URL.
+     case include
+     /// Include the URL and skip recursion into the next folder.
+     case includeAndSkipDescendants
+     /// Skip the URL.
+     case skip
+     /// Skip the URL and skip recursion into the next folder.
+     case skipAndSkipDescendants
+    
+     public init(booleanLiteral value: BooleanLiteralType) {
+         self = value ? .include : .skip
+     }
+ }
+  */

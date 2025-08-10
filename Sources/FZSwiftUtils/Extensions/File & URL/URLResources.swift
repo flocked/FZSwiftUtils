@@ -37,11 +37,11 @@ public class URLResources {
     /// Creates an object for accessing and modifying properties of the resource at the specified url.
     public init(url: URL) {
         self.url = url
-        guard url.path.hasPrefix("/__prefetchCheck_") else { return }
-        iteratorKey = url.path.removingPrefix("/__prefetchCheck_")
+        guard url.path.hasPrefix("/_prefetchCheck_") else { return }
+        iteratorKey = url.path.removingPrefix("/_prefetchCheck_")
     }
 
-    func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) -> V? {
+    private func value<V>(for keyPath: KeyPath<URLResourceValues, V?>) -> V? {
         guard let resourceKey = keyPath.resourceKey else { return nil }
         if let iteratorKey = iteratorKey {
             let keys = Self.iteratorKeys[iteratorKey] ?? [] + resourceKey
@@ -49,14 +49,14 @@ public class URLResources {
             return nil
         }
         do {
-            return try url.resourceValues(for: resourceKey)[keyPath: keyPath]
+            return try url.resourceValues(forKeys: [resourceKey])[keyPath: keyPath]
         } catch {
             Swift.print(error)
             return nil
         }
     }
 
-    func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) {
+    private func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) {
         var urlResouceValues = URLResourceValues()
         urlResouceValues[keyPath: keyPath] = newValue
         do {
@@ -645,9 +645,7 @@ extension URLResources {
         get {
             do {
                 let data = try url.extendedAttributes.getData(for: "com.apple.icon.folder#S")
-                guard let jsonString = String(data: data, encoding: .utf8) else { return nil }
-                let dict = try JSONSerialization.jsonObject(with: data, options: [])
-                guard let dict = dict as? [String: Any] else { return nil }
+                guard let dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
                 if let symbolName = dict["sym"] as? String {
                     return .symbolImage(symbolName)
                 } else if let emoji = dict["emoji"] as? String {
