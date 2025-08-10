@@ -72,6 +72,10 @@ public class KeyValueObservation: NSObject {
             _ = object[keyPath: keyPath]
         }
         switch (keyPathString, object) {
+        case ("hidden", let object as NSApplication) where Value.self is Bool.Type:
+            observer = NotificationObserver(object: object, keyPath: "hidden") {
+            [.init(NSApplication.didHideNotification, object: $0) { _ in handler(false as! Value, true as! Value)
+            }, .init(NSApplication.didUnhideNotification, object: $0) { _ in handler(true as! Value, false as! Value)  }] }
         case ("keyWindow", let object as NSWindow) where Value.self is Bool.Type:
             observer = NotificationObserver(object: object, keyPath: "keyWindow") {
                 [.init(NSWindow.didBecomeKeyNotification, object: $0) { _ in handler(false as! Value, true as! Value)
