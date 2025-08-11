@@ -88,9 +88,9 @@ public extension NSObject {
          }
      }
      
-     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:))) {
-        print("hooked after")
-     }
+     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:)), closure: { object, selector, num1, num2 in
+         print("hooked before sum with \(n1), \(n2)")
+     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
 
      - parameter selector: The method you want to hook on.
@@ -360,10 +360,15 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
+        getClosure(for: self, closure: closure)
+        return try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
             guard let val = val as? Value, let obj = obj as? Self else { return }
             closure(obj, val)
         } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    }
+    
+    func getClosure<Object: NSObject, Value>(for object: Object, closure: @escaping (_ object: Self,_ value: Value)->()) {
+        
     }
     
     /**
@@ -575,7 +580,7 @@ extension NSObjectProtocol where Self: NSObject {
             } else {
                 original(obj, sel, val)
             }
-        } as @convention(block) ((AnyObject, Selector, Any) -> Void, AnyObject, Selector,  Any) -> Void)
+        } as @convention(block) ((AnyObject, Selector, Any) -> Void, AnyObject, Selector, Any) -> Void)
     }
 }
 #endif

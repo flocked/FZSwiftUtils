@@ -21,7 +21,31 @@ import UniformTypeIdentifiers
 public extension NSAttributedString {
     /// Returns the full range of the attributed string.
     var fullRange: NSRange {
-        return NSRange(location: 0, length: length)
+        NSRange(location: 0, length: length)
+    }
+    
+    /**
+     Retrieves all attribute values for the specified attribute.
+
+     - Parameters:
+       - name: The name of the attribute (e.g., `.font`, `.foregroundColor`).
+       - range: An optional range within the attributed string to limit the search.
+
+     - Returns: An array of tuples, each containing:
+       - `range`: The range over which the attribute value is effective.
+       - `value`: The value of the attribute at that range, or `nil` if the attribute is not present.
+     */
+    func attributeValues(for attributeName: Key, range: NSRange? = nil) -> [(range: NSRange, value: Any?)] {
+        var result: [(range: NSRange, value: Any?)] = []
+        let fullRange = range ?? NSRange(location: 0, length: length)
+        var index = fullRange.lowerBound
+        while index < fullRange.upperBound {
+            var effectiveRange = NSRange()
+            let value = attribute(attributeName, at: index, longestEffectiveRange: &effectiveRange, in: fullRange)
+            result += (effectiveRange, value)
+            index = effectiveRange.upperBound
+        }
+        return result
     }
     
     /**
@@ -401,7 +425,7 @@ public extension NSAttributedString {
      
      Modifying this value only works, if it is a `NSMutableAttributedString`.
      */
-    subscript <V>(name: NSAttributedString.Key, range: NSRange? = nil) -> V? {
+    subscript <V>(name: Key, range: NSRange? = nil) -> V? {
         get { attribute(name, at: range?.location ?? 0, effectiveRange: nil) as? V }
         set {
             guard let self = self as? NSMutableAttributedString else { return }
@@ -418,7 +442,7 @@ public extension NSAttributedString {
 
      Modifying this value only works, if it is a `NSMutableAttributedString`.
      */
-    subscript <V>(name: NSAttributedString.Key, range: NSRange? = nil) -> V? where V: RawRepresentable, V.RawValue == Int {
+    subscript <V>(name: Key, range: NSRange? = nil) -> V? where V: RawRepresentable, V.RawValue == Int {
         get {
             guard let rawValue = attribute(name, at: range?.location ?? 0, effectiveRange: nil) as? Int else { return nil }
             return V(rawValue: rawValue)
@@ -570,7 +594,7 @@ public extension NSMutableAttributedString {
      
      - Parameter attributes: A dictionary containing the attributes to add.
      */
-    func addAttributes(_ attributes: [NSAttributedString.Key : Any]) {
+    func addAttributes(_ attributes: [Key : Any]) {
         addAttributes(attributes, range: fullRange)
     }
     
@@ -579,7 +603,7 @@ public extension NSMutableAttributedString {
      
      - Parameter name: The name of the attribute.
      */
-    func removeAttribute(_ name: NSAttributedString.Key) {
+    func removeAttribute(_ name: Key) {
         removeAttribute(name, range: fullRange)
     }
     
@@ -590,7 +614,7 @@ public extension NSMutableAttributedString {
         - names: The names of the attribute.
         - range: The range of characters, or `nil` to use the full range.
      */
-    func removeAttributes(_ names: [Key], at range: NSRange? = nil) {
+    func removeAttributes<S: Sequence<Key>>(_ names: S, at range: NSRange? = nil) {
         let range = range ?? fullRange
         names.forEach({ removeAttribute($0, range: range) })
     }
@@ -603,166 +627,188 @@ public extension NSMutableAttributedString {
         - value: The value of the attribute.
         - range: The range of characters, or `nil` to use the full range.
      */
-    func setAttribute(_ name: NSAttributedString.Key, to value: Any?, at range: NSRange? = nil) {
+    func setAttribute(_ name: Key, to value: Any?, at range: NSRange? = nil) {
         if let value = value {
-            addAttributes([name: value], range: NSRange(location: 0, length: length))
+            addAttributes([name: value], range: range ?? fullRange)
         } else {
-            removeAttribute(name, range: NSRange(location: 0, length: length))
+            removeAttribute(name, range: range ?? fullRange)
         }
     }
 }
 
 extension NSAttributedString {
     /**
-     Returns the data that contains a text stream corresponding to the characters and attributes.
-     
-     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     Returns a data object that contains a text stream corresponding to the characters and attributes within the specified range.
+
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: Returns the data for the attributed string.
      */
-    public func data(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
-        try! data(from: fullRange, documentAttributes: documentAttributes)
+    @_disfavoredOverload
+    public func data(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
+        try data(from: range ?? fullRange, documentAttributes: documentAttributes)
     }
     
     /**
-     Returns the data that contains a text stream corresponding to the characters and attributes.
-     
-     - Parameter documentAttributes: The document attributes.
+     Returns a data object that contains a text stream corresponding to the characters and attributes within the specified range.
+
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: The document attributes.
+     - Returns: Returns the data for the attributed string.
      */
-    public func data(documentAttributes: DocumentAttributes) -> Data {
-        data(documentAttributes: documentAttributes.dict)
+    public func data(from range: NSRange, documentAttributes: DocumentAttributes) throws -> Data {
+        try data(from: range, documentAttributes: documentAttributes.dict)
     }
     
     /**
-     Returns the data that contains a text stream corresponding to the characters and attributes within the specified range.
+     Returns a file wrapper object that contains a text stream corresponding to the characters and attributes within the specified range.
      
      - Parameters:
-        - range: The range.
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: Returns a file wrapper for the appropriate document type.
+     */
+    @_disfavoredOverload
+    public func fileWrapper(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> FileWrapper {
+        try fileWrapper(from: range ?? fullRange, documentAttributes: documentAttributes)
+    }
+    
+    /**
+     Returns a file wrapper object that contains a text stream corresponding to the characters and attributes within the specified range.
+
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
         - documentAttributes: The document attributes.
-     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     - Returns: Returns a file wrapper for the appropriate document type.
      */
-    public func data(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
-        try? data(from: range, documentAttributes: documentAttributes.dict)
+    public func fileWrapper(from range: NSRange? = nil, documentAttributes: DocumentAttributes) throws -> FileWrapper {
+        try fileWrapper(from: range, documentAttributes: documentAttributes.dict)
     }
     
     /**
-     Returns a file wrapper that contains a text stream corresponding to the characters and attributes.
-     
-     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
-     */
-    public func fileWrapper(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> FileWrapper {
-        try! fileWrapper(from: fullRange, documentAttributes: documentAttributes)
-    }
-    
-    /**
-     Returns a file wrapper that contains a text stream corresponding to the characters and attributes.
-     
-     - Parameter documentAttributes: The document attributes.
-     */
-    public func fileWrapper(documentAttributes: DocumentAttributes) -> FileWrapper {
-        fileWrapper(documentAttributes: documentAttributes.dict)
-    }
-    
-    /**
-     Returns a file wrapper that contains a text stream corresponding to the characters and attributes within the specified range.
+     Returns a data object that contains an RTF stream corresponding to the characters and attributes within the specified range, omitting all attachment attributes.
      
      - Parameters:
-        - range: The range.
-        - documentAttributes: The document attributes.
-     - Returns: The filewrapper, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: A data object containing an RTF stream for the attributed string.
      */
-    public func fileWrapper(from range: NSRange, documentAttributes: DocumentAttributes) -> FileWrapper? {
-        try? fileWrapper(from: range, documentAttributes: documentAttributes.dict)
+    @_disfavoredOverload
+    public func rtf(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
+        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.rtf], strategy: .overwrite))
     }
     
+    /**
+     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes.
+     
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: The document attributes.
+     - Returns: A data object containing an RTF stream for the attributed string.
+     */
+    public func rtf(from range: NSRange? = nil, documentAttributes: DocumentAttributes) throws -> Data {
+        try rtf(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a data object that contains an RTFD stream corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: A data object containing the RTFD stream containing the characters and attributes.
+     */
+    @_disfavoredOverload
+    public func rtfd(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
+        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.rtfd], strategy: .overwrite))
+    }
+    
+    /**
+     Returns a data object that contains an RTFD stream corresponding to the characters and attributes within the specified range.
+
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: The document attributes.
+     - Returns: A data object containing the RTFD stream containing the characters and attributes.
+     */
+    public func rtfd(from range: NSRange? = nil, documentAttributes: DocumentAttributes) throws -> Data {
+        try rtfd(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a data object that contains html corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: A data object containing the html containing the characters and attributes.
+     */
+    public func html(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
+        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.html], strategy: .overwrite))
+    }
+    
+    /**
+     Returns a data object that contains html corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: The document attributes.
+     - Returns: A data object containing the html containing the characters and attributes.
+     */
+    public func html(from range: NSRange? = nil, documentAttributes: DocumentAttributes) throws -> Data {
+        try html(from: range, documentAttributes: documentAttributes.dict)
+    }
     #if os(macOS)
-    
     /**
-     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes.
-     
-     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
-     */
-    public func rtf(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
-        documentAttributes.isEmpty ? rtf(from: fullRange)! : rtf(from: fullRange, documentAttributes: documentAttributes)!
-    }
-    
-    /**
-     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes.
-     
-     - Parameter documentAttributes: The document attributes.
-     */
-    public func rtf(documentAttributes: DocumentAttributes) -> Data {
-        rtf(documentAttributes: documentAttributes.dict)
-    }
-    
-    /**
-     Returns the data object that contains an RTF stream corresponding to the characters and attributes, omitting all attachment attributes within the specified range.
+     Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes within the specified range.
      
      - Parameters:
-        - range: The range.
-        - documentAttributes: The document attributes.
-     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: Returns a data object containing the attributed string as a Microsoft Word doc file.
      */
-    public func rtf(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
-        documentAttributes.dict.isEmpty ? rtf(from: range) : rtf(from: range, documentAttributes: documentAttributes.dict)
-    }
-    
-    /**
-     Returns the data object that contains an RTFD stream corresponding to the characters and attributes, omitting all attachment attributes.
-     
-     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
-     */
-    public func rtfd(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
-        documentAttributes.isEmpty ? rtfd(from: fullRange)! : rtfd(from: fullRange, documentAttributes: documentAttributes)!
-    }
-    
-    /**
-     Returns the data object that contains an RTFD stream corresponding to the characters and attributes, omitting all attachment attributes.
-     
-     - Parameter documentAttributes: The document attributes.
-     */
-    public func rtfd(documentAttributes: DocumentAttributes) -> Data {
-        rtfd(documentAttributes: documentAttributes.dict)
-    }
-    
-    /**
-     Returns the data object that contains an RTFD stream corresponding to the characters and attributes, omitting all attachment attributes within the specified range.
-     
-     - Parameters:
-        - range: The range.
-        - documentAttributes: The document attributes.
-     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
-     */
-    public func rtfd(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
-        documentAttributes.dict.isEmpty ? rtfd(from: range) : rtfd(from: range, documentAttributes: documentAttributes.dict)
-    }
-    
-    /**
-     Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes.
-     
-     - Parameter documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
-     */
-    public func docFormat(documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> Data {
-        docFormat(from: fullRange, documentAttributes: documentAttributes)!
-    }
-    
-    /**
-     Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes.
-     
-     - Parameter documentAttributes: The document attributes.
-     */
-    public func docFormat(documentAttributes: DocumentAttributes) -> Data {
-        docFormat(documentAttributes: documentAttributes.dict)
+    @_disfavoredOverload
+    public func docFormat(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
+        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.docFormat], strategy: .overwrite))
     }
     
     /**
      Returns a data object that contains a Microsoft Word–format stream corresponding to the characters and attributes within the specified range.
      
      - Parameters:
-        - range: The range.
+        - range: The range, or `nil` to use the full range.
         - documentAttributes: The document attributes.
-     - Returns: The data, or `nil` if any part of range lies beyond the end of the attribute string’s characters.
+     - Returns: Returns a data object containing the attributed string as a Microsoft Word doc file.
      */
-    public func docFormat(from range: NSRange, documentAttributes: DocumentAttributes) -> Data? {
-        docFormat(from: range, documentAttributes: documentAttributes.dict)
+    public func docFormat(from range: NSRange? = nil, documentAttributes: DocumentAttributes) throws -> Data {
+        try docFormat(from: range, documentAttributes: documentAttributes.dict)
+    }
+    
+    /**
+     Returns a file wrapper object that contains an RTFD document corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: A dictionary specifying the document attributes. The dictionary contains values from Document Types and must at least contain documentType.
+     - Returns: A file wrapper containing the RTFD data.
+     */
+    @_disfavoredOverload
+    public func rtfdFileWrapper(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> FileWrapper? {
+        documentAttributes.isEmpty ? rtfdFileWrapper(from: range ?? fullRange) : rtfdFileWrapper(from: range ?? fullRange, documentAttributes: documentAttributes)
+    }
+    
+    /**
+     Returns a file wrapper object that contains an RTFD document corresponding to the characters and attributes within the specified range.
+     
+     - Parameters:
+        - range: The range, or `nil` to use the full range.
+        - documentAttributes: The document attributes.
+     - Returns: A file wrapper containing the RTFD data.
+     */
+    public func rtfdFileWrapper(from range: NSRange? = nil, documentAttributes: DocumentAttributes) -> FileWrapper? {
+        rtfdFileWrapper(from: range, documentAttributes: documentAttributes.dict)
     }
     #endif
     
@@ -776,6 +822,17 @@ extension NSAttributedString {
      */
     public convenience init(data: Data, options: DataDocumentReadingOptions = .automatic) throws {
         try self.init(data: data, options: options.dict, documentAttributes: nil)
+    }
+    
+    /**
+     The document attributes of the attributed string (when loaded created from data or url).
+     
+     This property provides provides the document attributes that have been read, when you create an attributed string using ``Foundation/NSAttributedString/init(data:options:)`` or ``Foundation/NSAttributedString/init(url:options:)``.
+     
+     */
+    public private(set) var documentAttributes: DocumentAttributes? {
+        get { getAssociatedValue("readDocumentAttributes") }
+        set { setAssociatedValue(newValue, key: "readDocumentAttributes") }
     }
     
     /**
@@ -859,7 +916,7 @@ extension NSAttributedString {
         public var characterEncoding: String.Encoding?
         
         /// The default attributes to apply to plain files.
-        public var defaultAttributes: [NSAttributedString.Key: Any]?
+        public var defaultAttributes: [Key: Any]?
         
         /// The document type.
         public var documentType: NSAttributedString.DocumentType?
@@ -868,7 +925,7 @@ extension NSAttributedString {
         /// The file type of the document (e.g., RTF, HTML, etc.).
         public var fileTypeIdentifier: String?
         
-        @available (macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public var fileType: UTType? {
             get {
                 guard let fileTypeIdentifier = fileTypeIdentifier else { return nil }
@@ -927,7 +984,7 @@ extension NSAttributedString {
         public var characterEncoding: String.Encoding?
         
         /// The default attributes to apply to plain files.
-        public var defaultAttributes: [NSAttributedString.Key: Any]?
+        public var defaultAttributes: [Key: Any]?
         
         /// The document type.
         public var documentType: NSAttributedString.DocumentType?
@@ -959,7 +1016,7 @@ extension NSAttributedString {
         /// The file type of the document (e.g., RTF, HTML, etc.).
         public var fileTypeIdentifier: String?
         
-        @available (macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public var fileType: UTType? {
             get {
                 guard let fileTypeIdentifier = fileTypeIdentifier else { return nil }
@@ -1012,7 +1069,7 @@ extension NSAttributedString {
         public var characterEncoding: String.Encoding?
         
         /// The default attributes applied to the document.
-        public var defaultAttributes: [NSAttributedString.Key: Any]?
+        public var defaultAttributes: [Key: Any]?
         
         /// The paper size for printing the document.
         public var paperSize: CGSize?
@@ -1113,6 +1170,35 @@ extension NSAttributedString {
         
         /// The scaling factor applied to the source text in the document.
         public var sourceTextScaling: CGFloat?
+        
+        /// Hypertext markup language (HTML) document.
+        public static let html = Self(documentType: .html)
+
+        /// Rich text format document.
+        public static let rtf = Self(documentType: .rtf)
+
+        /// Rich text format with attachments document.
+        public static let rtfd = Self(documentType: .rtfd)
+        
+        /// Plain text document.
+        public static let plain = Self(documentType: .plain)
+        
+        #if os(macOS)
+        /// Microsoft Word document.
+        public static let doc = Self(documentType: .docFormat)
+        
+        /// WebKit WebArchive document.
+        public static let webArchive = Self(documentType: .webArchive)
+        
+        /// Microsoft Word XML (WordML schema) document.
+        public static let wordML = Self(documentType: .wordML)
+        
+        /// Macintosh SimpleText document.
+        public static let macSimpleText = Self(documentType: .macSimpleText)
+        
+        /// ECMA Office Open XML text document format.
+        public static let officeOpenXML = Self(documentType: .officeOpenXML)
+        #endif
 
         /// A dictionary mapping the document attributes to their respective keys.
         var dict: [DocumentAttributeKey: Any] {
@@ -1190,7 +1276,7 @@ extension NSAttributedString {
             #endif
             documentType = dict[.documentType] as? NSAttributedString.DocumentType
             characterEncoding = String.Encoding(rawValue: (dict[.characterEncoding] as? UInt) ?? 12212323)
-            defaultAttributes = dict[.defaultAttributes] as? [NSAttributedString.Key: Any]
+            defaultAttributes = dict[.defaultAttributes] as? [Key: Any]
             paperSize = dict[.paperSize] as? CGSize
             viewSize = dict[.viewSize] as? CGSize
             viewZoom = dict[.viewZoom] as? CGFloat

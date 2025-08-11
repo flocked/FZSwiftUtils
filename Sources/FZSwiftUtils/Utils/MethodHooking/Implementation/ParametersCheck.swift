@@ -119,21 +119,21 @@ extension Hook {
             switch mode {
             case .before, .after:
                 guard closureReturnType == .voidTypeValue else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `\(mode.rawValue)`, the hook closure must return `void`. Found: `\(closureReturnType.code)`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `\(mode.rawValue)`, the hook closure must return `void`. Found: `\(closureReturnType.code)`.")
                 }
                 guard closureArgumentTypes.isEmpty ||
                         closureArgumentTypes == Array.init(methodArgumentTypes[0..<2]) ||
                         closureArgumentTypes == methodArgumentTypes  else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `\(mode.rawValue)`, the hook closure parameters must be either empty, `(AnyObject, Selector)`, or match the method's parameters. Closure: `\(closureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `\(mode.rawValue)`, the hook closure parameters must be either empty, `(AnyObject, Selector)`, or match the method's parameters. Closure: `\(closureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
                 }
             case .instead:
                 // Original closure (first parameter)
                 guard closureArgumentTypes.count == methodArgumentTypes.count + 1 else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `instead`, the hook closure must have the same number of parameters as the method + one extra parameter: The first parameter is the `original` closure, followed by the parameters of the method. Found \(closureArgumentTypes.count) parameters, expected \(methodArgumentTypes.count + 1).")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `instead`, the hook closure must have the same number of parameters as the method + one extra parameter: The first parameter is the `original` closure, followed by the parameters of the method. Found \(closureArgumentTypes.count) parameters, expected \(methodArgumentTypes.count + 1).")
                 }
                 let originalClosureType = closureArgumentTypes[0]
                 guard originalClosureType == .closureTypeValue else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `instead`, the first parameter of the hook closure must be a closure (the `original` closure). Found `\(originalClosureType.code)`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `instead`, the first parameter of the hook closure must be a closure (the `original` closure). Found `\(originalClosureType.code)`.")
                 }
                 guard let originalClosureSignature = try originalClosureType.internalClosureSignature() else {
                     throw HookError.internalError(file: #file, line: #line)
@@ -144,22 +144,22 @@ extension Hook {
                 var originalClosureArgumentTypes = originalClosureSignature.argumentTypes
                 
                 guard originalClosureReturnType == methodReturnType else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `instead`, the `original` closure (the hook closure`s first parameter) must return the same type as the method. Original: `\(originalClosureReturnType.code)`, Method: `\(methodReturnType.code)`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `instead`, the `original` closure (the hook closure`s first parameter) must return the same type as the method. Original: `\(originalClosureReturnType.code)`, Method: `\(methodReturnType.code)`.")
                 }
                 guard originalClosureArgumentTypes.count >= 1 else {
                     throw HookError.internalError(file: #file, line: #line)
                 }
                 originalClosureArgumentTypes.removeFirst()
                 guard originalClosureArgumentTypes == methodArgumentTypes else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `instead`, the parameters of the `original` closure (the hook closure`s first parameter) must match the method parameters. Original: `\(originalClosureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `instead`, the parameters of the `original` closure (the hook closure`s first parameter) must match the method parameters. Original: `\(originalClosureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
                 }
                 
                 // Hook closure
                 guard closureReturnType == methodReturnType else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `instead`, the hook closure must return the same type as the method. Closure: `\(closureReturnType.code)`, Method: `\(methodReturnType.code)`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `instead`, the hook closure must return the same type as the method. Closure: `\(closureReturnType.code)`, Method: `\(methodReturnType.code)`.")
                 }
                 guard closureArgumentTypes == methodArgumentTypes else {
-                    throw HookError.incompatibleClosureSignature("When hooking using `instead`, the hook closure’s parameters (after the first `original` closure) must match the method’s parameters. Closure: `\(closureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
+                    throw HookError.incompatibleClosureSignature("\(NSStringFromSelector(selector)) When hooking using `instead`, the hook closure’s parameters (after the first `original` closure) must match the method’s parameters. Closure: `\(closureArgumentTypes.toSignatureString())`, Method: `\(methodArgumentTypes.toSignatureString())`.")
                 }
             }
         }
