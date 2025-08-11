@@ -299,12 +299,14 @@ extension NSAttributedString {
         
         // MARK: - Attachment
         
+        #if compiler(>=6.0)
         /// The adaptive image glyph for the text.
         @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
         public var adaptiveImageGlyph: NSAdaptiveImageGlyph? {
             get { self[.adaptiveImageGlyph] }
             set { self[.adaptiveImageGlyph] = newValue }
         }
+        #endif
         
         /// The attachment for the text.
         public var attachment: NSTextAttachment? {
@@ -877,6 +879,7 @@ extension NSAttributedString.AttributeValues {
 
     // MARK: - Attachment
 
+    #if compiler(>=6.0)
     /// Sets the adaptive image glyph for the text.
     @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
     @discardableResult
@@ -884,6 +887,7 @@ extension NSAttributedString.AttributeValues {
         self.adaptiveImageGlyph = glyph
         return self
     }
+    #endif
 
     /// Sets the attachment for the text.
     @discardableResult
