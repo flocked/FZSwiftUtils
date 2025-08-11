@@ -231,6 +231,7 @@ extension NSAttributedString {
             set { self[.textEffect] = newValue }
         }
         
+        #if compiler(>=6.0)
         /// The custom highlight color to apply to the text.
         @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
         public var textHighlightColorScheme: TextHighlightColorScheme? {
@@ -244,6 +245,7 @@ extension NSAttributedString {
             get { self[.textHighlightStyle] }
             set { self[.textHighlightStyle] = newValue }
         }
+        #endif
         
         #if os(iOS)
         /// The name of a custom tag associated with a text item.
@@ -798,6 +800,7 @@ extension NSAttributedString.AttributeValues {
         return self
     }
 
+    #if compiler(>=6.0)
     /// Sets the custom highlight color scheme to apply to the text.
     @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
     @discardableResult
@@ -813,6 +816,7 @@ extension NSAttributedString.AttributeValues {
         self.textHighlightStyle = style
         return self
     }
+    #endif
 
     #if os(iOS)
     /// Sets the custom tag associated with a text item.
