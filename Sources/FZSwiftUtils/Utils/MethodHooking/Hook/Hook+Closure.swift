@@ -165,6 +165,14 @@ extension Hook {
             return { original, object, selector, value in
                 closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, unsafeBitCast($0)) })
             } as @convention(block) ((@convention(block) (AnyObject, Selector, (@convention(block) () -> Void)?) -> Void), AnyObject, Selector, (@convention(block) () -> Void)?) -> Void
+        case _ where Value.self == UUID.self:
+            return { original, object, selector, value in
+            closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, unsafeBitCast($0)) })
+        } as @convention(block) ((AnyObject, Selector, UUID) -> Void, AnyObject, Selector, UUID) -> Void
+        case _ where Value.self == AffineTransform.self:
+            return { original, object, selector, value in
+            closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, unsafeBitCast($0)) })
+        } as @convention(block) ((AnyObject, Selector, AffineTransform) -> Void, AnyObject, Selector, AffineTransform) -> Void
         default:
             return { original, object, selector, value in
                 closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, $0 as Any) })
@@ -247,9 +255,20 @@ extension Hook {
         case _ where Value.self == (()->()).self:
             return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, @escaping () -> ()) -> Void
         case _ where Value.self == Optional<(() ->())>.self:
-            return { closure(unsafeBitCast($0, to: Object.self), unsafeBitCast($2, to: Value.self)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+            return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+        case _ where Value.self == UUID.self:
+            return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+        case _ where Value.self == AffineTransform.self:
+            return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
         default:
          return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, Any) -> Void
+        }
+    }
+    
+    static func rawClosure<Object: NSObject, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> (Object, Value.RawValue)->() {
+        { object, rawValue in
+            guard let value = Value(rawValue: rawValue) else { return }
+            closure(object, value)
         }
     }
 }

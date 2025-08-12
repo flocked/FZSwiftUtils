@@ -306,11 +306,7 @@ extension NSObjectProtocol where Self: NSObject {
         if let hook = try? hookBefore(getterName, closure: Hook.beforeAfterClosure(for: closure)) {
             return hook
         }
-        let _closure: (Self, Value.RawValue)->() = { object, rawValue in
-            guard let value = Value(rawValue: rawValue) else { return }
-            closure(object, value)
-        }
-        return try hookBefore(getterName, closure: Hook.beforeAfterClosure(for: _closure))
+        return try hookBefore(getterName, closure: Hook.beforeAfterClosure(for: Hook.rawClosure(for: closure)))
     }
     
     /**
@@ -355,11 +351,7 @@ extension NSObjectProtocol where Self: NSObject {
         if let hook = try? hookBefore(setterName, closure: Hook.beforeAfterClosure(for: closure)) {
             return hook
         }
-        let _closure: (Self, Value.RawValue)->() = { object, rawValue in
-            guard let value = Value(rawValue: rawValue) else { return }
-            closure(object, value)
-        }
-        return try hookBefore(setterName, closure: Hook.beforeAfterClosure(for: _closure))
+        return try hookBefore(setterName, closure: Hook.beforeAfterClosure(for: Hook.rawClosure(for: closure)))
     }
     
     /**
@@ -381,11 +373,10 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: Equatable {
-        let _closure: (Self, Value)->() = { object, value in
+        try hookBefore(set: keyPath) { object, value in
             guard !uniqueValues || value != object[keyPath: keyPath] else { return }
             closure(object, value)
         }
-        return try hookBefore(try keyPath.setterName(), closure: Hook.beforeAfterClosure(for: _closure))
     }
     
     /**
@@ -465,11 +456,7 @@ extension NSObjectProtocol where Self: NSObject {
         if let hook = try? hookAfter(getterName, closure: Hook.beforeAfterClosure(for: closure)) {
             return hook
         }
-        let _closure: (Self, Value.RawValue)->() = { object, rawValue in
-            guard let value = Value(rawValue: rawValue) else { return }
-            closure(object, value)
-        }
-        return try hookAfter(getterName, closure: Hook.beforeAfterClosure(for: _closure))
+        return try hookAfter(getterName, closure: Hook.beforeAfterClosure(for: Hook.rawClosure(for: closure)))
     }
     
     /**
@@ -514,11 +501,7 @@ extension NSObjectProtocol where Self: NSObject {
         if let hook = try? hookAfter(setterName, closure: Hook.beforeAfterClosure(for: closure)) {
             return hook
         }
-        let _closure: (Self, Value.RawValue)->() = { object, rawValue in
-            guard let value = Value(rawValue: rawValue) else { return }
-            closure(object, value)
-        }
-        return try hookAfter(setterName, closure: Hook.beforeAfterClosure(for: _closure))
+        return try hookAfter(setterName, closure: Hook.beforeAfterClosure(for: Hook.rawClosure(for: closure)))
     }
     
     /**
