@@ -131,21 +131,24 @@ public extension Sequence {
     }
     
     /**
-     Creates a new Dictionary from the elements of `self`, keyed by the results returned by the given `keyForValue` closure.
+     Creates a new Dictionary from the elements of the sequence, keyed by the results returned by the given `keyForValue` closure.
      
      If the key derived for a new element collides with an existing key from a previous element, the latest value will be kept.
      
-     - Parameter keyForValue: A closure that returns a key for each element in `self`.
+     - Parameters:
+        - keyForValue: A closure that returns a key for each element in the sequence.
+        - keepLastMatching: A Boolean value indicating whether later elements with the same key replace earlier ones.
      */
     @inlinable
-    func keyed<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [Key: Element] {
-      return try self.keyed(by: keyForValue, resolvingConflictsWith: { _, old, new in new })
+    func keyed<Key>(by keyForValue: (Element) throws -> Key, keepLastMatching: Bool = true) rethrows -> [Key: Element] {
+        try self.keyed(by: keyForValue, resolvingConflictsWith: { _, old, new in keepLastMatching ? new : old })
     }
     
     /**
      Creates a new Dictionary from the elements of the sequence, keyed by the
-     results returned by the given `keyForValue` closure. As the dictionary is
-     built, the initializer calls the `resolve` closure with the current and
+     results returned by the given `keyForValue` closure.
+     
+     As the dictionary is built, the initializer calls the `resolve` closure with the current and
      new values for any duplicate keys. Pass a closure as `resolve` that
      returns the value to use in the resulting dictionary: The closure can
      choose between the two values, combine them to produce a new value, or
@@ -158,7 +161,7 @@ public extension Sequence {
          the final dictionary.
      */
     func keyed<Key>(by keyForValue: (Element) throws -> Key, resolvingConflictsWith resolve: (Key, Element, Element) throws -> Element) rethrows -> [Key: Element] {
-        return try reduce(into: [:]) { result, element in
+        try reduce(into: [:]) { result, element in
             let key = try keyForValue(element)
             if let existing = result[key] {
                 result[key] = try resolve(key, existing, element)

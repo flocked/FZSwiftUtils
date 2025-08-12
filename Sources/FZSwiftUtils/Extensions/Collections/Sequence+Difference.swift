@@ -29,6 +29,7 @@ public extension Sequence where Element: Equatable {
         return (removed, added, unchanged)
     }
     
+    /*
     /**
      Returns the difference needed to produce this collection’s ordered elements from the given collection.
 
@@ -54,6 +55,7 @@ public extension Sequence where Element: Equatable {
         let added = other.filter { contains($0) == false }
         return (removed, added, changed, unchanged)
     }
+    */
 }
 
 public extension Sequence where Element: Hashable {
@@ -63,28 +65,7 @@ public extension Sequence where Element: Hashable {
      - Parameter other: The other collection to compare.
      - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
      */
-    func difference<C: Sequence>(to other: C) -> (removed: [Element], added: [Element], unchanged: [Element]) where C.Element == Element {
-        let selfSet = Set(self)
-        let otherSet = Set(other)
-
-        let removed = selfSet.subtracting(otherSet)
-        let added = otherSet.subtracting(selfSet)
-        let unchanged = selfSet.intersection(otherSet)
-
-        let removedOrdered = filter { removed.contains($0) }
-        let unchangedOrdered = filter { unchanged.contains($0) }
-        let addedOrdered = other.filter { added.contains($0) }
-
-        return (removedOrdered, addedOrdered, unchangedOrdered)
-    }
-    
-    /**
-     Returns the difference needed to produce this collection’s ordered elements from the given collection.
-
-     - Parameter other: The other collection to compare.
-     - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
-     */
-    func differenceIndexed<C: Collection<Element>>(to other: C) -> (removed: [Element], added: [Element], changed: [Element], unchanged: [Element]) where C.Index: BinaryInteger {
+    func difference<C: Collection<Element>>(to other: C) -> (removed: [Element], added: [Element], changed: [Element], unchanged: [Element]) where C.Index: BinaryInteger {
         let indexMap = Dictionary(uniqueKeysWithValues: other.enumerated().map { ($1, $0) })
 
         var removed: [Element] = []
@@ -108,4 +89,27 @@ public extension Sequence where Element: Hashable {
 
         return (removed, added, changed, unchanged)
     }
+    
+    /*
+    /**
+     Returns the difference needed to produce this collection’s ordered elements from the given collection.
+
+     - Parameter other: The other collection to compare.
+     - Returns: The difference needed to produce this collection’s ordered elements from the given collection.
+     */
+    func difference<C: Sequence>(to other: C) -> (removed: [Element], added: [Element], unchanged: [Element]) where C.Element == Element {
+        let selfSet = Set(self)
+        let otherSet = Set(other)
+
+        let removed = selfSet.subtracting(otherSet)
+        let added = otherSet.subtracting(selfSet)
+        let unchanged = selfSet.intersection(otherSet)
+
+        let removedOrdered = filter { removed.contains($0) }
+        let unchangedOrdered = filter { unchanged.contains($0) }
+        let addedOrdered = other.filter { added.contains($0) }
+
+        return (removedOrdered, addedOrdered, unchangedOrdered)
+    }
+    */
 }

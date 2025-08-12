@@ -23,10 +23,4 @@ public extension Sequence where Element: Equatable & Hashable {
             currentResult[element, default: 0] += 1
         }
     }
-    
-    func numberOfOccurences<Value: Hashable>(of keyPath: KeyPath<Element, Value>) -> [Value: [Element]] {
-        return reduce(into: [Value: [Element]]()) { result, element in
-            result[element[keyPath: keyPath], default: []].append(element)
-        }
-    }
 }
