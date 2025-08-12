@@ -15,7 +15,7 @@ import UIKit
 import CoreMedia
 
 extension Hook {
-    static func closure<Object: NSObject, Value>(for closure: @escaping (_ object: Object,_ value: Value, _ apply:(Value)->())->()) -> Any {
+    static func closure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value, _ apply:(Value)->())->()) -> Any {
         switch Value.self {
         case _ where Value.self == Bool.self:
             return { original, object, selector, value in
@@ -180,7 +180,7 @@ extension Hook {
         }
     }
     
-    static func beforeAfterClosure<Object: NSObject, Value>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any {
+    static func beforeAfterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any {
         switch Value.self {
         case _ where Value.self == Bool.self:
          return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, Bool) -> Void
@@ -265,7 +265,7 @@ extension Hook {
         }
     }
     
-    static func rawClosure<Object: NSObject, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> (Object, Value.RawValue)->() {
+    static func rawClosure<Object, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> (Object, Value.RawValue)->() {
         { object, rawValue in
             guard let value = Value(rawValue: rawValue) else { return }
             closure(object, value)
