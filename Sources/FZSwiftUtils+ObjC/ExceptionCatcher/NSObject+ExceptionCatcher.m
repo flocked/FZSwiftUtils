@@ -9,8 +9,7 @@
 
 @implementation NSObject (ExceptionCatcher)
 
-+ (BOOL)_catchException:(__attribute__((noescape)) void(^)(void))tryBlock
-                 error:(NSError * __autoreleasing *)error
++ (BOOL)_catchException:(__attribute__((noescape)) void(^)(void))tryBlock error:(NSError * __autoreleasing *)error
 {
     @try {
         tryBlock();
@@ -18,9 +17,7 @@
     }
     @catch (NSException *exception) {
         if (error) {
-            *error = [[NSError alloc] initWithDomain:exception.name
-                                                code:0
-                                            userInfo:exception.userInfo];
+            *error = [[NSError alloc] initWithDomain:exception.name code:0 userInfo:exception.userInfo];
         }
         return NO;
     }

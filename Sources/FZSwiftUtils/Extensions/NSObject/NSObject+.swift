@@ -289,16 +289,40 @@ public extension NSObject {
     }
     
     /**
-     Executes a block of code that may throw an Objective-C `NSException` and catches it.
-
+     Executes the specified block that may throw an Objective-C `NSException` and catches it.
+     
      This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
 
-     - Parameter - tryBlock: A closure containing Objective-C code that may throw an exception. This block is executed immediately and must not escape its scope.
-     */
-    static func catchException(tryBlock: ()->()) throws {
-        try _catchException {
-            tryBlock()
+     - Parameter tryBlock: A closure containing Objective-C code that may throw an exception.
+    - Returns: The value returned from the given callback.
+
+     Example usage:
+     
+    ```swift
+    let object: NSObject // …
+
+    do {
+        let value = try NSObject.catch {
+            object.value(forKey: "someProperty")
         }
+        print("Value:", value)
+    } catch {
+        print("Error:", error.localizedDescription)
+        //=> Error: The operation couldn’t be completed. [valueForUndefinedKey:]: this class is not key value coding-compliant for the key nope.
+    }
+    ```
+    */
+    @discardableResult
+    static func catchException<T>(tryBlock: () throws -> T) throws -> T {
+        var result: Result<T, Error>!
+        try _catchException {
+            do {
+                result = .success(try tryBlock())
+            } catch {
+                result = .failure(error)
+            }
+        }
+        return try result.get()
     }
 
     /// Returns all classes.

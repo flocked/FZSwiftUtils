@@ -144,6 +144,9 @@ public class KeyValueObservation: NSObject {
         default: break
         }
         #endif
+        if observer == nil, keyPath.kvcStringValue == nil {
+            return nil
+        }
         observer = observer ?? Observer(object, keyPath: keyPath) { change in
             guard let new = change.newValue else { return }
             if let old = change.oldValue {
