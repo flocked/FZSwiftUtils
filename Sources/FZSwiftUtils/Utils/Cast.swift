@@ -45,3 +45,7 @@ public func unsafeBitCast<T, U>(_ x: T) -> U {
 public func unsafeDowncast<T>(_ x: AnyObject) -> T where T : AnyObject {
     unsafeDowncast(x, to: T.self)
 }
+
+public func cast<T>(_ x: Any) -> T {
+    x as! T
+}
