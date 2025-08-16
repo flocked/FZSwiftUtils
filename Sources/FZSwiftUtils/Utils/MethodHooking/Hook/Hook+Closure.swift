@@ -169,10 +169,12 @@ extension Hook {
             return { original, object, selector, value in
             closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, unsafeBitCast($0)) })
         } as @convention(block) ((AnyObject, Selector, UUID) -> Void, AnyObject, Selector, UUID) -> Void
+        #if os(macOS)
         case _ where Value.self == AffineTransform.self:
             return { original, object, selector, value in
             closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, unsafeBitCast($0)) })
         } as @convention(block) ((AnyObject, Selector, AffineTransform) -> Void, AnyObject, Selector, AffineTransform) -> Void
+        #endif
         default:
             return { original, object, selector, value in
                 closure(unsafeBitCast(object), unsafeBitCast(value), { original(object, selector, $0 as Any) })
@@ -258,8 +260,10 @@ extension Hook {
             return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
         case _ where Value.self == UUID.self:
             return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+        #if os(macOS)
         case _ where Value.self == AffineTransform.self:
             return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+        #endif
         default:
          return { closure(unsafeBitCast($0), unsafeBitCast($2)) } as @convention(block) (AnyObject, Selector, Any) -> Void
         }
