@@ -63,7 +63,7 @@ public extension Set {
         Array(self)
     }
     
-    /// Edits the elements.
+    /// Edits each element in the set.
     mutating func editEach(_ body: (inout Element) throws -> Void) rethrows {
         var elements = Array(self)
         try elements.editEach(body)

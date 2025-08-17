@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Dictionary {
-    /// Edits all values.
+    /// Edits each value in the dictionary.
     mutating func editEach(_ body: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
         for keyVal in self {
             var value = keyVal.value

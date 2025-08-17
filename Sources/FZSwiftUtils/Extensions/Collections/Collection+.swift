@@ -8,11 +8,9 @@
 import Foundation
 
 public extension MutableCollection {
-    /// Edits the elements.
+    /// Edits each elements in the collection.
     mutating func editEach(_ body: (inout Element) throws -> Void) rethrows {
-        for index in indices {
-            try body(&self[index])
-        }
+        try indices.forEach({ try body(&self[$0]) })
     }
 }
 
@@ -546,8 +544,9 @@ extension Collection where Element: BinaryInteger {
         - sorted: A Boolean value indicating whether to check the integers in a sorted order.
      */
     public func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
+        guard count > 1 else { return true }
         let elements = sorted ? self.sorted() : self as? Array ?? Array(self)
-        return !(1..<count).contains(where: { elements[$0] != elements[$0 - 1] + value })
+        return !elements.indices.dropFirst().contains { elements[$0] != elements[$0 - 1] + value }
     }
 }
 
@@ -557,38 +556,12 @@ extension Collection where Self: RandomAccessCollection, Element: BinaryFloating
      
      - Parameters:
         - value: The incrementing value.
-        - tolerance: The maximum allowed difference when comparing floating-point increments. Default is zero (exact match).
+        - tolerance: The maximum allowed difference when comparing increments. Default is `0` (exact match).
         - sorted: A Boolean value indicating whether to check the elements in a sorted order.
      */
     public func isIncrementing(by value: Element = 1, tolerance: Element = 0, sorted: Bool = false) -> Bool {
+        guard count > 1 else { return true }
         let elements = sorted ? self.sorted() : self as? Array ?? Array(self)
-        return !(1..<elements.count).contains {
-            abs((elements[$0] - elements[$0 - 1]) - value) > tolerance
-        }
+        return !elements.indices.dropFirst().contains { abs(elements[$0] - elements[elements.index(before: $0)] - value) > tolerance }
     }
 }
-
-/*
- public extension Collection {
-     /// Returns a new array with the specified element prepended to the beginning of this collection.
-     func prepending(_ newElement: Element) -> [Element] {
-         newElement + Array(self)
-     }
-     
-     /// Returns a new array with the specified elements prepended to the beginning of this collection.
-     func prepending<S>(contentsOf newElements: S) -> [Element] where S : Collection<Element> {
-         newElements + Array(self)
-     }
-     
-     /// Returns a new array with the specified element appended to the end of this collection.
-     func appending(_ newElement: Element) -> [Element] {
-         Array(self) + newElement
-     }
-     
-     
-     /// Returns a new array with the specified elements appended to the end of this collection.
-     func appending<S>(contentsOf newElements: S) -> [Element] where S : Collection<Element> {
-         Array(self) + newElements
-     }
- }
- */
