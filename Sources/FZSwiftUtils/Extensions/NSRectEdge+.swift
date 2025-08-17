@@ -13,13 +13,13 @@ extension NSRectEdge {
     public static let bottom = NSRectEdge.minY
     
     /// The right edge of the rectangle.
-    public static var right = NSRectEdge.maxX
+    public static let right = NSRectEdge.maxX
     
     /// The top edge of the rectangle.
-    public static var top = NSRectEdge.maxY
+    public static let top = NSRectEdge.maxY
     
     /// The left edge of the rectangle.
-    public static var left = NSRectEdge.minX
+    public static let left = NSRectEdge.minX
 }
 
 #endif

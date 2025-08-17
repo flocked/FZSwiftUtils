@@ -10,15 +10,15 @@ import Foundation
 
 public struct RectEdge: OptionSet, CustomStringConvertible {
     /// The top edge of the rectangle.
-    public static var top = RectEdge(rawValue: 1 << 0)
+    public static let top = RectEdge(rawValue: 1 << 0)
     /// The left edge of the rectangle.
-    public static var left = RectEdge(rawValue: 1 << 1)
+    public static let left = RectEdge(rawValue: 1 << 1)
     /// The bottom edge of the rectangle.
-    public static var bottom = RectEdge(rawValue: 1 << 2)
+    public static let bottom = RectEdge(rawValue: 1 << 2)
     /// The right edge of the rectangle.
-    public static var right = RectEdge(rawValue: 1 << 3)
+    public static let right = RectEdge(rawValue: 1 << 3)
     /// All edges of the rectangle.
-    public static var all: RectEdge = [.left, .right, .bottom, .top]
+    public static let all: RectEdge = [.left, .right, .bottom, .top]
     
     public var description: String {
         var strings: [String] = []
