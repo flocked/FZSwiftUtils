@@ -14,14 +14,14 @@ import UIKit
 
 extension NSUIRectEdge: Hashable, Codable {
     /// The left and right edge of the rectangle.
-    public static var width: NSUIRectEdge = [.left, .right]
+    public static let width: NSUIRectEdge = [.left, .right]
     /// The bottom and top edge of the rectangle.
-    public static var height: NSUIRectEdge = [.bottom, .top]
+    public static let height: NSUIRectEdge = [.bottom, .top]
 }
 
 extension NSDirectionalRectEdge: Hashable, Codable {
     /// The leading and trailing edge of the rectangle.
-    public static var width: NSDirectionalRectEdge = [.leading, .trailing]
+    public static let width: NSDirectionalRectEdge = [.leading, .trailing]
     /// The bottom and top edge of the rectangle.
-    public static var height: NSDirectionalRectEdge = [.bottom, .top]
+    public static let height: NSDirectionalRectEdge = [.bottom, .top]
 }

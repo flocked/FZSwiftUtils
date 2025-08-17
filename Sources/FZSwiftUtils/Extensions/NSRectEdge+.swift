@@ -10,24 +10,16 @@ import Foundation
 
 extension NSRectEdge {
     /// The bottom edge of the rectangle.
-    public static var bottom: NSRectEdge {
-        .minY
-    }
+    public static let bottom = NSRectEdge.minY
     
     /// The right edge of the rectangle.
-    public static var right: NSRectEdge {
-        .maxX
-    }
+    public static var right = NSRectEdge.maxX
     
     /// The top edge of the rectangle.
-    public static var top: NSRectEdge {
-        .maxY
-    }
+    public static var top = NSRectEdge.maxY
     
     /// The left edge of the rectangle.
-    public static var left: NSRectEdge {
-        .minX
-    }
+    public static var left = NSRectEdge.minX
 }
 
 #endif
