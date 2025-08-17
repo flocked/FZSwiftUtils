@@ -80,15 +80,3 @@ extension Sequence where Element: Hashable {
         Array(Dictionary(grouping: self, by: {$0}).filter {$1.count > 1}.keys)
     }
 }
-
-public extension Sequence where Element: Equatable {
-    /**
-     Returns a random element of the collection excluding any of the specified elements.
-
-     - Parameter excluding: The elements excluded for the returned element.
-     - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
-     */
-    func randomElement<S: Sequence<Element>>(excluding: S) -> Element? {
-        shuffled().first(where: { !excluding.contains($0) })
-    }
-}

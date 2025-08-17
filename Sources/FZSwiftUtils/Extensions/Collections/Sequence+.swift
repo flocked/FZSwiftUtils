@@ -7,20 +7,6 @@
 
 import Foundation
 
-public extension Collection {
-    /**
-     Returns indexes of elements that satisfies the given predicate.
-
-     - Parameter predicate: A closure that takes an element of the collection as its argument and returns a Boolean value indicating whether the element is a match.
-
-     - Returns: The indexes of the elements that satisfies the given predicate.
-     */
-    func indexes(where predicate: (Element) throws -> Bool) rethrows -> [Index] {
-        try indices.filter({ try predicate(self[$0]) })
-    }
-}
-
-
 public extension Sequence where Element: AdditiveArithmetic {
     /// The total sum value of all values in the sequence. If the sequence is empty, it returns `zero`.
     func sum() -> Element {
@@ -49,54 +35,16 @@ public extension Sequence where Element: Equatable {
      */
     func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where S: Sequence<Element> {
         if !inSameOrder {
-            return !elements.contains(where: { !contains($0) })
+            return elements.allSatisfy { contains($0) }
         } else {
             return elements.allSatisfy(AnyIterator(makeIterator()).contains)
         }
     }
 }
 
-public extension Collection where Element: Equatable {
-    /**
-     Returns indexes of the specified element.
-
-     - Parameter element: The element to return it's indexes.
-
-     - Returns: The indexes of the element.
-     */
-    func indexes(of element: Element) -> [Index] {
-        indexes(where: { $0 == element })
-    }
-
-    /**
-     Returns indexes of the specified elements.
-
-     - Parameter elements: The elements to return their indexes.
-
-     - Returns: The indexes of the elements.
-     */
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
-        indexes(where: { elements.contains($0) })
-    }
-}
-
-public extension Collection where Element: Hashable {
-    /**
-     Returns indexes of the specified elements.
-
-     - Parameter elements: The elements to return their indexes.
-
-     - Returns: The indexes of the elements.
-     */
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
-        let lookup = Set(elements)
-        return indexes(where: { lookup.contains($0) })
-    }
-}
-
 public extension Sequence {
     /**
-     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+     Returns a dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
      
      - Parameter keyForValue: A closure that returns a key for each element in the sequence.
      */
@@ -105,7 +53,7 @@ public extension Sequence {
     }
     
     /**
-     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+     Returns a dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
      
      - Parameter keyForValue: A closure that returns a potential key for each element in the sequence.
      */
@@ -113,12 +61,12 @@ public extension Sequence {
         try Dictionary(grouping: self, byNonNil: keyForValue)
     }
 
-    /// Splits the collection by the specified keypath and values that are returned for each keypath.
+    /// Splits the elements of the sequence by the specified keypath and values that are returned for each keypath.
     func split<Key>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] where Key: Equatable {
         split(by: { $0[keyPath: keyPath] })
     }
 
-    /// Splits the collection by the key returned from the specified closure and values that are returned for each key.
+    /// Splits the elements of sequence by the key returned from the specified closure and values that are returned for each key.
     func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
         try reduce(into: []) { values, value in
             let key = try keyForValue(value)
@@ -131,8 +79,8 @@ public extension Sequence {
     }
     
     /**
-     Creates a new Dictionary from the elements of the sequence, keyed by the results returned by the given `keyForValue` closure.
-     
+     Returns a dictionary from the elements of the sequence, keyed by the results returned by the specified closure.
+
      If the key derived for a new element collides with an existing key from a previous element, the latest value will be kept.
      
      - Parameters:
@@ -145,20 +93,13 @@ public extension Sequence {
     }
     
     /**
-     Creates a new Dictionary from the elements of the sequence, keyed by the
-     results returned by the given `keyForValue` closure.
+     Returns a dictionary from the elements of the sequence, keyed by the results returned by the specified closure.
      
-     As the dictionary is built, the initializer calls the `resolve` closure with the current and
-     new values for any duplicate keys. Pass a closure as `resolve` that
-     returns the value to use in the resulting dictionary: The closure can
-     choose between the two values, combine them to produce a new value, or
-     even throw an error.
+     As the dictionary is built, the initializer calls the `resolve` closure with the current and new values for any duplicate keys. Pass a closure as `resolve` that returns the value to use in the resulting dictionary: The closure can choose between the two values, combine them to produce a new value, or even throw an error.
      
      - Parameters:
        - keyForValue: A closure that returns a key for each element in `self`.
-       - resolve: A closure that is called with the values for any duplicate
-         keys that are encountered. The closure returns the desired value for
-         the final dictionary.
+       - resolve: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
      */
     func keyed<Key>(by keyForValue: (Element) throws -> Key, resolvingConflictsWith resolve: (Key, Element, Element) throws -> Element) rethrows -> [Key: Element] {
         try reduce(into: [:]) { result, element in
@@ -174,18 +115,18 @@ public extension Sequence {
 
 
 public extension Sequence where Element: OptionalProtocol {
-    /// Returns an array of all non optional elements of the collection.
+    /// Returns an array of all non optional elements of the sequence.
     var nonNil: [Element.Wrapped] {
         compactMap(\.optional)
     }
     
+    /// Returns the first non optional element in the sequence.
     var firstNonNil: Element.Wrapped? {
         first(where: { $0.optional != nil })?.optional
     }
-    
+        
     /**
-     Returns the first non-`nil` result obtained from applying the given
-     transformation to the elements of the sequence.
+     Returns the first non-`nil` result obtained from applying the given transformation to the elements of the sequence.
      
      Example:
      ```swift
@@ -196,31 +137,31 @@ public extension Sequence where Element: OptionalProtocol {
          }
      ```
 
-     - Parameter transform: A closure that takes an element of the sequence as
-       its argument and returns an optional transformed value.
-     - Returns: The first non-`nil` return value of the transformation, or
-       `nil` if no transformation is successful.
+     - Parameter transform: A closure that takes an element of the sequence as its argument and returns an optional transformed value.
+     - Returns: The first non-`nil` return value of the transformation, or `nil` if no transformation is successful.
     */
     func firstNonNil<Result>( _ transform: (Element) throws -> Result?) rethrows -> Result? {
-      for value in self { 
-          if let value = try transform(value) {
-          return value
-        }
-      }
-      return nil
+        try self.lazy.compactMap({ try transform($0) }).first
+    }
+}
+
+public extension BidirectionalCollection where Element: OptionalProtocol {
+    /// Returns the last non optional element in the sequence.
+    var lastNonNil: Element.Wrapped? {
+        last(where: { $0.optional != nil })?.optional
     }
 }
 
 public extension Sequence where Element: Hashable {
-    /// The collection as `Set`.
+    /// The sequence as `Set`.
     var asSet: Set<Element> {
         Set(self)
     }
 }
 
 public extension Sequence where Element: RawRepresentable {
-    /// An array of corresponding values of the raw type.
-    func rawValues() -> [Element.RawValue] {
+    /// The raw values of the elements in the sequence.
+    var rawValues: [Element.RawValue] {
         compactMap(\.rawValue)
     }
 }
@@ -270,7 +211,15 @@ extension Sequence {
 
 public extension Sequence {
     /// Returns the elements of the sequence, repeated by the specified amount.
-    func repeated(amount: Int) -> [Element] {
+    func repeating(amount: Int) -> [Element] {
         Array(repeating: Array(self), count: amount.clamped(min: 0)).flattened()
+    }
+}
+
+extension MutableCollection where Self: RangeReplaceableCollection {
+    /// Repeats the elements of the collection by the specified amount.
+    mutating func `repeat`(amount: Int) {
+        guard amount > 1 else { return }
+        self += Array(repeating: self, count: amount - 1).flatMap { $0 }
     }
 }

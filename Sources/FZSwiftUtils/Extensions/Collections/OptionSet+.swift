@@ -62,8 +62,12 @@ public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
         member.elements().contains(where: { contains($0) })
     }
     
-    /// Returns a sequence of all elements included in the set.
-    func elements() -> AnySequence<Self> {
+    /// Returns an array of the elements included in the set.
+    func elements() -> [Self] {
+        _elements().collect()
+    }
+    
+    private func _elements() -> AnySequence<Self> {
         var remainingBits = rawValue
         var bitMask: RawValue = 1
         return AnySequence {

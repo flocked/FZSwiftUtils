@@ -184,12 +184,12 @@ public extension Dictionary {
     }
     
     /// The keys of the values that are different to the other dictionary.
-    func difference(to dictionary: [Key : Value]) -> (removed: [Key], added: [Key], changed: [Key])  {
-        let checkChanged = ((dictionary.first?.value ?? first?.value) as? (any Equatable)) != nil
-        let added: [Key] = self.keys.filter({ dictionary[$0] == nil })
-        let removed: [Key] = dictionary.keys.filter({ self[$0] == nil })
+    func difference(to other: Self) -> (removed: [Key], added: [Key], changed: [Key])  {
+        let checkChanged = ((other.first?.value ?? first?.value) as? (any Equatable)) != nil
+        let added: [Key] = self.keys.filter({ other[$0] == nil })
+        let removed: [Key] = other.keys.filter({ self[$0] == nil })
         let changed = checkChanged ? reduce(into: [Key]()) { partialResult, val in
-            if let old = dictionary[val.key] as? (any Equatable), let new = val.value as? (any Equatable), !old.isEqual(new) {
+            if let old = other[val.key] as? (any Equatable), let new = val.value as? (any Equatable), !old.isEqual(new) {
                 partialResult.append(val.key)
             }
         } : []
@@ -219,8 +219,7 @@ public extension Dictionary {
         - values: A sequence of values to group into a dictionary.
         - keyForValue: A closure that returns a potential key for each element in `values`.
      */
-    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?
-    ) rethrows where Value == [S.Element], S : Sequence {
+    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?) rethrows where Value == [S.Element], S : Sequence {
         self = try values.reduce(into: [:]) {
             if let key = try keyForValue($1) {
                 $0[key, default: []].append($1)
@@ -236,16 +235,22 @@ public extension Dictionary where Value: OptionalProtocol {
     }
 }
 
+public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
+    /// Returns the dictionary with non optional keys.
+    @_disfavoredOverload
+    var nonNil: [Key.Wrapped: Value] {
+        compactMapKeys({ $0.optional })
+    }
+}
+
 public extension Dictionary where Value: Equatable {
     /// The keys of the values that are different to the other dictionary.
-    func difference(to dictionary: [Key : Value]) -> (removed: [Key], added: [Key], changed: [Key]) {
-        let added: [Key] = self.keys.filter({ dictionary[$0] == nil })
-        let removed: [Key] = dictionary.keys.filter({ self[$0] == nil })
-        var changed: [Key] = []
-        for val in dictionary {
-            if let old = dictionary[val.key], let new = self[val.key], old != new {
-                changed.append(val.key)
-            }
+    func difference(to other: Self) -> (removed: [Key], added: [Key], changed: [Key]) {
+        let added: [Key] = keys.filter({ other[$0] == nil })
+        let removed: [Key] = other.keys.filter({ self[$0] == nil })
+        let changed = keys.compactMap { key -> Key? in
+            guard let otherValue = other[key] else { return nil }
+            return (self[key] != otherValue) ? key : nil
         }
         return (removed, added, changed)
     }
@@ -299,27 +304,5 @@ extension Dictionary where Value == Any {
             return val1 as AnyObject !== val2 as AnyObject
         }
         return true
-    }
-    
-    /// The keys of the values that were added, removed, and changed from the other dictionary.
-    public func keysChanged(from other: Self) -> (added: [Key], removed: [Key], changed: [Key]) {
-        var added: [Key] = []
-        var removed: [Key] = []
-        var changed: [Key] = []
-        for (key, val1) in self {
-            guard let val2 = other[key] else {
-                added.append(key)
-                continue
-            }
-            if let val1 = val1 as? (any Equatable), let val2 = val2 as? (any Equatable), !val1.isEqual(val2) {
-                changed.append(key)
-            } else if val1 as AnyObject !== val2 as AnyObject {
-                changed.append(key)
-            }
-        }
-        for key in other.keys where self[key] == nil {
-            removed.append(key)
-        }
-        return (added, removed, changed)
     }
 }

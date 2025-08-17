@@ -80,7 +80,7 @@ public struct MeasureTime {
         let timeElapsed = CFAbsoluteTimeGetCurrent() - beginning.startTime
         let duration = TimeDuration(Double(timeElapsed))
         if print {
-            let indent = "\t".repeated(amount: remove ? measurements.count : measurements.count-1)
+            let indent = "\t".repeating(amount: remove ? measurements.count : measurements.count-1)
             let title = beginning.title == nil ? "" : " for \(beginning.title!)"
             let details = details == nil ? "" : " (\(details!))"
             Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s.\(details)")
