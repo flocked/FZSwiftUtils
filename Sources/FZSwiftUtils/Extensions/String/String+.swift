@@ -17,15 +17,6 @@ public extension StringProtocol {
     var range: Range<Index> {
         startIndex..<endIndex
     }
-    
-    /**
-     A Boolean value indicating whether the string contains any of the specified strings.
-     - Parameter strings: The strings.
-     - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
-     */
-    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
-        strings.contains { contains($0) }
-    }
 
     /**
      A Boolean value indicating whether the string contains all specified strings.
@@ -71,6 +62,37 @@ public extension StringProtocol {
     /// A Boolean value indicating whether the string matches the specific character set.
     func matches(_ characterSet: CharacterSet) -> Bool {
         unicodeScalars.allSatisfy { characterSet.contains($0) }
+    }
+    
+    /**
+     The number of UTF-16 code units in the string.
+     
+     This is **not** the same as [count](https://developer.apple.com/documentation/swift/string/count), which counts the number of user-perceived characters (grapheme clusters).
+     
+     Use `length` when you need the UTF-16 representation size, for example when interacting with APIs that expect UTF-16 encoded strings (such as some Cocoa APIs).
+     
+     Examples:
+     ```swift
+     let text = "Hello"
+     print(text.count)  // 5 (grapheme clusters)
+     print(text.length) // 5 (UTF-16 code units)
+     
+     let emoji = "👨‍👩‍👧‍👦"
+     print(emoji.count)  // 1 (user-perceived character)
+     print(emoji.length) // 7 (UTF-16 code units)
+     ```
+     */
+    var length: Int {
+        utf16.count
+    }
+    
+    /**
+     A Boolean value indicating whether the string contains any of the specified strings.
+     - Parameter strings: The strings.
+     - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
+     */
+    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
+        strings.contains { contains($0) }
     }
 }
 
