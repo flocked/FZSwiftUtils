@@ -9,7 +9,7 @@ import Foundation
 import CoreGraphics
 
 /**
- Core Foundation / Core Graphics type.
+ A Core Foundation type.
  
  This protocol allows extending Core Foundation / Core Graphics with custom initalizers which is normally not allowed.
  */
@@ -17,17 +17,45 @@ public protocol CFType {
     static var typeID: CFTypeID { get }
 }
 
-// Core Graphics types
-extension CGColor: CFType { }
-extension CGColorSpace: CFType { }
-extension CGGradient: CFType { }
-extension CGPath: CFType { }
-extension CGImage: CFType { }
+extension CFString: CFType {
+    public static var typeID: CFTypeID { CFStringGetTypeID() }
+}
+extension CFNumber: CFType {
+    public static var typeID: CFTypeID { CFNumberGetTypeID() }
+}
+extension CFArray: CFType {
+    public static var typeID: CFTypeID { CFArrayGetTypeID() }
+}
+extension CFDictionary: CFType {
+    public static var typeID: CFTypeID { CFDictionaryGetTypeID() }
+}
+extension CFSet: CFType {
+    public static var typeID: CFTypeID { CFSetGetTypeID() }
+}
+extension CFDate: CFType {
+    public static var typeID: CFTypeID { CFDateGetTypeID() }
+}
+extension CFURL: CFType {
+    public static var typeID: CFTypeID { CFURLGetTypeID() }
+}
+extension CFBag: CFType {
+    public static var typeID: CFTypeID { CFBagGetTypeID() }
+}
+extension CFData: CFType {
+    public static var typeID: CFTypeID { CFDataGetTypeID() }
+}
 
-#if os(macOS)
-import Carbon
-extension CGEvent: CFType { }
-#endif
+extension CFType {
+    public init?(_ value: Any) {
+        guard CFGetTypeID(value as AnyObject) == Self.typeID else { return nil }
+        self = value as! Self
+    }
+    
+    public init?(_ value: Any?) {
+        guard let value = value as? AnyObject, CFGetTypeID(value) == Self.typeID else { return nil }
+        self = value as! Self
+    }
+}
 
 /**
  A Core Graphics type.
@@ -36,6 +64,18 @@ extension CGEvent: CFType { }
  */
 public protocol CGType {
     static var typeID: CFTypeID { get }
+}
+
+extension CGType {
+    public init?(_ value: Any) {
+        guard CFGetTypeID(value as AnyObject) == Self.typeID else { return nil }
+        self = (value as AnyObject) as! Self
+    }
+    
+    public init?(_ value: Any?) {
+        guard let value = value as? AnyObject, CFGetTypeID(value) == Self.typeID else { return nil }
+        self = value as! Self
+    }
 }
 
 extension CGColor: CGType { }
@@ -50,34 +90,10 @@ extension CGEvent: CGType { }
 #endif
 
 /*
-// Core Foundation types
-extension CFString: CFType { }
-extension CFNumber: CFType { }
-extension CFArray: CFType { }
-extension CFDictionary: CFType { }
-extension CFSet: CFType { }
-extension CFDate: CFType { }
-extension CFURL: CFType { }
-extension CFBag: CFType { }
-extension CFData: CFType { }
+
  */
 
 /*
-extension CGAffineTransform: CFType { }
-extension CGPoint: CFType { }
-extension CGSize: CFType { }
-extension CGRect: CFType { }
-extension CGVector: CFType { }
+
  */
 
-extension CFType {
-    public init?(_ value: Any) {
-        guard let value = value as? AnyObject, CFGetTypeID(value) == Self.typeID else { return nil }
-        self = value as! Self
-    }
-    
-    public init?(_ value: Any?) {
-        guard let value = value as? AnyObject, CFGetTypeID(value) == Self.typeID else { return nil }
-        self = value as! Self
-    }
-}
