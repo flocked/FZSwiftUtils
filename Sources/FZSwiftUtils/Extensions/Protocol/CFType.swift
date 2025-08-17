@@ -17,6 +17,7 @@ public protocol CFType {
     /// The Core Foundation type identifier.
     static var typeID: CFTypeID { get }
 }
+
 extension CFType {
     public init?(_ value: Any) {
         guard CFGetTypeID(value as AnyObject) == Self.typeID else { return nil }
@@ -28,6 +29,7 @@ extension CFType {
         self = value as! Self
     }
 }
+
 extension CGColor: CFType { }
 extension CGColorSpace: CFType { }
 extension CGGradient: CFType { }
