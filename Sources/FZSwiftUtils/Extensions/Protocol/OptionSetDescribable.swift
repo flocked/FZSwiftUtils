@@ -14,9 +14,6 @@ public protocol OptionSetDescribable: OptionSet, CustomStringConvertible where R
 
 extension OptionSetDescribable {
     public var description: String {
-        let names = Self.allCases
-            .compactMap { contains($0.0) ? $0.1 : nil }
-            .joined(separator: ", ")
-        return "[\(names)]"
+        "[\(Self.allCases.compactMap { contains($0.0) ? $0.1 : nil }.joined(separator: ", "))]"
     }
 }

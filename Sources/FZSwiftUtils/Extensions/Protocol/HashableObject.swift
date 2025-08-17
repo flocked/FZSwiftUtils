@@ -5,7 +5,11 @@
 //  Created by Florian Zand on 28.06.25.
 //
 
-/// A protocol that provides `Hashable` conformance for class types using object identity (`ObjectIdentifier`).
+/**
+ An object type that conforms to `Hashable`.
+
+ The protocol adds automatic conformance to `Hashable` using the object's identity ([ObjectIdentifier](https://developer.apple.com/documentation/swift/objectidentifier)).
+*/
 public protocol HashableObject: AnyObject, Hashable { }
 
 extension HashableObject {
