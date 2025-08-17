@@ -1,5 +1,5 @@
 //
-//  Reachability.swift
+//  NetworkReachability.swift
 //
 //
 //  Created by Florian Zand on 29.07.23.
@@ -10,9 +10,9 @@ import Foundation
 import SystemConfiguration
 
 /// An object for checking if the device is connected to the network.
-public enum Reachability {
+public enum NetworkReachability {
     /// A Boolean value indicating whether the device is connected to the network.
-    public static func isConnectedToNetwork() -> Bool {
+    public static var isConnected: Bool {
         var zeroAddress = sockaddr_in(sin_len: 0, sin_family: 0, sin_port: 0, sin_addr: in_addr(s_addr: 0), sin_zero: (0, 0, 0, 0, 0, 0, 0, 0))
         zeroAddress.sin_len = UInt8(MemoryLayout.size(ofValue: zeroAddress))
         zeroAddress.sin_family = sa_family_t(AF_INET)
@@ -41,13 +41,13 @@ public enum Reachability {
      - Parameter callback: The handler that is called when the network reachability changes.
      - Returns: A network reachability observation, or `nil` if the network's reachability can't be observered.
      */
-    public static func observe(_ callback: @escaping (_ isConntected: Bool)->()) -> ReachabilityObservation? {
+    public static func observe(_ callback: @escaping (_ isConntected: Bool)->()) -> NetworkReachabilityObservation? {
         .init(callback: callback)
     }
 }
 
 /// An observation whether the device is connected to the network.
-public final class ReachabilityObservation {
+public final class NetworkReachabilityObservation {
     private var reachability: SCNetworkReachability?
     private let callback: (Bool) -> Void
 
@@ -80,7 +80,7 @@ public final class ReachabilityObservation {
 
         SCNetworkReachabilitySetCallback(reachability, { (_, flags, info) in
             guard let info = info else { return }
-            let observer = Unmanaged<ReachabilityObservation>.fromOpaque(info).takeUnretainedValue()
+            let observer = Unmanaged<NetworkReachabilityObservation>.fromOpaque(info).takeUnretainedValue()
             observer.reachabilityChanged(flags)
         }, &context)
 
