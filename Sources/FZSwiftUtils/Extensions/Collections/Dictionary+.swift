@@ -17,9 +17,14 @@ public extension Dictionary {
         }
     }
     
-    subscript<EnumKey: RawRepresentable>(key: EnumKey) -> Value? where EnumKey.RawValue == Dictionary.Key {
+    subscript<RawKey: RawRepresentable>(key: RawKey) -> Value? where RawKey.RawValue == Dictionary.Key {
         get { self[key.rawValue] }
         set { self[key.rawValue] = newValue  }
+    }
+    
+    subscript<IdentifiableKey: Identifiable>(key: IdentifiableKey) -> Value? where IdentifiableKey.ID == Dictionary.Key {
+        get { self[key.id] }
+        set { self[key.id] = newValue  }
     }
     
     /**
@@ -34,7 +39,7 @@ public extension Dictionary {
     }
     
     /// Returns values for the specified keys.
-    subscript(keys: [Key]) -> [(key: Key, value: Value)] {
+    subscript<S>(keys: S) -> [(key: Key, value: Value)] where S: Sequence<Key> {
         values(for: keys)
     }
     
@@ -54,132 +59,119 @@ public extension Dictionary {
     }
 
     /**
-     Transforms keys without modifying values.
-
-     - Parameter transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-
-     - Note: The collection of transformed keys must not contain duplicates.
-     */
-    func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed) rethrows -> [Transformed: Value] {
-        try .init(uniqueKeysWithValues: map { try (transform($0.key), $0.value) })
-    }
-
-    /**
-     Transforms keys without modifying values.
+     Transforms the keys of the dictionary using the given closure.
 
      - Parameters:
-        - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-        - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
+       - transform: The closure that transforms a key of the dictionary.
+       - retainLastOccurences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
+     - Returns: A new dictionary with transformed keys and the same values.
+     */
+    func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed, retainLastOccurences: Bool = true) rethrows -> [Transformed: Value] {
+        try mapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
+    }
+    
+    /**
+     Transforms the keys of the dictionary using the given closure, combining values for duplicate keys using the provided closure.
+
+     - Parameters:
+       - transform: The closure that transforms a key of the dictionary.
+       - combine: A closure that takes two values for a duplicate key and returns a single value.
+     - Returns: A new dictionary with transformed keys and combined values for duplicates.
      */
     func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Transformed: Value] {
         try .init(map { try (transform($0.key), $0.value) }, uniquingKeysWith: combine )
     }
     
     /**
-     Transforms keys without modifying values.
+     Transforms the keys of the dictionary using the given closure.
 
      - Parameters:
-        - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+       - transform: The closure that transforms a key of the dictionary.
+       - retainLastOccurences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
+     - Returns: A new dictionary with transformed keys and the same values.
      */
-    func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed, retainLastOccurences: Bool) rethrows -> [Transformed: Value] {
-        try mapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
-    }
-
-    /**
-     Transforms keys without modifying values. Drops (key, value) pairs where the transform results in a `nil` key.
-
-     - Parameter transform: A closure that accepts each key of the dictionary as its parameter and returns a potential transformed key of the same or of a different type.
-
-     - Note: The collection of transformed keys must not contain duplicates.
-     */
-    func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed?) rethrows -> [Transformed: Value] {
-        try .init(uniqueKeysWithValues: compactMap { key, value in try transform(key).map { ($0, value) } })
+    func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed?, retainLastOccurences: Bool = true) rethrows -> [Transformed: Value] {
+        try compactMapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
     /**
-     Transforms keys without modifying values.
+     Transforms the keys of the dictionary using the given closure, discarding any keys that map to `nil` and combining values for duplicate keys.
 
      - Parameters:
-        - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-        - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
+       - transform: The closure that transforms a key of the dictionary.
+       - combine: A closure that takes two values for a duplicate key and returns a single value.
+     - Returns: A new dictionary with non-nil transformed keys and combined values for duplicates.
      */
     func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed?, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Transformed: Value] {
         try .init(compactMap { if let key = try transform($0.key) { return (key, $0.value) } else { return nil } }, uniquingKeysWith: combine)
     }
     
     /**
-     Transforms keys without modifying values.
+     Transforms the values of the dictionary using the given closure.
 
-     - Parameters:
-        - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+     - Parameter transform: The closure that transforms a value of the dictionary.
+     - Returns: A new dictionary with the same keys and transformed values.
      */
-    func compactMapKeys<Transformed>(_ transform: (Key) throws -> Transformed, retainLastOccurences: Bool) rethrows -> [Transformed: Value] {
-        try compactMapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
-    }
-    
-    /**
-     Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.
-     
-     - Parameter transform: A closure that transforms a value. transform accepts each value of the dictionary as its parameter and returns a transformed value of the same or of a different type.
-     - Returns: A dictionary containing the keys and transformed values of this dictionary.
-     */
-    func mapValues<T>(_ transform: (Value) throws -> T) rethrows -> [Key: T] {
+    func mapValues<Transformed>(_ transform: (Value) throws -> Transformed) rethrows -> [Key: Transformed] {
         try .init(uniqueKeysWithValues: map { key, val in (key, try transform(val))  } )
     }
     
+
     /**
-     Returns a new dictionary containing the keys of this dictionary with the values transformed by the given closure.
-     
-     - Parameter transform: A closure that transforms a value. transform accepts each value of the dictionary as its parameter and returns a transformed value of the same or of a different type.
-     - Returns: A dictionary containing the keys and transformed values of this dictionary.
+     Transforms the values of the dictionary using the given closure, discarding any values that map to `nil`.
+
+     - Parameter transform: The closure that transforms a value of the dictionary.
+     - Returns: A new dictionary with the same keys and non-nil transformed values.
      */
-    func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> [Key: T] {
+    func compactMapValues<Transformed>(_ transform: (Value) throws -> Transformed?) rethrows -> [Key: Transformed] {
         try .init(uniqueKeysWithValues: compactMap { key, value in try transform(value).map { (key, $0) } })
     }
     
     /**
-     Transforms keys and values.
-     
-     - Parameter transform: A closure that accepts each key and value of the dictionary as its parameter and returns a transformed key and value.
-     
-     - Note: The collection of transformed keys must not contain duplicates.
+     Transforms both keys and values of the dictionary.
+
+     - Parameters:
+       - transform: The closure that transforms a key-value pair of the dictionary.
+       - retainLastOccurences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
+     - Returns: A new dictionary with transformed keys and values.
      */
-    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V))) -> Dictionary<K, V> {
-        Dictionary<K, V>(uniqueKeysWithValues: map(transform))
+    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), retainLastOccurences: Bool = true) -> [K:V] {
+        mapKeyValues(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
     /**
-     Transforms keys and values.
+     Transforms both keys and values of the dictionary, combining values for duplicate keys using the provided closure.
 
      - Parameters:
-        - transform: A closure that accepts each key and value of the dictionary as its parameter and returns a transformed key and value.
-        - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
+       - transform: The closure that transforms a key-value pair of the dictionary.
+       - combine: A closure that takes two values for a duplicate key and returns a single value.
+     - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
      */
-    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> Dictionary<K, V> {
+    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K:V] {
         try .init(map(transform), uniquingKeysWith: combine)
     }
-
+    
     /**
-     Transforms keys and values. Drops (key, value) pairs where the transform results in a `nil` key.
-     
-     - Parameter transform: A closure that accepts each key and value of the dictionary as its parameter and returns a potential transformed key and value.
-     
-     - Note: The collection of transformed keys must not contain duplicates.
+     Transforms both keys and values of the dictionary.
+
+     - Parameters:
+       - transform: The closure that transforms a key-value pair of the dictionary.
+       - retainLastOccurences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
+     - Returns: A new dictionary with transformed keys and values.
      */
-    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)?)) -> Dictionary<K, V> {
-        .init(uniqueKeysWithValues: compactMap(transform))
+    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)?), retainLastOccurences: Bool = true) -> [K:V] {
+        compactMapKeyValues(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
     /**
-     Transforms keys and values. Drops (key, value) pairs where the transform results in a `nil` key.
+     Transforms both keys and values of the dictionary, combining values for duplicate keys using the provided closure.
 
      - Parameters:
-        - transform: A closure that accepts each key and value of the dictionary as its parameter and returns a potential transformed key and value.
-        - combine: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
+       - transform: The closure that transforms a key-value pair of the dictionary.
+       - combine: A closure that takes two values for a duplicate key and returns a single value.
+     - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
      */
-    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> Dictionary<K, V> {
+    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)?), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K:V] {
         try .init(compactMap(transform), uniquingKeysWith: combine)
     }
     
@@ -228,6 +220,14 @@ public extension Dictionary {
     }
 }
 
+public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
+    /// Returns the dictionary with non optional keys.
+    @_disfavoredOverload
+    var nonNil: [Key.Wrapped: Value] {
+        compactMapKeys({ $0.optional })
+    }
+}
+
 public extension Dictionary where Value: OptionalProtocol {
     /// Returns the dictionary with non optional values.
     var nonNil: [Key: Value.Wrapped] {
@@ -235,11 +235,10 @@ public extension Dictionary where Value: OptionalProtocol {
     }
 }
 
-public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
-    /// Returns the dictionary with non optional keys.
-    @_disfavoredOverload
-    var nonNil: [Key.Wrapped: Value] {
-        compactMapKeys({ $0.optional })
+public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable, Value: OptionalProtocol {
+    /// Returns the dictionary with non optional keys and values
+    var nonNil: [Key.Wrapped: Value.Wrapped] {
+        compactMapKeys({ $0.optional }).compactMapValues({ $0.optional })
     }
 }
 
@@ -268,17 +267,33 @@ public extension Dictionary {
     }
 }
 
+extension Dictionary where Key: Identifiable {
+    @_disfavoredOverload
+    public subscript(key: Key.ID) -> Value? {
+        first(where: { $0.key.id == key })?.value
+    }
+}
+
+extension Dictionary where Key: RawRepresentable {
+    @_disfavoredOverload
+    public subscript(key: Key.RawValue) -> Value? {
+        get {
+            guard let key = Key(rawValue: key) else { return nil }
+            return self[key]
+        }
+        set {
+            guard let key = Key(rawValue: key) else { return }
+            self[key] = newValue
+        }
+    }
+}
+
 public extension NSDictionary {
     /// The dictionary as `Dictionary`.
     func toDictionary() -> [String: Any] {
-        var swiftDictionary = [String: Any]()
-        for key: Any in allKeys {
-            let stringKey = key as! String
-            if let keyValue = value(forKey: stringKey) {
-                swiftDictionary[stringKey] = keyValue
-            }
+        reduce(into: [:]) {
+            $0[$1.key as? String ?? "\($1.key)"] = $1.value
         }
-        return swiftDictionary
     }
 
     /// The dictionary as `CFDictionary`.
