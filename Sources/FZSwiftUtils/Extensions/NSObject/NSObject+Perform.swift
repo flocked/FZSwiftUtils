@@ -16,7 +16,7 @@ extension NSObject {
         - selector: The selector that identifies the method to invoke.
         - arguments: The arguments to pass to the method when it is invoked.
      */
-    public func perform(_ selector: Selector, with arguments: [Any?] = []) {
+    public func perform(_ selector: Selector, withArguments arguments: [Any?] = []) {
         guard let signature = getMethodSignature(for: selector) else { return }
         let invocation = Invocation(signature: signature)
         invocation.target = self
