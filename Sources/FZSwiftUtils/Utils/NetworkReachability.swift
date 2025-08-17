@@ -106,4 +106,103 @@ public final class NetworkReachabilityObservation {
         stop()
     }
 }
+
+#if canImport(Combine)
+import Combine
+
+public extension NetworkReachability {
+    /// Returns a publisher for the network reachability.
+    static func publisher() -> NetworkReachabilityPublisher? {
+        .init()
+    }
+}
+
+/// A publisher for the network reachability.
+public struct NetworkReachabilityPublisher: Publisher {
+    public typealias Output = Bool
+    public typealias Failure = Never
+
+    private let reachability: SCNetworkReachability
+
+    public init?() {
+        var zeroAddress = sockaddr_in(
+            sin_len: UInt8(MemoryLayout<sockaddr_in>.size),
+            sin_family: sa_family_t(AF_INET),
+            sin_port: 0,
+            sin_addr: in_addr(s_addr: 0),
+            sin_zero: (0,0,0,0,0,0,0,0)
+        )
+
+        guard let ref = withUnsafePointer(to: &zeroAddress, {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                SCNetworkReachabilityCreateWithAddress(nil, $0)
+            }
+        }) else {
+            return nil
+        }
+
+        self.reachability = ref
+    }
+
+    public func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
+        let subscription = ReachabilitySubscription(subscriber: subscriber, reachability: reachability)
+        subscriber.receive(subscription: subscription)
+    }
+}
+
+/// The C callback trampoline (cannot capture generics!)
+private func reachabilityCallback(_ target: SCNetworkReachability, _ flags: SCNetworkReachabilityFlags, _ info: UnsafeMutableRawPointer?) {
+    guard let info else { return }
+    let subscription = Unmanaged<ReachabilitySubscriptionBase>.fromOpaque(info).takeUnretainedValue()
+    subscription.reachabilityChanged(flags)
+}
+
+/// A non-generic base class we can reference from the C trampoline
+private class ReachabilitySubscriptionBase {
+    func reachabilityChanged(_ flags: SCNetworkReachabilityFlags) {}
+}
+
+private final class ReachabilitySubscription<S: Subscriber>: ReachabilitySubscriptionBase, Subscription where S.Input == Bool, S.Failure == Never {
+    private var subscriber: S?
+    private let reachability: SCNetworkReachability
+
+    init(subscriber: S, reachability: SCNetworkReachability) {
+        self.subscriber = subscriber
+        self.reachability = reachability
+        super.init()
+        start()
+    }
+
+    func request(_ demand: Subscribers.Demand) {
+        // We ignore demand, just push when state changes
+    }
+
+    func cancel() {
+        stop()
+        subscriber = nil
+    }
+
+    private func start() {
+        var context = SCNetworkReachabilityContext(version: 0, info: UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()), retain: nil, release: nil, copyDescription: nil)
+
+        SCNetworkReachabilitySetCallback(reachability, reachabilityCallback, &context)
+        SCNetworkReachabilitySetDispatchQueue(reachability, DispatchQueue.main)
+
+        // Emit initial state
+        var flags = SCNetworkReachabilityFlags()
+        if SCNetworkReachabilityGetFlags(reachability, &flags) {
+            reachabilityChanged(flags)
+        }
+    }
+
+    private func stop() {
+        SCNetworkReachabilitySetDispatchQueue(reachability, nil)
+    }
+
+    override func reachabilityChanged(_ flags: SCNetworkReachabilityFlags) {
+        let isReachable = flags.contains(.reachable) && !flags.contains(.connectionRequired)
+        _ = subscriber?.receive(isReachable)
+    }
+}
+#endif
 #endif
