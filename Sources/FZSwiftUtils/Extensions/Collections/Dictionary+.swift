@@ -218,6 +218,16 @@ public extension Dictionary {
             }
         }
     }
+    
+    /// The dictionary as `CFDictionary`.
+    var cfDictionary: CFDictionary {
+        self as CFDictionary
+    }
+
+    /// The dictionary as `NSDictionary`.
+    var nsDictionary: NSDictionary {
+        self as NSDictionary
+    }
 }
 
 public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
@@ -252,18 +262,6 @@ public extension Dictionary where Value: Equatable {
             return (self[key] != otherValue) ? key : nil
         }
         return (removed, added, changed)
-    }
-}
-
-public extension Dictionary {
-    /// The dictionary as `CFDictionary`.
-    var cfDictionary: CFDictionary {
-        self as CFDictionary
-    }
-
-    /// The dictionary as `NSDictionary`.
-    var nsDictionary: NSDictionary {
-        self as NSDictionary
     }
 }
 
