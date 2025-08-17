@@ -1,5 +1,5 @@
 //
-//  Number+FloatInitializable.swift
+//  FloatingPointInitializable.swift
 //
 //
 //  Created by Florian Zand on 27.10.23.

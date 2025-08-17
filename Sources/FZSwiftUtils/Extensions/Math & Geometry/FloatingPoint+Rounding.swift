@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  
+//  FloatingPoint+Rounding.swift
+//
 //
 //  Created by Florian Zand on 03.02.24.
 //
@@ -15,8 +15,7 @@ public extension BinaryFloatingPoint {
      - Returns: The rounded value.
      */
     func rounded(_ rule: FloatingPointPlacesRoundingRule) -> Self {
-        let divisor = Self(rule.divisor)
-        return (self * divisor).rounded(rule.rounding) / divisor
+        (self * Self(rule.divisor)).rounded(rule.rounding) / Self(rule.divisor)
     }
     
     /**
@@ -25,8 +24,7 @@ public extension BinaryFloatingPoint {
      - Parameter rule: The rounding rule to apply.
      */
     mutating func round(_ rule: FloatingPointPlacesRoundingRule) {
-        let divisor = Self(rule.divisor)
-        self = (self * divisor).rounded(rule.rounding) / divisor
+        self = rounded(rule)
     }
     
     /**
@@ -133,8 +131,7 @@ public enum FloatingPointPlacesRoundingRule {
     
     var places: Int {
         switch self {
-        case let .toPlaces(value), let .toPlacesTowardZero(value):
-            return value
+        case let .toPlaces(places), let .toPlacesTowardZero(places): return Swift.max(0, places)
         }
     }
     

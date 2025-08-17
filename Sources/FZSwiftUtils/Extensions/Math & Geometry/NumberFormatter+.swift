@@ -9,7 +9,6 @@ import CoreGraphics
 import Foundation
 
 public extension NumberFormatter {
-    
     /// Creates an integer number formatter (e.g. "1235").
     static var integer: NumberFormatter {
         NumberFormatter(style: .none)
