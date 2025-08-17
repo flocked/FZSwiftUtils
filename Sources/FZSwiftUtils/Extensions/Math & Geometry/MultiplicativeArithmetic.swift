@@ -19,6 +19,16 @@ public protocol MultiplicativeArithmetic: AdditiveArithmetic {
     static func *= (lhs: inout Self, rhs: Self)
 }
 
+public extension MultiplicativeArithmetic {
+    static func /= (lhs: inout Self, rhs: Self) {
+        lhs = lhs / rhs
+    }
+
+    static func *= (lhs: inout Self, rhs: Self) {
+        lhs = lhs * rhs
+    }
+}
+
 extension Double: MultiplicativeArithmetic {}
 extension Float: MultiplicativeArithmetic {}
 extension CGFloat: MultiplicativeArithmetic {}
