@@ -208,7 +208,7 @@ public extension NSObject {
      - Returns: `true` if updating the iVar value has been sucessfully, else `false`.
      */
     @discardableResult
-    func setIvarValue<T>(of name: String, to value: T) -> Bool {
+    func setIvarValue<T>(_ value: T, of name: String) -> Bool {
         guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
 
         if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
