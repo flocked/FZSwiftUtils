@@ -7,10 +7,10 @@
 
 import Foundation
 import ImageIO
-import simd
 import UniformTypeIdentifiers
 
 public class ImageSource {
+    /// The `CGImageSource`.
     public let cgImageSource: CGImageSource
 
     /// The type identifier of the image source.
@@ -19,8 +19,8 @@ public class ImageSource {
     }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// The UTType of the image source.
-    public var utType: UTType? {
+    /// The content type of the image source.
+    public var contentType: UTType? {
         guard let typeIdentifier = typeIdentifier else { return nil }
         return UTType(typeIdentifier)
     }
@@ -40,7 +40,7 @@ public class ImageSource {
         CGImageSourceGetStatusAtIndex(cgImageSource, index)
     }
 
-    /// Returns the index of the primary image for an HEIF image, or 0 for any other image format.
+    /// Returns the index of the primary image for an HEIF image, or `0` for any other image format.
     public var primaryImageIndex: Int {
         CGImageSourceGetPrimaryImageIndex(cgImageSource)
     }
@@ -72,7 +72,7 @@ public class ImageSource {
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
-    public func getImage(at index: Int = 0, options: ImageOptions? = .init()) -> CGImage? {
+    public func image(at index: Int = 0, options: ImageOptions? = .init()) -> CGImage? {
         CGImageSourceCreateImageAtIndex(cgImageSource, index, options?.dic)
     }
 
@@ -102,9 +102,8 @@ public class ImageSource {
         - completionHandler: A closure the method calls on completion which returns the image at the specified index, or `nil` if an error occurs.
      */
     public func image(at index: Int = 0, options: ImageOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            let image = CGImageSourceCreateImageAtIndex(self.cgImageSource, index, options?.dic)
-            completionHandler(image)
+        DispatchQueue.background.async {
+            completionHandler(self.image(at: index, options: options))
         }
     }
 
@@ -117,7 +116,7 @@ public class ImageSource {
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func getThumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) -> CGImage? {
+    public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) -> CGImage? {
         CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toDictionary().cfDictionary)
     }
 
@@ -147,9 +146,8 @@ public class ImageSource {
         - completionHandler: A closure the method calls on completion which returns the thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
-        DispatchQueue.global(qos: .userInteractive).async {
-            let image = CGImageSourceCreateThumbnailAtIndex(self.cgImageSource, index, options?.toDictionary().cfDictionary)
-            completionHandler(image)
+        DispatchQueue.background.async {
+            completionHandler(self.thumbnail(at: index, options: options))
         }
     }
     
@@ -159,7 +157,8 @@ public class ImageSource {
     }
     
     /// The images of the image source.
-    public func getImages(options: ImageOptions? = .init()) -> [CGImage] {
+    @_disfavoredOverload
+    public func images(options: ImageOptions? = .init()) -> [CGImage] {
         (try? images(options: options).collect()) ?? []
     }
 
@@ -169,7 +168,8 @@ public class ImageSource {
     }
     
     /// The thumbnails of the image source.
-    public func getThumbnails(options: ThumbnailOptions? = .init()) -> [CGImage] {
+    @_disfavoredOverload
+    public func thumbnails(options: ThumbnailOptions? = .init()) -> [CGImage] {
         (try? thumbnails(options: options).collect()) ?? []
     }
 
@@ -179,7 +179,8 @@ public class ImageSource {
     }
     
     /// The image frames of the image source.
-    public func getImageFrames(options: ImageOptions? = .init()) -> [CGImageFrame] {
+    @_disfavoredOverload
+    public func imageFrames(options: ImageOptions? = .init()) -> [CGImageFrame] {
         (try? imageFrames(options: options).collect()) ?? []
     }
 
@@ -189,7 +190,8 @@ public class ImageSource {
     }
     
     /// The thumbnail frames of the image source.
-    public func getThumbnailFrames(options: ThumbnailOptions? = .init()) -> [CGImageFrame] {
+    @_disfavoredOverload
+    public func thumbnailFrames(options: ThumbnailOptions? = .init()) -> [CGImageFrame] {
         (try? thumbnailFrames(options: options).collect()) ?? []
     }
 
@@ -252,18 +254,12 @@ extension ImageSource: Equatable {
 public extension ImageSource {
     /// Returns if the image source is animated (e.g. GIF)
     var isAnimated: Bool {
-        if count > 1, properties(at: 0)?.delayTime != nil {
-            return true
-        }
-        return false
+        count > 1 && properties(at: 0)?.delayTime != nil
     }
 
     /// Returns if the image source is animatable (contains several images)
     var isAnimatable: Bool {
-        if count > 1 {
-            return true
-        }
-        return false
+        count > 1
     }
 
     /// The pixel size of the image source.
@@ -285,17 +281,6 @@ public extension ImageSource {
         guard count > 1 else { return nil }
         let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? 0.0) }
         return (totalDuration != 0.0) ? totalDuration : nil
-    }
-}
-
-extension ImageSource {
-    enum Error: Int32, Swift.Error {
-        case failedThumbnailCreate
-        case failedImageCreate
-        case unexpectedEOF = -5
-        case invalidData = -4
-        case unknownType = -3
-        case incomplete = -1
     }
 }
 

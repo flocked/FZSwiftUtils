@@ -22,7 +22,7 @@ public protocol FileConvertible: Codable {
 
      - Parameters:
         - url: The location to write.
-        - options: Options for writing. Default value is `[]`.
+        - options: Options for writing.
 
      - Throws: If the file couldn't be created.
      */
@@ -46,7 +46,7 @@ public extension FileConvertible {
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
     init(contentsOf path: String) throws {
-        try self.init(contentsOf: URL(fileURLWithPath: path))
+        try self.init(contentsOf: .file(path))
     }
 
     func write(to url: URL, options: Data.WritingOptions = []) throws {
@@ -63,11 +63,11 @@ public extension FileConvertible {
 
      - Parameters:
         - path: The location to write.
-        - options: Options for writing. Default value is `[]`.
+        - options: Options for writing.
 
      - Throws: If the file couldn't be created.
      */
     func write(to path: String, options: Data.WritingOptions = []) throws {
-        try write(to: URL(fileURLWithPath: path), options: options)
+        try write(to: .file(path), options: options)
     }
 }
