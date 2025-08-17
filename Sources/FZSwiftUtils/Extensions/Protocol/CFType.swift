@@ -9,13 +9,24 @@ import Foundation
 import CoreGraphics
 
 /**
- A Core Foundation type.
+ A Core Foundation / Core Graphics type.
  
  This protocol allows extending Core Foundation / Core Graphics with custom initalizers which is normally not allowed.
  */
 public protocol CFType {
     static var typeID: CFTypeID { get }
 }
+
+extension CGColor: CFType { }
+extension CGColorSpace: CFType { }
+extension CGGradient: CFType { }
+extension CGPath: CFType { }
+extension CGImage: CFType { }
+
+#if os(macOS)
+import Carbon
+extension CGEvent: CFType { }
+#endif
 
 extension CFString: CFType {
     public static var typeID: CFTypeID { CFStringGetTypeID() }
@@ -56,44 +67,3 @@ extension CFType {
         self = value as! Self
     }
 }
-
-/**
- A Core Graphics type.
- 
- This protocol allows extending Core Foundation / Core Graphics with custom initalizers which is normally not allowed.
- */
-public protocol CGType {
-    static var typeID: CFTypeID { get }
-}
-
-extension CGType {
-    public init?(_ value: Any) {
-        guard CFGetTypeID(value as AnyObject) == Self.typeID else { return nil }
-        self = (value as AnyObject) as! Self
-    }
-    
-    public init?(_ value: Any?) {
-        guard let value = value as? AnyObject, CFGetTypeID(value) == Self.typeID else { return nil }
-        self = value as! Self
-    }
-}
-
-extension CGColor: CGType { }
-extension CGColorSpace: CGType { }
-extension CGGradient: CGType { }
-extension CGPath: CGType { }
-extension CGImage: CGType { }
-
-#if os(macOS)
-import Carbon
-extension CGEvent: CGType { }
-#endif
-
-/*
-
- */
-
-/*
-
- */
-
