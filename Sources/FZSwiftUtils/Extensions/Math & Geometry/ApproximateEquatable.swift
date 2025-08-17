@@ -87,11 +87,7 @@ public extension Numeric where Magnitude: FloatingPoint {
         - norm: The norm to use for the comparison. Defaults to `\.magnitude`.
      */
     @inlinable @inline(__always)
-    func isApproximatelyEqual(
-        to other: Self,
-        absoluteTolerance: Magnitude,
-        relativeTolerance: Magnitude = 0
-    ) -> Bool {
+    func isApproximatelyEqual(to other: Self, absoluteTolerance: Magnitude, relativeTolerance: Magnitude = 0) -> Bool {
         isApproximatelyEqual(
             to: other,
             absoluteTolerance: absoluteTolerance,
@@ -108,8 +104,7 @@ public extension Numeric where Magnitude: FloatingPoint {
         - epsilon: The margin by which both values can differ and still be considered the same value.
      */
     @inlinable @inline(__always)
-    func isApproximatelyEqual(to other: Self,
-                              epsilon: Magnitude) -> Bool {
+    func isApproximatelyEqual(to other: Self, epsilon: Magnitude) -> Bool {
         isApproximatelyEqual(to: other, absoluteTolerance: epsilon)
     }
 }
@@ -125,22 +120,11 @@ public extension AdditiveArithmetic {
         - norm: The norm to use for the comparison. Defaults is `\.magnitude`.
      */
     @inlinable
-    func isApproximatelyEqual<Magnitude>(
-        to other: Self,
-        absoluteTolerance: Magnitude,
-        relativeTolerance: Magnitude = 0,
-        norm: (Self) -> Magnitude
-    ) -> Bool where Magnitude: FloatingPoint {
-        assert(
-            absoluteTolerance >= 0 && absoluteTolerance.isFinite,
-            "absoluteTolerance should be non-negative and finite, " +
-                "but is \(absoluteTolerance)."
-        )
-        assert(
-            relativeTolerance >= 0 && relativeTolerance <= 1,
-            "relativeTolerance should be non-negative and <= 1, " +
-                "but is \(relativeTolerance)."
-        )
+    func isApproximatelyEqual<Magnitude>(to other: Self, absoluteTolerance: Magnitude, relativeTolerance: Magnitude = 0, norm: (Self) -> Magnitude) -> Bool where Magnitude: FloatingPoint {
+        assert(absoluteTolerance >= 0 && absoluteTolerance.isFinite, "absoluteTolerance should be non-negative and finite, " +
+                "but is \(absoluteTolerance).")
+        assert(relativeTolerance >= 0 && relativeTolerance <= 1,
+            "relativeTolerance should be non-negative and <= 1, " + "but is \(relativeTolerance).")
         if self == other { return true }
         let delta = norm(self - other)
         let scale = max(norm(self), norm(other))

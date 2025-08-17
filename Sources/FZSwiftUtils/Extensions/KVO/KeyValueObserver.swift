@@ -20,14 +20,16 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     public weak var observedObject: Object? {
         willSet {
             guard newValue !== observedObject else { return }
+            _isActive = isActive
             isActive = false
         }
         didSet {
             guard oldValue !== observedObject, observedObject != nil else { return }
-            isActive = true
+            isActive = _isActive
         }
     }
     
+    private var _isActive = false
     private var observations: [String: Observation] = [:]
     
     var isActive: Bool = true {
