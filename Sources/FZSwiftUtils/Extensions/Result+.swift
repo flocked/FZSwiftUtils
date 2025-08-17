@@ -8,12 +8,12 @@
 import Foundation
 
 public extension Result {
-    /// The success value if the result is `.success`, otherwise `nil`.
+    /// The success value if the result is [success(_:)](https://developer.apple.com/documentation/swift/result/success(_:)), otherwise `nil`.
     var value: Success? {
         try? get()
     }
     
-    /// The failure error if the result is `.failure`, otherwise `nil`.
+    /// The failure error if the result is [failure(_:)](https://developer.apple.com/documentation/swift/result/failure(_:)), otherwise `nil`.
     var error: Failure? {
         switch self {
         case .success: return nil

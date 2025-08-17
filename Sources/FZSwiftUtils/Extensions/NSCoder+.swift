@@ -55,7 +55,7 @@ public extension NSCoder {
      - Returns: The decoded object, or `nil` if decoding fails.
      */
     func decode<DecodedObjectType: _ObjectiveCBridgeable>(forKey key: String) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject, DecodedObjectType._ObjectiveCType: NSCoding {
-        guard let obj = self.decodeObject(forKey: key) as? DecodedObjectType._ObjectiveCType else {  return nil }
+        guard let obj = decodeObject(forKey: key) as? DecodedObjectType._ObjectiveCType else {  return nil }
         var result: DecodedObjectType?
         DecodedObjectType._forceBridgeFromObjectiveC(obj, result: &result)
         return result
@@ -387,22 +387,3 @@ public extension NSCoder {
         }
     }
 }
-
-/// A number type that can be used converted to and get from `NSNumber`.
-public protocol NSNumberConvertable: Comparable { 
-    static var zero: Self { get }
-}
-
-extension Int: NSNumberConvertable { }
-extension Int8: NSNumberConvertable { }
-extension Int16: NSNumberConvertable { }
-extension Int32: NSNumberConvertable { }
-extension Int64: NSNumberConvertable { }
-extension UInt: NSNumberConvertable { }
-extension UInt8: NSNumberConvertable { }
-extension UInt16: NSNumberConvertable { }
-extension UInt32: NSNumberConvertable { }
-extension UInt64: NSNumberConvertable { }
-extension Double: NSNumberConvertable { }
-extension Float: NSNumberConvertable { }
-extension CGFloat: NSNumberConvertable { }
