@@ -29,6 +29,26 @@ import Carbon
 extension CGEvent: CFType { }
 #endif
 
+/**
+ A Core Graphics type.
+ 
+ This protocol allows extending Core Foundation / Core Graphics with custom initalizers which is normally not allowed.
+ */
+public protocol CGType {
+    static var typeID: CFTypeID { get }
+}
+
+extension CGColor: CGType { }
+extension CGColorSpace: CGType { }
+extension CGGradient: CGType { }
+extension CGPath: CGType { }
+extension CGImage: CGType { }
+
+#if os(macOS)
+import Carbon
+extension CGEvent: CGType { }
+#endif
+
 /*
 // Core Foundation types
 extension CFString: CFType { }
