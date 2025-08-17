@@ -55,11 +55,11 @@ public extension Bundle {
         contentsDirectoryURL?.appendingPathComponent("Info.plist")
     }
         
-    /// The application info, constructed from the bundle’s `Info.plist` file.
-    var info: ApplicationInfo? {
-        var appInfo: ApplicationInfo? = infoDictionary?.toModel()
-        appInfo?.appBundleURL = bundleURL
-        appInfo?.url = infoURL
+    /// The bundle info, constructed from the bundle’s `Info.plist` file.
+    var info: Info? {
+        guard var appInfo: Info = infoDictionary?.toModel(), let infoURL = infoURL else { return nil }
+        appInfo.bundle = self
+        appInfo.url = infoURL
         return appInfo
     }
         

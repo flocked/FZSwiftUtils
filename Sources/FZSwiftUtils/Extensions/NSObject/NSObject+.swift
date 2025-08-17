@@ -183,7 +183,7 @@ public extension NSObject {
         return false
     }
 
-    /// Returns the value of the Ivar with the specified name.
+    /// Returns the value of the ivar with the specified name.
     func getIvarValue<T>(for name: String) -> T? {
         guard let ivar = class_getInstanceVariable(type(of: self), name) else { return nil }
         let isPrimitive = (T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type)
@@ -200,17 +200,16 @@ public extension NSObject {
     }
     
     /**
-     Sets the value of the Ivar with the specified name.
+     Sets the value of the ivar with the specified name.
      
      - Parameters:
         - name: The name of the ivar.
         - value: The new value for the ivar.
-     - Returns: `true` if updating the iVar value has been sucessfully, else `false`.
+     - Returns: `true` if updating the ivar value has been sucessfully, else `false`.
      */
     @discardableResult
     func setIvarValue<T>(_ value: T, of name: String) -> Bool {
         guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
-
         if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
             let offset = ivar_getOffset(ivar)
             let objectPointer = Unmanaged.passUnretained(self).toOpaque()
@@ -239,7 +238,7 @@ public extension NSObject {
     
     /// Returns an array of all superclasses of the class, in order from immediate superclass up to `NSObject`.
     class var superclasses: [AnyClass] {
-        Array(sequence(first: superclass(), next: { $0?.superclass() })).nonNil
+        Array(first: superclass(), next: { $0?.superclass() }).nonNil
     }
     
     /**
@@ -254,18 +253,15 @@ public extension NSObject {
     class func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
         var visited = Set<String>()
         var result: [Protocol] = []
-        
         for cls in includeSuperclasses ? [self] + superclasses : [self] {
             var count: UInt32 = 0
             if let protocolList = class_copyProtocolList(cls, &count) {
                 for i in 0..<Int(count) {
                     let proto = protocolList[i]
-                    let name = NSStringFromProtocol(proto)
-                    if visited.insert(name).inserted {
-                        result.append(proto)
-                        if includeInheritedProtocols {
-                            appendInheritedProtocols(of: proto, into: &result, visited: &visited)
-                        }
+                    guard visited.insert(NSStringFromProtocol(proto)).inserted else { continue }
+                    result += proto
+                    if includeInheritedProtocols {
+                        appendInheritedProtocols(of: proto, into: &result, visited: &visited)
                     }
                 }
             }
@@ -276,15 +272,12 @@ public extension NSObject {
 
     private class func appendInheritedProtocols(of proto: Protocol, into result: inout [Protocol], visited: inout Set<String>) {
         var count: UInt32 = 0
-        if let inherited = protocol_copyProtocolList(proto, &count) {
-            for i in 0..<Int(count) {
-                let inheritedProto = inherited[i]
-                let name = NSStringFromProtocol(inheritedProto)
-                if visited.insert(name).inserted {
-                    result.append(inheritedProto)
-                    appendInheritedProtocols(of: inheritedProto, into: &result, visited: &visited)
-                }
-            }
+        guard let inherited = protocol_copyProtocolList(proto, &count) else { return }
+        for i in 0..<Int(count) {
+            let proto = inherited[i]
+            guard visited.insert(NSStringFromProtocol(proto)).inserted else { continue }
+            result += proto
+            appendInheritedProtocols(of: proto, into: &result, visited: &visited)
         }
     }
     
@@ -327,13 +320,22 @@ public extension NSObject {
 
     /// Returns all classes.
     static func allClasses() -> [AnyClass] {
+        if let allClasses = _allClasses {
+            return allClasses
+        }
         let expectedClassCount = objc_getClassList(nil, 0) * 2
         let allClasses = UnsafeMutablePointer<AnyClass>.allocate(capacity: Int(expectedClassCount))
         let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)
         let actualClassCount = objc_getClassList(autoreleasingAllClasses, expectedClassCount)
         let classes = (0 ..< min(actualClassCount, expectedClassCount)).map({ allClasses[Int($0)] })
         allClasses.deallocate()
+        _allClasses = classes
         return classes
+    }
+    
+    private static var _allClasses: [AnyClass]? {
+        get { getAssociatedValue("allClasses") }
+        set { setAssociatedValue(newValue, key: "allClasses") }
     }
     
     /// Returns all subclasses for the specified class.
@@ -341,14 +343,13 @@ public extension NSObject {
         var matches: [T] = []
         for currentClass in allClasses() {
             #if os(macOS)
-            let skip = String(describing: currentClass) == "UINSServiceViewController"
+            let skip = NSStringFromClass(currentClass) == "UINSServiceViewController"
             #else
             let skip = false
             #endif
             guard class_getRootSuperclass(currentClass) == NSObject.self, !skip, currentClass is T else { continue }
             matches.append(currentClass as! T)
         }
-
         return matches
     }
     
@@ -478,7 +479,13 @@ extension Protocol {
     }
 }
 
-fileprivate func class_getRootSuperclass(_ type: AnyObject.Type) -> AnyObject.Type {
-    guard let superclass = class_getSuperclass(type), superclass != type else { return type }
+/**
+ Returns the root superclass of a class.
+ 
+ - Parameter cls: A class object.
+ - Returns: The root superclass of the class.
+ */
+public func class_getRootSuperclass(_ cls: AnyClass) -> AnyClass {
+    guard let superclass = class_getSuperclass(cls), superclass != cls else { return cls }
     return class_getRootSuperclass(superclass)
 }
