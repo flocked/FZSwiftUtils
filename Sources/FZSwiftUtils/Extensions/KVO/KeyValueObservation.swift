@@ -104,7 +104,7 @@ public class KeyValueObservation: NSObject {
                     object._isOnActiveSpace = object.isOnActiveSpace } ] }
         case ("inLiveResize", let object as NSView) where Value.self is Bool.Type:
             do {
-                observer = HookObserver(object: object, keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
+                observer = HookObserver(keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
                     handler(false as! Value, true as! Value)
                 }, try object.hookAfter(#selector(NSView.viewDidEndLiveResize)) { handler(true as! Value, false as! Value) }])
             } catch {
@@ -112,14 +112,14 @@ public class KeyValueObservation: NSObject {
             }
         case ("backgroundStyle", let obj as NSControl) where obj.cell != nil && Value.self is NSView.BackgroundStyle.Type:
             guard let hook = obj.cell!.hookBackgroundStyle(uniqueValues, handler) else { return nil }
-            observer = HookObserver(object: object, keyPath: keyPathString, hooks: [hook])
+            observer = HookObserver(keyPath: keyPathString, hooks: [hook])
         case ("backgroundStyle", let obj as NSCell) where Value.self is NSView.BackgroundStyle.Type:
             guard let hook = obj.hookBackgroundStyle(uniqueValues, handler) else { return nil }
-            observer = HookObserver(object: object, keyPath: keyPathString, hooks: [hook])
+            observer = HookObserver(keyPath: keyPathString, hooks: [hook])
         case ("subviews", let object as NSView) where Value.self is [NSView].Type:
             do {
                 let id = UUID().uuidString
-                observer = HookObserver(object: object, keyPath: keyPathString, hooks: [
+                observer = HookObserver(keyPath: keyPathString, hooks: [
                     try object.hookAfter(set: \.subviews) { view, oldSubviews, subviews in
                         view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
                         guard !uniqueValues || oldSubviews != subviews else { return }
@@ -165,7 +165,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value>(_ object: Object, writableKeyPath: WritableKeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        guard let observer = HookKeyPathObserver(object: object, keyPath: writableKeyPath, handler: handler) else { return nil }
+        guard let observer = HookObserver(object: object, keyPath: writableKeyPath, handler: handler) else { return nil }
         self.observer = observer
         guard sendInitalValue else { return }
         let value = object[keyPath: writableKeyPath]
@@ -173,7 +173,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value: Equatable>(_ object: Object, writableKeyPath: WritableKeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        guard let observer = HookKeyPathObserver(object: object, keyPath: writableKeyPath, uniqueValues: uniqueValues, handler: handler) else { return nil }
+        guard let observer = HookObserver(object: object, keyPath: writableKeyPath, uniqueValues: uniqueValues, handler: handler) else { return nil }
         self.observer = observer
         guard sendInitalValue else { return }
         let value = object[keyPath: writableKeyPath]
@@ -186,6 +186,11 @@ public class KeyValueObservation: NSObject {
             guard change.isPrior, let oldValue = change.oldValue else { return }
             handler(oldValue)
         }
+    }
+    
+    init?<Object: NSObject, Value>(_ object: Object, writableKeyPath: WritableKeyPath<Object, Value>, handler: @escaping (Value) -> Void) {
+        guard let observer = HookObserver(object: object, keyPath: writableKeyPath, willChange: handler) else { return nil }
+        self.observer = observer
     }
     
     init<Object: NSObject, Value>(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
@@ -290,8 +295,7 @@ private extension KeyValueObservation {
         }
     }
     
-    class HookObserver<Object: NSObject>: NSObject, KVObserver {
-        weak var object: Object?
+    class HookObserver: NSObject, KVObserver {
         let keyPathString: String
         var hooks: [Hook] = []
         
@@ -304,100 +308,16 @@ private extension KeyValueObservation {
             isActive = false
         }
         
-        init(object: Object, keyPath: String, hooks: [Hook]) {
-            self.object = object
+        init(keyPath: String, hooks: [Hook]) {
             self.keyPathString = keyPath
             self.hooks = hooks
         }
         
-        init<Value>(object: Object, keyPath: WritableKeyPath<Object, Value>, willChange: Bool = false, closure: @escaping (_ oldValue: Value, _ newValue: Value)->()) throws {
-            self.object = object
+        init?<Object: NSObject, Value>(object: Object, keyPath: WritableKeyPath<Object, Value>, handler: @escaping (Value, Value) -> Void) {
+            guard keyPath.stringValue.components(separatedBy: ".").count == 1 else { return nil }
             self.keyPathString = keyPath.stringValue
-            if willChange {
-                self.hooks += try object.hookBefore(set: keyPath) { object, value in
-                    closure(object[keyPath: keyPath], value)
-                }
-            } else {
-                self.hooks += try object.hook(set: keyPath) { object, value, original in
-                    let current = object[keyPath: keyPath]
-                    original(value)
-                    closure(current, value)
-                }
-            }
-        }
-        
-        init<Value>(object: Object, keyPath: WritableKeyPath<Object, Value>, willChange: Bool = false, uniqueValues: Bool, closure: @escaping (_ oldValue: Value, _ newValue: Value)->()) throws where Value: Equatable {
-            self.object = object
-            if uniqueValues {
-                if willChange {
-                    self.hooks += try object.hookBefore(set: keyPath) { object, value in
-                        let oldValue = object[keyPath: keyPath]
-                        guard value != oldValue else { return }
-                        closure(oldValue, value)
-                    }
-                } else {
-                    self.hooks += try object.hook(set: keyPath) { object, value, original in
-                        let current = object[keyPath: keyPath]
-                        original(value)
-                        guard current != value else { return }
-                        closure(current, value)
-                    }
-                }
-            } else {
-                if willChange {
-                    self.hooks += try object.hookBefore(set: keyPath) { object, value in
-                        closure(object[keyPath: keyPath], value)
-                    }
-                } else {
-                    self.hooks += try object.hook(set: keyPath) { object, value, original in
-                        let current = object[keyPath: keyPath]
-                        original(value)
-                        closure(current, value)
-                    }
-                }
-            }
-            self.keyPathString = keyPath.stringValue
-        }
-    }
-    
-    class HookKeyPathObserver<Object: NSObject, Value>: NSObject, KVObserver {
-        weak var object: Object?
-        let keyPath: WritableKeyPath<Object, Value>
-        var hook: Hook?
-        let handler: (Value, Value)->()
-        let uniqueValues: Bool
-        let keyPathString: String
-        
-        var isActive: Bool {
-            get { hook != nil }
-            set {
-                guard newValue != isActive, let object = object else { return }
-                if newValue {
-                    activate()
-                } else {
-                    try? hook?.revert()
-                    hook = nil
-                }
-            }
-        }
-        
-        func activate() {
-            guard let object = object else { return }
-            self.hook = Self.hook(object, keyPath: keyPath, handler: handler)
-        }
-        
-        func activate() where Value: Equatable {
-            guard let object = object else { return }
-            self.hook = Self.hook(object, keyPath: keyPath, uniqueValues: uniqueValues, handler: handler)
-        }
-        
-        deinit {
-            isActive = false
-        }
-        
-        static func hook(_ object: Object, keyPath: WritableKeyPath<Object, Value>, handler: @escaping (Value, Value)->()) -> Hook? {
             do {
-                return try object.hook(set: keyPath) { object, newValue, original in
+                self.hooks += try object.hook(set: keyPath) { object, newValue, original in
                     let oldValue = object[keyPath: keyPath]
                     original(newValue)
                     handler(oldValue, newValue)
@@ -408,9 +328,11 @@ private extension KeyValueObservation {
             }
         }
         
-        static func hook(_ object: Object, keyPath: WritableKeyPath<Object, Value>, uniqueValues: Bool, handler: @escaping (Value, Value)->()) -> Hook? where Value: Equatable {
+        init?<Object: NSObject, Value>(object: Object, keyPath: WritableKeyPath<Object, Value>, uniqueValues: Bool = true, handler: @escaping (Value, Value) -> Void) where Value: Equatable {
+            guard keyPath.stringValue.components(separatedBy: ".").count == 1 else { return nil }
+            self.keyPathString = keyPath.stringValue
             do {
-                return try object.hook(set: keyPath) { object, newValue, original in
+                self.hooks += try object.hook(set: keyPath) { object, newValue, original in
                     let oldValue = object[keyPath: keyPath]
                     original(newValue)
                     guard !uniqueValues || oldValue != newValue else { return }
@@ -421,30 +343,20 @@ private extension KeyValueObservation {
                 return nil
             }
         }
-
-        init?(object: Object, keyPath: WritableKeyPath<Object, Value>, handler: @escaping (Value, Value) -> Void) {
-            guard keyPath.stringValue.components(separatedBy: ".").count == 1 else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.handler = handler
-            self.uniqueValues = false
-            self.keyPathString = keyPath.stringValue
-            guard let hook = Self.hook(object, keyPath: keyPath, handler: handler) else { return nil }
-            self.hook = hook
-        }
         
-        init?(object: Object, keyPath: WritableKeyPath<Object, Value>, uniqueValues: Bool = true, handler: @escaping (Value, Value) -> Void) where Value: Equatable {
+        init?<Object: NSObject, Value>(object: Object, keyPath: WritableKeyPath<Object, Value>, willChange: @escaping (Value) -> Void) {
             guard keyPath.stringValue.components(separatedBy: ".").count == 1 else { return nil }
-            self.object = object
-            self.keyPath = keyPath
-            self.handler = handler
-            self.uniqueValues = uniqueValues
             self.keyPathString = keyPath.stringValue
-            guard let hook = Self.hook(object, keyPath: keyPath, uniqueValues: uniqueValues, handler: handler) else { return nil }
-            self.hook = hook
+            do {
+                self.hooks += try object.hookBefore(set: keyPath) { object, newValue in
+                    willChange(object[keyPath: keyPath])
+                }
+            } catch {
+                Swift.print(error)
+                return nil
+            }
         }
     }
-
     
     class NotificationObserver<Object: NSObject>: NSObject, KVObserver {
         weak var object: Object?

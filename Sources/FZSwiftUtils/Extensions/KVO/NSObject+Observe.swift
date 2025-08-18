@@ -192,6 +192,31 @@ extension NSObjectProtocol where Self: NSObject {
     public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, handler: handler)
     }
+    
+    /**
+     Observes will change for the specified property.
+     
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+
+     Example usage:
+     
+     ```swift
+     let label = UILabel()
+     let observation = label.observeWillChange(for: \.text) {
+     oldValue in
+        // handle will change
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - handler: A closure that will be called when the property value changes. It takes the old value.
+     
+     - Returns: A ``KeyValueObservation`` object representing the observation.
+     */
+    public func observeWillChange<Value>(_ keyPath: WritableKeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, handler: handler)
+    }
 }
 
 extension NSObjectProtocol where Self: NSObject {
@@ -257,7 +282,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeWillChange<Value>(_ keyPath: String, type: Value.Type, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation {
+    public func observeWillChange<Value>(_ keyPath: String, type: Value.Type, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, willChange: handler)
     }
 }
