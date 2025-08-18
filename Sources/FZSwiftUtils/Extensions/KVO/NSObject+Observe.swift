@@ -36,6 +36,10 @@ extension NSObjectProtocol where Self: NSObject {
         KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
     }
     
+    public func observeChanges<Value>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, writableKeyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
+    }
+    
     /**
      Observes changes for the specified property.
      
@@ -59,6 +63,32 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        observeChanges(for: keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    }
+    
+    /**
+     Observes changes for the specified property.
+     
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     
+     Example usage:
+     
+     ```swift
+     let label = UILabel()
+     let observation = label.observeChanges(for: \.text) {
+     oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path of the property to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: A ``KeyValueObservation`` object representing the observation.
+     */
+    public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         observeChanges(for: keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
     }
     
@@ -87,6 +117,33 @@ extension NSObjectProtocol where Self: NSObject {
      */
     public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+    }
+    
+    /**
+     Observes changes for a property identified by the given key path.
+     
+     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     
+     Example usage:
+     
+     ```swift
+     let label = UILabel()
+     let observation = label.observeChanges(for: \.text, uniqueValues: true) {
+     oldValue, newValue in
+        // handle changed value
+     }
+     ```
+     
+     - Parameters:
+        -  keyPath: The key path of the property to observe.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
+        - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
+     
+     - Returns: A ``KeyValueObservation`` object representing the observation.
+     */
+    public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, writableKeyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
     }
     
     /**

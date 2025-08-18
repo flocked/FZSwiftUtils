@@ -647,6 +647,22 @@ public extension CGRect {
         CGRect(origin.rounded(rule), size.rounded(rule))
     }
     
+    /**
+     Returns a rectangle clamped so that it lies entirely within the given rectangle.
+     
+     If the receiver extends beyond the bounds of `rect`, its origin and size are adjusted so that the result is cropped to fit inside. If there is no overlap at all, the result is an empty rectangle.
+     
+     - Parameter rect: The bounding rectangle to clamp into.
+     - Returns: A new `CGRect` fully contained within `rect`.
+     */
+    func clamped(to rect: CGRect) -> CGRect {
+        let newX = max(minX, rect.minX)
+        let newY = max(minY, rect.minY)
+        let newWidth = max(0, min(maxX, rect.maxX) - newX)
+        let newHeight = max(0, min(maxY, rect.maxY) - newY)
+        return CGRect(x: newX, y: newY, width: newWidth, height: newHeight)
+    }
+    
     /// Clamps the rectangle to the specified minimum size.
     func clamped(minSize: CGSize) -> CGRect {
         CGRect(origin, size.clamped(min: minSize))
