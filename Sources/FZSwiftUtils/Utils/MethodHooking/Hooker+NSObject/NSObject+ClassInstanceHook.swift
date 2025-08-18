@@ -212,12 +212,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookBefore(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    static func hookBefore(all selector: Selector, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookBefore(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    static func hookBefore(all selector: String, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookBefore(selector, closure: closure)
     }
     
@@ -242,12 +242,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: The token of this hook behavior. You may cancel this hook through this token.
      */
     @discardableResult
-    static func hookAfter(all selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    static func hookAfter(all selector: Selector, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookAfter(all selector: String, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    static func hookAfter(all selector: String, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ClassInstanceHook(self).hookAfter(selector, closure: closure)
     }
     

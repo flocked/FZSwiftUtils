@@ -23,13 +23,8 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
-     }
-     
-     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:))) {
+     let label = UILabel()
+     try label.hookBefore(#selector(setter: UILabel.text) {
         print("hooked before")
      }
      ```
@@ -56,15 +51,10 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
+     let label = UILabel()
+     try label.hookBefore(#selector(setter: UILabel.text) { object, selector, newText
+        print("hooked before with \(newText)")
      }
-     
-     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:)), closure: { object, selector, num1, num2 in
-         print("hooked before sum with \(n1), \(n2)")
-     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
      - parameter selector: The method you want to hook on.
      - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
@@ -88,15 +78,10 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
+     let label = UILabel()
+     try label.hookAfter(#selector(setter: UILabel.text) {
+        print("hooked after")
      }
-     
-     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:)), closure: { object, selector, num1, num2 in
-         print("hooked before sum with \(n1), \(n2)")
-     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
 
      - parameter selector: The method you want to hook on.
@@ -123,15 +108,10 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
+     let label = UILabel()
+     try label.hookAfter(#selector(setter: UILabel.text) { object, selector, newText
+        print("hooked after with \(newText)")
      }
-     
-     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:)), closure: { object, selector, num1, num2 in
-     print("hooked after sum with \(n1), \(n2)")
-     } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
      - parameter selector: The method you want to hook on.
      - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
@@ -198,14 +178,9 @@ public extension NSObjectProtocol where Self: NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
-     }
-     
-     try MyObject().hookBefore(#selector(MyObject.sum(with:number2:))) { obj, sel in
-         print("before sum of \(obj)")
+     let label = UILabel()
+     try label.hookBefore(#selector(setter: UILabel.text) { object, selector in
+        print("before set text of \(object)")
      }
      ```
      - parameter selector: The method you want to hook on.
@@ -215,12 +190,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Note: The object will retain the closure. Avoid retain cycles.
      */
     @discardableResult
-    func hookBefore(_ selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    func hookBefore(_ selector: Selector, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ObjectHook(self).hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    func hookBefore(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    func hookBefore(_ selector: String, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ObjectHook(self).hookBefore(selector, closure: closure)
     }
     
@@ -230,14 +205,9 @@ public extension NSObjectProtocol where Self: NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-         func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
-     }
-     
-     try MyObject().hookAfter(#selector(MyObject.sum(with:number2:))) { obj, sel in
-         print("after sum of \(obj)")
+     let label = UILabel()
+     try label.hookAfter(#selector(setter: UILabel.text) { object, selector in
+        print("after set text of \(object)")
      }
      ```
      - parameter selector: The method you want to hook on.
@@ -247,12 +217,12 @@ public extension NSObjectProtocol where Self: NSObject {
      - Note: The object will retain the closure. Avoid retain cycles.
      */
     @discardableResult
-    func hookAfter(_ selector: Selector, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    func hookAfter(_ selector: Selector, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ObjectHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    func hookAfter(_ selector: String, closure: @escaping (Self, Selector) -> Void) throws -> Hook {
+    func hookAfter(_ selector: String, closure: @escaping (_ object: Self, _ selector: Selector) -> Void) throws -> Hook {
         try ObjectHook(self).hookAfter(selector, closure: closure)
     }
     
@@ -262,17 +232,17 @@ public extension NSObjectProtocol where Self: NSObject {
      Example usage:
      
      ```swift     
-     try! object.hookDeInitBefore { obj in
-        print("before dealloc of \(obj)")
+     try! object.hookDeInitBefore { object in
+        print("before dealloc of \(object)")
      }
      ```
-     - parameter closureObj: The hook closure. Parameter: `(Self) -> Void`.
+     - parameter closure: The hook closure. Parameter: `(Self) -> Void`.
      - returns: The token of this hook. You may cancel or reapply the hook through the token.
      
      - Note: The object will retain the closure. Avoid retain cycles. Do not capture strong references to the object.
      */
     @discardableResult
-    func hookDeInitBefore(_ closure: @escaping (Self) -> Void) throws -> Hook {
+    func hookDeInitBefore(_ closure: @escaping (_ object: Self) -> Void) throws -> Hook {
         try ObjectHook(self).hookDeInitBefore(closure: closure)
     }
 }
