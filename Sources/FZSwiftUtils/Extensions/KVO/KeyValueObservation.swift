@@ -48,7 +48,7 @@ public class KeyValueObservation: NSObject {
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
         guard keyPath._kvcKeyPathString != nil else { return nil }
-        observer = Observer(object, keyPath: keyPath) { change in
+        observer = KeyPathObserver(object, keyPath: keyPath) { change in
             guard let new = change.newValue else { return }
             if let old = change.oldValue {
                 handler(old, new)
@@ -147,7 +147,7 @@ public class KeyValueObservation: NSObject {
         if observer == nil, keyPath.kvcStringValue == nil {
             return nil
         }
-        observer = observer ?? Observer(object, keyPath: keyPath) { change in
+        observer = observer ?? KeyPathObserver(object, keyPath: keyPath) { change in
             guard let new = change.newValue else { return }
             if let old = change.oldValue {
                 if !uniqueValues || old != new {
@@ -182,7 +182,7 @@ public class KeyValueObservation: NSObject {
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
         guard keyPath._kvcKeyPathString != nil else { return nil }
-        observer = Observer(object, keyPath: keyPath, options: [.old, .prior]) { change in
+        observer = KeyPathObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
             guard change.isPrior, let oldValue = change.oldValue else { return }
             handler(oldValue)
         }
@@ -194,14 +194,14 @@ public class KeyValueObservation: NSObject {
     }
     
     init<Object: NSObject, Value>(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
-        observer = TypedObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
+        observer = TypedKeyPathObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
             guard let newValue = change.newValue as? Value else { return }
             handler(change.oldValue as? Value ?? newValue, newValue)
         }
     }
     
     init<Object: NSObject, Value: Equatable>(_ object: Object, keyPath: String, initial: Bool = false, uniqueValues: Bool = true, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
-        observer = TypedObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
+        observer = TypedKeyPathObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
             guard let new = change.newValue as? Value else { return }
             if let old = change.oldValue as? Value {
                 if !uniqueValues || old != new {
@@ -214,7 +214,7 @@ public class KeyValueObservation: NSObject {
     }
     
     init<Object: NSObject, Value>(_ object: Object, keyPath: String, willChange: @escaping (_ oldValue: Value)->()) {
-        observer = TypedObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
+        observer = TypedKeyPathObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
             guard change.isPrior, let oldValue = change.oldValue as? Value else { return }
             willChange(oldValue)
         }
@@ -222,7 +222,8 @@ public class KeyValueObservation: NSObject {
 }
 
 private extension KeyValueObservation {
-    class Observer<Object: NSObject, Value>: NSObject, KVObserver {
+    /// Observes a property at a specific key path.
+    class KeyPathObserver<Object: NSObject, Value>: NSObject, KVObserver {
         weak var object: Object?
         let keyPath: KeyPath<Object, Value>
         var keyPathString: String { keyPath._kvcKeyPathString ?? "" }
@@ -259,7 +260,9 @@ private extension KeyValueObservation {
             isActive = false
         }
     }
-    class TypedObserver: NSObject, KVObserver {
+    
+    /// Observes a property at a specific key path.
+    class TypedKeyPathObserver: NSObject, KVObserver {
         weak var object: NSObject?
         let keyPath: String
         var keyPathString: String { keyPath }
@@ -295,6 +298,7 @@ private extension KeyValueObservation {
         }
     }
     
+    /// Hooks a property and observes changes to it.
     class HookObserver: NSObject, KVObserver {
         let keyPathString: String
         var hooks: [Hook] = []
@@ -358,6 +362,7 @@ private extension KeyValueObservation {
         }
     }
     
+    /// Observes a notidication.
     class NotificationObserver<Object: NSObject>: NSObject, KVObserver {
         weak var object: Object?
         let handler: (Object)->([NotificationToken])
