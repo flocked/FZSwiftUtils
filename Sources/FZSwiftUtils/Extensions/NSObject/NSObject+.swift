@@ -357,22 +357,29 @@ public extension NSObject {
     
     /// Returns all subclasses for the specified class.
     static func allSubclasses<T>(of baseClass: T) -> [T] {
-        var matches: [T] = []
-        for currentClass in allClasses() {
+        allClasses().filter({ cls in
             #if os(macOS)
-            let skip = NSStringFromClass(currentClass) == "UINSServiceViewController"
-            #else
-            let skip = false
+            if NSStringFromClass(cls) != "UINSServiceViewController" { return false }
             #endif
-            guard class_getRootSuperclass(currentClass) == NSObject.self, !skip, currentClass is T else { continue }
-            matches.append(currentClass as! T)
-        }
-        return matches
+            return class_getRootSuperclass(cls) == NSObject.self && cls is T
+        }).map({ $0 as! T })
     }
     
     /// Returns all clases implementing the specified protocol.
     static func allClasses(implementing _protocol: Protocol) -> [AnyClass] {
         allClasses().filter({ class_conformsToProtocol($0, _protocol) })
+    }
+}
+
+extension Protocol {
+    /// Returns all classes impelementing the protocol.
+    public func allClasses() -> [AnyClass] {
+        NSObject.allClasses(implementing: self)
+    }
+    
+    /// The name of the protocol.
+    public var name: String {
+        NSStringFromProtocol(self)
     }
 }
 
@@ -411,9 +418,9 @@ extension NSObjectProtocol where Self: NSObject {
         removeObserver(observer, forKeyPath: keypathString, context: context)
     }
     
-    /// Returns all subclasses for the class.
+    /// Returns all subclasses of the class.
     public static func allSubclasses() -> [Self.Type] {
-        NSObject.allSubclasses(of: self)
+        allSubclasses(of: self)
     }
 }
 
