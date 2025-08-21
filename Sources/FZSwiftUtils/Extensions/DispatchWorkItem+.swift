@@ -19,8 +19,7 @@ extension DispatchWorkItem {
         DispatchQueue.main.async(after: delay, execute: self)
         return self
     }
-    
-    
+        
     /// Executes the work item's block asynchronously on the main thread at the specified date.
     @discardableResult
     public func perform(at date: Date) -> Self {
@@ -34,7 +33,6 @@ extension DispatchWorkItem {
         queue.async(after: delay, execute: self)
         return self
     }
-    
     
     /// Executes the work item's block asynchronously on the given thread  at the specified date.
     @discardableResult
