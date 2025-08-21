@@ -85,22 +85,22 @@ public extension DispatchQueue {
     }
     
     /// The global system queue for maintenance or cleanup tasks that you create.
-    static var background: DispatchQueue {
+    class var background: DispatchQueue {
         .global(qos: .background)
     }
     
     /// The global system queue for tasks that the user does not track actively.
-    static var utility: DispatchQueue {
+    class var utility: DispatchQueue {
         .global(qos: .utility)
     }
     
     /// The global system queue for tasks that prevent the user from actively using your app.
-    static var userInitiated: DispatchQueue {
+    class var userInitiated: DispatchQueue {
         .global(qos: .userInitiated)
     }
     
     /// The global system queue for user-interactive tasks, such as animations, event handling, or updating your app’s user interface.
-    static var userInteractive: DispatchQueue {
+    class var userInteractive: DispatchQueue {
         .global(qos: .userInteractive)
     }
 }
@@ -122,7 +122,7 @@ extension DispatchQueue {
 
      - Parameter queue: The dispatch queue to register.
      */
-    public static func registerDetection(of queue: DispatchQueue) {
+    public class func registerDetection(of queue: DispatchQueue) {
         _registerDetection(of: [queue], key: key)
     }
     
@@ -133,14 +133,14 @@ extension DispatchQueue {
      
      A dispatch queues needs to be registered first using ``registerDetection(of:)`` in order to be detectable. By default, the system queues (`.main`, and all global QoS queues) are automatically registered.
      */
-    public static var current: DispatchQueue? { getSpecific(key: key)?.queue }
+    public class var current: DispatchQueue? { getSpecific(key: key)?.queue }
     
     /**
      A Boolean value indicating whether the current code is executing on the specified dispatch queue.
      
      - Note: The dispatch queue must first be registered using ``registerDetection(of:)`` in order to be detectable.
      */
-    public static func isExecuting(in queue: DispatchQueue) -> Bool {
+    public class func isExecuting(in queue: DispatchQueue) -> Bool {
         DispatchQueue.current == queue
     }
     
@@ -217,7 +217,7 @@ extension DispatchQueue {
     }
 }
 
-extension DispatchQueue {
+public extension DispatchQueue {
     /**
      Submits a single block to the dispatch queue and causes the block to be executed the specified number of times.
      
@@ -230,7 +230,7 @@ extension DispatchQueue {
         - completion: A handler to execute when all iterations finished.
      */
     @_disfavoredOverload
-    public class func concurrentPerform(iterations: Int, execute work: ((_ iteration: Int) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
+    class func concurrentPerform(iterations: Int, execute work: ((_ iteration: Int) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
         guard progress != nil || completion != nil else {
             DispatchQueue.concurrentPerform(iterations: iterations, execute: work)
             return
@@ -284,7 +284,7 @@ extension DispatchQueue {
      })
      ```
      */
-    public class func concurrentPerform<C: RandomAccessCollection>(_ collection: C, execute work: ((_ element: C.Element) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
+   class func concurrentPerform<C: RandomAccessCollection>(_ collection: C, execute work: ((_ element: C.Element) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
         concurrentPerform(iterations: collection.count, execute: { index in
             work(collection[collection.index(collection.startIndex, offsetBy: index)])
         }, progress: progress, completion: completion)
@@ -316,7 +316,7 @@ extension DispatchQueue {
      })
      ```
      */
-    public class func concurrentPerform<S: Sequence>(_ sequence: S, execute work: ((_ element: S.Element) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
+    class func concurrentPerform<S: Sequence>(_ sequence: S, execute work: ((_ element: S.Element) -> Void), progress: ((_ finished: Int)->())? = nil, completion: (()->())? = nil) {
         concurrentPerform(Array(sequence), execute: work, progress: progress, completion: completion)
     }
 }

@@ -7,56 +7,39 @@
 
 import Foundation
 
-extension DispatchWorkItem {    
-    /// Executes the work item's block asynchronously on the background thread.
-    @discardableResult
-    public func performBackground(qos: DispatchQoS.QoSClass = .default) -> Self {
-        DispatchQueue.global(qos: qos).async(execute: self)
-        return self
+extension DispatchWorkItem {
+    /// Executes the work item’s block synchronously on the specified thread.
+    public func perform(on queue: DispatchQueue) {
+        queue.sync(execute: self)
     }
     
     /// Executes the work item's block asynchronously on the main thread after the specified delay.
     @discardableResult
-    public func perform(after delay: TimeInterval) -> Self {
-        DispatchQueue.main.async(after: .seconds(delay), execute: self)
-        return self
-    }
-    
-    /// Executes the work item's block asynchronously on the main thread after the specified delay.
-    @discardableResult
-    @_disfavoredOverload
     public func perform(after delay: TimeDuration) -> Self {
         DispatchQueue.main.async(after: delay, execute: self)
         return self
     }
     
-    /// Executes the work item's block asynchronously on the background thread after the specified delay.
-    @discardableResult
-    public func performBackground(after delay: TimeInterval, qos: DispatchQoS.QoSClass = .default) -> Self {
-        DispatchQueue.global(qos: qos).async(after: delay, execute: self)
-        return self
-    }
     
-    /// Executes the work item's block asynchronously on the background thread after the specified delay.
-    @discardableResult
-    @_disfavoredOverload
-    public func performBackground(after delay: TimeDuration, qos: DispatchQoS.QoSClass = .default) -> Self {
-        DispatchQueue.global(qos: qos).async(after: delay, execute: self)
-        return self
-    }
-    
-    
-    /// Executes the work item's block asynchronously on the main thread after at the specified date.
+    /// Executes the work item's block asynchronously on the main thread at the specified date.
     @discardableResult
     public func perform(at date: Date) -> Self {
         DispatchQueue.main.async(at: date, execute: self)
         return self
     }
     
-    /// Executes the work item's block asynchronously on the background thread at the specified date.
+    /// Executes the work item's block asynchronously on the given thread after the specified delay.
     @discardableResult
-    public func performBackground(at date: Date, qos: DispatchQoS.QoSClass = .default) -> Self {
-        DispatchQueue.global(qos: qos).async(at: date, execute: self)
+    public func perform(after delay: TimeDuration, on queue: DispatchQueue) -> Self {
+        queue.async(after: delay, execute: self)
+        return self
+    }
+    
+    
+    /// Executes the work item's block asynchronously on the given thread  at the specified date.
+    @discardableResult
+    public func perform(at date: Date, on queue: DispatchQueue) -> Self {
+        queue.async(at: date, execute: self)
         return self
     }
 }
