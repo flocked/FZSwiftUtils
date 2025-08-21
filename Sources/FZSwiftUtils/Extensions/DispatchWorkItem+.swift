@@ -24,6 +24,14 @@ extension DispatchWorkItem {
         DispatchQueue.main.async(after: delay, execute: self)
         return self
     }
+    
+    /// Executes the work item's block asynchronously on the main thread after the specified delay.
+    @_disfavoredOverload
+    @discardableResult
+    public func perform(after delay: TimeInterval) -> Self {
+        DispatchQueue.main.async(after: delay, execute: self)
+        return self
+    }
         
     /// Executes the work item's block asynchronously on the main thread at the specified date.
     @discardableResult
@@ -35,6 +43,14 @@ extension DispatchWorkItem {
     /// Executes the work item's block asynchronously on the given thread after the specified delay.
     @discardableResult
     public func perform(after delay: TimeDuration, on queue: DispatchQueue) -> Self {
+        queue.async(after: delay, execute: self)
+        return self
+    }
+    
+    /// Executes the work item's block asynchronously on the given thread after the specified delay.
+    @_disfavoredOverload
+    @discardableResult
+    public func perform(after delay: TimeInterval, on queue: DispatchQueue) -> Self {
         queue.async(after: delay, execute: self)
         return self
     }
