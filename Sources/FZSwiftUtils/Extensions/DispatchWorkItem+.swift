@@ -13,6 +13,11 @@ extension DispatchWorkItem {
         queue.sync(execute: self)
     }
     
+    /// Executes the work item’s block asynchronously on the specified thread.
+    public func performAsync(on queue: DispatchQueue = .main) {
+        queue.async(execute: self)
+    }
+    
     /// Executes the work item's block asynchronously on the main thread after the specified delay.
     @discardableResult
     public func perform(after delay: TimeDuration) -> Self {
