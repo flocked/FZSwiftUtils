@@ -333,9 +333,26 @@ public extension NSObject {
         return classes
     }
     
+    /// Returns all protocols.
+    static func allProtocols() -> [Protocol] {
+        if let allProtocols = _allProtocols {
+            return allProtocols
+        }
+        var count: UInt32 = 0
+        guard let protocolList = objc_copyProtocolList(&count) else { return [] }
+        let allProtocols = (0..<Int(count)).compactMap { protocolList[$0]  }
+        _allProtocols = allProtocols
+        return allProtocols
+    }
+    
     private static var _allClasses: [AnyClass]? {
         get { getAssociatedValue("allClasses") }
         set { setAssociatedValue(newValue, key: "allClasses") }
+    }
+    
+    private static var _allProtocols: [Protocol]? {
+        get { getAssociatedValue("allProtocols") }
+        set { setAssociatedValue(newValue, key: "allProtocols") }
     }
     
     /// Returns all subclasses for the specified class.
