@@ -24,59 +24,54 @@ public extension CVTimeStamp {
         TimeInterval(videoRefreshPeriod) / TimeInterval(videoTimeScale)
     }
 
-    /// The timestamp in seconds.
-    var seconds: TimeInterval {
-        TimeInterval(videoTime) / TimeInterval(videoTimeScale)
-    }
-
     /// The root timestamp in seconds.
     var rootTotalSeconds: TimeInterval {
-        TimeInterval(hostTime)
-    }
-
-    /// The root timestamp in days.
-    var rootDays: TimeInterval {
-        TimeInterval(hostTime) / (1_000_000_000 * 60 * 60 * 24).truncatingRemainder(dividingBy: 365)
-    }
-
-    /// The root timestamp in hours.
-    var rootHours: TimeInterval {
-        TimeInterval(hostTime) / (1_000_000_000 * 60 * 60).truncatingRemainder(dividingBy: 24)
-    }
-
-    /// The root timestamp in minutes.
-    var rootMinutes: TimeInterval {
-        TimeInterval(hostTime) / (1_000_000_000 * 60).truncatingRemainder(dividingBy: 60)
+        TimeInterval(hostTime) / 1_000_000_000
     }
 
     /// The root timestamp in seconds.
     var rootSeconds: TimeInterval {
-        TimeInterval(hostTime) / 1_000_000_000.truncatingRemainder(dividingBy: 60)
+        rootTotalSeconds.truncatingRemainder(dividingBy: 60)
+    }
+    
+    /// The root timestamp in minutes.
+    var rootMinutes: TimeInterval {
+        (rootTotalSeconds / 60).truncatingRemainder(dividingBy: 60)
+    }
+
+    
+    /// The root timestamp in hours.
+    var rootHours: TimeInterval {
+        (rootTotalSeconds / 3600).truncatingRemainder(dividingBy: 24)
+    }
+    
+    /// The root timestamp in days.
+    var rootDays: TimeInterval {
+        (rootTotalSeconds / 86_400).truncatingRemainder(dividingBy: 365)
     }
 
     /// The total timestamp in seconds.
     var totalSeconds: TimeInterval {
         TimeInterval(videoTime) / TimeInterval(videoTimeScale)
     }
-
-    /// The timestamp in days.
-    var days: TimeInterval {
-        (totalSeconds / (60 * 60 * 24)).truncatingRemainder(dividingBy: 365)
-    }
-
-    /// The timestamp in hours.
-    var hours: TimeInterval {
-        (totalSeconds / (60 * 60)).truncatingRemainder(dividingBy: 24)
+    
+    /// The timestamp in seconds.
+    var seconds: TimeInterval {
+        timeInterval.truncatingRemainder(dividingBy: 60)
     }
 
     /// The timestamp in minutes.
     var minutes: TimeInterval {
-        (totalSeconds / 60).truncatingRemainder(dividingBy: 60)
+        (timeInterval / 60).truncatingRemainder(dividingBy: 60)
+    }
+    
+    /// The timestamp in hours.
+    var hours: TimeInterval {
+        (timeInterval / 3600).truncatingRemainder(dividingBy: 24)
     }
 
-    /*
-     var seconds: TimeInterval {
-     return totalSeconds.truncatingRemainder(dividingBy: 60)
-     }
-     */
+    /// The timestamp in days.
+    var days: TimeInterval {
+        (timeInterval / 86_400).truncatingRemainder(dividingBy: 365)
+    }
 }
