@@ -11,12 +11,27 @@ import AppKit
 import UniformTypeIdentifiers
 
 public extension Bundle {
+    
+    /// Returns the file URL for the resource identified by the specified name.
+    func url(forResource name: String) -> URL? {
+        url(forResource: name, withExtension: nil)
+    }
+    
+    /// Returns an array of file URLs for all resources identified by the specified file extension.
+    func urls(forResourcesWithExtension ext: String) -> [URL]? {
+        urls(forResourcesWithExtension: ext, subdirectory: nil)
+    }
+    
+    /// Returns an array of file URLs for all resources at the specified bundle subdirectory.
+    func urls(forResourcesAt subpath: String) -> [URL]? {
+        urls(forResourcesWithExtension: nil, subdirectory: subpath)
+    }
         
     /// The platform of the bundle.
     var platform: BundlePlatform {
         executableURL?.path.contains("Wrapper") == true ? .maciOS : .macOS
     }
-        
+            
     /// The platform options for the bundle.
     enum BundlePlatform {
         /// macOS platform.
