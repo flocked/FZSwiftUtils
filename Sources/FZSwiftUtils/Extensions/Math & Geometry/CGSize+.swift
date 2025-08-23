@@ -420,15 +420,3 @@ public extension Collection where Element == CGSize {
     }
     #endif
 }
-
-public extension Collection where Element == CGSize {
-    /// Aligns the sizes vertically.
-    func alignVertically(at alignment: CGRect.HorizontalAlignment = .center) -> [CGRect] {
-        map{ CGRect(.zero, $0) }.alignVertically(at: alignment)
-    }
-
-    /// Aligns the sizes horizontally.
-    func alignHorizontally(at alignment: CGRect.VerticalAlignment = .center) -> [CGRect] {
-        map{CGRect(.zero, $0)}.alignHorizontally(at: alignment)
-    }
-}
