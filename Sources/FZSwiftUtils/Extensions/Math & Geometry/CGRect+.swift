@@ -1080,19 +1080,36 @@ public extension CGRect {
     
     /// The distance of the rectangle to the specified point.
     func distance(to point: CGPoint) -> CGFloat {
-        if contains(point) {
-            return 0.0
-        }
-        let closestMaxY = CGPoint(x: min(max(point.x, origin.x), maxX), y: origin.y)
-        let closestMinY = CGPoint(x: min(max(point.x, origin.x), maxX), y: maxY)
-        let closestMinX = CGPoint(x: origin.x, y: min(max(point.y, origin.y), maxY))
-        let closestMaxX = CGPoint(x: maxX, y: min(max(point.y, origin.y), maxY))
-        return [closestMinX, closestMaxX, closestMinY, closestMaxY].compactMap({ point.distance(to: $0)}).min() ?? .infinity
+        guard !contains(point) else { return 0.0 }
+        let closest = CGPoint(x: min(max(point.x, minX), maxX), y: min(max(point.y, minY), maxY))
+        return hypot(point.x - closest.x, point.y - closest.y)
     }
     
     /// The distance of the rectangle to the specified other rectangle.
     func distance(to rect: CGRect) -> CGFloat {
-        intersects(rect) ? 0 : [bottomLeft, bottomCenter, bottomRight, topLeft, topCenter, topRight, centerLeft, centerRight].compactMap({ rect.distance(to: $0) }).min() ?? .infinity
+        if intersects(rect) || self == rect { return 0 }
+        
+        let xDistance: CGFloat
+        if maxX < rect.minX {
+            xDistance = rect.minX - maxX
+        } else if rect.maxX < minX {
+            xDistance = minX - rect.maxX
+        } else {
+            xDistance = 0
+        }
+        
+        let yDistance: CGFloat
+        if maxY < rect.minY {
+            yDistance = rect.minY - maxY
+        } else if rect.maxY < minY {
+            yDistance = minY - rect.maxY
+        } else {
+            yDistance = 0
+        }
+        
+        if xDistance == 0 { return yDistance }
+        if yDistance == 0 { return xDistance }
+        return hypot(xDistance, yDistance)
     }
 }
 
@@ -1106,7 +1123,7 @@ extension CGRect: Hashable {
 public extension Collection where Element == CGRect {
     /// The union of all rectangles in the collection.
     func union() -> CGRect {
-        return reduce(CGRect.zero) {$0.union($1)}
+        reduce(CGRect.zero) {$0.union($1)}
     }
     
     /// Returns the rectangle in the center.
@@ -1116,30 +1133,28 @@ public extension Collection where Element == CGRect {
     
     /// Returns the index of the rectangle in the center.
     var indexOfCenteredRect: Index? {
-        if let rect = centeredRect {
-            return firstIndex(of: rect) ?? nil
-        }
-        return nil
+        guard let rect = centeredRect else { return nil }
+        return firstIndex(of: rect)
     }
 }
 
 public extension Sequence where Element == CGRect {
     /// Returns the rectangles sorted by distance to the specified point.
     func sortedByDistance(to point: CGPoint, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
-        compactMap({(rect: $0, distance: $0.distance(to: point)) }).sorted(by: \.distance, order).compactMap({$0.rect})
+        sorted(by: { $0.distance(to: point) }, order)
     }
     
     /// Returns the rectangles sorted by distance to the specified rectangle.
     func sortedByDistance(to rect: CGRect, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
-        compactMap({(rect: $0, distance: $0.distance(to: rect)) }).sorted(by: \.distance, order).compactMap({$0.rect})
+        sorted(by: { $0.distance(to: rect) }, order)
     }
     
-    /// Returns the closed rectangle in the specified point.
+    /// Returns the closed rectangle to the specified point.
     func closedRect(to point: CGPoint) -> CGRect? {
         sortedByDistance(to: point).first
     }
     
-    /// Returns the closed rectangle in the specified other rectangle.
+    /// Returns the closed rectangle to the specified other rectangle.
     func closedRect(to rect: CGRect) -> CGRect? {
         sortedByDistance(to: rect).first
     }
@@ -1169,44 +1184,44 @@ public extension CGRectEdge {
 
 public extension Collection where Element == CGRect {
     /// Aligns the rectangles vertically.
-    func alignVertical(alignment: CGRect.HorizontalAlignment = .center) -> [CGRect] {
+    func alignVertically(at alignment: CGRect.HorizontalAlignment = .center, spacing: CGFloat = 0.0) -> [CGRect] {
         if isEmpty || count == 1 { return Array(self) }
-        let totalSize = CGSize(map({ $0.width }).max() ?? 0.0, map({ $0.height }).sum())
+        let totalWidth = map({ $0.width }).max() ?? 0.0
         var yOffset: CGFloat = 0
         return map({ rect in
             let xOrigin: CGFloat
             switch alignment {
             case .left: xOrigin = 0
-            case .center: xOrigin = (totalSize.width - rect.width) / 2
-            case .right: xOrigin = totalSize.width-rect.width
+            case .center: xOrigin = (totalWidth - rect.width) / 2
+            case .right: xOrigin = totalWidth-rect.width
             }
             let frame = CGRect(CGPoint(xOrigin, yOffset), rect.size)
-            yOffset += rect.height
+            yOffset += rect.height + spacing
             return frame
         })
     }
     
     /// Aligns the rectangles horizontally.
-    func alignHorizontal(alignment: CGRect.VerticalAlignment = .center) -> [CGRect] {
+    func alignHorizontally(at alignment: CGRect.VerticalAlignment = .center, spacing: CGFloat = 0.0) -> [CGRect] {
         if isEmpty || count == 1 { return Array(self) }
         var xOffset: CGFloat = 0
-        let totalSize = CGSize(map({ $0.width }).sum(), map({ $0.height }).max() ?? 0.0)
+        let totalHeight = map({ $0.height }).max() ?? 0.0
         return map({ rect in
             let yOrigin: CGFloat
             switch alignment {
             case .top: yOrigin = 0
-            case .center: yOrigin = (totalSize.height - rect.height) / 2
-            case .bottom: yOrigin = totalSize.height-rect.height
+            case .center: yOrigin = (totalHeight - rect.height) / 2
+            case .bottom: yOrigin = totalHeight-rect.height
             }
             let frame = CGRect(CGPoint(xOffset, yOrigin), rect.size)
-            xOffset += rect.width
+            xOffset += rect.width + spacing
             return frame
         })
     }
 }
 
 extension CGRect {
-    /// The vertical alignment of rectangles.
+    /// The vertical alignment of a rectangle.
     public enum VerticalAlignment: Int {
         /// bottom.
         case bottom
@@ -1216,7 +1231,7 @@ extension CGRect {
         case top
     }
     
-    /// The horizontal alignment of rectangles.
+    /// The horizontal alignment of a rectangle.
     public enum HorizontalAlignment: Int {
         /// Left.
         case left
@@ -1300,5 +1315,13 @@ extension CGSize {
         var point = self
         updateHandler(&point)
         return point
+    }
+}
+
+extension Sequence where Element == CGRect {
+    /// Returns the bounding rectangle that encloses all rects in the sequence.
+    var boundingRect: CGRect {
+        guard let first = self.first else { return .zero }
+        return dropFirst().reduce(first) { $0.union($1)  }
     }
 }

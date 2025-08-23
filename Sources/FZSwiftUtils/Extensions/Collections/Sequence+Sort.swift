@@ -180,22 +180,22 @@ public extension Sequence {
      An array of the elements sorted by the given predicate.
 
       - Parameters:
-         - compare: The closure to compare the elements.
+         - compare: A closure that provides a comparable value for each element in the sequence.
          - order: The order of sorting. The default value is `ascending`.
       */
-    private func sorted<Value>(by compare: (Element) -> Value, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        compactMap({ ComparableElement($0, compare($0)) }).sorted(order).compactMap({$0.element})
+    func sorted<Value>(by compare: (Element) throws -> Value, _ order: SequenceSortOrder = .ascending) rethrows -> [Element] where Value: Comparable {
+        try compactMap({ ComparableElement($0, try compare($0)) }).sorted(order).compactMap({$0.element})
     }
 
     /**
      An array of the elements sorted by the given predicate.
 
       - Parameters:
-         - compare: The closure to compare the elements.
+         - compare: A closure that provides a comparable value for each element in the sequence.
          - order: The order of sorting. The default value is `ascending`.
       */
-    private func sorted<Value>(by compare: (Element) -> Value?, _ order: SequenceSortOrder = .ascending) -> [Element] where Value: Comparable {
-        compactMap({ ComparableElement($0, compare($0)) }).sorted(order).compactMap({$0.element})
+    func sorted<Value>(by compare: (Element) throws -> Value?, _ order: SequenceSortOrder = .ascending) rethrows -> [Element] where Value: Comparable {
+        try compactMap({ ComparableElement($0, try compare($0)) }).sorted(order).compactMap({$0.element})
     }
 }
 

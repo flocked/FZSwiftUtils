@@ -82,9 +82,7 @@ public extension CGPoint {
      - Returns: The distance between the current point and the specified point.
      */
     func distance(to point: CGPoint) -> CGFloat {
-        let xdst = x - point.x
-        let ydst = y - point.y
-        return sqrt((xdst * xdst) + (ydst * ydst))
+        hypot(x - point.x, y - point.y)
     }
 
     /**

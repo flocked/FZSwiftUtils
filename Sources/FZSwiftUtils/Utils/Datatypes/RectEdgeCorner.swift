@@ -9,21 +9,25 @@ import Foundation
 
 /// Edges and corners of a rectangle.
 public struct RectEdgeCorner: OptionSet, CustomStringConvertible, Hashable, Codable {
-    /// MinX.
+    
+    // MARK: - Edges
+
+    /// Edge at minimum X.
     public static let minX = RectEdgeCorner(rawValue: 1 << 0)
-    /// MaxX.
+    /// Edge at maximum X.
     public static let maxX = RectEdgeCorner(rawValue: 1 << 1)
-    /// MinY.
+    /// Edge at minimum Y.
     public static let minY = RectEdgeCorner(rawValue: 1 << 2)
-    /// MinXMinY.
-    public static let minXMinY = RectEdgeCorner(rawValue: 1 << 3)
-    /// MaxXMinY.
-    public static let maxXMinY = RectEdgeCorner(rawValue: 1 << 4)
-    /// MaxY.
-    public static let maxY = RectEdgeCorner(rawValue: 1 << 5)
-    /// MinXMaxY.
+    /// Edge at maximum Y.
+    public static let maxY = RectEdgeCorner(rawValue: 1 << 3)
+    
+    /// Corner at minimum X and minimum Y.
+    public static let minXMinY = RectEdgeCorner(rawValue: 1 << 4)
+    /// Corner at maximum X and minimum Y.
+    public static let maxXMinY = RectEdgeCorner(rawValue: 1 << 5)
+    /// Corner at minimum X and maximum Y.
     public static let minXMaxY = RectEdgeCorner(rawValue: 1 << 6)
-    /// MaxXMaxY.
+    /// Corner at maximum X and maximum Y.
     public static let maxXMaxY = RectEdgeCorner(rawValue: 1 << 7)
     
     /// Left edge.
