@@ -286,8 +286,8 @@ extension RangeRepresentable where Bound: BinaryFloatingPoint {
 }
 
 public extension RangeRepresentable where Bound: BinaryInteger, Bound.Stride: SignedInteger {
-    /// `Array` representation of the range.
-    var array: [Bound] {
+    /// values of of the range.
+    var values: [Bound] {
         self is ClosedRange<Bound> ? (lowerBound...upperBound).map({ $0 }) : (lowerBound..<upperBound).map({ $0 })
     }
 }

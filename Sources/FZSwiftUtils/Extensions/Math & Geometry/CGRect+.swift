@@ -816,20 +816,20 @@ public extension CGRect {
      
       - Returns: An array with the divided rectangles.
       */
-     func splitted(horizontalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalAmount: Int = 1, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-         splitted(by: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+     func divided(horizontalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalAmount: Int = 1, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+     divided(by: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
      }
     
-     func splitted(verticalAmount: Int, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-         splitted(horizontalAmount: 1, verticalAmount: verticalAmount, verticalOrder: verticalOrder)
+     func divided(verticalAmount: Int, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+     divided(horizontalAmount: 1, verticalAmount: verticalAmount, verticalOrder: verticalOrder)
      }
     
-     func splitted(_ amount: SplitAmount, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
-         splitted(.both(5) )
+     func divided(_ amount: SplitAmount, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
+     divided(.both(5) )
      }
     
-     func splitted(_ percentage: SplitPercentage, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
-         splitted(.both(5) )
+     func divided(_ percentage: SplitPercentage, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
+     divided(.both(5) )
      }
      */
     
@@ -1008,8 +1008,8 @@ public extension CGRect {
         }
     }
     
-    func splitted(_ option: SplitOption, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect]  {
-        splitted(by: option.splitSize(for: self), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+    func divided(_ option: SplitOption, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect]  {
+        divided(into: option.splitSize(for: self), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
     }
     
     /**
@@ -1022,7 +1022,7 @@ public extension CGRect {
      
      - Returns: An array with the divided rectangles.
      */
-    func splitted(by size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+    func divided(into size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
         
         var verticalCount = Int(height / size.height)
         var horizontalCount = Int(width / size.width)
@@ -1036,46 +1036,45 @@ public extension CGRect {
             verticalCount += 1
         }
         
-        var splits: [CGRect] = []
-        var hValues = (0..<horizontalCount).compactMap({CGFloat($0)})
+        var rects: [CGRect] = []
+        var xIndices = (0..<horizontalCount).map({CGFloat($0)})
         switch horizontalOrder {
         case .leftToRight: break
         case .rightToLeft:
-            hValues = hValues.reversed()
+            xIndices = xIndices.reversed()
         case .towardsCenter:
-            hValues = hValues.reorderedTowardsCenter()
+            xIndices = xIndices.reorderedTowardsCenter()
         case .towardsEdges:
-            hValues = hValues.reorderedFromCenterOutwards()
+            xIndices = xIndices.reorderedFromCenterOutwards()
         case .random:
-            hValues = hValues.shuffled()
+            xIndices = xIndices.shuffled()
         }
         
-        var vValues = (0..<verticalCount).compactMap({CGFloat($0)})
+        var yIndices = (0..<verticalCount).map({CGFloat($0)})
         switch verticalOrder {
         case .bottomToTop: break
         case .topToBottom:
-            vValues = vValues.reversed()
+            yIndices = yIndices.reversed()
         case .towardsCenter:
-            vValues = vValues.reorderedTowardsCenter()
+            yIndices = yIndices.reorderedTowardsCenter()
         case .towardsEdges:
-            vValues = vValues.reorderedFromCenterOutwards()
+            yIndices = yIndices.reorderedFromCenterOutwards()
         case .random:
-            vValues = vValues.shuffled()
+            yIndices = yIndices.shuffled()
         }
-        for vVal in vValues.enumerated() {
-            for hVal in hValues.enumerated() {
-                var size = size
-                if hVal.offset == hValues.count-1, remainingWidth > 0.0 {
-                    size.width = remainingWidth
+        for (vy, yIndex) in yIndices.enumerated() {
+            for (hx, xIndex) in xIndices.enumerated() {
+                var tileSize = size
+                if hx == xIndices.count - 1, remainingWidth > 0 {
+                    tileSize.width = remainingWidth
                 }
-                if vVal.offset == vValues.count-1, remainingHeight > 0.0 {
-                    size.height = remainingHeight
+                if vy == yIndices.count - 1, remainingHeight > 0 {
+                    tileSize.height = remainingHeight
                 }
-                
-                splits.append(CGRect(CGPoint(x: hVal.element * size.width, y: vVal.element * size.height), size))
+                rects += CGRect(CGPoint(x: xIndex * size.width, y: yIndex * size.height), tileSize)
             }
         }
-        return splits
+        return rects
     }
     
     /// The distance of the rectangle to the specified point.

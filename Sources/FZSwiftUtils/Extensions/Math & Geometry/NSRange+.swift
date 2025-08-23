@@ -48,11 +48,6 @@ public extension NSRange {
         CFRange(location: location, length: length)
     }
     
-    /// `Array` representation of the range.
-    var array: [Int] {
-        map({ $0 })
-    }
-    
     /// The maximum value.
     var max: Int {
         NSMaxRange(self)
