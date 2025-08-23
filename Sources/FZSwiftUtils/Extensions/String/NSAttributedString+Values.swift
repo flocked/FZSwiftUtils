@@ -27,10 +27,6 @@ extension NSAttributedString {
         let values = AttributeValues()
         values.dic = [:]
         attributes(values)
-        NSAttributedString(string: "", attributes: {
-            $0.font = .systemFont(ofSize: 10)
-            $0.font = .systemFont(ofSize: 10)
-        })
         self.init(string: string, attributes: values.dic)
     }
     
@@ -59,6 +55,9 @@ extension NSAttributedString {
         init(for attributedString: NSAttributedString? = nil, range: NSRange? = nil) {
             self.attributedString = attributedString
             self._range = range
+            let range = _range ?? attributedString?.fullRange ?? .zero
+            guard let paragraphStyle = attributedString?.attribute(.paragraphStyle, at: range.location, effectiveRange: nil) as? NSParagraphStyle else { return }
+            self.paragraphStyle = ParagraphStyle(style: paragraphStyle)
         }
         
         /// Returns the value for the specified attribute.
@@ -124,7 +123,11 @@ extension NSAttributedString {
         }
         
         /// The paragraph style of the text.
-        public var paragraphStyle: NSParagraphStyle? {
+        public var paragraphStyle: ParagraphStyle? {
+            didSet { _paragraphStyle = paragraphStyle?.nsParagraphStyle() }
+        }
+        
+        private var _paragraphStyle: NSParagraphStyle? {
             get { self[.paragraphStyle] }
             set { self[.paragraphStyle] = newValue }
         }
@@ -693,7 +696,7 @@ extension NSAttributedString.AttributeValues {
 
     /// Sets the paragraph style of the text.
     @discardableResult
-    public func paragraphStyle(_ style: NSParagraphStyle?) -> Self {
+    public func paragraphStyle(_ style: ParagraphStyle?) -> Self {
         self.paragraphStyle = style
         return self
     }
@@ -1257,5 +1260,165 @@ extension NSAttributedString.AttributeValues {
     public func verticalGlyphForm(_ verticalGlyphForm: Int?) -> Self {
         self.verticalGlyphForm = verticalGlyphForm
         return self
+    }
+}
+
+/// The paragraph or ruler attributes for an attributed string.
+public struct ParagraphStyle: CustomStringConvertible {
+                
+    /// The text alignment of the paragraph.
+    public var alignment: NSTextAlignment
+                
+    /// The indentation of the first line of the paragraph.
+    public var firstLineHeadIndent: CGFloat
+        
+    /// The indentation of the paragraph’s lines other than the first.
+    public var headIndent: CGFloat
+        
+    /// The trailing indentation of the paragraph.
+    public var tailIndent: CGFloat
+                
+    /// The line height multiple.
+    public var lineHeightMultiple: CGFloat
+        
+    /// The paragraph’s maximum line height.
+    public var maximumLineHeight: CGFloat
+        
+    /// The paragraph’s minimum line height.
+    public var minimumLineHeight: CGFloat
+        
+    /// The distance in points between the bottom of one line fragment and the top of the next.
+    public var lineSpacing: CGFloat
+        
+    /// Distance between the bottom of this paragraph and top of next.
+    public var paragraphSpacing: CGFloat
+        
+    /// The distance between the paragraph’s top and the beginning of its text content.
+    public var paragraphSpacingBefore: CGFloat
+                
+    /// The text tab objects that represent the paragraph’s tab stops.
+    public var tabStops: [NSTextTab]
+        
+    /// The documentwide default tab interval.
+    public var defaultTabInterval: CGFloat
+                    
+    #if os(macOS)
+    /// The text blocks that contain the paragraph.
+    public var textBlocks: [NSTextBlock]
+    
+    /// The threshold for using tightening as an alternative to truncation.
+    public var tighteningFactorForTruncation: Float
+    #endif
+        
+    /// The text lists that contain the paragraph.
+    public var textLists: [NSTextList]
+                
+    /// The mode for breaking lines in the paragraph that don’t fit within a container.
+    public var lineBreakMode: NSLineBreakMode
+        
+    /// The strategy for breaking lines while laying out paragraphs.
+    public var lineBreakStrategy: NSParagraphStyle.LineBreakStrategy
+        
+    /// The paragraph’s threshold for hyphenation.
+    public var hyphenationFactor: Float
+
+    /// A Boolean value that indicates whether the paragraph style uses the system hyphenation settings.
+    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    public var usesDefaultHyphenation: Bool {
+        get { _usesDefaultHyphenation as? Bool ?? false }
+        set { _usesDefaultHyphenation = newValue }
+    }
+    
+    private var _usesDefaultHyphenation: Any?
+        
+    /// A Boolean value that indicates whether the system tightens character spacing before truncating text.
+    public var allowsDefaultTighteningForTruncation: Bool
+                        
+    #if os(macOS)
+    /// The HTML header level of the paragraph.
+    public var headerLevel: Int
+    #else
+    /// The HTML header level of the paragraph.
+    public let headerLevel: Int
+    #endif
+    
+    /// The base writing direction for the paragraph.
+    public var baseWritingDirection: NSWritingDirection
+    
+    /**
+     Returns the default writing direction for the specified language.
+     
+     - Parameter languageName: The language specified in ISO language region format. Can be `nil` to return a default writing direction derived from the user’s defaults database.
+     - Returns: The default writing direction.
+     */
+    public static func defaultWritingDirection(forLanguage languageName: String?) -> NSWritingDirection {
+        NSParagraphStyle.defaultWritingDirection(forLanguage: languageName)
+    }
+                
+    public init() {
+        self = ParagraphStyle(style: .default)
+    }
+    
+    /// The default paragraph style.
+    public static var `default` = ParagraphStyle()
+        
+    init(style: NSParagraphStyle, headerLevel: Int = 0) {
+        self.alignment = style.alignment
+        self.firstLineHeadIndent = style.firstLineHeadIndent
+        self.headIndent = style.headIndent
+        self.tailIndent = style.tailIndent
+        self.lineHeightMultiple = style.lineHeightMultiple
+        self.maximumLineHeight = style.maximumLineHeight
+        self.minimumLineHeight = style.minimumLineHeight
+        self.lineSpacing = style.lineSpacing
+        self.paragraphSpacing = style.paragraphSpacing
+        self.paragraphSpacingBefore = style.paragraphSpacingBefore
+        self.tabStops = style.tabStops
+        self.defaultTabInterval = style.defaultTabInterval
+        self.textLists = style.textLists
+        self.lineBreakMode = style.lineBreakMode
+        self.lineBreakStrategy = style.lineBreakStrategy
+        self.hyphenationFactor = style.hyphenationFactor
+        self.allowsDefaultTighteningForTruncation = style.allowsDefaultTighteningForTruncation
+        self.headerLevel = headerLevel
+        self.baseWritingDirection = style.baseWritingDirection
+        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+            _usesDefaultHyphenation = style.usesDefaultHyphenation
+        }
+        #if os(macOS)
+        self.textBlocks = style.textBlocks
+        self.tighteningFactorForTruncation = style.tighteningFactorForTruncation
+        #endif
+    }
+                
+    /// The `NSParagraphStyle` representation of the paragraph style.
+    public func nsParagraphStyle() -> NSParagraphStyle {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.maximumLineHeight = maximumLineHeight
+        paragraphStyle.minimumLineHeight = minimumLineHeight
+        paragraphStyle.lineSpacing = lineSpacing
+        paragraphStyle.paragraphSpacing = paragraphSpacing
+        paragraphStyle.paragraphSpacingBefore = paragraphSpacingBefore
+        paragraphStyle.tabStops = tabStops
+        paragraphStyle.defaultTabInterval = defaultTabInterval
+        paragraphStyle.textLists = textLists
+        paragraphStyle.lineBreakMode = lineBreakMode
+        paragraphStyle.lineBreakStrategy = lineBreakStrategy
+        paragraphStyle.hyphenationFactor = hyphenationFactor
+        paragraphStyle.allowsDefaultTighteningForTruncation = allowsDefaultTighteningForTruncation
+        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+            paragraphStyle.usesDefaultHyphenation = usesDefaultHyphenation
+        }
+        paragraphStyle.baseWritingDirection = baseWritingDirection
+        #if os(macOS)
+        paragraphStyle.headerLevel = headerLevel
+        paragraphStyle.textBlocks = textBlocks
+        paragraphStyle.tighteningFactorForTruncation = tighteningFactorForTruncation
+        #endif
+        return paragraphStyle
+    }
+    
+    public var description: String {
+        nsParagraphStyle().description
     }
 }

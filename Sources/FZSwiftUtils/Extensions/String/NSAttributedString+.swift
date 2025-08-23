@@ -586,6 +586,19 @@ public extension NSAttributedString {
         get { self[.kern] }
         set { self[.kern] = newValue }
     }
+    
+    var paragraphStyle: ParagraphStyle? {
+        get {
+            guard let style = nsParagraphStyle else { return nil }
+            return ParagraphStyle(style: style)
+        }
+        set { nsParagraphStyle = newValue?.nsParagraphStyle() }
+    }
+    
+    private var nsParagraphStyle: NSParagraphStyle? {
+        get { self[.paragraphStyle] }
+        set { self[.paragraphStyle] = newValue }
+    }
 }
 
 public extension NSMutableAttributedString {

@@ -463,6 +463,7 @@ public struct SortingComparator<Element>: Hashable, SortComparator {
     
     public func hash(into hasher: inout Hasher) {
         hasher.combine(comperator)
+        hasher.combine(keyPath)
     }
 }
 
