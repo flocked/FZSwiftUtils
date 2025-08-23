@@ -804,223 +804,34 @@ public extension CGRect {
         /// Random order.
         case random
     }
-    /*
-     /**
-      Splits the rectangle to the specified vertical and horizontal amount of rectangles.
-     
+
+    
+    /**
+     Divides the rectangle into a grid of subrectangles with a specified number of rows and columns.
+
       - Parameters:
-      - horizontalAmount: The amount of horizontal rectangles.
-      - verticalAmount: The amount of vertical rectangles.
-      - horizontalOrder: The horizontal order of the rectangles.
-      - verticalOrder: The vertical order of the rectangles.
+         - rows: The number of rows to divide the rectangle into.
+         - columns: The number of columns to divide the rectangle into.
+         - horizontalOrder: The order in which to arrange the subrectangles horizontally.
+         - verticalOrder: The order in which to arrange the subrectangles vertically.
      
-      - Returns: An array with the divided rectangles.
-      */
-     func divided(horizontalAmount: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalAmount: Int = 1, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-     divided(by: CGSize(size.width / CGFloat(horizontalAmount), size.height / CGFloat(verticalAmount)), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
-     }
-    
-     func divided(verticalAmount: Int, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-     divided(horizontalAmount: 1, verticalAmount: verticalAmount, verticalOrder: verticalOrder)
-     }
-    
-     func divided(_ amount: SplitAmount, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
-     divided(.both(5) )
-     }
-    
-     func divided(_ percentage: SplitPercentage, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) {
-     divided(.both(5) )
-     }
+     - Returns: An array with the subdivided rectangles.
      */
-    
-    struct SplitPercentage: ExpressibleByFloatLiteral {
-        /// The percentage of the width of each vertical split.
-        public let vertical: CGFloat
-        /// The percentage of the height of each horizontal split.
-        public let horizontal: CGFloat
-        
-        /// Splits vertical by the specified percentage of the height.
-        public static func vertical(_ percentage: CGFloat) -> Self {
-            .init(vertical: percentage, horizontal: 1.0)
-        }
-        
-        /// Splits horizontal by the specified percentage of the width..
-        public static func horizontal(_ percentage: CGFloat) -> Self {
-            .init(vertical: 1.0, horizontal: percentage)
-        }
-        
-        /// Splits both vertical and horizontal by the specified percentage of the width and height.
-        public static func both(_ percentage: CGFloat) -> Self {
-            .init(vertical: percentage, horizontal: percentage)
-        }
-        
-        /**
-         Splits vertical and horizontal by the specified percentages.
-         
-         - Parameters:
-            - vertical: The vertical split percentage of the height.
-            - horizontal: The horizontal split percentage of the width.
-         */
-        public init(vertical: CGFloat, horizontal: CGFloat) {
-            self.vertical = vertical.clamped(to: 0...1.0)
-            self.horizontal = horizontal.clamped(to: 0...1.0)
-        }
-        
-        /// Splits both vertical and horizontal by the specified percentage of the width and height.
-        public init(floatLiteral value: Double) {
-            self.init(vertical: value, horizontal: value)
-        }
-    }
-    
-    struct SplitOption: ExpressibleByIntegerLiteral {
-        enum Option {
-            case size(CGSize)
-            case amount(vertical: Int, horizontal: Int)
-            case percebtage(vertical: CGFloat, horizontal: CGFloat)
-        }
-        let option: Option
-        
-        func splitSize(for rect: CGRect) -> CGSize {
-            switch option {
-            case .size(let size):
-                return size
-            case .amount(let vertical, let horizontal):
-                return .init(rect.width/CGFloat(horizontal), rect.height/CGFloat(vertical))
-            case .percebtage(let vertical, let horizontal):
-                return .init(rect.size.width*horizontal.clamped(to: 0...1.0), rect.size.height*vertical.clamped(to: 0...1.0))
-            }
-        }
-        
-        init(_ option: Option) {
-            self.option = option
-        }
-        
-        public init(integerLiteral value: Int) {
-            self.init(.amount(vertical: value, horizontal: value))
-        }
-        
-        public static func vertical(by amount: Int) -> Self {
-            .init(.amount(vertical: amount, horizontal: 1))
-        }
-        
-        public static func vertical(relative size: CGFloat) -> Self {
-            .init(.percebtage(vertical: size, horizontal: 1.0))
-        }
-        
-        public static func vertical(absolute size: CGFloat) -> Self {
-            .init(.size(CGSize(-1, size)))
-        }
-        
-        public static func horizontal(by amount: Int) -> Self {
-            .init(.amount(vertical: 1, horizontal: amount))
-        }
-        
-        public static func horizontal(relative size: CGFloat) -> Self {
-            .init(.percebtage(vertical: 1.0, horizontal: size))
-        }
-        
-        public static func horizontal(absolute size: CGFloat) -> Self {
-            .init(.size(CGSize(size, -1)))
-        }
-        
-        public static func both(by amount: Int) -> Self {
-            .init(.amount(vertical: amount, horizontal: amount))
-        }
-        
-        public static func both(relative size: CGFloat) -> Self {
-            .init(.percebtage(vertical: size, horizontal: size))
-        }
-        
-        public static func both(absolute size: CGFloat) -> Self {
-            .init(.size(CGSize(size, size)))
-        }
-        
-        /*
-         public static func amount(vertical: Int, horizontal: Int = 1) -> Self {
-             .init(.amount(vertical: vertical, horizontal: horizontal))
-         }
-        
-         public static func amount(horizontal: Int) -> Self {
-             .init(.amount(vertical: 1, horizontal: horizontal))
-         }
-        
-         public static func amount(_ amount: Int) -> Self {
-             .init(.amount(vertical: amount, horizontal: amount))
-         }
-        
-         public static func percentage(vertical: CGFloat, horizontal: CGFloat = 1.0) -> Self {
-             .init(.percebtage(vertical: vertical, horizontal: horizontal))
-         }
-        
-         public static func percentage(horizontal: CGFloat) -> Self {
-             .init(.percebtage(vertical: 1.0, horizontal: horizontal))
-         }
-        
-         public static func percentage(_ percentage: CGFloat) -> Self {
-             .init(.percebtage(vertical: percentage, horizontal: percentage))
-         }
-        
-         public static func size(vertical: CGFloat) -> Self {
-             .init(.size(.init(-1, vertical)))
-         }
-        
-         public static func size(horizontal: CGFloat) -> Self {
-             .init(.size(.init(horizontal, -1)))
-         }
-        
-         public static func size(_ size: CGSize) -> Self {
-             .init(.size(size))
-         }
-          */
-        
-    }
-    
-    struct SplitAmount: ExpressibleByIntegerLiteral {
-        /// The amount of vertical splits.
-        public let vertical: Int
-        /// The amount of horizontal splits.
-        public let horizontal: Int
-        
-        /// Splits vertical by the specified amount.
-        public static func vertical(_ amount: Int) -> Self {
-            .init(vertical: amount, horizontal: 1)
-        }
-        
-        /// Splits horizontal by the specified amount.
-        public static func horizontal(_ amount: Int) -> Self {
-            .init(vertical: 1, horizontal: amount)
-        }
-        
-        /// Splits both vertical and horizontal by the specified amount.
-        public static func both(_ amount: Int) -> Self {
-            .init(vertical: amount, horizontal: amount)
-        }
-        
-        /// Splits by the specified vertical and horizontal  amount.
-        public init(vertical: Int, horizontal: Int) {
-            self.vertical = vertical
-            self.horizontal = horizontal
-        }
-        
-        /// Splits both vertical and horizontal by the specified amount.
-        public init(integerLiteral value: Int) {
-            self.init(vertical: value, horizontal: value)
-        }
-    }
-    
-    func divided(_ option: SplitOption, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect]  {
-        divided(into: option.splitSize(for: self), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
+    func divided(intoRows rows: Int, columns: Int, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
+        divided(into: CGSize(size.width / CGFloat(columns.clamped(min: 1)), size.height / CGFloat(rows.clamped(min: 1))), horizontalOrder: horizontalOrder, verticalOrder: verticalOrder)
     }
     
     /**
-     Splits the rectangle into rectangles of the specified size.
+     Divides the rectangle into a grid of subrectangles, each with the specified size.
 
+     If the rectangle's width or height is not an exact multiple of the specified size, the last column and/or row will include the remaining width or height.
+     
      - Parameters:
         - size: The size of an split.
         - horizontalOrder: The horizontal order of the rectangles.
         - verticalOrder: The vertical order of the rectangles.
      
-     - Returns: An array with the divided rectangles.
+     - Returns: An array with the subdivided rectangles.
      */
     func divided(into size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
         
@@ -1129,15 +940,11 @@ public extension Collection where Element == CGRect {
     var centeredRect: CGRect? {
         sortedByDistance(to: union().center).first
     }
-    
-    /// Returns the index of the rectangle in the center.
-    var indexOfCenteredRect: Index? {
-        guard let rect = centeredRect else { return nil }
-        return firstIndex(of: rect)
-    }
 }
 
 public extension Sequence where Element == CGRect {
+    
+    
     /// Returns the rectangles sorted by distance to the specified point.
     func sortedByDistance(to point: CGPoint, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
         sorted(by: { $0.distance(to: point) }, order)
