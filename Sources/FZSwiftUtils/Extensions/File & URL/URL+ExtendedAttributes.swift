@@ -51,9 +51,9 @@ public extension URL {
          - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
          */
         public func get<T>(_ key: String) throws -> T?{
-            let data = try getData(for: key)
-            let value = try PropertyListSerialization.propertyList(from: data, format: nil)
-            guard let value = value as? T else { throw CocoaError(.coderInvalidValue) }
+            guard let value = try PropertyListSerialization.propertyList(from: try getData(for: key), format: nil) as? T else {
+                throw CocoaError(.coderInvalidValue)
+            }
             return value
         }
         
@@ -64,7 +64,7 @@ public extension URL {
          - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
          */
         public func get<T>(_ key: String) throws -> T where T: Codable {
-            try PropertyListDecoder().decode(T.self, from: try getData(for: key))
+            try JSONDecoder().decode(T.self, from: try getData(for: key))
         }
 
         /**
@@ -76,9 +76,13 @@ public extension URL {
 
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
-        public func set<T>(_ value: T, for key: String, flags: Flags? = nil) throws {
-            let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
-            try setData(data, for: key, flags: flags)
+        public func set<T>(_ value: T?, for key: String, flags: Flags? = nil) throws {
+            if let value = value {
+                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
+                try setData(data, for: key)
+            } else {
+                try remove(key)
+            }
         }
         
         /**
@@ -90,11 +94,13 @@ public extension URL {
 
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
-        public func set<T>(_ value: T, for key: String, flags: Flags? = nil) throws where T: Codable {
-            let encoder = PropertyListEncoder()
-            encoder.outputFormat = .binary
-            let data = try encoder.encode(value)
-            try setData(data, for: key, flags: flags)
+        public func set<T>(_ value: T?, for key: String, flags: Flags? = nil) throws where T: Codable {
+            if let value = value {
+                let data = try JSONEncoder().encode(value)
+                try setData(data, for: key)
+            } else {
+                try remove(key)
+            }
         }
 
         /**
