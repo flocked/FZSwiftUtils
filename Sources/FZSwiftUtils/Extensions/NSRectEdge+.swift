@@ -7,6 +7,7 @@
 
 #if os(macOS)
 import Foundation
+import AppKit
 
 extension NSRectEdge {
     /// The bottom edge of the rectangle.
@@ -20,6 +21,16 @@ extension NSRectEdge {
     
     /// The left edge of the rectangle.
     public static let left = NSRectEdge.minX
+    
+    /// The leading edge of the rectangle.
+    public static var leading: NSRectEdge {
+        NSApp.userInterfaceLayoutDirection == .leftToRight ? .left : .right
+    }
+    
+    /// The trailing edge of the rectangle.
+    public static var trailing: NSRectEdge {
+        NSApp.userInterfaceLayoutDirection == .leftToRight ? .right : .left
+    }
 }
 
 #endif

@@ -35,6 +35,49 @@ public extension Date {
     }
     
     /**
+     Adds the specified value to a given calendar component of the date.
+     
+     - Parameters:
+        - value: The value to be added.
+        - component: The component of the date to which the value should be added.
+        - calendar: The calendar to use.
+     */
+    mutating func add(_ value: Double, to component: Calendar.Component, calendar: Calendar = .current) {
+        self = self.adding(value, to: component, calendar: calendar)
+    }
+    
+    /**
+     Returns a new date by adding the specified value to the given calendar component.
+
+     - Parameters:
+       - value: The amount to add to the date. Can be negative to subtract.
+        - component: The component of the date to which the value should be added.
+       - calendar: The calendar to use.
+
+     - Returns: A new `Date` adjusted by the specified value.
+     */
+    func adding(_ value: Double, to component: Calendar.Component, calendar: Calendar = .current) -> Date {
+        let fractionalPart = value.truncatingRemainder(dividingBy: 1)
+        let integerPart = Int(value - fractionalPart)
+        let dateWithInteger = adding(integerPart, to: component, calendar: calendar)
+        guard fractionalPart != 0 else { return dateWithInteger }
+
+        let secondsPerUnit: TimeInterval
+        switch component {
+        case .second: secondsPerUnit = 1
+        case .minute: secondsPerUnit = 60
+        case .hour: secondsPerUnit = 3600
+        case .day: secondsPerUnit = 86400
+        case .weekOfYear, .weekOfMonth: secondsPerUnit = 604800
+        case .month, .year:
+            guard let endDate = calendar.date(byAdding: component, value: 1, to: self) else { return dateWithInteger }
+            secondsPerUnit = endDate.timeIntervalSince(self)
+        default: return dateWithInteger
+        }
+        return dateWithInteger.addingTimeInterval(fractionalPart * secondsPerUnit)
+    }
+    
+    /**
      Sets the specified calendar component to a given value of the date.
 
      - Parameters:
@@ -60,6 +103,49 @@ public extension Date {
         var components = calendar.dateComponents(in: calendar.timeZone, from: self)
         components.setValue(value, for: component)
         return calendar.date(from: components) ?? self
+    }
+    
+    /**
+     Sets the specified calendar component to a given value of the date.
+
+     - Parameters:
+       - component: The calendar component to modify (e.g., `.hour`, `.day`, `.month`).
+       - value: The new value to assign to the component.
+       - calendar: The calendar to use.
+     */
+    mutating func set(_ component: Calendar.Component, to value: Double, calendar: Calendar = .current) {
+        self = self.setting(component, to: value, calendar: calendar)
+    }
+    
+    /**
+     Returns a new date by setting the specified calendar component to a given value.
+
+     - Parameters:
+       - component: The calendar component to modify (e.g., `.hour`, `.day`, `.month`).
+       - value: The new value to assign to the component.
+       - calendar: The calendar to use.
+
+     - Returns: A new `Date` with the specified component set, or the original date if the operation fails.
+     */
+    func setting(_ component: Calendar.Component, to value: Double, calendar: Calendar = .current) -> Date {
+        let fractionalPart = value.truncatingRemainder(dividingBy: 1)
+        let integerPart = Int(value - fractionalPart)
+        guard fractionalPart != 0 else { return adding(integerPart, to: component, calendar: calendar) }
+        let baseDate = setting(component, to: integerPart, calendar: calendar)
+
+        let secondsPerUnit: TimeInterval
+        switch component {
+        case .second: secondsPerUnit = 1
+        case .minute: secondsPerUnit = 60
+        case .hour: secondsPerUnit = 3600
+        case .day: secondsPerUnit = 86400
+        case .weekOfYear, .weekOfMonth: secondsPerUnit = 7 * 86400
+        case .month, .year:
+            guard let endDate = calendar.date(byAdding: component, value: 1, to: self) else { return baseDate }
+            secondsPerUnit = endDate.timeIntervalSince(self)
+        default: return baseDate
+        }
+        return baseDate.addingTimeInterval(fractionalPart * secondsPerUnit)
     }
     
     /**
@@ -214,7 +300,7 @@ public extension Date {
         set { set(.weekdayOrdinal, to: newValue) }
     }
     
-#if compiler(>=6.0)
+    #if compiler(>=6.0)
     /// The day of the year of this date.
     var dayOfYear: Int {
         get {

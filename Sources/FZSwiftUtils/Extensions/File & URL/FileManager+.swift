@@ -102,6 +102,7 @@ public extension FileManager {
         return nil
     }
     #endif
+    
     /**
      Returns a Boolean value indicating whether a file or directory exists at a specified url.
 
@@ -110,6 +111,21 @@ public extension FileManager {
      */
     func fileExists(at url: URL) -> Bool {
         fileExists(atPath: url.path)
+    }
+    
+    /**
+     Returns a Boolean value indicating whether a file or directory exists at a specified url.
+
+     - Parameters:
+        - url: The url of a file or directory. If the url's path begins with a tilde (`~`), it must first be expanded with [expandingTildeInPath](https://developer.apple.com/documentation/foundation/nsstring/expandingtildeinpath), or this method will return `false`.
+        - isDirectory: Upon return, contains `true` if path is a directory or if the final path element is a symbolic link that points to a directory; otherwise, contains `false`. If path doesn’t exist, this value is undefined upon return.
+     - Returns: `true` if a file or directory at the specified url exists, or `false` if the file or directory does not exist or its existence could not be determined.
+     */
+    func fileExists(at url: URL, isDirectory: inout Bool) -> Bool {
+        var isDir: ObjCBool = false
+        let fileExists = fileExists(atPath: url.path, isDirectory: &isDir)
+        isDirectory = isDir.boolValue
+        return fileExists
     }
 
     /**
