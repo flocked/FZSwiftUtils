@@ -14,7 +14,7 @@ public extension ImageSource.ImageProperties {
         public var yDensity: CGFloat?
         public var orientation: Int?
         public var version: [Int]?
-        public var densityUnit: String?
+        public var densityUnit: Double?
         public var isProgressive: Bool?
 
         enum CodingKeys: String, CodingKey {

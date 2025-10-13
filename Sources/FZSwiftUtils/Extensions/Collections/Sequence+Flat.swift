@@ -12,6 +12,41 @@ public extension Sequence where Element: Collection {
     func flattened() -> [Element.Element] {
         flatMap { $0 }
     }
+    
+    /**
+     Flattens a sequence of collections by taking one element from each collection in sequence.
+
+     The resulting array is produced by interleaving the elements of the collections. It takes the first element from each collection (if available), then the second element from each, and so on, until all collections are exhausted.
+
+     Example:
+     ```swift
+     let input: [[Int]] = [
+         [1, 2, 3, 4, 5],
+         [11, 22, 33, 44, 55, 66],
+         [100, 200]
+     ]
+
+     let result = input.interleavedFlatten()
+     // result: [1, 11, 100, 2, 22, 200, 3, 33, 4, 44, 5, 55, 66]
+     ```
+     */
+    func interleavedFlatten() -> [Element.Element] {
+        var iterators = self.map { $0.makeIterator() }
+        var result: [Element.Element] = []
+        var exhausted = false
+
+        while !exhausted {
+            exhausted = true
+            for i in 0..<iterators.count {
+                if let next = iterators[i].next() {
+                    result.append(next)
+                    exhausted = false
+                }
+            }
+        }
+
+        return result
+    }
 }
 
 public extension Sequence where Element: OptionalProtocol {
@@ -24,12 +59,7 @@ public extension Sequence where Element: OptionalProtocol {
 public extension Sequence where Element: Any {
     /// Returns a flattened array of all elements.
     func anyFlattened() -> [Any] {
-        flatMap { x -> [Any] in
-            if let anyarray = x as? [Any] {
-                return anyarray.map { $0 as Any }.anyFlattened()
-            }
-            return [x]
-        }
+        flatMap { ($0 as? any Sequence)?.map({$0}).anyFlattened() ?? [$0] }
     }
 }
 

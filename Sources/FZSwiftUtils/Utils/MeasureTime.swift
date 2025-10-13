@@ -21,17 +21,69 @@ public struct MeasureTime {
     }
     
     /**
+     Meassures the time executing the specified block for a number of times.
+     
+     - Parameters:
+        - iterations: The number of times to execute the block.
+        - block: The block to meassure.
+     - Returns: The average duration of executing the block and the total time to execute the block several times.
+     */
+    public static func timeElapsed(iterations: Int, block: () -> Void) -> (average: TimeDuration, standardDeviation: TimeDuration, total: TimeDuration) {
+        guard iterations > 0 else { return (.zero, .zero, .zero) }
+        let measurements = (0..<iterations).map({ _ in timeElapsed(block: block)  })
+        let average = measurements.average().seconds
+        let varianceSum = measurements.reduce(.zero) { $0 + ($1.seconds - average) * ($1.seconds - average) }
+        let standardDeviation = TimeDuration(sqrt(varianceSum / Double(iterations)))
+        return (TimeDuration(average), standardDeviation, measurements.sum())
+    }
+    
+    /*
+    // IterationResult.init(average: TimeDuration(average), standardDeviation: standardDeviation, totalDuration: measurements.sum(), iterationDurations: measurements)
+    public struct IterationResult: Hashable, Codable {
+        /// The average duration of executing the block.
+        let average: TimeDuration
+        /// The standardDeviation.
+        let standardDeviation: TimeDuration
+        /// The total duration.
+        let totalDuration: TimeDuration
+        /// The duration of each iteration.
+        let iterationDurations: [TimeDuration]
+    }
+     */
+    
+    /**
      Meassures the time executing the specified block and prints the duration.
      
      - Parameters:
         - title: An optional string for printing.
         - block: The block to meassure.
+     - Returns: The duration of executing the block.
      */
     @discardableResult
     public static func printTimeElapsed(_ title: String? = nil, block: () -> Void) -> TimeDuration {
         start(title)
         block()
         return stopPrinted()
+    }
+    
+    /**
+     Meassures the time executing the specified block for a number of times.
+     
+     - Parameters:
+        - title: An optional string for printing.
+        - iterations: The number of times to execute the block.
+        - block: The block to meassure.
+     - Returns: The average duration of executing the block and the total time to execute the block several times.
+     */
+    @discardableResult
+    public static func printTimeElapsed(_ title: String? = nil, iterations: Int, block: () -> Void) -> (average: TimeDuration, standardDeviation: TimeDuration, total: TimeDuration)  {
+        let measurement = timeElapsed(iterations: iterations, block: block)
+        let indent = String(repeating: "\t", count: measurements.count)
+        let title = title == nil ? "" : " for \(title!)"
+        Swift.print("\(indent)Average time elapsed\(title): \(measurement.average.seconds) s.")
+        Swift.print("\(indent)- STD Dev.: \(measurement.standardDeviation.seconds) s.")
+        Swift.print("\(indent)- Total: \(measurement.total.seconds) s.")
+        return measurement
     }
     
     /**
@@ -78,13 +130,32 @@ public struct MeasureTime {
         guard !measurements.isEmpty else { return .zero }
         let beginning = remove ? measurements.removeLast() : measurements.last!
         let timeElapsed = CFAbsoluteTimeGetCurrent() - beginning.startTime
-        let duration = TimeDuration(Double(timeElapsed))
         if print {
-            let indent = "\t".repeating(amount: remove ? measurements.count : measurements.count-1)
+            let indent = String(repeating: "\t", count: remove ? measurements.count : measurements.count-1)
             let title = beginning.title == nil ? "" : " for \(beginning.title!)"
             let details = details == nil ? "" : " (\(details!))"
-            Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s.\(details)")
+            Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s. \(details)")
         }
-        return duration
+        return TimeDuration(timeElapsed)
     }
 }
+
+/*
+struct TimeMess {
+    static var measurements: [String: [TimeStamp]] = [:]
+    
+    static func start(_ id: String) {
+        measurements[id] = [TimeStamp()]
+    }
+    
+    static func stop(_ id: String) {
+        guard var timeStamps = measurements[id], !timeStamps.isEmpty else { return }
+        measurements[id] = nil
+        timeStamps += TimeStamp()
+    }
+    
+    static func log(_ id: String, details: String? = nil) {
+        measurements[id]?.append(TimeStamp(title: details))
+    }
+}
+*/

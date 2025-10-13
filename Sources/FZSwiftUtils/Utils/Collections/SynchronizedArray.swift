@@ -10,77 +10,96 @@
 
 import Foundation
 
-/// A synchronized array.
-public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection {
+/// A thread-safe, synchronized array.
+public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection, ExpressibleByArrayLiteral {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
     private var array = [Element]()
 
+    /// Creates a new, empty synchronized array.
+    public required init() {}
+    
+    /**
+     Creates an synchronized array containing the elements of a sequence.
+     
+     - Parameter elements: The sequence of elements to turn into an array.
+     */
+    public required init<S>(_ elements: S) where S : Sequence<Element> {
+        array = Array(elements)
+    }
+    
+    /**
+     Creates a new synchronized array containing the specified number of a single, repeated value.
+
+     - Parameters:
+        - repeatedValue: The element to repeat.
+        - count: The number of times to repeat the value passed in the repeating parameter. count must be zero or greater.
+     */
+    public required init(epeating repeatedValue: Element,  count: Int) {
+        array = Array(repeating: repeatedValue, count: count)
+    }
+
+    /**
+     Creates a new synchronized array from a array literal with the elements.
+
+     - Parameter elements: The elements to turn into an array.
+     */
+    public required init(arrayLiteral elements: Element...) {
+        array = elements
+    }
+    
     public required init(from decoder: Decoder) throws where Element: Decodable {
         var container = try decoder.unkeyedContainer()
         array = try container.decode([Element].self)
     }
-
-    public required init() {}
-
-    public required init(arrayLiteral elements: Element...) {
-        array = elements
-    }
-
-    public convenience init(_ array: [Element]) {
-        self.init()
-        self.array = array
-    }
 }
 
 public extension SynchronizedArray {
-    
+    /// Returns the array synchronious.
     var synchronized: [Element] {
         get { queue.sync { self.array } }
-        set { queue.async(flags: .barrier) { self.array = newValue } }
+        set { queue.async(flags: .barrier) { [weak self] in self?.array = newValue } }
     }
-
+    
     func edit(_ edit: @escaping (inout [Element]) -> Void) {
-        queue.async(flags: .barrier) {
-            edit(&self.array)
-        }
+        queue.async(flags: .barrier) { edit(&self.array) }
     }
-
+    
     func index(_ i: Int, offsetBy distance: Int) -> Int {
         queue.sync { self.array.index(i, offsetBy: distance) }
     }
-
+    
     func index(_ i: Int, offsetBy distance: Int, limitedBy limit: Int) -> Int? {
         queue.sync { self.array.index(i, offsetBy: distance, limitedBy: limit) }
     }
-
+    
     func formIndex(after i: inout Int) {
         queue.sync { self.array.formIndex(after: &i) }
     }
-
+    
     func formIndex(before i: inout Int) {
         queue.sync { self.array.formIndex(before: &i) }
     }
-
+    
     func distance(from start: Int, to end: Int) -> Int {
         queue.sync { self.array.distance(from: start, to: end) }
     }
-
+    
     func index(before i: Int) -> Int {
         queue.sync { array.index(before: i) }
     }
-
+    
     func index(after i: Int) -> Int {
         queue.sync { array.index(after: i) }
     }
-
+    
     var startIndex: Int {
         queue.sync { array.startIndex }
     }
-
+    
     var endIndex: Int {
         queue.sync { array.endIndex }
     }
-
+    
     var count: Int {
         queue.sync { self.array.count }
     }
@@ -100,165 +119,240 @@ public extension SynchronizedArray {
     func lastIndex(where predicate: (Element) throws -> Bool) rethrows -> Int? {
         try queue.sync { try self.array.lastIndex(where: predicate) }
     }
-
+    
     var first: Element? {
         queue.sync { self.array.first }
     }
-
+    
     var last: Element? {
         queue.sync { self.array.last }
     }
-
+    
     var isEmpty: Bool {
         queue.sync { self.array.isEmpty }
     }
-
+    
     subscript(index: Int) -> Element {
         get { queue.sync { self.array[index] } }
-        set { queue.async(flags: .barrier) { self.array[index] = newValue } }
-    }
-
-    subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
-        get { queue.sync { self.array[range] } }
-        set { queue.async(flags: .barrier) { self.array[range] = newValue } }
-    }
-
-    subscript(range: Range<Int>) -> ArraySlice<Element> {
-        get { queue.sync { self.array[range] } }
-        set { queue.async(flags: .barrier) { self.array[range] = newValue } }
+        set { queue.async(flags: .barrier) { [weak self] in self?.array[index] = newValue } }
     }
     
+    subscript(range: ClosedRange<Int>) -> ArraySlice<Element> {
+        get { queue.sync { self.array[range] } }
+        set { queue.async(flags: .barrier) { [weak self] in self?.array[range] = newValue } }
+    }
+    
+    subscript(range: Range<Int>) -> ArraySlice<Element> {
+        get { queue.sync { self.array[range] } }
+        set { queue.async(flags: .barrier) { [weak self] in self?.array[range] = newValue } }
+    }
+    
+    func append(_ element: Element) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.append(element) }
+    }
+    
+    @_disfavoredOverload
     func append(_ element: Element, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.append(element)
             DispatchQueue.main.async { completion?() }
         }
     }
+    
+    func append<S>(contentsOf elements: S) where S: Sequence<Element> {
+        queue.async(flags: .barrier) { [weak self] in self?.array.append(contentsOf: elements) }
+    }
 
+    @_disfavoredOverload
     func append<S>(contentsOf elements: S, completion: (() -> ())? = nil) where S: Sequence<Element> {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array += elements
             DispatchQueue.main.async { completion?() }
         }
     }
+    
+    func insert(_ element: Element, at index: Int) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.insert(element, at: index) }
+    }
 
+    @_disfavoredOverload
     func insert(_ element: Element, at index: Int, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.insert(element, at: index)
             DispatchQueue.main.async { completion?() }
         }
     }
     
+    func insert<C>(contentsOf newElements: C, at index: Int) where C: Collection<Element> {
+        queue.async(flags: .barrier) { [weak self] in self?.array.insert(contentsOf: newElements, at: index) }
+    }
+    
+    @_disfavoredOverload
     func insert<C>(contentsOf newElements: C, at index: Int, completion: (() -> ())? = nil) where C: Collection<Element> {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.insert(contentsOf: newElements, at: index)
             DispatchQueue.main.async { completion?() }
         }
     }
 
     func remove(at index: Int, completion: ((_ removed: Element) -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             let element = self.array.remove(at: index)
             DispatchQueue.main.async { completion?(element) }
         }
     }
     
+    func removeFirst(_ k: Int) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.removeFirst(k) }
+    }
+    
+    @_disfavoredOverload
     func removeFirst(_ k: Int, completion: (() -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.removeFirst(k)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func removeFirst(completion: ((Element) -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             let element = self.array.removeFirst()
             DispatchQueue.main.async { completion?(element) }
         }
     }
     
     func removeFirst(where predicate: @escaping (Element) -> Bool, completion: ((Element?) -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             let element = self.array.removeFirst(where: predicate)
             DispatchQueue.main.async { completion?(element) }
         }
     }
     
+    func removeLast(_ k: Int) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.removeLast(k) }
+    }
+    
+    @_disfavoredOverload
     func removeLast(_ k: Int, completion: (() -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.removeLast(k)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func removeLast(completion: ((Element) -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             let element = self.array.removeLast()
             DispatchQueue.main.async { completion?(element) }
         }
     }
     
+    func remove(atOffsets offsets: IndexSet) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.remove(atOffsets: offsets) }
+    }
+    
+    @_disfavoredOverload
     func remove(atOffsets offsets: IndexSet, completion: (() -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.remove(atOffsets: offsets)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func remove<C>(_ elements: C, completion: (([Element])->())? = nil) where Element: Equatable, C: Collection<Element> {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             let elements = self.array.remove(elements)
             DispatchQueue.main.async { completion?(elements) }
         }
     }
+    
+    func removeAll(where predicate: @escaping (Element) -> Bool) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.removeAll(where: predicate) }
+    }
 
     func removeAll(where predicate: @escaping (Element) -> Bool, completion: (() -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.removeAll(where: predicate)
             DispatchQueue.main.async { completion?() }
         }
     }
+    
+    func removeAll() {
+        queue.async(flags: .barrier) { [weak self] in self?.array.removeAll() }
+    }
 
+    @_disfavoredOverload
     func removeAll(completion: (() -> Void)? = nil) {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
             self.array.removeAll()
             DispatchQueue.main.async { completion?() }
         }
     }
     
-    func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
-        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
-        queue.async(flags: .barrier) {
-            self.array.replaceSubrange(subrange, with: newElements)
-        }
+    func removeSubrange(_ bounds: Range<Index>) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.removeSubrange(bounds) }
     }
     
-    func replaceSubrange<C, R>(_ subrange: R, with newElements: C, completion: @escaping (() -> Void))
+    @_disfavoredOverload
+    func removeSubrange(_ bounds: Range<Index>, completion: (() -> Void)? = nil) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            self.array.removeSubrange(bounds)
+            DispatchQueue.main.async { completion?() }
+        }
+    }
+
+    func replaceSubrange<C, R>(_ subrange: R, with newElements: C)
         where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
-        queue.async(flags: .barrier) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.replaceSubrange(subrange, with: newElements) }
+    }
+    
+    @_disfavoredOverload
+    func replaceSubrange<C, R>(_ subrange: R, with newElements: C, completion: (() -> Void)? = nil)
+        where C: Collection, R: RangeExpression, Element == C.Element, Int == R.Bound {
+        queue.async(flags: .barrier) {[ weak self] in
+            guard let self = self else { return }
             self.array.replaceSubrange(subrange, with: newElements)
-            DispatchQueue.main.async { completion() }
+            DispatchQueue.main.async { completion?() }
         }
     }
 }
 
 public extension SynchronizedArray {
-    /// Adds a new element at the end of the array.
-    ///
-    /// - Parameters:
-    ///   - left: The collection to append to.
-    ///   - right: The element to append to the array.
-    static func += (left: inout SynchronizedArray, right: Element) {
-        left.append(right)
+    /**
+     Appends a new element to the array.
+     
+     - Parameters:
+        - lhs: The array to append to.
+        - rhs: The element to append to the array.
+     */
+    static func += (lhs: inout SynchronizedArray, rhs: Element) {
+        lhs.append(rhs)
     }
-
-    /// Adds new elements at the end of the array.
-    ///
-    /// - Parameters:
-    ///   - left: The collection to append to.
-    ///   - right: The elements to append to the array.
-    static func += (left: inout SynchronizedArray, right: [Element]) {
-        left.append(contentsOf: right)
+    
+    /**
+     Appends the elements of a sequence to the array.
+     
+     - Parameters:
+        - lhs: The array to append to.
+        - rhs: A collection or finite sequence.
+     */
+    static func += <S: Sequence<Element>>(lhs: inout SynchronizedArray, rhs: S) {
+        lhs.append(contentsOf: rhs)
     }
 }
 
@@ -371,27 +465,111 @@ public extension SynchronizedArray {
     func allSatisfy(_ predicate: (Element) -> Bool) -> Bool {
         queue.sync { self.array.allSatisfy(predicate) }
     }
-}
-
-public extension SynchronizedArray where Element: Equatable {
-    func contains(_ element: Element) -> Bool {
-        queue.sync { self.array.contains(element) }
-    }
-}
-
-public extension SynchronizedArray where Element: Comparable {
-    func index(_ element: Element) -> Int? {
-        queue.sync { self.array.firstIndex(where: { $0 == element }) }
+    
+    /// Returns a sequence of pairs (n, x), where n represents a consecutive integer starting at zero and x represents an element of the sequence.
+    func enumerated() -> EnumeratedSequence<Array<Element>> {
+        queue.sync { self.array.enumerated() }
     }
     
-    func sorted() {
-        queue.async(flags: .barrier) { self.array = self.array.sorted() }
+    func count<E>(where predicate: (Element) throws(E) -> Bool) throws(E) -> Int where E : Error {
+        do {
+            return try queue.sync { try self.array.count(where: predicate) }
+        } catch let error as E {
+            throw error
+        } catch {
+            fatalError("Unexpected error type: \(error)")
+        }
+    }
+    
+    /**
+     Exchanges the values at the specified indices of the collection.
+     
+     - Parameters:
+        - i: The index of the first value to swap.
+        - j: The index of the second value to swap.
+     */
+    func swapAt(i: Index, j: Index) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.swapAt(i, j) }
+    }
+    
+    /// Shuffles the collection in place.
+    func shuffle() {
+        queue.async(flags: .barrier) { [weak self] in self?.array.shuffle() }
+    }
+    
+    /// Returns the elements of the sequence, shuffled.
+    func shuffled() -> [Element] {
+        queue.sync {  self.array.shuffled() }
+    }
+    
+    /// Reverses the elements of the array in place.
+    func reverse() {
+        queue.async(flags: .barrier) { [weak self] in self?.array.reverse() }
+    }
+    
+    /// Returns an array containing the elements of this array in reverse order.
+    func reversed() -> [Element] {
+        queue.sync {  self.array.reversed() }
+    }
+    
+    func randomElement() -> Element? {
+        queue.sync { self.array.randomElement() }
+    }
+
+    func randomElement<T>(using generator: inout T) -> Element? where T: RandomNumberGenerator {
+        queue.sync { self.array.randomElement(using: &generator) }
     }
 }
 
 extension SynchronizedArray: Equatable where Element: Equatable {
+    public func contains(_ element: Element) -> Bool {
+        queue.sync { self.array.contains(element) }
+    }
+    
     public static func == (lhs: SynchronizedArray<Element>, rhs: SynchronizedArray<Element>) -> Bool {
         lhs.synchronized == rhs.synchronized
+    }
+}
+
+public extension SynchronizedArray where Element: Comparable {
+    /// Returns the first index in which an element of the collection satisfies the given predicate.
+    func index(_ element: Element) -> Int? {
+        queue.sync { self.array.firstIndex(where: { $0 == element }) }
+    }
+    
+    /// Sorts the collection in place.
+    func sort() {
+        queue.async(flags: .barrier) { [weak self] in self?.array.sort() }
+    }
+    
+    /// Returns the elements of the sequence, sorted.
+    func sorted() -> [Element] {
+        queue.sync {  self.array.sorted() }
+    }
+    
+    /**
+     Sorts the collection in place, using the given predicate as the comparison between elements.
+     
+     - Parameter areInIncreasingOrder: A predicate that returns `true` if its first argument should be ordered before its second argument; otherwise, `false`. If `areInIncreasingOrder` throws an error during the sort, the elements may be in a different order, but none will be lost.
+    */
+    func sort(by areInIncreasingOrder: @escaping (Element, Element) throws -> Bool) rethrows {
+        queue.async(flags: .barrier) { [weak self] in try? self?.array.sort(by: areInIncreasingOrder) }
+    }
+    
+    func min() -> Element? {
+        queue.sync { self.array.min() }
+    }
+    
+    func min(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> Element? {
+        try queue.sync { try self.array.min(by: areInIncreasingOrder)}
+    }
+    
+    func max() -> Element? {
+        queue.sync { self.array.max() }
+    }
+    
+    func max(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> Element? {
+        try queue.sync { try self.array.max(by: areInIncreasingOrder)}
     }
 }
 
@@ -415,8 +593,6 @@ extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertib
     }
 }
 
-extension SynchronizedArray: ExpressibleByArrayLiteral {}
-
 extension SynchronizedArray: @unchecked Sendable where Element: Sendable {}
 
 extension SynchronizedArray: Encodable where Element: Encodable {
@@ -426,7 +602,7 @@ extension SynchronizedArray: Encodable where Element: Encodable {
     }
 }
 
-extension SynchronizedArray: Decodable where Element: Decodable {}
+extension SynchronizedArray: Decodable where Element: Decodable { }
 
 extension SynchronizedArray: CVarArg {
     public var _cVarArgEncoding: [Int] {

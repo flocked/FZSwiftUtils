@@ -42,6 +42,7 @@ public extension Collection where Element: Equatable {
     }
 }
 
+
 public extension Collection where Element: Hashable {
     /**
      Returns the indexes of the specified elements.

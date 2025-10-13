@@ -132,19 +132,6 @@ public extension Set {
     }
 }
 
-extension Set: Comparable where Element: Comparable {
-    public static func < (lhs: Set<Element>, rhs: Set<Element>) -> Bool {
-        for (leftElement, rightElement) in zip(lhs, rhs) {
-            if leftElement < rightElement {
-                return true
-            } else if leftElement > rightElement {
-                return false
-            }
-        }
-        return lhs.count < rhs.count
-    }
-}
-
 extension Set {
     /// A function builder type that produces a set.
     @resultBuilder

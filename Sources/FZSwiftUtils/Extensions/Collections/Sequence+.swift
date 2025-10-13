@@ -61,11 +61,6 @@ public extension Sequence {
         try Dictionary(grouping: self, byNonNil: keyForValue)
     }
 
-    /// Splits the elements of the sequence by the specified keypath and values that are returned for each keypath.
-    func split<Key>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] where Key: Equatable {
-        split(by: { $0[keyPath: keyPath] })
-    }
-
     /// Splits the elements of sequence by the key returned from the specified closure and values that are returned for each key.
     func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
         try reduce(into: []) { values, value in

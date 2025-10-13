@@ -146,9 +146,8 @@ public extension Collection where Index: Comparable {
 public extension RangeReplaceableCollection {
     /// Adds the specified optional `Element`.
     static func += (lhs: inout Self, rhs: Element?) {
-        if let rhs = rhs {
-            lhs.append(rhs)
-        }
+        guard let rhs = rhs else { return }
+        lhs.append(rhs)
     }
 
     /// Adds the specified optional `Element`.

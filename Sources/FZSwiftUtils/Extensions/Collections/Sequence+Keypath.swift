@@ -109,7 +109,7 @@ public extension Sequence {
      - Returns: The number of elements of the sequence at the keypath.
      */
     func count<T>(of keyPath: KeyPath<Element, T?>) -> Int {
-        filter { $0[keyPath: keyPath] != nil }.count
+        count(where: { $0[keyPath: keyPath] != nil })
     }
     
     /**
@@ -125,6 +125,8 @@ public extension Sequence {
         })
     }
 }
+
+
 
 public extension BidirectionalCollection {
     /**
