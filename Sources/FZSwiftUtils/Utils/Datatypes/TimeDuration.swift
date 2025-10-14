@@ -567,14 +567,16 @@ extension TimeDuration: CustomStringConvertible {
     }
 
     public enum TimeCodeFormat: Int, Hashable {
-        /// Automatically chooses the most compact style, showing only necessary units.
-        case automatically
         /// Hours, minutes, and seconds (`3:23:45`).
         case hoursMinutesSeconds
         /// Minutes, and seconds (`23:45` or `235:45`).
         case minutesSeconds
         /// Seconds (`31` or `23545`).
         case seconds
+        /// Minutes and seconds and if needed hours (`23:45` or `04:33:10`).
+        case compact
+        /// Automatically chooses the most compact style, showing only necessary units (`40`, `33:50` or `01:30:50`).
+        case short
     }
 
     /**
@@ -589,18 +591,37 @@ extension TimeDuration: CustomStringConvertible {
 
      - Returns: A formatted string representing the timecode.
      */
-    public func timecodeString(format: TimeCodeFormat = .automatically, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
+    public func timecodeString(format: TimeCodeFormat = .compact, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
         let totalSeconds = Int(seconds)
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
 
-        let showHours = format == .hoursMinutesSeconds || (format == .automatically && hours > 0)
-        let showMinutes = format == .hoursMinutesSeconds || format == .minutesSeconds || (format == .automatically && (showHours || minutes > 0))
-        let showSeconds = format == .seconds || showMinutes || showHours || format == .automatically
+        let showHours = format == .hoursMinutesSeconds || (format == .short && hours > 0) || (format == .compact && hours > 0)
+        let showMinutes = format == .hoursMinutesSeconds || format == .compact || format == .minutesSeconds || (format == .short && (showHours || minutes > 0))
+        let showSeconds = format == .seconds || format == .compact || showMinutes || showHours || format == .short
 
         return timecodeString(showHours: showHours, showMinutes: showMinutes, showSeconds: showSeconds, omitLeadingZeroInFirstUnit: omitLeadingZeroInFirstUnit, subsecondsPrecision: subsecondsPrecision, separator: separator, subsecondSeparator: subsecondSeparator)
     }
-
+    
+    enum UnitOption {
+        case alwaysDisplayed
+        case ifNeeded
+    }
+    
+    /*
+    public enum TimeUnitFormat {
+        /// The unit is always displayed by two or more digits.
+        case full
+        /// The unit is displayed if needed by one or more digits.
+        case compact
+        /// The unit is never displayed.
+        case hidden
+    }
+    
+   public func timeCodeString(hours: TimeUnitFormat = .compact, minutes: TimeUnitFormat = .full, seconds: TimeUnitFormat = .full, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
+    }
+     */
+    
     /**
      A timecode string representation of the duration (e.g. "03:50:32").
 
