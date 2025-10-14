@@ -297,7 +297,9 @@ public extension URL {
      - Parameter amount: The number of path components to remove.
      */
     func deletingLastPathComponents(amount: Int) -> URL {
-        pathComponents.reduce(self) { url,_ in url.deletingLastPathComponent() }
+        var url = self
+        url.deleteLastPathComponents(amount: amount)
+        return url
     }
     
     /**
@@ -307,6 +309,32 @@ public extension URL {
      */
     mutating func deleteLastPathComponents(amount: Int) {
         (0..<amount).forEach({ _ in deleteLastPathComponent() })
+    }
+    
+    /**
+     Returns a descendant URL that is a specified number of levels below the first ancestor whose path contains the given component.
+
+     For example:
+     ```
+     "/Users/Adam/Downloads/FZSwiftUtils/Package.swift"
+     
+     - ancestor(containing: "Adam")
+        -> "/Users/Adam/"
+     - ancestor(containing: "Adam", depthBelow: 2)
+        -> "/Users/Adam/Downloads/FZSwiftUtils/"
+     - ancestor(containing: "Adam", depthBelow: 100)
+        -> nil
+     ```
+     
+     - Parameters:
+       - pathComponent: The name of the path component to search for among ancestor directories.
+       - depthBelow: The number of levels below the found component to return.
+     - Returns: A URL `depthBelow` levels beneath the ancestor containing `pathComponent`, or `nil` if not found.
+     */
+    func ancestor(containing pathComponent: String, depthBelow: Int = 0) -> URL? {
+        let pathComponents = pathComponents
+        guard let index = pathComponents.firstIndex(of: pathComponent), index + depthBelow < pathComponents.count else { return nil }
+        return deletingLastPathComponents(amount: pathComponents.count - 1 - (index + depthBelow))
     }
     
     /// The path component at the specific index.
