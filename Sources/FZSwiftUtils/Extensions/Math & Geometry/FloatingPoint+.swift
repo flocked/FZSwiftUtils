@@ -110,6 +110,29 @@ public extension BinaryFloatingPoint {
     func fractionalRemainder(dividingBy other: Self) -> Self {
         max(truncatingRemainder(dividingBy: other), 0) / other
     }
+    
+    /**
+     Generates an array of random, progressively increasing values within a given range.
+
+     Each value is based on an evenly spaced step within the range, with an optional `variation` that allows each value to randomly deviate around its base position.
+
+     - Parameters:
+        - range: The range in which to create a random value. range must be finite and non-empty.
+        - amount: The number of values to generate.
+        - variation: Controls how much each value can vary from its evenly spaced position. Valid range is `0.0` to `1.0`.
+       
+     - Returns: An array of increasing random values within the range.
+     */
+    static func random(in range: ClosedRange<Self>, amount: Int, variation: Self = 0.4) -> [Self] {
+        guard amount > 1 else { return [] }
+        let step = (range.upperBound - range.lowerBound) / Self(amount - 1)
+        let variation = max(0.0, min(variation, 1.0))
+        return (0..<amount).map { i in
+            let base = range.lowerBound + Self(i) * step
+            let jitter = Self(Double.random(in: -Double(step * variation)...Double(step * variation)))
+            return min(max(base + jitter, range.lowerBound), range.upperBound)
+        }.sorted()
+    }
 }
 
 
