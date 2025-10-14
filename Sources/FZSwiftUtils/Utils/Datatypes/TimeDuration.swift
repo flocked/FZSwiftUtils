@@ -20,14 +20,14 @@ public struct TimeDuration: Hashable, Sendable, Codable {
     }
 
     #if os(macOS) || os(iOS) || os(tvOS)
-        /**
-         Initializes a new `TimeDuration` instance with the specified `CMTime`.
+    /**
+     Initializes a new `TimeDuration` instance with the specified `CMTime`.
 
-         - Parameter time: The `CMTime` to use for the duration.
-         */
-        public init(_ time: CMTime) {
-            seconds = time.seconds
-        }
+     - Parameter time: The `CMTime` to use for the duration.
+     */
+    public init(_ time: CMTime) {
+        seconds = time.seconds
+    }
     #endif
 
     /**
@@ -269,39 +269,39 @@ public extension Date {
     func timeDurationSince(_ another: Date) -> TimeDuration {
         TimeDuration(timeIntervalSince(another))
     }
-    
+
     /// Creates a new date value by adding a time duration to this date.
     static func + (lhs: Date, rhs: TimeDuration) -> Date {
         lhs.addingTimeInterval(rhs.seconds)
     }
-    
+
     /// Adds a time duration to this date.
     static func += (lhs: inout Date, rhs: TimeDuration) {
         lhs.addTimeInterval(rhs.seconds)
     }
-    
+
     /// Creates a new date value by subtracting a time duration to this date.
     static func - (lhs: Date, rhs: TimeDuration) -> Date {
         lhs.addingTimeInterval(-rhs.seconds)
     }
-    
+
     /// Subtracts a time duration to this date.
     static func -= (lhs: inout Date, rhs: TimeDuration) {
         lhs.addTimeInterval(-rhs.seconds)
     }
 }
 
- extension TimeDuration: ExpressibleByIntegerLiteral {
-     public init(integerLiteral value: Int) {
-         seconds = Double(value)
-     }
- }
+extension TimeDuration: ExpressibleByIntegerLiteral {
+    public init(integerLiteral value: Int) {
+        seconds = Double(value)
+    }
+}
 
- extension TimeDuration: ExpressibleByFloatLiteral {
-     public init(floatLiteral value: Double) {
-         seconds = value
-     }
- }
+extension TimeDuration: ExpressibleByFloatLiteral {
+    public init(floatLiteral value: Double) {
+        seconds = value
+    }
+}
 
 public extension TimeDuration {
     ///  Enumeration representing different duration time units.
@@ -324,7 +324,7 @@ public extension TimeDuration {
         case month
         /// Year
         case year
-        
+
         private var secondsPerUnit: Double {
             switch self {
             case .nanoSecond: return 1e-9
@@ -346,7 +346,7 @@ public extension TimeDuration {
         func seconds(for value: Double) -> Double {
             value * secondsPerUnit
         }
-        
+
         func convert(_ value: Double, to target: Unit) -> Double {
             target.value(for: seconds(for: value))
         }
@@ -440,9 +440,9 @@ extension TimeDuration: CustomStringConvertible {
 
     /**
      A string representation of the time duration including the units.
-     
+
      Example usage:
-     
+
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
      duration.string // "3 hours, 2 minutes, 1 second"
@@ -454,7 +454,7 @@ extension TimeDuration: CustomStringConvertible {
 
     /**
      A compact string representation of the time duration.
-     
+
      Example usage:
 
      ```swift
@@ -473,7 +473,7 @@ extension TimeDuration: CustomStringConvertible {
 
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
-     
+
      // full
      duration.string(for: .second, style: .full) // "10.921 seconds"
 
@@ -492,7 +492,7 @@ extension TimeDuration: CustomStringConvertible {
      // spellOut
      duration.string(for: .second, style: .spellOut) // "ten thousand nine hundred twenty-one seconds"
      ```
-     
+
      - Parameters:
         - unit: The unit to use for formatting the time duration.
         - style: The formatting style. The default value is `full`.
@@ -506,19 +506,19 @@ extension TimeDuration: CustomStringConvertible {
 
     /**
      Returns a string representation of the time duration using the specified allowed time units and style.
-     
+
      Example usage:
 
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
-     
+
      // "182min 1sec"
      duration.string(allowedUnits: [.minute, .second], style: .brief)
-     
+
      // "3 hours, 2 minutes, 1 second"
      duration.string(allowedUnits: .all, style: .full)
      ```
-     
+
      - Parameters:
         - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
         - style: The formatting style. The default value is `full`.
@@ -534,22 +534,22 @@ extension TimeDuration: CustomStringConvertible {
         formatter.locale = locale
         return formatter.string(from: seconds)!
     }
-    
+
     /**
      Returns a string representation of the time duration using the specified allowed time units and style.
-     
+
      Example usage:
 
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
-     
+
      // "182min 1sec"
      duration.relativeString(allowedUnits: [.minute, .second], style: .brief)
-     
+
      // "3 hours, 2 minutes, 1 second"
      duration.string(allowedUnits: .all, style: .full)
      ```
-     
+
      - Parameters:
         - inPast: A Boolean value indicating whether the duration should be interpreted as occurring in the past (e.g. "2 hours ago") or in the future (e.g "in 2 hours").
         - dateTimeStyle: The style to use when describing a relative date, for example “yesterday” or “1 day ago”.
@@ -565,23 +565,59 @@ extension TimeDuration: CustomStringConvertible {
         formatter.locale = locale
         return formatter.localizedString(fromTimeInterval: seconds)
     }
-    
+
+    public enum TimeCodeFormat: Int, Hashable {
+        /// Automatically chooses the most compact style, showing only necessary units.
+        case automatically
+        /// Hours, minutes, and seconds (`3:23:45`).
+        case hoursMinutesSeconds
+        /// Minutes, and seconds (`23:45` or `235:45`).
+        case minutesSeconds
+        /// Seconds (`31` or `23545`).
+        case seconds
+    }
+
     /**
      A timecode string representation of the duration (e.g. "03:50:32").
 
      - Parameters:
-       - showHours: Whether to include the hours component in the output.
-       - showMinutes: Whether to include the minutes component in the output.
-       - showSeconds: Whether to include the seconds component in the output.
+       - format: The time code format determinating which units are used.
+       - omitLeadingZeroInFirstUnit: A Boolean value indicating whether to omit the leading zero of the first unit if possible. e.g. "4:55:20" instead of "04:55:20".
        - subsecondsPrecision: Number of digits to include after the separator for fractional seconds. Set to `0` to hide fractional seconds.
        - separator: The string used to separate hours, minutes, and seconds.
        - subsecondSeparator: The string used to separate the seconds and fractional seconds.
 
      - Returns: A formatted string representing the timecode.
+     */
+    public func timeCodeString(format: TimeCodeFormat = .automatically, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
+        let totalSeconds = Int(seconds)
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+
+        let showHours = format == .hoursMinutesSeconds || (format == .automatically && hours > 0)
+        let showMinutes = format == .hoursMinutesSeconds || format == .minutesSeconds || (format == .automatically && (showHours || minutes > 0))
+        let showSeconds = format == .seconds || showMinutes || showHours || format == .automatically
+
+        return timecodeString(showHours: showHours, showMinutes: showMinutes, showSeconds: showSeconds, omitLeadingZeroInFirstUnit: omitLeadingZeroInFirstUnit, subsecondsPrecision: subsecondsPrecision, separator: separator, subsecondSeparator: subsecondSeparator)
+    }
+
+    /**
+     A timecode string representation of the duration (e.g. "03:50:32").
+
+     - Parameters:
+        - showHours: Whether to include the hours component in the output.
+        - showMinutes: Whether to include the minutes component in the output.
+        - showSeconds: Whether to include the seconds component in the output.
+        - omitLeadingZeroInFirstUnit: A Boolean value indicating whether to omit the leading zero of the first unit if possible. e.g. "4:55:20" instead of "04:55:20".
+        - subsecondsPrecision: Number of digits to include after the separator for fractional seconds. Set to `0` to hide fractional seconds.
+        - separator: The string used to separate hours, minutes, and seconds.
+        - subsecondSeparator: The string used to separate the seconds and fractional seconds.
+
+     - Returns: A formatted string representing the timecode.
 
      ```swift
      let duration = .seconds(13832.44)
-     
+
      // "03:50:32"
      duration.timecodeString()
      // "03:50:32,44"
@@ -592,33 +628,31 @@ extension TimeDuration: CustomStringConvertible {
      duration.timecodeString(showHours: false, showMinutes: false)
      ```
      */
-    public func timecodeString(showHours: Bool = true, showMinutes: Bool = true, showSeconds: Bool = true, subsecondsPrecision: Int = 2, separator: String = ":", subsecondSeparator: String = ",") -> String {
+    public func timecodeString(showHours: Bool, showMinutes: Bool, showSeconds: Bool, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
         let totalSeconds = Int(seconds)
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
         let secs = totalSeconds % 60
         let subseconds = seconds - Double(totalSeconds)
-        
+
+        func convert(_ value: Int, omitLeadingZero: Bool) -> String {
+            omitLeadingZero && value < 10 ? "\(value)" : String(format: "%02d", value)
+        }
+
         var components: [String] = []
 
         if showHours {
-            components.append(String(format: "%02d", hours))
+            components += convert(hours, omitLeadingZero: omitLeadingZeroInFirstUnit)
         }
 
         if showMinutes {
-            if !showHours {
-                components.append(String(format: "%02d", minutes + hours * 60))
-            } else {
-                components.append(String(format: "%02d", minutes))
-            }
+            let minutesValue = showHours ? minutes : (minutes + hours * 60)
+            components += convert(minutesValue, omitLeadingZero: !showHours && omitLeadingZeroInFirstUnit)
         }
 
         if showSeconds {
-            if !showHours && !showMinutes {
-                components.append(String(format: "%02d", secs + minutes * 60 + hours * 3600))
-            } else {
-                components.append(String(format: "%02d", secs))
-            }
+            let secondsValue = (!showHours && !showMinutes) ? (secs + minutes * 60 + hours * 3600) : secs
+            components += convert(secondsValue, omitLeadingZero: !showHours && !showMinutes && omitLeadingZeroInFirstUnit)
         }
 
         var timecode = components.joined(separator: separator)
@@ -702,7 +736,7 @@ extension DispatchTime {
     public static func + (lhs: Self, rhs: TimeDuration) -> Self {
         lhs + rhs.seconds
     }
-    
+
     public static func += (lhs: inout Self, rhs: TimeDuration) {
         lhs = lhs + rhs
     }
@@ -824,7 +858,7 @@ public extension Timer {
 }
 
 extension TimeDuration: ReferenceConvertible {
-    
+
     /// The Objective-C type for the time duration.
     public typealias ReferenceType = __TimeDuration
 
@@ -858,11 +892,11 @@ extension TimeDuration: ReferenceConvertible {
 /// The Objective-C type for `TimeDuration`.
 public class __TimeDuration: NSObject, NSCopying {
     let seconds: Double
-    
+
     init(seconds: Double) {
         self.seconds = seconds
     }
-    
+
     public func copy(with zone: NSZone? = nil) -> Any {
         __TimeDuration(seconds: seconds)
     }
