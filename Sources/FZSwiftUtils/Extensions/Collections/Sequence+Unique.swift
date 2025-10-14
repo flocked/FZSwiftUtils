@@ -32,7 +32,7 @@ public extension Sequence {
 
      - Parameter keyPath: The keypath for filtering the object.
      */
-    func euniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
+    func uniqued<T: Equatable>(by keyPath: KeyPath<Element, T>) -> [Element] {
         uniqued(by: { $0[keyPath: keyPath] })
     }
     

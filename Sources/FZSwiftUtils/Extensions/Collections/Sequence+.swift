@@ -218,3 +218,39 @@ extension MutableCollection where Self: RangeReplaceableCollection {
         self += Array(repeating: self, count: amount - 1).flatMap { $0 }
     }
 }
+
+
+
+extension Collection {
+    /**
+     Returns a weighted shuffle of the collection.
+     
+     - Parameter weights: Values representing the relative likelihood of each element appearing earlier in the result.
+     */
+    public func shuffled(by weights: [Double]) -> [Element] {
+        guard !isEmpty else { return [] }
+        var weights = weights
+        if weights.isEmpty || weights.contains(where: { $0 < 0}) {
+            return self.shuffled()
+        } else if weights.count < count {
+            let lastWeight = weights.last ?? 1.0
+            weights = weights + Array(repeating: lastWeight, count: count - weights.count)
+        }
+        return zip(self, weights).map { element, weight in
+            let key = pow(Double.random(in: 0..<1), 1.0 / (weight + .leastNonzeroMagnitude))
+            return (key, element)
+        }.sorted { $0.0 > $1.0 }.map { $0.1 }
+
+    }
+}
+
+extension RangeReplaceableCollection {
+    /**
+     Shuffles the collection weighted.
+     
+     - Parameter weights: Values representing the relative likelihood of each element appearing earlier in the result.
+     */
+    public mutating func shuffle(by weights: [Double]) {
+        self = Self(shuffled(by: weights))
+    }
+}
