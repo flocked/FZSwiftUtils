@@ -570,6 +570,7 @@ extension NSObjectProtocol where Self: NSObject {
      }
      ```
      */
+    @discardableResult
     public static func hookAfter<Value>(setAll keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
         let setterName = try keyPath.setterName()
         if let hook = try? hookAfter(all: setterName, closure: Hook.beforeAfterClosure(for: closure)) {
