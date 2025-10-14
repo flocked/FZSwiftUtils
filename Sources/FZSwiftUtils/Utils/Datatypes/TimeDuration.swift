@@ -589,7 +589,7 @@ extension TimeDuration: CustomStringConvertible {
 
      - Returns: A formatted string representing the timecode.
      */
-    public func timeCodeString(format: TimeCodeFormat = .automatically, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
+    public func timecodeString(format: TimeCodeFormat = .automatically, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
         let totalSeconds = Int(seconds)
         let hours = totalSeconds / 3600
         let minutes = (totalSeconds % 3600) / 60
