@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreGraphics
+import ImageIO
 
 /**
  A Core Foundation type.
@@ -253,4 +254,8 @@ extension CFUUID: CFType {
 extension CFWriteStream: CFType {
     /// The Core Foundation type identifier for `CFWriteStream`.
     public static var typeID: CFTypeID { CFWriteStreamGetTypeID() }
+}
+
+extension CGImageDestination: CFType {
+    public static var typeID: CFTypeID { CGImageDestinationGetTypeID() }
 }

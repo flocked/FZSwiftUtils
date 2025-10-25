@@ -201,6 +201,29 @@ public class ImageSource {
     public func thumbnailFrames(options: ThumbnailOptions? = .init()) -> [CGImageFrame] {
         (try? thumbnailFrames(options: options).collect()) ?? []
     }
+    
+    /// Removes the cache for all images of the image data source.
+    public func removeCache() {
+        (0..<count).forEach({ removeCache(at: $0) })
+    }
+    
+    /// Removes any cache for the image at the specified index.
+    public func removeCache(at index: Int) {
+        CGImageSourceRemoveCacheAtIndex(cgImageSource, index)
+    }
+    
+    /**
+     Updates the data in an incremental image source.
+     
+     This method updates the state of the image source and its contained images. Call this method one or more times to update the contents of an incremental data source. Each time you call the method, you must specify all of the accumulated image data, not just the new data you received.
+     
+     - Parameters:
+        - data: The updated data for the image source. Each time you call this function, specify all of the accumulated image data so far.
+        - isFinal: A Boolean value that indicates whether the data parameter represents the complete data set. Specify `true` if the data is complete or `false` if it isn’t.
+     */
+    public func updateDate(_ data: Data, isFinal: Bool) {
+        CGImageSourceUpdateData(cgImageSource, data as CFData, isFinal)
+    }
 
     /**
      Creates an image source that reads from a CGImageSource.
@@ -218,9 +241,9 @@ public class ImageSource {
      - Parameters:
         - url: The URL of the image.
      */
-    public convenience init?(url: URL) {
+    public init?(url: URL) {
         guard let cgImageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
-        self.init(cgImageSource)
+        self.cgImageSource = cgImageSource
     }
 
     /**
@@ -239,9 +262,18 @@ public class ImageSource {
      - Parameters:
         - data: The data of the image.
      */
-    public convenience init?(data: Data) {
+    public init?(data: Data) {
         guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
-        self.init(cgImageSource)
+        self.cgImageSource = cgImageSource
+    }
+    
+    /**
+     Creates an empty image source that you can use to accumulate incremental image data.
+     
+     This function creates an empty image source, which you use to accumulate data downloaded in chunks from the network. To add new chunks of data to the image source, call  ``updateDate(_:isFinal:)``.
+     */
+    public init() {
+        self.cgImageSource = CGImageSourceCreateIncremental(nil)
     }
     
     /// The uniform type identifiers that are supported for image sources.
