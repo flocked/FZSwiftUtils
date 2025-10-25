@@ -13,7 +13,7 @@ import CoreGraphics
  
  This protocol allows extending Core Foundation types with custom initalizers which is normally not allowed.
  */
-public protocol CFType {
+public protocol CFType: AnyObject {
     /// The Core Foundation type identifier.
     static var typeID: CFTypeID { get }
 }
