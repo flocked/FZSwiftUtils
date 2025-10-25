@@ -16,6 +16,8 @@ import CoreGraphics
 public protocol CFType {
     /// The Core Foundation type identifier.
     static var typeID: CFTypeID { get }
+    init?(_ value: Any)
+    init?(_ value: Any?)
 }
 
 extension CFType {
