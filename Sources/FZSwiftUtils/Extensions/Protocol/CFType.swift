@@ -30,9 +30,40 @@ extension CFType {
         guard let value = value as? AnyObject, CFGetTypeID(value) == Self.typeID else { return nil }
         self = value as! Self
     }
+    
+    /// A textual description of the objects.
+    public static var cfDescription: CFString {
+        CFCopyTypeIDDescription(typeID)
+    }
+    
+    /// A textual description of the object.
+    public var cfDescription: CFString {
+        CFCopyDescription(self as AnyObject)
+    }
+    
+    /// Determines whether two Core Foundation objects are considered equal.
+    public func cfEqual(to v: CFTypeRef) -> Bool {
+        CFEqual(self as AnyObject, v)
+    }
+    
+    /// The hash value of the object.
+    public var cfHash: CFHashCode {
+        CFHash(self as AnyObject)
+    }
+    
+    /// The reference count of the object.
+    public var cfRetainCount: CFIndex {
+        CFGetRetainCount(self as AnyObject)
+    }
+    
+    /// The allocator used to allocate the object.
+    public var cfAllocator: CFAllocator {
+        CFGetAllocator(self as AnyObject)
+    }
 }
 
 extension CGColor: CFType { }
+extension CGColorConversionInfo: CFType {}
 extension CGColorSpace: CFType { }
 extension CGGradient: CFType { }
 extension CGPath: CFType { }
@@ -46,169 +77,180 @@ extension CGPattern: CFType { }
 extension CGDataProvider: CFType { }
 extension CGDataConsumer: CFType { }
 extension CGPDFPage: CFType { }
+extension CGPDFDocument: CFType {}
 
 #if os(macOS)
-import Carbon
+extension CGDisplayMode: CFType {}
+extension CGDisplayStream: CFType {}
 extension CGEvent: CFType { }
+extension CGEventSource: CFType {}
+extension CGPSConverter: CFType {}
+extension CFUserNotification: CFType {
+    public static let typeID = CFUserNotificationGetTypeID()
+}
 #endif
 
 extension CFString: CFType {
-    /// Returns the Core Foundation type identifier for a `CFString` type.
+    /// The Core Foundation type identifier for `CFString`.
     public static var typeID: CFTypeID { CFStringGetTypeID() }
 }
 extension CFNumber: CFType {
-    /// Returns the Core Foundation type identifier for a `CFNumber` type.
+    /// The Core Foundation type identifier for `CFNumber`.
     public static var typeID: CFTypeID { CFNumberGetTypeID() }
 }
 extension CFArray: CFType {
-    /// Returns the Core Foundation type identifier for a `CFArray` type.
+    /// The Core Foundation type identifier for `CFArray`.
     public static var typeID: CFTypeID { CFArrayGetTypeID() }
 }
 extension CFDictionary: CFType {
-    /// Returns the Core Foundation type identifier for a `CFDictionary` type.
+    /// The Core Foundation type identifier for `CFDictionary`.
     public static var typeID: CFTypeID { CFDictionaryGetTypeID() }
 }
 extension CFSet: CFType {
-    /// Returns the Core Foundation type identifier for a `CFSet` type.
+    /// The Core Foundation type identifier for `CFSet`.
     public static var typeID: CFTypeID { CFSetGetTypeID() }
 }
 extension CFDate: CFType {
-    /// Returns the Core Foundation type identifier for a `CFDate` type.
+    /// The Core Foundation type identifier for `CFDate`.
     public static var typeID: CFTypeID { CFDateGetTypeID() }
 }
+extension CFTree: CFType {
+    /// The Core Foundation type identifier for `CFTree`.
+    public static let typeID = CFTreeGetTypeID()
+}
 extension CFURL: CFType {
-    /// Returns the Core Foundation type identifier for a `CFURL` type.
+    /// The Core Foundation type identifier for `CFURL`.
     public static var typeID: CFTypeID { CFURLGetTypeID() }
 }
 extension CFBag: CFType {
-    /// Returns the Core Foundation type identifier for a `CFBag` type.
+    /// The Core Foundation type identifier for `CFBag`.
     public static var typeID: CFTypeID { CFBagGetTypeID() }
 }
 extension CFData: CFType {
-    /// Returns the Core Foundation type identifier for a `CFData` type.
+    /// The Core Foundation type identifier for `CFData`.
     public static var typeID: CFTypeID { CFDataGetTypeID() }
 }
 extension CFBoolean: CFType {
-    /// Returns the Core Foundation type identifier for a `CFBoolean` type.
+    /// The Core Foundation type identifier for `CFBoolean`.
     public static var typeID: CFTypeID { CFBooleanGetTypeID() }
 }
 extension CFAllocator: CFType {
-    /// Returns the Core Foundation type identifier for a `CFAllocator` type.
+    /// The Core Foundation type identifier for `CFAllocator`.
     public static var typeID: CFTypeID { CFAllocatorGetTypeID() }
 }
 extension CFAttributedString: CFType {
-    /// Returns the Core Foundation type identifier for a `CFAttributedString` type.
+    /// The Core Foundation type identifier for `CFAttributedString`.
     public static var typeID: CFTypeID { CFAttributedStringGetTypeID() }
 }
 extension CFBinaryHeap: CFType {
-    /// Returns the Core Foundation type identifier for a `CFBinaryHeap` type.
+    /// The Core Foundation type identifier for `CFBinaryHeap`.
     public static var typeID: CFTypeID { CFBinaryHeapGetTypeID() }
 }
 extension CFBitVector: CFType {
-    /// Returns the Core Foundation type identifier for a `CFBitVector` type.
+    /// The Core Foundation type identifier for `CFBitVector`.
     public static var typeID: CFTypeID { CFBitVectorGetTypeID() }
 }
 extension CFBundle: CFType {
-    /// Returns the Core Foundation type identifier for a `CFBundle` type.
+    /// The Core Foundation type identifier for `CFBundle`.
     public static var typeID: CFTypeID { CFBundleGetTypeID() }
 }
 extension CFCalendar: CFType {
-    /// Returns the Core Foundation type identifier for a `CFCalendar` type.
+    /// The Core Foundation type identifier for `CFCalendar`.
     public static var typeID: CFTypeID { CFCalendarGetTypeID() }
 }
 extension CFCharacterSet: CFType {
-    /// Returns the Core Foundation type identifier for a `CFCharacterSet` type.
+    /// The Core Foundation type identifier for `CFCharacterSet`.
     public static var typeID: CFTypeID { CFCharacterSetGetTypeID() }
 }
 extension CFDateFormatter: CFType {
-    /// Returns the Core Foundation type identifier for a `CFDateFormatter` type.
+    /// The Core Foundation type identifier for `CFDateFormatter`.
     public static var typeID: CFTypeID { CFDateFormatterGetTypeID() }
 }
 extension CFError: CFType {
-    /// Returns the Core Foundation type identifier for a `CFError` type.
+    /// The Core Foundation type identifier for `CFError`.
     public static var typeID: CFTypeID { CFErrorGetTypeID() }
 }
 extension CFFileDescriptor: CFType {
-    /// Returns the Core Foundation type identifier for a `CFFileDescriptor` type.
+    /// The Core Foundation type identifier for `CFFileDescriptor`.
     public static var typeID: CFTypeID { CFFileDescriptorGetTypeID() }
 }
 extension CFFileSecurity: CFType {
-    /// Returns the Core Foundation type identifier for a `CFFileSecurity` type.
+    /// The Core Foundation type identifier for `CFFileSecurity`.
     public static var typeID: CFTypeID { CFFileSecurityGetTypeID() }
 }
 extension CFLocale: CFType {
-    /// Returns the Core Foundation type identifier for a `CFLocale` type.
+    /// The Core Foundation type identifier for `CFLocale`.
     public static var typeID: CFTypeID { CFLocaleGetTypeID() }
 }
 extension CFMachPort: CFType {
-    /// Returns the Core Foundation type identifier for a `CFMachPort` type.
+    /// The Core Foundation type identifier for `CFMachPort`.
     public static var typeID: CFTypeID { CFMachPortGetTypeID() }
 }
 extension CFMessagePort: CFType {
-    /// Returns the Core Foundation type identifier for a `CFMessagePort` type.
+    /// The Core Foundation type identifier for `CFMessagePort`.
     public static var typeID: CFTypeID { CFMessagePortGetTypeID() }
 }
 extension CFNotificationCenter: CFType {
-    /// Returns the Core Foundation type identifier for a `CFNotificationCenter` type.
+    /// The Core Foundation type identifier for `CFNotificationCenter`.
     public static var typeID: CFTypeID { CFNotificationCenterGetTypeID() }
 }
 extension CFNull: CFType {
-    /// Returns the Core Foundation type identifier for a `CFNull` type.
+    /// The Core Foundation type identifier for `CFNull`.
     public static var typeID: CFTypeID { CFNullGetTypeID() }
 }
 extension CFNumberFormatter: CFType {
-    /// Returns the Core Foundation type identifier for a `CFNumberFormatter` type.
+    /// The Core Foundation type identifier for `CFNumberFormatter`.
     public static var typeID: CFTypeID { CFNumberFormatterGetTypeID() }
 }
 extension CFPlugIn: CFType {
-    /// Returns the Core Foundation type identifier for a `CFPlugIn` type.
+    /// The Core Foundation type identifier for `CFPlugIn`.
     public static var typeID: CFTypeID { CFPlugInGetTypeID() }
 }
 extension CFPlugInInstance: CFType {
-    /// Returns the Core Foundation type identifier for a `CFPlugInInstance` type.
+    /// The Core Foundation type identifier for `CFPlugInInstance`.
     public static var typeID: CFTypeID { CFPlugInInstanceGetTypeID() }
 }
 extension CFReadStream: CFType {
-    /// Returns the Core Foundation type identifier for a `CFReadStream` type.
+    /// The Core Foundation type identifier for `CFReadStream`.
     public static var typeID: CFTypeID { CFReadStreamGetTypeID() }
 }
 extension CFRunLoop: CFType {
-    /// Returns the Core Foundation type identifier for a `CFRunLoop` type.
+    /// The Core Foundation type identifier for `CFRunLoop`.
     public static var typeID: CFTypeID { CFRunLoopGetTypeID() }
 }
 extension CFRunLoopObserver: CFType {
-    /// Returns the Core Foundation type identifier for a `CFRunLoopObserver` type.
+    /// The Core Foundation type identifier for `CFRunLoopObserver`.
     public static var typeID: CFTypeID { CFRunLoopObserverGetTypeID() }
 }
 extension CFRunLoopSource: CFType {
-    /// Returns the Core Foundation type identifier for a `CFRunLoopSource` type.
+    /// The Core Foundation type identifier for `CFRunLoopSource`.
     public static var typeID: CFTypeID { CFRunLoopSourceGetTypeID() }
 }
 extension CFRunLoopTimer: CFType {
-    /// Returns the Core Foundation type identifier for a `CFRunLoopTimer` type.
+    /// The Core Foundation type identifier for `CFRunLoopTimer`.
     public static var typeID: CFTypeID { CFRunLoopTimerGetTypeID() }
 }
 extension CFSocket: CFType {
-    /// Returns the Core Foundation type identifier for a `CFSocket` type.
+    /// The Core Foundation type identifier for `CFSocket`.
     public static var typeID: CFTypeID { CFSocketGetTypeID() }
 }
 extension CFStringTokenizer: CFType {
-    /// Returns the Core Foundation type identifier for a `CFStringTokenizer` type.
+    /// The Core Foundation type identifier for `CFStringTokenizer`.
     public static var typeID: CFTypeID { CFStringTokenizerGetTypeID() }
 }
 extension CFTimeZone: CFType {
-    /// Returns the Core Foundation type identifier for a `CFTimeZone` type.
+    /// The Core Foundation type identifier for `CFTimeZone`.
     public static var typeID: CFTypeID { CFTimeZoneGetTypeID() }
 }
 extension CFURLEnumerator: CFType {
-    /// Returns the Core Foundation type identifier for a `CFURLEnumerator` type.
+    /// The Core Foundation type identifier for `CFURLEnumerator`.
     public static var typeID: CFTypeID { CFURLEnumeratorGetTypeID() }
 }
 extension CFUUID: CFType {
-    /// Returns the Core Foundation type identifier for a `CFUUID` type.
+    /// The Core Foundation type identifier for `CFUUID`.
     public static var typeID: CFTypeID { CFUUIDGetTypeID() }
 }
 extension CFWriteStream: CFType {
-    /// Returns the Core Foundation type identifier for a `CFWriteStream` type.
+    /// The Core Foundation type identifier for `CFWriteStream`.
     public static var typeID: CFTypeID { CFWriteStreamGetTypeID() }
 }
