@@ -291,6 +291,10 @@ public extension CGSize {
     func height(_ height: CGFloat) -> CGSize {
         CGSize(width, height)
     }
+    
+    var swapped: CGSize {
+        CGSize(height, width)
+    }
 }
 
 public extension CGSize {

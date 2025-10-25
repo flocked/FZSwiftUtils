@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource {
     /// Options for creating images.
@@ -29,13 +30,9 @@ public extension ImageSource {
             case factor8 = 8
         }
 
-        var dic: CFDictionary {
-            toDictionary() as CFDictionary
-        }
-        
         /**
          Returns the options for generating images.
-         
+
          - Parameters:
             - shouldCache: A Boolean value indicating whether to cache the decoded image.
             - shouldDecodeImmediately: A Boolean value indicating whether image decoding and caching happens at image creation time.
@@ -48,12 +45,14 @@ public extension ImageSource {
             self.shouldAllowFloat = shouldAllowFloat
             self.subsampleFactor = subsampleFactor
         }
-
-        public enum CodingKeys: String, CodingKey {
-            case shouldAllowFloat = "kCGImageSourceShouldAllowFloat"
-            case shouldCache = "kCGImageSourceShouldCache"
-            case shouldDecodeImmediately = "kCGImageSourceShouldCacheImmediately"
-            case subsampleFactor = "kCGImageSourceSubsampleFactor"
+        
+        var dic: CFDictionary {
+            var options: [CFString: Any] = [:]
+            options[kCGImageSourceShouldAllowFloat] = shouldAllowFloat
+            options[kCGImageSourceShouldCache] = shouldCache
+            options[kCGImageSourceShouldCacheImmediately] = shouldDecodeImmediately
+            options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
+            return options as CFDictionary
         }
     }
 
@@ -67,22 +66,17 @@ public extension ImageSource {
         public var subsampleFactor: SubsampleFactor?
         /// A Boolean indicating whether to use floating-point values in returned images.
         public var shouldAllowFloat: Bool = false
-        /// The maximum size of a thumbnail image, specified in pixels, or `nil` to use the original image size.
+        /// The maximum width and height of a thumbnail image, or `nil` to use the original image size.
         public var maxSize: Int?
         /// A Boolean value indicating whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
         public var shouldTransform: Bool = false
         
-        var createAlways: Bool = true
-        var createIfAbsent: Bool = false
-
-        /// Option when a thumbnail should be created.
-        public var createOption: CreateOption {
-            get { createAlways ? .always : createIfAbsent ? .ifAbsent : .never }
-            set {
-                createAlways = newValue == .always ? true : false
-                createIfAbsent = newValue == .ifAbsent ? true : false
-            }
-        }
+        /**
+         Specifies when a thumbnail should be created.
+         
+         Some images contain pre-rendered thumbnails that can be returned. Alternatively, a new thumbnail can be generated.
+         */
+        public var createOption: CreateOption = .always
 
         /// The factor by which to scale down returned images.
         public enum SubsampleFactor: Int, Codable, Hashable {
@@ -93,24 +87,24 @@ public extension ImageSource {
             /// Factor 8
             case factor8 = 8
         }
-
-        /// Option when a thumbnail should be created.
+        
+        /**
+         Specifies when a thumbnail should be created.
+         
+         Some images contain pre-rendered thumbnails that can be returned. Alternatively, a new thumbnail can be generated.
+         */
         public enum CreateOption: Codable {
-            /// Creates a thumbnail if the data source doesn’t contain one.
-            case ifAbsent
-            /// Creates always a thumbnail.
+            /// Always create a thumbnail from the image even if a thumbnail is present in the image data source.
             case always
-            /// Creates never a thumbnail
+            /// Create a thumbnail if the image data source doesn’t contain a thumbnail.
+            case ifAbsent
+            /// Only uses pre-rendered thumbnails from the original image data source.
             case never
-        }
-
-        var dic: CFDictionary {
-            toDictionary() as CFDictionary
         }
 
         /**
          Returns the options for generating thumbnails.
-         
+
          - Parameters:
             - create: Option when a thumbnail should be created.
             - maxSize: The maximum size of a thumbnail image, specified in pixels, or `nil` to use the original image size.
@@ -132,7 +126,7 @@ public extension ImageSource {
 
         /**
          Returns options for generating thumbnails with the specified maximum thumbnail size.
-         
+
          - Parameter maxSize: The maximum size for the thumbnails.
          */
         public static func maxSize(_ maxSize: Int) -> ThumbnailOptions {
@@ -152,15 +146,20 @@ public extension ImageSource {
             return options
         }
 
-        public enum CodingKeys: String, CodingKey {
-            case shouldAllowFloat = "kCGImageSourceShouldAllowFloat"
-            case shouldCache = "kCGImageSourceShouldCache"
-            case shouldDecodeImmediately = "kCGImageSourceShouldCacheImmediately"
-            case subsampleFactor = "kCGImageSourceSubsampleFactor"
-            case maxSize = "kCGImageSourceThumbnailMaxPixelSize"
-            case shouldTransform = "kCGImageSourceCreateThumbnailWithTransform"
-            case createIfAbsent = "kCGImageSourceCreateThumbnailFromImageIfAbsent"
-            case createAlways = "kCGImageSourceCreateThumbnailFromImageAlways"
+        var dic: CFDictionary {
+            var options: [CFString: Any] = [:]
+            options[kCGImageSourceShouldAllowFloat] = shouldAllowFloat
+            options[kCGImageSourceShouldCache] = shouldCache
+            options[kCGImageSourceShouldCacheImmediately] = shouldDecodeImmediately
+            options[kCGImageSourceCreateThumbnailWithTransform] = shouldTransform
+            options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
+            options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
+            switch self.createOption {
+            case .ifAbsent: options[kCGImageSourceCreateThumbnailFromImageIfAbsent] = true
+            case .always: options[kCGImageSourceCreateThumbnailFromImageAlways] = true
+            case .never: break
+            }
+            return options as CFDictionary
         }
     }
 }

@@ -64,6 +64,11 @@ public class ImageSource {
 
         return rawValue.toModel(ImageProperties.self, decoder: ImageProperties.decoder)
     }
+    
+    /// Returns the metadata of the image at the specified index.
+    public func metadata(at index: Int = 0) -> CGImageMetadata? {
+        CGImageSourceCopyMetadataAtIndex(cgImageSource, index, nil)
+    }
 
     /**
      Returns the image at the specified index in the image source.
@@ -238,6 +243,36 @@ public class ImageSource {
         guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
         self.init(cgImageSource)
     }
+    
+    /// The uniform type identifiers that are supported for image sources.
+    public static func supportedTypeIdentifiers() -> Set<String> {
+        (CGImageSourceCopyTypeIdentifiers() as? [String] ?? []).asSet
+    }
+    
+    /// The content types that are supported for image sources.
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    public static func supportedContentTypes() -> Set<UTType> {
+        supportedTypeIdentifiers().compactMap({ UTType($0) }).asSet
+    }
+    
+    /// The content types that image source should be able to process.
+    @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, *)
+    public static var allowedTypeIdentifiers: Set<String>{
+        get { getAssociatedValue("allowedTypeIdentifiers", object: self) ?? supportedTypeIdentifiers() }
+        set {
+            let supported = supportedTypeIdentifiers()
+            let newValue = newValue.filter({ supported.contains($0) })
+            guard newValue != allowedTypeIdentifiers else { return }
+            setAssociatedValue(newValue, key: "allowedTypeIdentifiers", object: self)
+            CGImageSourceSetAllowableTypes(Array(newValue) as CFArray)
+        }
+    }
+    
+    @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, *)
+    public static var allowedContentTypes: Set<UTType> {
+        get { allowedTypeIdentifiers.compactMap({ UTType($0) }).asSet }
+        set { allowedTypeIdentifiers = newValue.map({ $0.identifier }).asSet }
+    }
 }
 
 extension ImageSource: CustomStringConvertible {
@@ -330,38 +365,22 @@ public extension ImageSource {
 
 public extension ImageSource {
     // The set of status values for images and image sources.
-    enum Status: CustomStringConvertible {
+    enum Status: Int, CustomStringConvertible {
         /// The end of the file occurred unexpectedly.
-        case unexpectedEOF
+        case unexpectedEOF = -5
         /// The data is not valid.
-        case invalidData
+        case invalidData = -4
         /// The image is an unknown type.
-        case unknownType
+        case unknownType = -3
         ///  The image source is reading the header.
-        case readingHeader
+        case readingHeader = -2
         /// The operation is not complete
-        case incomplete
+        case incomplete = -1
         /// The operation is complete.
-        case complete
-        /// Some other status.
-        case other(CGImageSourceStatus)
+        case complete = 0
+        
         init(_ status: CGImageSourceStatus) {
-            switch status {
-            case .statusUnexpectedEOF:
-                self = .unexpectedEOF
-            case .statusInvalidData:
-                self = .invalidData
-            case .statusUnknownType:
-                self = .unknownType
-            case .statusReadingHeader:
-                self = .readingHeader
-            case .statusIncomplete:
-                self = .incomplete
-            case .statusComplete:
-                self = .complete
-            @unknown default:
-                self = .other(status)
-            }
+            self = .init(rawValue: Int(status.rawValue)) ?? .unknownType
         }
 
         public var description: String {
@@ -372,7 +391,6 @@ public extension ImageSource {
             case .readingHeader: return "Reading Header"
             case .incomplete: return "Incomplete"
             case .complete: return "Complete"
-            case let .other(status): return "CGImageSourceStatus: \(status.rawValue)"
             }
         }
     }

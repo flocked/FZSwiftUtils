@@ -12,10 +12,8 @@ public extension ImageSource {
     struct ImageProperties: Codable {
         /// The file size of the image.
         public var fileSize: DataSize? {
-            if let fileSize = _fileSize {
-                return DataSize(fileSize)
-            }
-            return nil
+            guard let fileSize = _fileSize else { return nil }
+            return DataSize(fileSize)
         }
 
         private var _fileSize: Int?
@@ -53,20 +51,14 @@ public extension ImageSource {
 
         /// The pixel size of the image.
         public var pixelSize: CGSize? {
-            guard var width = pixelWidth, var height = pixelHeight else { return nil }
-            if orientation.needsSwap {
-                swap(&width, &height)
-            }
-            return CGSize(width: width, height: height)
+            guard let width = pixelWidth, let height = pixelHeight else { return nil }
+            return orientation.needsSwap ? CGSize(height, width) : CGSize(width, height)
         }
 
         /// The dpi size of the image.
         public var dpiSize: CGSize? {
-            guard var width = dpiWidth, var height = dpiHeight else { return nil }
-            if orientation.needsSwap {
-                swap(&width, &height)
-            }
-            return CGSize(width: width, height: height)
+            guard let width = dpiWidth, let height = dpiHeight else { return nil }
+            return orientation.needsSwap ? CGSize(height, width) : CGSize(width, height)
         }
 
         /// The orientation of the image.
