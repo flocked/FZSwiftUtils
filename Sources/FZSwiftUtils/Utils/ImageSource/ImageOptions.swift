@@ -153,7 +153,7 @@ public extension ImageSource {
             options[kCGImageSourceShouldCacheImmediately] = shouldDecodeImmediately
             options[kCGImageSourceCreateThumbnailWithTransform] = shouldTransform
             options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
-            options[p] = maxSize
+            options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
             switch self.createOption {
             case .ifAbsent: options[kCGImageSourceCreateThumbnailFromImageIfAbsent] = true
             case .always: options[kCGImageSourceCreateThumbnailFromImageAlways] = true
