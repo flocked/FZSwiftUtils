@@ -261,16 +261,21 @@ extension DataSize: Codable {
     }
 
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: Self.CodingKeys.self)
+        var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(bytes, forKey: .bytes)
         try container.encode(countStyle, forKey: .countStyle)
     }
 
     public init(from decoder: Decoder) throws {
+        if let singleValue = try? decoder.singleValueContainer(),
+           let bytes = try? singleValue.decode(Int.self) {
+            self.bytes = bytes
+            self.countStyle = .file
+            return
+        }
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        let bytes = try container.decode(Int.self, forKey: .bytes)
-        let countStyle = try container.decode(CountStyle.self, forKey: .countStyle)
-        self.init(bytes, countStyle: countStyle)
+        self.bytes = try container.decode(Int.self, forKey: .bytes)
+        self.countStyle = try container.decodeIfPresent(CountStyle.self, forKey: .countStyle) ?? .file
     }
 }
 
