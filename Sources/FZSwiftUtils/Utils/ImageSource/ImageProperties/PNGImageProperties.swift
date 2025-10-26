@@ -28,14 +28,33 @@ public extension ImageSource.ImageProperties {
          */
         public var unclampedDelayTime: Double?
 
+        /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
             unclampedDelayTime ?? clampedDelayTime
         }
+        
+        /// The height of the main image, in pixels.
+        public var canvasPixelHeight: Double?
+        
+        /// The width of the main image, in pixels.
+        public var canvasPixelWidth: Double?
+        
+        /// The size of the main image, in pixels.
+        public var canvasPixelSize: CGSize? {
+            guard let width = canvasPixelWidth, let height = canvasPixelHeight else { return nil }
+            return CGSize(width: width, height: height)
+        }
+        
+        /// The clamped and unclamped delay times of each frame.
+        public var framesInfo: [FrameInfo]?
 
         enum CodingKeys: String, CodingKey {
             case loopCount = "LoopCount"
             case clampedDelayTime = "DelayTime"
             case unclampedDelayTime = "UnclampedDelayTime"
+            case framesInfo = "FrameInfoArray"
+            case canvasPixelWidth = "CanvasPixelWidth"
+            case canvasPixelHeight = "CanvasPixelHeight"
         }
     }
 }

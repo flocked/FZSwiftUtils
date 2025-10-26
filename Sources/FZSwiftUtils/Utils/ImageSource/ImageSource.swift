@@ -51,7 +51,7 @@ public class ImageSource {
      These properties apply to the container in general but not necessarily to any individual image contained in the image source.
      */
     public func properties() -> ImageProperties? {
-        let rawValue = CGImageSourceCopyProperties(cgImageSource, nil) as? [String: Any] ?? [:]
+        let rawValue = CGImageSourceCopyProperties(cgImageSource, nil) as? [String: Any] ?? [:]        
         return rawValue.toModel(ImageProperties.self, decoder: ImageProperties.decoder)
     }
 
@@ -66,8 +66,8 @@ public class ImageSource {
     }
     
     /// Returns the metadata of the image at the specified index.
-    public func metadata(at index: Int = 0) -> CGImageMetadata? {
-        CGImageSourceCopyMetadataAtIndex(cgImageSource, index, nil)
+    public func metadata(at index: Int? = nil) -> CGImageMetadata? {
+        CGImageSourceCopyMetadataAtIndex(cgImageSource, index ?? primaryImageIndex, nil)
     }
 
     /**
@@ -79,8 +79,8 @@ public class ImageSource {
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
-    public func image(at index: Int = 0, options: ImageOptions? = .init()) -> CGImage? {
-        CGImageSourceCreateImageAtIndex(cgImageSource, index, options?.dic)
+    public func image(at index: Int? = nil, options: ImageOptions? = .init()) -> CGImage? {
+        CGImageSourceCreateImageAtIndex(cgImageSource, index ?? primaryImageIndex, options?.dic)
     }
 
     /**
@@ -92,9 +92,9 @@ public class ImageSource {
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
-    public func image(at index: Int = 0, options: ImageOptions? = .init()) async -> CGImage? {
+    public func image(at index: Int? = nil, options: ImageOptions? = .init()) async -> CGImage? {
         await withCheckedContinuation { continuation in
-            image(at: index, options: options) { image in
+            image(at: index ?? primaryImageIndex, options: options) { image in
                 continuation.resume(returning: image)
             }
         }
@@ -108,9 +108,9 @@ public class ImageSource {
         - options: Additional image creation options
         - completionHandler: A closure the method calls on completion which returns the image at the specified index, or `nil` if an error occurs.
      */
-    public func image(at index: Int = 0, options: ImageOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
+    public func image(at index: Int? = nil, options: ImageOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.background.async {
-            completionHandler(self.image(at: index, options: options))
+            completionHandler(self.image(at: index ?? self.primaryImageIndex, options: options))
         }
     }
 
@@ -123,8 +123,8 @@ public class ImageSource {
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) -> CGImage? {
-        CGImageSourceCreateThumbnailAtIndex(cgImageSource, index, options?.toDictionary().cfDictionary)
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init()) -> CGImage? {
+        CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options?.toDictionary().cfDictionary)
     }
 
     /**
@@ -136,9 +136,9 @@ public class ImageSource {
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init()) async -> CGImage? {
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init()) async -> CGImage? {
         await withCheckedContinuation { continuation in
-            thumbnail(at: index, options: options) { image in
+            thumbnail(at: index ?? primaryImageIndex, options: options) { image in
                 continuation.resume(returning: image)
             }
         }
@@ -152,9 +152,9 @@ public class ImageSource {
         - options: Additional thumbnail creation options
         - completionHandler: A closure the method calls on completion which returns the thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int = 0, options: ThumbnailOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.background.async {
-            completionHandler(self.thumbnail(at: index, options: options))
+            completionHandler(self.thumbnail(at: index ?? self.primaryImageIndex, options: options))
         }
     }
     

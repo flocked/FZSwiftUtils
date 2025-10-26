@@ -7,6 +7,7 @@
 
 import CoreGraphics
 import Foundation
+import ImageIO
 
 public extension ImageSource {
     struct ImageProperties: Codable {
@@ -15,14 +16,13 @@ public extension ImageSource {
             guard let fileSize = _fileSize else { return nil }
             return DataSize(fileSize)
         }
-
         private var _fileSize: Int?
 
         /// The pixel width of the image.
         public var pixelWidth: CGFloat?
         /// The pixel height of the image.
         public var pixelHeight: CGFloat?
-        private var _orientation: Orientation?
+        /// A Boolean value that indicates whether the image has an alpha channel.
         public var hasAlpha: Bool?
         /// The color model of the image.
         public var colorModel: String?
@@ -32,7 +32,10 @@ public extension ImageSource {
         public var dpiWidth: CGFloat?
         /// The dpi height of the image.
         public var dpiHeight: CGFloat?
+        /// The number of bits in the color sample of a pixel.
         public var depth: Int?
+        
+        private var _orientation: CGImagePropertyOrientation?
 
         /// Additional GIF properties of the image.
         public var gif: GIF?
@@ -62,7 +65,7 @@ public extension ImageSource {
         }
 
         /// The orientation of the image.
-        public var orientation: Orientation {
+        public var orientation: CGImagePropertyOrientation {
             _orientation ?? tiff?.orientation ?? iptc?.orientation ?? .up
         }
 
@@ -81,9 +84,9 @@ public extension ImageSource {
         }
 
         /**
-         The number of seconds to wait before displaying the next image in an animated sequence.
-
-         The value of this key is never less than 50 millseconds, and the system adjusts values less than that amount to 50 milliseconds, as needed. See kCGImagePropertyAPNGUnclampedDelayTime.
+         The number of seconds to wait before displaying the next image in the sequence, clamped to a minimum of 0.1 seconds.
+         
+         The value of this key is never less than 100 millseconds, and the system adjusts values less than that amount to 100 milliseconds, as needed. See ``unclampedDelayTime`` for the unclamped delay time.
          */
         public var clampedDelayTime: Double? {
             heic?.clampedDelayTime ?? gif?.clampedDelayTime ?? png?.clampedDelayTime
@@ -92,13 +95,11 @@ public extension ImageSource {
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
-         This value may be 0 milliseconds or higher. Unlike the `clampedDelayTime` property, this value is not clamped at the low end of the range.
+         This value may be 0 milliseconds or higher. Unlike the ``clampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double? {
             heic?.unclampedDelayTime ?? gif?.unclampedDelayTime ?? png?.unclampedDelayTime
         }
-
-        private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
@@ -108,6 +109,8 @@ public extension ImageSource {
             }
             return value
         }
+        
+        private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
 
         enum CodingKeys: String, CodingKey, CaseIterable {
             case _fileSize = "FileSize"
@@ -131,48 +134,6 @@ public extension ImageSource {
     }
 }
 
-public extension ImageSource.ImageProperties {
-    /// The image orientation.
-    enum Orientation: UInt32, Codable {
-        case up = 1 // 0th row at top,    0th column on left   - default orientation
-        case upMirrored = 2 // 0th row at top,    0th column on right  - horizontal flip
-        case down = 3 // 0th row at bottom, 0th column on right  - 180 deg rotation
-        case downMirrored = 4 // 0th row at bottom, 0th column on left   - vertical flip
-        case leftMirrored = 5 // 0th row on left,   0th column at top
-        case right = 6 // 0th row on right,  0th column at top    - 90 deg CW
-        case rightMirrored = 7 // 0th row on right,  0th column on bottom
-        case left = 8 // 0th row on left,   0th column at bottom - 90 deg CCW
-
-        var needsSwap: Bool {
-            switch rawValue {
-            case 5 ... 8: return true
-            default: return false
-            }
-        }
-
-        var transform: CGAffineTransform {
-            switch rawValue {
-            case 2:
-                return CGAffineTransform(scaleX: -1, y: 1)
-            case 3:
-                return CGAffineTransform(scaleX: -1, y: -1)
-            case 4:
-                return CGAffineTransform(scaleX: 1, y: -1)
-            case 5:
-                return CGAffineTransform(scaleX: -1, y: 1).rotated(by: .pi / 2)
-            case 6:
-                return CGAffineTransform(rotationAngle: .pi / 2)
-            case 7:
-                return CGAffineTransform(scaleX: -1, y: 1).rotated(by: -.pi / 2)
-            case 8:
-                return CGAffineTransform(rotationAngle: -.pi / 2)
-            default: // 1
-                return CGAffineTransform.identity
-            }
-        }
-    }
-}
-
 extension ImageSource.ImageProperties {
     static var decoder: JSONDecoder {
         .init(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
@@ -183,30 +144,55 @@ extension ImageSource.ImageProperties {
     }
 }
 
-public extension ImageSource.ImageProperties {
-    /// The shape of the image.
-    var shape: Shape? {
-        guard let pixelSize = pixelSize else { return nil }
-        return Shape(size: pixelSize)
+extension CGImagePropertyOrientation {
+    var transform: CGAffineTransform {
+        switch rawValue {
+        case 2: return CGAffineTransform(scaleX: -1, y: 1)
+        case 3: return CGAffineTransform(scaleX: -1, y: -1)
+        case 4: return CGAffineTransform(scaleX: 1, y: -1)
+        case 5: return CGAffineTransform(scaleX: -1, y: 1).rotated(by: .pi / 2)
+        case 6: return CGAffineTransform(rotationAngle: .pi / 2)
+        case 7: return CGAffineTransform(scaleX: -1, y: 1).rotated(by: -.pi / 2)
+        case 8: return CGAffineTransform(rotationAngle: -.pi / 2)
+        default: return CGAffineTransform.identity
+        }
     }
-
-    /// The shape of an image.
-    enum Shape: String {
-        /// Landscape shape.
-        case landscape
-        /// Portrait shape.
-        case portrait
-        /// Square shape.
-        case square
-
-        init(size: CGSize) {
-            if size.width > size.height {
-                self = .landscape
-            } else if size.width < size.height {
-                self = .portrait
-            } else {
-                self = .square
-            }
+    
+    var needsSwap: Bool {
+        switch rawValue {
+        case 5 ... 8: return true
+        default: return false
         }
     }
 }
+extension CGImagePropertyOrientation: Codable { }
+
+extension ImageSource.ImageProperties {
+    /// Infromation about a single image frame.
+    public struct FrameInfo: Codable {
+        /**
+         The number of seconds to wait before displaying the next image in the sequence, clamped to a minimum of 0.1 seconds.
+         
+         The value of this key is never less than 100 millseconds, and the system adjusts values less than that amount to 100 milliseconds, as needed. See ``unclampedDelayTime`` for the unclamped delay time.
+         */
+        public var delayTime: Double?
+        
+        /**
+         The number of seconds to wait before displaying the next image in an animated sequence.
+
+         This value may be 0 milliseconds or higher. Unlike the ``clampedDelayTime`` property, this value is not clamped at the low end of the range.
+         */
+        public var unclampedDelayTime: Double?
+        
+        enum CodingKeys: String, CodingKey {
+            case delayTime = "DelayTime"
+            case unclampedDelayTime = "UnclampedDelayTime"
+        }
+    }
+}
+
+/*
+ {
+DelayTime = "0.04";
+UnclampedDelayTime = "0.04";
+ */

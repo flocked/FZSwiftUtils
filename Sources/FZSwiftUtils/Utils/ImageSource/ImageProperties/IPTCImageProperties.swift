@@ -6,10 +6,11 @@
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
     struct IPTC: Codable {
-        public var orientation: Orientation?
+        public var orientation: CGImagePropertyOrientation?
 
         enum CodingKeys: String, CodingKey {
             case orientation = "ImageOrientation"

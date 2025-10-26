@@ -6,12 +6,13 @@
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
     struct TIFF: Codable {
         public var xResolution: Int?
         public var yResolution: Int?
-        public var orientation: Orientation?
+        public var orientation: CGImagePropertyOrientation?
         public var timestamp: Date?
         public var cameraMaker: String?
         public var cameraModel: String?

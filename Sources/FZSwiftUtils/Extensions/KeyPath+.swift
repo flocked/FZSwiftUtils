@@ -36,3 +36,4 @@ public extension Selector {
         NSStringFromSelector(self)
     }
 }
+
