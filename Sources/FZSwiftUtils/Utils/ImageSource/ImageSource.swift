@@ -60,8 +60,6 @@ public class ImageSource {
      */
     public func properties(at index: Int) -> ImageProperties? {
         let rawValue = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [String: Any] ?? [:]
-        rawValue.sorted(by: \.key).forEach({ Swift.print($0.key, $0.value)})
-
         return rawValue.toModel(ImageProperties.self, decoder: ImageProperties.decoder)
     }
     

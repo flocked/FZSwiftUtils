@@ -12,12 +12,7 @@ import ImageIO
 public extension ImageSource {
     struct ImageProperties: Codable {
         /// The file size of the image.
-        public var fileSize: DataSize? {
-            guard let fileSize = _fileSize else { return nil }
-            return DataSize(fileSize)
-        }
-        private var _fileSize: Int?
-
+        public var fileSize: DataSize?
         /// The pixel width of the image.
         public var pixelWidth: CGFloat?
         /// The pixel height of the image.
@@ -89,7 +84,7 @@ public extension ImageSource {
          The value of this key is never less than 100 millseconds, and the system adjusts values less than that amount to 100 milliseconds, as needed. See ``unclampedDelayTime`` for the unclamped delay time.
          */
         public var clampedDelayTime: Double? {
-            heic?.clampedDelayTime ?? gif?.clampedDelayTime ?? png?.clampedDelayTime
+            gif?.clampedDelayTime ?? heic?.clampedDelayTime ?? png?.clampedDelayTime
         }
 
         /**
@@ -98,7 +93,11 @@ public extension ImageSource {
          This value may be 0 milliseconds or higher. Unlike the ``clampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double? {
-            heic?.unclampedDelayTime ?? gif?.unclampedDelayTime ?? png?.unclampedDelayTime
+            gif?.unclampedDelayTime ?? heic?.unclampedDelayTime ?? png?.unclampedDelayTime
+        }
+        
+        public var framesInfo: [FrameInfo]? {
+            gif?.framesInfo ?? heic?.framesInfo ?? png?.framesInfo
         }
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
@@ -113,7 +112,7 @@ public extension ImageSource {
         private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
 
         enum CodingKeys: String, CodingKey, CaseIterable {
-            case _fileSize = "FileSize"
+            case fileSize = "FileSize"
             case pixelWidth = "PixelWidth"
             case pixelHeight = "PixelHeight"
             case _orientation = "Orientation"
