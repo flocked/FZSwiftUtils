@@ -564,3 +564,26 @@ extension Collection where Self: RandomAccessCollection, Element: BinaryFloating
         return !elements.indices.dropFirst().contains { abs(elements[$0] - elements[elements.index(before: $0)] - value) > tolerance }
     }
 }
+
+extension BidirectionalCollection {
+    /**
+     Returns an index that is the specified distance from the given index.
+     
+     - Parameters:
+        - index: A valid index of the collection.
+        - distance: The distance to offset `index`.
+        - loop: A Boolean value indicating whether the offset wraps around the collection when the end or start is exceeded. If `false`, the index will clamp to the start and end index.
+     i
+     */
+    public func index(_ index: Index, offsetBy value: Int = 1, loop: Bool) -> Index {
+        guard !isEmpty else { return startIndex }
+        var pos = distance(from: startIndex, to: index) + value
+        if loop {
+            let count = count
+            pos = (pos % count + count) % count
+        } else {
+            pos = Swift.min(Swift.max(pos, 0), count - 1)
+        }
+        return self.index(startIndex, offsetBy: pos)
+    }
+}
