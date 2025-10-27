@@ -20,7 +20,7 @@ public extension ImageSource {
         /// A Boolean value that indicates whether the image has an alpha channel.
         public var hasAlpha: Bool?
         /// The color model of the image.
-        public var colorModel: String?
+        public var colorModel: ColorModel?
         /// The color profile of the image.
         public var colorProfile: String?
         /// The dpi width of the image.
@@ -72,16 +72,16 @@ public extension ImageSource {
         /**
          The number of times that an animated image should play through its frames before stopping.
 
-         A value of 0 means the animated image repeats forever.
+         A value of `0` means the animated image repeats forever.
          */
         public var loopCount: Int? {
             heic?.loopCount ?? gif?.loopCount ?? png?.loopCount
         }
 
         /**
-         The number of seconds to wait before displaying the next image in the sequence, clamped to a minimum of 0.1 seconds.
-         
-         The value of this key is never less than 100 millseconds, and the system adjusts values less than that amount to 100 milliseconds, as needed. See ``unclampedDelayTime`` for the unclamped delay time.
+         The number of seconds to wait before displaying the next image in an animated sequence.
+
+         The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
         public var clampedDelayTime: Double? {
             gif?.clampedDelayTime ?? heic?.clampedDelayTime ?? png?.clampedDelayTime
@@ -90,26 +90,24 @@ public extension ImageSource {
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
-         This value may be 0 milliseconds or higher. Unlike the ``clampedDelayTime`` property, this value is not clamped at the low end of the range.
+         This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double? {
             gif?.unclampedDelayTime ?? heic?.unclampedDelayTime ?? png?.unclampedDelayTime
         }
         
+        /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
         public var framesInfo: [FrameInfo]? {
             gif?.framesInfo ?? heic?.framesInfo ?? png?.framesInfo
         }
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
-            let value = clampedDelayTime ?? unclampedDelayTime
-            if let value = value, value < ImageProperties.capDurationThreshold {
-                return 0.1
-            }
-            return value
+            guard let delayTime = clampedDelayTime ?? unclampedDelayTime else { return nil }
+            return delayTime < ImageProperties.frameDurationCap ? 0.1 : delayTime
         }
         
-        private static let capDurationThreshold: Double = 0.02 - Double.ulpOfOne
+        private static let frameDurationCap: Double = 0.02 - Double.ulpOfOne
 
         enum CodingKeys: String, CodingKey, CaseIterable {
             case fileSize = "FileSize"
@@ -134,37 +132,9 @@ public extension ImageSource {
 }
 
 extension ImageSource.ImageProperties {
-    static var decoder: JSONDecoder {
-        .init(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
-    }
-
-    static var encoder: JSONEncoder {
-        .init(dateEncodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
-    }
+    static let decoder = JSONDecoder(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
+    static let encoder = JSONEncoder(dateEncodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
 }
-
-extension CGImagePropertyOrientation {
-    var transform: CGAffineTransform {
-        switch rawValue {
-        case 2: return CGAffineTransform(scaleX: -1, y: 1)
-        case 3: return CGAffineTransform(scaleX: -1, y: -1)
-        case 4: return CGAffineTransform(scaleX: 1, y: -1)
-        case 5: return CGAffineTransform(scaleX: -1, y: 1).rotated(by: .pi / 2)
-        case 6: return CGAffineTransform(rotationAngle: .pi / 2)
-        case 7: return CGAffineTransform(scaleX: -1, y: 1).rotated(by: -.pi / 2)
-        case 8: return CGAffineTransform(rotationAngle: -.pi / 2)
-        default: return CGAffineTransform.identity
-        }
-    }
-    
-    var needsSwap: Bool {
-        switch rawValue {
-        case 5 ... 8: return true
-        default: return false
-        }
-    }
-}
-extension CGImagePropertyOrientation: Codable { }
 
 extension ImageSource.ImageProperties {
     /// Infromation about a single image frame.
@@ -190,8 +160,59 @@ extension ImageSource.ImageProperties {
     }
 }
 
-/*
- {
-DelayTime = "0.04";
-UnclampedDelayTime = "0.04";
- */
+extension ImageSource.ImageProperties {
+    /// The color model of an image, such as RGB, CMYK, grayscale, or Lab.
+    public struct ColorModel: RawRepresentable, Codable, CustomStringConvertible {
+        /// RGB.
+        public static let rgb = Self(rawValue: "RGB")
+        /// Gray.
+        public static let gray = Self(rawValue: "Gray")
+        /// CMYK.
+        public static let cmyk = Self(rawValue: "CMYK")
+        /// Lab.
+        public static let lab = Self(rawValue: "Lab")
+        
+        public var description: String { rawValue }
+        
+        public let rawValue: String
+        
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+extension CGImagePropertyOrientation: Codable {
+    public var description: String {
+         switch self {
+         case .up: return "up"
+         case .upMirrored: return "upMirrored"
+         case .down: return "down"
+         case .downMirrored: return "downMirrored"
+         case .leftMirrored: return "leftMirrored"
+         case .right: return "right"
+         case .rightMirrored: return "rightMirrored"
+         case .left: return "left"
+         }
+     }
+    
+    var transform: CGAffineTransform {
+        switch rawValue {
+        case 2: return CGAffineTransform(scaleX: -1, y: 1)
+        case 3: return CGAffineTransform(scaleX: -1, y: -1)
+        case 4: return CGAffineTransform(scaleX: 1, y: -1)
+        case 5: return CGAffineTransform(scaleX: -1, y: 1).rotated(by: .pi / 2)
+        case 6: return CGAffineTransform(rotationAngle: .pi / 2)
+        case 7: return CGAffineTransform(scaleX: -1, y: 1).rotated(by: -.pi / 2)
+        case 8: return CGAffineTransform(rotationAngle: -.pi / 2)
+        default: return CGAffineTransform.identity
+        }
+    }
+    
+    var needsSwap: Bool {
+        switch rawValue {
+        case 5 ... 8: return true
+        default: return false
+        }
+    }
+}

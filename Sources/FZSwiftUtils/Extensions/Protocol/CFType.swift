@@ -256,6 +256,12 @@ extension CFWriteStream: CFType {
     public static var typeID: CFTypeID { CFWriteStreamGetTypeID() }
 }
 
+extension CGImageSource: CFType {
+    /// The Core Foundation type identifier for `CGImageSource`.
+    public static var typeID: CFTypeID { CGImageSourceGetTypeID() }
+}
+
 extension CGImageDestination: CFType {
+    /// The Core Foundation type identifier for `CGImageDestination`.
     public static var typeID: CFTypeID { CGImageDestinationGetTypeID() }
 }
