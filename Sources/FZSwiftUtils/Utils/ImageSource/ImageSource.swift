@@ -11,21 +11,21 @@ import UniformTypeIdentifiers
 
 public class ImageSource {
     /// The `CGImageSource`.
-    public let cgImageSource: CGImageSource
+    let cgImageSource: CGImageSource
 
-    /// The type identifier of the image source.
+    /// The uniform type identifier of the image.
     public var typeIdentifier: String? {
         CGImageSourceGetType(cgImageSource) as String?
     }
 
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    /// The content type of the image source.
+    /// The content type of the image.
     public var contentType: UTType? {
         guard let typeIdentifier = typeIdentifier else { return nil }
         return UTType(typeIdentifier)
     }
 
-    /// The number of images of the images included in the image source.
+    /// The number of images (not including thumbnails) in the image source.
     public var count: Int {
         CGImageSourceGetCount(cgImageSource)
     }
@@ -308,13 +308,13 @@ public class ImageSource {
 extension ImageSource: CustomStringConvertible {
     /// A string representation of the image source.
     public var description: String {
-        "ImageSource[\(ObjectIdentifier(self))"
+        "ImageSource[\(ObjectIdentifier(self))]"
     }
 }
 
 extension ImageSource: Equatable {
     public static func == (lhs: ImageSource, rhs: ImageSource) -> Bool {
-        lhs.cgImageSource == rhs.cgImageSource
+        CFEqual(lhs.cgImageSource, rhs.cgImageSource)
     }
 }
 
@@ -346,7 +346,7 @@ public extension ImageSource {
      */
     var animationDuration: Double? {
         guard count > 1 else { return nil }
-        let totalDuration = (0 ..< count).reduce(0) { $0 + (self.properties(at: $1)?.delayTime ?? 0.0) }
+        let totalDuration = properties()?.framesInfo?.compactMap({ $0.delayTime ?? $0.unclampedDelayTime }).sum()
         return (totalDuration != 0.0) ? totalDuration : nil
     }
 }
