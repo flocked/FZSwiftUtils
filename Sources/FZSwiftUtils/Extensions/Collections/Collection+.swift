@@ -577,13 +577,41 @@ extension BidirectionalCollection {
      */
     public func index(_ index: Index, offsetBy value: Int = 1, loop: Bool) -> Index {
         guard !isEmpty else { return startIndex }
+        let count = self.count
         var pos = distance(from: startIndex, to: index) + value
-        if loop {
-            let count = count
-            pos = (pos % count + count) % count
-        } else {
-            pos = Swift.min(Swift.max(pos, 0), count - 1)
-        }
+        pos = loop
+            ? (pos % count + count) % count
+        : Swift.min(Swift.max(pos, 0), count - 1)
         return self.index(startIndex, offsetBy: pos)
+    }
+    
+    /**
+     Returns an array of indices offset from a given index by the specified amount.
+     
+     A positive `count` moves forward, negative `count` moves backward.
+     
+     - Parameters:
+       - index: The starting index.
+       - count: The number of indices to return. Positive for forward, negative for backward.
+       - loop: A Boolean value indicating whether to loop around the collection when reaching the start or end.
+     */
+    public func indexes(from index: Index, offsetBy count: Int, loop: Bool = true) -> [Index] {
+        guard !isEmpty, count != 0 else { return [] }
+
+        let direction = count.signum()
+        var steps = abs(count)
+
+        if !loop {
+            let maxSteps = count > 0
+                ? distance(from: index, to: self.index(before: endIndex))
+                : -distance(from: startIndex, to: index)
+            steps = Swift.min(steps, abs(maxSteps))
+        }
+
+        var index = index
+        return (0..<steps).map { _ in
+            index = self.index(index, offsetBy: direction, loop: loop)
+            return index
+        }
     }
 }
