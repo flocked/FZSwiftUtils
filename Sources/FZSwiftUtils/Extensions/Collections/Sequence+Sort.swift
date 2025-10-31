@@ -573,25 +573,22 @@ public extension Sequence {
         - order: An array specifying the desired order of key values.
      */
     func sorted<T: Equatable>(by keyPath: KeyPath<Element, T>, order: [T]) -> [Element] {
-        map { (element: $0, index: order.firstIndex(of: $0[keyPath: keyPath]) ?? .max) }
-                .sorted { $0.index < $1.index }
-                .map(\.element)
+        map { (element: $0, rank: order.firstIndex(of: $0[keyPath: keyPath]) ?? .max) }.sorted(by: \.rank).map(\.element)
     }
     
     /**
-     Sorts the sequence based on a key path and an array specifying the order of key values.
+     Sorts the sequence based on a key path and an array specifying the order of key path values.
      
      - Elements with `nil` values for the specified key path are always sorted to the end.
      - Elements whose key path values are not in the `order` array are sorted after explicitly ordered elements but before `nil` values.
      
      - Parameters:
         - keyPath: A key path to the property of each element to sort by.
-        - order: An array specifying the desired order of key values.
+        - order: An array specifying the desired order of key path values.
      */
     func sorted<T: Equatable>(by keyPath: KeyPath<Element, T?>, order: [T]) -> [Element] {
-        map { ($0, $0[keyPath: keyPath].flatMap({ order.firstIndex(of: $0) }) ?? .max) }
-        .sorted { $0.1 < $1.1 }
-        .map(\.0)
+        let ranked = enumerated().map { (offset: $0.offset, element: $0.element, rank: $0.element[keyPath: keyPath].flatMap { order.firstIndex(of: $0) } ?? ( $0.element[keyPath: keyPath] == nil ? Int.max : Int.max - 1 )) }
+        return ranked.sorted { $0.rank != $1.rank ? $0.rank < $1.rank : $0.offset < $1.offset }.map(\.element)
     }
     
     /**
@@ -624,11 +621,10 @@ public extension Sequence {
      */
     func sorted<T: Hashable>(by keyPath: KeyPath<Element, T?>, order: [T]) -> [Element] {
         let orderMap = Dictionary(uniqueKeysWithValues: order.enumerated().map { ($1, $0) })
-        return enumerated()
-            .sorted {
-                let lhsIndex = $0.element[keyPath: keyPath].flatMap({ orderMap[$0] }) ?? .max
-                let rhsIndex = $1.element[keyPath: keyPath].flatMap({ orderMap[$0] }) ?? .max
-                return lhsIndex != rhsIndex ? lhsIndex < rhsIndex : $0.offset < $1.offset
-            }.map(\.element)
+        return enumerated().sorted {
+            let lhsIndex = $0.element[keyPath: keyPath].flatMap { orderMap[$0] } ?? ( $0.element[keyPath: keyPath] == nil ? Int.max : Int.max - 1 )
+            let rhsIndex = $1.element[keyPath: keyPath].flatMap { orderMap[$0] } ?? ( $1.element[keyPath: keyPath] == nil ? Int.max : Int.max - 1 )
+            return lhsIndex != rhsIndex ? lhsIndex < rhsIndex : $0.offset < $1.offset
+        }.map(\.element)
      }
 }
