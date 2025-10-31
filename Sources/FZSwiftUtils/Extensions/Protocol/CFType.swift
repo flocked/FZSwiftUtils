@@ -32,6 +32,11 @@ extension CFType {
         self = value as! Self
     }
     
+    /// Determines whether the object is equal to the specified other object.
+    public func isEqual(to other: Self) -> Bool {
+        CFEqual(self as AnyObject, other as AnyObject)
+    }
+    
     /// A textual description of the objects.
     public static var cfDescription: String {
         CFCopyTypeIDDescription(typeID) as String
@@ -40,11 +45,6 @@ extension CFType {
     /// A textual description of the object.
     public var cfDescription: String {
         CFCopyDescription(self as AnyObject) as String
-    }
-    
-    /// Determines whether two Core Foundation objects are considered equal.
-    public func cfEqual(to v: CFTypeRef) -> Bool {
-        CFEqual(self as AnyObject, v)
     }
     
     /// The hash value of the object.
