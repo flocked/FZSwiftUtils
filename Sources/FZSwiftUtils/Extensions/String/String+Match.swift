@@ -342,7 +342,15 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     }
     
     public var description: String {
-        return "StringMatch(\(type.rawValue): \"\(string)\")"
+        strings().joined(separator: "\n")
+        // "StringMatch(\(type.rawValue): \"\(string)\")"
+    }
+    
+    private func strings(depth: Int = 0) -> [String] {
+        var strings: [String] = []
+        strings += "  ".repeating(amount: depth) + "[\(range), \(string)]"
+        strings += groups.flatMap({ $0.strings(depth: depth + 1) })
+        return strings
     }
     
     init(_ type: ResultType, string: String, range: Range<String.Index>, groups: [StringMatch] = [], result: NSTextCheckingResult? = nil) {
