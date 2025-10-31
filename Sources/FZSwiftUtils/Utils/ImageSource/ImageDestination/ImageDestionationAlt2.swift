@@ -10,7 +10,7 @@ import Foundation
 import UniformTypeIdentifiers
 
 /// Exports images as file or data.
-public class ImageExporter {
+class ImageExporter {
     
     private var images: [ExportImage] = []
     

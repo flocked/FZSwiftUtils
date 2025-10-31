@@ -380,11 +380,11 @@ extension OrderedSet: Encodable where Element: Encodable {
 
 extension OrderedSet: CustomStringConvertible {
     public var description: String {
-        "\(_array)"
+        _array.description
     }
     
     public var debugDescription: String {
-        "OrderedSet (\(count) elements): " + description
+        _array.description.debugDescription
     }
 }
 

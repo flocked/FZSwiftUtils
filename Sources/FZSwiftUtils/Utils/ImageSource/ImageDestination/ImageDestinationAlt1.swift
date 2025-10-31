@@ -1,5 +1,5 @@
 //
-//  ImageDestination.swift
+//  ImageDestinationAlt.swift
 //
 //
 //  Created by Florian Zand on 25.10.25.
@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 /**
  An object that you use to write image data to a URL or data object.
  */
-public class ImageDestination {
+class ImageDestinationAlt {
     private let imageDestination: CGImageDestination
     private var imageData: NSMutableData?
     private var isFinalized = false
@@ -259,9 +259,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the PNG data to. If `nil`, the destination will be in-memory.
        - count: The number of images the destination should hold.
-     - Returns: A new `ImageDestination` configured for PNG output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for PNG output, or `nil` if creation fails.
      */
-    public static func png(url: URL? = nil, count: Int = 1) -> ImageDestination? {
+    static func png(url: URL? = nil, count: Int = 1) -> ImageDestinationAlt? {
         .init(type: "public.image.png", url: url, count: count)
     }
 
@@ -271,9 +271,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the PNG data to. If `nil`, the destination will be in-memory.
        - imageSource: The `CGImageSource` to copy images from.
-     - Returns: A new `ImageDestination` configured for PNG output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for PNG output, or `nil` if creation fails.
      */
-    public static func png(url: URL? = nil, imageSource: CGImageSource) -> ImageDestination? {
+    static func png(url: URL? = nil, imageSource: CGImageSource) -> ImageDestinationAlt? {
         .init(type: "public.image.png", url: url, imageSource: imageSource)
     }
 
@@ -283,9 +283,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the JPEG data to. If `nil`, the destination will be in-memory.
        - count: The number of images the destination should hold.
-     - Returns: A new `ImageDestination` configured for JPEG output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for JPEG output, or `nil` if creation fails.
      */
-    public static func jpeg(url: URL? = nil, count: Int = 1) -> ImageDestination? {
+    static func jpeg(url: URL? = nil, count: Int = 1) -> ImageDestinationAlt? {
         .init(type: "public.image.jpeg", url: url, count: count)
     }
 
@@ -295,9 +295,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the JPEG data to. If `nil`, the destination will be in-memory.
        - imageSource: The `CGImageSource` to copy images from.
-     - Returns: A new `ImageDestination` configured for JPEG output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for JPEG output, or `nil` if creation fails.
      */
-    public static func jpeg(url: URL? = nil, imageSource: CGImageSource) -> ImageDestination? {
+    static func jpeg(url: URL? = nil, imageSource: CGImageSource) -> ImageDestinationAlt? {
         .init(type: "public.image.jpeg", url: url, imageSource: imageSource)
     }
 
@@ -307,9 +307,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the TIFF data to. If `nil`, the destination will be in-memory.
        - count: The number of images the destination should hold.
-     - Returns: A new `ImageDestination` configured for TIFF output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for TIFF output, or `nil` if creation fails.
      */
-    public static func tiff(url: URL? = nil, count: Int = 1) -> ImageDestination? {
+    static func tiff(url: URL? = nil, count: Int = 1) -> ImageDestinationAlt? {
         .init(type: "public.image.tiff", url: url, count: count)
     }
 
@@ -319,9 +319,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the TIFF data to. If `nil`, the destination will be in-memory.
        - imageSource: The `CGImageSource` to copy images from.
-     - Returns: A new `ImageDestination` configured for TIFF output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for TIFF output, or `nil` if creation fails.
      */
-    public static func tiff(url: URL? = nil, imageSource: CGImageSource) -> ImageDestination? {
+    static func tiff(url: URL? = nil, imageSource: CGImageSource) -> ImageDestinationAlt? {
         .init(type: "public.image.tiff", url: url, imageSource: imageSource)
     }
     
@@ -331,9 +331,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the GIF data to. If `nil`, the destination will be in-memory.
        - count: The number of images the destination should hold.
-     - Returns: A new `ImageDestination` configured for GIF output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for GIF output, or `nil` if creation fails.
      */
-    public static func gif(url: URL? = nil, count: Int) -> ImageDestination? {
+    static func gif(url: URL? = nil, count: Int) -> ImageDestinationAlt? {
         .init(type: "public.image.gif", url: url, count: count)
     }
 
@@ -343,9 +343,9 @@ extension ImageSource {
      - Parameters:
        - url: An optional file URL to write the GIF data to. If `nil`, the destination will be in-memory.
        - imageSource: The `CGImageSource` to copy images from.
-     - Returns: A new `ImageDestination` configured for GIF output, or `nil` if creation fails.
+     - Returns: A new `ImageDestinationAlt` configured for GIF output, or `nil` if creation fails.
      */
-    public static func gif(url: URL? = nil, imageSource: CGImageSource) -> ImageDestination? {
+    static func gif(url: URL? = nil, imageSource: CGImageSource) -> ImageDestinationAlt? {
         .init(type: "public.image.gif", url: url, imageSource: imageSource)
     }
 }
