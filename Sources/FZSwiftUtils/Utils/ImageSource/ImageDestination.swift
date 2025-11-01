@@ -104,7 +104,7 @@ public class ImageDestination {
      
      Call this method as the final step in saving your images. If the finalization succeeds, you can’t add any more data to the image destination. Otherwise the methd throws.
      */
-    public func finalizeData() throws -> Data {
+    public func finalize() throws -> Data {
         guard !isFinalized else { throw Errors.alreadyFinalized }
         let mutableData = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(mutableData as CFMutableData, typeIdentifier as CFString, imageCount, nil) else { throw Errors.finalizationFailed }
