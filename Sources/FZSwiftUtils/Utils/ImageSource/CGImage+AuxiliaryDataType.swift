@@ -57,3 +57,16 @@ extension CGImage {
         }
     }
 }
+
+/*
+ let kCGImageDestinationOptimizeColorForSharing: CFString
+
+ let kCGImageDestinationBackgroundColor: CFString
+
+ let kCGImageDestinationEmbedThumbnail: CFString
+ A Boolean value that indicates whether to embed a thumbnail for JPEG and HEIF images.
+ let kCGImageDestinationImageMaxPixelSize: CFString
+
+kCGImageDestinationLossyCompressionQuality
+ kCGImageDestinationPreserveGainMap
+*/

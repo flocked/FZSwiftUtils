@@ -9,7 +9,8 @@ import Foundation
 import ImageIO
 import UniformTypeIdentifiers
 
-class ImageDestination {
+/// An object tthat can create image data by adding and combining images and specifing image properties and metadata.
+public class ImageDestination {
     
     private enum Step {
         case image(_ image: CGImage, metadata: CGImageMetadata?, properties: [CFString: Any]?)
