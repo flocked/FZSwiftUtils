@@ -238,20 +238,27 @@ public class ImageSource {
 
      - Parameters:
         - url: The URL of the image.
+        - typeIdentifierHint: The uniform type identifier representing the most likely image type.
      */
-    public init?(url: URL) {
-        guard let cgImageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else { return nil }
+    public init?(url: URL, typeIdentifierHint: String? = nil) {
+        var options: [CFString:Any]?
+        if let typeIdentifier = typeIdentifierHint {
+            options = [kCGImageSourceTypeIdentifierHint: typeIdentifier as CFString]
+        }
+        guard let cgImageSource = CGImageSourceCreateWithURL(url as CFURL, options as CFDictionary?) else { return nil }
         self.cgImageSource = cgImageSource
     }
-
+    
     /**
-     Creates an image source that reads from a location specified by a file path.
+     Creates an image source that reads from a location specified by a URL.
 
      - Parameters:
-        - path: The file path of the image.
+        - url: The URL of the image.
+        - contentTypeHint: The content type representing the most likely image type.
      */
-    public convenience init?(path: String) {
-        self.init(url: URL(fileURLWithPath: path))
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    public convenience init?(url: URL, contentTypeHint: UTType) {
+        self.init(url: url, typeIdentifierHint: contentTypeHint.identifier)
     }
 
     /**
@@ -259,10 +266,27 @@ public class ImageSource {
 
      - Parameters:
         - data: The data of the image.
+        - typeIdentifierHint: The uniform type identifier representing the most likely image type.
      */
-    public init?(data: Data) {
-        guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+    public init?(data: Data, typeIdentifierHint: String? = nil) {
+        var options: [CFString:Any]?
+        if let typeIdentifier = typeIdentifierHint {
+            options = [kCGImageSourceTypeIdentifierHint: typeIdentifier as CFString]
+        }
+        guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, options as CFDictionary?) else { return nil }
         self.cgImageSource = cgImageSource
+    }
+    
+    /**
+     Creates an image source that reads from data.
+
+     - Parameters:
+        - data: The data of the image.
+        - contentTypeHint: The content type representing the most likely image type.
+     */
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    public convenience init?(data: Data, contentTypeHint: UTType) {
+        self.init(data: data, typeIdentifierHint: contentTypeHint.identifier)
     }
     
     /**
