@@ -449,3 +449,92 @@ public extension ImageSource {
         }
     }
 }
+
+extension ImageSource {
+    /// Returns a losslessly copied image as Data, applying the given options.
+      func copyData(applying options: CopyOptions = CopyOptions()) throws -> Data {
+          guard let typeIdentifier = typeIdentifier else {
+              throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
+          }
+          let mutableData = NSMutableData()
+          guard let dest = CGImageDestinationCreateWithData(mutableData as CFMutableData, typeIdentifier as CFString, count, nil) else { throw NSError(domain: "CGImageSource", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create image destination"])
+          }
+          var error: Unmanaged<CFError>?
+          let success = withUnsafeMutablePointer(to: &error) { ptr in
+              CGImageDestinationCopyImageSource(dest, cgImageSource, options.dictionary, ptr)
+          }
+          if !success {
+              throw error!.takeRetainedValue()
+          }
+          return mutableData as Data
+      }
+
+      /// Writes a losslessly copied image to the specified URL, applying the given options.
+      func write(to url: URL, applying options: CopyOptions = CopyOptions()) throws {
+          guard let typeIdentifier = typeIdentifier else {
+              throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
+          }
+          guard let dest = CGImageDestinationCreateWithURL(url as CFURL, typeIdentifier as CFString, count, nil) else {
+              throw NSError(domain: "CGImageSource", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create image destination"])
+          }
+          var error: Unmanaged<CFError>?
+          let success = withUnsafeMutablePointer(to: &error) { ptr in
+              CGImageDestinationCopyImageSource(dest, cgImageSource, options.dictionary, ptr)
+          }
+          if !success {
+              throw error!.takeRetainedValue()
+          }
+      }
+    
+    public struct CopyOptions {
+        
+        /// A Boolean value that indicates whether to exclude GPS metadata from EXIF data or the corresponding XMP tags.
+        public var excludeGPS = false
+        
+        /// A Boolean value that indicates whether to exclude XMP data from the destination.
+        public var excludeXMP = false
+        
+        /**
+         The metadata tags to include with the image.
+         
+         When you specify this key, all EXIF, IPTC, and XMP metadata is overwritten.
+         
+         If you want to merge the new tags with the existing metadata, set ``mergeMetadata`` to true.
+         */
+        public var metadata: CGImageMetadata?
+        
+        /**
+         A Boolean value that indicates whether to merge new metadata with the image’s existing metadata.
+         
+         If you set this property to `true`, the ``metadata`` is merged with the image’s existing metadata. Specifically, if a tag doesn’t exist in the image source, the destination adds it. If the tag exists in the source, the destination updates its value. To remove a tag, set the value of the appropriate key to `kCFNull`.
+         */
+        public var mergeMetadata = false
+        
+        /**
+         The date and time information to associate with the image.
+         
+         This option is mutually exclusive with ``metadata``.
+         */
+        public var date: Date?
+        
+        /**
+         The orientation of the image.
+         
+         This option is mutually exclusive with ``metadata``.
+         */
+        public var orientation: CGImagePropertyOrientation?
+        
+        var dictionary: CFDictionary {
+            var dict = [CFString: Any]()
+            if let metadata = metadata {
+                dict[kCGImageDestinationMetadata] = metadata
+                dict[kCGImageDestinationMergeMetadata] = mergeMetadata
+            }
+            dict[kCGImageDestinationOrientation] = orientation?.rawValue as CFNumber?
+            dict[kCGImageMetadataShouldExcludeXMP] = excludeXMP
+            dict[kCGImageMetadataShouldExcludeGPS] = excludeGPS
+            dict[kCGImageDestinationDateTime] = date as CFDate?
+            return dict as CFDictionary
+        }
+    }
+  }
