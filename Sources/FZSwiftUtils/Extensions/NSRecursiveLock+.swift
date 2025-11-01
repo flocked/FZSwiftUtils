@@ -16,6 +16,15 @@ extension NSRecursiveLock {
     }
     
     /// Execute the specified block while holding the lock.
+    public func locked<V>(_ block: ()-> V) -> V {
+         var value: V!
+         lock()
+         value = block()
+         unlock()
+         return value
+     }
+    
+    /// Execute the specified block while holding the lock.
     func locked<T>(_ block: () throws -> T) rethrows -> T {
         lock()
         defer { unlock() }
