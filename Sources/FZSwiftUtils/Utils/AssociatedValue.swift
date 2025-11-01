@@ -23,12 +23,12 @@ public func getAssociatedValue<T>(_ key: String, object: AnyObject) -> T? {
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue: @autoclosure () -> T) -> T {
@@ -36,12 +36,12 @@ public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue: @autoclosure () -> T?) -> T? {
@@ -49,12 +49,12 @@ public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T: AnyObject>(_ key: String, object: AnyObject, weakInitialValue initialValue: @autoclosure () -> T) -> T? {
@@ -62,12 +62,12 @@ public func getAssociatedValue<T: AnyObject>(_ key: String, object: AnyObject, w
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T: AnyObject>(_ key: String, object: AnyObject, weakInitialValue initialValue: @autoclosure () -> T?) -> T? {
@@ -80,12 +80,12 @@ public func getAssociatedValue<T: AnyObject>(_ key: String, object: AnyObject, w
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue: () -> T) -> T {
@@ -93,12 +93,12 @@ public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue: () -> T?) -> T? {
@@ -106,12 +106,12 @@ public func getAssociatedValue<T>(_ key: String, object: AnyObject, initialValue
 }
 
 /**
- Returns the associated value for the specified object, key and inital value.
+ Returns the associated value for the specified object, key and initial value.
 
  - Parameters:
     - key: The key of the associated value.
     - object: The object of the associated value.
-    - initialValue: The inital value of the associated value.
+    - initialValue: The initial value of the associated value.
  - Returns: The associated value for the object and key.
  */
 public func getAssociatedValue<T: AnyObject>(_ key: String, object: AnyObject, weakInitialValue initialValue: () -> T) -> T? {
@@ -183,11 +183,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
@@ -195,11 +195,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T>(_ key: String, initialValue: @autoclosure () -> T?) -> T? {
@@ -207,11 +207,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T: AnyObject>(_ key: String, weakInitialValue initialValue: @autoclosure () -> T) -> T? {
@@ -219,11 +219,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T: AnyObject>(_ key: String, weakInitialValue initialValue: @autoclosure () -> T?) -> T? {
@@ -231,11 +231,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
 
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T>(_ key: String, initialValue: () -> T) -> T {
@@ -243,11 +243,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T>(_ key: String, initialValue: () -> T?) -> T? {
@@ -255,11 +255,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
 
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T: AnyObject>(_ key: String, weakInitialValue initialValue: () -> T) -> T? {
@@ -267,11 +267,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T: AnyObject>(_ key: String, weakInitialValue initialValue: () -> T?) -> T? {
@@ -311,11 +311,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public static func getAssociatedValue<T>(_ key: String, initialValue: @autoclosure () -> T) -> T {
@@ -323,11 +323,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public static func getAssociatedValue<T: AnyObject>(_ key: String, weakInitialValue initialValue: @autoclosure () -> T) -> T? {
@@ -335,13 +335,13 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      If the associated value for the key is `nil`, the associated value is set to the initial value and the value is returned.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public static func getAssociatedValue<T>(_ key: String, initialValue: () -> T) -> T {
@@ -349,13 +349,13 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      If the associated value for the key is `nil`, the associated value is set to the initial value and the value is returned.
 
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public static func getAssociatedValue<T: AnyObject>(_ key: String, weakInitialValue initialValue: () -> T) -> T? {
@@ -397,11 +397,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T>(_ key: KeyPath<Self, T>, initialValue: @autoclosure () -> T) -> T {
@@ -409,11 +409,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self, T>, weakInitialValue initialValue: @autoclosure () -> T) -> T? {
@@ -421,11 +421,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T>(_ key: KeyPath<Self, T>, initialValue: () -> T) -> T {
@@ -433,11 +433,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self, T>, weakInitialValue initialValue: () -> T) -> T? {
@@ -477,11 +477,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public static func getAssociatedValue<T>(_ key: KeyPath<Self, T>, initialValue: @autoclosure () -> T) -> T {
@@ -489,11 +489,11 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
     public static func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self, T>, weakInitialValue initialValue: @autoclosure () -> T?) -> T? {
@@ -501,13 +501,13 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      If the associated value for the key is `nil`, the associated value is set to the initial value and the value is returned.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public static func getAssociatedValue<T>(_ key: KeyPath<Self, T>, initialValue: () -> T) -> T {
@@ -515,13 +515,13 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     /**
-     Returns the associated value for the specified key and inital value.
+     Returns the associated value for the specified key and initial value.
      
      If the associated value for the key is `nil`, the associated value is set to the initial value and the value is returned.
      
      - Parameters:
         - key: The key of the associated value.
-        - initialValue: The inital value of the associated value.
+        - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
     public static func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self, T>, weakInitialValue initialValue: () -> T) -> T? {

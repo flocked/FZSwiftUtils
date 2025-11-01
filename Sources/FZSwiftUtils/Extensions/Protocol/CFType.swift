@@ -12,7 +12,7 @@ import ImageIO
 /**
  A Core Foundation type.
  
- This protocol allows extending Core Foundation types with custom initalizers which is normally not allowed.
+ This protocol allows extending Core Foundation types with custom initializers which is normally not allowed.
  */
 public protocol CFType {
     /// The Core Foundation type identifier.

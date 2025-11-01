@@ -44,8 +44,8 @@ public final class Defaults {
     }
     
     /// The value for the specified key.
-    public subscript<T: Codable>(key: String, initalValue initalValue: T) -> T {
-        get { get(key, initalValue: initalValue) }
+    public subscript<T: Codable>(key: String, initialValue initialValue: T) -> T {
+        get { get(key, initialValue: initialValue) }
         set { set(newValue, for: key) }
     }
 
@@ -57,7 +57,7 @@ public final class Defaults {
     
     /// The value for the specified key.
     public subscript<T: RawRepresentable>(key: String, initialValue initialValue: T) -> T where T.RawValue: Codable {
-        get { get(key, initalValue: initialValue) }
+        get { get(key, initialValue: initialValue) }
         set { set(newValue, for: key) }
     }
 
@@ -93,12 +93,12 @@ public final class Defaults {
         - key: The key.
         - initialValue: The initial value for the key.
      */
-    public func get<Value: Codable>(_ key: String, initalValue: Value) -> Value {
+    public func get<Value: Codable>(_ key: String, initialValue: Value) -> Value {
         if let value: Value = get(key) {
             return value
         }
-        set(initalValue, for: key)
-        return initalValue
+        set(initialValue, for: key)
+        return initialValue
     }
 
     /**
@@ -120,12 +120,12 @@ public final class Defaults {
         - key: The key.
         - initialValue: The initial value for the key.
      */
-    public func get<Value: RawRepresentable>(_ key: String, initalValue: Value) -> Value where Value.RawValue: Codable {
+    public func get<Value: RawRepresentable>(_ key: String, initialValue: Value) -> Value where Value.RawValue: Codable {
         if let value: Value = get(key) {
             return value
         }
-        set(initalValue, for: key)
-        return initalValue
+        set(initialValue, for: key)
+        return initialValue
     }
 
     /**
@@ -228,7 +228,7 @@ public final class Defaults {
      - Parameters:
         - key: The key of the property to observe.
         - type: The type of the observed value.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A notification token representing the observation.
@@ -261,7 +261,7 @@ public final class Defaults {
      - Parameters:
         - key: The key of the property to observe.
         - type: The type of the observed value.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A notification token representing the observation.
@@ -285,7 +285,7 @@ public final class Defaults {
      - Parameters:
         - key: The key of the property to observe.
         - type: The type of the observed value.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
@@ -323,7 +323,7 @@ public final class Defaults {
      - Parameters:
         - key: The key of the property to observe.
         - type: The type of the observed value.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A notification token representing the observation.
@@ -356,7 +356,7 @@ public final class Defaults {
      - Parameters:
         - key: The key of the property to observe.
         - type: The type of the observed value.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A notification token representing the observation.
@@ -380,7 +380,7 @@ public final class Defaults {
      - Parameters:
         - key: The key of the property to observe.
         - type: The type of the observed value.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
@@ -601,20 +601,20 @@ extension Defaults.Key where Value: OptionalProtocol, Value.Wrapped: RawRepresen
 extension Defaults {
     /// The value for the specified key.
     public static subscript<T: Codable>(key: Key<T>) -> T {
-        get { key.defaults.get(key.name, initalValue: key.defaultValue) }
+        get { key.defaults.get(key.name, initialValue: key.defaultValue) }
         set { key.defaults.set(newValue, for: key.name) }
     }
     
     /// The value for the specified key.
     public static subscript<T: RawRepresentable>(key: Key<T>) -> T where T.RawValue: Codable {
-        get { key.defaults.get(key.name, initalValue: key.defaultValue) }
+        get { key.defaults.get(key.name, initialValue: key.defaultValue) }
         set { key.defaults.set(newValue, for: key.name) }
     }
     
     /// The value for the specified key.
     public static subscript<T: OptionalProtocol>(key: Key<T>) -> T.Wrapped? where T.Wrapped: RawRepresentable, T.Wrapped.RawValue: Codable {
         get {
-            guard let rawValue: T.Wrapped.RawValue = key.defaults.get(key.name, initalValue: key.defaultValue.optional?.rawValue) else { return nil }
+            guard let rawValue: T.Wrapped.RawValue = key.defaults.get(key.name, initialValue: key.defaultValue.optional?.rawValue) else { return nil }
             return T.Wrapped(rawValue: rawValue)
         }
         set { key.defaults.set(newValue.optional?.rawValue, for: key.name) }

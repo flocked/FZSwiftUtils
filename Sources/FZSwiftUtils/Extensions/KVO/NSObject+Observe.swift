@@ -27,7 +27,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
@@ -38,8 +38,16 @@ extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes for the specified property.
-          
-     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+               
+     This method automatically chooses the best observation mechanism based on whether
+     the property supports **Key-Value Observing (KVO)**:
+     
+     - If the property is KVO-compliant, changes are observed through the KVO system.
+     - If the property is **not** KVO-compliant, the handler is invoked whenever the property
+       is set through Swift property assignment.
+     
+     When the returned ``KeyValueObservation`` instance is invalidated or deinitialized,
+     the observation stops automatically.
                
      Example usage:
      
@@ -53,7 +61,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
@@ -79,7 +87,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
@@ -90,8 +98,16 @@ extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes for the specified property.
+               
+     This method automatically chooses the best observation mechanism based on whether
+     the property supports **Key-Value Observing (KVO)**:
      
-     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     - If the property is KVO-compliant, changes are observed through the KVO system.
+     - If the property is **not** KVO-compliant, the handler is invoked whenever the property
+       is set through Swift property assignment.
+     
+     When the returned ``KeyValueObservation`` instance is invalidated or deinitialized,
+     the observation stops automatically.
      
      Example usage:
      
@@ -105,7 +121,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
@@ -131,7 +147,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         -  keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
@@ -143,8 +159,16 @@ extension NSObjectProtocol where Self: NSObject {
     
     /**
      Observes changes for a property identified by the given key path.
+               
+     This method automatically chooses the best observation mechanism based on whether
+     the property supports **Key-Value Observing (KVO)**:
      
-     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     - If the property is KVO-compliant, changes are observed through the KVO system.
+     - If the property is **not** KVO-compliant, the handler is invoked whenever the property
+       is set through Swift property assignment.
+     
+     When the returned ``KeyValueObservation`` instance is invalidated or deinitialized,
+     the observation stops automatically.
      
      Example usage:
      
@@ -158,7 +182,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         -  keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
@@ -196,8 +220,16 @@ extension NSObjectProtocol where Self: NSObject {
     /**
      Observes will change for the specified property.
      
-     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
-
+     This method automatically chooses the best observation mechanism based on whether
+     the property supports **Key-Value Observing (KVO)**:
+     
+     - If the property is KVO-compliant, changes are observed through the KVO system.
+     - If the property is **not** KVO-compliant, the handler is invoked whenever the property
+       is set through Swift property assignment.
+     
+     When the returned ``KeyValueObservation`` instance is invalidated or deinitialized,
+     the observation stops automatically.
+     
      Example usage:
      
      ```swift
@@ -223,12 +255,20 @@ extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes for the specified property.
      
-     When the returned ``KeyValueObservation`` is deinited or invalidated, it will stop observing.
+     This method automatically chooses the best observation mechanism based on whether
+     the property supports **Key-Value Observing (KVO)**:
+     
+     - If the property is KVO-compliant, changes are observed through the KVO system.
+     - If the property is **not** KVO-compliant, the handler is invoked whenever the property
+       is set through Swift property assignment.
+     
+     When the returned ``KeyValueObservation`` instance is invalidated or deinitialized,
+     the observation stops automatically.
      
      - Parameters:
         - keyPath: The name of the key path of the property to observe.
         - type: The value type of the property.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
@@ -245,7 +285,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The name key path of the property to observe.
         - type: The value type of the property.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
@@ -262,7 +302,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         -  keyPath: The key path of the property to observe.
         - type: The value type of the property.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
@@ -375,7 +415,7 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
@@ -407,7 +447,7 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
@@ -431,7 +471,7 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
@@ -459,7 +499,7 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
@@ -494,7 +534,7 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
@@ -522,7 +562,7 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the inital value of the observed property. The default value is `false`.
+        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
