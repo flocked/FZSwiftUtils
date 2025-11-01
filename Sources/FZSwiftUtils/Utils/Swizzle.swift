@@ -53,7 +53,7 @@ public func swizzle(_ className: String, @SelectorPair.Builder _ selectorPairs: 
     try swizzle(cls, selectorPairs)
 }
 
-extension NSObjectProtocol where Self == NSObject {
+extension NSObjectProtocol where Self: NSObject {
     /**
      Swizzles the specified selectors for this class, affecting all instances of this class.
      
