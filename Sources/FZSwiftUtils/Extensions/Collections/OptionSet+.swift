@@ -14,11 +14,16 @@ public extension SetAlgebra {
      - Parameter elements: The elements to look for in the set.
      - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
      */
+    @_disfavoredOverload
     func contains<S: Sequence<Element>>(any members: S) -> Bool {
         members.contains(where: { contains($0) })
     }
     
-    /// A Boolean value indicating whether the set contains the specified element.
+    /**
+     A Boolean value that indicates whether the given element exists in the set.
+     
+     Setting this value to `true`, inserts the given element in the set if it is not already present. Setting it to `false`, removes it from the set.
+     */
     subscript (_ element: Element) -> Bool {
         get { contains(element) }
         set {
@@ -53,33 +58,28 @@ public extension SetAlgebra {
 
 public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
     /**
-     A Boolean value indicating whether the set contains any of the specified elements.
+     A Boolean value indicating whether the set contains any of the elements in the specified set.
 
-     - Parameter elements: The elements to look for in the set.
+     - Parameter member: The elements to look for in the set.
      - Returns: `true` if any of the elements exists in the set, otherwise ` false`.
      */
     func contains(any member: Self) -> Bool {
-        member.elements().contains(where: { contains($0) })
+        (rawValue & member.rawValue) != 0
     }
     
     /// Returns an array of the elements included in the set.
-    func elements() -> [Self] {
-        _elements().collect()
+    func elements() -> [Element] {
+        Array(_elements())
     }
     
-    private func _elements() -> AnySequence<Self> {
+    private func _elements() -> AnySequence<Element> {
         var remainingBits = rawValue
-        var bitMask: RawValue = 1
         return AnySequence {
             AnyIterator {
-                while remainingBits != 0 {
-                    defer { bitMask = bitMask &* 2 }
-                    if remainingBits & bitMask != 0 {
-                        remainingBits = remainingBits & ~bitMask
-                        return Self(rawValue: bitMask)
-                    }
-                }
-                return nil
+                guard remainingBits != 0 else { return nil }
+                let lowestBit = remainingBits & ~(remainingBits - 1)
+                remainingBits &= ~lowestBit
+                return Self(rawValue: lowestBit)
             }
         }
     }

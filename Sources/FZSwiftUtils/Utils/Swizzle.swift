@@ -25,7 +25,7 @@ import Foundation
  */
 public func swizzle(_ class: AnyClass, @SelectorPair.Builder _ selectorPairs: () -> [SelectorPair]) throws {
     guard object_isClass(`class`) else {
-        throw SwizzleError.classNotFound(String(describing: `class`))
+        throw SwizzleError.classNotObjC(`class`)
     }
     try swizzle(selectorPairs(), for: `class`)
 }
@@ -76,7 +76,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      Example usage:
      ```swift
-     try? NSView.swizzle(\.stringValue, with: \.swizzledStringValue)
+     try? UILabel.swizzle(\.text, with: \.swizzledText)
      ```
      
      - Parameters:
@@ -93,7 +93,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      Example usage:
      ```swift
-     try? NSView.swizzle(set: \.stringValue, with: \.swizzledStringValue)
+     try? UILabel.swizzle(set: \.text, with: \.swizzledText)
      ```
      
      - Parameters:
@@ -101,7 +101,7 @@ extension NSObjectProtocol where Self: NSObject {
         - newKeyPath: The new writable key path whose setter implementation will be used.
      - Throws: Throws an error if swizzling fails.
      */
-    public static func swizzle<Value>(set keyPath: WritableKeyPath<Self, Value>, with newKeyPath: WritableKeyPath<Self, Value>) throws {
+    public static func swizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self, Value>, with newKeyPath: WritableKeyPath<Self, Value>) throws {
         try swizzle { SelectorPair(set: keyPath, newKeyPath) }
     }
     
@@ -110,7 +110,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      Example usage:
      ```swift
-     try? NSView.swizzle(\.stringValue, with: \.swizzledStringValue)
+     try? UILabel.swizzle(\.text, with: \.swizzledText)
      ```
      
      - Parameters:
@@ -127,7 +127,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      Example usage:
      ```swift
-     try? NSView.swizzle(set: \.stringValue, with: \.swizzledStringValue)
+     try? UILabel.swizzle(set: \.text, with: \.swizzledText)
      ```
      
      - Parameters:
@@ -135,10 +135,231 @@ extension NSObjectProtocol where Self: NSObject {
         - newKeyPath: The new writable key path whose setter implementation will be used.
      - Throws: Throws an error if swizzling fails.
      */
-    public static func swizzle<Value>(staticSet keyPath: WritableKeyPath<Self.Type, Value>, with newKeyPath: WritableKeyPath<Self.Type, Value>) throws {
+    public static func swizzle<Value>(classSet keyPath: ReferenceWritableKeyPath<Self.Type, Value>, with newKeyPath: WritableKeyPath<Self.Type, Value>) throws {
         try swizzle { SelectorPair(set: keyPath, newKeyPath) }
     }
+    
+    public static func add(_ selector: Selector) {
+        
+    }
 }
+
+extension NSObjectProtocol where Self: NSObject {
+    /**
+     Swizzles getting the specified instance property.
+     
+     Example usage:
+     
+     ```swift
+     try? UILabel.swizzle(\.text) {
+        label, originalValue in
+            return originalValue + "swizzled"
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path to the property.
+        - block: The block which provides the object and original value of the property. Return either the original or a changed value.
+     */
+    public static func swizzle<Value>(_ keyPath: KeyPath<Self, Value>, with block: @escaping (_ object: Self, _ originalValue: Value) -> Value) throws {
+        let selector = NSSelectorFromString(try keyPath.getterName())
+        guard let method = class_getInstanceMethod(Self.self, selector) else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        if originalIMPs[selector] == nil {
+            originalIMPs[selector] = method_getImplementation(method)
+        }
+        let originalIMP = originalIMPs[selector]!
+        
+        let impBlock: @convention(block) (AnyObject) -> Any? = { obj in
+            typealias GetterCType = @convention(c) (AnyObject, Selector) -> Any?
+            let originalGetter = unsafeBitCast(originalIMP, to: GetterCType.self)
+            let originalValue: Value = originalGetter(obj, selector) as! Value
+            return block(obj as! Self, originalValue)
+        }
+        let newIMP = imp_implementationWithBlock(impBlock)
+        method_setImplementation(method, newIMP)
+    }
+
+    /**
+     Swizzles setting the specified instance property.
+     
+     The following example only changes the  `text` of `UILabel`, if it isn't an empty string and also appends "swizzled" to it.
+     
+     ```swift
+     try? UILabel.swizzle(set: \.text) {
+        textField, newValue, setter in
+        if let newValue, newValue != "" {
+            setter(newValue + "swizzled")
+        }
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path to the property.
+        - block: The block which provides the object, the new value and a setter block. You can call the setter block with a new value.
+     
+     - Note: Only call the `setter` block inside your provided block.
+     */
+    public static func swizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self, Value>, with block: @escaping (_ object: Self, _ newValue: Value, _ setter: (Value) -> Void) -> Void) throws {
+        let selector = NSSelectorFromString(try keyPath.setterName())
+        guard let method = class_getInstanceMethod(Self.self, selector) else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        if originalIMPs[selector] == nil {
+            originalIMPs[selector] = method_getImplementation(method)
+        }
+        let originalIMP = originalIMPs[selector]!
+        let impBlock: @convention(block) (AnyObject, Any?) -> Void = { obj, newValue in
+            let obj = obj as! Self
+            let value = newValue as! Value
+            let setterBlock: (Value) -> Void = { v in
+                typealias SetterCType = @convention(c) (AnyObject, Selector, Any?) -> Void
+                let original = unsafeBitCast(originalIMP, to: SetterCType.self)
+                original(obj, selector, v)
+            }
+            block(obj, value, setterBlock)
+        }
+        let newIMP = imp_implementationWithBlock(impBlock)
+        method_setImplementation(method, newIMP)
+    }
+
+    /**
+     Swizzles getting the specified class property.
+     
+     Example usage:
+     
+     ```swift
+     try? UILabel.swizzle(\.text) {
+        label, originalValue in
+            return originalValue + "swizzled"
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path to the property.
+        - block: The block which provides the object and original value of the property. Return either the original or a changed value.
+     */
+    public static func swizzle<Value>(class keyPath: KeyPath<Self.Type, Value>, with block: @escaping (_ originalValue: Value) -> Value) throws {
+        let selector = NSSelectorFromString(try keyPath.getterName())
+        guard let method = class_getClassMethod(Self.self, selector) else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+
+        if originalClassIMPs[selector] == nil {
+            originalClassIMPs[selector] = method_getImplementation(method)
+        }
+        let originalIMP = originalClassIMPs[selector]!
+        let impBlock: @convention(block) (AnyObject) -> Any? = { _ in
+            typealias GetterCType = @convention(c) (AnyObject, Selector) -> Any?
+            let originalGetter = unsafeBitCast(originalIMP, to: GetterCType.self)
+            let originalValue: Value = originalGetter(Self.self, selector) as! Value
+            return block(originalValue)
+        }
+        let newIMP = imp_implementationWithBlock(impBlock)
+        method_setImplementation(method, newIMP)
+    }
+    
+    /**
+     Swizzles setting the specified class property.
+     
+     ```swift
+     try? UILabel.swizzle(set: \.text) {
+        textField, newValue, setter in
+        if let newValue, newValue != "" {
+            setter(newValue + "swizzled")
+        }
+     }
+     ```
+     
+     - Parameters:
+        - keyPath: The key path to the property.
+        - block: The block which provides the object, the new value and a setter block. You can call the setter block with a new value.
+     
+     - Note: Only call the `setter` block inside your provided block.
+     */
+    public static func swizzle<Value>(classSet keyPath: ReferenceWritableKeyPath<Self.Type, Value>, with block: @escaping (_ newValue: Value, _ setter: (Value) -> Void) -> Void) throws {
+        let selector = NSSelectorFromString(try keyPath.setterName())
+        guard let method = class_getClassMethod(Self.self, selector) else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        if originalClassIMPs[selector] == nil {
+            originalClassIMPs[selector] = method_getImplementation(method)
+        }
+        let originalIMP = originalClassIMPs[selector]!
+        let impBlock: @convention(block) (AnyObject, Any?) -> Void = { _, newValueAny in
+            let value = newValueAny as! Value
+            let setterBlock: (Value) -> Void = { v in
+                typealias SetterCType = @convention(c) (AnyObject, Selector, Any?) -> Void
+                let original = unsafeBitCast(originalIMP, to: SetterCType.self)
+                original(Self.self, selector, v)
+            }
+            block(value, setterBlock)
+        }
+        let newIMP = imp_implementationWithBlock(impBlock)
+        method_setImplementation(method, newIMP)
+    }
+    
+    /// Reverts swizzling the specified getter instance property.
+    static func revertSwizzle<Value>(_ keyPath: KeyPath<Self, Value>) throws {
+        let selector = try NSSelectorFromString(keyPath.getterName())
+        guard let method = class_getInstanceMethod(Self.self, selector), let imp = originalIMPs[selector] else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        method_setImplementation(method, imp)
+        originalIMPs[selector] = nil
+    }
+    
+    /// Reverts swizzling the specified setter instance property.
+    static func revertSwizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self, Value>) throws {
+        let selector = try NSSelectorFromString(keyPath.setterName())
+        guard let method = class_getInstanceMethod(Self.self, selector), let imp = originalIMPs[selector] else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        method_setImplementation(method, imp)
+        originalIMPs[selector] = nil
+    }
+    
+    /// Reverts swizzling the specified getter class property.
+    static func revertSwizzle<Value>(_ keyPath: KeyPath<Self.Type, Value>) throws {
+        let selector = try NSSelectorFromString(keyPath.getterName())
+        guard let method = class_getClassMethod(Self.self, selector), let imp = originalClassIMPs[selector] else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        method_setImplementation(method, imp)
+        originalClassIMPs[selector] = nil
+    }
+    
+    /// Reverts swizzling the specified setter class property.
+    static func revertSwizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self.Type, Value>) throws {
+        let selector = try NSSelectorFromString(keyPath.setterName())
+        guard let method = class_getClassMethod(Self.self, selector), let imp = originalClassIMPs[selector] else {
+            throw SwizzleError.methodNotFound(Self.self, selector)
+        }
+        method_setImplementation(method, imp)
+        originalClassIMPs[selector] = nil
+    }
+    
+    static func revertSwizzle(for selector: Selector) {
+        FZSwiftUtils.revertSwizzle(selector, of: Self.self)
+    }
+    
+    static func revertSwizzle(forClass selector: Selector) {
+        FZSwiftUtils.revertSwizzle(selector, of: object_getClass(Self.self)!)
+    }
+    
+    static var originalIMPs: [Selector: IMP] {
+        get { getAssociatedValue("originalIMPs") ?? [:] }
+        set { setAssociatedValue(newValue, key: "originalIMPs") }
+    }
+    
+    static var originalClassIMPs: [Selector: IMP] {
+        get { getAssociatedValue("originalClassIMPs") ?? [:] }
+        set { setAssociatedValue(newValue, key: "originalClassIMPs") }
+    }
+}
+
+fileprivate var swizzleRegistry = [ObjectIdentifier: Set<SelectorPair>]()
 
 fileprivate func swizzle(_ selectorPairs: [SelectorPair], for cls: AnyClass) throws {
     try selectorPairs.forEach { pair in
@@ -156,11 +377,23 @@ fileprivate func swizzle(_ selectorPairs: [SelectorPair], for cls: AnyClass) thr
             return
         }
         guard !didRevertOptionalSwizzle(cls, pair: pair) else { return }
+        revertSwizzle(pair.old, of: cls)
         if pair.isStatic, class_addMethod(cls, pair.old, method_getImplementation(rhs), method_getTypeEncoding(rhs)) {
             class_replaceMethod(cls, pair.new, method_getImplementation(lhs), method_getTypeEncoding(lhs))
         } else {
             method_exchangeImplementations(lhs, rhs)
         }
+        swizzleRegistry[cls, default: []].insert(pair)
+    }
+}
+
+fileprivate func revertSwizzle(_ selector: Selector, of cls: AnyClass) {
+    guard var pairs = swizzleRegistry[cls] else { return }
+    if let pair = pairs.first(where: { $0.old == selector || $0.new == selector }) {
+        guard let lhs = class_getInstanceMethod(cls, pair.old), let rhs = class_getInstanceMethod(cls, pair.new) else { return }
+        method_exchangeImplementations(lhs, rhs)
+        pairs.remove(pair)
+        swizzleRegistry[cls] = pairs.isEmpty ? nil : pairs
     }
 }
 
@@ -213,12 +446,14 @@ fileprivate func didRevertOptionalSwizzle(_ cls: AnyClass, pair: SelectorPair) -
 }
 
 fileprivate enum SwizzleError: LocalizedError {
+    case classNotObjC(AnyClass)
     case classNotFound(_ className: String)
     case keyPathNotFound(keyPath: String, class: AnyClass)
     case methodNotFound(selector: Selector, class: AnyClass)
     
     var errorDescription: String? {
         switch self {
+        case .classNotObjC: return "Class isn't Objective-C based."
         case .classNotFound: return "Class not found."
         case .keyPathNotFound: return "Keypath not found."
         case .methodNotFound: return "Method not found."
@@ -227,6 +462,8 @@ fileprivate enum SwizzleError: LocalizedError {
     
     var failureReason: String? {
         switch self {
+        case .classNotObjC(let cls):
+            return "The class '\(cls)' is not Objective-C based."
         case .classNotFound(let type):
             return "Could not retrieve class metadata for type '\(type)'."
         case .keyPathNotFound(let keyPath, let type):
@@ -239,13 +476,23 @@ fileprivate enum SwizzleError: LocalizedError {
 
 
 /// A pair of selectors for swizzling.
-public struct SelectorPair {
+public struct SelectorPair: Hashable {
     /// The old selector.
     public let old: Selector
     /// The new selector to replace the old.
     public let new: Selector
     /// A `Boolean` value indicating whether the selectors are static.
     public let isStatic: Bool
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(old)
+        hasher.combine(new)
+        hasher.combine(isStatic)
+    }
+    
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.old == rhs.old && lhs.new == rhs.new && lhs.isStatic == rhs.isStatic
+    }
     
     /// Key paths that failed to convert to selectors, if any.
     var failedKeyPath: (old: String?, new: String?) = (nil, nil)

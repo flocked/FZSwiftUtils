@@ -8,6 +8,11 @@
 import Foundation
 
 public extension Set {
+    /**
+     A Boolean value that indicates whether the given element exists in the set.
+     
+     Setting this value to `true`, inserts the given element in the set if it is not already present. Setting it to `false`, removes it from the set.
+     */
     subscript (_ element: Element) -> Bool {
         get { contains(element) }
         set {
@@ -52,8 +57,8 @@ public extension Set {
      - Parameter shouldRemove: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the set.
      */
     @discardableResult
-    mutating func removeAll(where shouldRemove: (Element) -> Bool) -> Set<Element> {
-        let toRemove = filter(shouldRemove)
+    mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Set<Element> {
+        let toRemove = try filter(shouldBeRemoved)
         remove(Array(toRemove))
         return toRemove
     }
