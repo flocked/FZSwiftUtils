@@ -300,7 +300,7 @@ public extension NSDictionary {
     }
 }
 
-extension Dictionary where Value == Any {
+public extension Dictionary where Value == Any {
     /// Returns the value casted to the requested type, or `nil` if the value is missing or of a different type.
     subscript<T>(typed key: Key) -> T? {
         self[key] as? T
@@ -317,7 +317,7 @@ extension Dictionary where Value == Any {
      - Parameter other: The dictionary to compare.
      - Returns: Returns `true` if the dictionary is equal to the other dictionary; or `false` if it isn't equal.
      */
-    public func isEqual(to other: Self) -> Bool {
+    func isEqual(to other: Self) -> Bool {
         guard self.count == other.count else { return false }
         for (key, val1) in self {
             guard let val2 = other[key] else { return false }
