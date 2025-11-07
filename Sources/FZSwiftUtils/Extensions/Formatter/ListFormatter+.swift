@@ -34,13 +34,6 @@ extension ListFormatter {
             guard newValue != conjunction else { return }
             if newValue == .or {
                 do {
-                    /*
-                    orHook = try hook(#selector(ListFormatter.string(from:)), closure: {
-                        original, formatter, selector, value in
-                        guard let value = original(formatter, selector, value) else { return nil }
-                        return value.replacingLastOccurrence(of: ListFormatter.localizedAnd(for: formatter.locale ?? .en), with: ListFormatter.localizedOr(for: formatter.locale ?? .en))
-                    } as @convention(block) ((ListFormatter, Selector, [Any]) -> String?, ListFormatter, Selector, [Any]) -> String?)
-                     */
                     orHook = try hook(#selector(ListFormatter.string(for:)), closure: {
                         original, formatter, selector, value in
                         guard let value = original(formatter, selector, value) else { return nil }
@@ -52,8 +45,6 @@ extension ListFormatter {
             } else {
                 try? orHook?.revert()
                 orHook = nil
-                try? orHookAlt?.revert()
-                orHookAlt = nil
             }
         }
     }
@@ -94,11 +85,6 @@ extension ListFormatter {
     private var orHook: Hook? {
         get { getAssociatedValue("orHook") }
         set { setAssociatedValue(newValue, key: "orHook") }
-    }
-    
-    private var orHookAlt: Hook? {
-        get { getAssociatedValue("orHookAlt") }
-        set { setAssociatedValue(newValue, key: "orHookAlt") }
     }
     
     private static let shared = ListFormatter()
