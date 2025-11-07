@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 07.11.25.
 //
 
+#if os(macOS) || os(iOS)
 import Foundation
 
 extension ListFormatter {
@@ -122,3 +123,4 @@ fileprivate extension String {
         return nsString.replacingCharacters(in: lastMatch.range, with: " \(replacement) ")
     }
 }
+#endif

@@ -67,7 +67,11 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        #if os(macOS) || os(iOS)
         KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
+        #else
+        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
+        #endif
     }
     
     /**
@@ -189,7 +193,11 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        #if os(macOS) || os(iOS)
         KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+        #else
+        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+        #endif
     }
     
     /**
@@ -247,7 +255,11 @@ extension NSObjectProtocol where Self: NSObject {
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
     public func observeWillChange<Value>(_ keyPath: WritableKeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+        #if os(macOS) || os(iOS)
         KeyValueObservation(self, keyPath: keyPath, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, handler: handler)
+        #else
+        KeyValueObservation(self, keyPath: keyPath, handler: handler)
+        #endif
     }
 }
 

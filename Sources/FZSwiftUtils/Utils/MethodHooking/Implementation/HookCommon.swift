@@ -6,7 +6,6 @@
 //  Copyright © 2021 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 let hookSerialQueue = DispatchQueue(label: "com.florianzand.FZSwiftUtils.HookSerialQueue")
@@ -30,4 +29,3 @@ enum HookError: Error {
     case hookKVOUnsupportedInstance // Unable to hook a instance which is not support KVO.
     case nonObjcProperty // The partial keyPath isn't KVO / @objc.
 }
-#endif

@@ -407,6 +407,7 @@ fileprivate func swizzleOptional(_ cls: AnyClass, pair: SelectorPair, method: Me
 }
 
 fileprivate func didRevertOptionalSwizzle(_ cls: AnyClass, pair: SelectorPair) -> Bool {
+    #if os(macOS) || os(iOS)
     guard let _cls = cls as? NSObject.Type else { return false }
     guard (pair.isStatic ? _cls.swizzledStaticOptionals : _cls.swizzledOptionals).contains(pair.new) else { return false }
     guard let deleteIMP = class_getMethodImplementation(cls, NSSelectorFromString(NSStringFromSelector(pair.old)+"_Remove")), let method = class_getInstanceMethod(cls, pair.new) else {
@@ -442,6 +443,7 @@ fileprivate func didRevertOptionalSwizzle(_ cls: AnyClass, pair: SelectorPair) -
     } catch {
         Swift.print(error)
     }
+    #endif
     return true
 }
 

@@ -195,11 +195,13 @@ public class Hook {
         self.selector = selector
     }
     
+    #if os(macOS) || os(iOS)
     init<T: NSObject>(addMethod class_: T.Type, selector: Selector, hookClosure: AnyObject) throws {
         self.hook = try AddInstanceMethodHook(class_: class_, selector: selector, hookClosure: hookClosure)
         self.class = class_
         self.selector = selector
     }
+    #endif
     
     deinit {
         guard revertOnDeinit else { return }

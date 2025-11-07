@@ -291,7 +291,7 @@ extension NSAttributedString {
         }
         #endif
         
-        #if os(macOS) || os(iOS) || os(tvOS)
+        #if os(macOS) || os(iOS)
         /// A highlight associated with a Spotlight suggestion.
         @available(macOS 13.0, iOS 16.0, tvOS 16.0, *)
         public var suggestionHighlight: String? {
@@ -870,7 +870,7 @@ extension NSAttributedString.AttributeValues {
     }
     #endif
 
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS)
     /// Sets the highlight associated with a Spotlight suggestion.
     @available(macOS 13.0, iOS 16.0, tvOS 16.0, *)
     @discardableResult

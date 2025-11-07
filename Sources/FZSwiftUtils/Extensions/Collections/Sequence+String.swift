@@ -173,6 +173,7 @@ public extension String {
          */
         case listNumericDash
         
+        #if os(macOS) || os(iOS)
         func seperator(for locale: Locale? = nil) -> String {
             switch self {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return "\n"
@@ -183,6 +184,18 @@ public extension String {
             case .or: return locale != nil ? " \(ListFormatter.localizedOr(for: locale!)) " : " or "
             }
         }
+        #else
+        func seperator(for locale: Locale? = nil) -> String {
+            switch self {
+            case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return "\n"
+            case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
+            case .and: return  " and "
+            case .slash: return " / "
+            case .backslash: return " \\ "
+            case .or: return " or "
+            }
+        }
+        #endif
         
         var isNumeric: Bool {
             switch self {

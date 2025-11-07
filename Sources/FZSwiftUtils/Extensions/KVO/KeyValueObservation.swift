@@ -164,6 +164,7 @@ public class KeyValueObservation: NSObject {
         handler(value, value)
     }
     
+    #if os(macOS) || os(iOS)
     init?<Object: NSObject, Value>(_ object: Object, writableKeyPath: WritableKeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
         guard let observer = HookObserver(object: object, keyPath: writableKeyPath, handler: handler) else { return nil }
         self.observer = observer
@@ -180,17 +181,18 @@ public class KeyValueObservation: NSObject {
         handler(value, value)
     }
     
+    init?<Object: NSObject, Value>(_ object: Object, writableKeyPath: WritableKeyPath<Object, Value>, handler: @escaping (Value) -> Void) {
+        guard let observer = HookObserver(object: object, keyPath: writableKeyPath, willChange: handler) else { return nil }
+        self.observer = observer
+    }
+    #endif
+    
     init?<Object: NSObject, Value>(_ object: Object, keyPath: KeyPath<Object, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) {
         guard keyPath._kvcKeyPathString != nil else { return nil }
         observer = KeyPathObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
             guard change.isPrior, let oldValue = change.oldValue else { return }
             handler(oldValue)
         }
-    }
-    
-    init?<Object: NSObject, Value>(_ object: Object, writableKeyPath: WritableKeyPath<Object, Value>, handler: @escaping (Value) -> Void) {
-        guard let observer = HookObserver(object: object, keyPath: writableKeyPath, willChange: handler) else { return nil }
-        self.observer = observer
     }
     
     init<Object: NSObject, Value>(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value)->()) {
@@ -298,6 +300,7 @@ private extension KeyValueObservation {
         }
     }
     
+    #if os(macOS) || os(iOS)
     /// Hooks a property and observes changes to it.
     class HookObserver: NSObject, KVObserver {
         let keyPathString: String
@@ -361,6 +364,7 @@ private extension KeyValueObservation {
             }
         }
     }
+    #endif
     
     /// Observes a notidication.
     class NotificationObserver<Object: NSObject>: NSObject, KVObserver {

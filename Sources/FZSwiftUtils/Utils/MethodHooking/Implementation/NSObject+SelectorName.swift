@@ -5,7 +5,6 @@
 //  Created by Florian Zand on 06.05.25.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 extension PartialKeyPath {
@@ -113,4 +112,3 @@ fileprivate extension objc_property_t {
         return nil
     }
 }
-#endif

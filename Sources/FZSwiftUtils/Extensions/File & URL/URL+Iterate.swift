@@ -268,9 +268,11 @@ extension URL {
                 }
                 maxLevel = sequence.maxDepth
                 var resourceKeys = sequence.resourceKeys + URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID) + [.isRegularFileKey]
+                #if os(macOS) || os(iOS) || os(tvOS)
                 if sequence.contentTypesFilter != nil, #available(macOS 11.0, *) {
                     resourceKeys += .contentTypeKey
                 }
+                #endif
                 directoryEnumerator = FileManager.default.enumerator(at: sequence.url, includingPropertiesForKeys: resourceKeys.uniqued(), options: sequence.options)
             }
 

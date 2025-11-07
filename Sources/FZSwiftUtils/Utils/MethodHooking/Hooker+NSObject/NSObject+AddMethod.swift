@@ -46,6 +46,7 @@ extension NSObject {
         try addMethod(NSSelectorFromString(selector), closure: closure)
     }
     
+    #if os(macOS) || os(iOS)
     /**
      Adds an unimplemented protocol method to all instances of the class.
      
@@ -81,6 +82,7 @@ extension NSObject {
     public static func addMethod(all selector: String, closure: Any) throws -> Hook {
         try addMethod(all: NSSelectorFromString(selector), closure: closure)
     }
+    #endif
 }
 
 class AddMethodHook: AnyHook {
@@ -164,6 +166,7 @@ class AddMethodHook: AnyHook {
     }
 }
 
+#if os(macOS) || os(iOS)
 class AddInstanceMethodHook: AnyHook {
     let typeEncoding: String
     let class_: AnyClass
@@ -205,6 +208,7 @@ class AddInstanceMethodHook: AnyHook {
         Interpose.storeHook(hook: self, to: block)
     }
 }
+#endif
 
 fileprivate func typeEncoding(for selector: Selector, _class: AnyClass, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
     var protocolCount: UInt32 = 0
