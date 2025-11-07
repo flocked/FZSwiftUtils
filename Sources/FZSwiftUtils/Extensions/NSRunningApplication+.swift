@@ -24,5 +24,19 @@ public extension NSRunningApplication {
     static var menuBarOwning: NSRunningApplication? {
         NSWorkspace.shared.menuBarOwningApplication
     }
+    
+    /// The running applications.
+    class var runningApplications: [NSRunningApplication] {
+        NSWorkspace.shared.runningApplications
+    }
+        
+    /**
+     The running applications with the specified localized name.
+         
+     - Parameter name: Tha localized application name.
+     */
+    class func runningApplications(named name: String) -> [NSRunningApplication] {
+        runningApplications.filter({ $0.localizedName == name })
+    }
 }
 #endif
