@@ -469,7 +469,7 @@ public extension String {
         }
     }
     
-    internal var nonNil: String {
+    private var nonNil: String {
         var result = self
         while true {
             let matches = result.matches(pattern: #"Optional\(([^()]*?)\)"#)
@@ -483,6 +483,31 @@ public extension String {
         }
         return result
     }
+}
+
+/**
+ Writes the cleaned-up representations of the given items into the standard output.
+ 
+ This function behaves like `print(_:)`, but it uses `String(cleanDescribing:)` instead of `String(describing:)` for each item.
+
+ Example:
+ ```swift
+ let array: [String?]? = ["value", nil, "value"]
+
+ print(array)
+ // Optional([Optional("value"), nil, Optional("value")])
+
+ cleanPrint(array)
+ // ["value", nil, "value"]
+ ```
+ 
+ - Parameters:
+   - items: The items to print.
+   - separator: A string to print between each item. The default is a single space (`" "`).
+   - terminator: The string to print after all items have been printed. The default is a newline (`"\n"`).
+*/
+public func cleanPrint(_ items: Any..., separator: String = " ", terminator: String = "\n") {
+   print(items.map({ String(cleanDescribing: $0) }), separator: separator, terminator: terminator)
 }
 
 public extension String {
