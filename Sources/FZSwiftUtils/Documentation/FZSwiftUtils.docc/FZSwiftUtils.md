@@ -27,7 +27,7 @@ Swift Foundation extensions and useful classes & utilities.
 - ``PartialSortingKeyPath``
 - ``LazySplitSequence``
 - ``PartialSourceLazySplitSequence``
-- ``SequenceSortOrder``
+- ``SortingOrder``
 
 ### Concurrency
 

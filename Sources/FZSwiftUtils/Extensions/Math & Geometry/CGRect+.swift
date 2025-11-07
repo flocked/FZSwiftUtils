@@ -946,12 +946,12 @@ public extension Sequence where Element == CGRect {
     
     
     /// Returns the rectangles sorted by distance to the specified point.
-    func sortedByDistance(to point: CGPoint, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
+    func sortedByDistance(to point: CGPoint, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
         sorted(by: { $0.distance(to: point) }, order)
     }
     
     /// Returns the rectangles sorted by distance to the specified rectangle.
-    func sortedByDistance(to rect: CGRect, _ order: SequenceSortOrder = .smallestFirst) -> [CGRect] {
+    func sortedByDistance(to rect: CGRect, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
         sorted(by: { $0.distance(to: rect) }, order)
     }
     

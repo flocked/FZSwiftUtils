@@ -138,3 +138,10 @@ public extension Comparable {
         self < range.upperBound
     }
 }
+
+extension Comparable {
+    /// Returns the comparsion result to the specified other value.
+    public func comparisonResult(to other: Self) -> ComparisonResult {
+        self == other ? .orderedSame : self < other ? .orderedAscending : .orderedDescending
+    }
+}

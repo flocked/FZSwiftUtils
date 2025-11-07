@@ -11,10 +11,12 @@ public extension Sequence where Element == String {
     /**
      Returns a new string by concatenating the elements of the sequence, adding a separator for the option.
 
-     - Parameter option: The option for joining the strings.
+     - Parameters:
+        - option: The option for joining the strings.
+        - locale: The locale to use, or `nil` to use english.
      - Returns: A single, concatenated string.
      */
-    func joined(by option: String.JoinOption) -> String {
+    func joined(by option: String.JoinOption, locale: Locale? = nil) -> String {
         var strings = Array(self)
         if let prefix = option.prefix {
             strings = strings.compactMap { prefix + $0 }
@@ -22,13 +24,13 @@ public extension Sequence where Element == String {
         if option.isNumeric {
             strings = strings.indexed().compactMap { "\($0.index + 1)\($0.element)" }
         }
-        if let lastSeperator = option.lastSeperator, strings.count >= 2 {
+        if let lastSeperator = option.lastSeperator(for: locale), strings.count >= 2 {
             let lastString = strings.removeLast()
-            var string = strings.joined(separator: option.seperator)
+            var string = strings.joined(separator: option.seperator(for: locale))
             string = [string, lastString].joined(separator: lastSeperator)
             return string
         }
-        return strings.joined(separator: option.seperator)
+        return strings.joined(separator: option.seperator(for: locale))
     }
 }
 
@@ -170,18 +172,18 @@ public extension String {
          ```
          */
         case listNumericDash
-
-        var seperator: String {
+        
+        func seperator(for locale: Locale? = nil) -> String {
             switch self {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
-            case .and: return " and "
+            case .and: return locale != nil ? " \(ListFormatter.localizedAnd(for: locale!)) " : " and "
             case .slash: return " / "
             case .backslash: return " \\ "
-            case .or: return " or "
+            case .or: return locale != nil ? " \(ListFormatter.localizedOr(for: locale!)) " : " or "
             }
         }
-
+        
         var isNumeric: Bool {
             switch self {
             case .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return true
@@ -199,11 +201,11 @@ public extension String {
             default: return nil
             }
         }
-
-        var lastSeperator: String? {
+        
+        func lastSeperator(for locale: Locale?) -> String? {
             switch self {
-            case .commaAnd: return " and "
-            case .commaOr: return " or "
+            case .commaAnd: return JoinOption.and.seperator(for: locale)
+            case .commaOr: return JoinOption.or.seperator(for: locale)
             case .commaAmpersand: return " & "
             default: return nil
             }

@@ -746,3 +746,5 @@ public extension String {
         NSLocalizedString(key, tableName: tableName, bundle: bundle, value: value, comment: comment)
     }
 }
+
+extension String.CompareOptions: Hashable {  }
