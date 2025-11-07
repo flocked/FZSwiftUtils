@@ -67,6 +67,21 @@ extension ListFormatter {
           return "or"
     }
     
+    /**
+     Constructs a formatted string from an array of strings that uses the list format specific to the current locale.
+     
+     - Tip: Use this method to join strings that are ready to be displayed in a bullet-point list. Sentences, phrases with punctuations, and appositions may not work well when joined together.
+     
+     - Parameters:
+        - strings: An array of strings to join together in a list.
+        - conjunction: The final conjunction used when joining the strings.
+     - Returns: A formatted string that joins together a list of strings using a locale-specific list format.
+     */
+    public class func localizedString(byJoining strings: [String], conjunction: Conjunction) -> String {
+        let string = localizedString(byJoining: strings)
+        return conjunction == .and ? string : string.replacingLastOccurrence(of: ListFormatter.localizedAnd(), with: ListFormatter.localizedOr())
+    }
+    
     private var orHook: Hook? {
         get { getAssociatedValue("orHook") }
         set { setAssociatedValue(newValue, key: "orHook") }
