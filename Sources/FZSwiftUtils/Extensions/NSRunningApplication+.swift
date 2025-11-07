@@ -14,5 +14,15 @@ public extension NSRunningApplication {
         guard let url = bundleURL else { return nil }
         return Bundle(url: url)
     }
+    
+    /// Returns the frontmost app, which is the app that receives key events.
+    static var frontMost: NSRunningApplication? {
+        NSWorkspace.shared.frontmostApplication
+    }
+    
+    /// Returns the app that owns the currently displayed menu bar.
+    static var menuBarOwning: NSRunningApplication? {
+        NSWorkspace.shared.menuBarOwningApplication
+    }
 }
 #endif

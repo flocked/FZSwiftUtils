@@ -340,6 +340,15 @@ public extension CGRect {
         apply(size, to: \.size)
     }
     
+    /**
+     The area of the size.
+
+     The area is calculated as the `width` multiplied by the `height`.
+     */
+    var area: CGFloat {
+        size.area
+    }
+    
     internal func apply<Value>(_ value: Value, to keyPath: WritableKeyPath<CGRect, Value>) -> Self {
         var rect = self
         rect[keyPath: keyPath] = value
