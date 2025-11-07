@@ -34,12 +34,14 @@ extension ListFormatter {
             guard newValue != conjunction else { return }
             if newValue == .or {
                 do {
+                    /*
                     orHook = try hook(#selector(ListFormatter.string(from:)), closure: {
                         original, formatter, selector, value in
                         guard let value = original(formatter, selector, value) else { return nil }
                         return value.replacingLastOccurrence(of: ListFormatter.localizedAnd(for: formatter.locale ?? .en), with: ListFormatter.localizedOr(for: formatter.locale ?? .en))
                     } as @convention(block) ((ListFormatter, Selector, [Any]) -> String?, ListFormatter, Selector, [Any]) -> String?)
-                    orHookAlt = try hook(#selector(ListFormatter.string(for:)), closure: {
+                     */
+                    orHook = try hook(#selector(ListFormatter.string(for:)), closure: {
                         original, formatter, selector, value in
                         guard let value = original(formatter, selector, value) else { return nil }
                         return value.replacingLastOccurrence(of: ListFormatter.localizedAnd(for: formatter.locale ?? .en), with: ListFormatter.localizedOr(for: formatter.locale ?? .en))
