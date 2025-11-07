@@ -301,6 +301,16 @@ public extension NSDictionary {
 }
 
 extension Dictionary where Value == Any {
+    /// Returns the value casted to the requested type, or `nil` if the value is missing or of a different type.
+    subscript<T>(typed key: Key) -> T? {
+        self[key] as? T
+    }
+
+    /// Returns the value casted to the requested type, or the specified default value if missing or of a different type.
+    subscript<T>(typed key: Key, default defaultValue: @autoclosure () -> T) -> T {
+        self[typed: key] ?? defaultValue()
+    }
+    
     /**
      A Boolean value indicating whether the dictionary is equatable to another dictionary.
      
