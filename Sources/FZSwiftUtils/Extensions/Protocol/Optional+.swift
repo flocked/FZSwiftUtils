@@ -87,3 +87,17 @@ extension Optional: OptionalProtocol {
         self.optional == nil
     }
 }
+
+extension OptionalProtocol {
+    /// Returns the non-`nil` value, otherwise throws.
+    public func unwrap() throws -> Wrapped {
+        guard let value = optional else {
+            throw OptionalError.valueIsNil
+        }
+        return value
+    }
+}
+
+private enum OptionalError: Error {
+    case valueIsNil
+}
