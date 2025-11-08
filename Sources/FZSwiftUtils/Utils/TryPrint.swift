@@ -11,12 +11,16 @@
  Similar to `try?`, this function suppresses the thrown error and continues execution, but also prints the error to the console if one occurs.
 
  - Parameter expression: A throwing expression to execute.
+ - Returns: `true` if the expression didn't throw, otherwise `false`.
  */
-public func tryPrint(_ expression: @autoclosure () throws -> Void) {
+@discardableResult
+public func tryPrint(_ expression: @autoclosure () throws -> Void) -> Bool {
     do {
         try expression()
+        return true
     } catch {
         print(error)
+        return false
     }
 }
 
