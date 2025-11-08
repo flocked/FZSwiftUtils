@@ -141,7 +141,7 @@ public extension NSObjectProtocol where Self: NSObject {
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
      */
-    static func observeNotification(_ keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+    static func observeNotification(for keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
         observeNotification(for: Self.self[keyPath: keyPath], queue: queue, using: block)
     }
     
