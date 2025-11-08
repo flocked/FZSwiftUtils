@@ -99,6 +99,71 @@ public extension NotificationCenter {
     }
 }
 
+public extension NSObjectProtocol where Self: NSObject {
+    /**
+     Observes all notifications with the specified name posted by this object.
+
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - keyPath: The key path to the notification name to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    func observeNotification(for keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        observeNotification(for: Self.self[keyPath: keyPath], queue: queue, using: block)
+    }
+    
+    /**
+     Observes all notifications with the specified name posted by this object.
+
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - keyPath: The key path to the notification name to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    func observeNotification(for name: Notification.Name, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        NotificationCenter.default.observe(name, object: self, queue: queue, using: block)
+    }
+    
+    /**
+     Observes all notifications with the specified name posted by any instance of this class.
+
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - keyPath: The key path to the notification name to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    static func observeNotification(_ keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        observeNotification(for: Self.self[keyPath: keyPath], queue: queue, using: block)
+    }
+    
+    /**
+     Observes all notifications with the specified name posted by any instance of this class.
+     
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - keyPath: The key path to the notification name to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    static func observeNotification(for name: Notification.Name, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        NotificationCenter.default.observe(name, queue: queue) { notification in
+            guard notification.object is Self.Type else { return }
+            block(notification)
+        }
+    }
+}
+
 public extension RangeReplaceableCollection where Element: NotificationToken {
     /// Removes all notification tokens that are observing notifications with the specified name.
     mutating func remove(_ name: Notification.Name) {
@@ -109,5 +174,4 @@ public extension RangeReplaceableCollection where Element: NotificationToken {
     mutating func remove<S>(_ names: S) where S: Sequence<Notification.Name> {
         removeAll(where: { if let name = $0.name { return names.contains(name) } else { return false } })
     }
-
 }
