@@ -8,15 +8,10 @@
 import Foundation
 
 public extension Optional {
-    
     /// Unwraps the optional value by throwing.
     func unwrap(_ messageOnFail: String? = nil, line: Int = #line, file: String = #file) throws -> Wrapped {
         guard case .some(let wrapped) = self else {
-            throw OptionalError.nilValue(
-                ofType: Wrapped.self,
-                message: messageOnFail,
-                line: line,
-                file: file)
+            throw OptionalError.nilValue(ofType: Wrapped.self,  message: messageOnFail, line: line, file: file)
         }
         return wrapped
     }
@@ -26,7 +21,6 @@ public extension Optional {
         guard case .some(let wrapped) = self else {
             fatalError("\(file):\(line) - \(message)")
         }
-
         return wrapped
     }
 
@@ -86,18 +80,4 @@ extension Optional: OptionalProtocol {
     var isNil: Bool {
         self.optional == nil
     }
-}
-
-extension OptionalProtocol {
-    /// Returns the non-`nil` value, otherwise throws.
-    public func unwrap() throws -> Wrapped {
-        guard let value = optional else {
-            throw OptionalError.valueIsNil
-        }
-        return value
-    }
-}
-
-private enum OptionalError: Error {
-    case valueIsNil
 }
