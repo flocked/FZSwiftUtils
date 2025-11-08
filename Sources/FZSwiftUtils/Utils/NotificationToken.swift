@@ -111,8 +111,8 @@ public extension NSObjectProtocol where Self: NSObject {
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
      */
-    func observeNotification(for keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
-        observeNotification(for: Self.self[keyPath: keyPath], queue: queue, using: block)
+    func observeNotification(_ keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        observeNotification(Self.self[keyPath: keyPath], queue: queue, using: block)
     }
     
     /**
@@ -126,7 +126,7 @@ public extension NSObjectProtocol where Self: NSObject {
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
      */
-    func observeNotification(for name: Notification.Name, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+    func observeNotification(_ name: Notification.Name, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
         NotificationCenter.default.observe(name, object: self, queue: queue, using: block)
     }
     
@@ -141,8 +141,8 @@ public extension NSObjectProtocol where Self: NSObject {
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
      */
-    static func observeNotification(for keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
-        observeNotification(for: Self.self[keyPath: keyPath], queue: queue, using: block)
+    static func observeNotification(_ keyPath: KeyPath<Self.Type, Notification.Name>, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        observeNotification(Self.self[keyPath: keyPath], queue: queue, using: block)
     }
     
     /**
@@ -156,7 +156,7 @@ public extension NSObjectProtocol where Self: NSObject {
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
      */
-    static func observeNotification(for name: Notification.Name, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+    static func observeNotification(_ name: Notification.Name, queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
         NotificationCenter.default.observe(name, queue: queue) { notification in
             guard notification.object is Self.Type else { return }
             block(notification)
