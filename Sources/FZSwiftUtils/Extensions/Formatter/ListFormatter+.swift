@@ -52,22 +52,31 @@ extension ListFormatter {
     
     /// Returns the localized `"and"` for the specified locale.
     public static func localizedAnd(for locale: Locale = .current) -> String {
+        if let value = localizedAnds[locale] { return value }
         shared.locale = locale
         if let value = shared.string(for: ["Val1", "Val2"])?.removingOccurrences(of: ["Val1 ", " Val2"]) {
+            localizedAnds[locale] = value
             return value
         }
         shared.locale = .init(identifier: "en")
-        return shared.string(for: ["Val1", "Val2"])!.removingOccurrences(of: ["Val1 ", " Val2"])
+        let value = shared.string(for: ["Val1", "Val2"])!.removingOccurrences(of: ["Val1 ", " Val2"])
+        localizedAnds[locale] = value
+        return value
     }
     
     /// Returns the localized `"or"` for the specified locale.
     public static func localizedOr(for locale: Locale = .current) -> String {
-        if let languageCode = locale.languageCode, let translated = orTranslations[languageCode] {
-              return translated
-          }
-          return "or"
+        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+            if let value = localizedOrs[locale] {
+                return value
+            }
+            let value = ["Val1", "Val2"].formatted(.list(type: .or).locale(locale)).removingOccurrences(of: ["Val1 ", " Val2"])
+            localizedOrs[locale] = value
+            return value
+        }
+        return orTranslations[locale.languageCode ?? "-"] ?? "or"
     }
-    
+        
     /**
      Constructs a formatted string from an array of strings that uses the list format specific to the current locale.
      
@@ -112,6 +121,9 @@ extension ListFormatter {
         "it": "o",        // Italian
         "pl": "lub"       // Polish
     ]
+    
+    private static var localizedAnds: [Locale: String] = [:]
+    private static var localizedOrs: [Locale: String] = [:]
 }
 
 fileprivate extension String {

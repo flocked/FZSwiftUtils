@@ -17,7 +17,7 @@ public class NotificationToken: NSObject {
     /// The name of the observed notification.
     public let name: Notification.Name?
     
-    private let notificationCenter: NotificationCenter
+    fileprivate let notificationCenter: NotificationCenter
     private let token: Any
     
     init(notificationCenter: NotificationCenter, token: Any, name: Notification.Name?) {
@@ -64,6 +64,17 @@ public class NotificationToken: NSObject {
     deinit {
         notificationCenter.removeObserver(token)
     }
+}
+
+class CombinedNotificationToken: NotificationToken {
+    let tokens: [NotificationToken]
+    
+    init(_ tokens: [NotificationToken]) {
+        self.tokens = tokens
+        super.init(notificationCenter: .default, token: "", name: .init(tokens.compactMap({$0.name?.rawValue}).joined(separator: ", ")))
+    }
+    
+    deinit { }
 }
 
 public extension NotificationCenter {
@@ -121,7 +132,7 @@ public extension NSObjectProtocol where Self: NSObject {
      You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
 
      - Parameters:
-        - keyPath: The key path to the notification name to observe.
+        - name: The name of the notification to observe.
         - queue: The operation queue on which to execute the block.
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
@@ -151,7 +162,7 @@ public extension NSObjectProtocol where Self: NSObject {
      You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
 
      - Parameters:
-        - keyPath: The key path to the notification name to observe.
+        - name: The name of the notification to observe.
         - queue: The operation queue on which to execute the block.
         - block: The block to execute when the notification is received.
      - Returns: A token that represents the observation.
@@ -161,6 +172,68 @@ public extension NSObjectProtocol where Self: NSObject {
             guard notification.object is Self.Type else { return }
             block(notification)
         }
+    }
+}
+
+public extension NSObjectProtocol where Self: NSObject {
+    /**
+     Observes all notifications with the specified names posted by this object.
+
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - keyPaths: The key paths to the notification names to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    func observeNotifications(_ keyPaths: [KeyPath<Self.Type, Notification.Name>], queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        CombinedNotificationToken(keyPaths.map({ observeNotification($0, queue: queue, using: block) }))
+    }
+    
+    /**
+     Observes all notifications with the specified names posted by this object.
+
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - names: The names of the notifications to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    func observeNotifications(_ names: [Notification.Name], queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        CombinedNotificationToken(names.map({observeNotification($0, queue: queue, using: block) }))
+    }
+    
+    /**
+     Observes all notifications with the specified names posted by any instance of this class.
+
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - keyPaths: The key paths to the notification names to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when the notification is received.
+     - Returns: A token that represents the observation.
+     */
+    static func observeNotifications(_ keyPaths: [KeyPath<Self.Type, Notification.Name>], queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        CombinedNotificationToken(keyPaths.map({ observeNotification($0, queue: queue, using: block) }))
+    }
+    
+    /**
+     Observes all notifications with the specified names posted by any instance of this class.
+     
+     You must keep a strong reference to the token for as long as you want to continue receiving notifications. If the token is deallocated, observation stops automatically.
+
+     - Parameters:
+        - names: The names of the notifications to observe.
+        - queue: The operation queue on which to execute the block.
+        - block: The block to execute when a notification is received.
+     - Returns: A token that represents the observation.
+     */
+    static func observeNotifications(_ names: [Notification.Name], queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
+        CombinedNotificationToken(names.map({observeNotification($0, queue: queue, using: block) }))
     }
 }
 
