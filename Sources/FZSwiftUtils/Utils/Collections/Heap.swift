@@ -51,12 +51,12 @@ public struct Heap<Element>: Sequence, Collection {
     }
     
     /// Creates an empty heap sorting ascending by the specified property.
-    public static func ascending<Value: Comparable>(keyPath: KeyPath<Element, Value>) -> Self {
+    public static func ascending<Value: Comparable>(_ keyPath: KeyPath<Element, Value>) -> Self {
         Self.init(comparator: .ascending(keyPath))
     }
     
     /// Creates an empty heap sorting descending by the specified property.
-    public static func descending<Value: Comparable>(keyPath: KeyPath<Element, Value>) -> Self {
+    public static func descending<Value: Comparable>(_ keyPath: KeyPath<Element, Value>) -> Self {
         Self.init(comparator: .descending(keyPath))
     }
     
