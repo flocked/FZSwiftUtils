@@ -615,3 +615,57 @@ extension BidirectionalCollection {
         }
     }
 }
+
+public extension Collection where Element: AnyObject {
+    /**
+     Returns the first index where the specified value appears in the collection.
+     
+     After using `firstIndex(of:)` to find the position of a particular element in a collection, you can use it to access the element by subscripting.
+     
+     This example shows how you can modify one of the names in an array of students:
+     ```swift
+     var students = ["Ben", "Ivy", "Jordell", "Maxime"]
+     if let i = students.firstIndex(of: "Maxime") {
+         students[i] = "Max"
+     }
+     print(students)
+     // Prints "["Ben", "Ivy", "Jordell", "Max"]"
+     ```
+     
+     - Parameter element: An element to search for in the collection.
+     - Returns: The first index where element is found. If element is not found in the collection, returns `nil`.
+     */
+    @_disfavoredOverload
+    func firstIndex(of element: Element) -> Index? {
+        firstIndex(where: { $0 === element })
+    }
+    
+    /**
+     Returns the indexes of the specified elements.
+
+     - Parameter elements: The elements.
+
+     - Returns: An array of the indexes of the elements.
+     */
+    @_disfavoredOverload
+    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
+        elements.reduce(into: []) { $0 += firstIndex(of: $1) }
+    }
+    
+    /**
+     Returns the indexes of the specified elements.
+
+     - Parameter elements: The elements.
+
+     - Returns: An array of the indexes of the elements.
+     */
+    @_disfavoredOverload
+    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element>, Self: RangeReplaceableCollection {
+        var values = self
+        return elements.reduce(into: []) {
+            guard let index = values.firstIndex(of: $1) else { return }
+            values.remove(at: index)
+            $0 += index
+        }
+    }
+}

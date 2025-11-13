@@ -244,7 +244,12 @@ public extension SortOrder {
     static let longestFirst = SortingOrder.descending
 }
 
-extension ComparisonResult {
+extension ComparisonResult: ExpressibleByBooleanLiteral {
+    @_disfavoredOverload
+    public init(booleanLiteral value: Bool) {
+        self = value ? .orderedAscending : .orderedDescending
+    }
+    
     /// Returns the reversed result.
     var reversed: ComparisonResult {
         switch self {

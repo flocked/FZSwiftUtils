@@ -28,8 +28,7 @@ public extension RangeReplaceableCollection {
      */
     @discardableResult
     mutating func removeFirstSafetly(_ k: Int) -> [Element] {
-        guard !isEmpty else { return [] }
-        return (0..<k.clamped(max: count)).compactMap({ _ in removeFirst() })
+        !isEmpty && k > 0 ? (0..<Swift.min(k, count)).map { _ in removeFirst() } : []
     }
     
     /**
@@ -46,21 +45,11 @@ public extension RangeReplaceableCollection {
      Removes the specified number of elements from the end of the collection.
           
      - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
-     */
-    mutating func removeLastSafetly(_ k: Int) where Self: BidirectionalCollection {
-        guard !isEmpty else { return }
-        removeLast(k.clamped(max: count))
-    }
-    
-    /**
-     Removes and returns the specified number of elements from the end of the collection.
-          
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
+     - Returns: The removed elements.
      */
     @discardableResult
-    mutating func removeLastSafetly(_ k: Int) -> [Element] where Index == Int {
-        guard !isEmpty else { return [] }
-        return ((count-k).clamped(min: 0)..<count).compactMap({ remove(at: $0) })
+    mutating func removeLastSafetly(_ k: Int) -> [Element] where Self: BidirectionalCollection {
+        !isEmpty && k > 0 ? (0..<Swift.min(k, count)).map { _ in removeLast() } : []
     }
 }
 
@@ -292,60 +281,6 @@ public extension RangeReplaceableCollection {
 
 // MARK: - Remove + Element
 
-public extension Collection where Element: AnyObject {
-    /**
-     Returns the first index where the specified value appears in the collection.
-     
-     After using `firstIndex(of:)` to find the position of a particular element in a collection, you can use it to access the element by subscripting.
-     
-     This example shows how you can modify one of the names in an array of students:
-     ```swift
-     var students = ["Ben", "Ivy", "Jordell", "Maxime"]
-     if let i = students.firstIndex(of: "Maxime") {
-         students[i] = "Max"
-     }
-     print(students)
-     // Prints "["Ben", "Ivy", "Jordell", "Max"]"
-     ```
-     
-     - Parameter element: An element to search for in the collection.
-     - Returns: The first index where element is found. If element is not found in the collection, returns `nil`.
-     */
-    @_disfavoredOverload
-    func firstIndex(of element: Element) -> Index? {
-        firstIndex(where: { $0 === element })
-    }
-    
-    /**
-     Returns the indexes of the specified elements.
-
-     - Parameter elements: The elements.
-
-     - Returns: An array of the indexes of the elements.
-     */
-    @_disfavoredOverload
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
-        elements.reduce(into: []) { $0 += firstIndex(of: $1) }
-    }
-    
-    /**
-     Returns the indexes of the specified elements.
-
-     - Parameter elements: The elements.
-
-     - Returns: An array of the indexes of the elements.
-     */
-    @_disfavoredOverload
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element>, Self: RangeReplaceableCollection {
-        var values = self
-        return elements.reduce(into: []) {
-            guard let index = values.firstIndex(of: $1) else { return }
-            values.remove(at: index)
-            $0 += index
-        }
-    }
-}
-
 public extension RangeReplaceableCollection where Element: Equatable {
     /**
      Removes the specificed element.
@@ -353,78 +288,52 @@ public extension RangeReplaceableCollection where Element: Equatable {
      - Parameter element: The element to remove.
      - Returns: The removed element.
      */
-    @discardableResult
     @_disfavoredOverload
+    @discardableResult
     mutating func remove(_ element: Element) -> Element? {
-        var removedElement: Element?
-        while let index = firstIndex(of: element) {
-            removedElement = remove(at: index)
-        }
-        return removedElement
+        guard let index = firstIndex(of: element) else { return nil }
+        return remove(at: index)
     }
-
+    
     /**
      Removes the specificed elements and returns them.
 
      - Parameter elements: The elements to remove.
      - Returns: An array of the removed elements.
      */
-    @discardableResult
     @_disfavoredOverload
+    @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        remove(at: indexes(of: elements))
+        var removed: [Element] = []
+        for element in elements {
+            while let index = firstIndex(of: element) {
+                removed.append(remove(at: index))
+            }
+        }
+        return removed
     }
 }
 
-public extension RangeReplaceableCollection where Indices.Element == Int, Element: Equatable {
+public extension RangeReplaceableCollection where Element: Hashable {
     /**
-     Removes the specified element.
-
-     - Parameter element: The element remove.
-     - Returns: Returns the removed element.
-     */
-    @discardableResult
-    @_disfavoredOverload
-    mutating func remove(_ element: Element) -> Element? {
-        remove(at: indexes(of: [element])).first
-    }
-
-    /**
-     Removes the specified elements.
+     Removes the specificed elements and returns them.
 
      - Parameter elements: The elements to remove.
-     - Returns: Returns the removed elements.
+     - Returns: An array of the removed elements.
      */
-    @discardableResult
     @_disfavoredOverload
+    @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        remove(at: indexes(of: elements))
-    }
-}
-
-public extension RangeReplaceableCollection where Indices.Element == Int, Element: Hashable {
-    /**
-     Removes the specified element.
-
-     - Parameter element: The element remove.
-     - Returns: Returns the removed element.
-     */
-    @discardableResult
-    @_disfavoredOverload
-    mutating func remove(_ element: Element) -> Element? {
-        remove(at: indexes(of: [element])).first
-    }
-
-    /**
-     Removes the specified elements.
-
-     - Parameter elements: The elements to remove.
-     - Returns: Returns the removed elements.
-     */
-    @discardableResult
-    @_disfavoredOverload
-    mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        remove(at: indexes(of: elements))
+        let targets = Set(elements)
+        var removed: [Element] = []
+        removeAll { element in
+            if targets.contains(element) {
+                removed.append(element)
+                return true
+            }
+            return false
+        }
+        return removed
     }
 }
 
@@ -442,13 +351,19 @@ public extension RangeReplaceableCollection where Element: AnyObject {
     }
     
     /**
-     Removes the specificed elements.
+     Removes the specificed elements and returns them.
 
      - Parameter elements: The elements to remove.
      - Returns: An array of the removed elements.
      */
     @discardableResult
-    mutating func remove<S>(_ elements: S) -> [Element] where S: Sequence<Element> {
-        remove(at: indexes(of: elements))
+    mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
+        var removed: [Element] = []
+        for element in elements {
+            if let index = firstIndex(where: { $0 === element }) {
+                removed.append(remove(at: index))
+            }
+        }
+        return removed
     }
 }

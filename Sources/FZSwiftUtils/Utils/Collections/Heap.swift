@@ -36,7 +36,7 @@ public struct Heap<Element>: Sequence, Collection {
     
     // MARK: - Initialization
     
-    /// Creates an empty heap using the given comparator.
+    /// Creates an empty heap using the specified comparator.
     public init(comparator: SortingComparator<Element>) {
         self.elements = []
         self.comparator = comparator
@@ -48,6 +48,16 @@ public struct Heap<Element>: Sequence, Collection {
         self.elements = Array(elements)
         self.comparator = comparator
         heapify()
+    }
+    
+    /// Creates an empty heap sorting ascending by the specified property.
+    public static func ascending<Value: Comparable>(keyPath: KeyPath<Element, Value>) -> Self {
+        Self.init(comparator: .ascending(keyPath))
+    }
+    
+    /// Creates an empty heap sorting descending by the specified property.
+    public static func descending<Value: Comparable>(keyPath: KeyPath<Element, Value>) -> Self {
+        Self.init(comparator: .descending(keyPath))
     }
     
     // MARK: - Heap Operations
@@ -84,6 +94,10 @@ public struct Heap<Element>: Sequence, Collection {
     /// Removes all elements from the heap.
     public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
         elements.removeAll(keepingCapacity: keepCapacity)
+    }
+    
+    public mutating func remove(_ element: Element) where Element: Hashable {
+        elements.remove(element)
     }
     
     // MARK: - Internal Heap Mechanics
