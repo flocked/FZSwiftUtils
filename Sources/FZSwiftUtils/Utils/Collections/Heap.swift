@@ -76,6 +76,11 @@ public struct Heap<Element>: Sequence, Collection {
         siftUp(from: elements.count - 1)
     }
     
+    /// Inserts the new elements into the heap.
+    public mutating func insert<S: Sequence<Element>>(_ elements: S) {
+        elements.forEach({insert($0)})
+    }
+    
     /// Removes and returns the root element (the highest-priority element) of the heap.
     @discardableResult
     public mutating func pop() -> Element? {
