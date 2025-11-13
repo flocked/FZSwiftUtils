@@ -137,27 +137,6 @@ public extension RangeReplaceableCollection {
         self = Self(kept)
         return removed.reversed()
     }
-    
-    /**
-     Removes all elements matching the predicate and returns the removed elements.
-     
-     - Parameter shouldBeRemoved: A closure that takes an element of the collection as its argument and returns a `Boolean` value indicating whether the element should be removed from the collection.
-     - Returns: An array of the elements that were removed.
-     */
-    @discardableResult
-    mutating func removeAllAndReturn(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> [Element] {
-        var removed: [Element] = []
-        var kept: Self = .init()
-        for element in self {
-            if try shouldBeRemoved(element) {
-                removed.append(element)
-            } else {
-                kept.append(element)
-            }
-        }
-        self = kept
-        return removed
-    }
 }
 
 extension RangeReplaceableCollection where Self: BidirectionalCollection {
@@ -353,5 +332,29 @@ public extension RangeReplaceableCollection where Element: AnyObject {
     @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
         elements.compactMap({ remove($0) })
+    }
+}
+
+public extension RangeReplaceableCollection {
+    
+    /**
+     Removes all the elements that satisfy the given predicate and returns them:
+     
+     - Parameter shouldBeRemoved: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be removed from the collection.
+     - Returns: The elements removed.
+     */
+    @_disfavoredOverload
+    @discardableResult
+    mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> [Element] {
+        var removed: [Element] = []
+        
+        try removeAll { element in
+            if try shouldBeRemoved(element) {
+                removed.append(element)
+                return true
+            }
+            return false
+        }
+        return removed
     }
 }

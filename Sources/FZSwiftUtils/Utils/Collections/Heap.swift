@@ -102,8 +102,15 @@ public struct Heap<Element>: Sequence, Collection {
     }
     
     /// Removes all the elements that satisfy the given predicate.
-    public mutating func removeAll(where shouldBeRemoved: (Self.Element) throws -> Bool) rethrows {
+    @discardableResult
+    public mutating func removeAll(where shouldBeRemoved: (Self.Element) throws -> Bool) rethrows -> [Element] {
         try elements.removeAll(where: shouldBeRemoved)
+    }
+    
+    /// Removes the first element that satisfy the given predicate.
+    @discardableResult
+    public mutating func removeFirst(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Element? {
+        try elements.removeFirst(where: shouldBeRemoved)
     }
     
     /// Removes the specified element from the heap.

@@ -59,7 +59,7 @@ public extension Set {
     @discardableResult
     mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Set<Element> {
         let toRemove = try filter(shouldBeRemoved)
-        remove(Array(toRemove))
+        remove(toRemove)
         return toRemove
     }
 
@@ -73,22 +73,6 @@ public extension Set {
         var elements = Array(self)
         try elements.editEach(body)
         self = .init(elements)
-    }
-    
-    /// Removes all elements matching the predicate and returns the removed elements.
-    @discardableResult
-    mutating func removeAllAndReturn(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Set<Element> {
-        var removed: Set<Element> = []
-        var kept: Self = .init()
-        for element in self {
-            if try shouldBeRemoved(element) {
-                removed.insert(element)
-            } else {
-                kept.insert(element)
-            }
-        }
-        self = kept
-        return removed
     }
 }
 
