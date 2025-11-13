@@ -24,12 +24,7 @@ public class FSEventMonitor {
         didSet {
             fileURLs = fileURLs.filter({ $0.isFileURL }).uniqued()
             guard oldValue != fileURLs else { return }
-            if fileURLs.isEmpty {
-                _stop()
-            } else if isActive {
-                stop()
-                start()
-            }
+            updateMonitoring()
         }
     }
     
@@ -52,7 +47,11 @@ public class FSEventMonitor {
     }
     
     /// The handler to filter the events provided to the callback.
-    public var filter: ((_ event: FSEvent)->(Bool))?
+    public var filter: ((_ event: FSEvent)->(Bool))? {
+        didSet {
+            if isRunning { restart() }
+        }
+    }
     
     /// The options for monitoring the files.
     public var monitorOptions: MonitorOptions = [] {
@@ -102,10 +101,13 @@ public class FSEventMonitor {
     /**
      Creates a file system event monitor.
      
-     - Parameter fileURLs: The urls of the files to observe.
+     - Parameters:
+        - fileURLs: The urls of the files to observe.
+        - queue: The queue for the monitor.
      */
-    public init(_ fileURLs: [URL] = []) {
+    public init(_ fileURLs: [URL] = [], queue: DispatchQueue = .main) {
         self.fileURLs = fileURLs
+        self.queue = queue
     }
     
     /// Start monitoring the files.
@@ -136,8 +138,8 @@ public class FSEventMonitor {
     private func updateMonitoring() {
         if !shouldMonitor {
             _stop()
-        } else {
-            _start()
+        } else if isActive {
+            restart()
         }
     }
     
@@ -168,6 +170,7 @@ public class FSEventMonitor {
         if !excludingFileURLs.isEmpty {
             FSEventStreamSetExclusionPaths(streamRef!, excludingFileURLs.compactMap({$0.path}) as CFArray)
         }
+        FSEventStreamSetDispatchQueue(streamRef!, .userInitiated)
         FSEventStreamSetDispatchQueue(streamRef!, queue)
         FSEventStreamStart(streamRef!)
         startEventID = nil

@@ -27,10 +27,6 @@ public struct FSEvent: Hashable, Identifiable {
 
     let date = Date()
     
-    
-    /// The new url of the file for a renamed file.
-    // public fileprivate(set) var newURL: URL?
-    
     init(_ eventId: FSEventStreamEventId, _ eventPath: String, _ eventFlags: FSEventStreamEventFlags, _ fileID: UInt64?, _ documentID: Int?) {
         self.id = eventId
         self.fileID = fileID
