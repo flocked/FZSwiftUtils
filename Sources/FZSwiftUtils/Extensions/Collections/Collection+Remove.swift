@@ -304,13 +304,7 @@ public extension RangeReplaceableCollection where Element: Equatable {
     @_disfavoredOverload
     @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        var removed: [Element] = []
-        for element in elements {
-            while let index = firstIndex(of: element) {
-                removed.append(remove(at: index))
-            }
-        }
-        return removed
+        elements.compactMap({ remove($0) })
     }
 }
 
@@ -358,12 +352,6 @@ public extension RangeReplaceableCollection where Element: AnyObject {
      */
     @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        var removed: [Element] = []
-        for element in elements {
-            if let index = firstIndex(where: { $0 === element }) {
-                removed.append(remove(at: index))
-            }
-        }
-        return removed
+        elements.compactMap({ remove($0) })
     }
 }

@@ -101,8 +101,34 @@ public struct Heap<Element>: Sequence, Collection {
         elements.removeAll(keepingCapacity: keepCapacity)
     }
     
-    public mutating func remove(_ element: Element) where Element: Hashable {
+    /// Removes all the elements that satisfy the given predicate.
+    public mutating func removeAll(where shouldBeRemoved: (Self.Element) throws -> Bool) rethrows {
+        try elements.removeAll(where: shouldBeRemoved)
+    }
+    
+    /// Removes the specified element from the heap.
+    public mutating func remove(_ element: Element) where Element: Equatable {
         elements.remove(element)
+    }
+    
+    /// Removes the specified element from the heap.
+    public mutating func remove(_ element: Element) where Element: AnyObject {
+        elements.remove(element)
+    }
+    
+    /// Removes the specified elements from the heap.
+    public mutating func remove<S: Sequence<Element>>(_ elements: S) where Element: Equatable {
+        self.elements.remove(elements)
+    }
+    
+    /// Removes the specified elements from the heap.
+    public mutating func remove<S: Sequence<Element>>(_ elements: S) where Element: Hashable {
+        self.elements.remove(elements)
+    }
+    
+    /// Removes the specified elements from the heap.
+    public mutating func remove<S: Sequence<Element>>(_ elements: S) where Element: AnyObject {
+        self.elements.remove(elements)
     }
     
     // MARK: - Internal Heap Mechanics
