@@ -9,15 +9,6 @@ import Foundation
 
 public extension Equatable {
     /**
-     A Boolean value indicating whether the value exists in the specified collection.
-     
-     - Parameter sequence: A sequence of elements to check.
-     */
-    func exists<S: Sequence<Self>>(in sequence: S) -> Bool {
-        sequence.contains(self)
-    }
-    
-    /**
      A Boolean value indicating whether the value is equatable to another value.
 
      - Parameter other: A value conforming to Equatable.
@@ -42,6 +33,42 @@ public extension Equatable {
         }
         return self == other
     }
+    
+    @_disfavoredOverload
+    static func == (lhs: Self, rhs: any Equatable) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return lhs == rhs
+    }
+    
+    @_disfavoredOverload
+    static func == (lhs: Self, rhs: (any Equatable)?) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return lhs == rhs
+    }
+    
+    @_disfavoredOverload
+    static func != (lhs: Self, rhs: any Equatable) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return lhs != rhs
+    }
+    
+    @_disfavoredOverload
+    static func != (lhs: Self, rhs: (any Equatable)?) -> Bool {
+        guard let rhs = rhs as? Self else { return false }
+        return lhs != rhs
+    }
+}
+
+
+public extension Equatable {
+    /**
+     A Boolean value indicating whether the value exists in the specified collection.
+     
+     - Parameter sequence: A sequence of elements to check.
+     */
+    func exists<S: Sequence<Self>>(in sequence: S) -> Bool {
+        sequence.contains(self)
+    }
 
     /**
      A Boolean value indicating whether the values for the specified key paths are equatable to the values of another object..
@@ -58,17 +85,5 @@ public extension Equatable {
             }
         }
         return true
-    }
-}
-
-public extension PartialKeyPath {
-    /**
-     A Boolean value indicating whether the keypath's value is equatable to another keypath's value.
-
-     - Parameter keyPath: The keypath for checking the equallity.
-     - Returns: Returns `true` if the keypath's value is equal to the other keypath's value; or `false` if it isn't equal or if isn't the same Equatable type.
-     */
-    func isEqual(_ keyPath: PartialKeyPath<Root>) -> Bool {
-        self == keyPath
     }
 }

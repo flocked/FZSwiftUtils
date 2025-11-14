@@ -384,16 +384,7 @@ public extension CGRect {
     }
     #endif
     
-    @_disfavoredOverload
-    func inset(by insets: NSDirectionalEdgeInsets) -> CGRect {
-        #if os(macOS)
-        CGRect(x: origin.x + insets.leading, y: origin.y + insets.bottom, width: width - (insets.leading + insets.trailing), height: height - (insets.top + insets.bottom))
-        #else
-        CGRect(x: origin.x + insets.leading, y: origin.y + insets.top, width: width - (insets.leading + insets.trailing), height: height - (insets.top + insets.bottom))
-        #endif
-    }
-    
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS)
     /**
      Adjusts a rectangle by the given directional edge insets.
      
@@ -404,10 +395,44 @@ public extension CGRect {
      - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSDirectionalEdgeInsets` structure.
      */
     @_disfavoredOverload
-    func inset(by insets: NSDirectionalEdgeInsets, layoutDirection: InterfaceDirection) -> CGRect {
-        layoutDirection == .leftToRight ? inset(by: insets) : inset(by: .init(top: insets.top, leading: insets.trailing, bottom: insets.bottom, trailing: insets.leading))
+    func inset(by insets: NSDirectionalEdgeInsets, layoutDirection: NSUserInterfaceLayoutDirection = NSApp.userInterfaceLayoutDirection) -> CGRect {
+        layoutDirection == .leftToRight ? _inset(by: insets) : _inset(by: .init(top: insets.top, leading: insets.trailing, bottom: insets.bottom, trailing: insets.leading))
+    }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Adjusts a rectangle by the given directional edge insets.
+     
+     - Parameters:
+        - insets: The edge insets to be applied to the adjustment.
+        - layoutDirection: The layout direction.
+     
+     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSDirectionalEdgeInsets` structure.
+     */
+    @_disfavoredOverload
+    func inset(by insets: NSDirectionalEdgeInsets, layoutDirection: UIUserInterfaceLayoutDirection = UIApplication.shared.userInterfaceLayoutDirection) -> CGRect {
+        layoutDirection == .leftToRight ? _inset(by: insets) : _inset(by: .init(top: insets.top, leading: insets.trailing, bottom: insets.bottom, trailing: insets.leading))
+    }
+    #else
+    /**
+     Adjusts a rectangle by the given directional edge insets.
+     
+     - Parameter insets: The edge insets to be applied to the adjustment.
+     
+     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSDirectionalEdgeInsets` structure.
+     */
+    @_disfavoredOverload
+    func inset(by insets: NSDirectionalEdgeInsets) -> CGRect {
+        _inset(by: insets)
     }
     #endif
+    
+    private func _inset(by insets: NSDirectionalEdgeInsets) -> CGRect {
+        #if os(macOS)
+        CGRect(x: origin.x + insets.leading, y: origin.y + insets.bottom, width: width - (insets.leading + insets.trailing), height: height - (insets.top + insets.bottom))
+        #else
+        CGRect(x: origin.x + insets.leading, y: origin.y + insets.top, width: width - (insets.leading + insets.trailing), height: height - (insets.top + insets.bottom))
+        #endif
+    }
     
     func offsetBy(dx: CGFloat) -> CGRect {
         offsetBy(dx: dx, dy: 0)
