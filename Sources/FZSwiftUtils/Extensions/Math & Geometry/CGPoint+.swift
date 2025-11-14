@@ -8,38 +8,45 @@
 import CoreGraphics
 import Foundation
 #if os(macOS)
-    import AppKit
+import AppKit
 #endif
 
 public extension CGPoint {
-    /// Creates a point with the specified x and y value.
     init(_ x: CGFloat, _ y: CGFloat) {
         self.init(x: x, y: y)
     }
+    
+    init(_ x: Int, _ y: Int) {
+        self.init(x: x, y: y)
+    }
 
-    /// Creates a point with the specified x and y value.
     init(_ xY: CGFloat) {
+        self.init(x: xY, y: xY)
+    }
+    
+    init(_ xY: Int) {
         self.init(x: xY, y: xY)
     }
 
     /**
      Returns a new CGPoint by offsetting the current point by the specified offset.
 
-     - Parameters:
-        - offset: The offset to be applied.
+     - Parameter offset: The offset to be applied.
      */
+    @_disfavoredOverload
     func offset(by offset: CGPoint) -> CGPoint {
-        CGPoint(x: x + offset.x, y: y + offset.y)
+        offsetBy(x: offset.x, y: offset.y)
     }
-
+    
     /**
      Returns a new point by offsetting the current point by the specified value along the x- and y-axes.
 
      - Parameters:
         - value: The value to be added to the x-coordinate and y-coordinate of the current point.
      */
-    func offset(by value: CGFloat) -> CGPoint {
-        CGPoint(x: x + value, y: y + value)
+    @_disfavoredOverload
+    func offsetBy(_ amount: CGFloat) -> CGPoint {
+        offsetBy(amount, amount)
     }
 
     /**
@@ -47,8 +54,9 @@ public extension CGPoint {
 
      - Parameter x: The value to be added to the x-coordinate of the current point.
      */
-    func offset(x: CGFloat) -> CGPoint {
-        CGPoint(x: self.x + x, y: y)
+    @_disfavoredOverload
+    func offsetBy(x: CGFloat) -> CGPoint {
+        offsetBy(x, 0)
     }
 
     /**
@@ -56,8 +64,9 @@ public extension CGPoint {
 
      - Parameter y: The value to be added to the y-coordinate of the current point.
      */
-    func offset(y: CGFloat) -> CGPoint {
-        CGPoint(x: x, y: self.y + y)
+    @_disfavoredOverload
+    func offsetBy(y: CGFloat) -> CGPoint {
+        offsetBy(0, y)
     }
 
     /**
@@ -69,8 +78,47 @@ public extension CGPoint {
 
      - Returns: The new CGPoint obtained by offsetting the current point by the specified values.
      */
-    func offset(x: CGFloat = 0, y: CGFloat) -> CGPoint {
+    @_disfavoredOverload
+    func offsetBy(x: CGFloat, y: CGFloat) -> CGPoint {
         CGPoint(x: self.x + x, y: self.y + y)
+    }
+    
+    /**
+     Returns a new CGPoint by offsetting the current point by the specified values along the x and y axes.
+
+     - Parameters:
+        - x: The value to be added to the x-coordinate of the current point.
+        - y: The value to be added to the y-coordinate of the current point.
+
+     - Returns: The new CGPoint obtained by offsetting the current point by the specified values.
+     */
+    @_disfavoredOverload
+    func offsetBy(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+        offsetBy(x: x, y: y)
+    }
+    
+    mutating func offset(by offset: CGPoint) {
+        self = self.offset(by: offset)
+    }
+    
+    mutating func offsetBy(x: CGFloat) {
+        self = self.offsetBy(x: x)
+    }
+    
+    mutating func offsetBy(y: CGFloat) {
+        self = self.offsetBy(y: y)
+    }
+    
+    mutating func offsetBy(x: CGFloat, y: CGFloat) {
+        self = self.offsetBy(x: x, y: y)
+    }
+    
+    mutating func offsetBy(_ x: CGFloat, _ y: CGFloat) {
+        self = self.offsetBy(x: x, y: y)
+    }
+    
+    mutating func offsetBy(_ amount: CGFloat) {
+        self = self.offsetBy(amount)
     }
 
     /**

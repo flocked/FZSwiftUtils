@@ -76,4 +76,32 @@ extension Mirror {
         }
         return strings
     }
+    
+    /**
+     Returns a string representation of the subject.
+     
+     - Parameters:
+        - includeType: A Boolean value indicating whether to include the subject type.
+        - includePropertyNames: A Boolean value indicating whether to include the property names.
+     */
+    public func prettyDescription(includeType: Bool = true, includePropertyNames: Bool = true) -> String {
+        let name = includeType ? String(describing: subjectType) : ""
+        let props = children.prettyDescription(includeLabels: includePropertyNames)
+        return "\(name)(\(props))"
+    }
+}
+
+extension Mirror.Children {
+    /**
+     Returns a string representation of the children.
+     
+     - Parameter includeLabels: A Boolean value indicating whether to include the labels.
+     */
+    public func prettyDescription(includeLabels: Bool = true) -> String {
+        if includeLabels {
+            return map { "\($0.label ?? "_"): \(String(cleanDescribing: $0.value))" }.joined(separator: ", ")
+        } else {
+            return map { "\(String(cleanDescribing: $0.value))" }.joined(separator: ", ")
+        }
+    }
 }

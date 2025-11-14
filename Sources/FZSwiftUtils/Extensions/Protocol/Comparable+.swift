@@ -76,6 +76,16 @@ public extension Comparable {
 }
 
 public extension Comparable {
+    /// A Boolean value indicating if the value is between the two specified values (inclusive).
+    func isBetween(_ min: Self, _ max: Self) -> Bool {
+        self >= Swift.min(min, max) && self <= Swift.max(min, max)
+    }
+    
+    /// A Boolean value indicating whether the value is within the specified tolerance.
+    func isWithin(_ tolerance: Self) -> Bool where Self: AdditiveArithmetic {
+        isBetween(self-tolerance, self+tolerance)
+    }
+    
     /**
      A Boolean value indicating whether the value is in the provided closed range.
 

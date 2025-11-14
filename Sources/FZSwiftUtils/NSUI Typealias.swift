@@ -40,6 +40,7 @@ public typealias NSUICollectionViewItem = NSCollectionViewItem
 public typealias NSUIRectEdge = RectEdge
 public typealias NSUIRectCorner = NSRectCorner
 public typealias InterfaceOrientation = NSUserInterfaceLayoutOrientation
+public typealias InterfaceDirection = NSUserInterfaceLayoutDirection
 #elseif canImport(UIKit)
 import UIKit
 public typealias NSUIBezierPath = UIBezierPath
@@ -73,4 +74,5 @@ public typealias NSUIHostingController = UIHostingController
 public typealias NSUILayoutGuide = UILayoutGuide
 public typealias NSUICollectionViewItem = UICollectionViewCell
 public typealias InterfaceOrientation = NSLayoutConstraint.Axis
+public typealias InterfaceDirection = UIUserInterfaceLayoutDirection
 #endif

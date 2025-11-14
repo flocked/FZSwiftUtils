@@ -12,13 +12,19 @@ import AppKit
 #endif
 
 public extension CGSize {
-    /// Creates a size with the specified width and height.
     init(_ width: CGFloat, _ height: CGFloat) {
         self.init(width: width, height: height)
     }
+    
+    init(_ width: Int, _ height: Int) {
+        self.init(width: width, height: height)
+    }
 
-    /// Creates a size with the specified width and height.
     init(_ widthHeight: CGFloat) {
+        self.init(width: widthHeight, height: widthHeight)
+    }
+    
+    init(_ widthHeight: Int) {
         self.init(width: widthHeight, height: widthHeight)
     }
 
@@ -77,6 +83,54 @@ public extension CGSize {
         CGSize(width.scaledIntegral(for: application), height.scaledIntegral(for: application))
     }
     #endif
+    
+    func expandedBy(width: CGFloat) -> CGSize {
+        expandedBy(width: width, height: 0)
+    }
+    
+    func expandedBy(height: CGFloat) -> CGSize {
+        expandedBy(width: 0, height: height)
+    }
+    
+    func expandedBy(width: CGFloat, height: CGFloat) -> CGSize {
+        CGSize((self.width + width).clamped(min: 0.0), (self.height + height).clamped(min: 0.0))
+    }
+    
+    func expandedBy(_ width: CGFloat, _ height: CGFloat) -> CGSize {
+        expandedBy(width: width, height: height)
+    }
+    
+    func expandedBy(_ amount: CGFloat) -> CGSize {
+        expandedBy(width: amount, height: amount)
+    }
+    
+    func expanded(by size: CGSize) -> CGSize {
+        expandedBy(size.width, size.height)
+    }
+    
+    mutating func expandBy(width: CGFloat) {
+        self = expandedBy(width: width)
+    }
+    
+    mutating func expandBy(height: CGFloat) {
+        self = expandedBy(height: height)
+    }
+    
+    mutating func expandBy(width: CGFloat, height: CGFloat) {
+        self = expandedBy(width: width, height: height)
+    }
+    
+    mutating func expandBy(_ width: CGFloat, _ height: CGFloat) {
+        self = expandedBy(width: width, height: height)
+    }
+    
+    mutating func expandBy(_ amount: CGFloat) {
+        self = expandedBy(amount)
+    }
+    
+    mutating func expand(by size: CGSize) {
+        self = expanded(by: size)
+    }
 
     /**
      Returns the aspect ratio of the size.

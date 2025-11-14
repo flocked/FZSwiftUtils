@@ -14,12 +14,14 @@ import UIKit
 #endif
 
 public extension CGRect {
-    /// Creates a rectangle with  the specified values.
     init(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) {
         self.init(x: x, y: y, width: width, height: height)
     }
     
-    /// Creates a rectangle with the specified origin and size.
+    init(_ x: Int, _ y: Int, _ width: Int, _ height: Int) {
+        self.init(x: x, y: y, width: width, height: height)
+    }
+    
     init(_ origin: CGPoint, _ size: CGSize) {
         self.init(origin: origin, size: size)
     }
@@ -46,6 +48,11 @@ public extension CGRect {
 
     /// Creates a rectangle with the specified size and a origin of `zero`.
     init(size: CGFloat) {
+        self.init(.zero, CGSize(size))
+    }
+    
+    /// Creates a rectangle with the specified size and a origin of `zero`.
+    init(size: Int) {
         self.init(.zero, CGSize(size))
     }
     
@@ -122,13 +129,13 @@ public extension CGRect {
     /// The x-coordinate of the origin of the rectangle.
     var x: CGFloat {
         get { origin.x }
-        set { origin = origin.xValue(newValue) }
+        set { origin.x = newValue }
     }
 
     /// The y-coordinate of the origin of the rectangle.
     var y: CGFloat {
         get { origin.y }
-        set { origin = origin.yValue(newValue) }
+        set { origin.y = newValue }
     }
 
     /// A size centered that specifies the height and width of the rectangle. Changing this value keeps the rectangle centered.
@@ -156,26 +163,26 @@ public extension CGRect {
     #if canImport(UIKit)
     /// The top edge of the rectangle.
     var top: CGFloat {
-        get { y }
-        set { y = newValue }
+        get { origin.y }
+        set { origin.y = newValue }
     }
 
     /// The bottom edge of the rectangle.
     var bottom: CGFloat {
-        get { y + height }
-        set { y = newValue - height }
+        get { maxY }
+        set { origin.y = newValue - height }
     }
     #else
     /// The top edge of the rectangle.
     var top: CGFloat {
-        get { y + height }
-        set { y = newValue - height }
+        get { maxY }
+        set { origin.y = newValue - height }
     }
 
     /// The bottom edge of the rectangle.
     var bottom: CGFloat {
-        get { y }
-        set { y = newValue }
+        get { origin.y }
+        set { origin.y = newValue }
     }
     #endif
 
@@ -234,13 +241,13 @@ public extension CGRect {
     }
 
     /// The horizontal center of the rectangle.
-    internal var centerX: CGFloat {
+    private var centerX: CGFloat {
         get { midX }
         set { origin.x = newValue - width * 0.5 }
     }
 
     /// The vertical center of the rectangle.
-    internal var centerY: CGFloat {
+    private var centerY: CGFloat {
         get { midY }
         set { origin.y = newValue - height * 0.5 }
     }
@@ -254,7 +261,7 @@ public extension CGRect {
     func yValue(_ value: CGFloat) -> CGRect {
         apply(value, to: \.y)
     }
-    
+
     /// Returns the rectangle with the specified width.
     func width(_ value: CGFloat) -> CGRect {
         apply(value, to: \.size.width)
@@ -349,100 +356,115 @@ public extension CGRect {
         size.area
     }
     
-    internal func apply<Value>(_ value: Value, to keyPath: WritableKeyPath<CGRect, Value>) -> Self {
+    private func apply<Value>(_ value: Value, to keyPath: WritableKeyPath<CGRect, Value>) -> Self {
         var rect = self
         rect[keyPath: keyPath] = value
         return rect
     }
-
-    #if os(macOS)
-    /**
-     Adjusts a rectangle by the given edge insets.
-     
-     - Parameter insets: The edge insets to be applied to the adjustment.
-     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSEdgeInsets` structure.
-     */
-    func inset(by insets: NSUIEdgeInsets) -> CGRect {
-        inset(by: NSDirectionalEdgeInsets(top: insets.top, leading: insets.left, bottom: insets.bottom, trailing: insets.right))
-    }
-    #endif
     
-    /**
-     Adjusts a rectangle by the given edge insets.
-     
-     - Parameter insets: The edge insets to be applied to the adjustment.
-     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSDirectionalEdgeInsets` structure.
-     */
-    func inset(by insets: NSDirectionalEdgeInsets) -> CGRect {
-        var result = self
-        result.origin.x += insets.leading
-        result.origin.y += insets.bottom
-        result.size.width -= (insets.leading + insets.trailing)
-        result.size.height -= (insets.bottom + insets.top)
-        return result
-    }
-    
-    /**
-     Returns a rectangle with a width that is smaller or larger than the source rectangle width, with the same center point.
-     
-     - Parameter dx: The x-coordinate value to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
-     */
     func insetBy(dx: CGFloat) -> CGRect {
         insetBy(dx: dx, dy: 0)
     }
     
-    /**
-     Returns a rectangle with a height that is smaller or larger than the source rectangle height, with the same center point.
-     
-     - Parameter dy: The y-coordinate value to use for adjusting the source rectangle. To create an inset rectangle, specify a positive value. To create a larger, encompassing rectangle, specify a negative value.
-     */
     func insetBy(dy: CGFloat) -> CGRect {
         insetBy(dx: 0, dy: dy)
     }
     
+    func insetBy(_ dXY: CGFloat) -> CGRect {
+        insetBy(dx: dXY, dy: dXY)
+    }
+    
+    func insetBy(_ dx: CGFloat, dy: CGFloat) -> CGRect {
+        insetBy(dx: dx, dy: dy)
+    }
+
+    #if os(macOS)
+    func inset(by insets: NSEdgeInsets) -> CGRect {
+        CGRect(x: origin.x + insets.left, y: origin.y + insets.bottom, width: width - (insets.left + insets.right), height: height - (insets.top + insets.bottom))
+    }
+    #endif
+    
+    @_disfavoredOverload
+    func inset(by insets: NSDirectionalEdgeInsets) -> CGRect {
+        #if os(macOS)
+        CGRect(x: origin.x + insets.leading, y: origin.y + insets.bottom, width: width - (insets.leading + insets.trailing), height: height - (insets.top + insets.bottom))
+        #else
+        CGRect(x: origin.x + insets.leading, y: origin.y + insets.top, width: width - (insets.leading + insets.trailing), height: height - (insets.top + insets.bottom))
+        #endif
+    }
+    
+    #if os(macOS) || os(iOS) || os(tvOS)
     /**
-     Returns a rectangle with an origin that is offset from that of the source rectangle.
+     Adjusts a rectangle by the given directional edge insets.
      
-     - Parameter dx: The offset value for the x-coordinate.
+     - Parameters:
+        - insets: The edge insets to be applied to the adjustment.
+        - layoutDirection: The layout direction.
+     
+     - Returns: This inline function increments the origin of rect and decrements the size of rect by applying the appropriate member values of the `NSDirectionalEdgeInsets` structure.
      */
+    @_disfavoredOverload
+    func inset(by insets: NSDirectionalEdgeInsets, layoutDirection: InterfaceDirection) -> CGRect {
+        layoutDirection == .leftToRight ? inset(by: insets) : inset(by: .init(top: insets.top, leading: insets.trailing, bottom: insets.bottom, trailing: insets.leading))
+    }
+    #endif
+    
     func offsetBy(dx: CGFloat) -> CGRect {
         offsetBy(dx: dx, dy: 0)
     }
     
-    /**
-     Returns a rectangle with an origin that is offset from that of the source rectangle.
-     
-     - Parameter dy: The offset value for the y-coordinate.
-     */
     func offsetBy(dy: CGFloat) -> CGRect {
         offsetBy(dx: 0, dy: dy)
     }
     
+    func offsetBy(_ dx: CGFloat, _ dy: CGFloat) -> CGRect {
+        offsetBy(dx: dx, dy: dy)
+    }
+    
+    func offsetBy(_ dXY: CGFloat) -> CGRect {
+        offsetBy(dx: dXY, dy: dXY)
+    }
+    
     /**
-     Returns a new rectangle expanded by the specified amount in the given edge directions.
+     Returns a rectangle that is expanded on the specified edges by the given amount.
 
      - Parameters:
-        - edges: The edge directions in which to expand the rectangle.
-        - amount: The amount by which to expand the rectangle.
+        - edges: The edges on which to expand the rectangle.
+        - amount: The amount by which to expand the size on the specified edges.
 
-     - Returns: A new rectangle expanded by the specified amount in the given edge directions.
+     - Returns: A new rectangle with the specified expansion applied.
      */
     func expand(_ edges: NSUIRectEdge, by amount: CGFloat) -> CGRect {
         expand(edges, to: CGSize(width: edges.contains(any: [.left, .right]) ? width + amount : width, height: edges.contains(any: [.bottom, .top]) ? height + amount : height))
     }
     
     /**
-     Returns a new rectangle expanded to the specified size in the given edge directions.
+     Returns a rectangle that is expanded on the specified edges by the given multiplication factor.
 
      - Parameters:
-        - edges: The edge directions in which to expand the rectangle.
-        - amount: The size to which to expand the rectangle.
+        - edges: The edges on which to expand the rectangle.
+        - factor: The factor by which to multiply size on the specified edges. A factor greater than `1.0` expands the size and a factor smaller than `1.0` shrinks it.
 
-     - Returns: A new rectangle expanded to the specified size in the given edge directions.
+     - Returns: A new rectangle with the specified factor applied to its dimensions.
+     */
+    func expand(_ edges: NSUIRectEdge, byFactor factor: CGFloat) -> CGRect {
+        expand(edges, to: CGSize(width: edges.contains(any: [.left, .right]) ? width * factor : width, height: edges.contains(any: [.bottom, .top]) ? height * factor : height))
+    }
+    
+    /**
+     Returns a rectangle that is expanded on the specified edges to the given size.
+     
+     - The width is only expanded, if `edges` contains `.left` or`.right`.
+     - The height is only expanded, if `edges` contains `.top` or `.bottom.`
+     
+     - Parameters:
+        - edges: The edges on which to expand the rectangle.
+        - size: The target size for the resulting rectangle.
+
+     - Returns: A new rectangle that has been expanded to the target size on the specified edges.
      */
     func expand(_ edges: NSUIRectEdge, to size: CGSize) -> CGRect {
         var frame = self
-
         let widthDelta = size.width - frame.size.width
         if widthDelta != 0 {
             if edges.contains(.left) && edges.contains(.right) {
@@ -459,60 +481,122 @@ public extension CGRect {
         let heightDelta = size.height - frame.size.height
         if heightDelta != 0 {
             if edges.contains(.top) && edges.contains(.bottom) {
-                #if os(macOS)
                 frame.origin.y -= heightDelta / 2
-                #else
-                frame.origin.y -= heightDelta / 2
-                #endif
                 frame.size.height += heightDelta
             } else if edges.contains(.top) {
-                #if os(macOS)
                 frame.size.height += heightDelta
-                #else
+                #if !os(macOS)
                 frame.origin.y -= heightDelta
-                frame.size.height += heightDelta
                 #endif
             } else if edges.contains(.bottom) {
+                frame.size.height += heightDelta
                 #if os(macOS)
                 frame.origin.y -= heightDelta
-                frame.size.height += heightDelta
-                #else
-                frame.size.height += heightDelta
                 #endif
             }
         }
         return frame
     }
     
+    /*
+     /**
+      Returns a new rectangle by expanding the specified edges by the given amount.
+
+      - Parameters:
+         - edges: The edges to expand.
+         - amount: The amount by which to expand the specified edges.
+
+      - Returns: A new `CGRect` expanded by `amount` along the specified edges.
+      */
+     func expand(_ edges: NSUIRectEdge, by amount: CGFloat) -> CGRect {
+         expand(edges, to: CGSize(width: edges.contains(any: [.left, .right]) ? width + amount : width, height: edges.contains(any: [.bottom, .top]) ? height + amount : height))
+     }
+     
+     /**
+      Returns a new rectangle by expanding the specified edges by the given size.
+
+      - Parameters:
+         - edges: The edges to expand.
+         - size: The sizes by which to expand the specified edges.
+
+      - Returns: A new `CGRect` expanded along the specified edges by`size`.
+      */
+     func expand(_ edges: NSUIRectEdge, to size: CGSize) -> CGRect {
+         var frame = self
+         let widthDelta = size.width - frame.size.width
+         if widthDelta != 0 {
+             if edges.contains(.left) && edges.contains(.right) {
+                 frame.origin.x -= widthDelta / 2
+                 frame.size.width += widthDelta
+             } else if edges.contains(.left) {
+                 frame.origin.x -= widthDelta
+                 frame.size.width += widthDelta
+             } else if edges.contains(.right) {
+                 frame.size.width += widthDelta
+             }
+         }
+
+         let heightDelta = size.height - frame.size.height
+         if heightDelta != 0 {
+             if edges.contains(.top) && edges.contains(.bottom) {
+                 frame.origin.y -= heightDelta / 2
+                 frame.size.height += heightDelta
+             } else if edges.contains(.top) {
+                 frame.size.height += heightDelta
+                 #if !os(macOS)
+                 frame.origin.y -= heightDelta
+                 #endif
+             } else if edges.contains(.bottom) {
+                 frame.size.height += heightDelta
+                 #if os(macOS)
+                 frame.origin.y -= heightDelta
+                 #endif
+             }
+         }
+         return frame
+     }
+     */
+    
     /**
      Divides the rectangle into rectangles by the specified amount and edge.
      
      - Parameters:
-        - count:The amount of rects
+        - amount:The amount of rects.
         - edge: The side of the rectangle from which to divide the rectangle.
      */
-    func divided(by count: Int, from edge: CGRectEdge) -> [CGRect] {
-        let value = (edge.isHeight ? height : width) / CGFloat(count)
-        return divided(by: value, count: count, from: edge)
+    func divided(by amount: Int, from edge: CGRectEdge) -> [CGRect] {
+        guard amount > 0 else { return [] }
+        return divided(byDistance: edge.value(for: self) / CGFloat(amount), from: edge)
     }
     
     /**
      Divides the rectangle into multiple rectangles of the specified size, starting from the given edge.
 
-     This method returns an array of rectangles, each with a `width` or `height` equal to the specified value, depending on the division edge. The final rectangle may be smaller if the remaining space is less than the specified value.
+     This method returns an array of rectangles, each with a `width` or `height` equal to the specified distance, depending on the division edge.
 
      - Parameters:
-        - value: The width or height of each rectangle, based on the division edge.
+        - distance: The width or height of each rectangle, based on the the edge.
         - edge: The edge of the rectangle from which the division starts.
+        - includeRemainder: A Boolean value indicating whether to include the remainder rectangle.
 
      - Returns: An array of rectangles resulting from the division.
      */
-    func divided(byValue value: CGFloat, from edge: CGRectEdge) -> [CGRect] {
-        guard value > 0.0 else { return [] }
-        let total = edge.isHeight ? height : width
-        let value = value.clamped(max: total)
-        let count = Int(floor(total / value))
-        return divided(by: value, count: count, from: edge)
+    func divided(byDistance distance: CGFloat, from edge: CGRectEdge, includeRemainder: Bool = true) -> [CGRect] {
+        guard distance > 0 else { return [] }
+        var slices: [CGRect] = []
+        var rect = self
+        while true {
+            let divided = rect.divided(atDistance: distance, from: edge)
+            if edge.value(for: divided.slice) < distance {
+                if includeRemainder, divided.remainder != rect {
+                    slices.append(divided.remainder)
+                }
+                break
+            }
+            slices.append(divided.slice)
+            rect = divided.remainder
+        }
+        return slices
     }
     
     /**
@@ -523,16 +607,13 @@ public extension CGRect {
      - Parameters:
         - percentage: The percentage of the rectangle's width or height to use for each division. Values should be between `0` and `1`.
         - edge: The edge of the rectangle from which the division starts.
+        - includeRemainder: A Boolean value indicating whether to include the remainder rectangle.
 
      - Returns: An array of rectangles resulting from the division.
      */
-    func divided(byPercentage percentage: CGFloat, from edge: CGRectEdge) -> [CGRect] {
+    internal func divided(byPercentage percentage: CGFloat, from edge: CGRectEdge, includeRemainder: Bool = true) -> [CGRect] {
         guard percentage > 0.0 else { return [] }
-        let percentage = percentage.clamped(to: 0...1.0)
-        let total = edge.isHeight ? height : width
-        let value = total * percentage
-        let count = Int(floor(total / value))
-        return divided(by: value, count: count, from: edge)
+        return divided(byDistance: edge.value(for: self) * min(1.0, percentage), from: edge, includeRemainder: includeRemainder)
     }
     
     /**
@@ -543,19 +624,7 @@ public extension CGRect {
         - edge: The side of the rectangle from which to measure the atDistance parameter, defining the line along which to divide the rectangle.
      */
     func divided(atPercentage percentage: CGFloat, from edge: CGRectEdge) -> (slice: CGRect, remainder: CGRect) {
-        divided(atDistance: edge.isHeight ? height : width * percentage.clamped(to: 0...1.0), from: edge)
-    }
-    
-    internal func divided(by value: CGFloat, count: Int, from edge: CGRectEdge) -> [CGRect] {
-        guard count > 0 else { return [] }
-        var rect = self
-        var rects = (1...count).map({ _ in
-            let (slice, remainder) = rect.divided(atDistance: value, from: edge)
-            rect = remainder
-            return slice
-        })
-        rects.append(rect)
-        return rects
+        divided(atDistance: edge.value(for: self) * percentage.clamped(to: 0...1.0), from: edge)
     }
 
     /**
@@ -733,12 +802,12 @@ public extension CGRect {
 
      - Parameters:
        - point: The point to evaluate.
-       - tolerance: The maximum distance from an edge or corner within which the point is considered to be contained by that edge or corner. Must be a non-negative value.
+       - tolerance: The maximum distance from an edge or corner within which the point is considered to be that edge or corner.  Must be a non-negative value.
 
      - Returns: The edge or corner that contains the point within the specified tolerance, or `nil` if the point does not fall within the tolerance of any edge or corner.
      */
-    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat) -> RectEdgeCorner? {
-        edgeOrCorner(containing: point, tolerance: tolerance, cornerTolerance: tolerance)
+    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat) -> EdgeCorner? {
+        edgeOrCorner(containing: point, edgeTolerance: tolerance, cornerTolerance: tolerance)
     }
     
     /**
@@ -748,36 +817,39 @@ public extension CGRect {
 
      - Parameters:
         - point: The point to evaluate.
-       - tolerance: The maximum distance from an edge within which the point is considered to be contained by that edge. Must be a non-negative value.
-        - cornerTolerance: The maximum distance from a corner within which the point is considered to be contained by that corner. Must be a non-negative value.
+        - tolerance: The maximum distance from an edge within which the point is considered to be contained by that edge.  Must be a non-negative value.
+        - cornerTolerance: The maximum distance from a corner within which the point is considered to be contained by that corner.  Must be a non-negative value.
 
      - Returns: The edge or corner that contains the point within the specified tolerance, or `nil` if the point does not fall within the tolerance of any edge or corner.
      */
-    func edgeOrCorner(containing point: CGPoint, tolerance: CGFloat, cornerTolerance: CGFloat) -> RectEdgeCorner? {
+    func edgeOrCorner(containing point: CGPoint, edgeTolerance: CGFloat, cornerTolerance: CGFloat) -> EdgeCorner? {
+        let tolerance = edgeTolerance.clamped(min: 0.0)
+        let cornerTolerance = cornerTolerance.clamped(min: 0.0)
         if insetBy(dx: -cornerTolerance, dy: -cornerTolerance).contains(point) {
-            if point.x >= minX - cornerTolerance && point.x <= minX + cornerTolerance {
-                if point.y >= minY - cornerTolerance && point.y <= minY + cornerTolerance {
-                    return .minXMinY
-                } else if point.y >= maxY - cornerTolerance && point.y <= maxY + cornerTolerance {
-                    return .minXMaxY
+            if point.x.isBetween(minX - cornerTolerance, minX + cornerTolerance) {
+                if point.y.isBetween(minY - cornerTolerance, minY + cornerTolerance) {
+                    
+                    return .minXminY
+                } else if point.y.isBetween(maxY - cornerTolerance, maxY + cornerTolerance) {
+                    return .minXmaxY
                 }
             }
-            if point.x >= maxX - cornerTolerance && point.x <= maxX + cornerTolerance {
-                if point.y >= minY - cornerTolerance && point.y <= minY + cornerTolerance {
-                    return .maxXMinY
-                } else if point.y >= maxY - cornerTolerance && point.y <= maxY + cornerTolerance {
-                    return .maxXMaxY
+            if point.x.isBetween(maxX - cornerTolerance, maxX + cornerTolerance) {
+                if point.y.isBetween(minY - cornerTolerance, minY + cornerTolerance) {
+                    return .maxXminY
+                } else if point.y.isBetween(maxY - cornerTolerance, maxY + cornerTolerance) {
+                    return .maxXmaxY
                 }
             }
         }
         if insetBy(dx: -tolerance, dy: -tolerance).contains(point) {
-            if point.y >= minY - tolerance && point.y <= minY + tolerance {
+            if point.y.isBetween(minY - tolerance, minY + tolerance) {
                 return .minY
-            } else if point.y >= maxY - tolerance && point.y <= maxY + tolerance {
+            } else if point.y.isBetween(maxY - tolerance, maxY + tolerance) {
                 return .maxY
-            } else if point.x >= minX - tolerance && point.x <= minX + tolerance {
+            } else if point.x.isBetween(minX - tolerance, minX + tolerance) {
                 return .minX
-            } else if point.x >= maxX - tolerance && point.x <= maxX + tolerance {
+            } else if point.x.isBetween(maxX - tolerance, maxX + tolerance) {
                 return .maxX
             }
         }
@@ -977,23 +1049,23 @@ public extension Sequence where Element == CGRect {
 
 public extension CGRectEdge {
     /// The left edge of the rectangle.
-    static let left: CGRectEdge = .minXEdge
+    static let left: Self = .minXEdge
     /// The right edge of the rectangle.
-    static let right: CGRectEdge = .maxXEdge
+    static let right: Self = .maxXEdge
     #if os(macOS)
     /// The bottom edge of the rectangle.
-    static let bottom: CGRectEdge = .minYEdge
+    static let bottom: Self = .minYEdge
     /// The top edge of the rectangle.
-    static let top: CGRectEdge = .maxYEdge
-    #else
+    static let top: Self = .maxYEdge
+        #else
     /// The bottom edge of the rectangle.
-    static let bottom: CGRectEdge = .maxYEdge
+    static let bottom: Self = .maxYEdge
     /// The top edge of the rectangle.
-    static let top: CGRectEdge = .minYEdge
+    static let top: Self = .minYEdge
     #endif
     
-    internal var isHeight: Bool {
-        self == .minYEdge || self == .maxYEdge
+    internal func value(for rect: CGRect) -> CGFloat {
+        self == .minYEdge || self == .maxYEdge ? rect.height : rect.width
     }
 }
 
