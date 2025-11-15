@@ -19,6 +19,14 @@ public extension ImageSource {
         public var subsampleFactor: SubsampleFactor?
         /// A Boolean indicating whether to use floating-point values in returned images.
         public var allowsFloat: Bool = false
+        
+        /// The color range the image should be decoded (`SDR` or `HDR`).
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        var decodingRequest: DecodingRequest? {
+            get { DecodingRequest(rawValue: _decodingRequest ?? -1) }
+            set { _decodingRequest = newValue?.rawValue }
+        }
+        private var _decodingRequest: Int?
 
         /// The factor by which to scale down returned images.
         public enum SubsampleFactor: Int, Codable, Hashable {
@@ -28,6 +36,15 @@ public extension ImageSource {
             case factor4 = 4
             /// Factor 8
             case factor8 = 8
+        }
+        
+        /// The color range the image should be decoded (`SDR` or `HDR`).
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        enum DecodingRequest: Int, Codable {
+            /// SDR.
+            case toSDR
+            /// HDR.
+            case toHDR
         }
 
         /**
@@ -52,6 +69,9 @@ public extension ImageSource {
             options[kCGImageSourceShouldCache] = caches
             options[kCGImageSourceShouldCacheImmediately] = decodesImmediately
             options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, *), let request = decodingRequest {
+                options[kCGImageSourceDecodeRequest] = decodingRequest == .toSDR ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
+            }
             return options as CFDictionary
         }
     }
@@ -77,6 +97,14 @@ public extension ImageSource {
          Some images contain pre-rendered thumbnails that can be returned. Alternatively, a new thumbnail can be generated.
          */
         public var creationPolicy: CreationPolicy = .always
+        
+        /// The color range the image should be decoded (`SDR` or `HDR`).
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        var decodingRequest: DecodingRequest? {
+            get { DecodingRequest(rawValue: _decodingRequest ?? -1) }
+            set { _decodingRequest = newValue?.rawValue }
+        }
+        private var _decodingRequest: Int?
 
         /// The factor by which to scale down returned images.
         public enum SubsampleFactor: Int, Codable, Hashable {
@@ -100,6 +128,15 @@ public extension ImageSource {
             case ifAbsent
             /// Only uses pre-rendered thumbnails from the original image data source.
             case never
+        }
+        
+        /// The color range the image should be decoded (`SDR` or `HDR`).
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        enum DecodingRequest: Int, Codable {
+            /// SDR.
+            case toSDR
+            /// HDR.
+            case toHDR
         }
 
         /**
@@ -154,6 +191,9 @@ public extension ImageSource {
             options[kCGImageSourceCreateThumbnailWithTransform] = transformsIfNeeded
             options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
             options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, *), let request = decodingRequest {
+                options[kCGImageSourceDecodeRequest] = decodingRequest == .toSDR ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
+            }
             switch self.creationPolicy {
             case .ifAbsent: options[kCGImageSourceCreateThumbnailFromImageIfAbsent] = true
             case .always: options[kCGImageSourceCreateThumbnailFromImageAlways] = true

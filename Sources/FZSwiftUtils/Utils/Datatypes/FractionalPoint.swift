@@ -16,6 +16,11 @@ public struct FractionalPoint: Hashable, Codable, ExpressibleByFloatLiteral, Cus
     /// The y-coordinate of the fractional point.
     public var y: CGFloat = 0.0
     
+    /// Converts the point into an absolute point within the specified rectangle.
+    public func point(in rect: CGRect) -> CGPoint {
+        CGPoint(x: rect.minX + (x * rect.width), y: rect.minY + (y * rect.height))
+    }
+    
     /**
      Creates a fractional point with the specified x- and y-coordinates.
      
@@ -74,54 +79,58 @@ public struct FractionalPoint: Hashable, Codable, ExpressibleByFloatLiteral, Cus
     public static let right = FractionalPoint(1.0, 0.5)
     
     #if os(macOS)
-    /// Bottom, left corner.
+    /// Bottom-left corner.
     public static let bottomLeft = FractionalPoint(0.0, 0.0)
     
-    /// Bottom, center point.
+    /// Bottom edge center.
     public static let bottom = FractionalPoint(0.5, 0.0)
     
-    /// Bottom, right corner.
+    /// Bottom-right corner.
     public static let bottomRight = FractionalPoint(1.0, 0.0)
     
-    /// Top, left corner.
+    /// Top-left corner.
     public static let topLeft = FractionalPoint(0.0, 1.0)
     
-    /// Top, center point.
+    /// Top edge center.
     public static let top = FractionalPoint(0.5, 1.0)
     
-    /// Top, right corner.
+    /// Top-right corner.
     public static let topRight = FractionalPoint(1.0, 1.0)
+    
+    /// Bottom-left corner.
+    public static let zero = FractionalPoint(0.0, 0.0)
     #else
-    /// Bottom, left corner.
+    /// Bottom-left corner.
     public static let bottomLeft = FractionalPoint(0.0, 1.0)
     
-    /// Bottom, center point.
+    /// Bottom edge center.
     public static let bottom = FractionalPoint(0.5, 1.0)
     
-    /// Bottom, right corner.
+    /// Bottom-right corner.
     public static let bottomRight = FractionalPoint(1.0, 1.0)
     
-    /// Top, left corner.
+    /// Top-left corner.
     public static let topLeft = FractionalPoint(0.0, 0.0)
     
-    /// Top, center point.
+    /// Top edge center.
     public static let top = FractionalPoint(0.5, 0.0)
     
-    /// Top, right corner.
+    /// Top-right corner.
     public static let topRight = FractionalPoint(1.0, 0.0)
-    #endif
     
-    /// Bottom, left corner.
+    /// Top-left corner.
     public static let zero = FractionalPoint(0.0, 0.0)
+    #endif
     
     var point: CGPoint {
         .init(x, y)
     }
 }
 
-extension CGPoint {
-    var fractional: FractionalPoint {
-        .init(x, y)
+extension CGRect {
+    /// Converts the specified fractional point into an absolute point within the rectangle.
+    public func point(for fractionalPoint: FractionalPoint) -> CGPoint {
+        fractionalPoint.point(in: self)
     }
 }
 
@@ -144,22 +153,23 @@ public class __FractionalPoint: NSObject, NSCopying {
 
 extension FractionalPoint: ReferenceConvertible {
     /// The Objective-C type for the configuration.
-    public typealias ReferenceType = __FractionalPoint
+    public typealias ReferenceType = NSValue
     
-    public func _bridgeToObjectiveC() -> __FractionalPoint {
-        return __FractionalPoint(point: self)
+    public func _bridgeToObjectiveC() -> NSValue {
+        NSValue(point: point)
     }
     
-    public static func _forceBridgeFromObjectiveC(_ source: __FractionalPoint, result: inout FractionalPoint?) {
-        result = source.point
+    public static func _forceBridgeFromObjectiveC(_ source: NSValue, result: inout FractionalPoint?) {
+        let source = source.pointValue
+        result = FractionalPoint(source.x, source.y)
     }
     
-    public static func _conditionallyBridgeFromObjectiveC(_ source: __FractionalPoint, result: inout FractionalPoint?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSValue, result: inout FractionalPoint?) -> Bool {
         _forceBridgeFromObjectiveC(source, result: &result)
         return true
     }
     
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: __FractionalPoint?) -> FractionalPoint {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSValue?) -> FractionalPoint {
         if let source = source {
             var result: FractionalPoint?
             _forceBridgeFromObjectiveC(source, result: &result)

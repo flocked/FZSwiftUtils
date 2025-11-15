@@ -23,7 +23,7 @@ public extension NSValue {
     /// Returns the directional edge insets structure representation of the value.
     var directionalEdgeInsetsValue: NSDirectionalEdgeInsets {
         var insets = NSDirectionalEdgeInsets()
-        self.getValue(&insets)
+        getValue(&insets)
         return insets
     }
 
@@ -39,16 +39,30 @@ public extension NSValue {
         getValue(&transform)
         return transform
     }
+    
+    /// Creates a new value object containing the specified CoreGraphics vector structure.
+    convenience init(cgVector: CGVector) {
+        var transform = cgVector
+        self.init(bytes: &transform, objCType: _getObjCTypeEncoding(CGVector.self))
+    }
+
+    /// Returns the CoreGraphics vector structure representation of the value.
+    var cgVectorValue: CGVector {
+        var transform = CGVector.zero
+        getValue(&transform)
+        return transform
+    }
 }
+
 #endif
 
 public extension CGPoint {
     /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
-        return NSValue(cgPoint: self)
+        NSValue(cgPoint: self)
         #else
-        return NSValue(point: NSPointFromCGPoint(self))
+        NSValue(point: self)
         #endif
     }
 }
@@ -57,9 +71,9 @@ public extension CGRect {
     /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
-        return NSValue(cgRect: self)
+        NSValue(cgRect: self)
         #else
-        return NSValue(rect: NSRectFromCGRect(self))
+        NSValue(rect: self)
         #endif
     }
 }
@@ -68,9 +82,9 @@ public extension CGSize {
     /// A `NSValue` representation of the value.
     var nsValue: NSValue {
         #if canImport(UIKit) || os(watchOS)
-        return NSValue(cgSize: self)
+        NSValue(cgSize: self)
         #else
-        return NSValue(size: NSSizeFromCGSize(self))
+        NSValue(size: self)
         #endif
     }
 }
@@ -95,6 +109,28 @@ public extension Range where Bound: BinaryInteger {
         NSValue(range: nsRange)
     }
 }
+
+public extension CGAffineTransform {
+    /// A `NSValue` representation of the value.
+    var nsValue: NSValue {
+        NSValue(cgAffineTransform: self)
+    }
+}
+
+public extension NSDirectionalEdgeInsets {
+    /// A `NSValue` representation of the value.
+    var nsValue: NSValue {
+        NSValue(directionalEdgeInsets: self)
+    }
+}
+
+public extension CGVector {
+    /// A `NSValue` representation of the value.
+    var nsValue: NSValue {
+        NSValue(cgVector: self)
+    }
+}
+
 
 #if os(macOS)
 public extension NSEdgeInsets {
