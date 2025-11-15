@@ -65,16 +65,16 @@ public extension Dictionary {
             case "custom":
                 merged[key] = strategy.handler!(key, merged[key], value)
             case "keepMin":
-                if let val1 = merged[key], let val2 = other[key] {
-                    merged[key] = Swift.min(val1, val2)
-                } else if let val = other[key] {
-                    merged[key] = val
+                if let old = merged[key] {
+                    merged[key] = Swift.min(old, value)
+                } else {
+                    merged[key] = value
                 }
             case "keepMax":
-                if let val1 = merged[key], let val2 = other[key] {
-                    merged[key] = Swift.max(val1, val2)
-                } else if let val = other[key] {
-                    merged[key] = val
+                if let old = merged[key] {
+                    merged[key] = Swift.max(old, value)
+                } else {
+                    merged[key] = value
                 }
             default:
                 merged[key] = value
@@ -116,9 +116,7 @@ public extension Dictionary {
             case "custom":
                 merged[key] = strategy.handler!(key, merged[key], value)
             case "append":
-                if let value = other[key] {
-                    merged[key, default: .init()].append(contentsOf: value)
-                }
+                merged[key, default: .init()].append(contentsOf: value)
             default:
                 merged[key] = value
             }
@@ -159,14 +157,12 @@ public extension Dictionary {
             case "custom":
                 merged[key] = strategy.handler!(key, merged[key], value)
             case "append":
-                if let value = other[key] {
-                    merged[key, default: .init()].append(contentsOf: value)
-                }
+                merged[key, default: .init()].append(contentsOf: value)
             case "unique":
-                if let val1 = merged[key], let val2 = other[key] {
-                    merged[key] = .init((val1 + val2).uniqued())
-                } else if let val = other[key] {
-                    merged[key] = val
+                if let old = merged[key] {
+                    merged[key] = .init((old + value).uniqued())
+                } else {
+                    merged[key] = value
                 }
             default:
                 merged[key] = value
@@ -208,12 +204,7 @@ public extension Dictionary {
             case "custom":
                 merged[key] = strategy.handler!(key, merged[key], value)
             case "union":
-                if var val1 = merged[key], let val2 = other[key] {
-                    val1.insert(val2)
-                    merged[key] = val1
-                } else if let val = other[key] {
-                    merged[key] = val
-                }
+                merged[key, default: .init()].insert(value)
             default:
                 merged[key] = value
             }
@@ -249,9 +240,9 @@ extension Dictionary {
     /// Strategy for merging two dictionaries.
     public struct MergeStrategy {
         let rawValue: String
-        let handler: ((_ key: Key, _ old: Value?, _ new: Value?) -> Value?)?
+        let handler: ((_ key: Key, _ old: Value?, _ new: Value) -> Value?)?
         
-        fileprivate init(_ rawValue: String, _ handler: ((_ key: Key, _ old: Value?, _ new: Value?) -> Value?)? = nil) {
+        fileprivate init(_ rawValue: String, _ handler: ((_ key: Key, _ old: Value?, _ new: Value) -> Value?)? = nil) {
             self.rawValue = rawValue
             self.handler = handler
         }
@@ -275,7 +266,7 @@ extension Dictionary {
             - new: The value in the other dictionary.
          - Returns: The value to be used.
          */
-        public static func custom(_ handler: @escaping ((_ key: Key, _ old: Value?, _ new: Value?) -> Value?)) -> Self {
+        public static func custom(_ handler: @escaping ((_ key: Key, _ old: Value?, _ new: Value) -> Value?)) -> Self {
             Self("custom", handler)
         }
     }

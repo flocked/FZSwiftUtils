@@ -8,7 +8,7 @@
 import Foundation
 
 extension ReferenceConvertible {
-    public typealias ReferenceType = __ObjectiveCBridge<Self>
+    public typealias ReferenceType = __ObjectiveCBox<Self>
     public var description: String { "" }
     public var debugDescription: String { description }
     // public var description: String { Mirror(reflecting: self).prettyDescription() }
@@ -24,21 +24,21 @@ extension ReferenceConvertible where Self: AnyObject {
     }
 }
 
-extension _ObjectiveCBridgeable where _ObjectiveCType ==  __ObjectiveCBridge<Self> {
-    public func _bridgeToObjectiveC() -> __ObjectiveCBridge<Self> {
-        __ObjectiveCBridge<Self>(self)
+extension _ObjectiveCBridgeable where _ObjectiveCType ==  __ObjectiveCBox<Self> {
+    public func _bridgeToObjectiveC() -> __ObjectiveCBox<Self> {
+        __ObjectiveCBox<Self>(self)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: __ObjectiveCBridge<Self>, result: inout Self?) {
+    public static func _forceBridgeFromObjectiveC(_ source: __ObjectiveCBox<Self>, result: inout Self?) {
         result = source.element
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: __ObjectiveCBridge<Self>, result: inout Self?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __ObjectiveCBox<Self>, result: inout Self?) -> Bool {
         _forceBridgeFromObjectiveC(source, result: &result)
         return result != nil
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: __ObjectiveCBridge<Self>?) -> Self {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __ObjectiveCBox<Self>?) -> Self {
         guard let source = source else { fatalError("Unexpected nil while bridging from ObjectiveC to \(Self.self).") }
         var result: Self?
         _forceBridgeFromObjectiveC(source, result: &result)
@@ -48,7 +48,7 @@ extension _ObjectiveCBridgeable where _ObjectiveCType ==  __ObjectiveCBridge<Sel
 }
 
 /// Bridges a value to Objective-C.
-public class __ObjectiveCBridge<Element>: NSObject, NSCopying {
+public class __ObjectiveCBox<Element>: NSObject, NSCopying {
     let element: Element
 
     init(_ element: Element) {
@@ -56,7 +56,7 @@ public class __ObjectiveCBridge<Element>: NSObject, NSCopying {
     }
 
     public func copy(with zone: NSZone? = nil) -> Any {
-        __ObjectiveCBridge(element)
+        __ObjectiveCBox(element)
     }
 }
 
