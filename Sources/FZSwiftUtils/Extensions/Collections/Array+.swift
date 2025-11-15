@@ -48,6 +48,16 @@ public extension ArraySlice {
     }
 }
 
+public extension Array where Element: RandomAccessCollection, Element.Index == Int {
+    subscript(indexPath: IndexPath) -> Element.Element {
+        self[indexPath.section][indexPath.item]
+    }
+    
+    subscript(safe indexPath: IndexPath) -> Element.Element? {
+        self[safe: indexPath.section]?[safe: indexPath.item]
+    }
+}
+
 extension Array {
     /// A function builder type that produces an array.
     @resultBuilder
