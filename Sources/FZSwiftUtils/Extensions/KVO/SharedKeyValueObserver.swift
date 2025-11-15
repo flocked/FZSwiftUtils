@@ -14,6 +14,7 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
     private var weakObservedObjects: [Weak<Object>] = []
     private var _isActive = true
     private var observations: [String: Observation] = [:]
+    private var context = 0
     
     /**
      The observed objects.
@@ -354,7 +355,7 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
             observations[observation.keyPath] = observation
             if isActive {
                 for object in observedObjects {
-                    object.addObserver(self, forKeyPath: observation.keyPath, options: observation.options, context: nil)
+                    object.addObserver(self, forKeyPath: observation.keyPath, options: observation.options, context: &context)
                 }
             }
         }
@@ -364,14 +365,14 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
         lock.locked {
             guard observations[keyPath] != nil else { return }
             for object in observedObjects {
-                object.removeObserver(self, forKeyPath: keyPath)
+                object.removeObserver(self, forKeyPath: keyPath, context: &context)
             }
             observations[keyPath] = nil
         }
     }
     
-    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
-        guard let object = object as? Object, let keyPath = keyPath, let change = change, let observation = observations[keyPath] else { return }
+    override public func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        guard context == &self.context, let object = object as? Object, let keyPath = keyPath, let change = change, let observation = observations[keyPath] else { return }
         if change.isPrior, let oldValue = change.oldValue, let handler = observation.willChange {
             handler(object, oldValue)
         } else if let newValue = change.newValue, let handler = observation.handler {
@@ -413,7 +414,7 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
     private func activateObservation(key: String) {
         guard let obs = observations[key] else { return }
         for object in observedObjects {
-            object.addObserver(self, forKeyPath: key, options: obs.options, context: nil)
+            object.addObserver(self, forKeyPath: key, options: obs.options, context: &context)
             if obs.options.contains(.initial), let handler = obs.handler, let value = object.value(forKeyPath: key) {
                 handler(object, value, value, true)
             }
@@ -423,7 +424,7 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
     private func deactivateObservation(key: String) {
         guard observations[key] != nil else { return }
         for object in observedObjects {
-            object.removeObserver(self, forKeyPath: key)
+            object.removeObserver(self, forKeyPath: key, context: &context)
         }
     }
     

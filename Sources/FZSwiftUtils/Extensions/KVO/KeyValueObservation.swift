@@ -270,6 +270,7 @@ private extension KeyValueObservation {
         var keyPathString: String { keyPath }
         let options: NSKeyValueObservingOptions
         let handler: ([NSKeyValueChangeKey: Any])->()
+        var context = 0
         
         init(_ object: NSObject, keyPath: String, options: NSKeyValueObservingOptions, handler: @escaping ([NSKeyValueChangeKey: Any])->()) {
             self.object = object
@@ -287,16 +288,20 @@ private extension KeyValueObservation {
                 guard newValue != isActive, let object = object else { return }
                 _isActive = newValue
                 if newValue {
-                    object.addObserver(self, forKeyPath: keyPath, options: options, context: nil)
+                    object.addObserver(self, forKeyPath: keyPath, options: options, context: &context)
                 } else {
-                    object.removeObserver(self, forKeyPath: keyPath)
+                    object.removeObserver(self, forKeyPath: keyPath, context: &context)
                 }
             }
         }
         
-        override func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
-            guard object != nil, keyPath != nil, let change = change else { return }
+        override func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+            guard context == &self.context, object != nil, keyPath != nil, let change = change else { return }
             handler(change)
+        }
+        
+        deinit {
+            isActive = false
         }
     }
     

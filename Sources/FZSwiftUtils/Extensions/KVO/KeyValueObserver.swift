@@ -31,14 +31,15 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     private var _isActive = false
     private var observations: [String: Observation] = [:]
+    private var context = 0
     
     var isActive: Bool = true {
         didSet {
             guard oldValue != isActive, let observedObject = observedObject else { return }
             if isActive {
-                observations.forEach({ observedObject.addObserver(self, forKeyPath: $0.key, options: $0.value.options, context: nil) })
+                observations.forEach({ observedObject.addObserver(self, forKeyPath: $0.key, options: $0.value.options, context: &context) })
             } else {
-                observations.forEach({ observedObject.removeObserver(self, forKeyPath: $0.key) })
+                observations.forEach({ observedObject.removeObserver(self, forKeyPath: $0.key, context: &context) })
             }
         }
     }
@@ -315,18 +316,18 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         guard observation.willChange != nil || observation.handler != nil else { return }
         observations[observation.keyPath] = observation
         if isActive {
-            observedObject?.addObserver(self, forKeyPath: observation.keyPath, options: observation.options, context: nil)
+            observedObject?.addObserver(self, forKeyPath: observation.keyPath, options: observation.options, context: &context)
         }
     }
     
     private func removeObservation(for keyPath: String) {
         guard observations[keyPath] != nil else { return }
-        observedObject?.removeObserver(self, forKeyPath: keyPath)
+        observedObject?.removeObserver(self, forKeyPath: keyPath, context: &context)
         observations[keyPath] = nil
     }
     
-    override public func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context _: UnsafeMutableRawPointer?) {
-        guard observedObject != nil, let keyPath = keyPath, let change = change, let observation = observations[keyPath] else { return }
+    override public func observeValue(forKeyPath keyPath: String?, of _: Any?, change: [NSKeyValueChangeKey: Any]?, context: UnsafeMutableRawPointer?) {
+        guard context == &self.context, observedObject != nil, let keyPath = keyPath, let change = change, let observation = observations[keyPath] else { return }
         if change.isPrior, let oldValue = change.oldValue, let handler = observation.willChange {
             handler(oldValue)
         } else if let newValue = change.newValue, let handler = observation.handler {
