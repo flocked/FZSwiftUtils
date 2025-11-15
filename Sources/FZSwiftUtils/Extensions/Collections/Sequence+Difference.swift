@@ -62,3 +62,15 @@ public extension Sequence where Element: Hashable {
         return (removed, added, changed, unchanged)
     }
 }
+
+public extension SetAlgebra {
+    /// Returns the difference to the specified elements.
+    func difference(to other: Self) -> (removed: Self, added: Self, unchanged: Self) {
+        (subtracting(other), other.subtracting(self), intersection(other))
+    }
+    
+    /// Returns the difference to the specified elements.
+    func difference<S: Sequence<Element>>(to other: S) -> (removed: Self, added: Self, unchanged: Self) {
+        difference(to: Self(other))
+    }
+}
