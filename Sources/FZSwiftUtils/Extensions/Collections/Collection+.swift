@@ -274,7 +274,9 @@ public extension RangeReplaceableCollection {
      */
     @discardableResult
     mutating func move(from index: Index, to destinationIndex: Index) -> Bool {
-        move(from: [index], to: destinationIndex)
+        guard index != destinationIndex, indices.contains(index), indices.contains(destinationIndex) else { return false }
+        insert(remove(at: index), at: destinationIndex)
+        return true
     }
 
     /**
@@ -287,11 +289,11 @@ public extension RangeReplaceableCollection {
      */
     @discardableResult
     mutating func move(from indexes: [Index], to destinationIndex: Index) -> Bool {
-        let indexes = indexes.filter({ $0 >= startIndex && $0 < endIndex })
+        guard destinationIndex >= startIndex && destinationIndex <= endIndex else { return false }
+        let indexes = indexes.filter { $0 >= startIndex && $0 < endIndex }.sorted()
         guard !indexes.isEmpty else { return false }
-        guard destinationIndex >= startIndex && destinationIndex < index(endIndex, offsetBy: indexes.count) else { return false }
-        let itemsToMove = remove(at: indexes)
-        insert(contentsOf: itemsToMove, at: index(destinationIndex, offsetBy: -indexes.filter { destinationIndex > $0 }.count))
+        let adjustedDestination = index(destinationIndex, offsetBy: -indexes.filter { $0 < destinationIndex }.count)
+        insert(contentsOf: remove(at: indexes), at: adjustedDestination)
         return true
     }
 }
