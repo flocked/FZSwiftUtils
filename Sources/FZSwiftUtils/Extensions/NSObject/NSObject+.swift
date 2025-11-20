@@ -31,11 +31,9 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        var value: Any?
         try? NSObject.catchException {
-            value = self.value(forKey: key)
+            self.value(forKey: key)
         }
-        return value
     }
 
     /**
@@ -55,11 +53,9 @@ public extension NSObject {
      - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
      */
     func value(forKeyPathSafely keyPath: String) -> Any? {
-        var value: Any?
         try? NSObject.catchException {
-            value = self.value(forKeyPath: keyPath)
+            self.value(forKeyPath: keyPath)
         }
-        return value
     }
 
     /**
@@ -95,11 +91,9 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     class func value(forKeySafely key: String) -> Any? {
-        var value: Any?
         try? NSObject.catchException {
-            value = self.value(forKey: key)
+            self.value(forKey: key)
         }
-        return value
     }
 
     /**
@@ -129,11 +123,9 @@ public extension NSObject {
      - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
      */
     class func value(forKeyPathSafely keyPath: String) -> Any? {
-        var value: Any?
         try? NSObject.catchException {
-            value = self.value(forKeyPath: keyPath)
+            self.value(forKeyPath: keyPath)
         }
-        return value
     }
 
     /**
