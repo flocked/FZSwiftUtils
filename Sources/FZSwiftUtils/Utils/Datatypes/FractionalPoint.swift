@@ -164,7 +164,11 @@ extension FractionalPoint: ReferenceConvertible {
     }
     
     public static func _forceBridgeFromObjectiveC(_ source: NSValue, result: inout FractionalPoint?) {
+        #if os(macOS)
         let source = source.pointValue
+        #else
+        let source = source.cgPointValue
+        #endif
         result = FractionalPoint(source.x, source.y)
     }
     
