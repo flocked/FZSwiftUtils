@@ -156,7 +156,11 @@ extension FractionalPoint: ReferenceConvertible {
     public typealias ReferenceType = NSValue
     
     public func _bridgeToObjectiveC() -> NSValue {
+        #if os(macOS)
         NSValue(point: point)
+        #else
+        NSValue(cgPoint: point)
+        #endif
     }
     
     public static func _forceBridgeFromObjectiveC(_ source: NSValue, result: inout FractionalPoint?) {
