@@ -13,16 +13,18 @@ let package = Package(
         ),
     ],
     dependencies: [
-        .package(url: "https://github.com/623637646/libffi.git", from: "3.4.7")
     ],
     targets: [
-        .target(name: "_OCSources", dependencies: [.product(name: "libffi_apple", package: "libffi")], path: "Sources/FZSwiftUtils+ObjC/OCSources", publicHeadersPath: ""),
+        .target(name: "_Libffi", path: "Sources/FZSwiftUtils+ObjC/Libffi",
+            sources: ["src"], publicHeadersPath: "include",
+            cSettings: [.define("USE_DL_PREFIX"), .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-shorten-64-to-32"]),]),
+        .target(name: "_OCSources", dependencies: ["_Libffi"], path: "Sources/FZSwiftUtils+ObjC/OCSources", publicHeadersPath: ""),
         .target(name: "_SuperBuilder", path: "Sources/FZSwiftUtils+ObjC/SuperBuilder"),
         .target(name: "_ExceptionCatcher", path: "Sources/FZSwiftUtils+ObjC/ExceptionCatcher", publicHeadersPath: "", cSettings: [.headerSearchPath(".")]),
         .target(name: "_NSObjectProxy", path: "Sources/FZSwiftUtils+ObjC/NSObjectProxy"),
         .target(name: "FZSwiftUtils",
             dependencies: ["_SuperBuilder", "_ExceptionCatcher", "_NSObjectProxy",
-                           .product(name: "libffi_apple", package: "libffi", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
+                           .target(name: "_Libffi", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
                            .target(name: "_OCSources", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
                           ]),
     ]
