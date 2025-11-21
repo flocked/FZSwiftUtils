@@ -8,7 +8,7 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
-import _Libffi
+import libffi_apple
 
 func overrideSuperMethodIfNeeded(_ selector: Selector, of targetClass: AnyClass) throws {
     guard getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) == nil else { return }
