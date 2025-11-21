@@ -8,11 +8,6 @@
 import Foundation
 
 public extension SetAlgebra {
-    func sdsd() {
-        var aaa: Set<String> = []
-        aaa.contains([""])
-    }
-    
     /**
      Adds the elements of the given sequence to the set.
 
@@ -96,6 +91,40 @@ public extension SetAlgebra {
      Setting this value to `true`, inserts the given element in the set if it is not already present. Setting it to `false`, removes it from the set.
      */
     subscript (_ element: Element) -> Bool {
+        get { contains(element) }
+        set {
+            if newValue {
+                insert(element)
+            } else {
+                remove(element)
+            }
+        }
+    }
+    
+    /**
+     A Boolean value that indicates whether the elements of the given set exists in the set.
+     
+     Setting this value to `true`, inserts the elements of the given set in the set. Setting it to `false`, removes the elements from the set.
+     */
+    @_disfavoredOverload
+    subscript (_ element: Self) -> Bool {
+        get { contains(element) }
+        set {
+            if newValue {
+                insert(element)
+            } else {
+                remove(element)
+            }
+        }
+    }
+    
+    /**
+     A Boolean value that indicates whether the elements of the given sequence exists in the set.
+     
+     Setting this value to `true`, inserts the elements of the given sequence in the set. Setting it to `false`, removes the elements from the set.
+     */
+    @_disfavoredOverload
+    subscript <S>(_ element: S) -> Bool where S: Sequence<Element> {
         get { contains(element) }
         set {
             if newValue {
