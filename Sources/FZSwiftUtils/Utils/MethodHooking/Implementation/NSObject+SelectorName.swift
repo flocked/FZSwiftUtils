@@ -44,7 +44,7 @@ extension NSObject {
     }
     
     static func setterName(for getterName: String, _class: AnyClass) -> String? {
-        if let setterName = setterNames[ObjectIdentifier(_class), default: [:]][getterName] {
+        if let setterName = setterNames[_class, default: [:]][getterName] {
             return setterName
         }
         var names: [String] = []
@@ -84,10 +84,10 @@ extension NSObject {
                 
                 if getterSel == getterSelector {
                     if let setterAttr = property.attribute(for: "S") {
-                        setterNames[ObjectIdentifier(_class), default: [:]][getterName] = setterAttr
+                        setterNames[_class, default: [:]][getterName] = setterAttr
                         return setterAttr
                     } else {
-                        setterNames[ObjectIdentifier(_class), default: [:]][getterName] = "set\(propName.uppercasedFirst()):"
+                        setterNames[_class, default: [:]][getterName] = "set\(propName.uppercasedFirst()):"
                         return "set\(propName.uppercasedFirst()):"
                     }
                 }

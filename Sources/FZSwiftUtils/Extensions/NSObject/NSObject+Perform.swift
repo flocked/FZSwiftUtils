@@ -47,7 +47,7 @@ extension NSObject {
         - arguments: The arguments to pass to the method when it is invoked.
      */
     public func perform(_ selector: String, withArguments arguments: [Any] = []) {
-        perform(NSSelectorFromString(selector), withArguments: arguments)
+        perform(.string(selector), withArguments: arguments)
     }
     
     /**
@@ -84,7 +84,7 @@ extension NSObject {
      - Returns: The result of the message.
      */
     public func perform<V>(_ selector: String, withArguments arguments: [Any?] = []) -> V? {
-        perform(NSSelectorFromString(selector), withArguments: arguments)
+        perform(.string(selector), withArguments: arguments)
     }
     
     /**
@@ -123,7 +123,7 @@ extension NSObject {
      */
     @_disfavoredOverload
     public func perform(_ selector: String, withArguments arguments: [Any?] = []) -> Any? {
-        perform(NSSelectorFromString(selector), withArguments: arguments)
+        perform(.string(selector), withArguments: arguments)
     }
 }
 
@@ -163,7 +163,7 @@ public extension NSObject {
      - Throws: If the object doesn't responds to the selector or the arguments aren't matching the expected argument types or arguments count.
      */
     func call(_ selector: String, with arguments: Any...) throws {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -175,7 +175,7 @@ public extension NSObject {
      - Throws: If the object doesn't responds to the selector or the arguments aren't matching the expected argument types or arguments count.
      */
     func call(_ selector: String, with arguments: [Any] = []) throws {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -188,7 +188,7 @@ public extension NSObject {
      - Throws: If the object doesn't responds to the selector, the arguments aren't matching the expected argument types or arguments count or the return value type is wrong.
      */
     func call<R>(_ selector: String, with arguments: Any...) throws -> R {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -201,7 +201,7 @@ public extension NSObject {
      - Throws: If the object doesn't responds to the selector, the arguments aren't matching the expected argument types or arguments count or the return value type is wrong.
      */
     func call<R>(_ selector: String, with arguments: [Any] = []) throws -> R {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -267,7 +267,7 @@ public extension NSObject {
      - Throws: If the class doesn't responds to the selector or the arguments aren't matching the expected argument types or arguments count.
      */
     static func call(_ selector: String, with arguments: Any...) throws {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -279,7 +279,7 @@ public extension NSObject {
      - Throws: If the class doesn't responds to the selector or the arguments aren't matching the expected argument types or arguments count.
      */
     static func call(_ selector: String, with arguments: [Any] = []) throws {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -292,7 +292,7 @@ public extension NSObject {
      - Throws: If the class doesn't responds to the selector, the arguments aren't matching the expected argument types or arguments count or the return value type is wrong.
      */
     static func call<R>(_ selector: String, with arguments: Any...) throws -> R {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**
@@ -305,7 +305,7 @@ public extension NSObject {
      - Throws: If the class doesn't responds to the selector, the arguments aren't matching the expected argument types or arguments count or the return value type is wrong.
      */
     static func call<R>(_ selector: String, with arguments: [Any] = []) throws -> R {
-        try call(NSSelectorFromString(selector), with: arguments)
+        try call(.string(selector), with: arguments)
     }
     
     /**

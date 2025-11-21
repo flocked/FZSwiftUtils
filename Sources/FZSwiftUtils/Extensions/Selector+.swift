@@ -9,12 +9,21 @@ import Foundation
 
 extension Selector: Codable {
     public init(from decoder: any Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        self = Selector(try container.decode(String.self))
+        self = .string(try decoder.singleValueContainer().decode())
     }
     
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(NSStringFromSelector(self))
+        try container.encode(string)
+    }
+    
+    /// `String` representation of the selector.
+    public var string: String {
+        NSStringFromSelector(self)
+    }
+    
+    /// Returns a selector with the specified name.
+    public static func string(_ name: String) -> Selector {
+        NSSelectorFromString(name)
     }
 }

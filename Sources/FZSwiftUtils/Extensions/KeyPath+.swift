@@ -29,11 +29,3 @@ public extension PartialKeyPath {
     }
     #endif
 }
-
-public extension Selector {
-    /// `String` representation of the selector.
-    var string: String {
-        NSStringFromSelector(self)
-    }
-}
-

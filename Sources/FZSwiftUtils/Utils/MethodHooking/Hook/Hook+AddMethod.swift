@@ -34,10 +34,10 @@ extension Hook {
             try hookSerialQueue.syncSafely {
                 if hook is AddInstanceMethodHook {
                     try hook.apply()
-                    _AnyClass(self.class).addHook(self)
+                    ClassHooks(self.class).addHook(self)
                 } else if let object = object {
                     try hook.apply()
-                    _AnyObject(object).addHook(self)
+                    ObjectHooks(object).addHook(self)
                 }
             }
         }
@@ -48,9 +48,9 @@ extension Hook {
                 try hook.revert()
                 guard remove else { return }
                 if hook is AddInstanceMethodHook {
-                    _AnyClass(self.class).removeHook(self)
+                    ClassHooks(self.class).removeHook(self)
                 } else if let object = object {
-                    _AnyObject(object).removeHook(self)
+                    ObjectHooks(object).removeHook(self)
                 }
             }
         }

@@ -17,14 +17,47 @@ public extension Dictionary {
         }
     }
     
-    subscript<RawKey: RawRepresentable>(key: RawKey) -> Value? where RawKey.RawValue == Dictionary.Key {
+    /// Accesses the value associated with the key for the given value identifier.
+    subscript<KeyIdentifier: Identifiable>(key: KeyIdentifier) -> Value? where KeyIdentifier.ID == Dictionary.Key {
+        get { self[key.id] }
+        set { self[key.id] = newValue  }
+    }
+    
+    /// Accesses the value associated with the key containing the
+    @_disfavoredOverload
+    subscript(key: Key.ID) -> Value? where Key: Identifiable {
+        first(where: { $0.key.id == key })?.value
+    }
+    
+    /// Accesses the value associated with the key for the given raw value.
+    subscript<KeyRawValue: RawRepresentable>(key: KeyRawValue) -> Value? where KeyRawValue.RawValue == Dictionary.Key {
         get { self[key.rawValue] }
         set { self[key.rawValue] = newValue  }
     }
     
-    subscript<IdentifiableKey: Identifiable>(key: IdentifiableKey) -> Value? where IdentifiableKey.ID == Dictionary.Key {
-        get { self[key.id] }
-        set { self[key.id] = newValue  }
+    /// Accesses the value associated with the key for the given raw value.
+    @_disfavoredOverload
+    subscript(key: Key.RawValue) -> Value? where Key: RawRepresentable {
+        get {
+            guard let key = Key(rawValue: key) else { return nil }
+            return self[key]
+        }
+        set {
+            guard let key = Key(rawValue: key) else { return }
+            self[key] = newValue
+        }
+    }
+    
+    /// Accesses the value with the given key, falling back to an empty collection if the key isn’t found.
+    subscript(default key: Key) -> Value where Value: ExpressibleByArrayLiteral {
+        get { self[key, default: []] }
+        set { self[key] = newValue }
+    }
+    
+    /// Accesses the value with the given key, falling back to an empty dictionary if the key isn’t found.
+    subscript(default key: Key) -> Value where Value: ExpressibleByDictionaryLiteral  {
+        get { self[key, default: [:]] }
+        set { self[key] = newValue }
     }
     
     /**
@@ -265,41 +298,6 @@ public extension Dictionary where Value: Equatable {
     }
 }
 
-extension Dictionary where Key: Identifiable {
-    @_disfavoredOverload
-    public subscript(key: Key.ID) -> Value? {
-        first(where: { $0.key.id == key })?.value
-    }
-}
-
-extension Dictionary where Key: RawRepresentable {
-    @_disfavoredOverload
-    public subscript(key: Key.RawValue) -> Value? {
-        get {
-            guard let key = Key(rawValue: key) else { return nil }
-            return self[key]
-        }
-        set {
-            guard let key = Key(rawValue: key) else { return }
-            self[key] = newValue
-        }
-    }
-}
-
-public extension NSDictionary {
-    /// The dictionary as `Dictionary`.
-    func toDictionary() -> [String: Any] {
-        reduce(into: [:]) {
-            $0[$1.key as? String ?? "\($1.key)"] = $1.value
-        }
-    }
-
-    /// The dictionary as `CFDictionary`.
-    var cfDictionary: CFDictionary {
-        self as CFDictionary
-    }
-}
-
 public extension Dictionary where Value == Any {
     /// Returns the value casted to the requested type, or `nil` if the value is missing or of a different type.
     subscript<T>(typed key: Key) -> T? {
@@ -327,5 +325,19 @@ public extension Dictionary where Value == Any {
             return val1 as AnyObject !== val2 as AnyObject
         }
         return true
+    }
+}
+
+public extension NSDictionary {
+    /// The dictionary as `Dictionary`.
+    func toDictionary() -> [String: Any] {
+        reduce(into: [:]) {
+            $0[$1.key as? String ?? "\($1.key)"] = $1.value
+        }
+    }
+
+    /// The dictionary as `CFDictionary`.
+    var cfDictionary: CFDictionary {
+        self as CFDictionary
     }
 }

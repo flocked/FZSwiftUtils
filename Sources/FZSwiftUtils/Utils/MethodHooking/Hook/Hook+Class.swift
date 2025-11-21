@@ -32,7 +32,7 @@ extension Hook {
                 let hookContext = try HookContext.get(for: self.class, selector: selector, isSpecifiedInstance: false)
                 try hookContext.append(hookClosure: hookClosure, mode: mode)
                 self.hookContext = hookContext
-                !isInstance ? _AnyClass(self.class).addHook(self) : _AnyClass(self.class).addInstanceHook(self)
+                ClassHooks(self.class, isInstance: isInstance).addHook(self)
             }
         }
         
@@ -43,7 +43,7 @@ extension Hook {
                 try hookContext.remove(hookClosure: hookClosure, mode: mode)
                 self.hookContext = nil
                 if remove {
-                    !isInstance ? _AnyClass(self.class).removeHook(self) : _AnyClass(self.class).removeInstanceHook(self)
+                    ClassHooks(self.class, isInstance: isInstance).removeHook(self)
                 }
                 guard !(try hookContext.isIMPChanged()) else { return }
                 guard hookContext.isHookClosurePoolEmpty else { return }

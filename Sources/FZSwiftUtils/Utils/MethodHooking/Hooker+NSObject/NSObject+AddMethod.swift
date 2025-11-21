@@ -106,7 +106,7 @@ class AddMethodHook: AnyHook {
         if !didSubclass {
             didSubclass = true
             if !InterposeSubclass.isSubclass(object: object) {
-                hooks = _AnyObject(object).allHooks
+                hooks = Hook.ObjectHooks(object).allHooks
                 try hooks.forEach({ try $0.revert(remove: false) })
             }
             interposeSubclass = try InterposeSubclass(object: object)
@@ -114,7 +114,7 @@ class AddMethodHook: AnyHook {
         _ = typeEncoding.withCString { typeEncodingPtr in
             class_replaceMethod(dynamicSubclass, selector, replacementIMP, typeEncodingPtr)
         }
-        _AnyObject(object).addedMethods.insert(selector)
+        Hook.ObjectHooks(object).addedMethods.insert(selector)
     }
     #else
     override func replaceImplementation() throws {
@@ -137,7 +137,7 @@ class AddMethodHook: AnyHook {
         method_setImplementation(method, noopIMP)
         guard let object = object else { return }
         #if os(macOS) || os(iOS)
-        _AnyObject(object).addedMethods.remove(selector)
+        Hook.ObjectHooks(object).addedMethods.remove(selector)
         #else
         (object as? NSObject)?.addedMethods.remove(selector)
         #endif
@@ -175,7 +175,7 @@ class AddInstanceMethodHook: AnyHook {
         _ = typeEncoding.withCString { typeEncodingPtr in
             class_replaceMethod(class_, selector, replacementIMP, typeEncodingPtr)
         }
-        _AnyClass(class_).addedMethods.insert(selector)
+        Hook.ClassHooks(class_).addedMethods.insert(selector)
     }
     
     override func resetImplementation() throws {
@@ -183,7 +183,7 @@ class AddInstanceMethodHook: AnyHook {
         let noop: @convention(block) (AnyObject) -> Void = { _ in }
         let noopIMP = imp_implementationWithBlock(noop)
         method_setImplementation(method, noopIMP)
-        _AnyClass(class_).addedMethods.remove(selector)
+        Hook.ClassHooks(class_).addedMethods.remove(selector)
     }
     
     init<T: NSObject>(class_: T.Type, selector: Selector, hookClosure: Any) throws {

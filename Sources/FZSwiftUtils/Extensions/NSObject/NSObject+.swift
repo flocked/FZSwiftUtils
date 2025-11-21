@@ -555,7 +555,7 @@ public extension NSObject {
      - Returns: A function pointer of the given type, or `nil` if the selector is not found.
      */
     func method<F>(for selector: String, as clsoure: F.Type) -> F? {
-        method(for: NSSelectorFromString(selector), as: clsoure)
+        method(for: .string(selector), as: clsoure)
     }
 
     /**
@@ -606,6 +606,6 @@ public extension NSObject {
      - Returns: A function pointer of the given type, or `nil` if the selector is not found.
      */
     class func method<F>(for selector: String, as clsoure: F.Type) -> F? {
-        method(for: NSSelectorFromString(selector), as: clsoure)
+        method(for: .string(selector), as: clsoure)
     }
 }

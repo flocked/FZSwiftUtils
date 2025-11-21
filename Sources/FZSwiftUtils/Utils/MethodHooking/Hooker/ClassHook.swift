@@ -345,4 +345,99 @@ extension ClassHook {
                                  AnyObject, Selector,  Any) -> Void)
     }
 }
+
+extension ClassHook {
+    func setAssociatedValue<V>(_ value: V?, key: String) {
+        FZSwiftUtils.setAssociatedValue(value, key: key, object: targetClass)
+    }
+    
+    func getAssociatedValue<V>(_ key: String) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, object: targetClass)
+    }
+    
+    func getAssociatedValue<V>(_ key: String, initialValue: @autoclosure () -> V) -> V {
+        FZSwiftUtils.getAssociatedValue(key, object: targetClass, initialValue: initialValue)
+    }
+    
+    func getAssociatedValue<V>(_ key: String, initialValue: () -> V) -> V {
+        FZSwiftUtils.getAssociatedValue(key, object: targetClass, initialValue: initialValue)
+    }
+    
+    var addedMethods: Set<Selector> {
+        get { getAssociatedValue("addedMethods") ?? [] }
+        set {
+            setAssociatedValue(newValue, key: "addedMethods")
+            guard let targetClass = targetClass as? NSObject.Type else { return }
+            if newValue.count == 1 {
+                do {
+                    try targetClass.hook(all: "respondsToSelector:", closure: {
+                        original, object, sel, selector in
+                        if let selector = selector {
+                            let added: Set<Selector> = FZSwiftUtils.getAssociatedValue("addedMethods", object: targetClass) ?? []
+                            if added.contains(selector) {
+                                return true
+                            }
+                        }
+                        return original(object, sel, selector)
+                    } as @convention(block) ( (NSObject, Selector, Selector?) -> Bool, NSObject, Selector, Selector?) -> Bool)
+                } catch {
+                    Swift.print(error)
+                }
+            } else if newValue.isEmpty {
+                revertHooks(for: "respondsToSelector:")
+            }
+        }
+    }
+}
+
+extension ClassHook {
+    private var hooks: [Bool: [Selector: [HookMode: Set<Hook>]]] {
+        get { getAssociatedValue("hooks") ?? [:] }
+        set { setAssociatedValue(newValue, key: "hooks") }
+    }
+    
+    func revertHooks(for selector: Selector, type: HookMode? = nil, isInstance: Bool = false) {
+       var classHook = self
+        if let type = type {
+            classHook.hooks[isInstance, default: [:]][selector, default: [:]][type]?.forEach({ try? $0.revert(remove: false) })
+            classHook.hooks[isInstance, default: [:]][selector, default: [:]][type] = []
+        } else {
+            classHook.hooks[isInstance, default: [:]][selector]?.flatMap({$0.value}).forEach({ try? $0.revert(remove: false) })
+            classHook.hooks[isInstance, default: [:]][selector] = [:]
+        }
+    }
+    
+    func revertHooks(for selector: String, type: HookMode? = nil, isInstance: Bool = false) {
+        revertHooks(for: NSSelectorFromString(selector), type: type, isInstance: isInstance)
+    }
+    
+    func revertAllHooks(isInstance: Bool) {
+        hooks[isInstance, default: [:]].keys.forEach({ revertHooks(for: $0, isInstance: isInstance) })
+    }
+    
+    func isMethodHooked(_ selector: Selector, type: HookMode? = nil, isInstance: Bool = false) -> Bool {
+        if let type = type {
+            return hooks[isInstance, default: [:]][selector]?[type]?.isEmpty == false
+        }
+        return hooks[isInstance, default: [:]][selector]?.isEmpty == false
+    }
+    
+    func isMethodHooked(_ selector: String, type: HookMode? = nil, isInstance: Bool = false) -> Bool {
+        isMethodHooked(NSSelectorFromString(selector), type: type, isInstance: isInstance)
+    }
+    
+    func addHook(_ token: Hook, isInstance: Bool = false) {
+        var classHook = self
+        classHook.hooks[isInstance, default: [:]][token.selector, default: [:]][token.mode, default: []].insert(token)
+    }
+    
+    func removeHook(_ token: Hook, isInstance: Bool = false) {
+        var classHook = self
+        classHook.hooks[isInstance, default: [:]][token.selector, default: [:]][token.mode, default: []].remove(token)
+    }
+    
+    func allHooks(isInstance: Bool = false) -> [Hook] {
+        hooks[isInstance, default: [:]].values.flatMap({ val in val.flatMap({$0.value})  })
+    }
+}
 #endif
