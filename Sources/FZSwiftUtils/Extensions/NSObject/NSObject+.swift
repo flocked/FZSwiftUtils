@@ -545,6 +545,18 @@ public extension NSObject {
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
     }
+    
+    /**
+     Returns the implementation function for an instance method of this object, cast to the given function type.
+
+     - Parameters:
+        - selector: The Objective-C selector identifying the class method.
+        - clsoure: The Swift function type that matches the method's IMP signature.
+     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
+     */
+    func method<F>(for selector: String, as clsoure: F.Type) -> F? {
+        method(for: NSSelectorFromString(selector), as: clsoure)
+    }
 
     /**
      Returns the implementation function for a class method of this class, cast to the given function type.
@@ -583,5 +595,17 @@ public extension NSObject {
         guard let method = class_getClassMethod(object_getClass(self), selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
+    }
+    
+    /**
+     Returns the implementation function for a class method of this class, cast to the given function type.
+
+     - Parameters:
+        - selector: The Objective-C selector identifying the class method.
+        - clsoure: The Swift function type that matches the method's IMP signature.
+     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
+     */
+    class func method<F>(for selector: String, as clsoure: F.Type) -> F? {
+        method(for: NSSelectorFromString(selector), as: clsoure)
     }
 }
