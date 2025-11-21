@@ -8,7 +8,7 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
-import _Libffi
+import libffi_apple
 #if SWIFT_PACKAGE
 import _OCSources
 #endif
