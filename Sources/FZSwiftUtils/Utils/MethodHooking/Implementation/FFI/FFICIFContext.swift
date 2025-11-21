@@ -8,7 +8,7 @@
 
 #if os(macOS) || os(iOS)
 import Foundation
-import libffi_apple
+import _Libffi
 import _OCSources
 
 class FFICIFContext {
