@@ -540,7 +540,7 @@ public extension NSObject {
      }
      ```
      */
-    func instanceMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
+    func method<F>(for selector: Selector, as clsoure: F.Type) -> F? {
         guard let method = class_getInstanceMethod(object_getClass(self), selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
@@ -579,7 +579,7 @@ public extension NSObject {
      }
      ```
      */
-    class func classMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
+    class func method<F>(for selector: Selector, as clsoure: F.Type) -> F? {
         guard let method = class_getClassMethod(object_getClass(self), selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
