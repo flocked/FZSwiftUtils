@@ -72,12 +72,21 @@ public protocol OptionalProtocol: ExpressibleByNilLiteral {
     var optional: Wrapped? { get }
 }
 
-extension Optional: OptionalProtocol {
+/// A type represeting an optional value.
+public protocol OptionalType {
+    /// The type of the wrapped value.
+    var wrappedType: Any.Type { get }
+}
+
+extension Optional: OptionalProtocol, OptionalType {
     /// The optional value.
     public var optional: Self { self }
     
+    /// The type of the wrapped value.
+    public var wrappedType: Any.Type { Wrapped.self }
+    
     /// A Boolean value indicating whether the optional value is `nil`.
     var isNil: Bool {
-        self.optional == nil
+        optional == nil
     }
 }
