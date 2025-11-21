@@ -17,19 +17,25 @@ extension NSObject {
         - arguments: The arguments to pass to the message when it is invoked.
      */
     public func perform(_ selector: Selector, withArguments arguments: [Any?] = []) {
-        if arguments.isEmpty {
-            perform(selector)
-        } else if arguments.count == 1 {
-            perform(selector, with: arguments[0])
-        } else if arguments.count == 2 {
-            perform(selector, with: arguments[0], with: arguments[1])
-        } else {
-            guard let signature = getMethodSignature(for: selector) else { return }
-            let invocation = Invocation(signature: signature)
-            invocation.target = self
-            invocation.selector = selector
-            invocation.arguments = arguments
-            invocation.invoke()
+        do {
+            try NSObject.catchException {
+                if arguments.isEmpty {
+                    perform(selector)
+                } else if arguments.count == 1 {
+                    perform(selector, with: arguments[0])
+                } else if arguments.count == 2 {
+                    perform(selector, with: arguments[0], with: arguments[1])
+                } else {
+                    guard let signature = getMethodSignature(for: selector) else { return }
+                    let invocation = Invocation(signature: signature)
+                    invocation.target = self
+                    invocation.selector = selector
+                    invocation.arguments = arguments
+                    invocation.invoke()
+                }
+            }
+        } catch {
+            Swift.print(error)
         }
     }
     
@@ -53,13 +59,20 @@ extension NSObject {
      - Returns: The result of the message.
      */
     public func perform<V>(_ selector: Selector, withArguments arguments: [Any?] = []) -> V? {
-        guard let signature = getMethodSignature(for: selector) else { return nil }
-        let invocation = Invocation(signature: signature)
-        invocation.target = self
-        invocation.selector = selector
-        invocation.arguments = arguments
-        invocation.invoke()
-        return invocation.returnValue as? V
+        do {
+            return try NSObject.catchException {
+                guard let signature = getMethodSignature(for: selector) else { return nil }
+                let invocation = Invocation(signature: signature)
+                invocation.target = self
+                invocation.selector = selector
+                invocation.arguments = arguments
+                invocation.invoke()
+                return invocation.returnValue as? V
+            }
+        } catch {
+            Swift.print(error)
+            return nil
+        }
     }
     
     /**
@@ -84,13 +97,20 @@ extension NSObject {
      */
     @_disfavoredOverload
     public func perform(_ selector: Selector, withArguments arguments: [Any?] = []) -> Any? {
-        guard let signature = getMethodSignature(for: selector) else { return nil }
-        let invocation = Invocation(signature: signature)
-        invocation.target = self
-        invocation.selector = selector
-        invocation.arguments = arguments
-        invocation.invoke()
-        return invocation.returnValue
+        do {
+          return try NSObject.catchException {
+                guard let signature = getMethodSignature(for: selector) else { return nil }
+                let invocation = Invocation(signature: signature)
+                invocation.target = self
+                invocation.selector = selector
+                invocation.arguments = arguments
+                invocation.invoke()
+                return invocation.returnValue
+            }
+        } catch {
+            Swift.print(error)
+            return nil
+        }
     }
     
     /**
