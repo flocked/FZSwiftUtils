@@ -50,10 +50,6 @@ extension NSObject {
             return setterName
         }
         
-        if !class_respondsToSelector(lookupClass, Selector(getterName)) {
-            return nil
-        }
-        
         var names = ["set\(getterName.uppercasedFirst()):"]
         if getterName.hasPrefix("is") {
             names += "set\(getterName.dropFirst(2).uppercasedFirst()):"

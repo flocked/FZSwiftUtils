@@ -20,50 +20,66 @@ public extension URL {
 
     /// An object for reading and writing extended attributes of a file system resource.
     class ExtendedAttributes {
-
+        
         /// The url of the file system resource.
         public private(set) var url: URL
-
+        
         /**
          Creates an extended attributes object from the specified url.
-
+         
          - Parameter url: The url of the file.
          - Returns: An object for reading and writing extended attributes of the file.
          */
         public init(_ url: URL) {
             self.url = url
         }
-
+        
         public subscript<T>(key: String) -> T? {
             get { try? get(key) }
             set { try? set(newValue, for: key) }
         }
         
-        public subscript<T>(key: String) -> T? where T: Codable {
-            get { try? get(key) }
-            set { try? set(newValue, for: key) }
+        public subscript<T>(key: String, strategy: CodingStrategy = .json) -> T? where T: Codable {
+            get { try? get(key, using: strategy) }
+            set { try? set(newValue, for: key, using: strategy) }
         }
-
+        
+        /// The strategy how to encode and decode extended attributes.
+        public enum CodingStrategy {
+            /// Property list.
+            case propertyList
+            /// JSON (only for `Codable` types)
+            case json
+        }
+        
+        /**
+         The value of an key.
+         
+         - Parameter key: The name of the attribute.
+         - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
+         */
+        public func get<T>(_ key: String) throws -> T?{
+            try getPropertyListt(key)
+        }
+        
         /**
          The value of an key.
 
          - Parameter key: The name of the attribute.
          - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
          */
-        public func get<T>(_ key: String) throws -> T?{
+        public func get<T>(_ key: String, using strategy: CodingStrategy = .json) throws -> T where T: Codable {
+            strategy == .json ? try getJSON(key) : try getPropertyListt(key)
+        }
+        
+        private func getPropertyListt<T>(_ key: String) throws -> T {
             guard let value = try PropertyListSerialization.propertyList(from: try getData(for: key), format: nil) as? T else {
                 throw CocoaError(.coderInvalidValue)
             }
             return value
         }
         
-        /**
-         The value of an key.
-
-         - Parameter key: The name of the attribute.
-         - Returns: The value of the key, or `nil` if there isn't an attribute with the key.
-         */
-        public func get<T>(_ key: String) throws -> T where T: Codable {
+        private func getJSON<T>(_ key: String) throws -> T where T: Codable {
             try JSONDecoder().decode(T.self, from: try getData(for: key))
         }
 
@@ -77,12 +93,7 @@ public extension URL {
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func set<T>(_ value: T?, for key: String, flags: Flags? = nil) throws {
-            if let value = value {
-                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
-                try setData(data, for: key)
-            } else {
-                try remove(key)
-            }
+           try setPropertyList(value, for: key, flags: flags)
         }
         
         /**
@@ -94,7 +105,27 @@ public extension URL {
 
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
-        public func set<T>(_ value: T?, for key: String, flags: Flags? = nil) throws where T: Codable {
+        public func set<T>(_ value: T?, for key: String, using strategy: CodingStrategy = .json, flags: Flags? = nil) throws where T: Codable {
+            if strategy == .json {
+                try setJSON(value, for: key, flags: flags)
+            } else {
+                try setPropertyList(value, for: key, flags: flags)
+            }
+        }
+        
+        private func setPropertyList<T>(_ value: T?, for key: String, flags: Flags? = nil) throws {
+            if let value = value {
+                guard PropertyListSerialization.propertyList(value, isValidFor: .binary) else {
+                    throw CocoaError(.propertyListWriteInvalid)
+                }
+                let data = try PropertyListSerialization.data(fromPropertyList: value, format: .binary, options: 0)
+                try setData(data, for: key)
+            } else {
+                try remove(key)
+            }
+        }
+        
+        private func setJSON<T: Codable>(_ value: T?, for key: String, flags: Flags? = nil) throws {
             if let value = value {
                 let data = try JSONEncoder().encode(value)
                 try setData(data, for: key)
