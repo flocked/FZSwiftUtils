@@ -43,25 +43,30 @@ extension NSObject {
         set { setAssociatedValue(newValue, key: "setterNames") }
     }
     
-    static func setterName(for getterName: String, _class: AnyClass) -> String? {
-        if let setterName = setterNames[_class, default: [:]][getterName] {
+    static func setterName(for getterName: String, _class: AnyClass, isInstance: Bool = true) -> String? {
+        let lookupClass: AnyClass = isInstance ? _class : object_getClass(_class) ?? _class
+        
+        if let setterName = setterNames[lookupClass, default: [:]][getterName] {
             return setterName
         }
-        var names: [String] = []
+        
+        if !class_respondsToSelector(lookupClass, Selector(getterName)) {
+            return nil
+        }
+        
+        var names = ["set\(getterName.uppercasedFirst()):"]
         if getterName.hasPrefix("is") {
             names += "set\(getterName.dropFirst(2).uppercasedFirst()):"
         } else if getterName.hasPrefix("get") {
             names += "set\(getterName.dropFirst(3).uppercasedFirst()):"
         }
-        names += "set\(getterName.uppercasedFirst()):"
-        for name in names {
-            if class_respondsToSelector(_class, NSSelectorFromString(name)) {
-                return name
-            }
+        if let name = names.first(where: { class_respondsToSelector(lookupClass, Selector($0)) }) {
+            setterNames[lookupClass, default: [:]][getterName] = name
+            return name
         }
-        
+       
         let getterSelector = Selector(getterName)
-        var currentClass: AnyClass? = _class
+        var currentClass: AnyClass? = lookupClass
         while let c = currentClass {
             var propertyCount: UInt32 = 0
             guard let properties = class_copyPropertyList(c, &propertyCount) else {
@@ -72,25 +77,24 @@ extension NSObject {
             
             for i in 0..<propertyCount {
                 let property = properties[Int(i)]
-                let nameCStr = property_getName(property)
-                let propName = String(cString: nameCStr)
+                let name = String(cString: property_getName(property))
                 
-                let getterSel: Selector
-                if let getterAttr = property.attribute(for: "G") {
-                    getterSel = Selector(getterAttr)
-                } else {
-                    getterSel = Selector(propName)
+                guard getterSelector == Selector(property.attribute(for: "G") ?? name) else { continue }
+                if let explicitSetter = property.attribute(for: "S") {
+                    setterNames[lookupClass, default: [:]][getterName] = explicitSetter
+                    return explicitSetter
                 }
-                
-                if getterSel == getterSelector {
-                    if let setterAttr = property.attribute(for: "S") {
-                        setterNames[_class, default: [:]][getterName] = setterAttr
-                        return setterAttr
-                    } else {
-                        setterNames[_class, default: [:]][getterName] = "set\(propName.uppercasedFirst()):"
-                        return "set\(propName.uppercasedFirst()):"
-                    }
+                var names = ["set\(name.uppercasedFirst()):"]
+                if name.hasPrefix("is") {
+                    names += "set\(name.dropFirst(2).uppercasedFirst()):"
+                } else if name.hasPrefix("get") {
+                    names += "set\(name.dropFirst(3).uppercasedFirst()):"
                 }
+                if let name = names.first(where: { class_respondsToSelector(c, Selector($0)) }) {
+                    setterNames[lookupClass, default: [:]][getterName] = name
+                    return name
+                }
+                return nil
             }
             currentClass = class_getSuperclass(c)
         }
