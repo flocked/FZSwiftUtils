@@ -84,7 +84,12 @@ public extension CGSize {
     }
     #endif
     
-    /// Returns the larger of the width and height.
+    /// Returns the smaller of the `width` and `height` value..
+    var min: CGFloat {
+        Swift.min(width, height)
+    }
+    
+    /// Returns the larger of the `width` and `height` value..
     var max: CGFloat {
         Swift.max(width, height)
     }
