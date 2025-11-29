@@ -66,28 +66,20 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter invocationHandler: The handler that provides the inovcation whenever a method of the object is called.
      */
     public func proxy(invocationHandler: @escaping (_ invocation: Invocation)->()) -> Self {
-        HandlerProxy(object: self, invocationHandler: invocationHandler).asObject()
+        InvocationProxy(object: self, handler: invocationHandler).asObject()
     }
 }
 
-fileprivate class HandlerProxy<Object: NSObject>: ObjectProxy {
-    let invocationHandler: ((Invocation)->())?
+fileprivate class InvocationProxy<Object: NSObject>: NSObjectProxy<Object> {
+    let handler: ((Invocation)->())
     
-    init(object: Object, invocationHandler: ((Invocation)->())? = nil) {
-        self.invocationHandler = invocationHandler
+    init(object: Object, handler: @escaping ((Invocation)->())) {
+        self.handler = handler
         super.init(targetObject: object)
     }
     
     override func forwardingInvocation(_ invocation: Invocation) {
-        if let handler = invocationHandler {
-            invocation.target = _target
-            handler(invocation)
-        } else {
-            super.forwardingInvocation(invocation)
-        }
-    }
-    
-    func asObject() -> Object {
-        (_target as! Object)._map(to: self)
+        invocation.target = _target
+        handler(invocation)
     }
 }

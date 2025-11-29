@@ -761,6 +761,46 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
         return new
     }
     
+    /// Sorts the ordered dictionary in place, by the key.
+    public mutating func sortByKey(_ order: SortingOrder = .ascending) where Key: Comparable {
+        sort(by: order == .ascending ? { $0.key < $1.key } : { $0.key > $1.key } )
+    }
+    
+    /// Sorts the ordered dictionary in place, by the value.
+    public mutating func sortByValue(_ order: SortingOrder = .ascending) where Value: Comparable {
+        sort(by: order == .ascending ? { $0.value < $1.value } : { $0.value > $1.value } )
+    }
+    
+    /// Sorts the ordered dictionary in place, by the specified key property.
+    public mutating func sortByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortingOrder = .ascending) {
+        sort(by: order == .ascending ? { $0.key[keyPath: keyPath] < $1.key[keyPath: keyPath] } : { $0.key[keyPath: keyPath] > $1.key[keyPath: keyPath] } )
+    }
+    
+    /// Sorts the ordered dictionary in place, by the specified value property.
+    public mutating func sortByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortingOrder = .ascending) {
+        sort(by: order == .ascending ? { $0.value[keyPath: keyPath] < $1.value[keyPath: keyPath] } : { $0.value[keyPath: keyPath] > $1.value[keyPath: keyPath] } )
+    }
+    
+    /// Returns a new ordered dictionary, sorted by the key.
+    public func sortedByKey(_ order: SortingOrder = .ascending) -> Self where Key: Comparable {
+        sorted(by: order == .ascending ? { $0.key < $1.key } : { $0.key > $1.key } )
+    }
+    
+    /// Returns a new ordered dictionary, sorted by the value.
+    public func sortedByValue(_ order: SortingOrder = .ascending) -> Self where Value: Comparable {
+        sorted(by: order == .ascending ? { $0.value < $1.value } : { $0.value > $1.value } )
+    }
+    
+    /// Returns a new ordered dictionary, sorted by the specified key property.
+    public func sortedByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortingOrder = .ascending) -> Self {
+        sorted(by: order == .ascending ? { $0.key[keyPath: keyPath] < $1.key[keyPath: keyPath] } : { $0.key[keyPath: keyPath] > $1.key[keyPath: keyPath] } )
+    }
+    
+    /// Returns a new ordered dictionary, sorted by the specified value property.
+    public func sortedByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortingOrder = .ascending) -> Self {
+        sorted(by: order == .ascending ? { $0.value[keyPath: keyPath] < $1.value[keyPath: keyPath] } : { $0.value[keyPath: keyPath] > $1.value[keyPath: keyPath] } )
+    }
+    
     fileprivate mutating func _sort(in range: Range<Index>, by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
         defer { _assertInvariant() }
         
@@ -1127,42 +1167,43 @@ extension Dictionary {
 extension OrderedDictionary: Encodable where Key: Encodable, Value: Encodable {
     /// Encodes the contents of this ordered dictionary into the given encoder.
     public func encode(to encoder: Encoder) throws {
-        // Encode the ordered dictionary as an array of alternating key-value pairs.
-        var container = encoder.unkeyedContainer()
-        
-        for (key, value) in self {
-            try container.encode(key)
-            try container.encode(value)
-        }
+        var container = encoder.singleValueContainer()
+        try container.encode(map({ KeyValuePair(key: $0.key, value: $0.value) }))
     }
-    
 }
 
 extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
     /// Creates a new ordered dictionary by decoding from the given decoder.
     public init(from decoder: Decoder) throws {
-        // Decode the ordered dictionary from an array of alternating key-value pairs.
-        self.init()
-    
-        var container = try decoder.unkeyedContainer()
+        var container = try decoder.singleValueContainer()
+        let elements = try container.decode([KeyValuePair<Key, Value>].self)
         
-        while !container.isAtEnd {
-            let key = try container.decode(Key.self)
-            guard !container.isAtEnd else { throw DecodingError.unkeyedContainerReachedEndBeforeValue(decoder.codingPath) }
-            let value = try container.decode(Value.self)
-            
-            self[key] = value
+        var orderedKeys = [Key](minimumCapacity: elements.count)
+        var keysToValues = [Key: Value](minimumCapacity: elements.count)
+        for element in elements {
+            precondition(keysToValues[element.key] == nil, "[OrderedDictionary] Sequence of key-value pairs contains duplicate keys (\(element.key))")
+            orderedKeys.append(element.key)
+            keysToValues[element.key] = element.value
         }
+        _orderedKeys = orderedKeys
+        _keysToValues = keysToValues
     }
-    
 }
 
-extension DecodingError {
-    fileprivate static func unkeyedContainerReachedEndBeforeValue(_ codingPath: [CodingKey]) -> DecodingError {
-        .dataCorrupted(.init(codingPath: codingPath, debugDescription: "Unkeyed container reached end before value in key-value pair."))
-    }
-    
+private struct KeyValuePair<Key, Value> {
+    let key: Key
+    let value: Value
 }
+
+extension KeyValuePair: Encodable where Key: Encodable, Value: Encodable { }
+extension KeyValuePair: Decodable where Key: Decodable, Value: Decodable { }
+
+/*
+ private var _orderedKeys: [Key]
+ 
+ /// The backing storage for the mapping of keys to values.
+ private var _keysToValues: [Key: Value]
+ */
 
 extension OrderedDictionary: CustomStringConvertible, CustomDebugStringConvertible {
     /// A textual representation of the ordered dictionary.

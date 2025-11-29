@@ -418,11 +418,8 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: Equatable {
-        try hookBefore(set: keyPath) { object, value in
-            guard !uniqueValues || value != object[keyPath: keyPath] else { return }
-            closure(object, value)
-        }
+    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hookBefore(try keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -443,11 +440,8 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hookBefore(set: keyPath) { object, value in
-            guard !uniqueValues || value != object[keyPath: keyPath] else { return }
-            closure(object, value)
-        }
+    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
+        try hookBefore(try keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -552,11 +546,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
-        try hook(set: keyPath) { object, value, original in
-            let oldValue = object[keyPath: keyPath]
-            original(value)
-            closure(object, oldValue, value)
-        }
+        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
@@ -578,11 +568,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hook(set: keyPath) { object, value, original in
-            let oldValue = object[keyPath: keyPath]
-            original(value)
-            closure(object, oldValue, value)
-        }
+        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
@@ -605,12 +591,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hook(set: keyPath) { object, value, original in
-            let oldValue = object[keyPath: keyPath]
-            original(value)
-            guard !uniqueValues || oldValue != value else { return }
-            closure(object, oldValue, value)
-        }
+        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -633,12 +614,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hook(set: keyPath) { object, value, original in
-            let oldValue = object[keyPath: keyPath]
-            original(value)
-            guard !uniqueValues || oldValue != value else { return }
-            closure(object, oldValue, value)
-        }
+        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -660,7 +636,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook {
-        return try hook(try keyPath.getterName(), closure: Hook.closure(for: closure))
+        return try hook(try keyPath.getterName(), closure: Hook.getterClosure(for: closure))
     }
     
     /**
@@ -682,7 +658,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
-        return try hook(try keyPath.getterName(), closure: Hook.closure(for: closure))
+        return try hook(try keyPath.getterName(), closure: Hook.getterClosure(for: closure))
     }
     
     /**
@@ -707,7 +683,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
-        return try hook(try keyPath.setterName(), closure: Hook.closure(for: closure))
+        return try hook(try keyPath.setterName(), closure: Hook.setterClosure(for: closure))
     }
     
     /**
@@ -732,7 +708,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
-        return try hook(try keyPath.setterName(), closure: Hook.closure(for: closure))
+        return try hook(try keyPath.setterName(), closure: Hook.setterClosure(for: closure))
     }
 }
 #endif

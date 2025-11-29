@@ -8,6 +8,7 @@
 
 import Foundation
 
+
 /**
  An ordered collection of unique objects.
  
@@ -24,8 +25,8 @@ import Foundation
  // => salt
  ```
  */
-public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplaceableCollection, MutableCollection, BidirectionalCollection, ExpressibleByArrayLiteral {
-                
+public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplaceableCollection, MutableCollection, BidirectionalCollection, ExpressibleByArrayLiteral, SetAlgebra {
+    
     // MARK: - Internal Storage
     
     private var _array: ContiguousArray<Element>
@@ -63,6 +64,24 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
         }
     }
     
+    public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
+        try _array.sort(by: areInIncreasingOrder)
+        _hashIndexDict = _array.enumerated().reduce(into: [:]) { $0[$1.element.hashValue] = $1.offset }
+    }
+    
+    public func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> [Element] {
+        try _array.sorted(by: areInIncreasingOrder)
+    }
+    
+    public mutating func reverse() {
+        _array.reverse()
+        _hashIndexDict = _array.enumerated().reduce(into: [:]) { $0[$1.element.hashValue] = $1.offset }
+    }
+    
+    public func reversed() -> [Element] {
+        _array.reversed()
+    }
+    
     public subscript(element: Element) -> Bool {
         get { contains(element) }
         set {
@@ -95,9 +114,9 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
         self.init(array: ContiguousArray(try set.sorted(by: areInIncreasingOrder)))
     }
     
-    /// Creates an ordered set with the contents of `set`, sorted according to the member type's conformance to `Comparable`.
-    public init(_ set: Set<Element>) where Element: Comparable {
-        self.init(array: ContiguousArray(set.sorted()))
+    /// Creates a new ordered set from a finite sequence of items.
+    public init<S>(_ sequence: S) where S : Sequence<Element> {
+        self.init(array: ContiguousArray(sequence))
     }
     
     /// Creates an empty ordered set.
@@ -108,7 +127,6 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     public init(arrayLiteral elements: Element...) {
         self.init(elements)
     }
-    
         
     private init(array: ContiguousArray<Element>, set: Set<Element>? = nil, hashIndexDict: [Int: Int]? = nil) {
         self._array = array
@@ -146,7 +164,7 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     /// Returns a Boolean value indicating whether this set is a subset of the given set.
     public func isSubset(of other: Self) -> Bool {
-        _set.isSubset(of: other)
+        _set.isSubset(of: other._set)
     }
     
     /// Returns a Boolean value indicating whether the set is a subset of the given sequence.
@@ -161,14 +179,13 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     /// Returns a Boolean value indicating whether the set is a strict subset of the given set.
     public func isStrictSubset(of other: Self) -> Bool {
-        _set.isStrictSubset(of: other)
+        _set.isStrictSubset(of: other._set)
     }
     
     /// Returns a Boolean value indicating whether the set is a strict subset of the given sequence.
     public func isStrictSubset<S>(of possibleSuperset: S) -> Bool where Element == S.Element, S : Sequence {
         isStrictSubset(of: Self(possibleSuperset))
     }
-
     
     /// Returns a Boolean value indicating whether this set is a superset of the given set.
     public func isSuperset(of other: Set<Element>) -> Bool {
@@ -177,11 +194,11 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     /// Returns a Boolean value indicating whether this set is a superset of the given set.
     public func isSuperset(of other: Self) -> Bool {
-        _set.isSuperset(of: other)
+        _set.isSuperset(of: other._set)
     }
     
     /// Returns a Boolean value indicating whether the set is a superset of the given sequence.
-    public func isSuperset<S>(of possibleSubset: S) -> Bool where Element == S.Element, S : Sequence {
+    public func isSuperset<S>(of possibleSubset: S) -> Bool where S: Sequence<Element> {
         isSuperset(of: Self(possibleSubset))
     }
     
@@ -192,7 +209,7 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     /// Returns a Boolean value indicating whether the set is a strict superset of the given set.
     public func isStrictSuperset(of other: Self) -> Bool {
-        _set.isStrictSuperset(of: other)
+        _set.isStrictSuperset(of: other._set)
     }
     
     /// Returns a Boolean value indicating whether the set is a strict superset of the given sequence.
@@ -207,7 +224,7 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     /// Returns `true` if this ordered set has elements in common with `otherSet`.
     public func intersects(with otherSet: Self) -> Bool {
-        !_set.isDisjoint(with: otherSet)
+        !_set.isDisjoint(with: otherSet._set)
     }
     
     /// Returns a Boolean value indicating whether this set has no members in common with the given set.
@@ -216,47 +233,61 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     }
     
     /// Returns a Boolean value indicating whether this set has no members in common with the given set.
-    public func isDisjoint(with other: Self) -> Bool {
+    public func isDisjoint<S: Sequence<Element>>(with other: S) -> Bool {
         _set.isDisjoint(with: other)
     }
     
-    /// Returns a Boolean value indicating whether the set has no members in common with the given sequence.
-    public func isDisjoint<S>(with other: S) -> Bool where Element == S.Element, S : Sequence {
-        isDisjoint(with: Self(other))
-        
+    /// Returns a Boolean value indicating whether this set has no members in common with the given set.
+    public func isDisjoint(with other: Self) -> Bool {
+        _set.isDisjoint(with: other._set)
     }
             
     /// Returns a new set with the elements of both this set and the given sequence.
     @inlinable public func union(_ other: Self) -> Self {
-        self + other
+        var copy = self
+        copy.formUnion(other)
+        return copy
     }
     
     /// Adds the elements of the given set to the set.
     public mutating func formUnion(_ other: Self) {
-        self = union(other)
+        for element in other {
+            if _set.insert(element).inserted {
+                _array.append(element)
+            }
+        }
+        _hashIndexDict = _array.enumerated().reduce(into: [:]) { $0[$1.element.hashValue] = $1.offset }
     }
         
     /// Returns a new set with the elements that are common to both this set and the given set.
     public func intersection(_ other: Self) -> Self {
-        let set = _set.intersection(other)
-        let array = _array.filter({ set.contains($0) })
-        return OrderedSet(array: ContiguousArray(array), set: set)
+        var copy = self
+        copy.formIntersection(other)
+        return copy
     }
     
     /// Removes the elements of this set that aren’t also in the given set.
     public mutating func formIntersection(_ other: Self) {
-        self = intersection(other)
+        _set.formIntersection(other)
+        _array.removeAll(where: { !_set.contains($0) })
+        _hashIndexDict = array.enumerated().reduce(into: [:]) { $0[$1.element.hashValue] = $1.offset }
     }
     
     /// Returns a new set with the elements that are either in this set or in the given set, but not in both.
     public func symmetricDifference(_ other: Self) -> Self {
-        let set = _set.symmetricDifference(other)
-        let array = _array.filter({ set.contains($0) })
-        return OrderedSet(array: ContiguousArray(array), set: set)
+        var copy = self
+        copy.formSymmetricDifference(other)
+        return copy
     }
     
     public mutating func formSymmetricDifference(_ other: Self) {
-        self = symmetricDifference(other)
+        for element in other {
+            if _set.contains(element) {
+                _ = remove(element)
+            } else {
+                _ = insert(element)
+            }
+        }
     }
     
     // MARK: Removing Elements
@@ -344,6 +375,27 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     public func compactMap<T>(_ transform: (Element) throws -> T?, retainOrder: Bool = true) rethrows -> OrderedSet<T> where T: Hashable {
         retainOrder ? OrderedSet<T>(try _array.compactMap(transform)) : OrderedSet<T>(try _set.compactMap(transform))
     }
+    
+    public mutating func insert(_ newMember: __owned Element) -> (inserted: Bool, memberAfterInsert: Element) {
+        let insertation = _set.insert(newMember)
+        if insertation.inserted {
+            _array.append(newMember)
+            _hashIndexDict[newMember.hashValue] = endIndex - 1
+        }
+        return insertation
+    }
+    
+    public mutating func update(with newMember: __owned Element) -> Element? {
+        if let oldMember = _set.update(with: newMember) {
+            if let index = _array.firstIndex(of: oldMember) {
+                _array[index] = newMember
+            }
+            return oldMember
+        } else {
+            _array.append(newMember)
+            return nil
+        }
+    }
 }
 
 // MARK: - Extensions
@@ -366,7 +418,7 @@ extension OrderedSet: Decodable where Element: Decodable {
         let array = try decoder.decodeSingle(ContiguousArray<Element>.self)
         let set = Set(array)
         guard set.count == array.endIndex else {
-            throw Errors.duplicateElementsFound
+            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Duplicate elements found."))
         }
         self.init(array: array, set: set)
     }
@@ -374,7 +426,8 @@ extension OrderedSet: Decodable where Element: Decodable {
 
 extension OrderedSet: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
-        try encoder.encodeSingle(_array)
+        var container = encoder.singleValueContainer()
+        try container.encode(_array)
     }
 }
 
@@ -385,18 +438,5 @@ extension OrderedSet: CustomStringConvertible {
     
     public var debugDescription: String {
         _array.description.debugDescription
-    }
-}
-
-
-fileprivate enum Errors: LocalizedError {
-    case duplicateElementsFound
-    
-    var errorDescription: String? {
-        "Duplicate elements found."
-    }
-    
-    var failureReason: String? {
-        "The array being decoded contains duplicate elements, which is not allowed in an OrderedSet."
     }
 }

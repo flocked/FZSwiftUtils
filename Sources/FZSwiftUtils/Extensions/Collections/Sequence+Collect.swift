@@ -10,7 +10,7 @@ import Foundation
 public extension Sequence {
     /// Returns an array of all elements.
     func collect() -> [Element] {
-        reduce(into: [Element]()) { $0.append($1) }
+        reduce(into: []) { $0.append($1) }
     }
 
     /// Returns an array of all elements.
@@ -27,19 +27,11 @@ public extension Sequence {
      */
     func collect(completion: @escaping ([Element]) -> Void) {
         DispatchQueue.global(qos: .userInitiated).async {
-            let elements = reduce(into: [Element]()) { $0.append($1) }
+            let elements: [Element] = reduce(into: []) { $0.append($1) }
             DispatchQueue.main.async {
                 completion(elements)
             }
         }
-    }
-    
-    /// The first element of the sequence.
-    var first: Element? {
-        for element in self {
-            return element
-        }
-        return nil
     }
 }
 
@@ -56,8 +48,7 @@ public extension AsyncSequence {
      */
     func collect(completion: @escaping ([Element]) -> Void) throws {
         Task {
-            let elements = try await collect()
-            completion(elements)
+            completion(try await collect())
         }
     }
 

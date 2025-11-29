@@ -219,12 +219,21 @@ public extension CGPoint {
     }
 }
 
+#if compiler(>=6.0)
+extension CGPoint: @retroactive Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(x)
+        hasher.combine(y)
+    }
+}
+#else
 extension CGPoint: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(x)
         hasher.combine(y)
     }
 }
+#endif
 
 public extension CGPoint {
     static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {

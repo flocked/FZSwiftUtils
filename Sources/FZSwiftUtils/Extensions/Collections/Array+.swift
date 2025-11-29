@@ -23,7 +23,7 @@ public extension Array {
         - generate: The closure that returns an element.
         - count: The number of times to repeat the closure's value passed in the `generate` parameter.
      */
-    init(generate: ()->(Element), count: Int) {
+    init(generate: @autoclosure ()->(Element), count: Int) {
         self = count >= 0 ? (0..<count).compactMap({ _ in generate() }) : []
     }
     

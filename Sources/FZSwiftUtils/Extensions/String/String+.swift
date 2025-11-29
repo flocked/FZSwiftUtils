@@ -284,7 +284,7 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the replacement string.
      */
-    func replacingOccurrences<S, Replacement>(of strings: S, with replacement: Replacement, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<S, Replacement>(of strings: S, with replacement: Replacement, options: CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol, Replacement: StringProtocol {
         strings.reduce(into: self) { $0 = $0.replacingOccurrences(of: $1, with: replacement, options: options) }
     }
 
@@ -297,7 +297,7 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
      */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
         values.reduce(into: self) { $0 = $0.replacingOccurrences(of: $1.key, with: $1.value, options: options) }
     }
     
@@ -311,7 +311,7 @@ public extension String {
 
      - Returns: A new string with occurrences of target are removed.
      */
-    func removingOccurrences<Target>(of target: Target, options: String.CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol {
+    func removingOccurrences<Target>(of target: Target, options: CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol {
         replacingOccurrences(of: target, with: "", range: searchRange)
     }
     
@@ -324,7 +324,7 @@ public extension String {
 
      - Returns: A new string with occurrences of target strings are removed.
      */
-    func removingOccurrences<S>(of strings: S, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol {
+    func removingOccurrences<S>(of strings: S, options: CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol {
         replacingOccurrences(of: strings, with: "", options: options)
     }
 
@@ -336,6 +336,11 @@ public extension String {
     /// The string as `CFString`.
     var cfString: CFString {
         self as CFString
+    }
+    
+    /// Replaces regular spaces with non-breaking spaces.
+    var nonBreakingSpaces: String {
+        replacingOccurrences(of: " ", with: "\u{00A0}")
     }
 }
 

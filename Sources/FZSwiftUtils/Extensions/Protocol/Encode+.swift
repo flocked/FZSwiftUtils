@@ -18,4 +18,10 @@ public extension Encoder {
         var container = singleValueContainer()
         try container.encode(value)
     }
+    
+    /// Encodes a null value.
+    func encodeNil() throws {
+        var container = singleValueContainer()
+        try container.encodeNil()
+    }
 }

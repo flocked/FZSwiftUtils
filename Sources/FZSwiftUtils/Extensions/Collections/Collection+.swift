@@ -39,7 +39,7 @@ extension Collection {
 public extension Collection {
     /// Returns the element at the index, or `nil` if the collection doesn't the index.
     subscript(safe index: Index) -> Element? {
-        guard !isEmpty, index >= startIndex, index < count else { return nil }
+        guard !isEmpty, index >= startIndex, index < endIndex else { return nil }
         return self[index]
     }
 
@@ -53,6 +53,13 @@ public extension Collection where Index == Int {
     /// Returns the available elements at the specified indexes.
     subscript(indexes: IndexSet) -> [Element] {
         indexes.compactMap { self[safe: $0] }
+    }
+}
+
+public extension Array {
+    init(reserveCapacity capacity: Int) {
+        self.init()
+        reserveCapacity(capacity)
     }
 }
 
@@ -356,7 +363,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
      */
     @discardableResult
     mutating func move<S: Sequence<Element>>(_ elements: S, before beforeElement: Element) -> Bool {
-        guard let destinationIndex = firstIndex(of: beforeElement), destinationIndex + 1 < count else { return false }
+        guard let destinationIndex = firstIndex(of: beforeElement), destinationIndex + 1 < endIndex else { return false }
         let indexes = indexes(of: elements)
         return move(from: indexes, to: destinationIndex)
     }
@@ -373,7 +380,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
     @discardableResult
     mutating func move(_ element: Element, after afterElement: Element) -> Bool {
         let indexes = indexes(of: [element])
-        guard let destinationIndex = firstIndex(of: afterElement), destinationIndex + 1 < count else { return false }
+        guard let destinationIndex = firstIndex(of: afterElement), destinationIndex + 1 < endIndex else { return false }
         return move(from: indexes, to: destinationIndex + 1)
     }
 
@@ -388,7 +395,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
      */
     @discardableResult
     mutating func move<S: Sequence<Element>>(_ elements: S, after afterElement: Element) -> Bool {
-        guard let destinationIndex = firstIndex(of: afterElement), destinationIndex + 1 < count else { return false }
+        guard let destinationIndex = firstIndex(of: afterElement), destinationIndex + 1 < endIndex else { return false }
         let indexes = indexes(of: elements)
         return move(from: indexes, to: destinationIndex + 1)
     }

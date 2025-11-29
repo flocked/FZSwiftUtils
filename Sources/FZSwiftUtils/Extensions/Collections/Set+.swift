@@ -15,7 +15,7 @@ public extension SetAlgebra {
      */
     @_disfavoredOverload
     mutating func insert<S: Sequence<Element>>(_ elements: S) {
-        elements.forEach { self.insert($0) }
+        elements.forEach { insert($0) }
     }
     
     /**
@@ -34,7 +34,7 @@ public extension SetAlgebra {
      */
     @_disfavoredOverload
     mutating func remove<S: Sequence<Element>>(_ elements: S) {
-        elements.forEach { self.remove($0) }
+        elements.forEach { remove($0) }
     }
     
     /**

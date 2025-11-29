@@ -94,7 +94,7 @@ public extension Collection where Element: BinaryFloatingPoint {
         var weights = weights
         if weights.count > count {
             weights = Array(weights[0..<count])
-        } else if weights.count < count {
+        } else if weights.count < endIndex {
             let lastIndex = weights.count - 1
             let step = Element(weights.count - 1) / Element(count - 1)
             weights = (0..<count).map { i in

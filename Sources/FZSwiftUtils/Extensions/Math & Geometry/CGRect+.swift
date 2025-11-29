@@ -12,6 +12,7 @@ import AppKit
 #elseif canImport(UIKit)
 import UIKit
 #endif
+import simd
 
 public extension CGRect {
     init(_ x: CGFloat, _ y: CGFloat, _ width: CGFloat, _ height: CGFloat) {
@@ -994,15 +995,75 @@ public extension CGRect {
         return rects
     }
     
-    /// The distance of the rectangle to the specified point.
-    func distance(to point: CGPoint) -> CGFloat {
+    /**
+     Returns the distance from this rectangle to a point.
+
+     - Parameters:
+       - point: The point to measure distance to.
+       - signed: A Boolean indicating whether the distance should be signed.
+         - `true`: Returns a negative value if the point lies inside the rectangle, positive if outside.
+         - `false` (default): Returns the standard (non-signed) distance. Returns `0` if the point is on the rectangle’s edge or inside.
+     - Returns: The distance.
+     
+     - Note: Distance is measured along the closest edge of the rectangle.
+          
+     Example usage:
+     ```swift
+     let rect = CGRect(x: 0, y: 0, width: 10, height: 10)
+     rect.distance(to: CGPoint(x: 5, y: 5), signed: alse) // 0, inside
+     rect.distance(to: CGPoint(x: 5, y: 5), signed: true) // -5, inside
+     rect.distance(to: CGPoint(x: 15, y: 5)) // 5, outside
+     ```
+     */
+    func distance(to point: CGPoint, signed: Bool = false) -> CGFloat {
+        if signed {
+            let d = abs(SIMD2(x: point.x.native, y: point.y.native) - SIMD2(x: midX.native, y: midY.native)) - SIMD2(x: width.native, y: height.native) / 2
+            return all(d .> 0) ? length(d) : d.max()
+        }
         guard !contains(point) else { return 0.0 }
         let closest = CGPoint(x: min(max(point.x, minX), maxX), y: min(max(point.y, minY), maxY))
         return hypot(point.x - closest.x, point.y - closest.y)
     }
     
-    /// The distance of the rectangle to the specified other rectangle.
-    func distance(to rect: CGRect) -> CGFloat {
+
+    /**
+     Returns the distance from this rectangle to another rectangle.
+
+     - Parameters:
+       - rect: The rectangle to measure distance to.
+       - signed: A Boolean indicating whether the distance should be signed.
+         - `true`: Returns a negative value if the rectangles overlap along any axis, positive if separated along both axes.
+         - `false`: Returns the standard (non-signed) distance. Returns `0` if rectangles touch or overlap along an edge.
+     
+     - Returns: The distance.
+     
+     - Note: Distance is measured along the closest edges along both axes.
+
+    Example usage:
+     ```swift
+     let rect1 = CGRect(x: 0, y: 0, width: 10, height: 10)
+     let rect2 = CGRect(x: 5, y: 5, width: 10, height: 10)
+     rect1.distance(to: rect2, signed: false) // 0, overlap
+     rect1.distance(to: rect2, signed: true) // -5, overlap
+     
+     let rect3 = CGRect(x: 20, y: 0, width: 5, height: 5)
+     rect1.distance(to: rect3, signed: false) // 10, outside
+     rect1.distance(to: rect3, signed: true) // 10, outside
+     ```
+     */
+    func distance(to rect: CGRect, signed: Bool = false) -> CGFloat {
+        if signed {
+            let aMin = SIMD2(minX.native, minY.native)
+            let aMax = SIMD2(maxX.native, maxY.native)
+            let bMin = SIMD2(rect.minX.native, rect.minY.native)
+            let bMax = SIMD2(rect.maxX.native, rect.maxY.native)
+            let delta = max(bMin - aMax, aMin - bMax) // element-wise max            
+            if intersects(rect) {
+                return -min(min(aMax.x - bMin.x, bMax.x - aMin.x), min(aMax.y - bMin.y, bMax.y - aMin.y))
+            } else {
+                return length(max(delta, .init(.zero, .zero)))
+            }
+        }
         if intersects(rect) || self == rect { return 0 }
         
         let xDistance: CGFloat
@@ -1029,12 +1090,21 @@ public extension CGRect {
     }
 }
 
+#if compiler(>=6.0)
+extension CGRect: @retroactive Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(size)
+        hasher.combine(origin)
+    }
+}
+#else
 extension CGRect: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(size)
         hasher.combine(origin)
     }
 }
+#endif
 
 public extension Collection where Element == CGRect {
     /// The union of all rectangles in the collection.
@@ -1044,31 +1114,41 @@ public extension Collection where Element == CGRect {
     
     /// Returns the rectangle in the center.
     var centeredRect: CGRect? {
-        sortedByDistance(to: union().center).first
+        sortedByDistance(to: union().center, signed: true).first
     }
 }
 
 public extension Sequence where Element == CGRect {
-    
-    
     /// Returns the rectangles sorted by distance to the specified point.
-    func sortedByDistance(to point: CGPoint, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
-        sorted(by: { $0.distance(to: point) }, order)
+    func sortedByDistance(to point: CGPoint, signed: Bool = false, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
+        sorted(by: { $0.distance(to: point, signed: signed) }, order)
     }
     
     /// Returns the rectangles sorted by distance to the specified rectangle.
-    func sortedByDistance(to rect: CGRect, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
-        sorted(by: { $0.distance(to: rect) }, order)
+    func sortedByDistance(to rect: CGRect, signed: Bool = false, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
+        sorted(by: { $0.distance(to: rect, signed: signed) }, order)
     }
     
     /// Returns the closed rectangle to the specified point.
-    func closedRect(to point: CGPoint) -> CGRect? {
-        sortedByDistance(to: point).first
+    func closed(to point: CGPoint, signed: Bool = false) -> CGRect? {
+        sortedByDistance(to: point, signed: signed).first
     }
     
     /// Returns the closed rectangle to the specified other rectangle.
-    func closedRect(to rect: CGRect) -> CGRect? {
-        sortedByDistance(to: rect).first
+    func closed(to rect: CGRect, signed: Bool = false) -> CGRect? {
+        sortedByDistance(to: rect, signed: signed).first
+    }
+}
+
+public extension RangeReplaceableCollection where Element == CGRect {
+    /// Sorts the rectangles by distance to the specified point.
+    mutating func sortByDistance(to point: CGPoint, signed: Bool = false) {
+        self = Self(sortedByDistance(to: point, signed: signed))
+    }
+    
+    /// Sorts the rectangles by distance to the specified rectangle.
+    mutating func sortByDistance(to rect: CGRect, signed: Bool = false) {
+        self = Self(sortedByDistance(to: rect, signed: signed))
     }
 }
 
@@ -1188,52 +1268,10 @@ public extension CGRect {
     }
 }
 
-extension CGRect {
-    /// Applies the changes of the specified handler to the current rectangle.
-    mutating func update(_ updateHandler: (_ rect: inout CGRect)->()) {
-        self = updated(updateHandler)
-    }
-    
-    /// Returns the rectangle with the changes applied by the specified handler.
-    func updated(_ updateHandler: (_ rect: inout CGRect)->()) -> CGRect {
-        var point = self
-        updateHandler(&point)
-        return point
-    }
-}
-
-extension CGPoint {
-    /// Applies the changes of the specified handler to the current point.
-    mutating func update(_ updateHandler: (_ point: inout CGPoint)->()) {
-        self = updated(updateHandler)
-    }
-    
-    /// Returns the point with the changes applied by the specified handler.
-    func updated(_ updateHandler: (_ point: inout CGPoint)->()) -> CGPoint {
-        var point = self
-        updateHandler(&point)
-        return point
-    }
-}
-
-extension CGSize {
-    /// Applies the changes of the specified handler to the current size.
-    mutating func update(_ updateHandler: (_ size: inout CGSize)->()) {
-        self = updated(updateHandler)
-    }
-    
-    /// Returns the size with the changes applied by the specified handler.
-    func updated(_ updateHandler: (_ size: inout CGSize)->()) -> CGSize {
-        var point = self
-        updateHandler(&point)
-        return point
-    }
-}
-
 extension Sequence where Element == CGRect {
     /// Returns the bounding rectangle that encloses all rects in the sequence.
     var boundingRect: CGRect {
-        guard let first = self.first else { return .zero }
+        guard let first = first else { return .zero }
         return dropFirst().reduce(first) { $0.union($1)  }
     }
 }

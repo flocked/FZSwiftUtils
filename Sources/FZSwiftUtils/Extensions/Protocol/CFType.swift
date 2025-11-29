@@ -61,6 +61,11 @@ extension CFType {
     public var cfAllocator: CFAllocator {
         CFGetAllocator(self as AnyObject)
     }
+    
+    /// The identifier of the object.
+    public var objectID: ObjectIdentifier {
+        ObjectIdentifier(self as AnyObject)
+    }
 }
 
 extension CGColor: CFType { }
@@ -89,6 +94,14 @@ extension CGPSConverter: CFType { }
 extension CFUserNotification: CFType {
     /// The Core Foundation type identifier for `CFUserNotification`.
     public static let typeID = CFUserNotificationGetTypeID()
+}
+extension MDQuery: CFType {
+    /// The Core Foundation type identifier for `MDQuery`.
+    public static let typeID = MDQueryGetTypeID()
+}
+extension MDItem: CFType {
+    /// The Core Foundation type identifier for `MDItem`.
+    public static let typeID = MDItemGetTypeID()
 }
 #endif
 

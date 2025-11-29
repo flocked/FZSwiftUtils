@@ -46,6 +46,6 @@ public func unsafeDowncast<T>(_ x: AnyObject) -> T where T : AnyObject {
     unsafeDowncast(x, to: T.self)
 }
 
-public func cast<T>(_ x: Any) -> T {
+public func cast<X, T>(_ x: X) -> T {
     x as! T
 }

@@ -7,6 +7,25 @@
 
 import Foundation
 
+public extension Sequence {
+    /// The first element of the sequence.
+    var first: Element? {
+        for element in self {
+            return element
+        }
+        return nil
+    }
+    
+    /// The last element of the sequence.
+    var last: Element? {
+        var last: Element?
+        for element in self {
+            last = element
+        }
+        return last
+    }
+}
+
 public extension Sequence where Element: AdditiveArithmetic {
     /// The total sum value of all values in the sequence. If the sequence is empty, it returns `zero`.
     func sum() -> Element {
@@ -189,7 +208,7 @@ extension Sequence {
      - Parameter keyPath: The key path to the comparable value.
      - Returns: The sequence’s minimum element. If the sequence has no elements, returns `nil`.
      */
-    public func min<Value: Comparable>(by keyPath: KeyPath<Element, Value>) -> Element? {
+    public func min<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
         self.min(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
     }
     
@@ -199,15 +218,50 @@ extension Sequence {
      - Parameter keyPath: The key path to the comparable value.
      - Returns: The sequence’s maximum element. If the sequence has no elements, returns `nil`.
      */
-    public func max<Value: Comparable>(by keyPath: KeyPath<Element, Value>) -> Element? {
+    public func max<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
         self.max(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
+    }
+
+    /**
+     Returns the minimum value found at the given key path among all elements in the sequence.
+
+     - Parameter keyPath: A key path whose value will be extracted from each element and compared.
+     - Returns: The minimum value for the given key path, or `nil` if the sequence is empty.
+     */
+    public func min<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
+        map({$0[keyPath: keyPath]}).min()
+    }
+    
+    
+    /**
+     Returns the maximum value found at the given key path among all elements in the sequence.
+
+     - Parameter keyPath: A key path whose value will be extracted from each element and compared.
+     - Returns: The maximum value for the given key path, or `nil` if the sequence is empty.
+     */
+    public func max<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
+        map({$0[keyPath: keyPath]}).max()
+    }
+    
+    /**
+     Returns the sum of values found at the given key path among all elements in the sequence.
+
+     - Parameter keyPath: A key path whose value will be extracted from each element and summed.
+     - Returns: The total sum of all values for the given key path.
+     */
+    public func sum<V:AdditiveArithmetic>(of keyPath: KeyPath<Element, V>) -> V {
+        map({$0[keyPath: keyPath]}).sum()
     }
 }
 
 public extension Sequence {
     /// Returns the elements of the sequence, repeated by the specified amount.
     func repeating(amount: Int) -> [Element] {
-        Array(repeating: Array(self), count: amount.clamped(min: 0)).flattened()
+        var result: [Element] = []
+        for _ in 0..<amount {
+            result.append(contentsOf: self)
+        }
+        return result
     }
 }
 
@@ -219,28 +273,31 @@ extension MutableCollection where Self: RangeReplaceableCollection {
     }
 }
 
-
-
-extension Collection {
+extension Sequence {
     /**
      Returns a weighted shuffle of the collection.
      
      - Parameter weights: Values representing the relative likelihood of each element appearing earlier in the result.
      */
     public func shuffled(by weights: [Double]) -> [Element] {
-        guard !isEmpty else { return [] }
+        let elements = Array(self)
+        guard !elements.isEmpty else { return [] }
         var weights = weights
-        if weights.isEmpty || weights.contains(where: { $0 < 0}) {
-            return self.shuffled()
-        } else if weights.count < count {
-            let lastWeight = weights.last ?? 1.0
-            weights = weights + Array(repeating: lastWeight, count: count - weights.count)
+        if weights.count < elements.count {
+            weights += Array(repeating: weights.last ?? 1.0, count: elements.count - weights.count)
         }
-        return zip(self, weights).map { element, weight in
-            let key = pow(Double.random(in: 0..<1), 1.0 / (weight + .leastNonzeroMagnitude))
-            return (key, element)
-        }.sorted { $0.0 > $1.0 }.map { $0.1 }
-
+        return zip(elements, weights)
+            .map { element, weight in
+                let exponent: Double
+                if weight >= 0 {
+                    exponent = 1.0 / (weight + Double.leastNonzeroMagnitude)
+                } else {
+                    exponent = 1.0 + abs(weight)
+                }
+                return (pow(Double.random(in: 0..<1), exponent), element)
+            }
+            .sorted { $0.0 > $1.0 }
+            .map { $0.1 }
     }
 }
 
@@ -252,5 +309,44 @@ extension RangeReplaceableCollection {
      */
     public mutating func shuffle(by weights: [Double]) {
         self = Self(shuffled(by: weights))
+    }
+}
+
+extension Sequence {
+    /**
+     Returns the first element of the sequence that is of the specified type.
+
+     - Parameter type: The type to search for within the sequence.
+     - Returns: The first element that is of type `T`, or `nil` if none is found.
+     */
+    public func first<T>(ofType type: T.Type) -> T? {
+        lazy.compactMap({$0 as? T}).first
+    }
+    
+    /**
+     Returns an array containing all elements of the sequence that are of the specified type.
+
+     - Parameter type: The type to filter for within the sequence.
+     - Returns: An array of all elements that are of type `T`.
+     */
+    public func all<T>(ofType type: T.Type) -> [T] {
+        compactMap { $0 as? T }
+    }
+    
+    /// Returns a Boolean value indicating whether the sequence contains an element that is of the specified type.
+    public func contains<T>(_ type: T.Type) -> Bool {
+        contains(where: { $0 is T })
+    }
+}
+
+extension BidirectionalCollection {
+    /**
+     Returns the last element of the collection that is of the specified type.
+
+     - Parameter type: The type to search for within the sequence.
+     - Returns: The last element that is of type `T`, or `nil` if none is found.
+     */
+    public func last<T>(ofType type: T.Type) -> T? {
+        last(where: { $0 is T }) as? T
     }
 }

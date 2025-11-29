@@ -140,27 +140,6 @@ public extension Dictionary {
     }
     
     /**
-     Transforms the values of the dictionary using the given closure.
-
-     - Parameter transform: The closure that transforms a value of the dictionary.
-     - Returns: A new dictionary with the same keys and transformed values.
-     */
-    func mapValues<Transformed>(_ transform: (Value) throws -> Transformed) rethrows -> [Key: Transformed] {
-        try .init(uniqueKeysWithValues: map { key, val in (key, try transform(val))  } )
-    }
-    
-
-    /**
-     Transforms the values of the dictionary using the given closure, discarding any values that map to `nil`.
-
-     - Parameter transform: The closure that transforms a value of the dictionary.
-     - Returns: A new dictionary with the same keys and non-nil transformed values.
-     */
-    func compactMapValues<Transformed>(_ transform: (Value) throws -> Transformed?) rethrows -> [Key: Transformed] {
-        try .init(uniqueKeysWithValues: compactMap { key, value in try transform(value).map { (key, $0) } })
-    }
-    
-    /**
      Transforms both keys and values of the dictionary.
 
      - Parameters:

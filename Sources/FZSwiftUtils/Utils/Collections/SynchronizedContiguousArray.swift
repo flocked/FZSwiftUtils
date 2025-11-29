@@ -1,5 +1,5 @@
 //
-//  SynchronizedArray.swift
+//  SynchronizedContiguousArray.swift
 //
 //  Parts taken from:
 //  Created by Sherzod Khashimov on 10/4/19.
@@ -10,55 +10,55 @@
 
 import Foundation
 
-/// A thread-safe, synchronized array.
-public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection, ExpressibleByArrayLiteral {
-    private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
-    private var array = [Element]()
+/// A thread-safe, synchronized contiguously stored array.
+public class SynchronizedContiguousArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection, ExpressibleByArrayLiteral {
+    private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedContiguousArray", attributes: .concurrent)
+    private var array: ContiguousArray<Element> = []
 
-    /// Creates a new, empty synchronized array.
+    /// Creates a new, empty synchronized contiguously stored array.
     public required init() {}
     
     /**
-     Creates an synchronized array containing the elements of a sequence.
+     Creates an synchronized contiguously stored array containing the elements of a sequence.
      
      - Parameter elements: The sequence of elements to turn into an array.
      */
     public required init<S>(_ elements: S) where S : Sequence<Element> {
-        array = Array(elements)
+        array = ContiguousArray(elements)
     }
     
     /**
-     Creates a new synchronized array containing the specified number of a single, repeated value.
+     Creates a new synchronized contiguously stored array containing the specified number of a single, repeated value.
 
      - Parameters:
         - repeatedValue: The element to repeat.
         - count: The number of times to repeat the value passed in the repeating parameter. count must be zero or greater.
      */
     public required init(repeating repeatedValue: Element,  count: Int) {
-        array = Array(repeating: repeatedValue, count: count)
+        array = ContiguousArray(repeating: repeatedValue, count: count)
     }
 
     /**
-     Creates a new synchronized array from a array literal with the elements.
+     Creates a new synchronized contiguously stored array from a array literal with the elements.
 
      - Parameter elements: The elements to turn into an array.
      */
     public required init(arrayLiteral elements: Element...) {
-        array = elements
+        array = ContiguousArray(elements)
     }
     
     public required init(from decoder: Decoder) throws where Element: Decodable {
-        array = try Array(from: decoder)
+        array = try ContiguousArray(from: decoder)
     }
 }
 
-public extension SynchronizedArray {
+public extension SynchronizedContiguousArray {
     /**
      A thread-safe array containing the current elements.
      
      You can get the array synchronously or set it asynchronously using a barrier to ensure exclusive access.
      */
-    var synchronized: [Element] {
+    var synchronized: ContiguousArray<Element> {
         get { queue.sync { self.array } }
         set { queue.async(flags: .barrier) { [weak self] in self?.array = newValue } }
     }
@@ -70,7 +70,7 @@ public extension SynchronizedArray {
      
      - Parameter edit: A closure that takes an `inout` array of elements.
      */
-    func edit(_ edit: @escaping (inout [Element]) -> Void) {
+    func edit(_ edit: @escaping (inout ContiguousArray<Element>) -> Void) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
             edit(&self.array)
@@ -615,14 +615,9 @@ public extension SynchronizedArray {
             DispatchQueue.main.async { completion?() }
         }
     }
-    
-    /// Reserves enough space to store the specified number of elements.
-    func reserveCapacity(_ minimumCapacity: Int) {
-        queue.async(flags: .barrier) { [weak self] in self?.array.reserveCapacity(minimumCapacity) }
-    }
 }
 
-public extension SynchronizedArray {
+public extension SynchronizedContiguousArray {
     /**
      Appends a new element to the array.
      
@@ -630,7 +625,7 @@ public extension SynchronizedArray {
         - lhs: The array to append to.
         - rhs: The element to append to the array.
      */
-    static func += (lhs: inout SynchronizedArray, rhs: Element) {
+    static func += (lhs: inout SynchronizedContiguousArray, rhs: Element) {
         lhs.append(rhs)
     }
     
@@ -641,12 +636,12 @@ public extension SynchronizedArray {
         - lhs: The array to append to.
         - rhs: A collection or finite sequence.
      */
-    static func += <S: Sequence<Element>>(lhs: inout SynchronizedArray, rhs: S) {
+    static func += <S: Sequence<Element>>(lhs: inout SynchronizedContiguousArray, rhs: S) {
         lhs.append(contentsOf: rhs)
     }
 }
 
-public extension SynchronizedArray {
+public extension SynchronizedContiguousArray {
     /**
      Returns the first element of the sequence that satisfies the given predicate.
      
@@ -784,7 +779,7 @@ public extension SynchronizedArray {
     }
     
     /// Returns a sequence of pairs (n, x), where n represents a consecutive integer starting at zero and x represents an element of the sequence.
-    func enumerated() -> EnumeratedSequence<Array<Element>> {
+    func enumerated() -> EnumeratedSequence<ContiguousArray<Element>> {
         queue.sync { self.array.enumerated() }
     }
     
@@ -892,19 +887,24 @@ public extension SynchronizedArray {
     func randomElement<T>(using generator: inout T) -> Element? where T: RandomNumberGenerator {
         queue.sync { self.array.randomElement(using: &generator) }
     }
+    
+    /// Reserves enough space to store the specified number of elements.
+    func reserveCapacity(_ minimumCapacity: Int) {
+        queue.async(flags: .barrier) { [weak self] in self?.array.reserveCapacity(minimumCapacity) }
+    }
 }
 
-extension SynchronizedArray: Equatable where Element: Equatable {
+extension SynchronizedContiguousArray: Equatable where Element: Equatable {
     public func contains(_ element: Element) -> Bool {
         queue.sync { self.array.contains(element) }
     }
     
-    public static func == (lhs: SynchronizedArray<Element>, rhs: SynchronizedArray<Element>) -> Bool {
+    public static func == (lhs: SynchronizedContiguousArray<Element>, rhs: SynchronizedContiguousArray<Element>) -> Bool {
         lhs.synchronized == rhs.synchronized
     }
 }
 
-public extension SynchronizedArray where Element: Comparable {
+public extension SynchronizedContiguousArray where Element: Comparable {
     /**
      Returns the first index where the specified element appears in the array.
      
@@ -1007,7 +1007,7 @@ public extension SynchronizedArray where Element: Comparable {
             if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
                 self.array.sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
             } else {
-                self.array = self.array.sorted(by: keyPath, order)
+                self.array.sort(by: keyPath, order)
             }
         }
     }
@@ -1025,7 +1025,7 @@ public extension SynchronizedArray where Element: Comparable {
             if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
                 self.array.sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
             } else {
-                self.array = self.array.sorted(by: keyPath, order)
+                self.array.sort(by: keyPath, order)
             }
         }
     }
@@ -1090,13 +1090,13 @@ public extension SynchronizedArray where Element: Comparable {
     }
 }
 
-extension SynchronizedArray: Hashable where Element: Hashable {
+extension SynchronizedContiguousArray: Hashable where Element: Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(synchronized)
     }
 }
 
-extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
+extension SynchronizedContiguousArray: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var customMirror: Mirror {
         synchronized.customMirror
     }
@@ -1110,18 +1110,12 @@ extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertib
     }
 }
 
-extension SynchronizedArray: @unchecked Sendable where Element: Sendable {}
+extension SynchronizedContiguousArray: @unchecked Sendable where Element: Sendable {}
 
-extension SynchronizedArray: Encodable where Element: Encodable {
+extension SynchronizedContiguousArray: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
         try synchronized.encode(to: encoder)
     }
 }
 
-extension SynchronizedArray: Decodable where Element: Decodable { }
-
-extension SynchronizedArray: CVarArg {
-    public var _cVarArgEncoding: [Int] {
-        synchronized._cVarArgEncoding
-    }
-}
+extension SynchronizedContiguousArray: Decodable where Element: Decodable { }
