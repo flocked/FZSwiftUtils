@@ -60,6 +60,24 @@ public extension AttributedString {
     func capitalized() -> AttributedString {
         AttributedString(NSAttributedString(self).capitalized())
     }
+    
+    /**
+     Returns a version of the attributed string where the first character is lowercased.
+
+     - Returns: A lowercase copy of the attributed string.
+     */
+    func lowercasedFirst() -> AttributedString {
+        AttributedString(NSAttributedString(self).lowercasedFirst())
+    }
+    
+    /**
+     Returns a version of the attributed string, where the first character is uppercased.
+
+     - Returns: A lowercase copy of the attributed string.
+     */
+    func uppercasedFirst() -> AttributedString {
+        AttributedString(NSAttributedString(self).uppercasedFirst())
+    }
 }
 
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
