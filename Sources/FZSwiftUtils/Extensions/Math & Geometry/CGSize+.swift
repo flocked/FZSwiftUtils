@@ -84,6 +84,11 @@ public extension CGSize {
     }
     #endif
     
+    /// Returns the larger of the width and height.
+    var max: CGFloat {
+        Swift.max(width, height)
+    }
+    
     func expandedBy(width: CGFloat) -> CGSize {
         expandedBy(width: width, height: 0)
     }
@@ -208,7 +213,7 @@ public extension CGSize {
         if size.height == -1 || size.height == .greatestFiniteMagnitude || size.height == 0 {
             size.height = height
         }
-        let ratio = max(width / size.width, height / size.height)
+        let ratio = Swift.max(width / size.width, height / size.height)
         return CGSize(width: width / ratio, height: height / ratio)
     }
 
