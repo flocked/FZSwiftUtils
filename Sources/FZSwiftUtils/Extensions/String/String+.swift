@@ -777,4 +777,7 @@ public extension String {
     }
 }
 
-extension String.CompareOptions: Hashable {  }
+extension String.CompareOptions: Hashable {
+    /// Compares `Strings` as compared by the Finder.
+    public static let localizedStandard: Self = [.caseInsensitive, .numeric,  .widthInsensitive, .forcedOrdering]
+}
