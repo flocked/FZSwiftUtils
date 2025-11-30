@@ -1018,7 +1018,7 @@ public extension CGRect {
     func distance(to point: CGPoint, signed: Bool = false) -> CGFloat {
         if signed {
             let d = abs(SIMD2(x: point.x.native, y: point.y.native) - SIMD2(x: midX.native, y: midY.native)) - SIMD2(x: width.native, y: height.native) / 2
-            return all(d .> 0) ? length(d) : d.max()
+            return CGFloat(all(d .> 0) ? length(d) : d.max())
         }
         guard !contains(point) else { return 0.0 }
         let closest = CGPoint(x: min(max(point.x, minX), maxX), y: min(max(point.y, minY), maxY))
@@ -1059,9 +1059,9 @@ public extension CGRect {
             let bMax = SIMD2(rect.maxX.native, rect.maxY.native)
             let delta = max(bMin - aMax, aMin - bMax) // element-wise max            
             if intersects(rect) {
-                return -min(min(aMax.x - bMin.x, bMax.x - aMin.x), min(aMax.y - bMin.y, bMax.y - aMin.y))
+                return CGFloat(-min(min(aMax.x - bMin.x, bMax.x - aMin.x), min(aMax.y - bMin.y, bMax.y - aMin.y)))
             } else {
-                return length(max(delta, .init(.zero, .zero)))
+                return CGFloat(length(max(delta, .init(.zero, .zero))))
             }
         }
         if intersects(rect) || self == rect { return 0 }
