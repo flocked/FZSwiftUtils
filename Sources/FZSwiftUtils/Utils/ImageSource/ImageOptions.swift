@@ -69,7 +69,7 @@ public extension ImageSource {
             options[kCGImageSourceShouldCache] = caches
             options[kCGImageSourceShouldCacheImmediately] = decodesImmediately
             options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, *), let request = decodingRequest {
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *), let request = decodingRequest {
                 options[kCGImageSourceDecodeRequest] = decodingRequest == .toSDR ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
             }
             return options as CFDictionary
@@ -191,7 +191,7 @@ public extension ImageSource {
             options[kCGImageSourceCreateThumbnailWithTransform] = transformsIfNeeded
             options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
             options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, *), let request = decodingRequest {
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *), let request = decodingRequest {
                 options[kCGImageSourceDecodeRequest] = decodingRequest == .toSDR ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
             }
             switch self.creationPolicy {
