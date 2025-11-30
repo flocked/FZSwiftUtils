@@ -292,11 +292,8 @@ public class URLResources {
     /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
     public var isAliasFile: Bool { value(for: \.isAliasFile) ?? false }
 
-    #if canImport(UniformTypeIdentifiers)
     /// The content type of the resource.
-    @available(macOS 11.0, iOS 14.0, watchOS 7.0, tvOS 14.0, *)
     public var contentType: UTType? { value(for: \.contentType) }
-    #endif
 
     #if os(macOS)
     /// The Finder tags of the resource.
@@ -323,35 +320,6 @@ public class URLResources {
     }
     #endif
 }
-
-#if os(macOS)
-@available(macOS, obsoleted: 11.0, message: "Use contentType instead")
-extension URLResources {
-    /// The content type identifier of the resource.
-    public var contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
-
-    /// The content type identifier tree of the resource.
-    public var contentTypeIdentifierTree: [String] {
-        _contentTypeIdentifierTree
-    }
-}
-
-extension URLResources {
-    var _contentTypeIdentifier: String? { value(for: \.typeIdentifier) }
-
-    var _contentTypeIdentifierTree: [String] {
-        guard let identifier = _contentTypeIdentifier else { return [] }
-        return identifier + getSupertypes(for: identifier)
-    }
-
-    private func getSupertypes(for identifier: String) -> [String] {
-        guard let params = UTTypeCopyDeclaration(identifier as CFString)?.takeRetainedValue() as? [String: Any], let supertypes = params[String(kUTTypeConformsToKey)] as? [String] else {
-            return []
-        }
-        return supertypes.flatMap { getSupertypes(for: $0) + [$0] }
-    }
-}
-#endif
 
 #if os(macOS)
 public extension URLResources {

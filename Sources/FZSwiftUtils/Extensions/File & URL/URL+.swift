@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UniformTypeIdentifiers
 
 public extension URL {
     /**
@@ -456,28 +457,12 @@ public extension URL {
     internal var canonicalized: URL {
         standardizedFileURL.resolvingSymlinksInPath()
     }
-}
-
-#if os(macOS)
-@available(macOS, obsoleted: 11.0, message: "Use contentType instead")
-public extension URL {
-    /// The content type identifier of the url.
-    var contentTypeIdentifier: String? { resources._contentTypeIdentifier }
-    /// The content type identifier tree of the url.
-    var contentTypeIdentifierTree: [String] { resources._contentTypeIdentifierTree }
-}
-#endif
-
-#if canImport(UniformTypeIdentifiers)
-import UniformTypeIdentifiers
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public extension URL {
+    
     /// The content type of the url.
     var contentType: UTType? {
         UTType(url: self)
     }
 }
-#endif
 
 @available(macOS, obsoleted: 13.0)
 @available(iOS, obsoleted: 16.0)
