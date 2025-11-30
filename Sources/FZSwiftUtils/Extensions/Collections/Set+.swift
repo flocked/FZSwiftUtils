@@ -32,7 +32,6 @@ public extension SetAlgebra {
 
      - Parameter elements: The elements to remove.
      */
-    @_disfavoredOverload
     mutating func remove<S: Sequence<Element>>(_ elements: S) {
         elements.forEach { remove($0) }
     }
