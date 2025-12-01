@@ -163,13 +163,29 @@ public extension RangeReplaceableCollection {
         return lhs + [rhs]
     }
     
-    static func + (lhs: Element, rhs: Self) -> Self {
-        [lhs] + rhs
-    }
-
     static func + (lhs: Element?, rhs: Self) -> Self {
         guard let lhs = lhs else { return rhs }
         return [lhs] + rhs
+    }
+    
+    static func + (lhs: Element, rhs: Self) -> Self {
+        [lhs] + rhs
+    }
+    
+    /// Adds the specified optional `Element`.
+    static func += <Other>(lhs: inout Self, rhs: Other?) where Other: Sequence<Element> {
+        guard let rhs = rhs else { return }
+        lhs += rhs
+    }
+    
+    static func + <Other>(lhs: Self, rhs: Other?) -> Self where Other: Sequence<Element> {
+        guard let rhs = rhs else { return lhs }
+        return lhs + rhs
+    }
+    
+    static func + <Other>(lhs: Other?, rhs: Self) -> Self where Other: Sequence<Element> {
+        guard let lhs = lhs else { return rhs }
+        return lhs + rhs
     }
     
     /**
