@@ -461,14 +461,14 @@ extension OrderedSet: Equatable {
 extension OrderedSet: Decodable where Element: Decodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        self.init(try container.decode(Array<Element>.self))
+        self.init(try container.decode(ContiguousArray<Element>.self))
     }
 }
 
 extension OrderedSet: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(Array(_array))
+        try container.encode(_array)
     }
 }
 

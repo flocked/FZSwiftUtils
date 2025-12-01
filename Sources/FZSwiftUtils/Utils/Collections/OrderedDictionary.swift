@@ -25,7 +25,7 @@ import Foundation
  // => (key: "c", value: 3)
  ```
  */
-public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, MutableCollection, RangeReplaceableCollection {
+public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, MutableCollection {
     
     // MARK: - fileprivate Storage
     
@@ -384,14 +384,6 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
         return currentValue
     }
     
-    public mutating func replaceSubrange<C>(_ subrange: Range<Int>, with newElements: C) where C : Collection, Element == C.Element {
-        precondition( Set(newElements.map({$0.key})).isDisjoint(with: _orderedKeys), "[OrderedDictionary] Cannot insert duplicate key")
-        defer { _assertInvariant() }
-        subrange.forEach({ _keysToValues[_orderedKeys[$0]] = nil })
-        _orderedKeys.replaceSubrange(subrange, with: newElements.map({$0.key}))
-        newElements.forEach({ _keysToValues[$0.key] = $0.value })
-    }
-    
     /**
      Removes all key-value pairs from the ordered dictionary and invalidates all indices.
 
@@ -454,7 +446,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      - Parameter index: The index of the key-value pair to be looked up. `index` does not have to be a valid index.
      - Returns: A tuple containing the key-value pair corresponding to `index` if the index is valid; otherwise, `nil`.
      */
-    public func elementAt(_ index: Int) -> Element? {
+    public func element(at index: Int) -> Element? {
         indices.contains(index) ? self[index] : nil
     }
     
@@ -712,10 +704,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     
     /// Reorders the key-value pairs of the ordered dictionary such that all the key-value pairs that match the given predicate are after all the key-value pairs that do not match.
     public mutating func partition(by belongsInSecondPartition: (Element) throws -> Bool) rethrows -> Index {
-        return try _partition(
-            in: indices,
-            by: belongsInSecondPartition
-        )
+        return try _partition(in: indices, by: belongsInSecondPartition)
     }
     
     fileprivate mutating func _partition(in range: Range<Int>, by belongsInSecondPartition: (Element) throws -> Bool) rethrows -> Index {
@@ -853,20 +842,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      - Returns: A new dictionary containing the merged results.
      */
     public func merged(with other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
-        var merged = self
-        for (key, value) in other {
-            switch strategy.rawValue {
-            case "keepOriginal":
-                if merged[key] == nil {
-                    merged[key] = value
-                }
-            case "custom":
-                merged[key] = strategy.handler!(key, merged[key], value)
-            default:
-                merged[key] = value
-            }
-        }
-        return merged
+        merged(with: other.map({$0}), strategy: strategy)
     }
     
     /**
@@ -879,6 +855,10 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      - Returns: A new dictionary containing the merged results.
      */
     public func merged(with other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
+        merged(with: other.map({$0}), strategy: strategy)
+    }
+    
+    private func merged(with other: [Element], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
         var merged = self
         for (key, value) in other {
             switch strategy.rawValue {
@@ -986,44 +966,20 @@ extension OrderedDictionary: ExpressibleByArrayLiteral {
 extension OrderedDictionary: ExpressibleByDictionaryLiteral {
     /// Initializes an ordered dictionary initialized from a dictionary literal. Every key in `elements` must be unique.
     public init(dictionaryLiteral elements: (Key, Value)...) {
-        self.init(uniqueKeysWithValues: elements.map { element in
-            let (key, value) = element
-            return (key: key, value: value)
-        })
+        self.init(uniqueKeysWithValues: elements )
     }
-    
-}
-
-extension Array {
-    /// Initializes an empty array with preallocated space for at least the specified number of elements.
-    fileprivate init(minimumCapacity: Int) {
-        self.init()
-        self.reserveCapacity(minimumCapacity)
-    }
-    
-}
-
-extension Dictionary {
-    /**
-     Returns an ordered dictionary containing the key-value pairs from the dictionary, sorted using the given sort function.
-
-     - Parameter areInIncreasingOrder: The sort function which compares the key-value pairs.
-     - Returns: The ordered dictionary.
-     */
-    public func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> OrderedDictionary<Key, Value> {
-        return try OrderedDictionary(
-            unsorted: self,
-            areInIncreasingOrder: areInIncreasingOrder
-        )
-    }
-    
 }
 
 extension OrderedDictionary: Encodable where Key: Encodable, Value: Encodable {
     /// Encodes the contents of this ordered dictionary into the given encoder.
     public func encode(to encoder: Encoder) throws {
+        var elements = ContiguousArray<KeyValuePair<Key, Value>>()
+        elements.reserveCapacity(count)
+        for (key, value) in self {
+            elements.append(KeyValuePair(key: key, value: value))
+        }
         var container = encoder.singleValueContainer()
-        try container.encode(map({ KeyValuePair(key: $0.key, value: $0.value) }))
+        try container.encode(elements)
     }
 }
 
@@ -1031,7 +987,7 @@ extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
     /// Creates a new ordered dictionary by decoding from the given decoder.
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-        let keysAndValues = try container.decode([KeyValuePair<Key, Value>].self)
+        let keysAndValues = try container.decode(ContiguousArray<KeyValuePair<Key, Value>>.self)
         self.init(uniqueKeysWithValues: keysAndValues.map({ ($0.key, $0.value) }))
     }
 }
@@ -1055,3 +1011,15 @@ extension OrderedDictionary: CustomStringConvertible, CustomDebugStringConvertib
         isEmpty ? "[:]" : "[\(map { "\(String(reflecting: $0)): \(String(reflecting: $1))" }.joined(separator: ", "))]"
     }
 }
+
+/*
+ public mutating func replaceSubrange<C>(_ subrange: Range<Int>, with newElements: C) where C : Collection, Element == C.Element {
+     var keys = _orderedKeys
+     keys.remove(_orderedKeys[subrange])
+     precondition( Set(newElements.map({$0.key})).isDisjoint(with: keys), "[OrderedDictionary] Cannot insert duplicate key")
+     defer { _assertInvariant() }
+     subrange.forEach({ _keysToValues[_orderedKeys[$0]] = nil })
+     _orderedKeys.replaceSubrange(subrange, with: newElements.map({$0.key}))
+     newElements.forEach({ _keysToValues[$0.key] = $0.value })
+ }
+ */
