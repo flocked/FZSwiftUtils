@@ -411,27 +411,18 @@ public extension CGSize {
     }
 }
 
-extension CGSize: Comparable {
+extension CGSize: Swift.Comparable {
     public static func < (lhs: CGSize, rhs: CGSize) -> Bool {
         lhs.area < rhs.area
     }
 }
 
-#if compiler(>=6.0)
-extension CGSize: @retroactive Hashable {
+extension CGSize: Swift.Hashable {
     public func hash(into hasher: inout Hasher) {
         hasher.combine(width)
         hasher.combine(height)
     }
 }
-#else
-extension CGSize: Hashable {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(width)
-        hasher.combine(height)
-    }
-}
-#endif
 
 public extension Collection where Element == CGSize {
     /// The size to fit all sizes of the collection.

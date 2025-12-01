@@ -375,14 +375,14 @@ public extension SynchronizedSet {
     /**
      A set of the elements sorted by the given keypath.
      */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortingOrder = .ascending) -> [Element] where Value : Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) -> [Element] where Value : Comparable {
         queue.sync { self.storage.sorted(by: keyPath, order) }
     }
 
     /**
      A set of the elements sorted by the given keypath.
      */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortingOrder = .ascending) -> [Element] where Value : Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) -> [Element] where Value : Comparable {
         queue.sync { self.storage.sorted(by: keyPath, order) }
     }
 

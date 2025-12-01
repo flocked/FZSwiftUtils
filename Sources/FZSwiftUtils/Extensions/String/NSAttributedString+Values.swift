@@ -216,8 +216,7 @@ extension NSAttributedString {
         }
         
         /// The replacement position associated with a format string specifier.
-        @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
-        public var replacementIndex: Int? {
+            public var replacementIndex: Int? {
             get { self[.replacementIndex] }
             set { self[.replacementIndex] = newValue }
         }
@@ -784,7 +783,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the replacement position associated with a format string specifier.
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     @discardableResult
     public func replacementIndex(_ index: Int?) -> Self {
         self.replacementIndex = index
@@ -1323,7 +1321,6 @@ public struct ParagraphStyle: CustomStringConvertible {
     public var hyphenationFactor: Float
 
     /// A Boolean value that indicates whether the paragraph style uses the system hyphenation settings.
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     public var usesDefaultHyphenation: Bool {
         get { _usesDefaultHyphenation as? Bool ?? false }
         set { _usesDefaultHyphenation = newValue }

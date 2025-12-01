@@ -6,6 +6,8 @@
 //  OrderedDictionary - https://github.com/lukaskubanek/OrderedDictionary/
 //
 
+import Foundation
+
 /**
  
  A ordered collection whose elements are key-value pairs.
@@ -762,42 +764,42 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     }
     
     /// Sorts the ordered dictionary in place, by the key.
-    public mutating func sortByKey(_ order: SortingOrder = .ascending) where Key: Comparable {
+    public mutating func sortByKey(_ order: SortOrder = .ascending) where Key: Comparable {
         sort(by: order == .ascending ? { $0.key < $1.key } : { $0.key > $1.key } )
     }
     
     /// Sorts the ordered dictionary in place, by the value.
-    public mutating func sortByValue(_ order: SortingOrder = .ascending) where Value: Comparable {
+    public mutating func sortByValue(_ order: SortOrder = .ascending) where Value: Comparable {
         sort(by: order == .ascending ? { $0.value < $1.value } : { $0.value > $1.value } )
     }
     
     /// Sorts the ordered dictionary in place, by the specified key property.
-    public mutating func sortByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortingOrder = .ascending) {
+    public mutating func sortByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortOrder = .ascending) {
         sort(by: order == .ascending ? { $0.key[keyPath: keyPath] < $1.key[keyPath: keyPath] } : { $0.key[keyPath: keyPath] > $1.key[keyPath: keyPath] } )
     }
     
     /// Sorts the ordered dictionary in place, by the specified value property.
-    public mutating func sortByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortingOrder = .ascending) {
+    public mutating func sortByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortOrder = .ascending) {
         sort(by: order == .ascending ? { $0.value[keyPath: keyPath] < $1.value[keyPath: keyPath] } : { $0.value[keyPath: keyPath] > $1.value[keyPath: keyPath] } )
     }
     
     /// Returns a new ordered dictionary, sorted by the key.
-    public func sortedByKey(_ order: SortingOrder = .ascending) -> Self where Key: Comparable {
+    public func sortedByKey(_ order: SortOrder = .ascending) -> Self where Key: Comparable {
         sorted(by: order == .ascending ? { $0.key < $1.key } : { $0.key > $1.key } )
     }
     
     /// Returns a new ordered dictionary, sorted by the value.
-    public func sortedByValue(_ order: SortingOrder = .ascending) -> Self where Value: Comparable {
+    public func sortedByValue(_ order: SortOrder = .ascending) -> Self where Value: Comparable {
         sorted(by: order == .ascending ? { $0.value < $1.value } : { $0.value > $1.value } )
     }
     
     /// Returns a new ordered dictionary, sorted by the specified key property.
-    public func sortedByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortingOrder = .ascending) -> Self {
+    public func sortedByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortOrder = .ascending) -> Self {
         sorted(by: order == .ascending ? { $0.key[keyPath: keyPath] < $1.key[keyPath: keyPath] } : { $0.key[keyPath: keyPath] > $1.key[keyPath: keyPath] } )
     }
     
     /// Returns a new ordered dictionary, sorted by the specified value property.
-    public func sortedByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortingOrder = .ascending) -> Self {
+    public func sortedByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortOrder = .ascending) -> Self {
         sorted(by: order == .ascending ? { $0.value[keyPath: keyPath] < $1.value[keyPath: keyPath] } : { $0.value[keyPath: keyPath] > $1.value[keyPath: keyPath] } )
     }
     

@@ -9,12 +9,12 @@ import Foundation
 
 public extension Sequence {
     /// Returns the elements of the sequence, sorted by the specified order.
-    func sorted(_ order: SortingOrder) -> [Element] where Element: Comparable {
+    func sorted(_ order: SortOrder) -> [Element] where Element: Comparable {
         return order == .ascending ? sorted() : sorted(by: >)
     }
     
     /// Returns the elements of the sequence, sorted by the specified order.
-    func sorted(_ order: SortingOrder = .ascending) -> [Element] where Element: OptionalProtocol, Element.Wrapped: Comparable {
+    func sorted(_ order: SortOrder = .ascending) -> [Element] where Element: OptionalProtocol, Element.Wrapped: Comparable {
         sorted {
             switch ($0.optional, $1.optional) {
             case let (a?, b?): return order == .ascending ? a < b : a > b
@@ -27,7 +27,7 @@ public extension Sequence {
 
 public extension MutableCollection where Self: RandomAccessCollection, Element: Comparable {
     /// Sorts the collection in place by the specified order.
-    mutating func sort(_ order: SortingOrder) {
+    mutating func sort(_ order: SortOrder) {
         if order == .ascending {
             sort()
         } else {
@@ -36,7 +36,7 @@ public extension MutableCollection where Self: RandomAccessCollection, Element: 
     }
     
     /// Sorts the collection in place by the specified order.
-    mutating func sort(_ order: SortingOrder = .ascending) where Element: OptionalProtocol, Element.Wrapped: Comparable {
+    mutating func sort(_ order: SortOrder = .ascending) where Element: OptionalProtocol, Element.Wrapped: Comparable {
         sort {
             switch ($0.optional, $1.optional) {
             case let (a?, b?): return order == .ascending ? a < b : a > b
@@ -57,7 +57,7 @@ public extension Sequence {
          - keyPath: The keypath to compare the elements.
          - order: The order of sorting.
       */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) -> [Element] where Value: Comparable {
         sorted(by: { $0[keyPath: keyPath]}, order)
     }
 
@@ -68,7 +68,7 @@ public extension Sequence {
          - compare: The keypath to compare the elements.
          - order: The order of sorting.
       */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) -> [Element] where Value: Comparable {
         sorted(by: { $0[keyPath: keyPath]}, order)
     }
     
@@ -82,7 +82,7 @@ public extension Sequence {
         - locale: The local of the string comparsion.
         - order: The order of sorting.
       */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SortingOrder = .ascending) -> [Element] where Value: StringProtocol {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> [Element] where Value: StringProtocol {
         sorted {
             $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order
         }
@@ -98,7 +98,7 @@ public extension Sequence {
         - locale: The local of the string comparsion.
         - order: The order of sorting.
       */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SortingOrder = .ascending) -> [Element] where Value: StringProtocol {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> [Element] where Value: StringProtocol {
         sorted {
             switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
             case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
@@ -117,7 +117,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
           - keyPath: The keypath to compare the elements.
           - order: The order of sorting.
      */
-    mutating func sort<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortingOrder = .ascending) where Value: Comparable {
+    mutating func sort<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) where Value: Comparable {
         if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
             sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
         } else {
@@ -132,7 +132,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
           - keyPath: The keypath to compare the elements.
           - order: The order of sorting.
      */
-    mutating func sort<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortingOrder = .ascending) where Value: Comparable {
+    mutating func sort<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) where Value: Comparable {
         if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
             sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
         } else {
@@ -150,7 +150,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         - locale: The local of the string comparsion.
         - order: The order of sorting.
       */
-    mutating func sort<Value>(by keyPath: KeyPath<Element, Value>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil,_ order: SortingOrder = .ascending) where Value: StringProtocol {
+    mutating func sort<Value>(by keyPath: KeyPath<Element, Value>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil,_ order: SortOrder = .ascending) where Value: StringProtocol {
         sort {
             $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order
         }
@@ -166,7 +166,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         - locale: The local of the string comparsion.
         - order: The order of sorting.
       */
-    mutating func sort<Value>(by keyPath: KeyPath<Element, Value?>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SortingOrder = .ascending) where Value: StringProtocol {
+    mutating func sort<Value>(by keyPath: KeyPath<Element, Value?>, options: String.CompareOptions, range: Range<Value.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) where Value: StringProtocol {
         sort {
             switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
             case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
@@ -187,7 +187,7 @@ public extension Sequence {
          - compare: A closure that provides a comparable value for each element in the sequence.
          - order: The order of sorting.
       */
-    func sorted<Value>(by compare: (Element) throws -> Value, _ order: SortingOrder = .ascending) rethrows -> [Element] where Value: Comparable {
+    func sorted<Value>(by compare: (Element) throws -> Value, _ order: SortOrder = .ascending) rethrows -> [Element] where Value: Comparable {
         try sorted { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) }
     }
 
@@ -198,7 +198,7 @@ public extension Sequence {
          - compare: A closure that provides a comparable value for each element in the sequence.
          - order: The order of sorting.
       */
-    func sorted<Value>(by compare: (Element) throws -> Value?, _ order: SortingOrder = .ascending) rethrows -> [Element] where Value: Comparable {
+    func sorted<Value>(by compare: (Element) throws -> Value?, _ order: SortOrder = .ascending) rethrows -> [Element] where Value: Comparable {
         try sorted {
             switch (try compare($0), try compare($1)) {
             case let (x?, y?): return order == .ascending ? x < y : x > y
@@ -218,7 +218,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         - compare: A closure that extracts a comparable value from each element.
         - order: The sort order.
      */
-    mutating func sort<Value>(by compare: (Element) throws -> Value, _ order: SortingOrder = .ascending) rethrows where Value: Comparable {
+    mutating func sort<Value>(by compare: (Element) throws -> Value, _ order: SortOrder = .ascending) rethrows where Value: Comparable {
         try sort { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) }
     }
     
@@ -229,7 +229,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         - compare: A closure that extracts an optional comparable value from each element.
         - order: The sort order.
      */
-    mutating func sort<Value>(by compare: (Element) throws -> Value?, _ order: SortingOrder = .ascending) rethrows where Value: Comparable {
+    mutating func sort<Value>(by compare: (Element) throws -> Value?, _ order: SortOrder = .ascending) rethrows where Value: Comparable {
         try sort {
             switch (try compare($0), try compare($1)) {
             case let (x?, y?): return order == .ascending ? x < y : x > y
@@ -413,37 +413,5 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
      */
     mutating func sort<T: Hashable>(by keyPath: KeyPath<Element, T?>, order: [T]) {
         self = .init(sorted(by: keyPath, order: order))
-    }
-}
-
-/// The orderings that you can perform sorts with.
-public enum SortingOrder: Int, Hashable, Codable {
-    /// An ascending sorting order.
-    case ascending
-    /// A descending sorting order.
-    case descending
-    
-    /// Toggles the sort order.
-    public mutating func toggle() {
-        self = (self == .ascending) ? .descending : .ascending
-    }
-    
-    /// An ascending sorting order.
-    public static let oldestFirst = SortingOrder.ascending
-    /// A descending sorting order.
-    public static let newestFirst = SortingOrder.descending
-    
-    /// An ascending sorting order.
-    public static let smallestFirst = SortingOrder.ascending
-    /// A descending sorting order.
-    public static let largestFirst = SortingOrder.descending
-    
-    /// An ascending sorting order.
-    public static let shortestFirst = SortingOrder.ascending
-    /// A descending sorting order.
-    public static let longestFirst = SortingOrder.descending
-    
-    var order: ComparisonResult {
-        self == .ascending ? .orderedAscending : .orderedDescending
     }
 }

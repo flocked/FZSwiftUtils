@@ -304,6 +304,11 @@ public struct FileType: CaseIterable, CustomStringConvertible, Hashable, Codable
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.contentType == rhs.contentType
     }
+    
+    /// A Boolean value indicating whether a file type conforms to a `UTType`.
+    public static func == (lhs: Self, rhs: UTType) -> Bool {
+        lhs.contentType == rhs || lhs.contentType.conforms(to: rhs)
+    }
 
     /// Audio ("mp3", "m4a", "aac"…)
     public static let audio = Self(.audio, "Audio",
@@ -403,14 +408,11 @@ public struct FileType: CaseIterable, CustomStringConvertible, Hashable, Codable
     public static let database = Self(.database, "Database",
                                       ["sqlite", "db", "mdb", "accdb", "sql"]
     )
-
-    /// 3D/CAD ("stl", "obj", "fbx"…)
-    public static let cad3D = Self(.init("public.3d-model")!, "3D/CAD",
-                                   ["stl", "obj", "fbx", "dwg", "dxf", "3ds", "blend", "dae", "ply"]
-    )
+    
+    // let cadFileExtensions = ["dwg","dxf","stp","step","igs","iges","stl","obj","fbx","sldprt","sldasm","slddrw","skp","f3d","3ds","max","x_t","x_b","prt","asm","dgn","dwt","ipt","iam"]
 
     public static let allCases: [Self] = [
-        .audio, .video, .gif, .image, .pdf, .document, .spreadsheet, .presentation, .text, .archive, .aliasFile, .symbolicLink, .folder, .application, .executable, .diskImage, .font, .contact, .calendar, .sourceCode, .database, .cad3D
+        .audio, .video, .gif, .image, .pdf, .document, .spreadsheet, .presentation, .text, .archive, .aliasFile, .symbolicLink, .folder, .application, .executable, .diskImage, .font, .contact, .calendar, .sourceCode, .database,
     ]
     
     /// All multimedia file types (`audio`, `video`, `image` and `gif`).

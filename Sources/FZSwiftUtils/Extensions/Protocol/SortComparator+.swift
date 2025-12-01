@@ -7,7 +7,6 @@
 
 import Foundation
 
-@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public extension MutableCollection where Element: SortComparator {
     /// Sets the order of all sort comparators.
     @discardableResult
@@ -18,28 +17,25 @@ public extension MutableCollection where Element: SortComparator {
 }
 
 /// A comparator that compares types according to a provided handler.
-@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public struct ComparisonComparator<Compared>: SortComparator {
     public var order: SortOrder
-    let handler: (_ lhs: Compared, _ rhs: Compared, _ order: SortOrder)->ComparisonResult
+    let handler: (_ lhs: Compared, _ rhs: Compared)->ComparisonResult
     let id = UUID()
     
-    public init(order: SortOrder = .forward, handler: @escaping (_ lhs: Compared, _ rhs: Compared)->ComparisonResult) {
+    public init(order: SortOrder = .forward, handler: @escaping (_ lhs: Compared, _ rhs: Compared) -> ComparisonResult) {
         self.order = order
-        self.handler = { $2 == .forward ? handler($0, $1) : handler($0, $1).reversed }
+        self.handler = handler
     }
     
     public init<Value: Comparable>(order: SortOrder = .forward, handler: @escaping (_ lhs: Compared)->Value) {
         self.order = order
-        self.handler = { lhs, rhs, order in
-            order == .forward ? handler(lhs).comparisonResult(to: handler(rhs)) : handler(lhs).comparisonResult(to: handler(rhs)).reversed
-        }
+        self.handler = { handler($0).comparisonResult(to: handler($1)) }
     }
     
     public init<Value: Comparable>(order: SortOrder = .forward, handler: @escaping (_ lhs: Compared)->Value?) {
         self.order = order
-        self.handler = { lhs, rhs, order in
-            switch (handler(lhs).optional, handler(rhs).optional) {
+        self.handler = {
+            switch (handler($0).optional, handler($1).optional) {
             case let (a?, b?): return order == .ascending ? a.comparisonResult(to: b) : a.comparisonResult(to: b).reversed
             case (nil, nil): return .orderedSame
             case (nil, _): return order == .forward ? .orderedAscending : .orderedDescending
@@ -49,7 +45,8 @@ public struct ComparisonComparator<Compared>: SortComparator {
     }
     
     public func compare(_ lhs: Compared, _ rhs: Compared) -> ComparisonResult {
-        handler(lhs, rhs, order)
+        let r = handler(lhs, rhs)
+        return order == .forward ? r : r.reversed
     }
     
     public static func == (lhs: ComparisonComparator<Compared>, rhs: ComparisonComparator<Compared>) -> Bool {
@@ -62,8 +59,41 @@ public struct ComparisonComparator<Compared>: SortComparator {
     }
 }
 
+extension ComparisonComparator where Compared: Comparable {
+    public static var ascending: Self {
+        Self { $0 == $1 ? .orderedSame : $0 < $1 ? .orderedAscending : .orderedDescending }
+    }
+    
+    public static var descending: Self {
+        Self(order: .reverse) { $0 == $1 ? .orderedSame : $0 < $1 ? .orderedAscending : .orderedDescending }
+    }
+}
+
+extension ComparisonComparator where Compared: OptionalProtocol, Compared.Wrapped: Comparable {
+    public static var ascending: Self {
+        Self {
+            switch ($0.optional, $1.optional) {
+            case (nil, nil): return .orderedSame
+            case (nil, _): return .orderedAscending
+            case (_, nil): return .orderedDescending
+            case let (a?, b?): return a == b ? .orderedSame : a < b ? .orderedAscending : .orderedDescending
+            }
+        }
+    }
+    
+    public static var descending: Self {
+        Self(order: .reverse) {
+            switch ($0.optional, $1.optional) {
+            case (nil, nil): return .orderedSame
+            case (nil, _): return .orderedAscending
+            case (_, nil): return .orderedDescending
+            case let (a?, b?): return a == b ? .orderedSame : a < b ? .orderedAscending : .orderedDescending
+            }
+        }
+    }
+}
+
 /// A comparator that compares string values.
-@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public struct StringComparator<Compared>: SortComparator, Hashable {
     private let _compare: ((Compared, Compared, SortOrder, String.CompareOptions, Range<String.Index>?, Locale?) -> ComparisonResult)
     private let keyPath: PartialKeyPath<Compared>?
@@ -203,7 +233,6 @@ public struct StringComparator<Compared>: SortComparator, Hashable {
 }
 
 /// A comparator that compares types according to their conformance to the `Comparable` protocol.
-@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 struct _ComparableComparator<Compared>: SortComparator where Compared : Comparable {
     var order: SortOrder
     
@@ -216,11 +245,10 @@ struct _ComparableComparator<Compared>: SortComparator where Compared : Comparab
     }
 }
 
-@available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
 public extension SortOrder {
     /// Toggles the sort order.
     mutating func toggle() {
-        self = (self == .ascending) ? .descending : .ascending
+        self = self == .forward ? .reverse : .forward
     }
     
     /// An ascending sorting order.
@@ -229,22 +257,26 @@ public extension SortOrder {
     static let descending = SortOrder.reverse
 
     /// An ascending sorting order.
-    static let oldestFirst = SortingOrder.ascending
+    static let oldestFirst = Self.ascending
     /// A descending sorting order.
-    static let newestFirst = SortingOrder.descending
+    static let newestFirst = Self.descending
 
     /// An ascending sorting order.
-    static let smallestFirst = SortingOrder.ascending
+    static let smallestFirst = Self.ascending
     /// A descending sorting order.
-    static let largestFirst = SortingOrder.descending
+    static let largestFirst = Self.descending
 
     /// An ascending sorting order.
-    static let shortestFirst = SortingOrder.ascending
+    static let shortestFirst = Self.ascending
     /// A descending sorting order.
-    static let longestFirst = SortingOrder.descending
+    static let longestFirst = Self.descending
+    
+    internal var order: ComparisonResult {
+        self == .ascending ? .orderedAscending : .orderedDescending
+    }
 }
 
-extension ComparisonResult: ExpressibleByBooleanLiteral {
+extension ComparisonResult: Swift.ExpressibleByBooleanLiteral {
     @_disfavoredOverload
     public init(booleanLiteral value: Bool) {
         self = value ? .orderedAscending : .orderedDescending
@@ -257,5 +289,46 @@ extension ComparisonResult: ExpressibleByBooleanLiteral {
         case .orderedAscending: return .orderedDescending
         case .orderedSame: return .orderedSame
         }
+    }
+}
+
+extension String.Comparator {
+    ///  A comparator that compares a string using a localized comparison in the specified locale.
+    public static func localized(using locale: Locale) -> Self {
+        Self(options: [], locale: locale)
+    }
+}
+
+extension SortComparator where Self == String.Comparator {
+    /// A comparator that compares a string using a lexically comparison.
+    public static var lexical: Self { Self(.lexical) }
+    
+    ///  A comparator that compares a string using a case-insensitive comparison.
+    public static var caseInsensitive: Self {
+        Self(options: .caseInsensitive, locale: nil)
+    }
+
+    ///  A comparator that compares a string using a localized, case-insensitive comparison in the current locale.
+    public static var localizedCaseInsensitive: Self {
+        Self(options: .caseInsensitive, locale: .current)
+    }
+    
+    ///  A comparator that compares a string using a localized comparison in the specified locale.
+    public static func localized(using locale: Locale) -> Self {
+        Self(options: [], locale: locale)
+    }
+    
+    ///  A comparator that compares a string using a localized, case-insensitive comparison in the specified locale.
+    public static func localizedCaseInsensitive(using locale: Locale) -> Self {
+        Self(options: .caseInsensitive, locale: locale)
+    }
+    
+    ///  A comparator that compares a string using a localized, case-insensitive comparison in the specified locale.
+    public static func localizedStandard(using locale: Locale) -> Self {
+        Self(options: .localizedStandard, locale: locale)
+    }
+    
+    public static func options(_ options: String.CompareOptions, locale: Locale? = nil, order: SortOrder = .forward) -> Self {
+        .init(options: options, locale: locale, order: order)
     }
 }

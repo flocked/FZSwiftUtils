@@ -303,7 +303,6 @@ public extension NSAttributedString {
     }
     
     /// A `AttributedString` representation of the attributed string.
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     var attributedString: AttributedString {
         AttributedString(self)
     }

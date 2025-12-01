@@ -693,12 +693,12 @@ public extension SynchronizedContiguousArray {
     }
     
     /// An array of the elements sorted by the given keypath.
-    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortingOrder = .ascending) -> [Element] where Value : Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) -> [Element] where Value : Comparable {
         queue.sync { self.array.sorted(by: keyPath, order) }
     }
     
     /// An array of the elements sorted by the given keypath.
-    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortingOrder = .ascending) -> [Element] where Value : Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) -> [Element] where Value : Comparable {
         queue.sync { self.array.sorted(by: keyPath, order) }
     }
 
@@ -978,7 +978,7 @@ public extension SynchronizedContiguousArray where Element: Comparable {
          - keyPath: The keypath to compare the elements.
          - order: The order of sorting. The default value is `ascending`.
       */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) -> [Element] where Value: Comparable {
         queue.sync { self.array.sorted(by: keyPath, order) }
     }
     
@@ -989,7 +989,7 @@ public extension SynchronizedContiguousArray where Element: Comparable {
          - compare: The keypath to compare the elements.
          - order: The order of sorting. The default value is `ascending`.
       */
-    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortingOrder = .ascending) -> [Element] where Value: Comparable {
+    func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) -> [Element] where Value: Comparable {
         queue.sync { self.array.sorted(by: keyPath, order) }
     }
     */
@@ -1001,7 +1001,7 @@ public extension SynchronizedContiguousArray where Element: Comparable {
          - keyPath: The keypath to compare the elements.
          - order: The order of sorting. The default value is `ascending`.
     */
-    func sort<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortingOrder = .ascending) where Value: Comparable {
+    func sort<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) where Value: Comparable {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
             if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
@@ -1019,7 +1019,7 @@ public extension SynchronizedContiguousArray where Element: Comparable {
          - keyPath: The keypath to compare the elements.
          - order: The order of sorting. The default value is `ascending`.
     */
-    func sort<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortingOrder = .ascending) where Value: Comparable {
+    func sort<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) where Value: Comparable {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
             if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
@@ -1035,7 +1035,6 @@ public extension SynchronizedContiguousArray where Element: Comparable {
      
      - Parameter comparator: The sort comparator used to compare elements.
      */
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     func sort<Comparator>(using comparator: Comparator) where Comparator : SortComparator, Element == Comparator.Compared {
         queue.async(flags: .barrier) { [weak self] in self?.array.sort(using: comparator) }
     }
@@ -1046,7 +1045,6 @@ public extension SynchronizedContiguousArray where Element: Comparable {
      - Parameter comparator: The comparator to use in ordering elements
      - Returns: An array of the elements sorted using `comparator`.
      */
-    @available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *)
     func sorted<Comparator>(using comparator: Comparator) -> [Element] where Comparator : SortComparator, Element == Comparator.Compared {
         queue.sync { self.array.sorted(using: comparator) }
     }

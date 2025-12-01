@@ -1017,14 +1017,15 @@ public extension CGRect {
      */
     func distance(to point: CGPoint, signed: Bool = false) -> CGFloat {
         if signed {
-            let d = abs(SIMD2(x: point.x.native, y: point.y.native) - SIMD2(x: midX.native, y: midY.native)) - SIMD2(x: width.native, y: height.native) / 2
+            let d = abs(SIMD2(x: point.x.native, y: point.y.native) - SIMD2(x: midX.native, y: midY.native))
+                    - SIMD2(x: width.native, y: height.native) / 2
             return CGFloat(all(d .> 0) ? length(d) : d.max())
+        } else {
+            let dx = max(minX - point.x, 0, point.x - maxX)
+            let dy = max(minY - point.y, 0, point.y - maxY)
+            return hypot(dx, dy)
         }
-        guard !contains(point) else { return 0.0 }
-        let closest = CGPoint(x: min(max(point.x, minX), maxX), y: min(max(point.y, minY), maxY))
-        return hypot(point.x - closest.x, point.y - closest.y)
     }
-    
 
     /**
      Returns the distance from this rectangle to another rectangle.
@@ -1052,41 +1053,50 @@ public extension CGRect {
      ```
      */
     func distance(to rect: CGRect, signed: Bool = false) -> CGFloat {
-        if signed {
-            let aMin = SIMD2(minX.native, minY.native)
-            let aMax = SIMD2(maxX.native, maxY.native)
-            let bMin = SIMD2(rect.minX.native, rect.minY.native)
-            let bMax = SIMD2(rect.maxX.native, rect.maxY.native)
-            let delta = max(bMin - aMax, aMin - bMax) // element-wise max            
-            if intersects(rect) {
-                return CGFloat(-min(min(aMax.x - bMin.x, bMax.x - aMin.x), min(aMax.y - bMin.y, bMax.y - aMin.y)))
+        signed ? signedDistance(to: rect) : unsignedDistance(to: rect)
+    }
+    
+    private func unsignedDistance(to rect: CGRect) -> CGFloat {
+        if maxX < rect.minX {
+            if maxY < rect.minY {
+                return hypot(rect.minX - maxX, rect.minY - maxY)
+            } else if rect.maxY < minY {
+                return hypot(rect.minX - maxX, minY - rect.maxY)
             } else {
-                return CGFloat(length(max(delta, .init(.zero, .zero))))
+                return rect.minX - maxX
+            }
+        } else if rect.maxX < minX {
+            if maxY < rect.minY {
+                return hypot(minX - rect.maxX, rect.minY - maxY)
+            } else if rect.maxY < minY {
+                return hypot(minX - rect.maxX, minY - rect.maxY)
+            } else {
+                return minX - rect.maxX
+            }
+        } else {
+            if maxY < rect.minY {
+                return rect.minY - maxY
+            } else if rect.maxY < minY {
+                return minY - rect.maxY
+            } else {
+                return 0
             }
         }
-        if intersects(rect) || self == rect { return 0 }
-        
-        let xDistance: CGFloat
-        if maxX < rect.minX {
-            xDistance = rect.minX - maxX
-        } else if rect.maxX < minX {
-            xDistance = minX - rect.maxX
+    }
+    
+    private func signedDistance(to rect: CGRect) -> CGFloat {
+        let aMin = SIMD2(minX.native, minY.native)
+        let aMax = SIMD2(maxX.native, maxY.native)
+        let bMin = SIMD2(rect.minX.native, rect.minY.native)
+        let bMax = SIMD2(rect.maxX.native, rect.maxY.native)
+        let delta = max(bMin - aMax, aMin - bMax)
+        if delta.x <= 0 && delta.y <= 0 {
+            let dx = min(aMax.x - bMin.x, bMax.x - aMin.x)
+            let dy = min(aMax.y - bMin.y, bMax.y - aMin.y)
+            return CGFloat(-min(dx, dy))
         } else {
-            xDistance = 0
+            return CGFloat(length(max(delta, SIMD2<CGFloat.NativeType>.zero)))
         }
-        
-        let yDistance: CGFloat
-        if maxY < rect.minY {
-            yDistance = rect.minY - maxY
-        } else if rect.maxY < minY {
-            yDistance = minY - rect.maxY
-        } else {
-            yDistance = 0
-        }
-        
-        if xDistance == 0 { return yDistance }
-        if yDistance == 0 { return xDistance }
-        return hypot(xDistance, yDistance)
     }
 }
 
@@ -1120,12 +1130,12 @@ public extension Collection where Element == CGRect {
 
 public extension Sequence where Element == CGRect {
     /// Returns the rectangles sorted by distance to the specified point.
-    func sortedByDistance(to point: CGPoint, signed: Bool = false, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
+    func sortedByDistance(to point: CGPoint, signed: Bool = false, _ order: SortOrder = .smallestFirst) -> [CGRect] {
         sorted(by: { $0.distance(to: point, signed: signed) }, order)
     }
     
     /// Returns the rectangles sorted by distance to the specified rectangle.
-    func sortedByDistance(to rect: CGRect, signed: Bool = false, _ order: SortingOrder = .smallestFirst) -> [CGRect] {
+    func sortedByDistance(to rect: CGRect, signed: Bool = false, _ order: SortOrder = .smallestFirst) -> [CGRect] {
         sorted(by: { $0.distance(to: rect, signed: signed) }, order)
     }
     

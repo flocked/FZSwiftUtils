@@ -712,3 +712,311 @@ public extension URL {
         self = lastPathComponent(pathComponent, directoryHint: directoryHint)
     }
 }
+
+/*
+extension URL {
+    func copy(to url: URL, destinationIsDirectory: Bool = false) throws {
+        let destionation = destinationIsDirectory ? url.appendingPathComponent(lastPathComponent) : url
+        try FileManager.default.copyItem(at: self, to: destionation)
+    }
+    
+    func move(to url: URL, destinationIsDirectory: Bool = false) throws {
+        let destionation = destinationIsDirectory ? url.appendingPathComponent(lastPathComponent) : url
+        try FileManager.default.moveItem(at: self, to: destionation)
+    }
+    
+    func rename(to newName: String, keepExtension: Bool = true) throws {
+        var newURL = deletingLastPathComponent().appendingPathComponent(newName)
+        if keepExtension, !pathExtension.isEmpty {
+            newURL = newURL.appendingPathExtension(pathExtension)
+        }
+        try move(to: newURL)
+    }
+
+    func renameExtension(to newPathExtension: String) throws {
+        try move(to: deletingPathExtension().appendingPathExtension(newPathExtension))
+    }
+    
+    @discardableResult
+    func trash() throws -> URL {
+        try FileManager.default.trashItem(at: self)
+    }
+    
+    func remove() throws {
+        try FileManager.default.removeItem(at: self)
+    }
+    
+    func replace(withItemAt url: URL, backupItemName: String? = nil, options: FileManager.ItemReplacementOptions = []) throws -> URL? {
+        try FileManager.default.replaceItemAt(self, withItemAt: url, backupItemName: backupItemName, options: options)
+    }
+        
+    func createDirectory(withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey : Any]? = nil) throws {
+        try FileManager.default.createDirectory(at: self, withIntermediateDirectories: createIntermediates, attributes: attributes)
+    }
+    
+    func createSubDirectory(named name: String, withIntermediateDirectories createIntermediates: Bool, attributes: [FileAttributeKey : Any]? = nil) throws {
+        try appendingPathComponent(name).createDirectory(withIntermediateDirectories: createIntermediates, attributes: attributes)
+    }
+    
+    func createFile(contents: Data? = nil, options: Data.WritingOptions = [], attributes: [FileAttributeKey : Any]? = nil) throws {
+        try (contents ?? Data()).write(to: self, options: options)
+        guard let attributes = attributes else { return }
+        try FileManager.default.setAttributes(attributes, ofItemAt: self)
+    }
+    
+    func startDownloadingUbiquitousItem() throws {
+        try FileManager.default.startDownloadingUbiquitousItem(at: self)
+    }
+    
+    var isUbiquitousItem: Bool {
+        FileManager.default.isUbiquitousItem(at: self)
+    }
+    
+    func evictUbiquitousItem() throws {
+        try FileManager.default.evictUbiquitousItem(at: self)
+    }
+    
+    func urlForPublishedUbiquitousItem() throws -> (url: URL, expiration: Date?) {
+        var expirationNSDate: NSDate?
+         let url = try FileManager.default.url(forPublishingUbiquitousItemAt: self, expiration: &expirationNSDate)
+         return (url, expirationNSDate as Date?)
+    }
+    
+    func fileProviderServices(completionHandler: @escaping ([NSFileProviderServiceName : NSFileProviderService]?, (any Error)?) -> Void) {
+        FileManager.default.getFileProviderServicesForItem(at: self, completionHandler: completionHandler)
+    }
+    
+    func fileProviderServices() async throws -> [NSFileProviderServiceName : NSFileProviderService] {
+        try await FileManager.default.fileProviderServicesForItem(at: self)
+    }
+    
+    #if os(macOS) || os(iOS)
+    @available(macOS 26.0, iOS 26.0, *)
+    func pauseSyncForUbiquitousItem(completionHandler: @escaping ((any Error)?) -> Void) {
+        FileManager.default.pauseSyncForUbiquitousItem(at: self, completionHandler: completionHandler)
+    }
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func pauseSyncForUbiquitousItem() async throws {
+        try await FileManager.default.pauseSyncForUbiquitousItem(at: self)
+    }
+
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func resumeSyncForUbiquitousItem(with behavior: NSFileManagerResumeSyncBehavior, completionHandler: @escaping ((any Error)?) -> Void) {
+        FileManager.default.resumeSyncForUbiquitousItem(at: self, with: behavior, completionHandler: completionHandler)
+    }
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func resumeSyncForUbiquitousItem(with behavior: NSFileManagerResumeSyncBehavior) async throws {
+        try await FileManager.default.pauseSyncForUbiquitousItem(at: self)
+    }
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func fetchLatestRemoteVersionOfItem(completionHandler: @escaping (NSFileVersion?, (any Error)?) -> Void) {
+        FileManager.default.fetchLatestRemoteVersionOfItem(at: self, completionHandler: completionHandler)
+    }
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func fetchLatestRemoteVersionOfItem(at url: URL) async throws -> NSFileVersion {
+        try await FileManager.default.fetchLatestRemoteVersionOfItem(at: self)
+    }
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func uploadLocalVersionOfUbiquitousItem(withConflictResolutionPolicy conflictResolutionPolicy: NSFileManagerUploadLocalVersionConflictPolicy, completionHandler: @escaping (NSFileVersion?, (any Error)?) -> Void) {
+        FileManager.default.uploadLocalVersionOfUbiquitousItem(at: self, withConflictResolutionPolicy: conflictResolutionPolicy, completionHandler: completionHandler)
+    }
+    
+    @available(macOS 26.0, iOS 26.0, *)
+    func uploadLocalVersionOfUbiquitousItem(withConflictResolutionPolicy conflictResolutionPolicy: NSFileManagerUploadLocalVersionConflictPolicy) async throws -> NSFileVersion {
+        try await FileManager.default.fetchLatestRemoteVersionOfItem(at: self)
+    }
+    #endif
+    
+    func createSymbolicLink(at destURL: URL) throws {
+        try FileManager.default.createSymbolicLink(at: self, withDestinationURL: destURL)
+    }
+    
+    func linkItem(to dstURL: URL) throws {
+        try FileManager.default.linkItem(at: self, to: dstURL)
+    }
+    
+    func destinationOfSymbolicLink() throws -> URL {
+        try FileManager.default.destinationOfSymbolicLink(at: self)
+    }
+    
+    func fileExists() -> Bool {
+        FileManager.default.fileExists(at: self)
+    }
+    
+    func directoryExists() -> Bool {
+        FileManager.default.directoryExists(at: self)
+    }
+    
+    func content(isEqualTo url: URL) -> Bool {
+        FileManager.default.contentsEqual(at: self, and: url)
+    }
+        
+    func relationshipOfDirectory(to otherURL: URL) throws -> FileManager.URLRelationship {
+        var relationship: FileManager.URLRelationship = .contains
+        try FileManager.default.getRelationship(&relationship, ofDirectoryAt: self,  toItemAt: otherURL)
+        return relationship
+    }
+    
+    func relationship(to directory: FileManager.SearchPathDirectory, in domainMask: FileManager.SearchPathDomainMask) throws -> FileManager.URLRelationship {
+        var relationship: FileManager.URLRelationship = .contains
+        try FileManager.default.getRelationship(&relationship, of: directory, in: domainMask, toItemAt: self)
+        return relationship
+    }
+    
+    func unmountVolume(options mask: FileManager.UnmountOptions = [], completionHandler: @escaping ((any Error)?) -> Void) {
+        FileManager.default.unmountVolume(at: self, options: mask, completionHandler: completionHandler)
+    }
+    
+    func unmountVolume(options mask: FileManager.UnmountOptions = []) async throws {
+        try await FileManager.default.unmountVolume(at: self, options: mask)
+    }
+}
+
+#if os(macOS)
+import AppKit
+extension URL {
+    func iconOfItem() -> NSImage {
+        NSWorkspace.shared.icon(forFile: path)
+    }
+    
+    func unmountAndEjectDevice() throws {
+        try NSWorkspace.shared.unmountAndEjectDevice(at: self)
+    }
+    
+    func open(configuration: NSWorkspace.OpenConfiguration, completionHandler: ((NSRunningApplication?, (any Error)?) -> Void)?) {
+        NSWorkspace.shared.open(self, configuration: configuration, completionHandler: completionHandler)
+    }
+    
+    func open(configuration: NSWorkspace.OpenConfiguration) async throws -> NSRunningApplication {
+        try await NSWorkspace.shared.open(self, configuration: configuration)
+    }
+    
+    func open() -> Bool {
+        NSWorkspace.shared.open(self)
+    }
+    
+    func open(withApplicationAt applicationURL: URL, configuration: NSWorkspace.OpenConfiguration, completionHandler: ((NSRunningApplication?, (any Error)?) -> Void)?) {
+        NSWorkspace.shared.open([self], withApplicationAt: applicationURL, configuration: configuration, completionHandler: completionHandler)
+    }
+    
+    func open(withApplicationAt applicationURL: URL, configuration: NSWorkspace.OpenConfiguration) async throws -> NSRunningApplication {
+        try await NSWorkspace.shared.open([self], withApplicationAt: applicationURL, configuration: configuration)
+    }
+    
+    func openApplication(configuration: NSWorkspace.OpenConfiguration, completionHandler: ((NSRunningApplication?, (any Error)?) -> Void)? = nil) {
+        NSWorkspace.shared.openApplication(at: self, configuration: configuration, completionHandler: completionHandler)
+    }
+    
+    func openApplication(configuration: NSWorkspace.OpenConfiguration) async throws -> NSRunningApplication {
+        try await NSWorkspace.shared.openApplication(at: self, configuration: configuration)
+    }
+    
+    func recycle(completionHandler: ((Result<URL, Error>) -> Void)?) {
+        NSWorkspace.shared.recycle([self]) { urls, error in
+            if let error { completionHandler?(.failure(error)); return }
+            do {
+                completionHandler?(.success(try singleResult(urls)))
+            } catch {
+                completionHandler?(.failure(error))
+            }
+        }
+    }
+    
+    func recycle() async throws -> URL {
+        try await NSWorkspace.shared.recycle([self])[self]!
+    }
+    
+    func duplicate(completionHandler: ((Result<URL, Error>) -> Void)?) {
+        NSWorkspace.shared.duplicate([self]) { urls, error in
+            if let error { completionHandler?(.failure(error)); return }
+            do {
+                completionHandler?(.success(try singleResult(urls)))
+            } catch {
+                completionHandler?(.failure(error))
+            }
+        }
+    }
+    
+    func duplicate() async throws -> URL {
+        try await NSWorkspace.shared.duplicate([self])[self]!
+    }
+    
+    func applicationURLToOpen() -> URL? {
+        NSWorkspace.shared.urlForApplication(toOpen: self)
+    }
+    
+    func applicationURLsToOpen() -> [URL] {
+        NSWorkspace.shared.urlsForApplications(toOpen: self)
+    }
+    
+    func activateAndSelectInFileViewer() {
+        NSWorkspace.shared.activateFileViewerSelecting([self])
+    }
+    
+    func selectInFileViewer(rootedAt rootURL: URL? = nil) -> Bool {
+        NSWorkspace.shared.selectFile(path, inFileViewerRootedAtPath: rootURL?.path ?? "")
+    }
+    
+    private func singleResult<K, V>(_ dict: [K : V]) throws -> V {
+        guard let value = dict.values.first else {
+            throw SingleResultError.noneFound
+        }
+        return value
+    }
+}
+
+extension Sequence where Element == URL {
+    func open(withApplicationAt applicationURL: URL, configuration: NSWorkspace.OpenConfiguration, completionHandler: ((NSRunningApplication?, (any Error)?) -> Void)?) {
+        NSWorkspace.shared.open(map({$0}), withApplicationAt: applicationURL, configuration: configuration, completionHandler: completionHandler)
+    }
+    
+    func open(withApplicationAt applicationURL: URL, configuration: NSWorkspace.OpenConfiguration) async throws -> NSRunningApplication {
+        try await NSWorkspace.shared.open(map({$0}), withApplicationAt: applicationURL, configuration: configuration)
+    }
+    
+    func activateAndSelectInFileViewer() {
+        NSWorkspace.shared.activateFileViewerSelecting(map({$0}))
+    }
+    
+    func icon() -> NSImage? {
+        NSWorkspace.shared.icon(forFiles: map({$0.path}))
+    }
+    
+    func recycle(completionHandler: (([URL : URL], (any Error)?) -> Void)?) {
+        NSWorkspace.shared.recycle(map({$0}), completionHandler: completionHandler)
+    }
+    
+    func recycle() async throws -> [URL : URL] {
+        try await NSWorkspace.shared.recycle(map({$0}))
+    }
+    
+    func duplicate(completionHandler: (([URL : URL], (any Error)?) -> Void)?) {
+        NSWorkspace.shared.duplicate(map({$0}), completionHandler: completionHandler)
+    }
+    
+    func duplicate() async throws -> [URL : URL] {
+        try await NSWorkspace.shared.duplicate(map({$0}))
+    }
+}
+
+fileprivate enum SingleResultError: Error, LocalizedError {
+    case noneFound
+    case multipleFound(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .noneFound:
+            return "Expected exactly one item, but none were found."
+        case .multipleFound(let count):
+            return "Expected exactly one item, but found \(count) items."
+        }
+    }
+}
+#endif
+*/

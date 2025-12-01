@@ -389,6 +389,15 @@ public extension FileManager {
         mountedVolumeURLs(includingResourceValuesForKeys: nil, options: options)
     }
     
+    /**
+     Returns the `URL` of the item pointed to by a symbolic link.
+     - Parameter url: The url of a file or directory.
+     - Returns: The `URL` of the directory or file to which the symbolic link path refers.
+     */
+    func destinationOfSymbolicLink(at url: URL) throws -> URL {
+        .file(try destinationOfSymbolicLink(atPath: url.path))
+    }
+    
     /// The handlers for the file manager.
     var handlers: Handlers {
         get { getAssociatedValue("handlers") ?? Handlers() }
