@@ -240,23 +240,6 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      orderedDictionary["b"] = 42
      print(orderedDictionary["b"])
      // => Optional(42)
-
-     print(orderedDictionary)
-     // => ["a": 1, "b": 42, "c": 3]
-
-     orderedDictionary["d"] = 4
-     print(orderedDictionary["d"])
-     // => Optional(4)
-
-     print(orderedDictionary)
-     // => ["a": 1, "b": 42, "c": 3, "d": 4]
-
-     orderedDictionary["c"] = nil
-     print(orderedDictionary["c"])
-     // => nil
-
-     print(orderedDictionary)
-     // => ["a": 1, "b": 42, "d": 4]
       ```
 
       - Parameter key: The key to find in the ordered dictionary.
@@ -453,16 +436,16 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
       - Parameter position: The position of the key-value pair to access. position must be a valid index of the ordered dictionary and not equal to endIndex.
       - Returns: A tuple containing the key-value pair corresponding to `position`.
       */
-    public subscript(position: Int) -> Element {
+    public subscript(index: Int) -> Element {
         get {
-            precondition( indices.contains(position), "[OrderedDictionary] Index is out of bounds")
-            let key = _orderedKeys[position]
+            precondition( indices.contains(index), "[OrderedDictionary] Index is out of bounds")
+            let key = _orderedKeys[index]
             guard let value = _keysToValues[key] else {
                 fatalError("[OrderedDictionary] Inconsistency error")
             }
             return (key, value)
         }
-        set { update(newValue, at: position) }
+        set { update(newValue, at: index) }
     }
     
     /**
