@@ -126,6 +126,11 @@ public extension MDQuery {
         guard isExecuting else { return false }
         isStarted = true
         isStopped = false
+        notificationTokens = []
+        notificationTokens += NotificationCenter.default.observe(MDQuery.MDQueryDidFinishGatheringNotification, object: self) { [weak self] _ in
+            guard let self = self else { return }
+            
+        }
         NotificationCenter.default.post(name: MDQuery.MDQueryDidStartGatheringNotification, object: self)
         return true
     }
@@ -142,6 +147,7 @@ public extension MDQuery {
         MDQueryStop(self)
         isStarted = false
         isStopped = true
+        notificationTokens = []
     }
     
     /**
@@ -304,10 +310,9 @@ public extension MDQuery {
      ```
      */
     var monitorResults: Bool {
-        get { options.contains(.wantsUpdates) }
+        get { getAssociatedValue("monitorResults", object: self) ?? false }
         set {
-            guard newValue != monitorResults else { return }
-            options[.wantsUpdates] = newValue
+            setAssociatedValue(newValue, key: "monitorResults", object: self)
         }
     }
     
@@ -336,7 +341,7 @@ public extension MDQuery {
     /// Posted as the receiver is collecting results during the initial result-gathering phase of the query.
     static let MDQueryGatheringProgressNotification = Notification.Name(kMDQueryProgressNotification as String)
     /// Posted when the receiver has finished with the initial result-gathering phase of the query.
-    static let MDQueryDidFinishNotification = Notification.Name(kMDQueryDidFinishNotification as String)
+    static let MDQueryDidFinishGatheringNotification = Notification.Name(kMDQueryDidFinishNotification as String)
     /// Posted when the receiver’s results have changed during the live-update phase of the query.
     static let MDQueryDidUpdateNotification = Notification.Name(kMDQueryDidUpdateNotification as String)
    
@@ -359,7 +364,7 @@ public extension MDQuery {
          - Parameter result: The query result object to replace.
          - Returns: Object that replaces the query result object.
          */
-        var replacementObject: ((_ result: MDItem)->(AnyObject))?
+        public var replacementObject: ((_ result: MDItem)->(AnyObject))?
         /**
          Returns a different value for a given attribute and value.
          
@@ -368,7 +373,7 @@ public extension MDQuery {
          - Parameter attributeName: The attribute in question.
          - Returns: The attribute value to replace.
          */
-        var replacementValue: ((_ attributeName: String, _ value: AnyObject)->(AnyObject))?
+        public var replacementValue: ((_ attributeName: String, _ value: AnyObject)->(AnyObject))?
     }
     
     private func setupHandlers(_ newValue: Handlers) {
@@ -406,11 +411,6 @@ public extension MDQuery {
         get { getAssociatedValue("replacementObjectWrapper", object: self) }
         set { setAssociatedValue(newValue, key: "replacementObjectWrapper", object: self) }
     }
-    
-    private var isDisabled: Bool {
-        get { getAssociatedValue("isDisabled", object: self) ?? false }
-        set { setAssociatedValue(newValue, key: "isDisabled", object: self) }
-    }
    
     private class ReplacementObjectWrapper {
         let handler: (MDItem) -> AnyObject
@@ -429,6 +429,11 @@ public extension MDQuery {
         init(_ handler: @escaping ((_ attribute: String, _ value: AnyObject)->(AnyObject))) {
             self.handler = handler
         }
+    }
+    
+    private var isDisabled: Bool {
+        get { getAssociatedValue("isDisabled", object: self) ?? false }
+        set { setAssociatedValue(newValue, key: "isDisabled", object: self) }
     }
     
     private func runWithOperationQueue<T>(_ block: ()->(T)) -> T {
@@ -450,6 +455,11 @@ public extension MDQuery {
             enableUpdates()
         }
         return result
+    }
+    
+    private var notificationTokens: [NotificationToken] {
+        get { getAssociatedValue("notificationTokens", object: self) ?? [] }
+        set { setAssociatedValue(newValue, key: "notificationTokens", object: self)}
     }
 }
 
@@ -501,82 +511,7 @@ public extension MDQuery {
             }
         }
     }
-}
 
-extension MDQuery {
-    struct Options: OptionSet, CustomStringConvertible {
-        /**
-         The query blocks during the initial gathering phase.
-        
-         It’s run loop will run in the default mode.
-        
-         If this option is not specified the query returns immediately after starting it asynchronously.
-         */
-        public static let synchronous = Self(rawValue: 1 << 0)
-       
-        /**
-         The query provides live-updates to the results after the initial gathering phase.
-        
-         Updates occur during the live-update phase if a change in a file occurs such that it no longer matches the query or if it begins to match the query. Files which begin to match the query are added to the result list, and files which no longer match the query expression are removed from the result list.
-        
-         If this option isn't used, the query stops after gathering the inital matching items.
-        
-         This option is ignored if the `synchronous` option is specified.
-         */
-        public static let wantsUpdates = Self(rawValue: 1 << 2)
-       
-        /**
-         The query interacts directly with the filesystem to resolve parts of the query, in addition to using the Spotlight metadata index.
-        
-         Normally, metadata queries rely heavily on their pre-built index for speed. However, the index might not always be perfectly synchronized with the live state of the file system (e.g., immediately after a file change).
-        
-         Using this option permits the query to go "live" to the file system to verify information or gather attributes that might be missing or potentially stale in the index.
-        
-         - Note: Consulting the live file system is significantly slower than querying the optimized Spotlight index. Therefore, using this option will almost always result in considerably slower query performance. It should generally be avoided unless there's a very specific need for this behavior and the performance impact is acceptable.
-         */
-        public static let allowFSTranslation = Self(rawValue: 1 << 3)
-       
-       
-        public var description: String {
-            var strings: [String] = []
-            if contains(.synchronous) { strings.append(".synchronous") }
-            if contains(.wantsUpdates) { strings.append(".wantsUpdates") }
-            if contains(.allowFSTranslation) { strings.append(".allowFSTranslation") }
-            return "[\(strings.joined(separator: ", "))]"
-        }
-       
-        public init(rawValue: UInt) { self.rawValue = rawValue }
-        public let rawValue: UInt
-    }
-}
-
-extension MDQuery {
-    private var notificationObserver: UnsafeMutablePointer<AnyObject?> {
-        getAssociatedValue("notificationObserver", object: self, initialValue: .allocate(capacity: 1))
-    }
-    
-    private var queryGatheringProgressCallback: CFNotificationCallback {
-        getAssociatedValue("queryGatheringProgressCallback", object: self, initialValue: Self.notificationCallback(MDQuery.MDQueryGatheringProgressNotification))
-    }
-    
-    private var queryDidUpdateCallback: CFNotificationCallback {
-        getAssociatedValue("queryDidUpdateCallback", object: self, initialValue: Self.notificationCallback(MDQuery.MDQueryDidUpdateNotification))
-    }
-    
-    private var queryDidFinishCalback: CFNotificationCallback {
-        getAssociatedValue("queryDidFinishCalback", object: self, initialValue: Self.notificationCallback(MDQuery.MDQueryDidFinishNotification))
-    }
-    
-    static func notificationCallback(_ notification: Notification.Name) -> CFNotificationCallback {
-        { notificationCenter, observer, notificationName, object, userInfo in
-            guard let object: UnsafeRawPointer else { return  }
-            let query: MDQuery = unsafeBitCast(object, to: MDQuery.self)
-          //  NotificationCenter.default.post(name: notification, object: query)
-        }
-    }
-}
-
-public extension MDQuery {
     /// Options for when the metadata query updates it's results with accumulated changes.
     struct ResultUpdateOptions: Hashable {
         /// The inital maximum time (in seconds) that can pass after the query begins before updating the results with accumulated changes.
@@ -621,6 +556,53 @@ public extension MDQuery {
 }
 
 extension MDQuery {
+    struct Options: OptionSet, CustomStringConvertible {
+        /**
+         The query blocks during the initial gathering phase.
+        
+         It’s run loop will run in the default mode.
+        
+         If this option is not specified the query returns immediately after starting it asynchronously.
+         */
+        public static let synchronous = Self(rawValue: 1 << 0)
+       
+        /**
+         The query provides live-updates to the results after the initial gathering phase.
+        
+         Updates occur during the live-update phase if a change in a file occurs such that it no longer matches the query or if it begins to match the query. Files which begin to match the query are added to the result list, and files which no longer match the query expression are removed from the result list.
+        
+         If this option isn't used, the query stops after gathering the inital matching items.
+        
+         This option is ignored if the `synchronous` option is specified.
+         */
+        public static let wantsUpdates = Self(rawValue: 1 << 2)
+       
+        /**
+         The query interacts directly with the filesystem to resolve parts of the query, in addition to using the Spotlight metadata index.
+        
+         Normally, metadata queries rely heavily on their pre-built index for speed. However, the index might not always be perfectly synchronized with the live state of the file system (e.g., immediately after a file change).
+        
+         Using this option permits the query to go "live" to the file system to verify information or gather attributes that might be missing or potentially stale in the index.
+        
+         - Note: Consulting the live file system is significantly slower than querying the optimized Spotlight index. Therefore, using this option will almost always result in considerably slower query performance. It should generally be avoided unless there's a very specific need for this behavior and the performance impact is acceptable.
+         */
+        public static let allowFSTranslation = Self(rawValue: 1 << 3)
+       
+        public var description: String {
+            var strings: [String] = []
+            if contains(.synchronous) { strings.append(".synchronous") }
+            if contains(.wantsUpdates) { strings.append(".wantsUpdates") }
+            if contains(.allowFSTranslation) { strings.append(".allowFSTranslation") }
+            return "[\(strings.joined(separator: ", "))]"
+        }
+       
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public let rawValue: UInt
+    }
+}
+
+
+extension MDQuery {
     internal func setupSortComparator() {
         let sortComparator: MDQuerySortComparatorFunction = { values1, values2, context in
             guard let value1 = values1?.pointee?.takeUnretainedValue() else {
@@ -637,24 +619,4 @@ extension MDQuery {
         MDQuerySetSortComparator(self, sortComparator, nil)
     }
 }
-
-
-/*
- 
- let queryFinishCallback: CFNotificationCallback = { notificationCenter, observer, notificationName, object, userInfo in
-     guard let object: UnsafeRawPointer else {
-         return
-     }
-
-     let query: MDQuery = unsafeBitCast(object, to: MDQuery.self)
-
-     mainActor {
-         let paths = query.getPaths()
-         FUZZY.recents = paths
-         FUZZY.sortedRecents = FUZZY.sortedResults(results: paths)
-     }
- }
-
- */
-
 #endif
