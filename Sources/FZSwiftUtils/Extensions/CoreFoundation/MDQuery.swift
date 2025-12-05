@@ -17,7 +17,7 @@ public extension CFType where Self == MDQuery {
         - attributes: The metadata attributes whose values are gathered by the query.
         - sortingAttributes: The metadata attributes whose values are used to sort the results of the query.
      */
-    init(queeryString: String, attributes: [String] = [], sortingAttributes: [String] = []) {
+    init(queryString: String, attributes: [String] = [], sortingAttributes: [String] = []) {
         self = MDQueryCreate(.default, queeryString as CFString, attributes._bridgeToCF(), sortingAttributes._bridgeToCF())
     }
 }
