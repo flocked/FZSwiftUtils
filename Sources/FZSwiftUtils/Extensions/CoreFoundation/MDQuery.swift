@@ -108,11 +108,6 @@ public extension MDQuery {
         guard isExecuting else { return false }
         isStarted = true
         isStopped = false
-        /*
-        CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, queryDidFinishCalback, kMDQueryDidFinishNotification, unsafeBitCast(self, to: UnsafeRawPointer.self), .deliverImmediately)
-        CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, queryDidUpdateCallback, kMDQueryDidUpdateNotification, unsafeBitCast(self, to: UnsafeRawPointer.self), .deliverImmediately)
-        CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, queryGatheringProgressCallback, kMDQueryProgressNotification, unsafeBitCast(self, to: UnsafeRawPointer.self), .deliverImmediately)
-         */
         NotificationCenter.default.post(name: MDQuery.MDQueryDidStartGatheringNotification, object: self)
         return true
     }
@@ -129,9 +124,6 @@ public extension MDQuery {
         MDQueryStop(self)
         isStarted = false
         isStopped = true
-        CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, CFNotificationName(kMDQueryDidFinishNotification), unsafeBitCast(self, to: UnsafeRawPointer.self))
-        CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, CFNotificationName(kMDQueryProgressNotification), unsafeBitCast(self, to: UnsafeRawPointer.self))
-        CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, CFNotificationName(kMDQueryDidUpdateNotification), unsafeBitCast(self, to: UnsafeRawPointer.self))
     }
     
     /**
