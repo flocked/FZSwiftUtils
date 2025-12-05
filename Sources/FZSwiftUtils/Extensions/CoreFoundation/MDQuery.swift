@@ -260,7 +260,7 @@ public extension MDQuery {
             setAssociatedValue([URL](), key: "searchLocations", object: self)
             setAssociatedValue(newValue, key: "searchScopes", object: self)
             runWithOperationQueue {
-                MDQuerySetSearchScope(self, newValue.map({$0.rawValue}) as [CFString] as CFArray, 0)
+                MDQuerySetSearchScope(self, newValue.map({$0.rawValue}) as CFArray, 0)
             }
         }
     }
@@ -465,7 +465,7 @@ public extension MDQuery {
 
 public extension MDQuery {
     /// Search scopes for where the metadata query searches files.
-    enum SearchScope: String, Hashable {
+    enum SearchScope: Hashable {
         /// Searches the user’s home directory.
         case home
         
@@ -498,16 +498,16 @@ public extension MDQuery {
         /// Searches for documents outside the app’s container. This search can locate iCloud documents that the user previously opened using a document picker view controller. This lets your app access the documents again without requiring direct user interaction. The result’s metadata items return a security-scoped URL for their url property.
         case accessibleUbiquitousExternalDocuments
         
-        public var rawValue: String {
+        public var rawValue: CFString {
             switch self {
-            case .home: return NSMetadataQueryUserHomeScope
-            case .local: return NSMetadataQueryLocalComputerScope
-            case .localIndexed: return NSMetadataQueryIndexedLocalComputerScope
-            case .network: return NSMetadataQueryNetworkScope
-            case .networkIndexed: return NSMetadataQueryIndexedNetworkScope
-            case .ubiquitousDocuments: return NSMetadataQueryUbiquitousDocumentsScope
-            case .ubiquitousData: return NSMetadataQueryUbiquitousDataScope
-            case .accessibleUbiquitousExternalDocuments: return NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope
+            case .home: return kMDQueryScopeHome
+            case .local: return kMDQueryScopeComputer
+            case .localIndexed: return kMDQueryScopeComputerIndexed
+            case .network: return kMDQueryScopeNetwork
+            case .networkIndexed: return kMDQueryScopeNetworkIndexed
+            case .ubiquitousDocuments: return NSMetadataQueryUbiquitousDocumentsScope as CFString
+            case .ubiquitousData: return NSMetadataQueryUbiquitousDataScope as CFString
+            case .accessibleUbiquitousExternalDocuments: return NSMetadataQueryAccessibleUbiquitousExternalDocumentsScope as CFString
             }
         }
     }
@@ -619,4 +619,38 @@ extension MDQuery {
         MDQuerySetSortComparator(self, sortComparator, nil)
     }
 }
+
+public extension Notification.Name {
+    /// Posted when the receiver begins with the initial result-gathering phase of the query.
+    static let MDQueryDidStartGatheringNotification = Self("MDQueryDidStartGathering")
+    /// Posted as the receiver is collecting results during the initial result-gathering phase of the query.
+    static let MDQueryGatheringProgressNotification = Self(kMDQueryProgressNotification as String)
+    /// Posted when the receiver has finished with the initial result-gathering phase of the query.
+    static let MDQueryDidFinishGatheringNotification = Self(kMDQueryDidFinishNotification as String)
+    /// Posted when the receiver’s results have changed during the live-update phase of the query.
+    static let MDQueryDidUpdateNotification = Self(kMDQueryDidUpdateNotification as String)
+}
+
+/*
+ private func bridge(_ value: Any) -> Any? {
+     if let value = value as? String {
+         return value
+     } else if let value = value as? Date {
+         return value
+     } else if let number = CFNumber(value)?.asNS() {
+         return number.value
+     } else if let value = CFBoolean(value)?.asNS() {
+         return value.boolValue
+     } else if let value = value as? URL {
+         return value
+     } else if let value = value as? [String] {
+         return value
+     } else if let value = value as? [Double] {
+         return value
+     } else if let value = value as? [Any] {
+         return value
+     }
+     return nil
+ }
+ */
 #endif

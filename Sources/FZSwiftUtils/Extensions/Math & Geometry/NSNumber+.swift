@@ -94,6 +94,27 @@ public extension NSNumber {
         guard isBool else { return nil }
         return boolValue
     }
+    
+    /// The value of the `NSNumber`.
+    var value: Any {
+        if let bool = safeBoolValue { return bool }
+        switch String(cString: objCType) {
+        case "c":  return boolValue
+        case "C":  return uint8Value
+        case "s":  return int16Value
+        case "S":  return uint16Value
+        case "i":  return int32Value
+        case "I":  return uint32Value
+        case "l":  return intValue
+        case "L":  return uintValue
+        case "q":  return int64Value
+        case "Q":  return uint64Value
+        case "f":  return floatValue
+        case "d":  return doubleValue
+        case "B":  return boolValue
+        default: return self
+        }
+    }
 
     /**
      Returns an `NSNumber` object initialized to contain the specified value of the string.
@@ -118,36 +139,23 @@ public extension NSNumber {
 extension NSNumber: Codable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
-        if let value = safeBoolValue {
-            try container.encode(value)
-            return
-        }
+        if let value = safeBoolValue { try container.encode(value); return }
         switch Character(Unicode.Scalar(UInt8(objCType.pointee))) {
-        case "B":
-            try container.encode(boolValue)
-        case "c":
-            try container.encode(int8Value)
-        case "s":
-            try container.encode(int16Value)
-        case "i", "l":
-            try container.encode(int32Value)
-        case "q":
-            try container.encode(int64Value)
-        case "C":
-            try container.encode(uint8Value)
-        case "S":
-            try container.encode(uint16Value)
-        case "I", "L":
-            try container.encode(uint32Value)
-        case "Q":
-            try container.encode(uint64Value)
-        case "f":
-            try container.encode(floatValue)
-        case "d":
-            try container.encode(doubleValue)
+        case "B": try container.encode(boolValue)
+        case "c": try container.encode(int8Value)
+        case "C": try container.encode(uint8Value)
+        case "s": try container.encode(int16Value)
+        case "S": try container.encode(uint16Value)
+        case "i": try container.encode(int32Value)
+        case "I": try container.encode(uint32Value)
+        case "l": try container.encode(Int(intValue))
+        case "L": try container.encode(UInt(uintValue))
+        case "q": try container.encode(int64Value)
+        case "Q": try container.encode(uint64Value)
+        case "f": try container.encode(floatValue)
+        case "d": try container.encode(doubleValue)
         default:
-            let context = EncodingError.Context(codingPath: container.codingPath, debugDescription: "NSNumber cannot be encoded because its type is not handled")
-            throw EncodingError.invalidValue(self, .init(codingPath: container.codingPath, debugDescription: "NSNumber cannot be encoded because its type is not handled"))
+            throw EncodingError.invalidValue(self, EncodingError.Context(codingPath: container.codingPath, debugDescription: "NSNumber uses an unsupported ObjC type: \(String(cString: objCType))"))
         }
     }
 }
@@ -155,36 +163,20 @@ extension NSNumber: Codable {
 extension Decodable where Self: NSNumber {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(Int.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Int.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Int8.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Int16.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Int32.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Int64.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(UInt.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(UInt8.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(UInt16.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(UInt32.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(UInt64.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Float.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Double.self) {
-            self.init(value: value)
-        } else if let value = try? container.decode(Bool.self) {
-            self.init(value: value)
-        } else {
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported NSNumber type.")
+        if let value = try? container.decode(Int.self)        { self.init(value: value) }
+        else if let value = try? container.decode(Double.self){ self.init(value: value) }
+        else if let value = try? container.decode(Bool.self)  { self.init(value: value) }
+        else if let value = try? container.decode(Float.self) { self.init(value: value) }
+        else if let value = try? container.decode(Int8.self)  { self.init(value: value) }
+        else if let value = try? container.decode(UInt8.self) { self.init(value: value) }
+        else if let value = try? container.decode(Int16.self) { self.init(value: value) }
+        else if let value = try? container.decode(UInt16.self){ self.init(value: value) }
+        else if let value = try? container.decode(Int32.self) { self.init(value: value) }
+        else if let value = try? container.decode(UInt32.self){ self.init(value: value) }
+        else if let value = try? container.decode(Int64.self) { self.init(value: value) }
+        else if let value = try? container.decode(UInt64.self){ self.init(value: value) }
+        else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported NSNumber type")
         }
     }
 }
