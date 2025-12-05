@@ -10,7 +10,9 @@ import AppKit
 
 public extension CFType where Self == MDQuery {
     /**
-     Creates a new metadata query instance.
+     Creates a new metadata query instance with the specified query string.
+     
+     - Note: You can't use `kMDItemPath`.
      
      - Parameters:
         - queryString: The query expression string for this query.
@@ -18,7 +20,22 @@ public extension CFType where Self == MDQuery {
         - sortingAttributses: The metadata attributes whose values are used to sort the results of the query.
      */
     init(queryString: String, attributes: [String] = [], sortingAttributes: [String] = []) {
-        self = MDQueryCreate(.default, queryString as CFString, attributes._bridgeToCF(), sortingAttributes._bridgeToCF())
+        let attributes = attributes.filter({$0 != "kMDItemPath" }).uniqued()._bridgeToCF()
+        let sortingAttributes = sortingAttributes.filter({$0 != "kMDItemPath" }).uniqued()._bridgeToCF()
+        self = MDQueryCreate(.default, queryString as CFString, attributes, sortingAttributes)
+    }
+    
+    /**
+     Creates a new metadata query instance that gathers the specified attributes.
+     
+     - Note: You can't use `kMDItemPath`.
+     
+     - Parameters:
+        - attributes: The metadata attributes whose values are gathered by the query.
+        - sortingAttributses: The metadata attributes whose values are used to sort the results of the query.
+     */
+    init(attributes: [String], sortingAttributes: [String] = []) {
+        self.init(queryString: #"kMDItemContentTypeTree == "public.item""#, attributes: attributes, sortingAttributes: sortingAttributes)
     }
 }
 
@@ -269,23 +286,9 @@ public extension MDQuery {
             guard let value2 = values2?.pointee?.takeUnretainedValue() else {
                 return .compareLessThan
             }
-            if let value1 = CFNumber(value1) {
-                Swift.print("CFNumber")
-                return value1.compare(to: CFNumber(value2)!, context: context)
-            } else if let value1 = CFString(value1) {
-                Swift.print("CFString")
-                return value1.compare(to: CFString(value2)!, context: context)
-            } else if let value1 = CFDate(value1) {
-                Swift.print("CFDate")
-                return value1.compare(to: CFDate(value2)!, context: context)
-            } else if let value1 = CFURL(value1) {
-                Swift.print("CFURL")
-                return value1.compare(to: CFURL(value2)!, context: context)
-            }  else if let value1 = CFBoolean(value1) {
-                Swift.print("CFBoolean")
-                return value1.compare(to: CFBoolean(value2)!, context: context)
+            if let value1 = value1 as? (any CFComparable) {
+                return value1.compare(to: value2, context: context).reversed()
             }
-            Swift.print("Other")
             return .compareLessThan
         }
         MDQuerySetSortComparator(self, sortComparator, nil)

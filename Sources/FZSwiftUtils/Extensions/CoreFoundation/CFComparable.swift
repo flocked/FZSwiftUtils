@@ -13,9 +13,10 @@ public protocol CFComparable {
     func compare(to other: Self, context: UnsafeMutableRawPointer!) -> CFComparisonResult
 }
 
-extension CFComparable {
+public extension CFComparable {
+    /// Compares rhe object to another and returns a comparison result.
     func compare(to other: Any, context: UnsafeMutableRawPointer!) -> CFComparisonResult {
-        guard let other = other as? Self else { return .compareGreaterThan }
+        guard let other = other as? Self else { return .compareLessThan }
         return compare(to: other, context: context)
     }
 }
