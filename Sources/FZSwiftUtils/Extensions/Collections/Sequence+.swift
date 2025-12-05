@@ -33,15 +33,26 @@ public extension Sequence where Element: AdditiveArithmetic {
     }
 }
 
-public extension Sequence where Element: Equatable {
+public extension Sequence {
     /**
      A Boolean value indicating whether the sequence contains any of the given elements.
 
      - Parameter elements: The elements to find in the sequence.
      - Returns: `true` if any of the elements was found in the sequence; otherwise, `false`.
      */
-    func contains<S>(any elements: S) -> Bool where S: Sequence<Element> {
+    func contains<S>(any elements: S) -> Bool where Element: Equatable, S: Sequence<Element> {
         elements.contains(where: { contains($0) })
+    }
+    
+    /**
+     A Boolean value indicating whether the sequence contains any of the given elements.
+
+     - Parameter elements: The elements to find in the sequence.
+     - Returns: `true` if any of the elements was found in the sequence; otherwise, `false`.
+     */
+    func contains<S>(any elements: S) -> Bool where Element: Hashable, S: Sequence<Element> {
+        let set = Set(self)
+        return elements.contains { set.contains($0) }
     }
     
     /**
@@ -52,9 +63,26 @@ public extension Sequence where Element: Equatable {
         - inSameOrder: A Boolean value indicating whether the elements to find need to appear in the same order.
      - Returns: `true` if all elements were found in the sequence; otherwise, `false`.
      */
-    func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where S: Sequence<Element> {
+    func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where Element: Equatable, S: Sequence<Element> {
         if !inSameOrder {
             return elements.allSatisfy { contains($0) }
+        } else {
+            return elements.allSatisfy(AnyIterator(makeIterator()).contains)
+        }
+    }
+        
+    /**
+     A Boolean value indicating whether the sequence contains all given elements.
+
+     - Parameters:
+        - elements: The elements to find in the sequence.
+        - inSameOrder: A Boolean value indicating whether the elements to find need to appear in the same order.
+     - Returns: `true` if all elements were found in the sequence; otherwise, `false`.
+     */
+    func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where Element: Hashable, S: Sequence<Element> {
+        if !inSameOrder {
+            let set = Set(self)
+            return elements.allSatisfy { set.contains($0) }
         } else {
             return elements.allSatisfy(AnyIterator(makeIterator()).contains)
         }

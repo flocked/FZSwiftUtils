@@ -32,6 +32,11 @@ extension CFType {
         self = value as! Self
     }
     
+    public init?(_ value: Self?) {
+        guard let value = value else { return nil }
+        self = value
+    }
+    
     /// Determines whether the object is equal to the specified other object.
     public func isEqual(to other: Self) -> Bool {
         CFEqual(self as AnyObject, other as AnyObject)
@@ -84,6 +89,10 @@ extension CGDataProvider: CFType { }
 extension CGDataConsumer: CFType { }
 extension CGPDFPage: CFType { }
 extension CGPDFDocument: CFType { }
+extension ColorSyncProfile: CFType {
+    /// The Core Foundation type identifier for `ColorSyncProfile`.
+    public static let typeID = ColorSyncProfileGetTypeID()
+}
 
 #if os(macOS)
 extension CGDisplayMode: CFType { }
@@ -426,3 +435,253 @@ extension VTPixelRotationSession: CFType {
 }
 #endif
 */
+
+import AppKit
+
+import AppKit
+
+public extension MDQuery {
+    
+    var maxCount: Int {
+        get { getAssociatedValue("maxCount", object: self) ?? 0 }
+        set {
+            setAssociatedValue(newValue, key: "maxCount", object: self)
+            MDQuerySetMaxCount(self, newValue)
+        }
+    }
+    
+    var dispatchQueue: DispatchQueue? {
+        get { getAssociatedValue("dispatchQueue", object: self) }
+        set {
+            setAssociatedValue(newValue, key: "dispatchQueue", object: self)
+            MDQuerySetDispatchQueue(self, newValue)
+        }
+    }
+    
+    var queryString: String {
+        MDQueryCopyQueryString(self) as String
+    }
+    
+    var sortingAttributes: [String] {
+        MDQueryCopySortingAttributes(self) as! [CFString] as [String]
+    }
+    
+    var valueListAttributes: [String] {
+        MDQueryCopyValueListAttributes(self) as! [CFString] as [String]
+    }
+    
+    // MDQueryCopyValueListAttributes
+    
+    //  func MDQueryCopySortingAttributes(MDQuery!) -> CFArray!
+    
+    
+    var batchingParameters: MDQueryBatchingParams {
+        get { MDQueryGetBatchingParameters(self) }
+        set { MDQuerySetBatchingParameters(self, newValue) }
+    }
+    
+    func start() {
+        MDQueryExecute(self, options.rawValue)
+        isStarted = true
+        isStopped = false
+    }
+    
+    func stop() {
+        MDQueryStop(self)
+        isStarted = false
+        isStopped = true
+    }
+    
+    private(set) var isStarted: Bool {
+        get { getAssociatedValue("isStarted", object: self) ?? false }
+        set { setAssociatedValue(newValue, key: "isStarted", object: self) }
+    }
+    
+    var isGathering: Bool {
+        isStarted && !MDQueryIsGatheringComplete(self)
+    }
+    
+    private(set) var isStopped: Bool {
+        get { getAssociatedValue("isStopped", object: self) ?? true }
+        set { setAssociatedValue(newValue, key: "isStopped", object: self) }
+    }
+    
+    func disableUpdates() {
+        MDQueryDisableUpdates(self)
+    }
+    
+    func enableUpdates() {
+        MDQueryEnableUpdates(self)
+    }
+    
+    var isGatheringComplete: Bool {
+        MDQueryIsGatheringComplete(self)
+    }
+    
+    var resultCount: Int {
+        MDQueryGetResultCount(self) as Int
+    }
+    
+    func index(of item: MDItem) -> Int {
+        MDQueryGetIndexOfResult(self, UnsafeRawPointer(Unmanaged.passUnretained(item).toOpaque())) as Int
+    }
+    
+    func item(at index: Int) -> MDItem? {
+        guard let rawPointer = MDQueryGetResultAtIndex(self, index as CFIndex) else { return nil }
+        return Unmanaged<MDItem>.fromOpaque(rawPointer).takeUnretainedValue()
+    }
+    
+    var searchScopes: [String] {
+        get { getAssociatedValue("searchScopes", object: self) ?? [] }
+        set {
+            setAssociatedValue([URL](), key: "searchLocations", object: self)
+            setAssociatedValue(newValue, key: "searchScopes", object: self)
+            MDQuerySetSearchScope(self, newValue as [CFString] as CFArray, 0)
+        }
+    }
+    
+    var searchLocations: [URL] {
+        get { getAssociatedValue("searchLocations", object: self) ?? [] }
+        set {
+            setAssociatedValue([String](), key: "searchScopes", object: self)
+            setAssociatedValue(newValue, key: "searchLocations", object: self)
+            MDQuerySetSearchScope(self, newValue as [CFURL] as CFArray, 0)
+        }
+    }
+    /// func value(ofAttribute: String, forResultAt: Int) -> Any?
+
+    func value(ofAttribute attribute: String, forResultAt index: Int) -> Any? {
+        guard let rawPointer = MDQueryGetAttributeValueOfResultAtIndex(self, attribute as CFString, index as CFIndex) else { return nil }
+        return Unmanaged<AnyObject>.fromOpaque(rawPointer).takeUnretainedValue()
+    }
+    
+    /*
+    func MDQueryCopyValuesOfAttribute(
+        _ query: MDQuery!,
+        _ name: CFString!
+    ) -> CFArray!
+     */
+    
+    var handlers: Handlers {
+        get { getAssociatedValue("handlers", object: self) ?? Handlers() }
+        set {
+            setAssociatedValue(newValue, key: "handlers", object: self)
+            if let replacementObject = newValue.replacementObject {
+                let createResultFunction: MDQueryCreateResultFunction = { query, item, context in
+                    guard let item = item, let context = context else { return nil }
+                    let wrapper = Unmanaged<ReplacementObjectWrapper>.fromOpaque(context).takeUnretainedValue()
+                    return UnsafeRawPointer(Unmanaged.passUnretained(wrapper.handler(item)).toOpaque())
+                }
+                self.replacementObjectWrapper = ReplacementObjectWrapper(replacementObject)
+                let contextPointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(replacementObjectWrapper!).toOpaque())
+                MDQuerySetCreateResultFunction(self, createResultFunction, contextPointer, nil)
+            } else if replacementObjectWrapper != nil {
+                MDQuerySetCreateResultFunction(self, nil, nil, nil)
+                replacementObjectWrapper = nil
+            }
+            
+            if let replacementValue = newValue.replacementValue {
+                let createValueFunction: MDQueryCreateValueFunction = { query, attribute, value, context in
+                    guard let attribute = attribute as? String, let _value = value, let value = (_value as? any _ObjectiveCBridgeable)?._bridgeToObjectiveC(), let context = context else { return nil }
+                    let wrapper = Unmanaged<ReplacementValueWrapper>.fromOpaque(context).takeUnretainedValue()
+                    let newValue = wrapper.handler(attribute, value)
+                    return UnsafeRawPointer(Unmanaged.passUnretained(newValue === value ? _value : newValue).toOpaque())
+                }
+                self.replacementValueWrapper = ReplacementValueWrapper(replacementValue)
+                let contextPointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(replacementValueWrapper!).toOpaque())
+                MDQuerySetCreateValueFunction(self, createValueFunction, contextPointer, nil)
+            } else if replacementValueWrapper != nil {
+                MDQuerySetCreateValueFunction(self, nil, nil, nil)
+                replacementValueWrapper = nil
+            }
+        }
+    }
+    
+    private var replacementObjectWrapper: ReplacementObjectWrapper? {
+        get { getAssociatedValue("replacementObjectWrapper", object: self) }
+        set { setAssociatedValue(newValue, key: "replacementObjectWrapper", object: self) }
+    }
+    
+    private class ReplacementObjectWrapper {
+        let handler: (MDItem) -> AnyObject
+        init(_ handler: @escaping (MDItem) -> AnyObject) {
+            self.handler = handler
+        }
+    }
+    
+    private var replacementValueWrapper: ReplacementValueWrapper? {
+        get { getAssociatedValue("replacementValueWrapper", object: self) }
+        set { setAssociatedValue(newValue, key: "replacementValueWrapper", object: self) }
+    }
+    
+    private class ReplacementValueWrapper {
+        let handler: ((_ attribute: String, _ value: AnyObject)->(AnyObject))
+        init(_ handler: @escaping ((_ attribute: String, _ value: AnyObject)->(AnyObject))) {
+            self.handler = handler
+        }
+    }
+    
+    struct Handlers {
+        var replacementObject: ((_ item: MDItem)->(AnyObject))?
+        var replacementValue: ((_ attribute: String, _ value: AnyObject)->(AnyObject))?
+    }
+    
+    /*
+     func MDQueryIsGatheringComplete(MDQuery!) -> Bool
+
+     func MDQueryDisableUpdates(MDQuery!)
+     Disables updates to the query result list.
+     func MDQueryEnableUpdates(MDQuery!)
+
+     */
+    
+    var options: Options {
+        get { getAssociatedValue("options", object: self) ?? [] }
+        set { setAssociatedValue(newValue, key: "options", object: self) }
+    }
+    
+    struct Options: OptionSet, CustomStringConvertible {
+        /**
+         The query blocks during the initial gathering phase.
+         
+         It’s run loop will run in the default mode.
+         
+         If this option is not specified the query returns immediately after starting it asynchronously.
+         */
+        public static var synchronous = Self(rawValue: 1 << 0)
+        
+        /**
+         The query provides live-updates to the results after the initial gathering phase.
+         
+         Updates occur during the live-update phase if a change in a file occurs such that it no longer matches the query or if it begins to match the query. Files which begin to match the query are added to the result list, and files which no longer match the query expression are removed from the result list.
+         
+         If this option isn't used, the query stops after gathering the inital matching items.
+         
+         This option is ignored if the `synchronous` option is specified.
+         */
+        public static var wantsUpdates = Self(rawValue: 1 << 2)
+        
+        /**
+         The query interacts directly with the filesystem to resolve parts of the query, in addition to using the Spotlight metadata index.
+         
+         Normally, metadata queries rely heavily on their pre-built index for speed. However, the index might not always be perfectly synchronized with the live state of the file system (e.g., immediately after a file change).
+         
+         Using this option permits the query to go "live" to the file system to verify information or gather attributes that might be missing or potentially stale in the index.
+         
+         - Note: Consulting the live file system is significantly slower than querying the optimized Spotlight index. Therefore, using this option will almost always result in considerably slower query performance. It should generally be avoided unless there's a very specific need for this behavior and the performance impact is acceptable.
+         */
+        public static var allowFSTranslation = Self(rawValue: 1 << 3)
+        
+        
+        public var description: String {
+            var strings: [String] = []
+            if contains(.synchronous) { strings.append(".synchronous") }
+            if contains(.wantsUpdates) { strings.append(".wantsUpdates") }
+            if contains(.allowFSTranslation) { strings.append(".allowFSTranslation") }
+            return "[\(strings.joined(separator: ", "))]"
+        }
+        
+        public init(rawValue: UInt) { self.rawValue = rawValue }
+        public let rawValue: UInt
+    }
+}
