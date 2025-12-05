@@ -269,6 +269,9 @@ public extension MDQuery {
             guard let value2 = values2?.pointee?.takeUnretainedValue() else {
                 return .compareLessThan
             }
+            if let value1 = CFArray(value1) {
+                Swift.print("CFArray")
+            }
             if let value1 = CFNumber(value1) {
                 Swift.print("CFNumber")
                 return value1.compare(to: CFNumber(value2)!, context: context)
