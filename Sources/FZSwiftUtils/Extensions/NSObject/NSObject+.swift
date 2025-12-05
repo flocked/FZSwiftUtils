@@ -222,6 +222,52 @@ public extension NSObject {
         }
         return false
     }
+    
+    /// The ivar value with the specified name.
+    subscript<T>(ivar name: String) -> T? {
+        get { ivarValue(named: name) }
+        set { setIvarValue(newValue, named: name) }
+    }
+    
+    /// The ivar value with the specified name.
+    func ivarValue<T>(named name: String, as type: T.Type = T.self) -> T? {
+        guard let ivar = class_getInstanceVariable(Swift.type(of: self), name) else { return nil }
+        switch ObjC.typeEncoding(for: ivar)?.first {
+        case "@", "#", ":":
+            return object_getIvar(self, ivar) as? T
+        default:
+            let offset = ivar_getOffset(ivar)
+            let basePtr = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: offset)
+            if T.self == UnsafeRawPointer.self {
+                return basePtr as? T
+            }
+            if T.self == UnsafeMutableRawPointer.self {
+                return UnsafeMutableRawPointer(mutating: basePtr) as? T
+            }
+            return basePtr.load(as: T.self)
+        }
+    }
+ 
+    /// Sets the ivar value with the specified name.
+    func setIvarValue<T>(_ value: T, named name: String) {
+        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return }
+        switch ObjC.typeEncoding(for: ivar)?.first {
+        case "@", "#", ":":
+            object_setIvar(self, ivar, value as AnyObject)
+        default:
+            let offset = ivar_getOffset(ivar)
+            let basePtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: offset)
+            if T.self == UnsafeRawPointer.self {
+                basePtr.storeBytes(of: value as! UnsafeRawPointer, as: UnsafeRawPointer.self)
+                return
+            }
+            if T.self == UnsafeMutableRawPointer.self {
+                basePtr.storeBytes(of: value as! UnsafeMutableRawPointer, as: UnsafeMutableRawPointer.self)
+                return
+            }
+            basePtr.storeBytes(of: value, as: T.self)
+        }
+    }
 
     /// A Boolean value indicatingwhether the object is a subclass of, or identical to the specified class.
     func isSubclass(of aClass: AnyClass) -> Bool {
