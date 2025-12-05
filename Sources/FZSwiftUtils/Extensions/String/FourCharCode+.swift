@@ -8,6 +8,15 @@
 import Foundation
 
 extension FourCharCode: ExpressibleByStringLiteral {
+    public var string: String {
+        let n = Int(self)
+        var s = String(UnicodeScalar((n >> 24) & 255)!)
+        s += String(UnicodeScalar((n >> 16) & 255)!)
+        s += String(UnicodeScalar((n >> 8) & 255)!)
+        s += String(UnicodeScalar(n & 255)!)
+        return s.trimmingCharacters(in: .whitespaces)
+    }
+    
     public init(stringLiteral value: StringLiteralType) {
         var code: FourCharCode = 0
         if value.count == 4 && value.utf8.count == 4 {
@@ -31,14 +40,5 @@ extension FourCharCode: ExpressibleByStringLiteral {
     
     public init(_ value: String) {
         self = FourCharCode(stringLiteral: value)
-    }
-
-    public var string: String {
-        let n = Int(self)
-        var s = String(UnicodeScalar((n >> 24) & 255)!)
-        s += String(UnicodeScalar((n >> 16) & 255)!)
-        s += String(UnicodeScalar((n >> 8) & 255)!)
-        s += String(UnicodeScalar(n & 255)!)
-        return s.trimmingCharacters(in: .whitespaces)
     }
 }
