@@ -7,10 +7,16 @@
 
 import Foundation
 
+#if os(macOS)
 public extension CGAffineTransform {
     /// `AffineTransform` representation of the graphics coordinate transformation.
     var affineTransform: AffineTransform {
         .init(m11: a, m12: b, m21: c, m22: d, tX: tx, tY: ty)
+    }
+    
+    /// `NSAffineTransform` representation of the graphics coordinate transformation.
+    var nsAffineTransform: NSAffineTransform {
+        .init(transform: affineTransform)
     }
 }
 
@@ -19,20 +25,10 @@ public extension AffineTransform {
     var cgAffineTransform: CGAffineTransform {
         .init(m11, m12, m21, m22, tX, tY)
     }
-}
-
-#if os(macOS)
-public extension AffineTransform {
+    
     /// `NSAffineTransform` representation of the graphics coordinate transformation.
     var nsAffineTransform: NSAffineTransform {
         self as NSAffineTransform
-    }
-}
-
-public extension CGAffineTransform {
-    /// `NSAffineTransform` representation of the graphics coordinate transformation.
-    var nsAffineTransform: NSAffineTransform {
-        .init(transform: affineTransform)
     }
 }
 

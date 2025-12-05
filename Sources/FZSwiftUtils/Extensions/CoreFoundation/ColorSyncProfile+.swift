@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 05.12.25.
 //
 
+#if os(macOS)
 import Foundation
 import ColorSync
 
@@ -33,3 +34,4 @@ public extension CFType where Self: ColorSyncProfile {
         self = profile
     }
 }
+#endif
