@@ -174,54 +174,6 @@ public extension NSObject {
         }
         return false
     }
-
-    /// Returns the value of the ivar with the specified name.
-    func getIvarValue<T>(for name: String) -> T? {
-        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return nil }
-        let isPrimitive = (T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type)
-        if !isPrimitive && (T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type) {
-            return object_getIvar(self, ivar) as? T
-        }
-        let offset = ivar_getOffset(ivar)
-        let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-        let pointer = objectPointer.advanced(by: offset)
-        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
-            return T.self is UnsafeRawPointer.Type ? UnsafeRawPointer(pointer) as? T : UnsafeMutableRawPointer(pointer) as? T
-        }
-        return pointer.assumingMemoryBound(to: T.self).pointee
-    }
-
-    /**
-     Sets the value of the ivar with the specified name.
-
-     - Parameters:
-        - name: The name of the ivar.
-        - value: The new value for the ivar.
-     - Returns: `true` if updating the ivar value has been sucessfully, else `false`.
-     */
-    @discardableResult
-    func setIvarValue<T>(_ value: T, of name: String) -> Bool {
-        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return false }
-        if T.self is UnsafeRawPointer.Type || T.self is UnsafeMutableRawPointer.Type {
-            let offset = ivar_getOffset(ivar)
-            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-            let pointer = objectPointer.advanced(by: offset)
-            if let mutablePointer = value as? UnsafeMutableRawPointer {
-                mutablePointer.copyMemory(from: pointer, byteCount: MemoryLayout<T>.size)
-            }
-            return true
-        } else if T.self is any Numeric.Type || T.self is Bool.Type || T.self is Character.Type {
-            let offset = ivar_getOffset(ivar)
-            let objectPointer = Unmanaged.passUnretained(self).toOpaque()
-            let pointer = objectPointer.advanced(by: offset).assumingMemoryBound(to: T.self)
-            pointer.pointee = value
-            return true
-        } else if T.self is AnyObject.Type || T.self is any _ObjectiveCBridgeable.Type || T.self is any ReferenceConvertible.Type {
-            object_setIvar(self, ivar, value as AnyObject)
-            return true
-        }
-        return false
-    }
     
     /// The ivar value with the specified name.
     subscript<T>(ivar name: String) -> T? {
@@ -229,7 +181,7 @@ public extension NSObject {
         set { setIvarValue(newValue, named: name) }
     }
     
-    /// The ivar value with the specified name.
+    /// Returns the ivar value with the specified name.
     func ivarValue<T>(named name: String, as type: T.Type = T.self) -> T? {
         guard let ivar = class_getInstanceVariable(Swift.type(of: self), name) else { return nil }
         switch ObjC.typeEncoding(for: ivar)?.first {
