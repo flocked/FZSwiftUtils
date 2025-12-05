@@ -18,7 +18,7 @@ public extension CFType where Self == MDQuery {
         - sortingAttributes: The metadata attributes whose values are used to sort the results of the query.
      */
     init(queryString: String, attributes: [String] = [], sortingAttributes: [String] = []) {
-        self = MDQueryCreate(.default, queeryString as CFString, attributes._bridgeToCF(), sortingAttributes._bridgeToCF())
+        self = MDQueryCreate(.default, queryString as CFString, attributes._bridgeToCF(), sortingAttributes._bridgeToCF())
     }
 }
 
@@ -108,9 +108,11 @@ public extension MDQuery {
         guard isExecuting else { return false }
         isStarted = true
         isStopped = false
+        /*
         CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, queryDidFinishCalback, kMDQueryDidFinishNotification, unsafeBitCast(self, to: UnsafeRawPointer.self), .deliverImmediately)
         CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, queryDidUpdateCallback, kMDQueryDidUpdateNotification, unsafeBitCast(self, to: UnsafeRawPointer.self), .deliverImmediately)
         CFNotificationCenterAddObserver(CFNotificationCenterGetLocalCenter(), notificationObserver, queryGatheringProgressCallback, kMDQueryProgressNotification, unsafeBitCast(self, to: UnsafeRawPointer.self), .deliverImmediately)
+         */
         NotificationCenter.default.post(name: MDQuery.MDQueryDidStartGatheringNotification, object: self)
         return true
     }
