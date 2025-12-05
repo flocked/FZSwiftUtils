@@ -20,6 +20,13 @@ public protocol _CFConvertible: __CFConvertible, _ObjectiveCBridgeable {
     static func _bridgeFromCF(_ source: _CFType) -> Self
 }
 
+public extension _CFConvertible {
+    /// Returns the Core Foundation representation of the value.
+    func asCF() -> _CFType {
+        _bridgeToCF()
+    }
+}
+
 public extension _CFConvertible where _CFType: AnyObject {
     func __bridgeToCF() -> CFTypeRef {
         _bridgeToCF()
@@ -143,14 +150,6 @@ private func _bridgeToCFIfNeeded<T>(_ v: T) -> Any {
         return bridgeable.__bridgeToCF()
     } else {
         return v
-    }
-}
-
-private func _bridgeFromCFIfNeeded<T>(_ v: Any) -> T {
-    if let t = T.self as? __CFConvertible.Type {
-        return t.__bridgeFromCF(v as CFTypeRef) as! T
-    } else {
-        return v as! T
     }
 }
 

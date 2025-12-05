@@ -8,6 +8,15 @@
 import Foundation
 
 /*
+public extension _ObjectiveCBridgeable {
+    /// Returns the `Objective-C` based representation of the value.
+    func asNS() -> _ObjectiveCType {
+        _bridgeToObjectiveC()
+    }
+}
+ */
+
+/*
 extension ReferenceConvertible {
     public typealias ReferenceType = __ObjectiveCBox<Self>
     public var description: String { "" }
