@@ -21,8 +21,9 @@ public extension CFType where Self == MDQuery {
      */
     init(queryString: String, attributes: [String] = [], sortingAttributes: [String] = []) {
         let attributes = attributes.filter({$0 != "kMDItemPath" }).uniqued()._bridgeToCF()
-        let sortingAttributes = sortingAttributes.filter({$0 != "kMDItemPath" }).uniqued()._bridgeToCF()
-        self = MDQueryCreate(.default, queryString as CFString, attributes, sortingAttributes)
+        let sortingAttributes = sortingAttributes.filter({$0 != "kMDItemPath" }).uniqued()
+        self = MDQueryCreate(.default, queryString as CFString, attributes, sortingAttributes._bridgeToCF())
+        (self as MDQuery).setupSortComparator()
     }
     
     /**
@@ -276,22 +277,6 @@ public extension MDQuery {
                 MDQuerySetSearchScope(self, newValue as [CFURL] as CFArray, 0)
             }
         }
-    }
-    
-    func setupSortComparator() {
-        let sortComparator: MDQuerySortComparatorFunction = { values1, values2, context in
-            guard let value1 = values1?.pointee?.takeUnretainedValue() else {
-                return .compareGreaterThan
-            }
-            guard let value2 = values2?.pointee?.takeUnretainedValue() else {
-                return .compareLessThan
-            }
-            if let value1 = value1 as? (any CFComparable) {
-                return value1.compare(to: value2, context: context).reversed()
-            }
-            return .compareLessThan
-        }
-        MDQuerySetSortComparator(self, sortComparator, nil)
     }
     
     /**
@@ -632,6 +617,24 @@ public extension MDQuery {
             gatheringInterval = .milliseconds(Double(batching.progress_max_ms))
             monitoringInterval = .milliseconds(Double(batching.update_max_ms))
         }
+    }
+}
+
+extension MDQuery {
+    internal func setupSortComparator() {
+        let sortComparator: MDQuerySortComparatorFunction = { values1, values2, context in
+            guard let value1 = values1?.pointee?.takeUnretainedValue() else {
+                return .compareGreaterThan
+            }
+            guard let value2 = values2?.pointee?.takeUnretainedValue() else {
+                return .compareLessThan
+            }
+            if let value1 = value1 as? (any CFComparable) {
+                return value1.compare(to: value2, context: context).reversed()
+            }
+            return .compareLessThan
+        }
+        MDQuerySetSortComparator(self, sortComparator, nil)
     }
 }
 
