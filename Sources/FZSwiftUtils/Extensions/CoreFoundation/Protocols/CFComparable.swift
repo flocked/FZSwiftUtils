@@ -35,7 +35,7 @@ extension CFDate: CFComparable {
 
 extension CFString: CFComparable {
     public func compare(to other: CFString, context: UnsafeMutableRawPointer!) -> CFComparisonResult {
-        CFStringCompare(self, other, [])
+         CFStringCompare(self, other, [.compareLocalized, .compareNonliteral, .compareNumerically])
     }
 }
 

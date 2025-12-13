@@ -24,7 +24,7 @@ extension NSComparisonPredicate {
     }
 }
 
-extension NSComparisonPredicate.Options: CustomStringConvertible {
+extension NSComparisonPredicate.Options: Swift.CustomStringConvertible {
     /// A word-based predicate.
     public static let wordBased = NSComparisonPredicate.Options(rawValue: 16)
     

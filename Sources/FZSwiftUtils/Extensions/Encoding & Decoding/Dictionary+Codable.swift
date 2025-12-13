@@ -30,32 +30,34 @@ public extension Encodable {
 
 public extension Dictionary {
     /**
-     Converts the dictionary to a model object of the specified decodable type.
+     Decodes the dictionary into the specified `Decodable` type.
 
-     - Parameter decoder: The JSON decoder to use for decoding the data. Default is a new instance of `JSONDecoder`.
-     - Returns: A model object of the specified type, or `nil` if the decoding fails.
-     */
-    func toModel<T: Decodable>(decoder: JSONDecoder? = nil) -> T? {
-        toModel(T.self, decoder: decoder)
-    }
-
-    /**
-     Converts the dictionary to a model object of the specified decodable type using the specified JSON decoder.
+     This method converts the dictionary into JSON data using `JSONSerialization` and then attempts to decode it into the specified type using a configured `JSONDecoder`.
 
      - Parameters:
-        - type: The type of the model object to decode. Default is inferred from the context.
-        - decoder: The JSON decoder to use for decoding the data. Default is a new instance of `JSONDecoder`.
-     - Returns: A model object of the specified type, or `nil` if the decoding fails.
+        - type: The concrete `Decodable` type to decode to.
+        - dateDecodingStrategy: The strategy used to decode `Date` values.
+        - keyDecodingStrategy: The strategy used to decode keys.
+        - dataDecodingStrategy: The strategy used to decode `Data` values.
+     - Returns: An instance of `T`.
      */
-    func toModel<T: Decodable>(_ type: T.Type = T.self, decoder: JSONDecoder? = nil) -> T? {
-        let decoder = decoder ?? JSONDecoder()
-        do {
-            let data = try JSONSerialization.data(withJSONObject: self, options: .prettyPrinted)
-            let obj = try decoder.decode(type, from: data)
-            return obj
-        } catch {
-            debugPrint(error)
-            return nil
-        }
+    func decode<T: Decodable>(as type: T.Type = T.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> T {
+        let data = try JSONSerialization.data(withJSONObject: self, options: [])
+        return try JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy).decode(type, from: data)
+    }
+    
+    /**
+     Decodes the dictionary into the specified `Decodable` type using the specified JSON decoder.
+
+     This method converts the dictionary into JSON data using `JSONSerialization` and then attempts to decode it into the specified type using the specified JSON decoder.
+
+     - Parameters:
+        - type: The concrete `Decodable` type to decode to.
+        - decoder: The JSON decoder to use.
+     - Returns: An instance of `T`.
+     */
+    func decode<T: Decodable>(as type: T.Type = T.self, decoder: JSONDecoder) throws -> T {
+        let data = try JSONSerialization.data(withJSONObject: self, options: [])
+        return try decoder.decode(type, from: data)
     }
 }

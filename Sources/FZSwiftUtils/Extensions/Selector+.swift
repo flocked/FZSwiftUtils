@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Selector: Codable {
+extension Selector: Swift.Encodable, Swift.Decodable {
     public init(from decoder: any Decoder) throws {
         self = .string(try decoder.singleValueContainer().decode())
     }

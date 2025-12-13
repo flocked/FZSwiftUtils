@@ -711,6 +711,30 @@ public extension URL {
     mutating func lastPathComponent(_ pathComponent: String, directoryHint: FilePathDirectoryHint = .inferFromPath) {
         self = lastPathComponent(pathComponent, directoryHint: directoryHint)
     }
+    
+    /**
+     Returns a new file reference URL that points to the same resource as the receiver.
+     
+     File reference URLs use a URL path syntax that identifies a file system object by reference, not by path. This form of file URL remains valid when the file system path of the URL’s underlying resource changes.
+     
+     If the original URL is a file path URL, this property contains a copy of the URL converted into a file reference URL. If the original URL is a file reference URL, this property contains the original. If the original URL is not a file URL, this property contains nil.
+     
+     File reference URLs cannot be created to file system objects which do not exist or are not reachable. This property contains nil instead.
+     
+     In some areas of the file system hierarchy, file reference URLs cannot be generated to the leaf node of the URL path.
+     
+     - Note: A file reference URL’s path should never be persistently stored, because it is not valid across system restarts or remounts of volumes.
+        
+        If you need to store a persistent reference to a file system object, use a bookmark instead. You can create a bookmark by calling [bookmarkData(options:includingResourceValuesForKeys:relativeTo:)](https://developer.apple.com/documentation/foundation/url/bookmarkdata(options:includingresourcevaluesforkeys:relativeto:)).
+     */
+    var fileReferenceURL: URL? {
+        (self as NSURL).fileReferenceURL()
+    }
+    
+    /// A Boolean value indicatiing whether the URL is a file reference URL.
+    var isFileReerenceURL: Bool {
+        (self as NSURL).isFileReferenceURL()
+    }
 }
 
 /*
@@ -1007,15 +1031,9 @@ extension Sequence where Element == URL {
 
 fileprivate enum SingleResultError: Error, LocalizedError {
     case noneFound
-    case multipleFound(Int)
 
     var errorDescription: String? {
-        switch self {
-        case .noneFound:
-            return "Expected exactly one item, but none were found."
-        case .multipleFound(let count):
-            return "Expected exactly one item, but found \(count) items."
-        }
+        "Expected exactly one item, but none were found."
     }
 }
 #endif

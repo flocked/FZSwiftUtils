@@ -1306,3 +1306,19 @@ extension NSAttributedString {
         }
     }
 }
+
+
+
+protocol RawCodingKey<Value> {
+    associatedtype Value: RawRepresentableByString
+}
+
+protocol RawRepresentableByString: RawRepresentable where RawValue == String {
+    
+}
+
+extension NSAttributedString.DocumentAttributeKey: Swift.CodingKeyRepresentable {
+    public var codingKey: any CodingKey {
+        AnyCodingKey(stringLiteral: rawValue)
+    }
+}

@@ -19,7 +19,7 @@ extension NSUIRectEdge: Hashable, Codable {
     public static let height: NSUIRectEdge = [.bottom, .top]
 }
 
-extension NSDirectionalRectEdge: Hashable, Codable {
+extension NSDirectionalRectEdge: Swift.Hashable, Swift.Encodable, Swift.Decodable {
     /// The leading and trailing edge of the rectangle.
     public static let width: NSDirectionalRectEdge = [.leading, .trailing]
     /// The bottom and top edge of the rectangle.

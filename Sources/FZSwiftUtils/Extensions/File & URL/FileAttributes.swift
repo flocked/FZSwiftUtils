@@ -7,118 +7,120 @@
 
 import Foundation
 
-/// The attributes of a file.
+/// The attributes of a file system item.
 public struct FileAttributes {
-    // MARK: Init
 
     /**
-     Creates an object for accessing and modifying the attributes of the specified file.
+     Creates an instance representing the attributes of the specified file or folder.
 
+     You can modify the attributes of a file or folder by assigning new values to this instance and use it with `FileManager` ``Foundation/FileManager/setAttributes(_:ofItemAt:)``.
+     
      - Parameter url: The url of the file.
      - Returns: `FileAttribute` for the file.
      */
     public init(url: URL) throws {
-        self.url = url
-        fileManager = .default
-        attributes = try fileManager.attributesOfItem(atPath: url.path)
+        self = try FileManager.default.attributes(for: url)
     }
-
+    
     /**
-     Creates an object for accessing and modifying the attributes of the specified file.
+     Creates an empty  instance.
 
-     - Parameters:
-        - url: The url of the file.
-        - fileManager: The file manager.
+     Assign values to the properties you want to provide or change for and use it  with `FileManager` ``Foundation/FileManager/setAttributes(_:ofItemAt:)``.
 
-     - Returns: `FileAttribute` for the file.
+     Example usage:
+     
+     ```swift
+     var attrs = FileAttributes()
+     attrs.creationDate = Date()
+     attrs.isHidden = true
+     try FileManager.default.setAttributes(attrs, ofItemAt: url)
      */
-    init(url: URL, fileManager: FileManager) throws {
-        self.url = url
-        self.fileManager = fileManager
-        attributes = try fileManager.attributesOfItem(atPath: url.path)
+    public init() {
+        attributes = [:]
+    }
+    
+    init(_ attributes: [FileAttributeKey: Any]) {
+        self.attributes = attributes
     }
 
     // MARK: Attributes
 
-    public var fileType: FileAttributeType? { if let rawValue: String = _attributes.fileType() {
-        return FileAttributeType(rawValue: rawValue)
-    }
-    return nil
-    }
+    /// The tfile type.
+    public var fileType: FileAttributeType? { self[.type] }
 
     /// The file size.
-    public var fileSize: DataSize { DataSize(Int(_attributes.fileSize())) }
+    public var fileSize: DataSize { DataSize(self[.size] ?? 0) }
 
     /// The creation date of the file.
     public var creationDate: Date? {
-        get { _attributes.fileCreationDate() }
+        get { self[.creationDate] }
         set { self[.creationDate] = newValue }
     }
 
     /// The modification date of the file.
     public var modificationDate: Date? {
-        get { _attributes.fileModificationDate() }
+        get { self[.modificationDate] }
         set { self[.modificationDate] = newValue }
     }
 
     public var directoryFilesCount: Int? { self[.referenceCount] }
 
     /// The identifier for the device on which the file resides.
-    public var deviceIdentifier: Double? { self[.deviceIdentifier] }
+    public var deviceIdentifier: Int? { self[.deviceIdentifier] }
 
     /// The name of the file’s owner.
     public var fileOwnerAccountName: String? {
-        get { _attributes.fileOwnerAccountName() }
+        get { self[.ownerAccountName] }
         set { self[.ownerAccountName] = newValue }
     }
 
     /// The file’s group owner account name.
     public var fileGroupOwnerAccountName: String? {
-        get { _attributes.fileGroupOwnerAccountName() }
+        get { self[.groupOwnerAccountName] }
         set { self[.groupOwnerAccountName] = newValue }
     }
 
     /// The file’s Posix permissions.
     public var filePosixPermissions: Int {
-        get { _attributes.filePosixPermissions() }
+        get { self[.posixPermissions] ?? 0 }
         set { self[.posixPermissions] = newValue }
     }
 
     /// The filesystem number.
-    public var fileSystemNumber: Int { _attributes.fileSystemNumber() }
+    public var fileSystemNumber: Int { self[.systemNumber] ?? 0 }
 
     /// The filesystem file number.
-    public var fileSystemFileNumber: Int { _attributes.fileSystemFileNumber() }
+    public var fileSystemFileNumber: Int { self[.systemFileNumber] ?? 0 }
 
     /// A Boolean value indicating whether the file’s extension is hidden.
     public var fileExtensionIsHidden: Bool {
-        get { _attributes.fileExtensionHidden() }
+        get { self[.extensionHidden] ?? false }
         set { self[.extensionHidden] = newValue }
     }
 
     /// The file’s HFS creator code.
     public var hfsCreatorCode: OSType {
-        get { _attributes.fileHFSCreatorCode() }
+        get { self[.hfsCreatorCode]! }
         set { self[.hfsCreatorCode] = newValue }
     }
 
     /// The file’s HFS type code.
-    public var hfsTypeCode: OSType? {
-        get { _attributes.fileHFSTypeCode() }
+    public var hfsTypeCode: OSType {
+        get { self[.hfsTypeCode] ?? 0 }
         set { self[.hfsTypeCode] = newValue }
     }
 
     /// A Boolean value indicating whether the file is immutable.
     public var isImmutable: Bool {
-        get { _attributes.fileIsImmutable() }
+        get { self[.immutable] ?? false }
         set { self[.immutable] = newValue }
     }
 
     /// A Boolean value indicating whether the file is readonly.
-    public var isReadOnly: Bool? { _attributes.fileIsAppendOnly() }
+    public var isReadOnly: Bool? { self[.appendOnly] ?? false }
 
     /// The file’s owner's account ID.
-    public var ownerAccountID: Double? {
+    public var ownerAccountID: Int? {
         get { self[.ownerAccountID] }
         set { self[.ownerAccountID] = newValue }
     }
@@ -136,27 +138,13 @@ public struct FileAttributes {
     }
 
     /// The protection level for the file.
-    public var fileProtection: FileProtectionType? { if let rawValue: String = self[.protectionKey] {
-        return FileProtectionType(rawValue: rawValue)
-    }
-    return nil
-    }
+    public var fileProtection: FileProtectionType? { self[.protectionKey] }
 
     /// The size of the file system.
-    public var systemSize: DataSize? {
-        if let size: UInt64 = self[.systemSize] {
-            return DataSize(Int(size))
-        }
-        return nil
-    }
+    public var systemSize: DataSize? { self[.systemSize] }
 
     /// The amount of free space on the file system.
-    public var systemFreeSize: DataSize? {
-        if let size: UInt64 = self[.systemFreeSize] {
-            return DataSize(Int(size))
-        }
-        return nil
-    }
+    public var systemFreeSize: DataSize? { self[.systemFreeSize] }
 
     /// The number of nodes in the file system.
     public var systemNodes: Int? { self[.systemNodes] }
@@ -165,45 +153,43 @@ public struct FileAttributes {
     public var systemFreeNodes: Int? { self[.systemFreeNodes] }
 
     /// The file’s extended attributes.
-    public var extendedAttributes: [String: Data]? {
-        self[.extendedAttributes]
-    }
+    public var extendedAttributes: [String: Data]? { self[.extendedAttributes]  }
 
     // MARK: Internal
 
-    /// The url of the file.
-    public let url: URL
-    /// The file mananger.
-    let fileManager: FileManager
     var attributes: [FileAttributeKey: Any]
-    var _attributes: NSDictionary {
-        attributes as NSDictionary
+
+    /// The attribute for the specified attribute key.
+    public subscript<T>(attributeKey: FileAttributeKey) -> T? {
+        get { attributes[attributeKey] as? T }
+        set { setAttribute(attributeKey, to: newValue) }
+    }
+    
+    /// The attribute for the specified attribute key.
+    public subscript<T: RawRepresentable>(attributeKey: FileAttributeKey) -> T? {
+        get { attributes[attributeKey] as? T }
+        set { setAttribute(attributeKey, to: newValue) }
+    }
+        
+    func attribute<T>(for attributeKey: FileAttributeKey) -> T? {
+        attributes[attributeKey] as? T
+    }
+    
+    func attribute<T: RawRepresentable>(for attributeKey: FileAttributeKey) -> T? {
+        guard let rawValue = attributes[attributeKey] as? T.RawValue else { return nil }
+        return T(rawValue: rawValue)
+    }
+    
+    mutating func setAttribute<T: RawRepresentable>(_ attributeKey: FileAttributeKey, to value: T?) {
+        setAttribute(attributeKey, to: value?.rawValue)
     }
 
-    mutating func updateAttributes() throws {
-        attributes = try fileManager.attributesOfItem(atPath: url.path)
+    mutating func setAttribute<T>(_ attributeKey: FileAttributeKey, to value: T?) {
+        guard let value = value, Self.writableAttributes.contains(attributeKey) else { return }
+        attributes[attributeKey] = value
     }
-
-    func getAttribute<T>(_ attribute: FileAttributeKey) -> T? {
-        attributes[attribute] as? T
-    }
-
-    public subscript<T>(attribute: FileAttributeKey) -> T? {
-        get { attributes[attribute] as? T }
-        set {
-            var attributes = attributes
-            attributes[attribute] = newValue
-            try? fileManager.setAttributes(attributes, ofItemAtPath: url.path)
-            self.attributes = attributes
-        }
-    }
-
-    mutating func setAttribute(_ attribute: FileAttributeKey, to value: Any?) throws {
-        var attributes = attributes
-        attributes[attribute] = value
-        try fileManager.setAttributes(attributes, ofItemAtPath: url.path)
-        self.attributes = attributes
-    }
+    
+    static let writableAttributes: Set<FileAttributeKey> = [.creationDate, .modificationDate, .ownerAccountName, .groupOwnerAccountName, .posixPermissions, .extensionHidden, .busy, .groupOwnerAccountID, .ownerAccountID, .immutable, .hfsTypeCode, .hfsCreatorCode]
 }
 
 extension FileManager {
@@ -215,7 +201,7 @@ extension FileManager {
      - Throws: If the attributes couldn't be loaded.
      */
     public func attributes(for url: URL) throws -> FileAttributes {
-        try FileAttributes(url: url, fileManager: self)
+        FileAttributes(try attributesOfItem(at: url))
     }
     
     /**
@@ -224,7 +210,6 @@ extension FileManager {
      - Parameters:
         - attributes: The attributes to write.
         - url: The file resource URL.
-
      */
     func setAttributes(_ attributes: FileAttributes, ofItemAt url: URL) throws {
         try setAttributes(attributes.attributes, ofItemAtPath: url.path)

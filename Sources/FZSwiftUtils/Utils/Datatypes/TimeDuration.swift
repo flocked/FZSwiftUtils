@@ -48,22 +48,24 @@ public struct TimeDuration: Hashable, Sendable, Codable {
     }
 
     /**
-      Initializes a new `TimeDuration` instance with the specified duration in various units of time.
+     Initializes a new `TimeDuration` with the specified values.
 
-      - Parameters:
-        - nanoSeconds: The duration in nanoseconds. The default value is `0`.
-        - milliseconds: The duration in milliseconds. The default value is `0`.
-        - seconds: The duration in seconds. The default value is `0`.
-        - minutes: The duration in minutes. The default value is `0`.
-     - hours: The duration in hours. The default value is `0`.
-        - days: The duration in days. The default value is `0`.
-        - weeks: The duration in weeks. The default value is `0`.
-        - months: The duration in months. The default value is `0`.
-        - years: The duration in years. The default value is `0`.
-      */
-    public init(nanoseconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, hours: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
+     - Parameters:
+       - nanoseconds: The nanoseconds of the duration.
+       - microseconds: The microseconds of the duration.
+       - milliseconds: The milliseconds of the duration.
+       - seconds: The seconds of the duration.
+       - minutes: The minutes of the duration.
+       - hours: The hours of the duration.
+       - days: The days of the duration.
+       - weeks: The weeks of the duration.
+       - months: The months of the duration, using the average length of a month (`~30.436875` days).
+       - years: The years of the duration, using the average length of a year (`~365.2425` days).
+     */
+    public init(nanoseconds: Double = 0, microseconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, hours: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
         self.seconds = seconds
-        self.seconds += (milliseconds / 1000)
+        self.seconds += (milliseconds / 1_000)
+        self.seconds += (microseconds / 1_000_000)
         self.seconds += (nanoseconds / 1_000_000_000)
         self.seconds += self.seconds(for: minutes, .minute)
         self.seconds += self.seconds(for: hours, .hour)
@@ -81,26 +83,28 @@ public struct TimeDuration: Hashable, Sendable, Codable {
     public init(dateInterval: DateInterval) {
         seconds = dateInterval.start.timeIntervalSince(dateInterval.end)
     }
-
-    /// The duration in nanoSeconds.
+    
+    /// The duration in nanoseconds.
     public var nanoseconds: Double {
-        get { milliseconds / 1_000_000 }
-        set { milliseconds = newValue / 1_000_000 }
+        get { value(for: .nanosecond) }
+        set { seconds = seconds(for: newValue, .nanosecond) }
     }
-
+    
+    /// The duration in microseconds.
+    public var microseconds: Double {
+        get { value(for: .microsecond) }
+        set { seconds = seconds(for: newValue, .microsecond) }
+    }
+    
     /// The duration in milliseconds.
     public var milliseconds: Double {
-        get { seconds / 1000 }
-        set { seconds = newValue / 1000 }
+        get { value(for: .millisecond) }
+        set { seconds = seconds(for: newValue, .millisecond) }
     }
 
     /// The duration in seconds.
     public var seconds: Double {
-        didSet {
-            if seconds < 0.0 {
-                seconds = 0.0
-            }
-        }
+        didSet { seconds = seconds.clamped(min: 0.0) }
     }
 
     /// The duration in minutes.
@@ -127,13 +131,13 @@ public struct TimeDuration: Hashable, Sendable, Codable {
         set { seconds = seconds(for: newValue, .week) }
     }
 
-    /// The duration in months.
+    /// The duration in months, using the average length of a month (`~30.436875` days).
     public var months: Double {
         get { value(for: .month) }
         set { seconds = seconds(for: newValue, .month) }
     }
 
-    /// The duration in years.
+    /// The duration in years, using the average length of a year (`~365.2425` days).
     public var years: Double {
         get { value(for: .year) }
         set { seconds = seconds(for: newValue, .year) }
@@ -164,87 +168,59 @@ public struct TimeDuration: Hashable, Sendable, Codable {
         TimeDuration(0.0)
     }
 
-    func value(for unit: Unit) -> Double {
+    private func value(for unit: Unit) -> Double {
         unit.value(for: seconds)
     }
 
-    func seconds(for value: Double, _ unit: Unit) -> Double {
+    private func seconds(for value: Double, _ unit: Unit) -> Double {
         unit.seconds(for: value)
     }
 }
 
 public extension TimeDuration {
-    /**
-     Returns a time duration with the specified nanoseconds.
-
-     - Parameter value: The nanoseconds.
-     - Returns: `TimeDuration`with the specified nanoseconds.
-     */
+    /// Returns a time duration with the specified nanoseconds.
     static func nanoseconds(_ value: Double) -> Self { Self(nanoseconds: value) }
+    
+    /// Returns a time duration with the specified microseconds.
+    static func microseconds(_ value: Double) -> Self { Self(microseconds: value) }
 
-    /**
-     Returns a time duration with the specified milliseconds.
-
-     - Parameter value: The milliseconds.
-     - Returns: `TimeDuration`with the specified milliseconds.
-     */
+    /// Returns a time duration with the specified milliseconds.
     static func milliseconds(_ value: Double) -> Self { Self(milliseconds: value) }
 
-    /**
-     Returns a time duration with the specified seconds.
-
-     - Parameter value: The seconds.
-     - Returns: `TimeDuration`with the specified seconds.
-     */
+    /// Returns a time duration with the specified seconds.
     static func seconds(_ value: Double) -> Self { Self(seconds: value) }
 
-    /**
-     Returns a time duration with the specified minutes.
-
-     - Parameter value: The minutes.
-     - Returns: `TimeDuration`with the specified minutes.
-     */
+    /// Returns a time duration with the specified minutes.
     static func minutes(_ value: Double) -> Self { Self(minutes: value) }
 
-    /**
-     Returns a time duration with the specified hours.
-
-     - Parameter value: The hours.
-     - Returns: `TimeDuration`with the specified hours.
-     */
+    /// Returns a time duration with the specified hours.
     static func hours(_ value: Double) -> Self { Self(hours: value) }
 
-    /**
-     Returns a time duration with the specified days.
-
-     - Parameter value: The days.
-     - Returns: `TimeDuration`with the specified days.
-     */
+    /// Returns a time duration with the specified days.
     static func days(_ value: Double) -> Self { Self(days: value) }
 
-    /**
-     Returns a time duration with the specified weeks.
-
-     - Parameter value: The weeks.
-     - Returns: `TimeDuration`with the specified weeks.
-     */
+    /// Returns a time duration with the specified weeks.
     static func weeks(_ value: Double) -> Self { Self(weeks: value) }
 
-    /**
-     Returns a time duration with the specified months.
-
-     - Parameter value: The months.
-     - Returns: `TimeDuration`with the specified months.
-     */
+    /// Returns a time duration with the specified months, using the average length of a month (`~30.436875` days).
     static func months(_ value: Double) -> Self { Self(months: value) }
 
-    /**
-     Returns a time duration with the specified years.
-
-     - Parameter value: The years.
-     - Returns: `TimeDuration`with the specified years.
-     */
+    /// Returns a time duration with the specified years, using the average length of a year (`~365.2425` days).
     static func years(_ value: Double) -> Self { Self(years: value) }
+}
+
+extension TimeDuration: RawRepresentable {
+    /**
+     Initializes a new `TimeDuration` instance with the specified duration in seconds.
+
+     - Parameter seconds: The duration in seconds.
+     */
+    public init(rawValue: Double) {
+        self.seconds = rawValue
+    }
+    
+    /// The duration in seconds.
+    public var rawValue: Double { seconds }
 }
 
 public extension DateInterval {
@@ -307,7 +283,9 @@ public extension TimeDuration {
     ///  Enumeration representing different duration time units.
     enum Unit: Int, CaseIterable {
         /// Nanosecond
-        case nanoSecond
+        case nanosecond
+        /// Microsecond
+        case microsecond
         /// Millisecond
         case millisecond
         /// Second
@@ -327,8 +305,9 @@ public extension TimeDuration {
 
         private var secondsPerUnit: Double {
             switch self {
-            case .nanoSecond: return 1e-9
-            case .millisecond: return 1e-3
+            case .nanosecond:   return 1e-9
+            case .microsecond:  return 1e-6
+            case .millisecond:  return 1e-3
             case .second: return 1
             case .minute: return 60
             case .hour: return 3600
@@ -353,7 +332,8 @@ public extension TimeDuration {
 
         var calendarComponent: Calendar.Component {
             switch self {
-            case .nanoSecond: return .second
+            case .nanosecond: return .second
+            case .microsecond: return .second
             case .millisecond: return .second
             case .second: return .second
             case .minute: return .minute
@@ -368,33 +348,36 @@ public extension TimeDuration {
 
     /// The time duration units.
     struct Units: OptionSet {
-        public let rawValue: Int
         /// Nanosecond
-        public static let nanoSecond = Units(rawValue: 1 << 0)
+        public static let nanosecond = Self(rawValue: 1 << 0)
+        /// Microsecond
+        public static let microsecond = Self(rawValue: 1 << 1)
         /// Millisecond
-        public static let millisecond = Units(rawValue: 1 << 1)
+        public static let millisecond = Self(rawValue: 1 << 2)
         /// Second
-        public static let second = Units(rawValue: 1 << 2)
+        public static let second = Self(rawValue: 1 << 3)
         /// Minute
-        public static let minute = Units(rawValue: 1 << 3)
+        public static let minute = Self(rawValue: 1 << 4)
         /// Hour
-        public static let hour = Units(rawValue: 1 << 4)
+        public static let hour = Self(rawValue: 1 << 5)
         /// Day
-        public static let day = Units(rawValue: 1 << 5)
+        public static let day = Self(rawValue: 1 << 6)
         /// Week
-        public static let week = Units(rawValue: 1 << 6)
+        public static let week = Self(rawValue: 1 << 7)
         /// Month
-        public static let month = Units(rawValue: 1 << 7)
+        public static let month = Self(rawValue: 1 << 8)
         /// Year
-        public static let year = Units(rawValue: 1 << 8)
+        public static let year = Self(rawValue: 1 << 9)
 
         /// All used units.
-        public static let all = Units(rawValue: 1 << 9)
+        public static let all = Self(rawValue: 1 << 10)
         /// All used units compact.
-        public static let allCompact = Units(rawValue: 1 << 10)
+        public static let allCompact = Self(rawValue: 1 << 11)
         /// All used units detailed.
-        public static let allDetailed: Units = [.second, .minute, .hour, .hour, .day, .week, .month, .year]
+        public static let allDetailed: Self = [.second, .minute, .hour, .hour, .day, .week, .month, .year]
 
+        public let rawValue: Int
+        
         /// Creates a units structure with the specified raw value.
         public init(rawValue: Int) {
             self.rawValue = rawValue
@@ -405,10 +388,11 @@ public extension TimeDuration {
             rawValue = Self.allCases.first(where: { $0.unit == unit })?.rawValue ?? 1 << 2
         }
 
-        static let allCases: [Units] = [.nanoSecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
+        static let allCases: [Self] = [.nanosecond, microsecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
         var unit: Unit? {
             switch self {
-            case .nanoSecond: return .nanoSecond
+            case .nanosecond: return .nanosecond
+            case .microsecond: return .microsecond
             case .millisecond: return .millisecond
             case .second: return .second
             case .minute: return .minute

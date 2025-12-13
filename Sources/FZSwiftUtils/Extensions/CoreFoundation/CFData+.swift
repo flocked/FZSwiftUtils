@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension CFData: Collection, BidirectionalCollection, RandomAccessCollection {
+extension CFData: Swift.Collection, Swift.BidirectionalCollection, Swift.RandomAccessCollection, Swift.Sequence {
     /// The position of the first byte in the CFData.
     public var startIndex: CFIndex { 0 }
 

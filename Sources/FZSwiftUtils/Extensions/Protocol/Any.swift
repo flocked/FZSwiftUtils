@@ -207,7 +207,7 @@ public struct _Any {
     
     /// A Boolean value indicating whether the value is optional.
     public var isOptional: Bool {
-        value is OptionalType
+        value is (any OptionalProtocol)
     }
     
     /// A Boolean value indicating whether the valus is a `struct` based.
@@ -227,10 +227,7 @@ public struct _Any {
     
     /// The unwrapped  type of the value, if it's optional.
     public var unwrappedType: Any.Type {
-        if let optionalType = (value as? OptionalType)?.wrappedType {
-            return optionalType
-        }
-        return Swift.type(of: value)
+        (type as? (any OptionalProtocol.Type))?.wrappedType ?? type
     }
     
     /// The mirror of the value.

@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension FourCharCode: ExpressibleByStringLiteral {
+extension FourCharCode: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUnicodeScalarLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral {
     public var string: String {
         let n = Int(self)
         var s = String(UnicodeScalar((n >> 24) & 255)!)

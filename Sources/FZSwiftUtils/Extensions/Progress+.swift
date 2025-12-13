@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if os(macOS)
+import AppKit
+#endif
 
 extension Progress {
     /// The identifier of the progress.
@@ -120,46 +123,66 @@ extension Progress {
     }
     
     #if os(macOS)
-        /**
-         The progress will be shown as a progress bar in the Finder for the specified file url.
+    /**
+     The progress will be shown as a progress bar in the Finder for the specified file url.
 
-         - Parameters:
-            -   url: The URL of the file.
-            - kind: The file operation kind.
-         */
-        public func addFileProgress(url: URL, kind: FileOperationKind = .downloading) {
-            guard fileURL != url, !isFinished, !isCancelled else { return }
-            fileURL = url
-            fileOperationKind = kind
-            self.kind = .file
-            if isPublished == false {
-                publish()
-                isPublished = true
-            }
-        }
+     - Parameters:
+        -   url: The URL of the file.
+        - kind: The file operation kind.
+        - icon: The icon of the file.
+     */
+    public func addFileProgress(url: URL, kind: FileOperationKind = .downloading, icon: NSImage? = nil) {
+        guard !isPublished, !isFinished, !isCancelled else { return }
+        fileURL = url
+        fileOperationKind = kind
+        fileIcon = icon
+        self.kind = .file
+        publish()
+        isPublished = true
+    }
 
-        /**
-         Creates a file progress that shows a progress bar in the Finder for the specified file url.
+    /**
+     Creates a file progress that shows a progress bar in the Finder for the specified file url.
 
-         - Parameters:
-            - url: The URL of the file.
-            - kind: The file operation kind.
-            - completed: The completed size of the file.
-            - size: The size of the file.
+     - Parameters:
+        - url: The URL of the file.
+        - kind: The file operation kind.
+        - icon: The icon of the file.
+        - completed: The completed size of the file.
+        - size: The size of the file.
 
-         - Returns: A `Progress` object representing the file progress.
-         */
-        public static func file(url: URL, kind: Progress.FileOperationKind, completed: DataSize? = nil, size: DataSize? = nil) -> Progress {
-            let progress = Progress()
-            progress.totalUnitCount = Int64(size?.bytes ?? 0)
-            progress.completedUnitCount = Int64(completed?.bytes ?? 0)
-            progress.addFileProgress(url: url, kind: kind)
-            return progress
-        }
+     - Returns: A `Progress` object representing the file progress.
+     */
+    public static func file(url: URL, kind: Progress.FileOperationKind, icon: NSImage? = nil, completed: DataSize? = nil, total: DataSize? = nil) -> Progress {
+        let progress = Progress(totalUnitCount: Int64(total?.bytes ?? 0))
+        progress.completedUnitCount = Int64(completed?.bytes ?? 0)
+        progress.addFileProgress(url: url, kind: kind, icon: icon)
+        return progress
+    }
     
     private var isPublished: Bool {
         get { getAssociatedValue("isPublished", initialValue: false) }
         set { setAssociatedValue(newValue, key: "isPublished") }
+    }
+    
+    /**
+     The icon that represent the file for the current progress object.
+     
+     If present, the Finder uses this corresponding value to show the icon of a file that a progress object is tracking.
+     */
+    public var fileIcon: NSImage? {
+        get { userInfo[.fileIconKey] as? NSImage }
+        set { setUserInfoObject(newValue, forKey: .fileIconKey) }
+    }
+    
+    private var fileAnimationImage: NSImage? {
+        get { userInfo[.fileAnimationImageKey] as? NSImage }
+        set { setUserInfoObject(newValue, forKey: .fileAnimationImageKey) }
+    }
+    
+    private var fileAnimationImageOriginalRect: NSRect? {
+        get { (self.userInfo[.fileAnimationImageOriginalRectKey] as? NSValue)?.rectValue }
+        set { setUserInfoObject(newValue.map(NSValue.init(rect:)), forKey: .fileAnimationImageOriginalRectKey) }
     }
     #endif
     
@@ -180,7 +203,7 @@ extension Progress {
     /// Sets the fraction of the work that the progress has completed.
     @discardableResult
     public func fractionCompleted(_ value: Double) -> Self {
-        completedUnitCount = Int64(value.clamped(max: 1.0) * Double(totalUnitCount))
+        completedUnitCount = Int64(value.clamped(to: 0.0...1.0) * Double(totalUnitCount))
         return self
     }
     
@@ -192,9 +215,8 @@ extension Progress {
         - units: The style to use when formatting the quantity or the name of the unit, such as `“1 day ago”` or `“one day ago”`.
         - style: The style to use when describing a relative date, for example `“yesterday”` or `“1 day ago”`.
      */
-    public func estimateTimeString(locale: Locale = .current, units: RelativeDateTimeFormatter.UnitsStyle = .full, style: RelativeDateTimeFormatter.DateTimeStyle = .numeric) -> String? {
-        guard let estimate = estimateDurationRemaining else { return nil }
-        return RelativeDateTimeFormatter().unitsStyle(units).dateTimeStyle(style).locale(locale).localizedString(forTimeDuration: estimate)
+    public func estimateTimeString(locale: Locale = .current, units: RelativeDateTimeFormatter.UnitsStyle = .full, style: RelativeDateTimeFormatter.DateTimeStyle = .numeric) -> String {
+        RelativeDateTimeFormatter().unitsStyle(units).dateTimeStyle(style).locale(locale).localizedString(forTimeDuration: estimateDurationRemaining ?? .zero)
     }
     
     /**
@@ -206,13 +228,10 @@ extension Progress {
         - fractionLength: The allowed number of digits after the decimal separator.
      */
     public func throughputString(locale: Locale = .current, units: ThroughputFormatter.Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) -> String {
-        throughputFormatter.locale = locale
-        throughputFormatter.units = units
-        throughputFormatter.fractionLength = fractionLength
-        return throughputFormatter.string(for: throughput ?? 0)
-    }
-    
-    internal var throughputFormatter: ThroughputFormatter {
-        getAssociatedValue("throughputFormatter", initialValue: ThroughputFormatter())
+        let formatter = ThroughputFormatter()
+        formatter.locale = locale
+        formatter.units = units
+        formatter.fractionLength = fractionLength
+        return formatter.string(for: throughput ?? 0)
     }
 }

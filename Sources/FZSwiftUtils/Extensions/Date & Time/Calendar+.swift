@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Calendar.Component: CaseIterable {
+extension Calendar.Component: Swift.CaseIterable {
     /// Returns an array containing all calendar components.
     public static var allCases: [Calendar.Component] {
         [.month, .weekday, .weekdayOrdinal, .weekOfYear, .weekOfMonth, .year, .yearForWeekOfYear, .weekOfYear, .quarter, .nanosecond, .second, .hour, .month, .minute, .day, .era]

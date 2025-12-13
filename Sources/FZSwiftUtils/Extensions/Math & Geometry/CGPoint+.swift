@@ -124,8 +124,7 @@ public extension CGPoint {
     /**
      Returns the distance between the current point and the specified point.
 
-     - Parameters:
-        - point: The target CGPoint.
+     - Parameter point: The target point.
 
      - Returns: The distance between the current point and the specified point.
      */
@@ -226,64 +225,60 @@ extension CGPoint: Swift.Hashable {
     }
 }
 
-public extension CGPoint {
-    static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+extension CGPoint: Swift.AdditiveArithmetic {
+    public static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
         CGPoint(lhs.x + rhs.x, lhs.y + rhs.y)
     }
 
-    static func + (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+    public static func + (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
         CGPoint(lhs.x + rhs, lhs.y + rhs)
     }
 
-    static func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+    public static func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
         CGPoint(lhs.x - rhs.x, lhs.y - rhs.y)
     }
 
-    static func - (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+    public static func - (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
         CGPoint(lhs.x - rhs, lhs.y - rhs)
     }
-
-    static func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
-        CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
-    }
-
-    static func * (l: CGFloat, rhs: CGPoint) -> CGPoint {
-        CGPoint(x: l * rhs.x, y: l * rhs.y)
-    }
-
-    static func * (lhs: Double, rhs: CGPoint) -> CGPoint {
-        CGPoint(x: lhs * rhs.x, y: lhs * rhs.y)
-    }
-
-    static func * (lhs: CGPoint, rhs: CGPoint) -> CGFloat {
+    
+    public static func * (lhs: CGPoint, rhs: CGPoint) -> CGFloat {
         lhs.x * rhs.x + lhs.y * rhs.y
     }
 
-    static func / (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+    public static func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+        CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
+    }
+
+    public static func * (l: CGFloat, rhs: CGPoint) -> CGPoint {
+        CGPoint(x: l * rhs.x, y: l * rhs.y)
+    }
+
+    public static func / (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
         CGPoint(x: lhs.x / rhs, y: lhs.y / rhs)
     }
 
-    static func += (lhs: inout CGPoint, rhs: CGPoint) {
+    public static func += (lhs: inout CGPoint, rhs: CGPoint) {
         lhs = lhs + rhs
     }
 
-    static func += (lhs: inout CGPoint, rhs: CGFloat) {
+    public static func += (lhs: inout CGPoint, rhs: CGFloat) {
         lhs = lhs + rhs
     }
 
-    static func -= (lhs: inout CGPoint, rhs: CGPoint) {
+    public static func -= (lhs: inout CGPoint, rhs: CGPoint) {
         lhs = lhs - rhs
     }
 
-    static func -= (lhs: inout CGPoint, rhs: CGFloat) {
+    public static func -= (lhs: inout CGPoint, rhs: CGFloat) {
         lhs = lhs - rhs
     }
 
-    static func *= (lhs: inout CGPoint, rhs: CGFloat) {
+    public static func *= (lhs: inout CGPoint, rhs: CGFloat) {
         lhs = lhs * rhs
     }
     
-    static func /= (lhs: inout CGPoint, rhs: CGFloat) {
+    public static func /= (lhs: inout CGPoint, rhs: CGFloat) {
         lhs = lhs / rhs
     }
 }
@@ -291,7 +286,7 @@ public extension CGPoint {
 public extension Collection where Element == CGPoint {
     /// Returns the point with the smallest distance to the specified point.
     func closed(to point: CGPoint) -> CGPoint? {
-        compactMap({(point: $0, distance: $0.distance(to: point ))}).sorted(by: \.distance, .smallestFirst).first?.point
+        map({ (point: $0, distance: $0.distance(to: point) )}).sorted(by: \.distance, .smallestFirst).first?.point
     }
 }
 

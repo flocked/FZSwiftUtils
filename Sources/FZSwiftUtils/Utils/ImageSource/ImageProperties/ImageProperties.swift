@@ -182,7 +182,7 @@ extension ImageSource.ImageProperties {
     }
 }
 
-extension CGImagePropertyOrientation: Codable {
+extension CGImagePropertyOrientation: Swift.Encodable, Swift.Decodable {
     public var description: String {
          switch self {
          case .up: return "up"

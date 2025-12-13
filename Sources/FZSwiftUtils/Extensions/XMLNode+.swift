@@ -396,7 +396,7 @@ extension XMLNode {
         ((self as? XMLElement)?.attributes ?? []).reversed()
     }
 }
-extension XMLNode.Kind: CustomStringConvertible {
+extension XMLNode.Kind: Swift.CustomStringConvertible {
     public var description: String {
         switch self {
         case .invalid: return "invalid"

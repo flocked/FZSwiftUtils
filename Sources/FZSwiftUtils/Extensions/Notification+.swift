@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension Notification.Name: ExpressibleByStringLiteral {
+extension Notification.Name: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUnicodeScalarLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral {
     public init(stringLiteral value: String) {
         self.init(rawValue: value)
     }

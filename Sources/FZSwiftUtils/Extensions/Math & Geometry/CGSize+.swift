@@ -361,52 +361,64 @@ public extension CGSize {
     }
 }
 
-public extension CGSize {
-    static func + (lhs: CGSize, rhs: CGSize) -> CGSize {
+extension CGSize: Swift.AdditiveArithmetic {
+    public static func + (lhs: CGSize, rhs: CGSize) -> CGSize {
         CGSize(width: lhs.width + rhs.width, height: lhs.height + rhs.height)
     }
 
-    static func + (lhs: CGSize, rhs: CGFloat) -> CGSize {
+    public static func + (lhs: CGSize, rhs: CGFloat) -> CGSize {
         CGSize(width: lhs.width + rhs, height: lhs.height + rhs)
     }
 
-    static func - (lhs: CGSize, rhs: CGSize) -> CGSize {
+    public static func - (lhs: CGSize, rhs: CGSize) -> CGSize {
         CGSize(width: lhs.width - rhs.width, height: lhs.height - rhs.height)
     }
 
-    static func - (lhs: CGSize, rhs: CGFloat) -> CGSize {
+    public static func - (lhs: CGSize, rhs: CGFloat) -> CGSize {
         CGSize(width: lhs.width - rhs, height: lhs.height - rhs)
     }
-
-    static func * (lhs: CGSize, rhs: CGFloat) -> CGSize {
-        CGSize(width: lhs.width * rhs, height: lhs.height * rhs)
+    
+    public static func * (lhs: CGSize, rhs: CGSize) -> CGSize {
+        CGSize(width: lhs.width * rhs.width, height: lhs.height * rhs.height)
     }
 
-    static func / (lhs: CGSize, rhs: CGFloat) -> CGSize {
+    public static func * (lhs: CGSize, rhs: CGFloat) -> CGSize {
+        CGSize(width: lhs.width * rhs, height: lhs.height * rhs)
+    }
+    
+    public static func * (lhs: CGFloat, rhs: CGSize) -> CGSize {
+        CGSize(width: lhs * rhs.width, height: lhs * rhs.height)
+    }
+
+    public static func / (lhs: CGSize, rhs: CGFloat) -> CGSize {
         CGSize(width: lhs.width / rhs, height: lhs.height / rhs)
     }
 
-    static func += (lhs: inout CGSize, rhs: CGSize) {
+    public static func += (lhs: inout CGSize, rhs: CGSize) {
         lhs = lhs + rhs
     }
 
-    static func += (lhs: inout CGSize, rhs: CGFloat) {
+    public static func += (lhs: inout CGSize, rhs: CGFloat) {
         lhs = lhs + rhs
     }
 
-    static func -= (lhs: inout CGSize, rhs: CGSize) {
+    public static func -= (lhs: inout CGSize, rhs: CGSize) {
         lhs = lhs - rhs
     }
 
-    static func -= (lhs: inout CGSize, rhs: Double) {
+    public static func -= (lhs: inout CGSize, rhs: CGFloat) {
         lhs = lhs - rhs
     }
-
-    static func *= (lhs: inout CGSize, rhs: CGFloat) {
+    
+    public static func *= (lhs: inout CGSize, rhs: CGSize) {
         lhs = lhs * rhs
     }
 
-    static func /= (lhs: inout CGSize, rhs: CGFloat) {
+    public static func *= (lhs: inout CGSize, rhs: CGFloat) {
+        lhs = lhs * rhs
+    }
+
+    public static func /= (lhs: inout CGSize, rhs: CGFloat) {
         lhs = lhs / rhs
     }
 }

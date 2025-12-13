@@ -72,7 +72,7 @@ public extension Bundle {
         
     /// The bundle info, constructed from the bundle’s `Info.plist` file.
     var info: Info? {
-        guard var appInfo: Info = infoDictionary?.toModel(), let infoURL = infoURL else { return nil }
+        guard var appInfo: Info = try? infoDictionary?.decode(), let infoURL = infoURL else { return nil }
         appInfo.bundle = self
         appInfo.url = infoURL
         return appInfo

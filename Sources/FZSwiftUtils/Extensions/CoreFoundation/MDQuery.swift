@@ -127,10 +127,12 @@ public extension MDQuery {
         isStarted = true
         isStopped = false
         notificationTokens = []
+        /*
         notificationTokens += NotificationCenter.default.observe(MDQuery.MDQueryDidFinishGatheringNotification, object: self) { [weak self] _ in
             guard let self = self else { return }
             
         }
+         */
         NotificationCenter.default.post(name: MDQuery.MDQueryDidStartGatheringNotification, object: self)
         return true
     }
@@ -204,7 +206,7 @@ public extension MDQuery {
      */
     func index(of item: AnyObject) -> Int {
         return runDisabled {
-            MDQueryGetIndexOfResult(self, UnsafeRawPointer(Unmanaged.passUnretained(item).toOpaque())) as Int
+            MDQueryGetIndexOfResult(self, UnsafeRawPointer(unretained: item)) as Int
         }
     }
    
@@ -221,8 +223,7 @@ public extension MDQuery {
     }
     
     private func _item(at index: Int) -> AnyObject? {
-        guard let rawPointer = MDQueryGetResultAtIndex(self, index as CFIndex) else { return nil }
-        return Unmanaged<MDItem>.fromOpaque(rawPointer).takeUnretainedValue()
+        MDQueryGetResultAtIndex(self, index as CFIndex)?.unretained()
     }
     
     /// An array containing the query’s results.
@@ -240,9 +241,56 @@ public extension MDQuery {
         - index: The index of the desired return object in the query results array.
      - Returns: Value for attrName in the result object at idx in the query result array.
      */
-    func value(ofAttribute attributeName: String, forResultAt index: Int) -> Any? {
-        guard let rawPointer = MDQueryGetAttributeValueOfResultAtIndex(self, attributeName as CFString, index as CFIndex) else { return nil }
-        return Unmanaged<AnyObject>.fromOpaque(rawPointer).takeUnretainedValue()
+    func value(ofAttribute attributeName: String, forResultAt index: Int) -> AnyObject? {
+        MDQueryGetAttributeValueOfResultAtIndex(self, attributeName as CFString, index as CFIndex)?.unretained()
+    }
+    
+    /**
+     Returns the values from the results of the query for the specified attribute.
+     
+     The values are not ordered and contain only one occurrence of each value. The values may change over time if the query is configured for live-updates.
+     */
+    func values(ofAttribute attributeName: String) -> [Any] {
+        MDQueryCopyValuesOfAttribute(self, attributeName as CFString).asSwift()
+    }
+    
+    /**
+     Returns the number of results which have the given attribute and attribute value.
+     
+     This count may change over time if the query allows live-updates.
+     
+     - Parameters:
+        - value: The attribute value for which to return the number of results with that value. This parameter may be `nil`, in which case the number of results that do not contain the specified attribute is returned.
+        - attributeName: The attribute name to return the result count of. If the attribute is not one of those requested in the ``valueListAttributes`` parameter, the behavior is undefined.
+     - Returns: The number of results containing that attribute and value.
+     */
+    func count(ofValue value: Any?, forAttribute attributeName: String) -> Int {
+      MDQueryGetCountOfResultsWithAttributeValue(self, attributeName as CFString, value as? AnyObject) as Int
+    }
+    
+    /**
+     eturns all distinct values for the specified attribute along with their occurrence count.
+     
+     The values are not ordered and may change over time if the query is configured for live-updates.
+     */
+    func valueList(forAttribute attributeName: String) -> [AttributeValueTuple] {
+        values(ofAttribute: attributeName).map({  .init(attributeName, count(ofValue: $0, forAttribute: attributeName), $0) })
+    }
+    
+    /// Represents a distinct value for an attribute along with the the number of results containing it.
+    struct AttributeValueTuple {
+        /// The attribute name.
+        public let attribute: String
+        /// The value of the attribute.
+        public let value: Any?
+        // the number of results containing it.
+        public let count: Int
+        
+        init(_ attribute: String, _ count: Int, _ value: Any?) {
+            self.attribute = attribute
+            self.count = count
+            self.value = value
+        }
     }
    
     /**
@@ -653,4 +701,5 @@ public extension Notification.Name {
      return nil
  }
  */
+
 #endif

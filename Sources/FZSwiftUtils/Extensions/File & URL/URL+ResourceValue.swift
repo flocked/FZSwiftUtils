@@ -82,8 +82,6 @@ extension PartialKeyPath where Root == URLResourceValues {
         case \.ubiquitousItemIsUploaded: return .ubiquitousItemIsUploadedKey
         case \.ubiquitousItemIsUploading: return .ubiquitousItemIsUploadingKey
         case \.ubiquitousItemUploadingError: return .ubiquitousItemUploadingErrorKey
-        case \.thumbnailDictionary: return .thumbnailDictionaryKey
-        case \.thumbnailDictionary: return .thumbnailDictionaryKey
         case \.addedToDirectoryDate: return .addedToDirectoryDateKey
         case \.attributeModificationDate: return .attributeModificationDateKey
         case \.canonicalPath: return .canonicalPathKey
@@ -111,12 +109,19 @@ extension PartialKeyPath where Root == URLResourceValues {
         case \.path: return .pathKey
         case \.preferredIOBlockSize: return .preferredIOBlockSizeKey
         case \.typeIdentifier: return .typeIdentifierKey
+        case \.mayShareFileContent: return .mayShareFileContentKey
+        case \.mayHaveExtendedAttributes: return .mayHaveExtendedAttributesKey
+        case \.isPurgeable: return .isPurgeableKey
+        case \.isSparse: return .isSparseKey
+        case \.fileContentIdentifier: return .fileContentIdentifierKey
+        case \.fileProtection: return .fileProtectionKey
+        case \.contentType: return .contentTypeKey
+        case \.ubiquitousItemIsExcludedFromSync: return .ubiquitousItemIsExcludedFromSyncKey
         default: break
         }
 
         #if os(macOS)
         switch self {
-        case \.thumbnail: return .thumbnailKey
         case \.customIcon: return .customIconKey
         case \.effectiveIcon: return .effectiveIconKey
         case \.labelColor: return .labelColorKey
@@ -125,24 +130,6 @@ extension PartialKeyPath where Root == URLResourceValues {
         default: break
         }
         #endif
-
-        if #available(macOS 11.0, iOS 14.0, *) {
-            switch self {
-            case \.mayShareFileContent: return .mayShareFileContentKey
-            case \.mayHaveExtendedAttributes: return .mayHaveExtendedAttributesKey
-            case \.isPurgeable: return .isPurgeableKey
-            case \.isSparse: return .isSparseKey
-            case \.fileContentIdentifier: return .fileContentIdentifierKey
-            case \.fileProtection: return .fileProtectionKey
-            case \.contentType: return .contentTypeKey
-            default: break
-            }
-        }
-        
-        if #available(macOS 11.3, iOS 14.5, *), self == \.ubiquitousItemIsExcludedFromSync {
-            return .ubiquitousItemIsExcludedFromSyncKey
-        }
-        
         return nil
     }
 }
@@ -215,8 +202,6 @@ extension PartialKeyPath where Root == URLResourceValues {
         case \.ubiquitousItemIsUploaded: return .ubiquitousItemIsUploadedKey
         case \.ubiquitousItemIsUploading: return .ubiquitousItemIsUploadingKey
         case \.ubiquitousItemUploadingError: return .ubiquitousItemUploadingErrorKey
-        case \.thumbnailDictionary: return .thumbnailDictionaryKey
-        case \.thumbnailDictionary: return .thumbnailDictionaryKey
         case \.addedToDirectoryDate: return .addedToDirectoryDateKey
         case \.attributeModificationDate: return .attributeModificationDateKey
         case \.canonicalPath: return .canonicalPathKey

@@ -49,7 +49,7 @@ public extension CFStringKey {
     }
     
     static func == (lhs: Self, rhs: Self) -> Bool {
-        return lhs.rawValue.isEqual(to: rhs.rawValue)
+        return lhs.rawValue == rhs.rawValue
     }
     
     func hash(into hasher: inout Hasher) {

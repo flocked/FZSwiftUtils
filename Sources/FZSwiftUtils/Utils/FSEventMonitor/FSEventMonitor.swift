@@ -151,13 +151,7 @@ public class FSEventMonitor {
     
     private func _start() {
         guard !isRunning, shouldMonitor else { return }
-        var context = FSEventStreamContext(
-            version: 0,
-            info: Unmanaged.passUnretained(self).toOpaque(),
-            retain: retainCallback,
-            release: releaseCallback,
-            copyDescription: nil
-        )
+        var context = FSEventStreamContext(version: 0, info: .unretained(self), retain: retainCallback, release: releaseCallback, copyDescription: nil)
         streamRef = FSEventStreamCreate(
             kCFAllocatorDefault,
             eventCallback,
@@ -185,7 +179,7 @@ public class FSEventMonitor {
     }
     
     private func eventID(for date: Date, url: URL? = nil) -> FSEventStreamEventId? {
-        guard let deviceID = (url ?? URL(fileURLWithPath: "/"))?.deviceID else { return nil }
+        guard let deviceID = (url ?? URL(fileURLWithPath: "/")).deviceID else { return nil }
         let timestamp = date.timeIntervalSince1970
         return FSEventsGetLastEventIdForDeviceBeforeTime(deviceID, timestamp)
     }
@@ -217,14 +211,8 @@ public class FSEventMonitor {
         }
          */
     }
-    
-    private let eventCallback: FSEventStreamCallback = {(
-        stream: ConstFSEventStreamRef,
-        contextInfo: UnsafeMutableRawPointer?,
-        numEvents: Int,
-        eventPaths: UnsafeMutableRawPointer,
-        eventFlags: UnsafePointer<FSEventStreamEventFlags>,
-        eventIds: UnsafePointer<FSEventStreamEventId>) in
+    private let eventCallback: FSEventStreamCallback = {
+        stream, contextInfo, numEvents, eventPaths, eventFlags, eventIds in
         let eventMonitor = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo!).takeUnretainedValue()
         let dictionaries = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [[String:Any]]
         var events = (0..<numEvents).compactMap({ FSEvent(eventIds[$0], dictionaries[$0][kFSEventStreamEventExtendedDataPathKey] as! String, eventFlags[$0], dictionaries[$0][kFSEventStreamEventExtendedFileIDKey] as? UInt64, dictionaries[$0][kFSEventStreamEventExtendedDocIDKey] as? Int) })
@@ -257,12 +245,12 @@ public class FSEventMonitor {
 fileprivate extension URL {
     var deviceID: dev_t? {
         guard isFileURL else { return nil }
-        var statInfo = stat()
-        if stat(path, &statInfo) == 0 {
-            return statInfo.st_dev
-        } else {
-            return nil
+        var info = stat()
+        let result = withUnsafeFileSystemRepresentation { fsPath in
+            guard let fsPath else { return Int32(-1) }
+            return stat(fsPath, &info)
         }
+        return result == 0 ? info.st_dev : nil
     }
 }
 #endif

@@ -310,7 +310,7 @@ public extension Sequence where Element: RangeRepresentable {
     }
 }
 
-extension CFRange: Collection, BidirectionalCollection, RandomAccessCollection, RangeExpression {
+extension CFRange: Swift.Collection, Swift.BidirectionalCollection, Swift.RandomAccessCollection, Swift.RangeExpression, Swift.Sequence {
     public var startIndex: CFIndex { lowerBound }
 
     public var endIndex: CFIndex { upperBound }

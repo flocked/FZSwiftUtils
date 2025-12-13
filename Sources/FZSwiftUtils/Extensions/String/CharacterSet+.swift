@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension CharacterSet: ExpressibleByStringLiteral {
+extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUnicodeScalarLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral {
     public init(stringLiteral value: String) {
         self = .init(charactersIn: value)
     }

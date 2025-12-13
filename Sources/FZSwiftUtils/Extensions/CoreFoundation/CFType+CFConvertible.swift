@@ -143,8 +143,6 @@ extension UInt64: _CFConvertible {}
 extension Float32: _CFConvertible {}
 extension Float64: _CFConvertible {}
 
-// MARK: - Helper
-
 private func _bridgeToCFIfNeeded<T>(_ v: T) -> Any {    
     if let bridgeable = v as? __CFConvertible {
         return bridgeable.__bridgeToCF()
@@ -152,4 +150,3 @@ private func _bridgeToCFIfNeeded<T>(_ v: T) -> Any {
         return v
     }
 }
-

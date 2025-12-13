@@ -1246,35 +1246,35 @@ extension CGRect {
 
 public extension CGRect {
     static func + (lhs: CGRect, rhs: CGPoint) -> CGRect {
-        CGRect(CGPoint(lhs.x + rhs.x, lhs.y + rhs.y), lhs.size)
+        CGRect(lhs.origin + rhs, lhs.size)
     }
     
     static func += (lhs: inout CGRect, rhs: CGPoint) {
-        lhs = lhs + rhs
+        lhs.origin += rhs
     }
     
     static func + (lhs: CGRect, rhs: CGSize) -> CGRect {
-        CGRect(lhs.origin, CGSize(lhs.width + rhs.width, lhs.height + rhs.height))
+        CGRect(lhs.origin, lhs.size + rhs)
     }
     
     static func += (lhs: inout CGRect, rhs: CGSize) {
-        lhs = lhs + rhs
+        lhs.size += rhs
     }
     
     static func - (lhs: CGRect, rhs: CGPoint) -> CGRect {
-        CGRect(CGPoint(lhs.x - rhs.x, lhs.y - rhs.y), lhs.size)
+        CGRect(lhs.origin - rhs, lhs.size)
     }
     
     static func -= (lhs: inout CGRect, rhs: CGPoint) {
-        lhs = lhs - rhs
+        lhs.origin -= rhs
     }
     
     static func - (lhs: CGRect, rhs: CGSize) -> CGRect {
-        CGRect(lhs.origin, CGSize(lhs.width - rhs.width, lhs.height - rhs.height))
+        CGRect(lhs.origin, lhs.size + rhs)
     }
     
     static func -= (lhs: inout CGRect, rhs: CGSize) {
-        lhs = lhs - rhs
+        lhs.size -= rhs
     }
 }
 

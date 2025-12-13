@@ -8,11 +8,17 @@
 import Foundation
 
 /// A json object.
-public struct JSONObject: Sequence, Collection, BidirectionalCollection, ExpressibleByStringLiteral, ExpressibleByFloatLiteral, ExpressibleByNilLiteral, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral, ExpressibleByIntegerLiteral, Equatable {
-    let value: Any?
+public struct JSONObject: Sequence, Collection, BidirectionalCollection, ExpressibleByStringLiteral, ExpressibleByFloatLiteral, ExpressibleByNilLiteral, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral, RangeReplaceableCollection, Equatable {
+    
+    public var value: Any?
     
     /// The current path of the json object.
     public let codingPath: [CodingKey]
+    
+    public init() {
+        self.value = nil
+        self.codingPath = []
+    }
     
     /// Creates a json object from the specified data.
     public init(data: Data, options: JSONSerialization.ReadingOptions = []) throws {
@@ -38,13 +44,18 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         self.codingPath = []
     }
     
-    public init(dictionaryLiteral elements: (String, JSONObject)...) {
+    public init(dictionaryLiteral elements: (String, (any JSONSerializable))...) {
         value = Dictionary(uniqueKeysWithValues: elements)
         codingPath = []
     }
     
-    public init(arrayLiteral elements: JSONObject...) {
+    public init(arrayLiteral elements: (any JSONSerializable)...) {
         value = elements
+        codingPath = []
+    }
+    
+    public init(booleanLiteral value: Bool) {
+        self.value = value
         codingPath = []
     }
     
@@ -59,7 +70,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     }
     
     public init(nilLiteral: ()) {
-        self.value = nil
+        self.value = NSNull()
         self.codingPath = []
     }
                         
@@ -85,42 +96,62 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         
     /// The dictionary value of the json object.
     public var dictionary: [String: Self]? {
-        (value as? [String: Any])?.mapKeyValues({ ($0, Self($1, codingPath + .key($0))) })
+        get { (value as? [String: Any])?.mapKeyValues({ ($0, Self($1, codingPath + .key($0))) }) }
+        //  set { value = newValue ?? NSNull() }
     }
         
     /// The array value of the json object.
     public var array: [Self]? {
-        value is [Any] ? collect() : nil
+        get { value is [Any] ? collect() : nil }
+        //  set { value = newValue ?? NSNull() }
     }
         
     /// The string value of the json object.
     public var string: String? {
-        value as? String
+        get { value as? String }
+        //  set { value = newValue ?? NSNull() }
     }
         
     /// The integer value of the json object.
     public var integer: Int? {
-        bool == nil ? value as? Int : nil
+        get { bool == nil ? value as? Int : nil }
+        //  set { value = newValue ?? NSNull() }
     }
         
     /// The double value of the json object.
     public var double: Double? {
-        bool == nil ? value as? Double : nil
+        get { bool == nil ? value as? Double : nil }
+        //   set { value = newValue ?? NSNull() }
     }
         
     /// The boolean value of the json object.
     public var bool: Bool? {
-        (value as? NSNumber)?.safeBoolValue
+        get { (value as? NSNumber)?.safeBoolValue }
+        //  set { value = newValue ?? NSNull() }
     }
         
     /// A Boolean value indicating whether the json object is `Null`.
     public var isNull: Bool {
-        value is NSNull
+        get { value is NSNull }
+        /*
+         set {
+             guard newValue else { return }
+             value = NSNull()
+         }
+          */
     }
     
     @_disfavoredOverload
     public subscript (index: Int) -> Self {
-        Self(array?[safe: index], codingPath + .index(index))
+        get { Self(array?[safe: index], codingPath + .index(index)) }
+        set {
+            guard var value = value as? [Any], index < value.count else {
+                return
+            }
+            Swift.print("SET array", newValue.value ?? "nil")
+            value[index] = newValue.value ?? NSNull()
+            self.value = value
+        }
     }
         
     public subscript (index: Int) -> Self? {
@@ -134,12 +165,18 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     }
     
     public subscript(indexes: IndexSet) -> [Self] {
-        array?[indexes.filter({ $0 >= 0 && $0 < endIndex })] ?? []
+        get { array?[indexes.filter({ $0 >= 0 && $0 < endIndex })] ?? [] }
     }
         
     @_disfavoredOverload
     public subscript(key: String) -> Self {
-        Self(dictionary?[key], codingPath + .key(key))
+        get { Self(dictionary?[key], codingPath + .key(key)) }
+        set {
+            guard var value = value as? [String:Any] else { return }
+            Swift.print("SET DIC", newValue.value ?? "nil")
+            value[key] = newValue.value
+            self.value = value
+        }
     }
     
     public subscript (key: String) -> Self? {
@@ -182,24 +219,26 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         self[codingPath]
     }
     
+    public mutating func replaceSubrange<C>(_ subrange: Range<Int>, with newElements: C) where C : Collection, JSONObject == C.Element {
+        guard var array = array else { return }
+        array.replaceSubrange(subrange, with: newElements)
+        value = array
+    }
+          
     /// Decodes the json object to the specified type.
-    public func decoded<T: Decodable>(dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> T {
+    public func decoded<T: Decodable>(as type: T.Type = T.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> T {
         guard let value = value else {
             throw DecodingError.typeMismatch(NSNull.self, DecodingError.Context(codingPath: codingPath, debugDescription: "The value doesn't represent any json."))
         }
         return try JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy).decode(T.self, from: try JSONSerialization.data(withJSONObject: value))
     }
-          
-    /// Decodes the json object to the specified type.
-    public func decoded<T: Decodable>(as type: T.Type = T.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> T {
-        try decoded(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy)
-    }
     
     /// Returns a JSON-encoded data representation of the object.
     public func encoded(dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, outputFormatting: JSONEncoder.OutputFormatting = []) throws -> Data {
         guard let value = value else {
-            throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "Cannot encode nil as JSON"))
+            throw EncodingError.invalidValue(value as Any, .init(codingPath: codingPath, debugDescription: "Cannot encode nil as JSON"))
         }
+        // return try JSONSerialization.data(withJSONObject: value)
         return try JSONEncoder(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting).encode(AnyEncodable(value))
     }
         
@@ -215,21 +254,6 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         
     public var startIndex: Int {
         0
-    }
-    
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
-        if let lhs = lhs.bool {
-            return rhs.bool == lhs
-        } else if let lhs = lhs.double {
-            return rhs.double == lhs
-        } else if let lhs = lhs.string {
-            return rhs.string == lhs
-        } else if let lhs = lhs.array {
-            return rhs.array == lhs
-        } else if let lhs = lhs.dictionary {
-            return rhs.dictionary == lhs
-        }
-        return lhs.value == nil && rhs.value == nil
     }
         
     public var endIndex: Int {
@@ -255,6 +279,21 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
             index += 1
             return JSONObject(item, codingPath + .index(index-1))
         }
+    }
+    
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
+        if let lhs = lhs.bool {
+            return rhs.bool == lhs
+        } else if let lhs = lhs.double {
+            return rhs.double == lhs
+        } else if let lhs = lhs.string {
+            return rhs.string == lhs
+        } else if let lhs = lhs.array {
+            return rhs.array == lhs
+        } else if let lhs = lhs.dictionary {
+            return rhs.dictionary == lhs
+        }
+        return lhs.value == nil && rhs.value == nil
     }
 }
 
@@ -316,17 +355,18 @@ extension JSONObject {
 }
 
 /// A type that can be converted to JSON.
-public protocol JSONSerializable: Codable { }
+public protocol JSONSerializable { }
 extension String: JSONSerializable { }
 extension Int: JSONSerializable { }
 extension Double: JSONSerializable { }
 extension Bool: JSONSerializable { }
 extension NSNull: JSONSerializable { }
-extension Array: JSONSerializable where Element: JSONSerializable { }
-extension Dictionary: JSONSerializable where Key == String, Value: JSONSerializable { }
 extension NSNumber: JSONSerializable { }
+extension Array: JSONSerializable where Element == (any JSONSerializable) { }
+extension Dictionary: JSONSerializable where Key == String, Value == (any JSONSerializable) { }
+extension Optional: JSONSerializable where Wrapped: JSONSerializable { }
 
-extension NSNull: Codable {
+extension NSNull: Swift.Encodable, Swift.Decodable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encodeNil()
@@ -342,6 +382,27 @@ extension Decodable where Self: NSNull {
         self.init()
     }
 }
+
+/*
+ extension JSONSerializable {
+     func toJSONData(dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate,
+                   keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys,
+                   dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64,
+                   outputFormatting: JSONEncoder.OutputFormatting = []) throws -> Data {
+         try JSONEncoder(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting).encode(self)
+     }
+    
+     func toJSONString(dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate,
+                   keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys,
+                   dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64,
+                   outputFormatting: JSONEncoder.OutputFormatting = []) throws -> String {
+         guard let string = String(data: try toJSONData(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting), encoding: .utf8) else {
+             throw EncodingError.invalidValue("", .init(codingPath: [], debugDescription: "Failed to create String from json data."))
+         }
+         return string
+     }
+ }
+  */
 
 fileprivate struct AnyEncodable: Encodable {
     let value: Any

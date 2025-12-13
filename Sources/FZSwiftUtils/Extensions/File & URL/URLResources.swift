@@ -25,8 +25,10 @@ public extension URL {
 
 /**
  The properties of a file system resource.
+ 
+ Not all properties exist for all files. For example, if a file is located on a volume that doesn’t support creation dates, the creationDate property will return nil.
 
- Some of the properties can be modified. Not all properties exist for all files. For example, if a file is located on a volume that doesn’t support creation dates, the creationDate property will return nil.
+ Some of the properties can be modified. Changing them attempts  to modify the represented file or folder.
  */
 public class URLResources {
     /// The url to the resource

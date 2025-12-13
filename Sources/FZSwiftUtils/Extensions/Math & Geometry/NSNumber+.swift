@@ -79,6 +79,13 @@ public extension NSNumber {
         CFGetTypeID(self) == CFBooleanGetTypeID()
     }
     
+    var isFloatingPoint: Bool {
+        switch String(cString: objCType) {
+        case "f", "d": return true
+        default: return false
+        }
+    }
+    
     /**
      Returns the Boolean value only if the represented value is a Boolean.
      
@@ -93,6 +100,63 @@ public extension NSNumber {
     var safeBoolValue: Bool? {
         guard isBool else { return nil }
         return boolValue
+    }
+    
+    var typed: TypedValue {
+        getAssociatedValue("typed", initialValue: .init(self))
+    }
+    
+    struct TypedValue {
+        private let number: NSNumber
+        private let type: String
+
+        init(_ number: NSNumber) {
+            self.number = number
+            self.type = String(cString: number.objCType)
+        }
+
+        /** Returns the value if the underlying Obj-C type is `"c"` (Int8). */
+        public var int8: Int8? { type == "c" ? number.int8Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"s"` (Int16). */
+        public var int16: Int16? { type == "s" ? number.int16Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"i"` (Int32). */
+        public var int32: Int32? { type == "i" ? number.int32Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"l"` (Int / C long). */
+        public var int: Int? { type == "l" ? number.intValue : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"q"` (Int64). */
+        public var int64: Int64? { type == "q" ? number.int64Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"C"` (UInt8). */
+        public var uInt8: UInt8? { type == "C" ? number.uint8Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"S"` (UInt16). */
+        public var uInt16: UInt16? { type == "S" ? number.uint16Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"I"` (UInt32). */
+        public var uInt32: UInt32? { type == "I" ? number.uint32Value : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"L"` (UInt / C unsigned long). */
+        public var uInt: UInt? { type == "L" ? number.uintValue : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"Q"` (UInt64). */
+        public var uInt64: UInt64? { type == "Q" ? number.uint64Value : nil }
+
+        // MARK: - Floating Point
+
+        /** Returns the value if the underlying Obj-C type is `"f"` (Float). */
+        public var float: Float? { type == "f" ? number.floatValue : nil }
+
+        /** Returns the value if the underlying Obj-C type is `"d"` (Double). */
+        public var double: Double? { type == "d" ? number.doubleValue : nil }
+
+        // MARK: - Boolean
+
+        /** Returns the value if the underlying Obj-C type is `"B"` (Bool). */
+        public var bool: Bool? { type == "B" ? number.boolValue : nil }
     }
     
     /// The value of the `NSNumber`.
@@ -112,7 +176,9 @@ public extension NSNumber {
         case "f":  return floatValue
         case "d":  return doubleValue
         case "B":  return boolValue
-        default: return self
+        default:
+            Swift.print("HERE",  String(cString: objCType) )
+            return self
         }
     }
 
@@ -136,7 +202,7 @@ public extension NSNumber {
     }
 }
 
-extension NSNumber: Codable {
+extension NSNumber: Swift.Encodable, Swift.Decodable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         if let value = safeBoolValue { try container.encode(value); return }

@@ -70,23 +70,65 @@ public protocol OptionalProtocol: ExpressibleByNilLiteral {
     associatedtype Wrapped
     /// The optional value.
     var optional: Wrapped? { get }
-}
-
-/// A type represeting an optional value.
-public protocol OptionalType {
     /// The type of the wrapped value.
-    var wrappedType: Any.Type { get }
+    static var wrappedType: Any.Type { get }
 }
 
-extension Optional: OptionalProtocol, OptionalType {
+extension Optional: OptionalProtocol {
     /// The optional value.
     public var optional: Self { self }
     
     /// The type of the wrapped value.
-    public var wrappedType: Any.Type { Wrapped.self }
+    public static var wrappedType: Any.Type { Wrapped.self }
     
     /// A Boolean value indicating whether the optional value is `nil`.
     var isNil: Bool {
         optional == nil
     }
 }
+
+/*
+ extension Optional where Wrapped: MultiplicativeArithmetic {
+     public static func * (lhs: Self, rhs: Self) -> Self {
+         guard let lhs = lhs.optional else { return rhs }
+         guard let rhs = rhs.optional else { return lhs }
+         return lhs * rhs
+     }
+     
+     public static func / (lhs: Self, rhs: Self) -> Self {
+         guard let lhs = lhs.optional else { return rhs }
+         guard let rhs = rhs.optional else { return lhs }
+         return lhs / rhs
+     }
+     
+     public static func *= (lhs: inout Self, rhs: Self) {
+         lhs = lhs * rhs
+     }
+     
+     public static func /= (lhs: inout Self, rhs: Self) {
+         lhs = lhs / rhs
+     }
+ }
+
+ extension Optional where Wrapped: AdditiveArithmetic {
+     public static func + (lhs: Self, rhs: Self) -> Self {
+         guard let lhs = lhs.optional else { return rhs }
+         guard let rhs = rhs.optional else { return lhs }
+         return lhs + rhs
+     }
+     
+     public static func - (lhs: Self, rhs: Self) -> Self {
+         guard let lhs = lhs.optional else { return rhs }
+         guard let rhs = rhs.optional else { return lhs }
+         return lhs - rhs
+     }
+     
+     public static func += (lhs: inout Self, rhs: Self) {
+         lhs = lhs + rhs
+     }
+     
+     public static func -= (lhs: inout Self, rhs: Self) {
+         lhs = lhs - rhs
+     }
+ }
+ */

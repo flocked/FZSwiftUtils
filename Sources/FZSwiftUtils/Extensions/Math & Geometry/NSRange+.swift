@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension NSRange: RandomAccessCollection, RangeExpression {
+extension NSRange: Swift.RandomAccessCollection, Swift.RangeExpression, Swift.BidirectionalCollection, Swift.Sequence, Swift.Collection {
     public var startIndex: Int { 0 }
     public var endIndex: Int { isNotFound ? 0 : length }
 

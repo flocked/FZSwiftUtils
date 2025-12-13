@@ -52,7 +52,7 @@ public class ImageSource {
      */
     public func properties() -> ImageProperties? {
         let rawValue = CGImageSourceCopyProperties(cgImageSource, nil) as? [String: Any] ?? [:]        
-        return rawValue.toModel(ImageProperties.self, decoder: ImageProperties.decoder)
+        return try? rawValue.decode(as: ImageProperties.self, decoder: ImageProperties.decoder)
     }
 
     /**
@@ -60,7 +60,7 @@ public class ImageSource {
      */
     public func properties(at index: Int) -> ImageProperties? {
         let rawValue = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [String: Any] ?? [:]
-        return rawValue.toModel(ImageProperties.self, decoder: ImageProperties.decoder)
+        return try? rawValue.decode(as: ImageProperties.self, decoder: ImageProperties.decoder)
     }
     
     /// Returns the metadata of the image at the specified index.
@@ -376,45 +376,45 @@ public extension ImageSource {
 }
 
 #if os(macOS)
-    import AppKit
-    public extension ImageSource {
-        /**
-         Creates an image source that reads from a `NSImage`.
+import AppKit
+public extension ImageSource {
+    /**
+     Creates an image source that reads from a `NSImage`.
          
-         - Note: Loading an animated image takes time as each image frame is loaded initially. It's recommended to either use the url to the image if available, or parse the animation properties and frames via the image's `NSBitmapImageRep` representation.
+     - Note: Loading an animated image takes time as each image frame is loaded initially. It's recommended to either use the url to the image if available, or parse the animation properties and frames via the image's `NSBitmapImageRep` representation.
 
-         - Parameters:
-            - image: The `NSImage` object.
-         */
-        convenience init?(image: NSImage) {
-            let images = image.representations.compactMap({$0 as? NSBitmapImageRep}).flatMap({$0.getImages()})
-            guard !images.isEmpty else { return nil }
-            let types = Set(images.compactMap { $0.utType })
-            let outputType = types.count == 1 ? (types.first ?? kUTTypeTIFF) : kUTTypeTIFF
-            guard let mutableData = CFDataCreateMutable(nil, 0), let destination = CGImageDestinationCreateWithData(mutableData, outputType, images.count, nil) else { return nil }
-            images.forEach { CGImageDestinationAddImage(destination, $0, nil) }
-            guard CGImageDestinationFinalize(destination) else { return nil }
-            guard let cgImageSource = CGImageSourceCreateWithData(mutableData, nil) else { return nil }
-            self.init(cgImageSource)
-        }
+     - Parameters:
+        - image: The `NSImage` object.
+     */
+    convenience init?(image: NSImage) {
+        let images = image.representations.compactMap({$0 as? NSBitmapImageRep}).flatMap({$0.getImages()})
+        guard !images.isEmpty else { return nil }
+        let types = Set(images.compactMap { $0.utType })
+        let outputType = types.count == 1 ? (types.first ?? UTType.tiff.identifier as CFString) : UTType.tiff.identifier as CFString
+        guard let mutableData = CFDataCreateMutable(nil, 0), let destination = CGImageDestinationCreateWithData(mutableData, outputType, images.count, nil) else { return nil }
+        images.forEach { CGImageDestinationAddImage(destination, $0, nil) }
+        guard CGImageDestinationFinalize(destination) else { return nil }
+        guard let cgImageSource = CGImageSourceCreateWithData(mutableData, nil) else { return nil }
+        self.init(cgImageSource)
     }
+}
 
 #endif
 
 #if canImport(UIKit)
-    import UIKit
-    public extension ImageSource {
-        /**
-         Creates an image source that reads from a `UIImage`.
+import UIKit
+public extension ImageSource {
+    /**
+     Creates an image source that reads from a `UIImage`.
 
-         - Parameters:
-            - image: The `UIImage` object.
-         */
-        convenience init?(image: UIImage) {
-            guard let data = image.pngData() else { return nil }
-            self.init(data: data)
-        }
+     - Parameters:
+        - image: The `UIImage` object.
+     */
+    convenience init?(image: UIImage) {
+        guard let data = image.pngData() else { return nil }
+        self.init(data: data)
     }
+}
 #endif
 
 public extension ImageSource {
@@ -452,39 +452,39 @@ public extension ImageSource {
 
 extension ImageSource {
     /// Returns a losslessly copied image as Data, applying the given options.
-      func copyData(applying options: CopyOptions = CopyOptions()) throws -> Data {
-          guard let typeIdentifier = typeIdentifier else {
-              throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
-          }
-          let mutableData = NSMutableData()
-          guard let dest = CGImageDestinationCreateWithData(mutableData as CFMutableData, typeIdentifier as CFString, count, nil) else { throw NSError(domain: "CGImageSource", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create image destination"])
-          }
-          var error: Unmanaged<CFError>?
-          let success = withUnsafeMutablePointer(to: &error) { ptr in
-              CGImageDestinationCopyImageSource(dest, cgImageSource, options.dictionary, ptr)
-          }
-          if !success {
-              throw error!.takeRetainedValue()
-          }
-          return mutableData as Data
-      }
+    func copyData(applying options: CopyOptions = CopyOptions()) throws -> Data {
+        guard let typeIdentifier = typeIdentifier else {
+            throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
+        }
+        let mutableData = NSMutableData()
+        guard let dest = CGImageDestinationCreateWithData(mutableData as CFMutableData, typeIdentifier as CFString, count, nil) else { throw NSError(domain: "CGImageSource", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create image destination"])
+        }
+        var error: Unmanaged<CFError>?
+        let success = withUnsafeMutablePointer(to: &error) { ptr in
+            CGImageDestinationCopyImageSource(dest, cgImageSource, options.dictionary, ptr)
+        }
+        if !success {
+            throw error!.takeRetainedValue()
+        }
+        return mutableData as Data
+    }
 
-      /// Writes a losslessly copied image to the specified URL, applying the given options.
-      func write(to url: URL, applying options: CopyOptions = CopyOptions()) throws {
-          guard let typeIdentifier = typeIdentifier else {
-              throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
-          }
-          guard let dest = CGImageDestinationCreateWithURL(url as CFURL, typeIdentifier as CFString, count, nil) else {
-              throw NSError(domain: "CGImageSource", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create image destination"])
-          }
-          var error: Unmanaged<CFError>?
-          let success = withUnsafeMutablePointer(to: &error) { ptr in
-              CGImageDestinationCopyImageSource(dest, cgImageSource, options.dictionary, ptr)
-          }
-          if !success {
-              throw error!.takeRetainedValue()
-          }
-      }
+    /// Writes a losslessly copied image to the specified URL, applying the given options.
+    func write(to url: URL, applying options: CopyOptions = CopyOptions()) throws {
+        guard let typeIdentifier = typeIdentifier else {
+            throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
+        }
+        guard let dest = CGImageDestinationCreateWithURL(url as CFURL, typeIdentifier as CFString, count, nil) else {
+            throw NSError(domain: "CGImageSource", code: 2, userInfo: [NSLocalizedDescriptionKey: "Could not create image destination"])
+        }
+        var error: Unmanaged<CFError>?
+        let success = withUnsafeMutablePointer(to: &error) { ptr in
+            CGImageDestinationCopyImageSource(dest, cgImageSource, options.dictionary, ptr)
+        }
+        if !success {
+            throw error!.takeRetainedValue()
+        }
+    }
     
     public struct CopyOptions {
         
@@ -537,4 +537,4 @@ extension ImageSource {
             return dict as CFDictionary
         }
     }
-  }
+}

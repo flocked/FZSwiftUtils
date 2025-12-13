@@ -777,7 +777,37 @@ public extension String {
     }
 }
 
-extension String.CompareOptions: Hashable {
+public extension String {
+    /// Unescaped version of the string by unescaping the characters with backslashes.
+    var unescaped: String {
+        Self.escapeEntities.reduce(self) { $0.replacingOccurrences(of: #"(?<!\\)((?:\\\\)*)\\"# + $1.value, with: "$1" + $1.key, options: .regularExpression) }
+    }
+    
+    private static let escapeEntities: [Character: Character] = [
+        #"0"#: "\0",  // null character
+        #"t"#: "\t",  // horizontal tab
+        #"n"#: "\n",  // line feed
+        #"r"#: "\r",  // carriage return
+        #"""#: "\"",  // double quotation mark
+        #"'"#: "\'",  // single quotation mark
+        #"\"#: "\\",  // backslash
+    ]
+}
+
+extension String.CompareOptions: Swift.Hashable {
     /// Compares `Strings` as compared by the Finder.
     public static let localizedStandard: Self = [.caseInsensitive, .numeric,  .widthInsensitive, .forcedOrdering]
+}
+
+extension String {
+    public var htmlToString: String? {
+        htmlToAttributedString?.string
+    }
+    
+    public var htmlToAttributedString: NSAttributedString? {
+        if let data = data(using: .utf8) {
+            return try? NSAttributedString(data: data, options: .init(characterEncoding: .utf8, documentType: .html))            
+        }
+        return nil
+    }
 }

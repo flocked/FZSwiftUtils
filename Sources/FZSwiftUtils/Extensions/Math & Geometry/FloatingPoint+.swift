@@ -229,10 +229,94 @@ extension BinaryFloatingPoint where Self: LosslessStringConvertible {
     }    
 }
 
+public extension Sequence where Element: BinaryFloatingPoint {
+    /**
+     Returns the scaled integral value of the elements in the sequence.
+     
+     The elements are scaled based on the current device’s screen scale.
+     */
+    var scaledIntegral: [Element] {
+        map({ $0.scaledIntegral })
+    }
+    
+    #if os(macOS)
+    /**
+     Returns the scaled integral value of the elements in the sequence for the specified screen.
+     
+     The elements are scaled based on the screen's backing scale factor.
+     
+     - Parameter screen: The screen for the scale factor.
+     */
+    func scaledIntegral(for screen: NSScreen) -> [Element] {
+        map({ $0.scaledIntegral(for: screen) })
+    }
+    
+    /**
+     Returns the scaled integral value of the elements in the sequence for the specified window.
+     
+     The elements are scaled based on the window's backing scale factor.
+     
+     - Parameter window: The window for the scale factor.
+     */
+    func scaledIntegral(for window: NSWindow) -> [Element] {
+        map({ $0.scaledIntegral(for: window) })
+    }
+    
+    /**
+     Returns the scaled integral value of the elements in the sequence for the specified view.
+     
+     The elements are scaled based on the view’s window backing scale factor.
+     
+     - Parameter view: The view for the scale factor.
+     */
+    func scaledIntegral(for view: NSView) -> [Element] {
+        map({ $0.scaledIntegral(for: view) })
+    }
+    
+    /**
+     Returns the scaled integral value of the elements in the sequence for the specified application.
+     
+     The elements are scaled based on either the key, main or first visible window, or else the main screen and it’s backing scale factor.
+     
+     - Parameter application: The application for the scale factor.
+     */
+    func scaledIntegral(for application: NSApplication) -> [Element] {
+        map({ $0.scaledIntegral(for: application) })
+    }
+    #endif
+}
+
 #if os(macOS)
-extension NSApplication {
+/// A type that provides access to a backing scale factor used for point-to-pixel conversion.
+protocol BackingScaleProviding {
+    /// The backing scale factor.
+    var backingScaleFactor: CGFloat { get }
+}
+
+extension NSWindow: BackingScaleProviding { }
+extension NSScreen: BackingScaleProviding { }
+
+extension NSView: BackingScaleProviding {
+    var backingScaleFactor: CGFloat {
+        window?.backingScaleFactor ?? NSApp.backingScaleFactor
+    }
+}
+
+extension NSApplication: BackingScaleProviding {
     var backingScaleFactor: CGFloat {
         (keyWindow ?? mainWindow ?? windows.first(where: { $0.isVisible }))?.backingScaleFactor ?? (NSScreen.main ?? .screens.first)?.backingScaleFactor ?? 1.0
+    }
+}
+
+extension CGContext: BackingScaleProviding {
+    var backingScaleFactor: CGFloat {
+        ctm.a
+    }
+}
+
+extension NSGraphicsContext: BackingScaleProviding {
+    var backingScaleFactor: CGFloat {
+        cgContext.backingScaleFactor
     }
 }
 #endif
