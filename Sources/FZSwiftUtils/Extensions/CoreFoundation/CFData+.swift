@@ -21,13 +21,29 @@ extension CFData: Swift.Collection, Swift.BidirectionalCollection, Swift.RandomA
      */
     public subscript(position: CFIndex) -> UInt8 {
         precondition(position >= 0 && position < endIndex, "Index out of bounds")
-        guard let ptr = bytesPointer() else { fatalError("CFData has no bytes") }
+        guard let ptr = bytes() else { fatalError("CFData has no bytes") }
         return ptr[position]
     }
     
+    /**
+     Accesses the byte at the specified position.
+     
+     - Parameter position: The index of the byte to access.
+     */
+    public subscript(safe position: CFIndex) -> UInt8? {
+        guard position >= 0 && position < endIndex, let ptr = bytes() else { return nil }
+        return ptr[position]
+    }
+        
     /// Returns a new copy of the data in the specified range.
     public subscript(range: Range<CFIndex>) -> CFData {
         subdata(in: range)
+    }
+    
+    /// Returns a new copy of the data in the specified range.
+    public subscript(safe range: Range<CFIndex>) -> CFData? {
+        guard range.lowerBound >= 0 && range.upperBound <= count, let ptr = bytes() else { return nil }
+        return CFDataCreate(.default, ptr + range.lowerBound, range.count)
     }
     
     /// Returns the index immediately after the given index.
@@ -53,7 +69,7 @@ extension CFData: Swift.Collection, Swift.BidirectionalCollection, Swift.RandomA
      */
     public func subdata(in range: Range<Index>) -> CFData {
         precondition(range.lowerBound >= 0 && range.upperBound <= count, "Range out of bounds")
-        guard let ptr = bytesPointer() else { fatalError("CFData has no bytes") }
+        guard let ptr = bytes() else { fatalError("CFData has no bytes") }
         return CFDataCreate(.default, ptr + range.lowerBound, range.count)
     }
     
@@ -68,13 +84,13 @@ extension CFData: Swift.Collection, Swift.BidirectionalCollection, Swift.RandomA
      - Returns: The result of the closure.
      */
     public func withBytes<R>(_ body: (UnsafePointer<UInt8>) -> R) -> R {
-        guard let ptr = bytesPointer() else { fatalError("CFData has no bytes") }
+        guard let ptr = bytes() else { fatalError("CFData has no bytes") }
         return body(ptr)
     }
     
     /// Accesses the raw bytes in the data’s buffer.
     public func withUnsafeBytes<ContentType, ResultType>(_ body: (UnsafePointer<ContentType>) throws -> ResultType) rethrows -> ResultType {
-        guard let ptr = bytesPointer() else { fatalError("CFData has no bytes") }
+        guard let ptr = bytes() else { fatalError("CFData has no bytes") }
         let typedPtr = ptr.withMemoryRebound(to: ContentType.self, capacity: count / MemoryLayout<ContentType>.stride) {
             $0
         }
@@ -82,7 +98,7 @@ extension CFData: Swift.Collection, Swift.BidirectionalCollection, Swift.RandomA
     }
     
     /// Returns a read-only pointer to the bytes of a CFData object.
-    public func bytesPointer() -> UnsafePointer<UInt8>! {
+    public func bytes() -> UnsafePointer<UInt8>! {
         CFDataGetBytePtr(self)
     }
 }

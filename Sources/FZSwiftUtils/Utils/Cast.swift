@@ -49,3 +49,30 @@ public func unsafeDowncast<T>(_ x: AnyObject) -> T where T : AnyObject {
 public func cast<X, T>(_ x: X) -> T {
     x as! T
 }
+
+/**
+ Returns the Swift runtime type of an object that may be bridged to Objective-C.
+
+ Unlike `type(of:)`, this function attempts to recover the original Swift type for values that are bridged into Objective-C and appear as `__SwiftValue` at runtime.
+
+ This is primarily useful when working with `AnyObject` values originating from Swift types (such as value types) that have been bridged through Objective-C APIs.
+
+ - Parameter value: An object that may represent a bridged Swift value.
+ - Returns: The Swift runtime type of the value if it can be determined; otherwise, the dynamic Objective-C type of the object.
+ 
+ - Note: This function only recovers the Swift type for values boxed as `__SwiftValue`. Foundation-bridged types (such as `String` → `NSString`) are already converted to Objective-C objects and cannot be unbridged.
+ */
+public func unbridgedType(of value: Any) -> Any.Type {
+    var type: Any.Type = type(of: value)
+    if type == NSClassFromString("__SwiftValue"), let value = value as? NSObject {
+        let selector: Selector = NSSelectorFromString("_swiftTypeMetadata")
+        let methodIMP: IMP! = value.method(for: selector)
+        let metadataPtr = unsafeBitCast(methodIMP, to:(@convention(c)(Any?,Selector)->OpaquePointer).self)(value,selector)
+        withUnsafeMutablePointer(to: &type) {
+            let unsafePtr = UnsafeMutablePointer<OpaquePointer>.allocate(capacity: 1)
+            unsafePtr.pointee = metadataPtr
+            $0.update(from: UnsafePointer<Any.Type>(OpaquePointer(unsafePtr)), count: 1)
+        }
+    }
+    return type
+}
