@@ -190,8 +190,8 @@ extension URLComponents {
             [expression]
         }
         
-        public static func buildExpression(_ expression: [String : String]) -> [URLQueryItem] {
-            expression.map({ URLQueryItem(name: $0, value: $1) })
+        public static func buildExpression(_ expression: [String : Any]) -> [URLQueryItem] {
+            expression.map({ URLQueryItem(name: $0, value: "\($1)") })
         }
 
         public static func buildExpression(_ expression: [URLQueryItem]) -> [URLQueryItem] {
