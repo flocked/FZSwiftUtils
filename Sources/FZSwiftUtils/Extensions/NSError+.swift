@@ -97,7 +97,8 @@ public extension NSError {
     
     /// Creates an `NSError` object for the specified POSIX error code.
     static func posix(_ errorCode: Int32) -> NSError {
-        NSError(domain: NSPOSIXErrorDomain, code: Int(errorCode), userInfo: [NSLocalizedDescriptionKey: String(cString: strerror(errorCode))])
+        // NSError(domain: NSPOSIXErrorDomain, code: Int(errorCode), userInfo: [NSLocalizedDescriptionKey: String(cString: strerror(errorCode))])
+        NSError(domain: NSPOSIXErrorDomain, code: Int(errorCode), userInfo: [:])
     }
     
     /// The file URL which produced this error, or `nil` if not applicable.
@@ -594,5 +595,19 @@ public extension NSError {
             default: return nil
             }
         }
+    }
+}
+
+extension POSIXError {
+    public init?(_ errorCode: Int32, userInfo: [String : Any] = [:]) {
+        guard let code = POSIXErrorCode(rawValue: errorCode) else { return nil }
+        self.init(code, userInfo: userInfo)
+    }
+}
+
+extension POSIXErrorCode {
+    /// Returns the localized description of the posix error code.
+    public var localizedDescription: String {
+        String(cString: strerror(rawValue))
     }
 }

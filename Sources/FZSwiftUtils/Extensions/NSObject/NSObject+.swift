@@ -183,13 +183,12 @@ public extension NSObject {
     
     /// Returns the ivar value with the specified name.
     func ivarValue<T>(named name: String, as type: T.Type = T.self) -> T? {
-        guard let ivar = class_getInstanceVariable(Swift.type(of: self), name) else { return nil }
-        switch ObjC.typeEncoding(for: ivar)?.first {
+        guard let ivar = class_getInstanceVariable(object_getClass(self), name), let objCIvar = ObjCIvarInfo(ivar), MemoryLayout<T>.size == objCIvar.size else { return nil }
+        switch objCIvar.typeEncoding.first {
         case "@", "#", ":":
             return object_getIvar(self, ivar) as? T
         default:
-            let offset = ivar_getOffset(ivar)
-            let basePtr = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: offset)
+            let basePtr = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: objCIvar.offset)
             if T.self == UnsafeRawPointer.self {
                 return basePtr as? T
             }
@@ -202,33 +201,53 @@ public extension NSObject {
  
     /// Sets the ivar value with the specified name.
     func setIvarValue<T>(_ value: T, named name: String) {
-        guard let ivar = class_getInstanceVariable(type(of: self), name) else { return }
-        switch ObjC.typeEncoding(for: ivar)?.first {
+        guard let ivar = class_getInstanceVariable(object_getClass(self), name), let objCIvar = ObjCIvarInfo(ivar), MemoryLayout<T>.size == objCIvar.size else { return }
+        switch objCIvar.typeEncoding.first {
         case "@", "#", ":":
             object_setIvar(self, ivar, value as AnyObject)
         default:
-            let offset = ivar_getOffset(ivar)
-            let basePtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: offset)
-            if T.self == UnsafeRawPointer.self {
-                basePtr.storeBytes(of: value as! UnsafeRawPointer, as: UnsafeRawPointer.self)
-                return
-            }
-            if T.self == UnsafeMutableRawPointer.self {
-                basePtr.storeBytes(of: value as! UnsafeMutableRawPointer, as: UnsafeMutableRawPointer.self)
-                return
-            }
-            basePtr.storeBytes(of: value, as: T.self)
+            Unmanaged.passUnretained(self)
+                .toOpaque()
+                .advanced(by: objCIvar.offset)
+                .assumingMemoryBound(to: T.self)
+                .pointee = value
         }
     }
+    
+    /*
+     if let ivar: OpaquePointer = class_getInstanceVariable(type(of: obj), name) {
+         Unmanaged.passUnretained(obj)
+             .toOpaque()
+             .advanced(by: ivar_getOffset(ivar))
+             .assumingMemoryBound(to: T.self)
+             .pointee = val
+     }
+     */
 
-    /// A Boolean value indicatingwhether the object is a subclass of, or identical to the specified class.
+    /// A Boolean value indicating whether the object is a subclass of, or identical to the specified class.
     func isSubclass(of aClass: AnyClass) -> Bool {
         Self.isSubclass(of: aClass)
     }
-
-    /// Returns an array of all superclasses of the class, in order from immediate superclass up to `NSObject`.
-    class var superclasses: [AnyClass] {
-        Array(first: superclass(), next: { $0?.superclass() }).nonNil
+    
+    /// A Boolean value indicating whether the object is a superclass of, or identical to the specified class.
+    func isSuperclass(of aClass: AnyClass) -> Bool {
+        Self.isSuperclass(of: aClass)
+    }
+    
+    /// A Boolean value indicating whether the class is a superclass of, or identical to the specified class.
+    class func isSuperclass(of aClass: AnyClass) -> Bool {
+        aClass.isSubclass(of: self)
+    }
+    
+    class func superclasses(includingNSObject: Bool = true) -> [AnyClass] {
+        Array(first: superclass(), next: {
+            $0?.superclass().map({ includingNSObject || $0 != NSObject.self ? $0 : nil })
+        }).nonNil
+    }
+    
+    /// Returns the class object for the receiver’s root superclass.
+    class func rootSuperclass(includingNSObject: Bool = true) -> AnyClass? {
+        superclasses(includingNSObject: includingNSObject).last
     }
 
     /**
@@ -241,34 +260,33 @@ public extension NSObject {
      - Returns: An array of `Protocol` objects representing all protocols the class conforms to, optionally including those of its superclasses and inherited protocols.
      */
     class func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-        var visited = Set<String>()
+        var visited = Set<ObjectIdentifier>()
         var result: [Protocol] = []
-        for cls in includeSuperclasses ? [self] + superclasses : [self] {
+
+        func visit(_ proto: Protocol) {
+            guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
+            result.append(proto)
+            guard includeInheritedProtocols else { return }
             var count: UInt32 = 0
-            if let protocolList = class_copyProtocolList(cls, &count) {
+            if let list = protocol_copyProtocolList(proto, &count) {
                 for i in 0..<Int(count) {
-                    let proto = protocolList[i]
-                    guard visited.insert(NSStringFromProtocol(proto)).inserted else { continue }
-                    result += proto
-                    if includeInheritedProtocols {
-                        appendInheritedProtocols(of: proto, into: &result, visited: &visited)
-                    }
+                    visit(list[i])
                 }
             }
         }
 
-        return result
-    }
-
-    private class func appendInheritedProtocols(of proto: Protocol, into result: inout [Protocol], visited: inout Set<String>) {
-        var count: UInt32 = 0
-        guard let inherited = protocol_copyProtocolList(proto, &count) else { return }
-        for i in 0..<Int(count) {
-            let proto = inherited[i]
-            guard visited.insert(NSStringFromProtocol(proto)).inserted else { continue }
-            result += proto
-            appendInheritedProtocols(of: proto, into: &result, visited: &visited)
+        var cls: AnyClass? = self
+        while let current = cls {
+            var count: UInt32 = 0
+            if let list = class_copyProtocolList(current, &count) {
+                for i in 0..<Int(count) {
+                    visit(list[i])
+                }
+            }
+            cls = includeSuperclasses ? current.superclass() : nil
         }
+
+        return result
     }
 
     /**
@@ -313,14 +331,11 @@ public extension NSObject {
         if let allClasses = _allClasses {
             return allClasses
         }
-        let expectedClassCount = objc_getClassList(nil, 0) * 2
-        let allClasses = UnsafeMutablePointer<AnyClass>.allocate(capacity: Int(expectedClassCount))
-        let autoreleasingAllClasses = AutoreleasingUnsafeMutablePointer<AnyClass>(allClasses)
-        let actualClassCount = objc_getClassList(autoreleasingAllClasses, expectedClassCount)
-        let classes = (0 ..< min(actualClassCount, expectedClassCount)).map({ allClasses[Int($0)] })
-        allClasses.deallocate()
-        _allClasses = classes
-        return classes
+        var count: UInt32 = 0
+        guard let classList = objc_copyClassList(&count) else { return [] }
+        let allClasses = Array(UnsafeBufferPointer(start: classList, count: Int(count)))
+        self._allClasses = allClasses
+        return allClasses
     }
 
     /// Returns all protocols.
@@ -330,7 +345,7 @@ public extension NSObject {
         }
         var count: UInt32 = 0
         guard let protocolList = objc_copyProtocolList(&count) else { return [] }
-        let allProtocols = (0..<Int(count)).compactMap { protocolList[$0]  }
+        let allProtocols = Array(UnsafeBufferPointer(start: protocolList, count: Int(count)))
         _allProtocols = allProtocols
         return allProtocols
     }
@@ -345,6 +360,7 @@ public extension NSObject {
         set { setAssociatedValue(newValue, key: "allProtocols") }
     }
 
+    /*
     /// Returns all subclasses for the specified class.
     static func allSubclasses<T>(of baseClass: T) -> [T] {
         allClasses().filter({ cls in
@@ -353,6 +369,21 @@ public extension NSObject {
             #endif
             return class_getRootSuperclass(cls) == NSObject.self && cls is T
         }).map({ $0 as! T })
+    }
+    */
+    
+    /// Returns all subclasses for the specified class.
+    static func allSubclasses<T>(of baseClass: T, sorted: Bool = false) -> [T] {
+        let classPtr = address(of: baseClass)
+        if !sorted {
+            return allClasses().compactMap({ if let someSuperClass = class_getSuperclass($0), address(of: someSuperClass) == classPtr { return $0 as? T } else { return nil } })
+        } else {
+            return allClasses().compactMap({ if let someSuperClass = class_getSuperclass($0), address(of: someSuperClass) == classPtr { return (cls: $0 as! T, name: NSStringFromClass($0)) } else { return nil } }).sorted(by: \.name, .ascending).map({$0.cls})
+        }
+    }
+
+    private static func address(of object: Any?) -> UnsafeMutableRawPointer {
+        Unmanaged.passUnretained(object as AnyObject).toOpaque()
     }
 
     /// Returns all clases implementing the specified protocol.
@@ -366,10 +397,15 @@ extension Protocol {
     public func allClasses() -> [AnyClass] {
         NSObject.allClasses(implementing: self)
     }
-
+    
     /// The name of the protocol.
     public var name: String {
         NSStringFromProtocol(self)
+    }
+    
+    /// RReturns a the protocol with the sepcified name.
+    public static func named(_ name: String) -> Protocol? {
+        NSProtocolFromString(name)
     }
 }
 
@@ -491,17 +527,6 @@ extension Protocol {
 
         return nil
     }
-}
-
-/**
- Returns the root superclass of a class.
-
- - Parameter cls: A class object.
- - Returns: The root superclass of the class.
- */
-public func class_getRootSuperclass(_ cls: AnyClass) -> AnyClass {
-    guard let superclass = class_getSuperclass(cls), superclass != cls else { return cls }
-    return class_getRootSuperclass(superclass)
 }
 
 public extension NSObject {

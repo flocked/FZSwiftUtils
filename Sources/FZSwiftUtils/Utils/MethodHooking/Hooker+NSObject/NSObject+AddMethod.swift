@@ -220,7 +220,7 @@ fileprivate func typeEncoding(for selector: Selector, _class: AnyClass, optional
         }
     }
     if let superclass = class_getSuperclass(_class), superclass != _class {
-        return typeEncoding(for: selector, _class: superclass)
+        return typeEncoding(for: selector, _class: superclass, optionalOnly: optionalOnly)
     }
    return nil
 }

@@ -16,7 +16,7 @@ extension PartialKeyPath {
     }
     
     func setterName() throws -> String where Root: AnyObject {
-        guard let setterName = NSObject.setterName(for: try getterName(), _class: Root.self) else {
+        guard let setterName = NSObject.setterName(for: Root.self, getterName: try getterName()) else {
             throw HookError.nonObjcProperty
         }
         return setterName
@@ -30,7 +30,7 @@ extension PartialKeyPath {
     }
     
     func setterName<T>() throws -> String where Root == T.Type, T: AnyObject {
-        guard let setterName = NSObject.setterName(for: try getterName(), _class: T.self) else {
+        guard let setterName = NSObject.setterName(for: T.self, getterName: try getterName(), isInstance: false) else {
             throw HookError.nonObjcProperty
         }
         return setterName
@@ -43,25 +43,24 @@ extension NSObject {
         set { setAssociatedValue(newValue, key: "setterNames") }
     }
     
-    static func setterName(for getterName: String, _class: AnyClass, isInstance: Bool = true) -> String? {
-        let lookupClass: AnyClass = isInstance ? _class : object_getClass(_class) ?? _class
-        
+    static func setterName(for cls: AnyClass, getterName: String, isInstance: Bool = true) -> String? {
+        let lookupClass: AnyClass = isInstance ? cls : object_getClass(cls) ?? cls
         if let setterName = setterNames[lookupClass, default: [:]][getterName] {
             return setterName
         }
-        
-        var names = ["set\(getterName.uppercasedFirst()):"]
-        if getterName.hasPrefix("is") {
-            names += "set\(getterName.dropFirst(2).uppercasedFirst()):"
-        } else if getterName.hasPrefix("get") {
-            names += "set\(getterName.dropFirst(3).uppercasedFirst()):"
-        }
-        if let name = names.first(where: { class_respondsToSelector(lookupClass, Selector($0)) }) {
+        func check(_ name: String) -> String? {
+            var names = ["set\(name.uppercasedFirst()):"]
+            if name.hasPrefix("is") { names += "set\(name.dropFirst(2).uppercasedFirst()):" }
+            else if name.hasPrefix("get") { names += "set\(name.dropFirst(3).uppercasedFirst()):" }
+            guard let name = names.first(where: {
+                isInstance ? lookupClass.instancesRespond(to: Selector($0)) : lookupClass.responds(to: Selector($0))
+            }) else { return nil }
             setterNames[lookupClass, default: [:]][getterName] = name
             return name
         }
-       
-        let getterSelector = Selector(getterName)
+        if let name = check(getterName) {
+            return name
+        }
         var currentClass: AnyClass? = lookupClass
         while let c = currentClass {
             var propertyCount: UInt32 = 0
@@ -70,27 +69,15 @@ extension NSObject {
                 continue
             }
             defer { free(properties) }
-            
             for i in 0..<propertyCount {
                 let property = properties[Int(i)]
                 let name = String(cString: property_getName(property))
-                
-                guard getterSelector == Selector(property.attribute(for: "G") ?? name) else { continue }
+                guard getterName == property.attribute(for: "G") ?? name else { continue }
                 if let explicitSetter = property.attribute(for: "S") {
                     setterNames[lookupClass, default: [:]][getterName] = explicitSetter
                     return explicitSetter
                 }
-                var names = ["set\(name.uppercasedFirst()):"]
-                if name.hasPrefix("is") {
-                    names += "set\(name.dropFirst(2).uppercasedFirst()):"
-                } else if name.hasPrefix("get") {
-                    names += "set\(name.dropFirst(3).uppercasedFirst()):"
-                }
-                if let name = names.first(where: { class_respondsToSelector(c, Selector($0)) }) {
-                    setterNames[lookupClass, default: [:]][getterName] = name
-                    return name
-                }
-                return nil
+                return check(getterName)
             }
             currentClass = class_getSuperclass(c)
         }
@@ -100,15 +87,8 @@ extension NSObject {
 
 fileprivate extension objc_property_t {
     func attribute(for key: String) -> String? {
-        var count: UInt32 = 0
-        guard let attrs = property_copyAttributeList(self, &count) else { return nil }
-        defer { free(attrs) }
-        for i in 0..<count {
-            let attr = attrs[Int(i)]
-            if String(cString: attr.name) == key {
-                return String(cString: attr.value)
-            }
-        }
-        return nil
+        guard let pointer = property_copyAttributeValue(self, key) else { return nil }
+        defer { free(pointer) }
+        return String(cString: pointer)
     }
 }

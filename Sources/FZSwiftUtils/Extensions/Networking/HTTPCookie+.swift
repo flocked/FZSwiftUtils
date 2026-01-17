@@ -7,6 +7,23 @@
 
 import Foundation
 
+extension Decodable where Self: HTTPCookie {
+    public init(from decoder: any Decoder) throws {
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: try decoder.decodeSingle(), requiresSecureCoding: false)
+        guard let cookie = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? HTTPCookie else {
+            throw DecodingError.typeMismatch(HTTPCookie.self, .init(codingPath: [], debugDescription: "Decoding failed"))
+        }
+        self = cookie as! Self
+    }
+}
+
+extension HTTPCookie: Swift.Decodable, Swift.Encodable {
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false))
+    }
+}
+
 extension HTTPCookie {
     /// A Boolean value indicating whether the cookie is expired.
     public var isExpired: Bool {
@@ -14,37 +31,14 @@ extension HTTPCookie {
         return expiresDate < Date()
     }
     
-    /// A codable container for the cookie.
-    public var asCodable: CodableCookie {
-        CodableCookie(self)
-    }
-    
-    /// A codable representation of an HTTP cookie.
-    public struct CodableCookie: Codable {
-        /// The HTTP cookie.
-        public let cookie: HTTPCookie
-
-        /// Creates a codable representation of an HTTP cookie.
-        public init(_ cookie: HTTPCookie) {
-            self.cookie = cookie
-        }
-
-        public init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            let data = try container.decode(Data.self)
-            let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-            unarchiver.requiresSecureCoding = false
-            guard let cookie = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? HTTPCookie else {
-                throw DecodingError.typeMismatch(HTTPCookie.self, .init(codingPath: [], debugDescription: "Decoding failed"))
-            }
-            self.cookie = cookie
-        }
-
-        public func encode(to encoder: Encoder) throws {
-            let data = try NSKeyedArchiver.archivedData(withRootObject: cookie, requiringSecureCoding: false)
-            var container = encoder.singleValueContainer()
-            try container.encode(data)
-        }
+    /**
+     Creates an array of HTTP cookies form the specified JSON-serializable array of dictionaries.
+     
+     - Parameter jsonObject: The JSON-serializable array of dictionaries.
+     - Returns: The array of created cookies.
+     */
+    public static func cookies(fromJSONObject jsonObject: [[String:Any]]) -> [HTTPCookie] {
+        jsonObject.compactMap({ HTTPCookie(jsonObject: $0) })
     }
 
     /**
@@ -57,9 +51,15 @@ extension HTTPCookie {
         guard let data = jsonString.data(using: .utf8) else {
             throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Failed to create data from the string."))
         }
-        return try parse(jsonData: data)
+        return try cookies(fromJsonData: data)
     }
     
+    /**
+     Creates an array of HTTP cookies that corresponds to the cookies specified in the given Netscape-format cookies string.
+     
+     - Parameter netscapeString:The Netscape-format cookies string.
+     - Returns: The array of created cookies.
+     */
     public static func cookies(fromNetscapeString netscapeString: String) -> [HTTPCookie] {
         netscapeString.lines.compactMap({ HTTPCookie(netscapeTextLine: $0) })
     }
@@ -72,41 +72,67 @@ extension HTTPCookie {
      */
     public static func cookies(fromFile cookiesFile: URL) throws -> [HTTPCookie] {
         if cookiesFile.pathExtension.lowercased() == "json" {
-            return try parse(jsonData: try Data(contentsOf: cookiesFile))
+            return try cookies(fromJsonData: try Data(contentsOf: cookiesFile))
         } else {
             return cookies(fromNetscapeString: try String(contentsOf: cookiesFile, encoding: .utf8))
         }
     }
     
-    fileprivate static func parse(jsonData: Data) throws -> [HTTPCookie] {
-        guard let values = try JSONSerialization.jsonObject(with: jsonData) as? [[String:Any]] else {
+    /**
+     Returns a JSON-serializable array of dictionaries for the specified HTTP cookies.
+     
+     - Parameter cookies: The cookies to convert.
+     */
+    public static func jsonObject(for cookies: [HTTPCookie]) -> [[String: Any]] {
+        cookies.map({ $0.toJSONObject() })
+    }
+    
+    /**
+     Returns a JSON string for the specified HTTP cookies.
+     
+     - Parameters:
+       - cookies: The cookies to convert.
+       - prettyPrinted: A Boolean value indicating whether the resulting JSON string should be pretty-printed. Defaults to `true`.
+     */
+    public static func jsonString(for cookies: [HTTPCookie], prettyPrinted: Bool = true) -> String {
+        do {
+            let data = try JSONSerialization.data(
+                withJSONObject: jsonObject(for: cookies),
+                options: prettyPrinted ? .prettyPrinted : []
+            )
+            guard let string = String(data: data, encoding: .utf8) else {
+                fatalError("Failed to convert JSON data to UTF-8 string")
+            }
+            return string
+        } catch {
+            fatalError("Failed to serialize cookies to JSON: \(error)")
+        }
+    }
+    
+    /**
+     Returns a Netscape-format cookies string for the specified HTTP cookies.
+     
+     - Parameter cookies: The cookies to convert.
+     */
+    public static func netscapeString(for cookies: [HTTPCookie], includeComments: Bool = true) -> String {
+        var lines = includeComments ? ["# Netscape HTTP Cookie File", "# https://curl.haxx.se/rfc/cookie_spec.html", "# This is a generated file! Do not edit.", ""] : []
+        lines += cookies.map({$0.toNetscapeString()})
+        return lines.joined(separator: "\n")
+    }
+    
+    fileprivate static func cookies(fromJsonData jsonData: Data) throws -> [HTTPCookie] {
+        guard let jsonObject = try JSONSerialization.jsonObject(with: jsonData) as? [[String:Any]] else {
             throw DecodingError.typeMismatch([[String:Any]].self, .init(codingPath: [], debugDescription: "JSON type isn't matching."))
         }
-        return values.compactMap({ HTTPCookie(json: $0) })
+        return cookies(fromJSONObject: jsonObject)
     }
     
     fileprivate static let keyMappingFromJSON = ["expirationDate": "Expires", "name":"Name","value":"Value","path":"Path","secure":"Secure","domain":"Domain","sameSite":"SameSite", "session" : "Discard"]
     fileprivate static let keyMappingToJSON = Dictionary(uniqueKeysWithValues: keyMappingFromJSON.map({($0.value,$0.key) }))
     
     /// Returns a JSON-serializable dictionary representing the cookie.
-    public func toJSONObject() -> [String: Any] {
-        var properties = (properties ?? [:])
-        properties[.expires] = Int((properties[.expires] as? Date)?.timeIntervalSince1970 ?? 0)
-        for key in [HTTPCookiePropertyKey.secure, .init("hostOnly"), .httpOnly, .discard] {
-            if let value = properties[key] as? String {
-                properties[key] = value == "TRUE"
-            }
-        }
-        if let commentURL = properties[.commentURL] as? URL {
-            properties[.commentURL] = commentURL.absoluteString
-        }
-        if let originURL = properties[.originURL] as? URL {
-            properties[.originURL] = originURL.absoluteString
-        }
-        if let sameSitePolicy = properties[.sameSitePolicy] as? String {
-            properties[.sameSitePolicy] = sameSitePolicy.lowercasedFirst()
-        }
-        return properties.mapKeys({ Self.keyMappingToJSON[$0.rawValue] ?? $0.rawValue })
+    public func toJSONObject() -> [String: String] {
+        properties?.mapValues({ "\($0)" }).mapKeys({$0.rawValue}) ?? [:]
     }
     
     /// Returns a single-line string representation of the cookie in **Netscape cookie file format**.
@@ -123,16 +149,16 @@ extension HTTPCookie {
 }
 
 extension HTTPCookie {
-    convenience init?(json: [String: Any]) {
-        var properties = json.mapKeys({ HTTPCookiePropertyKey(Self.keyMappingFromJSON[$0] ?? $0) })
+    convenience init?(jsonString: String) {
+        guard let data = jsonString.data(using: .utf8) else { return nil }
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        self.init(jsonObject: jsonObject)
+    }
+    
+    convenience init?(jsonObject: [String: Any]) {
+        var properties = jsonObject.mapKeys({ HTTPCookiePropertyKey(Self.keyMappingFromJSON[$0] ?? $0) })
         if let timestamp = properties[.expires] as? Int {
             properties[.expires] = timestamp != 0 ? Date(timeIntervalSince1970: TimeInterval(timestamp)) : nil
-        }
-        if let originURL = properties[.originURL] as? String {
-            properties[.originURL] = URL(string: originURL)
-        }
-        if let commentURL = properties[.commentURL] as? String {
-            properties[.commentURL] = URL(string: commentURL)
         }
         if let sameSitePolicy = properties[.sameSitePolicy] as? String {
             properties[.sameSitePolicy] = sameSitePolicy.normalizedSameSitePolicy
@@ -171,7 +197,7 @@ extension HTTPCookie {
 
 extension Collection where Element == HTTPCookie {
     /// Returns a JSON-serializable array representing the cookies.
-    public func toJSONObject() -> [[String: Any]] {
+    public func toJSONObject() -> [[String: String]] {
         map({ $0.toJSONObject() })
     }
     
@@ -187,24 +213,7 @@ extension Collection where Element == HTTPCookie {
     }
 }
 
-extension String {
-    var normalizedSameSitePolicy: String? {
-        switch lowercased() {
-        case "lax":
-            return "Lax"
-        case "strict":
-            return "Strict"
-        case "none", "no_restriction":
-            return "None"
-        case "unspecified":
-            return nil
-        default:
-            return self
-        }
-    }
-}
-
-extension HTTPCookiePropertyKey: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUnicodeScalarLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral {
+extension HTTPCookiePropertyKey: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUnicodeScalarLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral, Swift.Encodable, Swift.Decodable {
     /// A String value that indicates whether the cookie should only be sent to HTTP servers.
     public static let httpOnly = Self("httpOnly")
     
@@ -212,3 +221,35 @@ extension HTTPCookiePropertyKey: Swift.ExpressibleByStringLiteral, Swift.Express
         self.init(value)
     }
 }
+
+fileprivate extension String {
+    var normalizedSameSitePolicy: String? {
+        switch lowercased() {
+        case "lax": return "Lax"
+        case "strict": return "Strict"
+        case "none", "no_restriction": return "None"
+        case "unspecified": return nil
+        default: return self
+        }
+    }
+}
+
+/*
+extension HTTPCookie: Swift.Encodable, Swift.Decodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode((properties ?? [:]).mapValues({"\($0)"}))
+    }
+}
+
+extension Decodable where Self: HTTPCookie {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let properties: [HTTPCookiePropertyKey: String] = try container.decode()
+        guard let cookie = HTTPCookie(properties: properties) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid cookie properties")
+        }
+        self = cookie as! Self
+    }
+}
+*/

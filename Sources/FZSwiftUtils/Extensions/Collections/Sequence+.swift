@@ -194,6 +194,13 @@ public extension BidirectionalCollection where Element: OptionalProtocol {
     }
 }
 
+public extension Sequence {
+    var asArray: [Element] {
+        /// The sequence as `Array`.
+        Array(self)
+    }
+}
+
 public extension Sequence where Element: Hashable {
     /// The sequence as `Set`.
     var asSet: Set<Element> {

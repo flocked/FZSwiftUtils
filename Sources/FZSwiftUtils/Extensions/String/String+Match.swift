@@ -170,17 +170,17 @@ public extension String {
     
     /// Returns the individual words in the string.
     var words: [String] {
-        matches(for: .word).compactMap(\.string)
+        matches(for: .word).map(\.string)
     }
 
     /// Returns an array of lines in the string.
     var lines: [String] {
-        matches(for: .line).compactMap(\.string)
+        matches(for: .line).map(\.string)
     }
 
     /// Returns an array of sentences in the string.
     var sentences: [String] {
-        matches(for: .sentence).compactMap(\.string)
+        matches(for: .sentence).map(\.string)
     }
     
     /// All integer values inside the string.

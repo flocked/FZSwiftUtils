@@ -358,9 +358,9 @@ fileprivate extension NSObject {
             return !isMatch
         })
          */
-        let methodInfo = method.info
-        guard methodInfo.argumentCount == values.count else {
-            throw CallError.invalidArgumentsCount(selector: selector, class: cls, isInstance: isInstance, provided: values.count, expected: methodInfo.argumentCount)
+        let numberOfArguments = Int(method_getNumberOfArguments(method)-2)
+        guard numberOfArguments == values.count else {
+            throw CallError.invalidArgumentsCount(selector: selector, class: cls, isInstance: isInstance, provided: values.count, expected: numberOfArguments)
         }
         do {
             let returnValue = try cast(method_getImplementation(method), object: targetObject, selector: selector, with: values)
@@ -451,27 +451,5 @@ fileprivate extension NSObject {
                 return "Invalid number of arguments for \(isInstance ? "instance": "class") selector '\(selector)' on class \(cls): provided \(provided), expected \(expected)."
             }
         }
-    }
-}
-
-fileprivate extension Method {
-    var info: (argumentCount: Int, returnsVoid: Bool) {
-        let argCount = Int(method_getNumberOfArguments(self)) - 2
-        let returnType = method_copyReturnType(self)
-        defer { free(returnType) }
-        let returnsVoid = returnType[0] == CChar(UInt8(ascii: "v"))
-        return (argumentCount: argCount, returnsVoid: returnsVoid)
-    }
-    
-    var argumentTypes: [String] {
-        let count = method_getNumberOfArguments(self)
-        var types: [String] = []
-        for i in 2..<count {
-            if let cString = method_copyArgumentType(self, UInt32(i)) {
-                types.append(String(cString: cString))
-                free(cString)
-            }
-        }
-        return types
     }
 }

@@ -428,11 +428,11 @@ public extension MDQuery {
         if let replacementObject = newValue.replacementObject {
             let createResultFunction: MDQueryCreateResultFunction = { query, item, context in
                 guard let item = item, let context = context else { return nil }
-                let wrapper = Unmanaged<ReplacementObjectWrapper>.fromOpaque(context).takeUnretainedValue()
-                return UnsafeRawPointer(Unmanaged.passUnretained(wrapper.handler(item)).toOpaque())
+                let value = context.unretained(as: ReplacementObjectWrapper.self).handler(item)
+                return UnsafeRawPointer(unretained: value)
             }
             self.replacementObjectWrapper = ReplacementObjectWrapper(replacementObject)
-            let contextPointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(replacementObjectWrapper!).toOpaque())
+            let contextPointer = UnsafeMutableRawPointer(unretained: replacementObjectWrapper!)
             MDQuerySetCreateResultFunction(self, createResultFunction, contextPointer, nil)
         } else if replacementObjectWrapper != nil {
             MDQuerySetCreateResultFunction(self, nil, nil, nil)
@@ -442,12 +442,11 @@ public extension MDQuery {
         if let replacementValue = newValue.replacementValue {
             let createValueFunction: MDQueryCreateValueFunction = { query, attribute, value, context in
                 guard let attribute = attribute as? String, let _value = value, let value = (_value as? any _ObjectiveCBridgeable)?._bridgeToObjectiveC(), let context = context else { return nil }
-                let wrapper = Unmanaged<ReplacementValueWrapper>.fromOpaque(context).takeUnretainedValue()
-                let newValue = wrapper.handler(attribute, value)
-                return UnsafeRawPointer(Unmanaged.passUnretained(newValue === value ? _value : newValue).toOpaque())
+                let newValue = context.unretained(as: ReplacementValueWrapper.self).handler(attribute, value)
+                return UnsafeRawPointer(unretained: newValue === value ? _value : newValue)
             }
             self.replacementValueWrapper = ReplacementValueWrapper(replacementValue)
-            let contextPointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(replacementValueWrapper!).toOpaque())
+            let contextPointer = UnsafeMutableRawPointer(unretained: replacementValueWrapper!)
             MDQuerySetCreateValueFunction(self, createValueFunction, contextPointer, nil)
         } else if replacementValueWrapper != nil {
             MDQuerySetCreateValueFunction(self, nil, nil, nil)

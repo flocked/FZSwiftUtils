@@ -9,7 +9,7 @@
 import Foundation
 
 /// A progress that allows to add and remove children progresses.
-open class MutableProgress: Progress {
+open class MutableProgress: Progress, @unchecked Sendable {
     
     private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
     private var childUpdateWorkItem: DispatchWorkItem?
@@ -54,38 +54,6 @@ open class MutableProgress: Progress {
     
     /// The progress of all children progresses combined.
     @objc dynamic public let totalProgress = Progress()
-    
-    class AggreateProgress: Progress {
-        let parent: MutableProgress
-        let isUnfinished: Bool
-        
-        var children: [Progress] {
-            isUnfinished ? parent.unfinishedChildren : parent.children
-        }
-        
-        override var completedUnitCount: Int64 {
-            get { children.map({$0.completedUnitCount}).sum() }
-            set { }
-        }
-        
-        override var totalUnitCount: Int64 {
-            get { children.map({$0.totalUnitCount}).sum() }
-            set { }
-        }
-        
-        override var userInfo: [ProgressUserInfoKey : Any] {
-            get { [.estimatedTimeRemainingKey: children.compactMap({$0.estimatedTimeRemaining}).average(), .throughputKey: Int(children.compactMap({$0.throughput}).average())] }
-            set {
-                
-            }
-        }
-        
-        init(parent: MutableProgress, isUnfinished: Bool = false) {
-            self.parent = parent
-            self.isUnfinished = isUnfinished
-            super.init()
-        }
-    }
     
     /// The progress of all unfinished children progresses combined.
     @objc dynamic public let unfinishedProgress = Progress()
@@ -231,3 +199,37 @@ open class MutableProgress: Progress {
         super.init(parent: nil)
     }
 }
+
+/*
+ class AggreateProgress: Progress, @unchecked Sendable {
+     let parent: MutableProgress
+     let isUnfinished: Bool
+     
+     var children: [Progress] {
+         isUnfinished ? parent.unfinishedChildren : parent.children
+     }
+     
+     override var completedUnitCount: Int64 {
+         get { children.map({$0.completedUnitCount}).sum() }
+         set { }
+     }
+     
+     override var totalUnitCount: Int64 {
+         get { children.map({$0.totalUnitCount}).sum() }
+         set { }
+     }
+     
+     override var userInfo: [ProgressUserInfoKey : Any] {
+         get { [.estimatedTimeRemainingKey: children.compactMap({$0.estimatedTimeRemaining}).average(), .throughputKey: Int(children.compactMap({$0.throughput}).average())] }
+         set {
+             
+         }
+     }
+     
+     init(parent: MutableProgress, isUnfinished: Bool = false) {
+         self.parent = parent
+         self.isUnfinished = isUnfinished
+         super.init()
+     }
+ }
+ */

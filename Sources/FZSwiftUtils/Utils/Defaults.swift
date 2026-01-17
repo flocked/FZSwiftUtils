@@ -462,7 +462,7 @@ fileprivate extension [AnyHashable : Any] {
 }
 
 extension Defaults {
-    public class Key<Value>: _AnyKey {
+    public class Key<Value>: _AnyKey, @unchecked Sendable {
         let defaultValueGetter: () -> Value
 
         public var defaultValue: Value { defaultValueGetter() }

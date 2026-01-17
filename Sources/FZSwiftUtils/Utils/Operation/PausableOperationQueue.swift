@@ -22,7 +22,7 @@ public protocol Pausable {
  
  Operations conforming to ``Pausable`` can be paused by pausing the operation queue via ``pause()``.
  */
-open class PausableOperationQueue: OperationQueue {
+open class PausableOperationQueue: OperationQueue, @unchecked Sendable {
     var allOperations: SynchronizedArray<Operation> = []
     
     var pausableOperations: [Pausable & Operation] {
@@ -100,7 +100,7 @@ open class PausableOperationQueue: OperationQueue {
         isPaused = false
     }
     
-    internal class BlockOperation: Operation {
+    internal class BlockOperation: Operation, @unchecked Sendable {
         let block: ()->()
         init(_ block: @escaping () -> Void) {
             self.block = block

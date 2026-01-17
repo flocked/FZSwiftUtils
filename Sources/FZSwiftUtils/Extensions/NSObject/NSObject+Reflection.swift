@@ -556,7 +556,7 @@ public struct ProtocolReflection: CustomStringConvertible {
             let properties = protocol_copyPropertyList2(`protocol`, &count, variation.required, variation.instance)
             for i in 0..<Int(count) {
                 guard let property = properties?.advanced(by: i).pointee else { continue }
-                guard let name = property.name else { continue }
+                let name = property.name
                 let propertyType = property.type
                 let isReadOnly = property.isReadOnly
                 let description = ProtocolReflection.PropertyDescription(name: name, type: propertyType, isReadOnly: isReadOnly, isInstance: variation.instance, isRequired: variation.required)
@@ -599,34 +599,32 @@ fileprivate extension Method {
         NSStringFromSelector(method_getName(self))
     }
     
+    var argumentTypeEncodings: [String] {
+        (0..<numberOfArguments).compactMap({ argumentTypeEncoding(at: $0) })
+    }
+    
     var numberOfArguments: Int {
         Int(method_getNumberOfArguments(self)) - 2
     }
     
-    func argumentType(at index: Int) -> String {
-        let index = index + 2
-        let len = 3000
-        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        ObjectiveC.method_getArgumentType(self, UInt32(index), buf, len)
-        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
+    func argumentTypeEncoding(at index: Int) -> String? {
+        guard let buffer = method_copyArgumentType(self, UInt32(index + 2)) else { return nil }
+        defer { free(buffer) }
+        return String(cString: buffer)
     }
     
-    var returnType: String {
-        let len = 3000
-        let buf = UnsafeMutablePointer<Int8>.allocate(capacity: len)
-        ObjectiveC.method_getReturnType(self, buf, len)
-        return String(validatingUTF8: UnsafePointer<CChar>(buf))!
+    var returnTypeEncoding: String {
+        let buffer = method_copyReturnType(self)
+        defer { free(buffer) }
+        return String(cString: buffer)
     }
     
     var methodDescription: ClassReflection.MethodDescription? {
-        let name = NSStringFromSelector(method_getName(self))
-        let _returnType = self.returnType.toType()
+        let name = methodName
+        let _returnType = returnTypeEncoding.toType()
         let returnType = _returnType is Void.Type ? nil : _returnType
-        var argumentTypes: [Any] = []
-        for index in 0..<self.numberOfArguments.clamped(min: 0) {
-            argumentTypes.append(self.argumentType(at: index).toType())
-        }
-        return .init(name: name, argumentTypes: argumentTypes, returnType: returnType)
+        let arguments = argumentTypeEncodings.map({$0.toType()})
+        return .init(name: name, argumentTypes: arguments, returnType: returnType)
     }
 }
 
@@ -648,9 +646,8 @@ fileprivate extension Ivar {
 }
 
 fileprivate extension objc_property_t {
-    var name: String? {
-        guard let name = NSString(utf8String: property_getName(self)) else { return nil }
-        return name as String
+    var name: String {
+        String(cString: property_getName(self))
     }
     
     var isReadOnly: Bool {
@@ -665,6 +662,25 @@ fileprivate extension objc_property_t {
         let slices = String(cString: _attributes).components(separatedBy: "\"")
         return slices.count > 1 ? slices[1].toType() : (valueTypesMap[String(attributes[safe: 1] ?? "_")] ?? attributes.toType())
     }
+    
+    var attributesAlt: [(name: String, value: String)] {
+        var count: UInt32 = 0
+        guard let list = property_copyAttributeList(self, &count) else { return [] }
+        defer { free(list) }
+        return (0..<Int(count)).map({
+            (String(cString: list[$0].name), String(cString: list[$0].value))
+        })
+    }
+    
+    /*
+     func attributesAltAA(for property: objc_property_t, propertyName: String) -> [Attribute] {
+         var count: UInt32 = 0
+         guard let list = property_copyAttributeList(property, &count) else { return [] }
+         defer { free(list) }
+         return (0..<Int(count)).map({
+             let attribute = list[$0]
+             let name = String(cString: attribute.name)
+     */
     
     var attributes: [ClassReflection.PropertyDescription.Attribute] {
         guard let _attributes = property_getAttributes(self) else { return [] }
@@ -708,9 +724,8 @@ fileprivate extension objc_property_t {
         return attributes
     }
     
-    var propertyDescription: ClassReflection.PropertyDescription? {
-        guard let name = name else { return nil }
-        return .init(name, type, attributes)
+    var propertyDescription: ClassReflection.PropertyDescription {
+        .init(name, type, attributes)
     }
 }
 

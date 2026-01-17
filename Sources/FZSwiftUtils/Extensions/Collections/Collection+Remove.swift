@@ -31,13 +31,39 @@ public extension RangeReplaceableCollection {
         !isEmpty && k > 0 ? (0..<Swift.min(k, count)).map { _ in removeFirst() } : []
     }
     
+    /// Returns the collection with the first element removed.
+    func removingFirst() -> Self {
+        removingFirst(1)
+    }
+    
+    /// Returns the collection with the specified number of elements removed.
+    func removingFirst(_ k: Int) -> Self {
+        var collection = self
+        collection.removeFirst(k)
+        return collection
+    }
+    
+    /// Returns the collection with the first element removed.
+    func removingFirstSafely() -> Self {
+        removingFirstSafely(1)
+    }
+    
+    /// Returns the collection with the specified number of elements removed.
+    func removingFirstSafely(_ k: Int) -> Self {
+        var collection = self
+        collection.removeFirstSafetly(k)
+        return collection
+    }
+}
+
+public extension RangeReplaceableCollection where Self: BidirectionalCollection {
     /**
      Removes and returns the last element of the collection safetly.
      
      - Returns: The last element of the collection, or `nil` if the collection is empty.
      */
     @discardableResult
-    mutating func removeLastSafetly() -> Element? where Self: BidirectionalCollection {
+    mutating func removeLastSafetly() -> Element? {
         !isEmpty ? removeLast() : nil
     }
     
@@ -48,8 +74,32 @@ public extension RangeReplaceableCollection {
      - Returns: The removed elements.
      */
     @discardableResult
-    mutating func removeLastSafetly(_ k: Int) -> [Element] where Self: BidirectionalCollection {
+    mutating func removeLastSafetly(_ k: Int) -> [Element] {
         !isEmpty && k > 0 ? (0..<Swift.min(k, count)).map { _ in removeLast() } : []
+    }
+    
+    /// Returns the collection with the last element removed from the collection.
+    func removingLast() -> Self {
+        removingLast(1)
+    }
+    
+    /// Returns the collection with the specified number of elements removed from the end of the collection.
+    func removingLast(_ k: Int) -> Self {
+        var collection = self
+        collection.removeLast(k)
+        return collection
+    }
+    
+    /// Returns the collection with the last element removed from the collection.
+    func removingLastSafely() -> Self {
+        removingLastSafely(1)
+    }
+    
+    /// Returns the collection with the specified number of elements removed from the end of the collection.
+    func removingLastSafely(_ k: Int) -> Self {
+        var collection = self
+        collection.removeLastSafetly(k)
+        return collection
     }
 }
 

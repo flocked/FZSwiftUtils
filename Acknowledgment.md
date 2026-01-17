@@ -69,3 +69,7 @@ Swizzle
 Synchronized
 - Copyright (c) 2016-2018 Peter Baumgartner
 - https://github.com/boinx/BXSwiftUtils
+
+swift-objc-dump
+- Copyright (c) 2024 p-x9
+- https://github.com/p-x9/swift-objc-dump

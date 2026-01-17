@@ -8,11 +8,16 @@
 import Foundation
 
 public extension NSKeyedUnarchiver {
-    /// Sets the Boolean value indicating whether the unarchiver requires all unarchived classes to conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
-    @discardableResult
-    func requiresSecureCoding(_ requires: Bool) -> Self {
-        requiresSecureCoding = requires
-        return self
+    /**
+     Initializes an archiver to decode data from the specified location.
+     
+     - Parameters:
+        - data: An archive previously encoded by `NSKeyedArchiver`.
+        - requiresSecureCoding: A Boolean value indicating whether the unarchived object requires to conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
+     */
+    convenience init(forReadingFrom data: Data, requiresSecureCoding: Bool) throws {
+        try self.init(forReadingFrom: data)
+        self.requiresSecureCoding = requiresSecureCoding
     }
     
     /**
@@ -25,12 +30,12 @@ public extension NSKeyedUnarchiver {
     }
     
     /**
-     Decodes and returns the root object.
+     Decodes and returns the root object as the specified `NSCoding` type.
      
      - Returns: The root object.
-     - Throws: If there isn't a root object of type `Object`.
+     - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
      */
-    func decodeRootObject<Object: NSCoding>() throws -> Object {
+    func decodeRootObject<Object: NSCoding>(type: Object.Type = Object.self) throws -> Object {
         try decodeObject(forKey: NSKeyedArchiveRootObjectKey)
     }
     
@@ -42,12 +47,11 @@ public extension NSKeyedUnarchiver {
      - Throws: If there isn't an object associated with the key of type `Object`.
      */
     func decodeObject<Object: NSCoding>(forKey key: String) throws -> Object {
-        guard let object = decodeObject(forKey: key) as? NSCoding else {
-            throw Error.missingObject(key: key)
+        guard let object = decodeObject(forKey: key) else {
+            throw DecodingError.valueNotFound(Object.self, .init( "No value found for the key: \(key)."))
         }
         guard let object = object as? Object else {
-            throw Error.typeMismatch(actual: type(of: object), expected: Object.self)
-
+            throw DecodingError.typeMismatch(type(of: object), .init("Expected object of type \(Object.self), but decoded object was of type \(type(of: object))."))
         }
         return object
     }
@@ -62,11 +66,11 @@ public extension NSKeyedUnarchiver {
      - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
      */
     static func unarchivedObject<Object: NSCoding>(from data: Data, requiresSecureCoding: Bool = false) throws -> Object {
-        let value = try unarchivedObject(from: data)
-        guard let value = value as? Object else {
-            throw Error.typeMismatch(actual: type(of: value as AnyObject), expected: Object.self)
+        let rootObject = try unarchivedObject(from: data, requiresSecureCoding: requiresSecureCoding)
+        guard let decodedObject = rootObject as? Object else {
+            throw DecodingError.typeMismatch(type(of: rootObject), .init("Expected object of type \(Object.self), but decoded object was of type \(type(of: rootObject))."))
         }
-        return value
+        return decodedObject
     }
     
     /**
@@ -79,36 +83,9 @@ public extension NSKeyedUnarchiver {
      - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
      */
     static func unarchivedObject(from data: Data, requiresSecureCoding: Bool = false) throws -> Any {
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
-        unarchiver.requiresSecureCoding = requiresSecureCoding
-        guard let value = unarchiver.decodeRootObject() else {
-            throw Error.missingRootObject
+        guard let rootObject = try NSKeyedUnarchiver(forReadingFrom: data, requiresSecureCoding: requiresSecureCoding).decodeRootObject() else {
+            throw DecodingError.valueNotFound(Any.self, "The data doesn't contain a root object.")
         }
-        return value
-    }
-}
-
-fileprivate enum Error: LocalizedError {
-    case missingRootObject
-    case typeMismatch(actual: AnyClass, expected: AnyClass)
-    case missingObject(key: String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .missingRootObject: return "Missing Root Object"
-        case .missingObject: return "Missing Object"
-        case .typeMismatch: return "Type Mismatch"
-        }
-    }
-    
-    var failureReason: String? {
-        switch self {
-        case .missingRootObject:
-            return "The data does not contain a valid root object."
-        case .missingObject(let key):
-            return "No object for the key \"\(key)\" found."
-        case .typeMismatch(let actual, let expected):
-            return "Expected object of type \(expected), but decoded object was of type \(actual)."
-        }
+        return rootObject
     }
 }

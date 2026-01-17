@@ -811,3 +811,83 @@ extension String {
         return nil
     }
 }
+
+extension String {
+    /// Returns a sequence of substrings from the string separated by the specified seperator.
+    public func lazyComponents<T: StringProtocol>(separatedBy separator: T) -> ComponentSequence {
+        ComponentSequence(self, separatedBy: String(separator))
+    }
+    
+    /// Returns the component at the specified index for the string seperated by the given seperator.
+    public func component<T: StringProtocol>(at index: Int, seperatedBy separator: T) -> String? {
+        guard index >= 0 else { return nil }
+        return lazyComponents(separatedBy: separator).lazy.compactMap({$0})[safe: index]
+    }
+    
+    /// A sequence of substrings from a string separated by a given seperator.
+    public struct ComponentSequence: Sequence, IteratorProtocol {
+        private let string: String
+        private let separator: String
+        private var currentIndex: String.Index
+
+        init(_ string: String, separatedBy separator: String) {
+            precondition(!separator.isEmpty, "Separator cannot be empty")
+            self.string = string
+            self.separator = separator
+            self.currentIndex = string.startIndex
+        }
+
+        public mutating func next() -> String? {
+            guard currentIndex < string.endIndex else { return nil }
+            if let range = string.range(of: separator, range: currentIndex..<string.endIndex) {
+                let component = string[currentIndex..<range.lowerBound]
+                currentIndex = range.upperBound
+                return String(component)
+            } else {
+                let component = string[currentIndex..<string.endIndex]
+                currentIndex = string.endIndex
+                return String(component)
+            }
+        }
+    }
+}
+
+extension String {
+    /// Returns a sequence of substrings from the string separated by any character in the given character set.
+    public func lazyComponents(separatedBy characterSet: CharacterSet) -> CharacterSetComponentsSequence {
+        CharacterSetComponentsSequence(self, separatedBy: characterSet)
+    }
+    
+    /// Returns the component at the specified index for the string seperated by any character in the given character set.
+    public func component(at index: Int, separatedBy characterSet: CharacterSet) -> String? {
+        guard index >= 0 else { return nil }
+        return lazyComponents(separatedBy: characterSet).lazy.compactMap({$0})[safe: index]
+    }
+
+    /// A sequence of substrings from a string separated by any character of a given character set.
+    public struct CharacterSetComponentsSequence: Sequence, IteratorProtocol {
+        private let string: String
+        private let characterSet: CharacterSet
+        private var currentIndex: String.Index
+
+        init(_ string: String, separatedBy characterSet: CharacterSet) {
+            self.string = string
+            self.characterSet = characterSet
+            self.currentIndex = string.startIndex
+        }
+
+        public mutating func next() -> String? {
+            guard currentIndex < string.endIndex else { return nil }
+            var endIndex = currentIndex
+            while endIndex < string.endIndex, let scalar = string[endIndex].unicodeScalars.first, !characterSet.contains(scalar) {
+                endIndex = string.index(after: endIndex)
+            }
+            let component = string[currentIndex..<endIndex]
+            currentIndex = endIndex
+            while currentIndex < string.endIndex, let scalar = string[currentIndex].unicodeScalars.first, characterSet.contains(scalar) {
+                currentIndex = string.index(after: currentIndex)
+            }
+            return String(component)
+        }
+    }
+}
