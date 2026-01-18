@@ -13,7 +13,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
     /// Name of the method
     public let name: String
     /// Encoded method type of the method
-    public let type: ObjCMethodType
+    public let type: ObjCMethodSignature
     /// A boolean value that indicates whatever the method is class method or not.
     public let isClassMethod: Bool
         
@@ -27,7 +27,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
      */
     public init(name: String, typeEncoding: String, isClassMethod: Bool) {
         self.name = name
-        self.type = ObjCMethodType(typeEncoding)
+        self.type = ObjCMethodSignature(typeEncoding)
         self.isClassMethod = isClassMethod
     }
 

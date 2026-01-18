@@ -101,11 +101,6 @@ public struct ObjCRuntime {
         return result
     }
     
-    /// Returns the type string of an instance variable.
-    public static func typeEncoding(for ivar: Ivar) -> String? {
-        ivar_getTypeEncoding(ivar).map { String(cString: $0) }
-    }
-    
     /**
       Executes the specified block that may throw an Objective-C `NSException` and catches it.
 
@@ -144,8 +139,8 @@ public struct ObjCRuntime {
     }
 }
 
-extension ObjCRuntime {
-    fileprivate class Cache: NSObject {
+fileprivate extension ObjCRuntime {
+    class Cache: NSObject {
         static var classes: [AnyClass]? {
             get { getAssociatedValue("classes") }
             set { setAssociatedValue(newValue, key: "classes") }
@@ -159,14 +154,14 @@ extension ObjCRuntime {
 }
 
 extension Protocol {
-    /// Returns all classes impelementing the protocol.
-    public func classes() -> [AnyClass] {
-        ObjCRuntime.classes(implementing: self)
-    }
-    
     /// The name of the protocol.
     public var name: String {
         NSStringFromProtocol(self)
+    }
+    
+    /// Returns all classes impelementing the protocol.
+    public func conformingClasses() -> [AnyClass] {
+        ObjCRuntime.classes(implementing: self)
     }
     
     /// RReturns a the protocol with the sepcified name.

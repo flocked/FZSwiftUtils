@@ -153,21 +153,16 @@ public extension NSObject {
             setValue(value, forKeyPath: keyPath)
         }
     }
-    
-    /// The ivar value with the specified name.
-    subscript<T>(ivar name: String) -> T? {
-        get { ivarValue(named: name) }
-        set { setIvarValue(newValue, named: name) }
-    }
-    
-    /// Returns the ivar value with the specified name.
-    func ivarValue<T>(named name: String, as type: T.Type = T.self) -> T? {
-        guard let ivar = class_getInstanceVariable(object_getClass(self), name), let objCIvar = ObjCIvarInfo(ivar), MemoryLayout<T>.size == objCIvar.size else { return nil }
-        switch objCIvar.typeEncoding.first {
+
+    /// Returns the value of the instance variable with the specified name.
+    func ivarValue<T>(named name: String, as type: T.Type = T.self, verifyType:  Bool = false) -> T? {
+        guard let ivar = Self.instanceVariable(named: name), let ivarInfo = ObjCIvarInfo(ivar), MemoryLayout<T>.size == ivarInfo.size else { return nil }
+        if verifyType { guard ivarInfo.type?.matches(T.self) == true else { return nil } }
+        switch ivarInfo.typeEncoding.first {
         case "@", "#", ":":
             return object_getIvar(self, ivar) as? T
         default:
-            let basePtr = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: objCIvar.offset)
+            let basePtr = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: ivarInfo.offset)
             if T.self == UnsafeRawPointer.self {
                 return basePtr as? T
             }
@@ -178,16 +173,33 @@ public extension NSObject {
         }
     }
  
-    /// Sets the ivar value with the specified name.
-    func setIvarValue<T>(_ value: T, named name: String) {
-        guard let ivar = class_getInstanceVariable(object_getClass(self), name), let objCIvar = ObjCIvarInfo(ivar), MemoryLayout<T>.size == objCIvar.size else { return }
-        switch objCIvar.typeEncoding.first {
+    /// Sets the value of the instance variable with the specified name.
+    func setIvarValue<T>(_ value: T, named name: String, verifyType:  Bool = false) {
+        guard let ivar = Self.instanceVariable(named: name), let ivarInfo = ObjCIvarInfo(ivar), MemoryLayout<T>.size == ivarInfo.size else { return }
+        if verifyType { guard ivarInfo.type?.matches(T.self) == true else { return } }
+        switch ivarInfo.typeEncoding.first {
         case "@", "#", ":":
             object_setIvar(self, ivar, value as AnyObject)
         default:
-            Unmanaged.passUnretained(self).toOpaque().advanced(by: objCIvar.offset)
+            Unmanaged.passUnretained(self).toOpaque().advanced(by: ivarInfo.offset)
                 .assumingMemoryBound(to: T.self).pointee = value
         }
+    }
+    
+    /// The value of the instance variable with the specified name.
+    subscript<T>(ivar name: String) -> T? {
+        get { ivarValue(named: name) }
+        set { setIvarValue(newValue, named: name) }
+    }
+    
+    /// Returns the instance variable with the specified  name of the class.
+    static func instanceVariable(named name: String) -> Ivar? {
+        class_getInstanceVariable(self, name)
+    }
+    
+    /// Returns the class variable with the specified  name of the class.
+    static func classVariable(named name: String) -> Ivar? {
+        class_getClassVariable(self, name)
     }
 }
 
@@ -296,6 +308,16 @@ extension NSObjectProtocol where Self: NSObject {
 }
 
 public extension NSObject {
+    /// Returns the instance method for the specified selector.
+    static func instanceMethod(for selector: Selector) -> Method? {
+        class_getInstanceMethod(self, selector)
+    }
+    
+    /// Returns the class method for the specified selector.
+    static func classMethod(for selector: Selector) -> Method? {
+        class_getClassMethod(self, selector)
+    }
+    
     /**
      Returns the implementation function for an instance method of this object, cast to the given function type.
 
@@ -330,7 +352,7 @@ public extension NSObject {
      ```
      */
     class func instanceMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
-        guard let method = class_getInstanceMethod(object_getClass(self), selector) else { return nil }
+        guard let method = class_getInstanceMethod(self, selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
     }
@@ -382,7 +404,7 @@ public extension NSObject {
      ```
      */
     class func classMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
-        guard let method = class_getClassMethod(object_getClass(self), selector) else { return nil }
+        guard let method = class_getClassMethod(self, selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
     }

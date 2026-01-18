@@ -68,6 +68,7 @@ extension ObjCPropertyInfo {
         }
     }
     
+    /// Returns the attributes for the specified Objective-C property.
     public static func attributes(for property: objc_property_t) -> [Attribute]? {
         var count: UInt32 = 0
         guard let list = property_copyAttributeList(property, &count) else { return nil }

@@ -346,8 +346,7 @@ extension ObjCType {
 
     // MARK: - Pointer ^
     private static func _decodePointer(_ type: String) -> Node? {
-        let content = type.removingFirst()
-        guard let node = _decode(content), let contentType = node.decoded else { return nil }
+        guard let node = _decode(type.removingFirst()), let contentType = node.decoded else { return nil }
         return (.pointer(type: contentType), node.trailing)
     }
 
@@ -417,7 +416,7 @@ extension ObjCType {
             guard let trailing else { break }
             _fields = trailing
         }
-        return (kind.type(name: content, fields: fields), trailing)
+        return (kind.type(name: typeName, fields: fields), trailing)
     }
 
     private static func _decodeField(_ type: String) -> (field: ObjCField, trailing: String?)? {
@@ -490,20 +489,140 @@ fileprivate let simpleTypes: [Character: ObjCType] = [
 
 typealias Node = (decoded: ObjCType?, trailing: String?)
 
-/*
-extension ObjCType {
-    var modifier: ObjCModifier? {
-        switch self {
-        case .modified(let modifier, type: _): return modifier
-        default: return nil
+fileprivate extension String {
+    func firstBracket(_ open: Character, _ close: Character) -> (content: String, trailing: String?)? {
+        var depth = 0
+        var openIndex: String.Index?
+        for idx in indices {
+            switch self[idx] {
+            case open:
+                if depth == 0 { openIndex = idx }
+                depth += 1
+            case close:
+                depth -= 1
+                if depth == 0, let openIndex = openIndex {
+                    let trailingStart = index(after: idx)
+                    let trailing = trailingStart < endIndex ? String(self[trailingStart...]) : nil
+                    return (String(self[index(after: openIndex)..<idx]), trailing)
+                }
+            default: break
+            }
         }
+        return nil
     }
     
-    var value: ObjCType {
+    func extractString(between character: Character, startingAt startIndex: Index? = nil) -> (content: String, trailing: String)? {
+        let startIndex = startIndex ?? self.startIndex
+        var inQuote = false
+        var idx = startIndex
+        while idx < endIndex {
+            if self[idx] == "\"" {
+                if inQuote {
+                    let content = String(self[index(after: startIndex)..<idx])
+                    return (content, String(self[index(after: idx)..<endIndex]))
+                } else {
+                    inQuote = true
+                }
+            }
+            idx = index(after: idx)
+        }
+        return nil
+    }
+
+    func readInitialDigits() -> String? {
+        guard !isEmpty else { return nil }
+        var start = startIndex
+        let hasSign = self[start] == "-"
+        if hasSign {
+            start = index(after: start)
+            if start == endIndex { return nil } // only "-" no digits
+        }
+        var end = start
+        while end < endIndex, self[end].isNumber {
+            end = index(after: end)
+        }
+        if start == end { return nil }
+        return String(self[(hasSign ? startIndex : start)..<end])
+    }
+    
+    func trailing(after index: Index) -> String? {
+        distance(from: index, to: endIndex) > 0 ? String(self[self.index(after: index) ..< endIndex]) : nil
+    }
+}
+
+extension ObjCType {
+    /**
+     Checks if the specified Swift type matches the Objective-C type..
+     
+     - Parameter swiftType: The Swift type to compare.
+     - Returns: `true` if the types match, `false` if they don't, or `nil` if undecidable (e.g., struct/union types).
+     */
+    public func matches(_ swiftType: Any.Type) -> Bool? {
         switch self {
-        case .modified(_, type: let type): return type
-        default: return self
+        case .char: return swiftType == Int8.self || swiftType == CChar.self
+        case .uchar: return swiftType == UInt8.self || swiftType == CUnsignedChar.self
+        case .short: return swiftType == Int16.self || swiftType == CShort.self
+        case .ushort: return swiftType == UInt16.self || swiftType == CUnsignedShort.self
+        case .int: return swiftType == Int32.self || swiftType == CInt.self
+        case .uint: return swiftType == UInt32.self || swiftType == CUnsignedInt.self
+        case .long: return swiftType == Int.self || swiftType == Int64.self || swiftType == CLong.self
+        case .ulong: return swiftType == UInt.self || swiftType == UInt64.self || swiftType == CUnsignedLong.self
+        case .longLong: return swiftType == Int64.self || swiftType == CLongLong.self
+        case .ulongLong: return swiftType == UInt64.self || swiftType == CUnsignedLongLong.self
+        case .int128:
+            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == Int128.self }
+            return nil
+        case .uint128:
+            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == UInt128.self }
+            return nil
+        case .float: return swiftType == Float.self
+        case .double: return swiftType == Double.self
+        case .longDouble: return swiftType == Double.self
+        case .bool: return swiftType == Bool.self || swiftType == ObjCBool.self
+        case .void, .voidConst, .voidIn: return swiftType == Void.self
+        case .charPtr:
+            return swiftType == UnsafePointer<CChar>.self ||
+                   swiftType == UnsafeMutablePointer<CChar>.self ||
+                   swiftType == UnsafePointer<Int8>.self ||
+                   swiftType == UnsafeMutablePointer<Int8>.self
+        case .pointer(let type):
+            guard let pointerType = swiftType as? PointerType.Type else { return false }
+            return type.matches(pointerType.pointeeType)
+        case let .object(name):
+            guard let cls = swiftType as? AnyClass else { return false }
+            guard let name else { return true }
+            return NSStringFromClass(cls).components(separatedBy: ".").last == name
+        case .block: return swiftType is AnyObject.Type ? true : nil
+        case .functionPointer: return nil
+        case .struct(name: let name, fields: _):
+            guard let name = name else { return nil }
+            return String(reflecting: swiftType).components(separatedBy: ".").last == name
+        case .union, .array, .bitField:
+            return nil
+        case .selector: return swiftType == Selector.self
+        case .class: return swiftType is AnyObject.Type || swiftType is AnyClass.Type
+        case let .modified(_, type): return type.matches(swiftType)
+        case .other, .unknown, .atom: return nil
         }
     }
 }
-*/
+
+fileprivate protocol PointerType {
+    static var pointeeType: Any.Type { get }
+}
+
+extension UnsafePointer: PointerType {
+    static var pointeeType: Any.Type { Pointee.self }
+}
+
+extension UnsafeMutablePointer: PointerType {
+    static var pointeeType: Any.Type { Pointee.self }
+}
+
+extension UnsafeRawPointer: PointerType {
+    static var pointeeType: Any.Type { Void.self }
+}
+
+extension UnsafeMutableRawPointer: PointerType {
+    static var pointeeType: Any.Type { Void.self }
+}
