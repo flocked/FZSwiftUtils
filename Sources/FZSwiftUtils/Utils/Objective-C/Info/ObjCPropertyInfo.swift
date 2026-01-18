@@ -25,7 +25,7 @@ public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
      - Parameters:
        - name: Name of the property.
        - attributes: Attributes string of the property.
-       - isClassProperty: A boolean value that indicates whether the property is a class property.
+       - isClassProperty: A Boolean value that indicates whether the property is a class property.
      */
     public init(name: String, attributes: [Attribute], isClassProperty: Bool) {
         self.name = name
@@ -38,7 +38,7 @@ public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
 
      - Parameters:
        - property: The property of the target for which information is to be obtained.
-       - isClassProperty: A boolean value that indicates whether the property is a class property.
+       - isClassProperty: A Boolean value that indicates whether the property is a class property.
      */
     public init?(_ property: objc_property_t, isClassProperty: Bool) {
         guard let attributes = Self.attributes(for: property) else { return nil }

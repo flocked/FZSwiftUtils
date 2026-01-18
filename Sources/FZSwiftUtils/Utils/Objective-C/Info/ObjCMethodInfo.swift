@@ -10,20 +10,20 @@ import Foundation
 
 /// Represents information about an Objective-C method.
 public struct ObjCMethodInfo: Sendable, Equatable, Codable {
-    /// Name of the method
+    /// The name of the method.
     public let name: String
-    /// Encoded method type of the method
+    /// The type information for the return value and parameters of the method.
     public let type: ObjCMethodSignature
-    /// A boolean value that indicates whatever the method is class method or not.
+    /// A Boolean value indicating whatever the method is a class method or not.
     public let isClassMethod: Bool
         
     /**
      Initializes a new instance of `ObjCMethodInfo`.
 
      - Parameters:
-       - name: Name of the method.
-       - typeEncoding: Encoded method type of the method.
-       - isClassMethod: A boolean value that indicates whether the method is a class method.
+       - name: The name of the method.
+       - typeEncoding: The type information for the return value and parameters of the method.
+       - isClassMethod: A Boolean value that indicates whether the method is a class method.
      */
     public init(name: String, typeEncoding: String, isClassMethod: Bool) {
         self.name = name
@@ -36,7 +36,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
 
      - Parameters:
        - method: The method of the target for which information is to be obtained.
-       - isClassMethod: A boolean value that indicates whether the method is a class method.
+       - isClassMethod: A Boolean value that indicates whether the method is a class method.
      */
     public init?(_ method: Method, isClassMethod: Bool) {
         guard let typeEncoding = method_getTypeEncoding(method)?.string else { return nil }
@@ -48,7 +48,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
 
      - Parameters:
        - description: The method description of the target for which information is to be obtained.
-       - isClassMethod: A boolean value that indicates whether the method is a class method.
+       - isClassMethod: A Boolean value that indicates whether the method is a class method.
      */
     public init?(_ description: objc_method_description, isClassMethod: Bool) {
         guard let name = description.name, let _typeEncoding = description.types else { return nil }

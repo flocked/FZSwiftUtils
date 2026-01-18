@@ -7,8 +7,8 @@
 //
 
 import Foundation
-/// Represents the type information for the return value and parameters of a Objective-C  method.
-/// Represents the type information of an Objective-C method, including its return type and arguments.
+
+/// Represents the type information for the return value and parameters of an Objective-C  method.
 public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible, Codable {
     /// The arguments of the method.
     public let arguments: [Argument]
