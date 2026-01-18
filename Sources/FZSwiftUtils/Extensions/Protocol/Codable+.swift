@@ -27,7 +27,7 @@ extension Encodable where Self: NSCoding & NSObject {
 
 extension Encodable where Self: NSSecureCoding & NSObject {
     public func encode(to encoder: any Encoder) throws {
-        let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: true)
+        let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: Self.supportsSecureCoding)
         var container = encoder.singleValueContainer()
         try container.encode(data)
     }
