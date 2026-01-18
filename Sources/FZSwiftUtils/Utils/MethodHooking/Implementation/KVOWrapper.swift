@@ -47,7 +47,7 @@ extension NSObject {
             result = true
         } else {
             do {
-                try NSObject.catchException {
+                try ObjCRuntime.catchException {
                     addObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, options: .new, context: &RealObserver.context)
                 }
                 defer {

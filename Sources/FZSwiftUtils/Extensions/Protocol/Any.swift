@@ -118,14 +118,8 @@ public struct _AnyClass: Identifiable, CustomStringConvertible {
         return rootSuperclass
     }
     
-    public var reflection: ClassReflection? {
-        guard let cls = cls as? NSObject.Type else { return nil }
-        return ClassReflection(cls)
-    }
-    
-    public func reflection(includeSuperclass: Bool) -> ClassReflection? {
-        guard let cls = cls as? NSObject.Type else { return nil }
-        return ClassReflection(cls, includeSuperclass: includeSuperclass)
+    public func info(includeSuperclass: Bool = false) -> ObjCClassInfo {
+        ObjCClassInfo(cls, includeSuperclasses: includeSuperclass)
     }
     
     public func getAssociatedValue<V>(_ key: String) -> V? {

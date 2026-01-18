@@ -45,7 +45,7 @@ extension NSObjectProtocol where Self: NSObject {
 
 fileprivate class SafeObjectProxy<Object: NSObject>: NSObjectProxy<Object> {
     override func forwardingInvocation(_ invocation: Invocation) {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             super.forwardingInvocation(invocation)
         }
     }

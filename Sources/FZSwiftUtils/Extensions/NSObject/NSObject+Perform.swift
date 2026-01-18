@@ -18,7 +18,7 @@ extension NSObject {
      */
     public func perform(_ selector: Selector, withArguments arguments: [Any?] = []) {
         do {
-            try NSObject.catchException {
+            try ObjCRuntime.catchException {
                 if arguments.isEmpty {
                     perform(selector)
                 } else if arguments.count == 1 {
@@ -60,7 +60,7 @@ extension NSObject {
      */
     public func perform<V>(_ selector: Selector, withArguments arguments: [Any?] = []) -> V? {
         do {
-            return try NSObject.catchException {
+            return try ObjCRuntime.catchException {
                 guard let signature = getMethodSignature(for: selector) else { return nil }
                 let invocation = Invocation(signature: signature)
                 invocation.target = self
@@ -98,7 +98,7 @@ extension NSObject {
     @_disfavoredOverload
     public func perform(_ selector: Selector, withArguments arguments: [Any?] = []) -> Any? {
         do {
-          return try NSObject.catchException {
+          return try ObjCRuntime.catchException {
                 guard let signature = getMethodSignature(for: selector) else { return nil }
                 let invocation = Invocation(signature: signature)
                 invocation.target = self
@@ -377,7 +377,7 @@ fileprivate extension NSObject {
     }
     
     static func cast(_ imp: IMP, object: AnyObject, selector: Selector, with values: [Any]) throws -> Any {
-        try NSObject.catchException {
+        try ObjCRuntime.catchException {
             switch values.count {
             case 0:
                 typealias Closure = (@convention(c) (AnyObject, Selector) -> Any)

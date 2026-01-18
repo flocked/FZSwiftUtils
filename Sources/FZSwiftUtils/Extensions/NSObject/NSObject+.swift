@@ -31,7 +31,7 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     func value(forKeySafely key: String) -> Any? {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             self.value(forKey: key)
         }
     }
@@ -53,7 +53,7 @@ public extension NSObject {
      - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
      */
     func value(forKeyPathSafely keyPath: String) -> Any? {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             self.value(forKeyPath: keyPath)
         }
     }
@@ -66,7 +66,7 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     func setValue(safely value: Any?, forKey key: String) {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             setValue(value, forKey: key)
         }
     }
@@ -79,7 +79,7 @@ public extension NSObject {
         - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
      */
     func setValue(safely value: Any?, forKeyPath keyPath: String) {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             setValue(value, forKeyPath: keyPath)
         }
     }
@@ -91,7 +91,7 @@ public extension NSObject {
      - Returns: The value for the property identified by key, or `nil` if the key doesn't exist.
      */
     class func value(forKeySafely key: String) -> Any? {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             self.value(forKey: key)
         }
     }
@@ -123,7 +123,7 @@ public extension NSObject {
      - Returns: The value for the derived property identified by keyPath, or `nil` if the key path doesn't exist.
      */
     class func value(forKeyPathSafely keyPath: String) -> Any? {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             self.value(forKeyPath: keyPath)
         }
     }
@@ -136,7 +136,7 @@ public extension NSObject {
         - key: The key of the property to set.
      */
     class func setValue(safely value: Any?, forKey key: String) {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             setValue(value, forKey: key)
         }
     }
@@ -149,30 +149,9 @@ public extension NSObject {
         - keyPath: A key path of the form relationship.property (with one or more relationships): for example “department.name” or “department.manager.lastName.”
      */
     class func setValue(safely value: Any?, forKeyPath keyPath: String) {
-        try? NSObject.catchException {
+        try? ObjCRuntime.catchException {
             setValue(value, forKeyPath: keyPath)
         }
-    }
-
-    /**
-     Checks if the object overrides the specified selector.
-
-     - Parameter selector: The selector to check for override.
-
-     - Returns: `true` if the object overrides the selector, `false` otherwise.
-     */
-    func overrides(_ selector: Selector) -> Bool {
-        var currentClass: AnyClass = type(of: self)
-        let method: Method? = class_getInstanceMethod(currentClass, selector)
-
-        while let superClass: AnyClass = class_getSuperclass(currentClass), superClass != currentClass {
-            // Make sure we only check against non-`nil` returned instance methods.
-            if class_getInstanceMethod(superClass, selector).map({ $0 != method }) ?? false {
-                return true
-            }
-            currentClass = superClass
-        }
-        return false
     }
     
     /// The ivar value with the specified name.
@@ -206,24 +185,18 @@ public extension NSObject {
         case "@", "#", ":":
             object_setIvar(self, ivar, value as AnyObject)
         default:
-            Unmanaged.passUnretained(self)
-                .toOpaque()
-                .advanced(by: objCIvar.offset)
-                .assumingMemoryBound(to: T.self)
-                .pointee = value
+            Unmanaged.passUnretained(self).toOpaque().advanced(by: objCIvar.offset)
+                .assumingMemoryBound(to: T.self).pointee = value
         }
     }
-    
-    /*
-     if let ivar: OpaquePointer = class_getInstanceVariable(type(of: obj), name) {
-         Unmanaged.passUnretained(obj)
-             .toOpaque()
-             .advanced(by: ivar_getOffset(ivar))
-             .assumingMemoryBound(to: T.self)
-             .pointee = val
-     }
-     */
+}
 
+public extension NSObjectProtocol where Self: NSObject {
+    /// The type of the object.
+    var classType: Self.Type {
+        type(of: self)
+    }
+    
     /// A Boolean value indicating whether the object is a subclass of, or identical to the specified class.
     func isSubclass(of aClass: AnyClass) -> Bool {
         Self.isSubclass(of: aClass)
@@ -235,19 +208,13 @@ public extension NSObject {
     }
     
     /// A Boolean value indicating whether the class is a superclass of, or identical to the specified class.
-    class func isSuperclass(of aClass: AnyClass) -> Bool {
+    static func isSuperclass(of aClass: AnyClass) -> Bool {
         aClass.isSubclass(of: self)
     }
     
-    class func superclasses(includingNSObject: Bool = true) -> [AnyClass] {
-        Array(first: superclass(), next: {
-            $0?.superclass().map({ includingNSObject || $0 != NSObject.self ? $0 : nil })
-        }).nonNil
-    }
-    
-    /// Returns the class object for the receiver’s root superclass.
-    class func rootSuperclass(includingNSObject: Bool = true) -> AnyClass? {
-        superclasses(includingNSObject: includingNSObject).last
+    /// Returns all superclasses of the class.
+    static func superclasses() -> [AnyClass] {
+        ObjCRuntime.superclasses(of: self)
     }
 
     /**
@@ -259,162 +226,45 @@ public extension NSObject {
 
      - Returns: An array of `Protocol` objects representing all protocols the class conforms to, optionally including those of its superclasses and inherited protocols.
      */
-    class func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-        var visited = Set<ObjectIdentifier>()
-        var result: [Protocol] = []
+    static func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
+        ObjCRuntime.protocols(of: self, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
+    }
+    
+    /**
+     Checks if the object overrides the specified selector.
 
-        func visit(_ proto: Protocol) {
-            guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
-            result.append(proto)
-            guard includeInheritedProtocols else { return }
-            var count: UInt32 = 0
-            if let list = protocol_copyProtocolList(proto, &count) {
-                for i in 0..<Int(count) {
-                    visit(list[i])
-                }
+     - Parameters:
+        - selector: The selector to check for override.
+        - isInstance: A Boolean value indicating whether the method is a instance or class method.
+
+     - Returns: `true` if the object overrides the selector, `false` otherwise.
+     */
+    static func overrides(_ selector: Selector, isInstance: Bool) -> Bool {
+        guard let method = isInstance ? class_getInstanceMethod(self, selector) : class_getClassMethod(self, selector) else { return false }
+        var currentClass: AnyClass? = class_getSuperclass(self)
+        while let superClass = currentClass {
+            let superMethod = isInstance ? class_getInstanceMethod(superClass, selector) : class_getClassMethod(superClass, selector)
+            if let superMethod = superMethod, superMethod != method {
+                return true
             }
+            currentClass = class_getSuperclass(superClass)
         }
-
-        var cls: AnyClass? = self
-        while let current = cls {
-            var count: UInt32 = 0
-            if let list = class_copyProtocolList(current, &count) {
-                for i in 0..<Int(count) {
-                    visit(list[i])
-                }
-            }
-            cls = includeSuperclasses ? current.superclass() : nil
-        }
-
-        return result
+        return false
     }
 
     /**
-      Executes the specified block that may throw an Objective-C `NSException` and catches it.
-
-      This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
-
-      - Parameter tryBlock: A closure containing Objective-C code that may throw an exception.
-     - Returns: The value returned from the given callback.
-
-      Example usage:
-
-     ```swift
-     let object: NSObject // …
-
-     do {
-         let value = try NSObject.catch {
-             object.value(forKey: "someProperty")
-         }
-         print("Value:", value)
-     } catch {
-         print("Error:", error.localizedDescription)
-         //=> Error: The operation couldn’t be completed. [valueForUndefinedKey:]: this class is not key value coding-compliant for the key nope.
-     }
-     ```
+     Returns all subclasses of the class.
+     
+     - Parameters:
+        - includeNested: A Boolean value indicating whether to include nested subclasses.
+        - sorted: A Boolean value indicating whether the subclasses should be sorted by name.
      */
-    @discardableResult
-    static func catchException<T>(tryBlock: () throws -> T) throws -> T {
-        var result: Result<T, Error>!
-        try _catchException {
-            do {
-                result = .success(try tryBlock())
-            } catch {
-                result = .failure(error)
-            }
-        }
-        return try result.get()
-    }
-
-    /// Returns all classes.
-    static func allClasses() -> [AnyClass] {
-        if let allClasses = _allClasses {
-            return allClasses
-        }
-        var count: UInt32 = 0
-        guard let classList = objc_copyClassList(&count) else { return [] }
-        let allClasses = Array(UnsafeBufferPointer(start: classList, count: Int(count)))
-        self._allClasses = allClasses
-        return allClasses
-    }
-
-    /// Returns all protocols.
-    static func allProtocols() -> [Protocol] {
-        if let allProtocols = _allProtocols {
-            return allProtocols
-        }
-        var count: UInt32 = 0
-        guard let protocolList = objc_copyProtocolList(&count) else { return [] }
-        let allProtocols = Array(UnsafeBufferPointer(start: protocolList, count: Int(count)))
-        _allProtocols = allProtocols
-        return allProtocols
-    }
-
-    private static var _allClasses: [AnyClass]? {
-        get { getAssociatedValue("allClasses") }
-        set { setAssociatedValue(newValue, key: "allClasses") }
-    }
-
-    private static var _allProtocols: [Protocol]? {
-        get { getAssociatedValue("allProtocols") }
-        set { setAssociatedValue(newValue, key: "allProtocols") }
-    }
-
-    /*
-    /// Returns all subclasses for the specified class.
-    static func allSubclasses<T>(of baseClass: T) -> [T] {
-        allClasses().filter({ cls in
-            #if os(macOS)
-            if NSStringFromClass(cls) != "UINSServiceViewController" { return false }
-            #endif
-            return class_getRootSuperclass(cls) == NSObject.self && cls is T
-        }).map({ $0 as! T })
-    }
-    */
-    
-    /// Returns all subclasses for the specified class.
-    static func allSubclasses<T>(of baseClass: T, sorted: Bool = false) -> [T] {
-        let classPtr = address(of: baseClass)
-        if !sorted {
-            return allClasses().compactMap({ if let someSuperClass = class_getSuperclass($0), address(of: someSuperClass) == classPtr { return $0 as? T } else { return nil } })
-        } else {
-            return allClasses().compactMap({ if let someSuperClass = class_getSuperclass($0), address(of: someSuperClass) == classPtr { return (cls: $0 as! T, name: NSStringFromClass($0)) } else { return nil } }).sorted(by: \.name, .ascending).map({$0.cls})
-        }
-    }
-
-    private static func address(of object: Any?) -> UnsafeMutableRawPointer {
-        Unmanaged.passUnretained(object as AnyObject).toOpaque()
-    }
-
-    /// Returns all clases implementing the specified protocol.
-    static func allClasses(implementing _protocol: Protocol) -> [AnyClass] {
-        allClasses().filter({ class_conformsToProtocol($0, _protocol) })
-    }
-}
-
-extension Protocol {
-    /// Returns all classes impelementing the protocol.
-    public func allClasses() -> [AnyClass] {
-        NSObject.allClasses(implementing: self)
-    }
-    
-    /// The name of the protocol.
-    public var name: String {
-        NSStringFromProtocol(self)
-    }
-    
-    /// RReturns a the protocol with the sepcified name.
-    public static func named(_ name: String) -> Protocol? {
-        NSProtocolFromString(name)
+   static func subclasses(includeNested: Bool = false, sorted: Bool = false) -> [Self.Type] {
+        ObjCRuntime.subclasses(of: self, includeNested: includeNested, sorted: sorted)
     }
 }
 
 extension NSObjectProtocol where Self: NSObject {
-    /// The type of the object.
-    public var classType: Self.Type {
-        type(of: self)
-    }
-
     /**
      Registers an observer object to receive KVO notifications for the key path relative to the object receiving this message.
 
@@ -442,90 +292,6 @@ extension NSObjectProtocol where Self: NSObject {
     public func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>, context: UnsafeMutableRawPointer? = nil) {
         guard let keypathString = keypath._kvcKeyPathString else { return }
         removeObserver(observer, forKeyPath: keypathString, context: context)
-    }
-
-    /// Returns all subclasses of the class.
-    public static func allSubclasses() -> [Self.Type] {
-        allSubclasses(of: self)
-    }
-}
-
-fileprivate extension NSObjectProtocol where Self: NSObject {
-    static func isProtocolSelector(_ selector: Selector) -> Bool {
-        var protocolCount: UInt32 = 0
-        if let protocols = class_copyProtocolList(self, &protocolCount) {
-            if (0..<Int(protocolCount)).contains(where: { protocols[$0].containsSelector(selector) }) {
-                return true
-            }
-        }
-        let superclass = class_getSuperclass(self) as? NSObject.Type
-        guard let superclass = superclass, superclass != type(of: self) else { return false }
-        return superclass.isProtocolSelector(selector)
-    }
-}
-
-extension Protocol {
-    func containsSelector(_ selector: Selector) -> Bool {
-        if protocol_getMethodDescription(self, selector, true, true).name != nil || protocol_getMethodDescription(self, selector, false, true).name != nil {
-            return true
-        }
-        var protocolCount: UInt32 = 0
-        guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return false }
-        if (0..<Int(protocolCount)).contains(where: { superProtocols[$0].containsSelector(selector) }) {
-            return true
-        }
-        return false
-    }
-
-    func typeEncoding(for selector: Selector, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
-        var methodDesc: objc_method_description!
-        if optionalOnly {
-            methodDesc = protocol_getMethodDescription(self, selector, false, true)
-        } else {
-            methodDesc = protocol_getMethodDescription(self, selector, true, true)
-            if methodDesc.types == nil {
-                methodDesc = protocol_getMethodDescription(self, selector, false, true)
-            }
-        }
-        if let types = methodDesc.types {
-            return withUnsafePointer(to: &types.pointee) { pointer in
-                return pointer
-            }
-        }
-        var protocolCount: UInt32 = 0
-        guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return nil }
-        for i in 0..<Int(protocolCount) {
-            if let typeEncoding = superProtocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
-                return typeEncoding
-            }
-        }
-        return nil
-    }
-
-    static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
-        // Check required methods
-        var methodDesc = protocol_getMethodDescription(proto, selector, true, true)
-        if methodDesc.name != nil, let types = methodDesc.types {
-            return UnsafePointer(types)
-        }
-
-        // Check optional methods
-        methodDesc = protocol_getMethodDescription(proto, selector, false, true)
-        if methodDesc.name != nil, let types = methodDesc.types {
-            return UnsafePointer(types)
-        }
-
-        // Recursively check inherited protocols
-        var inheritedCount: UInt32 = 0
-        if let inherited = protocol_copyProtocolList(proto, &inheritedCount) {
-            for i in 0..<Int(inheritedCount) {
-                if let typeEncoding = typeEncoding(for: selector, protocol: inherited[i]) {
-                    return typeEncoding
-                }
-            }
-        }
-
-        return nil
     }
 }
 
@@ -557,13 +323,13 @@ public extension NSObject {
      let selector = NSSelectorFromString("_symbolWeightForFontWeight:")
      typealias Function = @convention(c) (AnyObject, Selector, NSFont.Weight) -> NSFont.Weight
 
-     if let function = NSFont.classMethod(for: selector, as: Function.self) {
+     if let function = NSFont.instanceMethod(for: selector, as: Function.self) {
          let result = function(NSFont.self, selector, .black)
          print(result)
      }
      ```
      */
-    func method<F>(for selector: Selector, as clsoure: F.Type) -> F? {
+    class func instanceMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
         guard let method = class_getInstanceMethod(object_getClass(self), selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
@@ -577,10 +343,11 @@ public extension NSObject {
         - clsoure: The Swift function type that matches the method's IMP signature.
      - Returns: A function pointer of the given type, or `nil` if the selector is not found.
      */
-    func method<F>(for selector: String, as clsoure: F.Type) -> F? {
-        method(for: .string(selector), as: clsoure)
+    class func instanceMethod<F>(for selector: String, as clsoure: F.Type) -> F? {
+        instanceMethod(for: .string(selector), as: clsoure)
     }
-
+    
+    
     /**
      Returns the implementation function for a class method of this class, cast to the given function type.
 
@@ -614,7 +381,7 @@ public extension NSObject {
      }
      ```
      */
-    class func method<F>(for selector: Selector, as clsoure: F.Type) -> F? {
+    class func classMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
         guard let method = class_getClassMethod(object_getClass(self), selector) else { return nil }
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
@@ -628,7 +395,7 @@ public extension NSObject {
         - clsoure: The Swift function type that matches the method's IMP signature.
      - Returns: A function pointer of the given type, or `nil` if the selector is not found.
      */
-    class func method<F>(for selector: String, as clsoure: F.Type) -> F? {
-        method(for: .string(selector), as: clsoure)
+    class func classMethod<F>(for selector: String, as clsoure: F.Type) -> F? {
+        classMethod(for: .string(selector), as: clsoure)
     }
 }
