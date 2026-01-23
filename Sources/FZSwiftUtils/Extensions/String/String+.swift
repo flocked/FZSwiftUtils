@@ -183,6 +183,11 @@ public extension StringProtocol {
     func keepingCharacters(in set: CharacterSet) -> String {
         unicodeScalars.filter { set.contains($0) }.map { String($0) }.joined()
     }
+    
+    /// Checks whether all characters in the string are part of the specified character set.
+    func isComposed(of set: CharacterSet) -> Bool {
+        unicodeScalars.allSatisfy { set.contains($0) }
+    }
 }
 
 public extension String {

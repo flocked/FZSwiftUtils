@@ -21,7 +21,7 @@ extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUni
     public func contains(_ others: [CharacterSet]) -> Bool {
         contains(others.union)
     }
-        
+    
     public static func + (lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
         lhs.union(rhs)
     }
@@ -37,6 +37,9 @@ extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUni
     public static func -= (lhs: inout Self, rhs: CharacterSet) {
         lhs = lhs - rhs
     }
+    
+    /// A character set containing all hexadecimal digits (0–9, A–F, a–f).
+    public static let hexDigits = CharacterSet(charactersIn: "0123456789ABCDEFabcdef")
 }
 
 extension Array where Element == CharacterSet {
