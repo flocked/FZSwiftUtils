@@ -173,6 +173,16 @@ public extension StringProtocol {
         guard range.upperBound >= 0, let endIndex =  index(startIndex, offsetBy: range.upperBound, limitedBy: endIndex) else { return nil }
         return self[startIndex..<endIndex]
     }
+    
+    /// Returns a new string with all characters in the specified character set removed.
+    func removingCharacters(in set: CharacterSet) -> String {
+        unicodeScalars.filter { !set.contains($0) }.map { String($0) }.joined()
+    }
+    
+    /// Returns a new string containing only the characters in the specified character set.
+    func keepingCharacters(in set: CharacterSet) -> String {
+        unicodeScalars.filter { set.contains($0) }.map { String($0) }.joined()
+    }
 }
 
 public extension String {
@@ -341,6 +351,21 @@ public extension String {
     /// Replaces regular spaces with non-breaking spaces.
     var nonBreakingSpaces: String {
         replacingOccurrences(of: " ", with: "\u{00A0}")
+    }
+    
+    /// Mutates the string, keeping only characters in the specified character set.
+    mutating func keepCharacters(in set: CharacterSet) {
+        self = keepingCharacters(in: set)
+    }
+    
+    /// Mutates the string by removing all characters in the specified character set.
+    mutating func removeCharacters(in set: CharacterSet) {
+        self = removingCharacters(in: set)
+    }
+    
+    /// Mutates the string by removing from both ends of the String characters contained in a given character set.
+    mutating func trimCharacters(in set: CharacterSet) {
+        self = trimmingCharacters(in: set)
     }
 }
 
