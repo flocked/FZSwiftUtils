@@ -40,21 +40,15 @@ extension CGFloat: ApproximateEquatable {
     }
 }
 
-extension Array: ApproximateEquatable where Element: FloatingPointInitializable {
-    public func isApproximatelyEqual(to other: Self, epsilon: Element) -> Bool {
-        guard count == other.count else { return false }
-        for i in 0 ..< indices.count {
-            if !self[i].isApproximatelyEqual(to: other[i], absoluteTolerance: epsilon) {
-                return false
-            }
-        }
-        return true
+extension Array: ApproximateEquatable where Element: ApproximateEquatable {
+    public func isApproximatelyEqual(to other: Self, epsilon: Element.Epsilon) -> Bool {
+        count == other.count && zip(self, other).allSatisfy { $0.isApproximatelyEqual(to: $1, epsilon: epsilon) }
     }
 }
 
-extension Set: ApproximateEquatable where Element: FloatingPointInitializable {
-    public func isApproximatelyEqual(to other: Self, epsilon: Element) -> Bool {
-        Array(self).isApproximatelyEqual(to: Array(other), epsilon: epsilon)
+extension Set: ApproximateEquatable where Element: ApproximateEquatable, Element: Comparable {
+    public func isApproximatelyEqual(to other: Self, epsilon: Element.Epsilon) -> Bool {
+        count == other.count && zip(sorted(), other.sorted()).allSatisfy { $0.isApproximatelyEqual(to: $1, epsilon: epsilon) }
     }
 }
 

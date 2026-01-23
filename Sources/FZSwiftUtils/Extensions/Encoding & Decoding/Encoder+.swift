@@ -1,5 +1,5 @@
 //
-//  Encode+.swift
+//  Encoder+.swift
 //  
 //
 //  Created by Florian Zand on 16.07.25.

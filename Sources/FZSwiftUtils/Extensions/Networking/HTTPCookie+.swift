@@ -9,18 +9,17 @@ import Foundation
 
 extension Decodable where Self: HTTPCookie {
     public init(from decoder: any Decoder) throws {
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: try decoder.decodeSingle(), requiresSecureCoding: false)
-        guard let cookie = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) as? HTTPCookie else {
-            throw DecodingError.typeMismatch(HTTPCookie.self, .init(codingPath: [], debugDescription: "Decoding failed"))
+        let rootObject = try NSKeyedUnarchiver.unarchivedObject(from: try decoder.decodeSingle())
+        guard let cookie = rootObject as? Self else {
+            throw DecodingError.typeMismatch(type(of: rootObject), .init("Expected object of type \(Self.self), but decoded object was of type \(type(of: rootObject))."))
         }
-        self = cookie as! Self
+        self = cookie
     }
 }
 
 extension HTTPCookie: Swift.Decodable, Swift.Encodable {
     public func encode(to encoder: any Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false))
+        try encoder.encodeSingle(NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false))
     }
 }
 

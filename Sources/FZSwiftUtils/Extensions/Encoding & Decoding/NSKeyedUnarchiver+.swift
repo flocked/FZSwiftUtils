@@ -60,17 +60,46 @@ public extension NSKeyedUnarchiver {
      Decodes a previously-archived object graph, and returns the root object as the specified type.
      
      - Parameters:
+        - cls: The expected class of the root object.
         - data: The object graph previously encoded by NSKeyedArchiver.
         - requiresSecureCoding: A Boolean value indicating whether the unarchived object requires to conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
      - Returns: The decoded root of the object graph.
      - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
      */
-    static func unarchivedObject<Object: NSCoding>(from data: Data, requiresSecureCoding: Bool = false) throws -> Object {
+    static func unarchivedObject<DecodedObjectType: NSCoding>(ofClass cls: DecodedObjectType.Type = DecodedObjectType.self, from data: Data, requiresSecureCoding: Bool) throws -> DecodedObjectType {
         let rootObject = try unarchivedObject(from: data, requiresSecureCoding: requiresSecureCoding)
-        guard let decodedObject = rootObject as? Object else {
-            throw DecodingError.typeMismatch(type(of: rootObject), .init("Expected object of type \(Object.self), but decoded object was of type \(type(of: rootObject))."))
+        guard let decodedObject = rootObject as? DecodedObjectType else {
+            throw DecodingError.typeMismatch(type(of: rootObject), .init("Expected object of type \(DecodedObjectType.self), but decoded object was of type \(type(of: rootObject))."))
         }
         return decodedObject
+    }
+    
+    /**
+     Decodes a previously-archived object graph, and returns the root object as the specified type.
+     
+     - Parameters:
+        - cls: The expected class of the root object.
+        - data: The object graph previously encoded by NSKeyedArchiver.
+     - Returns: The decoded root of the object graph.
+     - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
+     */
+    @_disfavoredOverload
+    static func unarchivedObject<DecodedObjectType: NSCoding>(ofClass cls: DecodedObjectType.Type = DecodedObjectType.self, from data: Data) throws -> DecodedObjectType {
+       try unarchivedObject(from: data, requiresSecureCoding: false)
+    }
+    
+    /**
+     Decodes a previously-archived object graph, and returns the root object as the specified type.
+     
+     - Parameters:
+        - cls: The expected class of the root object.
+        - data: The object graph previously encoded by NSKeyedArchiver.
+     - Returns: The decoded root of the object graph.
+     - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
+     */
+    @_disfavoredOverload
+    static func unarchivedObject<DecodedObjectType: NSSecureCoding>(ofClass cls: DecodedObjectType.Type = DecodedObjectType.self, from data: Data) throws -> DecodedObjectType {
+       try unarchivedObject(from: data, requiresSecureCoding: DecodedObjectType.supportsSecureCoding)
     }
     
     /**

@@ -43,6 +43,7 @@ extension Sequence {
         }
     }
     
+    /*
     /**
      Returns the elements, sorted using the given comparators to compare elements.
 
@@ -54,6 +55,7 @@ extension Sequence {
     public func sorted(using comparators: any SortComparator<Element>..., order: SortOrder = .forward) -> [Element] {
         sorted(using: comparators, order: order)
     }
+    */
 }
 
 public extension MutableCollection where Self: RandomAccessCollection & RangeReplaceableCollection {
@@ -91,6 +93,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         }
     }
     
+    /*
     /**
      Sorts the collection using the given comparators to compare elements.
 
@@ -102,6 +105,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
     mutating func sort(using comparators: any SortComparator<Element>..., order: SortOrder = .forward) {
         sort(using: comparators, order)
     }
+    */
 }
 
 extension Sequence {
@@ -132,6 +136,7 @@ extension Sequence {
         }
     }
     
+    /*
     /**
      Returns the elements, sorted using the given comparators to compare elements.
 
@@ -149,6 +154,7 @@ extension Sequence {
     public func sorted(by comparators: SortingComparator<Element>..., order: SortOrder = .ascending) -> [Element] {
         sorted(by: comparators, order: order)
     }
+     */
 }
 
 public extension MutableCollection where Self: RandomAccessCollection & RangeReplaceableCollection {
@@ -172,6 +178,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         }
     }
     
+    /*
     /**
      Sorts the collection using the given comparators to compare elements.
 
@@ -182,6 +189,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
     mutating func sort(by comparators: SortingComparator<Element>..., order: SortOrder = .ascending) {
         sort(by: comparators)
     }
+     */
 }
 
 /**

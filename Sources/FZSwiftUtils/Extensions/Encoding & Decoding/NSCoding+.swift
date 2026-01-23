@@ -24,7 +24,7 @@ public extension NSCoding {
      - Throws: An error if copying fails.
      */
     func archiveBasedCopy() throws -> Self {
-        try NSKeyedUnarchiver.unarchivedObject(from: try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false))
+        try Self.unarchive(archivedData())
     }
     
     /**
@@ -44,9 +44,7 @@ public extension NSCoding {
      - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
      */
     static func unarchive(_ data: Data) throws -> Self {
-        guard let object = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Self else { throw CocoaError(.coderReadCorrupt) }
-        return object
-      // try NSKeyedUnarchiver.unarchivedObject(from: data)
+        try NSKeyedUnarchiver.unarchivedObject(from: data)
     }
 }
 
@@ -72,6 +70,15 @@ public extension NSSecureCoding {
         try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: requiresSecureCoding)
     }
     
+    /**
+     Creates an archived-based copy of the object.
+     
+     - Throws: An error if copying fails.
+     */
+    func archiveBasedCopy() throws -> Self {
+        try Self.unarchive(archivedData())
+    }
+    
     /*
     /**
      Decodes a previously-archived object graph, and returns the root object as the type.
@@ -79,24 +86,17 @@ public extension NSSecureCoding {
      - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
      */
     static func unarchive(_ data: Data) throws -> Self {
-       try unarchive(data, requiresSecureCoding: supportsSecureCoding)
+        try NSKeyedUnarchiver.unarchivedObject(from: data)
     }
     
-    /**
-     Decodes a previously-archived object graph, and returns the root object as the type.
-     
-     - Parameters:
-        - data: The object graph previously encoded by `NSKeyedArchiver`.
-        - requiresSecureCoding: A Boolean value indicating whether the unarchived object requires to conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
-     */
     static func unarchive(_ data: Data, requiresSecureCoding: Bool) throws -> Self {
-       try NSKeyedUnarchiver.unarchivedObject(from: data, requiresSecureCoding: requiresSecureCoding)
+        try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data, requiresSecureCoding: requiresSecureCoding)
     }
-     */
+    */
 }
 
-public extension NSCoding where Self: NSObject {
-    /// Returns a new instance that’s a copy of the receiver.
+public extension NSCopying where Self: NSObject {
+    /// Shallow copy
     func copyAsSelf() -> Self? {
         copy() as? Self
     }
