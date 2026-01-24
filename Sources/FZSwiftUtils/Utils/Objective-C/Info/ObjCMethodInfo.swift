@@ -38,7 +38,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
        - method: The method of the target for which information is to be obtained.
        - isClassMethod: A Boolean value that indicates whether the method is a class method.
      */
-    public init?(_ method: Method, isClassMethod: Bool) {
+    public init?(_ method: Method, isClassMethod: Bool = false) {
         guard let typeEncoding = method_getTypeEncoding(method)?.string else { return nil }
         self.init(name: NSStringFromSelector(method_getName(method)), typeEncoding: typeEncoding, isClassMethod: isClassMethod)
     }

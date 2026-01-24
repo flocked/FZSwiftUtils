@@ -40,7 +40,7 @@ public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
        - property: The property of the target for which information is to be obtained.
        - isClassProperty: A Boolean value that indicates whether the property is a class property.
      */
-    public init?(_ property: objc_property_t, isClassProperty: Bool) {
+    public init?(_ property: objc_property_t, isClassProperty: Bool = false) {
         guard let attributes = Self.attributes(for: property) else { return nil }
         self.init(
             name: String(cString: property_getName(property)),

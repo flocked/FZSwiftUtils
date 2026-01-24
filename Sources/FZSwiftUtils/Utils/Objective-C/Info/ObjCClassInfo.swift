@@ -89,27 +89,27 @@ public struct ObjCClassInfo: Sendable {
      Initializes a new instance of `ObjCClassInfo` for the specified class.
 
      - Parameters:
-        - cls: The class of the target for which information is to be obtained.
+        - class: The class of the target for which information is to be obtained.
         - includeSuperclasses: A Boolean value indicating whether to include properties, methods, protocols and ivars for the superclasses of `cls`.
         - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
      */
-    public init(_ cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) {
-        let key = Key(cls, includeSuperclasses, includeInheritedProtocols)
+    public init(_ class: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) {
+        let key = Key(`class`, includeSuperclasses, includeInheritedProtocols)
         if let info = Self.cache[key] {
             self = info
         } else {
             self.init(
-                name: NSStringFromClass(cls),
-                version: class_getVersion(cls),
-                imageName: class_getImageName(cls).flatMap({ String(cString: $0) }),
-                instanceSize: class_getInstanceSize(cls),
-                superClass: class_getSuperclass(cls),
-                protocols: Self.protocols(of: cls, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols),
-                ivars: Self.ivars(of: cls),
-                classProperties: Self.properties(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses),
-                properties: Self.properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses),
-                classMethods: Self.methods(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses),
-                methods: Self.methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+                name: NSStringFromClass(`class`),
+                version: class_getVersion(`class`),
+                imageName: class_getImageName(`class`).flatMap({ String(cString: $0) }),
+                instanceSize: class_getInstanceSize(`class`),
+                superClass: class_getSuperclass(`class`),
+                protocols: Self.protocols(of: `class`, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols),
+                ivars: Self.ivars(of: `class`),
+                classProperties: Self.properties(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
+                properties: Self.properties(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses),
+                classMethods: Self.methods(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
+                methods: Self.methods(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses)
             )
             Self.cache[key] = self
         }
