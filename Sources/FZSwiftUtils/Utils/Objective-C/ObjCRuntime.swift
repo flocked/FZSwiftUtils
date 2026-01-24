@@ -115,7 +115,7 @@ public struct ObjCRuntime {
      let object: NSObject // …
 
      do {
-         let value = try NSObject.catch {
+         let value = try ObjCRuntime.catch {
              object.value(forKey: "someProperty")
          }
          print("Value:", value)
@@ -126,7 +126,37 @@ public struct ObjCRuntime {
      ```
      */
     @discardableResult
-    public static func catchException<T>(tryBlock: () throws -> T) throws -> T {
+    public static func catchException<T>(_ tryBlock: @autoclosure () throws -> T) throws -> T {
+        try catchException(tryBlock)
+    }
+    
+    /**
+      Executes the specified block that may throw an Objective-C `NSException` and catches it.
+
+      This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
+
+      - Parameter tryBlock: A closure containing Objective-C code that may throw an exception.
+     - Returns: The value returned from the given callback.
+
+      Example usage:
+
+     ```swift
+     let object: NSObject // …
+
+     do {
+         let value = try ObjCRuntime.catch {
+             object.value(forKey: "someProperty")
+         }
+         print("Value:", value)
+     } catch {
+         print("Error:", error.localizedDescription)
+         //=> Error: The operation couldn’t be completed. [valueForUndefinedKey:]: this class is not key value coding-compliant for the key nope.
+     }
+     ```
+     */
+    @_disfavoredOverload
+    @discardableResult
+    public static func catchException<T>(_ tryBlock: () throws -> T) throws -> T {
         var result: Result<T, Error>!
         try NSObject._catchException {
             do {
