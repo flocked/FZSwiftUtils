@@ -194,6 +194,16 @@ extension ObjCClassInfo {
         classProperties.first(where: { $0.name == name }) ?? superClassInfo?.classProperty(named: name)
     }
     
+    /// Returns the instance property for the specified getter or setter selector.
+    public func property(for selector: Selector) -> ObjCPropertyInfo?  {
+        properties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superClassInfo?.property(for: selector)
+    }
+    
+    /// Returns the class property for the specified getter or setter selector.
+    public func classProperty(for selector: Selector) -> ObjCPropertyInfo?  {
+        classProperties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superClassInfo?.classProperty(for: selector)
+    }
+    
     /// Returns the instance method with the specified name.
     public func method(named name: String) -> ObjCMethodInfo? {
         methods.first(where: { $0.name == name }) ?? superClassInfo?.method(named: name)
@@ -209,55 +219,73 @@ extension ObjCClassInfo {
         ivars.first(where: { $0.name == name }) ?? superClassInfo?.ivar(named: name)
     }
     
+    /// List of instance properties held by the class and it's superclasses.
+    public var allProperties: [ObjCPropertyInfo] {
+        allClasses.flatMap({$0.properties}).uniqued(by: \.name)
+    }
+    
+    /// List of class properties held by the class and it's superclasses.
+    public var allClassProperties: [ObjCPropertyInfo] {
+        allClasses.flatMap({$0.classProperties}).uniqued(by: \.name)
+    }
+    
+    /// List of instance methods held by the class and it's superclasses.
+    public var allMethods: [ObjCMethodInfo] {
+        allClasses.flatMap({$0.methods}).uniqued(by: \.name)
+    }
+    
+    /// List of class methods held by the class and it's superclasses.
+    public var allClassMethods: [ObjCMethodInfo] {
+        allClasses.flatMap({$0.classMethods}).uniqued(by: \.name)
+    }
+    
+    /// List of protocols to which the class and it's superclasses conform to.
+    public var allProtocols: [ObjCProtocolInfo] {
+        allClasses.flatMap({$0.protocols}).uniqued(by: \.name)
+    }
+    
     /// Returns the Objective-C type of the instance prperty at the specified key path.
     public func propertyType(at keyPath: String) -> ObjCType? {
-        var keys = keyPath.components(separatedBy: ".")
-        guard let key = keys.removeFirstSafetly(), let property = property(named: key) else { return nil }
-        return resolve(type: property.type, keys: keys, isInstance: true)?.normalized
+        propertyType(for: keyPath.components(separatedBy: "."), isInstance: true)
     }
     
     /// Returns the Objective-C type of the class prperty at the specified key path.
     public func classPropertyType(at keyPath: String) -> ObjCType? {
-        var keys = keyPath.components(separatedBy: ".")
-        guard let key = keys.removeFirstSafetly(), let property = classProperty(named: key) else { return nil }
-        return resolve(type: property.type, keys: keys, isInstance: false)?.normalized
+        propertyType(for: keyPath.components(separatedBy: "."), isInstance: false)
     }
 
+    private func propertyType(for keys: [String], isInstance: Bool) -> ObjCType? {
+        var keys = keys
+        guard let key = keys.removeFirstSafetly() else { return nil }
+        if let property = isInstance ? property(named: key) : classProperty(named: key) {
+            return resolve(type: property.type.normalized, keys: keys, isInstance: isInstance)?.normalized
+        }
+        if (isInstance ? method(named: key) : classMethod(named: key)) != nil {
+            return resolve(type: .unknown, keys: keys, isInstance: isInstance)
+        }
+        return nil
+    }
+    
     private func resolve(type: ObjCType, keys: [String], isInstance: Bool) -> ObjCType? {
         guard !keys.isEmpty else { return type }
         var keys = keys
         let key = keys.removeFirst()
         switch type {
         case .object(name: let name):
-            guard let name = name else { return nil }
-            let classInfo = name == self.name ? self : ObjCClassInfo(name)
-            if let classInfo = classInfo, let property = isInstance ? classInfo.property(named: key) : classInfo.classProperty(named: key) {
-                return classInfo.resolve(type: property.type.normalized, keys: keys, isInstance: isInstance)
-            }
-            if let classInfo = classInfo, classInfo.respondsToGetter(named: key, isInstance: isInstance) {
-                return classInfo.resolve(type: .unknown, keys: keys, isInstance: isInstance)
-            }
-            return nil
+            guard let name = name, let classInfo = name == self.name ? self : ObjCClassInfo(name) else { return nil }
+            return classInfo.propertyType(for: key + keys, isInstance: isInstance)
         case .struct(_, fields: let fields):
             guard let type = fields?.first(where: { $0.name == key })?.type else { return nil }
             return resolve(type: type.normalized, keys: keys, isInstance: isInstance)
-        case .pointer(type: let pointee):
-            return resolve(type: pointee.normalized, keys: keys, isInstance: isInstance)
-        case .modified(_, type: let underlying):
-            return resolve(type: underlying.normalized, keys: keys, isInstance: isInstance)
+        case .pointer(type: let type), .modified(_, type: let type):
+            return resolve(type: type.normalized, keys: keys, isInstance: isInstance)
         default:
-           return keys .isEmpty ? type : nil
+           return keys.isEmpty ? type : nil
         }
     }
     
-    private func respondsToGetter(named key: String, isInstance: Bool) -> Bool {
-        if let property = (isInstance ? properties : classProperties).first(where: { $0.name == key }) {
-            return (isInstance ? methods : classMethods).contains(where: { $0.name == property.getterName })
-        }
-        if (isInstance ? methods : classMethods).contains(where: { $0.name == key }) {
-            return true
-        }
-        return superClassInfo?.respondsToGetter(named: key, isInstance: isInstance) ?? false
+    private var allClasses: [ObjCClassInfo] {
+        Array(first: self, next: { $0.superClass.flatMap({ $0 != NSObject.self ? ObjCClassInfo($0) : nil }) })
     }
 }
 
@@ -427,11 +455,8 @@ extension ObjCClassInfo {
             guard let metaclass = object_getClass(cls) else { return [] }
             cls = metaclass
         }
-        var classes = [cls]
-        if includeSuperclasses {
-            classes += Array(first: cls.superclass(), next: {  $0?.superclass().map({ $0 != NSObject.self ? $0 : nil }) }).nonNil
-        }
-        return classes
+        guard includeSuperclasses else { return [cls] }
+        return Array(first: cls, next: { $0.superclass().flatMap({ $0 != NSObject.self ? $0 : nil }) })
     }
 }
 
@@ -495,31 +520,3 @@ extension NSObjectProtocol where Self: NSObject {
         ObjCClassInfo.methods(of: self, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
     }
 }
-
-/*
-extension ObjCClassInfo {
-    public func property(named name: String) -> ObjCPropertyInfo? {
-        property(where: { $0.name == name })
-    }
-    
-    public func property(for selector: Selector) -> ObjCPropertyInfo?  {
-       property(where: { $0.getter == selector || $0.setter == selector })
-    }
-    
-    public func property(where predicate: (ObjCPropertyInfo) throws -> Bool) rethrows -> ObjCPropertyInfo? {
-        try properties.first(where: predicate) ?? superClassInfo?.property(where: predicate)
-    }
-    
-    public func method(named name: String) -> ObjCMethodInfo? {
-        method(where: { $0.name == name })
-    }
-    
-    public func method(for selector: Selector) -> ObjCMethodInfo? {
-        method(named: selector.string)
-    }
-    
-    public func method(where predicate: (ObjCMethodInfo) throws -> Bool) rethrows -> ObjCMethodInfo? {
-        try methods.first(where: predicate) ?? superClassInfo?.method(where: predicate)
-    }
-}
-*/

@@ -92,12 +92,7 @@ public extension Sequence {
         if !keepLast {
             return try filter { seen.insert(try keyForValue($0)).inserted }
         }
-        var result: [Element] = []
-        for element in reversed() {
-            let key = try keyForValue(element)
-            if seen.insert(key).inserted { result.append(element) }
-        }
-        return result.reversed()
+        return try reversed().filter { seen.insert(try keyForValue($0)).inserted }.reversed()
     }
 }
 
