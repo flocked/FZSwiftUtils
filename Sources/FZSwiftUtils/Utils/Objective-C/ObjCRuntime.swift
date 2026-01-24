@@ -125,6 +125,7 @@ public struct ObjCRuntime {
      }
      ```
      */
+    @_disfavoredOverload
     @discardableResult
     public static func catchException<T>(_ tryBlock: @autoclosure () throws -> T) throws -> T {
         try catchException(tryBlock)
@@ -154,7 +155,6 @@ public struct ObjCRuntime {
      }
      ```
      */
-    @_disfavoredOverload
     @discardableResult
     public static func catchException<T>(_ tryBlock: () throws -> T) throws -> T {
         var result: Result<T, Error>!

@@ -32,11 +32,11 @@ open class NSObjectProxy<Object: NSObject>: ObjectProxy {
 
 extension NSObjectProtocol where Self: NSObject {
     /**
-     A proxy  of the object that lcan perform methods that might hrow an Objective-C `NSException` and crash.
+     A proxy  of the object that can perform methods that might hrow an Objective-C `NSException` and crash.
      
      This property allows safer bridging of Objective-C code into Swift, where exceptions cannot be caught and crash the application.
      
-     It's a convient way of using NSObject `catchException`.
+     It's a convient way of using `ObjCRunTime.catchException(_:)`.
      */
     public var safe: Self {
         SafeObjectProxy(object: self).asObject()
