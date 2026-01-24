@@ -156,33 +156,44 @@ public extension NSObject {
 
     /// Returns the value of the instance variable with the specified name.
     func ivarValue<T>(named name: String, as type: T.Type = T.self, verifyType:  Bool = false) -> T? {
-        guard let ivar = Self.instanceVariable(named: name), let ivarInfo = ObjCIvarInfo(ivar), MemoryLayout<T>.size == ivarInfo.size else { return nil }
+        guard let ivar = Self.instanceVariable(named: name), let ivarInfo = ObjCIvarInfo(ivar), MemoryLayout<T>.stride <= ivarInfo.size else { return nil }
         if verifyType { guard ivarInfo.type?.matches(T.self) == true else { return nil } }
         switch ivarInfo.typeEncoding.first {
         case "@", "#", ":":
             return object_getIvar(self, ivar) as? T
         default:
-            let basePtr = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: ivarInfo.offset)
+            let pointer = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: ivarInfo.offset)
             if T.self == UnsafeRawPointer.self {
-                return basePtr as? T
+                return pointer as? T
             }
             if T.self == UnsafeMutableRawPointer.self {
-                return UnsafeMutableRawPointer(mutating: basePtr) as? T
+                return UnsafeMutableRawPointer(mutating: pointer) as? T
             }
-            return basePtr.load(as: T.self)
+            if T.self == Bool.self {
+                return pointer.load(as: ObjCBool.self).boolValue as? T
+            }
+            return pointer.load(as: T.self)
         }
     }
- 
+     
     /// Sets the value of the instance variable with the specified name.
     func setIvarValue<T>(_ value: T, named name: String, verifyType:  Bool = false) {
-        guard let ivar = Self.instanceVariable(named: name), let ivarInfo = ObjCIvarInfo(ivar), MemoryLayout<T>.size == ivarInfo.size else { return }
+        guard let ivar = Self.instanceVariable(named: name), let ivarInfo = ObjCIvarInfo(ivar), MemoryLayout<T>.stride <= ivarInfo.size else { return }
         if verifyType { guard ivarInfo.type?.matches(T.self) == true else { return } }
         switch ivarInfo.typeEncoding.first {
         case "@", "#", ":":
             object_setIvar(self, ivar, value as AnyObject)
         default:
-            Unmanaged.passUnretained(self).toOpaque().advanced(by: ivarInfo.offset)
-                .assumingMemoryBound(to: T.self).pointee = value
+            let pointer = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()).advanced(by: ivarInfo.offset)
+            if T.self == Bool.self, let boolValue = value as? Bool {
+                pointer.storeBytes(of: ObjCBool(boolValue), as: ObjCBool.self)
+            } else if T.self == UnsafeRawPointer.self {
+                pointer.storeBytes(of: value as! UnsafeRawPointer, as: UnsafeRawPointer.self)
+            }  else if T.self == UnsafeMutableRawPointer.self {
+                pointer.storeBytes(of: value as! UnsafeMutableRawPointer, as: UnsafeMutableRawPointer.self)
+            }  else {
+                pointer.storeBytes(of: value, as: T.self)
+            }
         }
     }
     
@@ -271,7 +282,7 @@ public extension NSObjectProtocol where Self: NSObject {
         - includeNested: A Boolean value indicating whether to include nested subclasses.
         - sorted: A Boolean value indicating whether the subclasses should be sorted by name.
      */
-   static func subclasses(includeNested: Bool = false, sorted: Bool = false) -> [Self.Type] {
+    static func subclasses(includeNested: Bool = false, sorted: Bool = false) -> [Self.Type] {
         ObjCRuntime.subclasses(of: self, includeNested: includeNested, sorted: sorted)
     }
 }
