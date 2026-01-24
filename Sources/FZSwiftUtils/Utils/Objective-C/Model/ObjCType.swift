@@ -612,8 +612,8 @@ extension ObjCType {
         case .block: return swiftType is AnyObject.Type ? true : nil
         case .functionPointer: return nil
         case .struct(name: let name, fields: _):
-            guard let name = name else { return nil }
-            return String(reflecting: swiftType).components(separatedBy: ".").last == name
+            guard let name = name, let swiftName = String(reflecting: swiftType).components(separatedBy: ".").last else { return nil }
+            return swiftName == name || swiftName.removingSuffix("Ref") == name
         case .union, .array, .bitField:
             return nil
         case .selector: return swiftType == Selector.self
