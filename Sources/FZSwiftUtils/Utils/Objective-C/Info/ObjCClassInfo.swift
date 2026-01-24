@@ -94,19 +94,25 @@ public struct ObjCClassInfo: Sendable {
         - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
      */
     public init(_ cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) {
-        self.init(
-            name: NSStringFromClass(cls),
-            version: class_getVersion(cls),
-            imageName: class_getImageName(cls).flatMap({ String(cString: $0) }),
-            instanceSize: class_getInstanceSize(cls),
-            superClass: class_getSuperclass(cls),
-            protocols: Self.protocols(of: cls, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols),
-            ivars: Self.ivars(of: cls),
-            classProperties: Self.properties(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses),
-            properties: Self.properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses),
-            classMethods: Self.methods(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses),
-            methods: Self.methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
-        )
+        let key = Key(cls, includeSuperclasses, includeInheritedProtocols)
+        if let info = Self.cache[key] {
+            self = info
+        } else {
+            self.init(
+                name: NSStringFromClass(cls),
+                version: class_getVersion(cls),
+                imageName: class_getImageName(cls).flatMap({ String(cString: $0) }),
+                instanceSize: class_getInstanceSize(cls),
+                superClass: class_getSuperclass(cls),
+                protocols: Self.protocols(of: cls, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols),
+                ivars: Self.ivars(of: cls),
+                classProperties: Self.properties(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses),
+                properties: Self.properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses),
+                classMethods: Self.methods(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses),
+                methods: Self.methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+            )
+            Self.cache[key] = self
+        }
     }
     
     /**
@@ -122,6 +128,19 @@ public struct ObjCClassInfo: Sendable {
         guard let cls = NSClassFromString(className) else { return nil }
         self.init(cls, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
     }
+    
+    private struct Key: Hashable {
+        let id: ObjectIdentifier
+        let includeSuperclasses: Bool
+        let includeInheritedProtocols: Bool
+        init(_ cls: AnyClass, _ includeSuperclasses: Bool, _ includeInheritedProtocols: Bool) {
+            self.id = ObjectIdentifier(cls)
+            self.includeSuperclasses = includeSuperclasses
+            self.includeInheritedProtocols = includeInheritedProtocols
+        }
+    }
+    
+    private static var cache: SynchronizedDictionary<Key, Self> = [:]
 }
 
 extension ObjCClassInfo: CustomStringConvertible, Equatable {
@@ -165,6 +184,84 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
 }
 
 extension ObjCClassInfo {
+    /// Returns the instance property with the specified name.
+    public func property(named name: String) -> ObjCPropertyInfo? {
+        properties.first(where: { $0.name == name }) ?? superClassInfo?.property(named: name)
+    }
+    
+    /// Returns the class property with the specified name.
+    public func classProperty(named name: String) -> ObjCPropertyInfo? {
+        classProperties.first(where: { $0.name == name }) ?? superClassInfo?.classProperty(named: name)
+    }
+    
+    /// Returns the instance method with the specified name.
+    public func method(named name: String) -> ObjCMethodInfo? {
+        methods.first(where: { $0.name == name }) ?? superClassInfo?.method(named: name)
+    }
+    
+    /// Returns the class method with the specified name.
+    public func classMethod(named name: String) -> ObjCMethodInfo? {
+        classMethods.first(where: { $0.name == name }) ?? superClassInfo?.classMethod(named: name)
+    }
+    
+    /// Returns the instance variable with the specified name.
+    public func ivar(named name: String) -> ObjCIvarInfo? {
+        ivars.first(where: { $0.name == name }) ?? superClassInfo?.ivar(named: name)
+    }
+    
+    /// Returns the Objective-C type of the instance prperty at the specified key path.
+    public func propertyType(at keyPath: String) -> ObjCType? {
+        var keys = keyPath.components(separatedBy: ".")
+        guard let key = keys.removeFirstSafetly(), let property = property(named: key) else { return nil }
+        return resolve(type: property.type, keys: keys, isInstance: true)?.normalized
+    }
+    
+    /// Returns the Objective-C type of the class prperty at the specified key path.
+    public func classPropertyType(at keyPath: String) -> ObjCType? {
+        var keys = keyPath.components(separatedBy: ".")
+        guard let key = keys.removeFirstSafetly(), let property = classProperty(named: key) else { return nil }
+        return resolve(type: property.type, keys: keys, isInstance: false)?.normalized
+    }
+
+    private func resolve(type: ObjCType, keys: [String], isInstance: Bool) -> ObjCType? {
+        guard !keys.isEmpty else { return type }
+        var keys = keys
+        let key = keys.removeFirst()
+        switch type {
+        case .object(name: let name):
+            guard let name = name else { return nil }
+            let classInfo = name == self.name ? self : ObjCClassInfo(name)
+            if let classInfo = classInfo, let property = isInstance ? classInfo.property(named: key) : classInfo.classProperty(named: key) {
+                return classInfo.resolve(type: property.type.normalized, keys: keys, isInstance: isInstance)
+            }
+            if let classInfo = classInfo, classInfo.respondsToGetter(named: key, isInstance: isInstance) {
+                return classInfo.resolve(type: .unknown, keys: keys, isInstance: isInstance)
+            }
+            return nil
+        case .struct(_, fields: let fields):
+            guard let type = fields?.first(where: { $0.name == key })?.type else { return nil }
+            return resolve(type: type.normalized, keys: keys, isInstance: isInstance)
+        case .pointer(type: let pointee):
+            return resolve(type: pointee.normalized, keys: keys, isInstance: isInstance)
+        case .modified(_, type: let underlying):
+            return resolve(type: underlying.normalized, keys: keys, isInstance: isInstance)
+        default:
+           return keys .isEmpty ? type : nil
+        }
+    }
+    
+    private func respondsToGetter(named key: String, isInstance: Bool) -> Bool {
+        if let property = (isInstance ? properties : classProperties).first(where: { $0.name == key }) {
+            return (isInstance ? methods : classMethods).contains(where: { $0.name == property.getterName })
+        }
+        if (isInstance ? methods : classMethods).contains(where: { $0.name == key }) {
+            return true
+        }
+        return superClassInfo?.respondsToGetter(named: key, isInstance: isInstance) ?? false
+    }
+}
+
+extension ObjCClassInfo {
     /**
      Returns tthe protocols adopted by the specified class.
 
@@ -198,6 +295,20 @@ extension ObjCClassInfo {
         }
         return protocols
     }
+    
+    /**
+     Returns tthe protocols adopted by the specified class.
+
+     - Parameters:
+       - cls: The class for which the protocols are to be obtained.
+       - includeSuperclasses: A Boolean value indicating whether to include protocols adopted by the superclasses of `cls`.
+       - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
+     - Returns: An array of `ObjCProtocolInfo` objects representing the protocols adopted by the class.
+     */
+    public static func protocols(of cls: String, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [ObjCProtocolInfo]? {
+        guard let cls = NSClassFromString(cls) else { return nil }
+        return protocols(of: cls, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
+    }
 
     /**
      Returns the instance or class variables of the specified class.
@@ -219,6 +330,20 @@ extension ObjCClassInfo {
                 if let name = ivar_getName($0)?.string, seen.insert(name).inserted { return ObjCIvarInfo($0) } else { return nil } }
         }
         return ivars
+    }
+    
+    /**
+     Returns the instance or class variables of the specified class.
+
+     - Parameters:
+        - cls: The class for which instance variables are to be obtained.
+        - isInstance: A Boolean value indicating whether to return instance variables (`true`) or class variables (`false`).
+        - includeSuperclasses: A Boolean value indicating whether to include variables for the superclasses of `cls`.
+     - Returns: An array of `ObjCIvarInfo` objects representing the instance variables of the class.
+     */
+    public static func ivars(of cls: String, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCIvarInfo]? {
+        guard let cls = NSClassFromString(cls) else { return nil }
+        return ivars(of: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
     }
     
     /**
@@ -244,6 +369,20 @@ extension ObjCClassInfo {
     }
     
     /**
+     Returns the instance or class properties of the specified class.
+
+     - Parameters:
+        - cls: The class for which properties are to be obtained.
+        - isInstance: A Boolean value indicating whether to return instance properties (`true`) or class properties (`false`).
+        - includeSuperclasses: A Boolean value indicating whether to include properties for the superclasses of `cls`.
+     - Returns: An array of `ObjCPropertyInfo` objects representing the properties of the class.
+     */
+    public static func properties(of cls: String, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo]? {
+        guard let cls = NSClassFromString(cls) else { return nil }
+        return properties(of: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
+    }
+    
+    /**
      Returns the instance or class methods of the specified class.
 
      - Parameters:
@@ -263,6 +402,20 @@ extension ObjCClassInfo {
                 seen.insert(method_getName($0)).inserted ? ObjCMethodInfo($0, isClassMethod: !isInstance) : nil })
         }
         return methods
+    }
+    
+    /**
+     Returns the instance or class methods of the specified class.
+
+     - Parameters:
+        - cls: The class for which methods are to be obtained.
+        - isInstance: A Boolean value indicating whether to return instance methods (`true`) or class methods (`false`).
+        - includeSuperclasses: A Boolean value indicating whether to include methods for the superclasses of `cls`.
+     - Returns: An array of `ObjCMethodInfo` objects representing the methods of the class.
+     */
+    public static func methods(of cls: String, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCMethodInfo]? {
+        guard let cls = NSClassFromString(cls) else { return nil }
+        return methods(of: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
     }
     
     private static let skipClasses: Set<String> = ["__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport"]

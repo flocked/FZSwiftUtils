@@ -239,7 +239,7 @@ extension ObjCType: CustomStringConvertible {
         case .unknown: return "unknown"
         case .charPtr: return "UnsafePointer<CChar>"
         case .atom: return "Int" // assuming atomic integer type
-        case .object(let name): return name ?? "AnyObject"
+        case .object(let name): return swiftTypeName ?? name ?? "AnyObject"
         case .block(let returnType, let args):
             let argsString = args?.map { $0.description }.joined(separator: ", ") ?? ""
             let returnString = returnType?.description ?? "Void"
@@ -459,6 +459,28 @@ extension ObjCType {
         default: return .struct
         }
     }
+    
+    var normalized: ObjCType {
+        switch self {
+        case .pointer(let t), .modified(_, let t): return t.normalized
+        default: return self
+        }
+    }
+    
+    /// The raw Objective-C runtime name (may be Swift-mangled)
+    public var objcRuntimeName: String? {
+        switch self {
+        case .object(let name): return name
+        default: return nil
+        }
+    }
+
+    /// A demangled, human-readable Swift type name (for UI / logging only)
+    public var swiftTypeName: String? {
+        guard let name = objcRuntimeName else { return nil }
+        guard name.hasPrefix("_Tt"), let cls = NSClassFromString(name) else { return name }
+        return String(reflecting: cls)
+    }
 }
 
 fileprivate let simpleTypes: [Character: ObjCType] = [
@@ -570,28 +592,23 @@ extension ObjCType {
         case .longLong: return swiftType == Int64.self || swiftType == CLongLong.self
         case .ulongLong: return swiftType == UInt64.self || swiftType == CUnsignedLongLong.self
         case .int128:
-            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == Int128.self }
-            return nil
+            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == Int128.self } else { return nil }
         case .uint128:
-            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == UInt128.self }
-            return nil
+            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == UInt128.self } else { return nil }
         case .float: return swiftType == Float.self
         case .double: return swiftType == Double.self
         case .longDouble: return swiftType == Double.self
         case .bool: return swiftType == Bool.self || swiftType == ObjCBool.self
         case .void, .voidConst, .voidIn: return swiftType == Void.self
         case .charPtr:
-            return swiftType == UnsafePointer<CChar>.self ||
-                   swiftType == UnsafeMutablePointer<CChar>.self ||
-                   swiftType == UnsafePointer<Int8>.self ||
-                   swiftType == UnsafeMutablePointer<Int8>.self
+            return swiftType == UnsafePointer<CChar>.self || swiftType == UnsafeMutablePointer<CChar>.self || swiftType == UnsafePointer<Int8>.self || swiftType == UnsafeMutablePointer<Int8>.self
         case .pointer(let type):
             guard let pointerType = swiftType as? PointerType.Type else { return false }
             return type.matches(pointerType.pointeeType)
         case let .object(name):
             guard let cls = swiftType as? AnyClass else { return false }
             guard let name else { return true }
-            return NSStringFromClass(cls).components(separatedBy: ".").last == name
+            return NSClassFromString(name) == cls
         case .block: return swiftType is AnyObject.Type ? true : nil
         case .functionPointer: return nil
         case .struct(name: let name, fields: _):

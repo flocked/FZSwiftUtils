@@ -79,18 +79,24 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable {
      - Parameter protocol: The protocol of the target for which information is to be obtained.
      */
     public init(_ `protocol`: Protocol) {
-        self.init(
-            name: String(cString: protocol_getName(`protocol`)),
-            protocols: Self.protocols(of: `protocol`),
-            classProperties: Self.properties(of: `protocol`, isRequired: true, isInstance: false),
-            properties:  Self.properties(of: `protocol`, isRequired: true, isInstance: true),
-            classMethods: Self.methods(of: `protocol`, isRequired: true, isInstance: false),
-            methods: Self.methods(of: `protocol`, isRequired: true, isInstance: true),
-            optionalClassProperties: Self.properties(of: `protocol`, isRequired: false, isInstance: false),
-            optionalProperties:  Self.properties(of: `protocol`, isRequired: false, isInstance: true),
-            optionalClassMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: false),
-            optionalMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: true)
-        )
+        let name = String(cString: protocol_getName(`protocol`))
+        if let info = Self.cache[name] {
+            self = info
+        } else {
+            self.init(
+                name: name,
+                protocols: Self.protocols(of: `protocol`),
+                classProperties: Self.properties(of: `protocol`, isRequired: true, isInstance: false),
+                properties:  Self.properties(of: `protocol`, isRequired: true, isInstance: true),
+                classMethods: Self.methods(of: `protocol`, isRequired: true, isInstance: false),
+                methods: Self.methods(of: `protocol`, isRequired: true, isInstance: true),
+                optionalClassProperties: Self.properties(of: `protocol`, isRequired: false, isInstance: false),
+                optionalProperties:  Self.properties(of: `protocol`, isRequired: false, isInstance: true),
+                optionalClassMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: false),
+                optionalMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: true)
+            )
+            Self.cache[name] = self
+        }
     }
     
     /**
@@ -103,6 +109,8 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable {
         guard let proto = NSProtocolFromString(protocolName) else { return nil }
         self.init(proto)
     }
+    
+    private static var cache: SynchronizedDictionary<String, Self> = [:]
 }
 
 extension ObjCProtocolInfo: CustomStringConvertible {
