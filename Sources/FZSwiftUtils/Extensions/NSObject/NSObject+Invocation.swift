@@ -1,6 +1,6 @@
 //
 //  NSObject+Invocation.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 12.07.25.
 //

@@ -1,6 +1,6 @@
 //
 //  HTTPCookie+.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 09.01.26.
 //

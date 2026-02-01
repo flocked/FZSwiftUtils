@@ -1,6 +1,6 @@
 //
 //  Hook+Deinit.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 11.05.25.
 //

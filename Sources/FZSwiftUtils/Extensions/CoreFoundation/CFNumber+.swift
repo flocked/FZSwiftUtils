@@ -1,6 +1,6 @@
 //
 //  CFNumber+.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 05.12.25.
 //

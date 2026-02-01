@@ -1,6 +1,6 @@
 //
 //  Hook+Closure.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 12.08.25.
 //

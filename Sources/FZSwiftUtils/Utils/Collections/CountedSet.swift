@@ -1,6 +1,6 @@
 //
 //  CountedSet.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 23.01.26.
 //

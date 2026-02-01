@@ -1,6 +1,6 @@
 //
 //  NSObject+ExceptionCatcher.h
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 05.04.25.
 //
