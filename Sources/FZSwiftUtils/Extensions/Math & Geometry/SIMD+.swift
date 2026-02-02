@@ -19,45 +19,69 @@ extension SIMD64: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
 public extension SIMDStorage {
     /// The scalars of the vector.
     var scalars: [Scalar] {
-        (0..<scalarCount).map({self[$0]})
+        get { (0..<scalarCount).map({ self[$0] }) }
     }
     
-    /// The scalar at the specified index.
+    /// The valid indices for subscripting the vector.
+    public static var indices: Range<Int> { 0..<scalarCount }
+    
+    /// Accesses the element at the specified index.
     subscript(safe index: Int) -> Scalar? {
-        index >= 0 && index < scalarCount ? self[index] : nil
+        get { index >= 0 && index < scalarCount ? self[index] : nil }
+        set {
+            guard index >= 0, index < scalarCount, let newValue else { return }
+            self[index] = newValue
+        }
     }
     
-    /// The scalars in the specified range.
+    /// Accesses the elements in the specified range.
     subscript(range: Range<Int>) -> [Scalar] {
-        range.compactMap({self[safe: $0]})
+        get { range.compactMap({ self[safe: $0] }) }
+        set { zip(range, newValue).forEach { self[safe: $0] = $1 } }
     }
     
-    /// The scalars in the specified range.
+    /// Accesses the elements in the specified range.
     subscript(range: ClosedRange<Int>) -> [Scalar] {
-        range.compactMap({self[safe: $0]})
+        get { range.compactMap({ self[safe: $0] }) }
+        set { zip(range, newValue).forEach { self[safe: $0] = $1 } }
     }
     
-    /// The scalars in the specified range.
+    /// Accesses the elements in the specified range.
     subscript(range: PartialRangeFrom<Int>) -> [Scalar] {
-        (range.lowerBound..<scalarCount).compactMap { self[safe: $0] }
+        get { self[range.lowerBound..<scalarCount] }
+        set { self[range.lowerBound..<scalarCount] = newValue }
     }
     
-    /// The scalars in the specified range.
+    /// Accesses the elements in the specified range.
     subscript(range: PartialRangeUpTo<Int>) -> [Scalar] {
-        self[0..<range.upperBound]
+        get { self[0..<range.upperBound] }
+        set { self[0..<range.upperBound] = newValue }
     }
     
-    /// The scalars in the specified range.
+    /// Accesses the elements in the specified range.
     subscript(range: PartialRangeThrough<Int>) -> [Scalar] {
-        self[0...range.upperBound]
+        get { self[0...range.upperBound] }
+        set { self[0...range.upperBound] = newValue }
+    }
+}
+
+public extension SIMDStorage where Scalar: AdditiveArithmetic {
+    /// The scalars of the vector.
+    var scalars: [Scalar] {
+        get { (0..<scalarCount).map({ self[$0] }) }
+        set {
+            var newValue = newValue.prefix(scalarCount)
+            newValue = newValue + Array(repeating: .zero, count: scalarCount-newValue.count)
+            zip(Self.indices, newValue).forEach({ self[$0] = $1 })
+        }
     }
 }
 
 public extension SIMD where Scalar: AdditiveArithmetic & SIMDScalar {
     /// Creates a vector from the given scalars, truncating to `scalarCount` if too long or padding with `zero` scalars if too short.
     init(padded scalars: [Scalar]) {
-        let padded = scalars.prefix(Self.scalarCount)
-        self.init(padded + Array(repeating: .zero, count: Self.scalarCount-padded.count))
+        let scalars = scalars.prefix(Self.scalarCount)
+        self.init(scalars + Array(repeating: .zero, count: Self.scalarCount-scalars.count))
     }
     
     /// Creates a vector from the given vector.
@@ -3052,3 +3076,109 @@ extension SIMD64: SwiftUI.VectorArithmetic where Scalar == Double {
         lowHalf.magnitudeSquared + highHalf.magnitudeSquared
     }
 }
+
+/*
+extension SIMD8 where Scalar: AdditiveArithmetic {
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar) {
+        self.init(v0, v1, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar) {
+        self.init(v0, v1, v2, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar) {
+        self.init(v0, v1, v2, v3, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar) {
+        self.init(v0, v1, v2, v3, v4, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, .zero)
+    }
+}
+
+extension SIMD16 where Scalar: AdditiveArithmetic {
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar) {
+        self.init(v0, v1, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar) {
+        self.init(v0, v1, v2, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar) {
+        self.init(v0, v1, v2, v3, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar) {
+        self.init(v0, v1, v2, v3, v4, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, .zero, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, .zero, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, .zero, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar, _ v12: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, .zero, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar, _ v12: Scalar, _ v13: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, .zero, .zero)
+    }
+    
+    /// Creates a new vector from the given elements.
+    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar, _ v12: Scalar, _ v13: Scalar, _ v14: Scalar) {
+        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, .zero)
+    }
+}
+*/
