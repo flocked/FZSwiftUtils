@@ -13,6 +13,6 @@ public protocol FloatingPointInitializable: FloatingPoint & ExpressibleByFloatLi
     init(_ value: Double)
 }
 
-extension Float: FloatingPointInitializable {}
-extension Double: FloatingPointInitializable {}
-extension CGFloat: FloatingPointInitializable {}
+extension Float: FloatingPointInitializable { }
+extension Double: FloatingPointInitializable { }
+extension CGFloat: FloatingPointInitializable { }

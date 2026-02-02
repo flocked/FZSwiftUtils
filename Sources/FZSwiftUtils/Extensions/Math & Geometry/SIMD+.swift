@@ -381,24 +381,18 @@ extension SIMD2 where Scalar == Double {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
     
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -646,24 +640,18 @@ extension SIMD2 where Scalar == Float {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -1049,24 +1037,18 @@ extension SIMD3 where Scalar == Double {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -1317,24 +1299,18 @@ extension SIMD3 where Scalar == Float {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -1730,24 +1706,18 @@ extension SIMD4 where Scalar == Double {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -1948,24 +1918,18 @@ extension SIMD4 where Scalar == Float {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -2311,24 +2275,18 @@ extension SIMD8 where Scalar == Double {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -2529,24 +2487,18 @@ extension SIMD8 where Scalar == Float {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
     public func interpolated(towards other: Self, amount: Self) -> Self {
@@ -2885,21 +2837,16 @@ extension SIMD16 where Scalar == Double {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func stepped(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
+    public func stepped(at edge: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: edge.lowHalf), highHalf: highHalf.stepped(at: edge.highHalf))
     }
     
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(from: lower.lowHalf, to: upper.lowHalf), highHalf: highHalf.steppedSmoothly(from: lower.highHalf, to: upper.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
@@ -3096,22 +3043,16 @@ extension SIMD16 where Scalar == Float {
         simd_max(self, other)
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
     @inlinable
-    public func stepped(at x: Self) -> Self {
-        simd_step(self, x)
+    public func stepped(at edge: Self) -> Self {
+        simd_step(self, edge)
     }
         
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
     @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-        simd_smoothstep(self, other, amount)
-    }
-
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    @inlinable
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        simd_smoothstep(self, other, Self(repeating: amount))
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        simd_smoothstep(lower, upper, self)
     }
     
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
@@ -3432,21 +3373,16 @@ extension SIMD32 where Scalar == Double {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func stepped(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
+    public func stepped(at edge: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: edge.lowHalf), highHalf: highHalf.stepped(at: edge.highHalf))
     }
     
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(from: lower.lowHalf, to: upper.lowHalf), highHalf: highHalf.steppedSmoothly(from: lower.highHalf, to: upper.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
-    }
-    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
@@ -3636,19 +3572,14 @@ extension SIMD32 where Scalar == Float {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func stepped(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
+    public func stepped(at edge: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: edge.lowHalf), highHalf: highHalf.stepped(at: edge.highHalf))
     }
     
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
-    }
-
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(from: lower.lowHalf, to: upper.lowHalf), highHalf: highHalf.steppedSmoothly(from: lower.highHalf, to: upper.highHalf))
     }
     
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
@@ -3965,21 +3896,16 @@ extension SIMD64 where Scalar == Double {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
-    /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func stepped(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
-    }
-    
-    /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
-         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    /// Returns a vector where each scalar is `0` if below the corresponding scalar in the specified vector, or `1` otherwise.
+    public func stepped(at edge: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: edge.lowHalf), highHalf: highHalf.stepped(at: edge.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
-    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
-        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
+    /// Returns a vector smoothly mapped from `0` to `1` between the specified vectors.
+    public func steppedSmoothly(from lower: Self, to upper: Self) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(from: lower.lowHalf, to: upper.lowHalf), highHalf: highHalf.steppedSmoothly(from: lower.highHalf, to: upper.highHalf))
     }
-    
+
     /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
