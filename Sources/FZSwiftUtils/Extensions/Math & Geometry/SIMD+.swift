@@ -724,6 +724,7 @@ extension SIMD2 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD2 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     @inlinable
@@ -743,6 +744,7 @@ extension SIMD2 where Scalar == Int {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD2 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -804,6 +806,7 @@ extension SIMD2 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD2 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
@@ -817,6 +820,7 @@ extension SIMD2 where Scalar == UInt {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD2 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
@@ -1386,6 +1390,7 @@ extension SIMD3 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD3 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     @inlinable
@@ -1405,6 +1410,7 @@ extension SIMD3 where Scalar == Int {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD3 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -1466,6 +1472,7 @@ extension SIMD3 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD3 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
@@ -1479,6 +1486,7 @@ extension SIMD3 where Scalar == UInt {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD3 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
@@ -1955,6 +1963,7 @@ extension SIMD4 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD4 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     @inlinable
@@ -1974,6 +1983,7 @@ extension SIMD4 where Scalar == Int {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD4 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -2035,6 +2045,7 @@ extension SIMD4 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD4 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
@@ -2048,6 +2059,7 @@ extension SIMD4 where Scalar == UInt {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD4 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
@@ -2524,6 +2536,7 @@ extension SIMD8 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD8 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     @inlinable
@@ -2543,6 +2556,7 @@ extension SIMD8 where Scalar == Int {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD8 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -2604,6 +2618,7 @@ extension SIMD8 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD8 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
@@ -2617,6 +2632,7 @@ extension SIMD8 where Scalar == UInt {
         simd_max(self, other)
     }
 }
+#endif
 
 extension SIMD8 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
@@ -3080,6 +3096,7 @@ extension SIMD16 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD16 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     public var abs: Self {
@@ -3096,6 +3113,7 @@ extension SIMD16 where Scalar == Int {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
+#endif
 
 extension SIMD16 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -3148,6 +3166,7 @@ extension SIMD16 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD16 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     public func min(_ other: Self) -> Self {
@@ -3159,6 +3178,7 @@ extension SIMD16 where Scalar == UInt {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
+#endif
 
 extension SIMD16 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
@@ -3603,6 +3623,7 @@ extension SIMD32 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD32 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     public var abs: Self {
@@ -3619,6 +3640,7 @@ extension SIMD32 where Scalar == Int {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
+#endif
 
 extension SIMD32 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -3671,6 +3693,7 @@ extension SIMD32 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD32 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     public func min(_ other: Self) -> Self {
@@ -3682,6 +3705,7 @@ extension SIMD32 where Scalar == UInt {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
+#endif
 
 extension SIMD32 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
@@ -4017,6 +4041,7 @@ extension SIMD64 where Scalar == Float {
     }
 }
 
+#if !os(watchOS)
 extension SIMD64 where Scalar == Int {
     /// Returns a vector containing the absolute value of each scalar.
     public var abs: Self {
@@ -4033,6 +4058,7 @@ extension SIMD64 where Scalar == Int {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
+#endif
 
 extension SIMD64 where Scalar == Int8 {
     /// Returns a vector containing the absolute value of each scalar.
@@ -4085,6 +4111,7 @@ extension SIMD64 where Scalar == Int32 {
     }
 }
 
+#if !os(watchOS)
 extension SIMD64 where Scalar == UInt {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     public func min(_ other: Self) -> Self {
@@ -4096,6 +4123,7 @@ extension SIMD64 where Scalar == UInt {
         .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
+#endif
 
 extension SIMD64 where Scalar == UInt8 {
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
