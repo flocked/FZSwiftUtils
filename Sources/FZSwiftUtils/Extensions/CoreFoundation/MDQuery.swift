@@ -684,9 +684,9 @@ public extension Notification.Name {
          return value
      } else if let value = value as? Date {
          return value
-     } else if let number = CFNumber(value)?.asNS() {
+     } else if let number = CFNumber(value)?.asNS {
          return number.value
-     } else if let value = CFBoolean(value)?.asNS() {
+     } else if let value = CFBoolean(value)?.asNS {
          return value.boolValue
      } else if let value = value as? URL {
          return value

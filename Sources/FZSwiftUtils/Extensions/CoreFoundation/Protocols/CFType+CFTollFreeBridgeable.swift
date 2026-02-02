@@ -19,7 +19,7 @@ public protocol _CFTollFreeBridgeable: CFType, AnyObject {
 
 public extension _CFTollFreeBridgeable {
     /// Returns the `NSObject` based representation of the value.
-    func asNS() -> BridgedNSType {
+    var asNS: BridgedNSType {
         _bridgeToNS()
     }
     
