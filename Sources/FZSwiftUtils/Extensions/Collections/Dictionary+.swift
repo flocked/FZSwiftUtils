@@ -9,10 +9,10 @@ import Foundation
 
 public extension Dictionary {
     /// Edits each value in the dictionary.
-    mutating func editEach(_ body: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
+    mutating func editEach(_ transform: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
         for keyVal in self {
             var value = keyVal.value
-            try body(keyVal.key, &value)
+            try transform(keyVal.key, &value)
             self[keyVal.key] = value
         }
     }

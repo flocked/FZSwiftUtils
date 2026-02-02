@@ -8,22 +8,23 @@
 import simd
 import SwiftUI
 
-extension SIMD2: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
-extension SIMD3: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
-extension SIMD4: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
-extension SIMD8: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
-extension SIMD16: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
-extension SIMD32: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
-extension SIMD64: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+infix operator +* : MultiplicationPrecedence
+
+// MARK: - SIMDStorage
 
 public extension SIMDStorage {
     /// The scalars of the vector.
     var scalars: [Scalar] {
-        get { (0..<scalarCount).map({ self[$0] }) }
+        get { Self.indices.map({ self[$0] }) }
     }
     
     /// The valid indices for subscripting the vector.
-    public static var indices: Range<Int> { 0..<scalarCount }
+    static var indices: Range<Int> { 0..<scalarCount }
+    
+    /// Applies the given closure to each element of the vector in-place.
+    mutating func editEach(_ transform: (inout Scalar) throws -> Void) rethrows {
+        try Self.indices.forEach({ try transform(&self[$0]) })
+    }
     
     /// Accesses the element at the specified index.
     subscript(safe index: Int) -> Scalar? {
@@ -68,7 +69,7 @@ public extension SIMDStorage {
 public extension SIMDStorage where Scalar: AdditiveArithmetic {
     /// The scalars of the vector.
     var scalars: [Scalar] {
-        get { (0..<scalarCount).map({ self[$0] }) }
+        get { Self.indices.map({ self[$0] }) }
         set {
             var newValue = newValue.prefix(scalarCount)
             newValue = newValue + Array(repeating: .zero, count: scalarCount-newValue.count)
@@ -77,7 +78,48 @@ public extension SIMDStorage where Scalar: AdditiveArithmetic {
     }
 }
 
-public extension SIMD where Scalar: AdditiveArithmetic & SIMDScalar {
+// MARK: - SIMD
+
+extension SIMD2: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+extension SIMD3: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+extension SIMD4: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+extension SIMD8: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+extension SIMD16: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+extension SIMD32: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+extension SIMD64: Swift.AdditiveArithmetic where Scalar: BinaryFloatingPoint { }
+
+public extension SIMD {
+    /// Returns a new vector by applying the given transform to each element.
+    func map<E>(_ transform: (Scalar) throws(E) -> Scalar) throws(E) -> Self where E : Error {
+        Self(try scalars.map(transform))
+    }
+    
+    func clamped(to range: ClosedRange<Self>) -> Self where Scalar: Comparable {
+        clamped(lowerBound: range.lowerBound, upperBound: range.upperBound)
+    }
+    
+    func clamped(to range: ClosedRange<Self>) -> Self where Scalar: FloatingPoint {
+        clamped(lowerBound: range.lowerBound, upperBound: range.upperBound)
+    }
+    
+    func clamped(min: Self) -> Self where Scalar: Comparable {
+        .init(zip(scalars, min.scalars).map({ Swift.max($0, $1) }))
+    }
+    
+    func clamped(max: Self) -> Self where Scalar: Comparable {
+        .init(zip(scalars, max.scalars).map({ Swift.min($0, $1) }))
+    }
+    
+    mutating func clamp(to range: ClosedRange<Self>) where Scalar: Comparable {
+        clamp(lowerBound: range.lowerBound, upperBound: range.upperBound)
+    }
+    
+    mutating func clamp(to range: ClosedRange<Self>) where Scalar: FloatingPoint {
+        clamp(lowerBound: range.lowerBound, upperBound: range.upperBound)
+    }
+}
+
+public extension SIMD where Scalar: AdditiveArithmetic {
     /// Creates a vector from the given scalars, truncating to `scalarCount` if too long or padding with `zero` scalars if too short.
     init(padded scalars: [Scalar]) {
         let scalars = scalars.prefix(Self.scalarCount)
@@ -88,8 +130,9 @@ public extension SIMD where Scalar: AdditiveArithmetic & SIMDScalar {
     init<V: SIMD>(_ vector: V) where V.Scalar == Scalar {
         self.init(padded: vector.scalars)
     }
-    
-    
+}
+
+public extension SIMD where Scalar: AdditiveArithmetic & SIMDScalar {
     /**
      Converts the vector to a `SIMD2` vector.
 
@@ -161,6 +204,8 @@ public extension SIMD where Scalar: AdditiveArithmetic & SIMDScalar {
     }
 }
 
+// MARK: - SIMD2
+
 extension SIMD2 where Scalar == Double {
     /// Returns the sum of the squares of the vector’s elements.
     @inlinable
@@ -224,8 +269,14 @@ extension SIMD2 where Scalar == Double {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -320,44 +371,103 @@ extension SIMD2 where Scalar == Double {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
-        
+    
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD2 where Scalar == Double {
+    /**
+     Tests whether this point lies inside, on, or outside the circumcircle defined by three points.
+
+     - Parameters:
+       - a: The first point defining the circumcircle.
+       - b: The second point defining the circumcircle.
+       - c: The third point defining the circumcircle.
+     - Returns: A positive value if this point is inside the circumcircle, zero if on it, and negative if outside; the sign flips if the triangle (a, b, c) is negatively oriented.
+     */
+    @inlinable
+    public func inCircumcircle(_ a: Self, _ b: Self, _ c: Self) -> Scalar {
+        simd_incircle(self, a, b, c)
+    }
+    
+    /**
+     Returns the orientation of two 2D vectors.
+     
+     - Parameters:
+        - x: The first vector.
+        - y: The second vector.
+     - Returns: A positive value, if `(x, y)` are positively oriented, `zero` if they are colinear, and a negative value if they are negatively oriented.
+            
+        In 2D, "positively oriented" means the sequence `(0, x, y)` proceeds counter-clockwise when viewed along the positive z-axis, or equivalently, the cross product of `x` and `y` extended to 3D has a positive z-component.
+     */
+    @inlinable
+    public static func orientiation(of x: Self, _ y: Self) -> Scalar {
+        simd_orient(x, y)
+    }
+    
+    /**
+     Returns the orientation of a triangle defined by the specified points.
+          
+     - Parameters:
+        - a: The first point of the triangle.
+        - b: The second point of the triangle.
+        - c: The third point of the triangle.
+     - Returns: A positive value if the triangle is positively oriented, `zero` if it is degenerate (three points in a line), and a negative value if it is negatively oriented.
+            
+        "Positively oriented" means `(a, b, c)` proceeds counter-clockwise along the positive z-axis, or equivalently, the cross product of `a-c` and `b-c` extended to 3D has a positive z-component.
+     */
+    @inlinable
+    public static func orientiation(of a: Self, _ b: Self, _ c: Self) -> Scalar {
+        simd_orient(a, b, c)
     }
 }
 
@@ -424,8 +534,14 @@ extension SIMD2 where Scalar == Float {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -520,46 +636,243 @@ extension SIMD2 where Scalar == Float {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
+    }
 
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+        self = interpolated(towards: other, amount: amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
     }
 }
+
+extension SIMD2 where Scalar == Float {
+    /**
+     Tests whether this point lies inside, on, or outside the circumcircle defined by three points.
+
+     - Parameters:
+       - a: The first point defining the circumcircle.
+       - b: The second point defining the circumcircle.
+       - c: The third point defining the circumcircle.
+     - Returns: A positive value if this point is inside the circumcircle, zero if on it, and negative if outside; the sign flips if the triangle (a, b, c) is negatively oriented.
+     */
+    @inlinable
+    public func inCircumcircle(_ a: Self, _ b: Self, _ c: Self) -> Scalar {
+        simd_incircle(self, a, b, c)
+    }
+    
+    /**
+     Returns the orientation of two 2D vectors.
+     
+     - Parameters:
+        - x: The first vector.
+        - y: The second vector.
+     - Returns: A positive value, if `(x, y)` are positively oriented, `zero` if they are colinear, and a negative value if they are negatively oriented.
+            
+        In 2D, "positively oriented" means the sequence `(0, x, y)` proceeds counter-clockwise when viewed along the positive z-axis, or equivalently, the cross product of `x` and `y` extended to 3D has a positive z-component.
+     */
+    @inlinable
+    public static func orientiation(of x: Self, _ y: Self) -> Scalar {
+        simd_orient(x, y)
+    }
+    
+    /**
+     Returns the orientation of a triangle defined by the specified points.
+          
+     - Parameters:
+        - a: The first point of the triangle.
+        - b: The second point of the triangle.
+        - c: The third point of the triangle.
+     - Returns: A positive value if the triangle is positively oriented, `zero` if it is degenerate (three points in a line), and a negative value if it is negatively oriented.
+            
+        "Positively oriented" means `(a, b, c)` proceeds counter-clockwise along the positive z-axis, or equivalently, the cross product of `a-c` and `b-c` extended to 3D has a positive z-component.
+     */
+    @inlinable
+    public static func orientiation(of a: Self, _ b: Self, _ c: Self) -> Scalar {
+        simd_orient(a, b, c)
+    }
+}
+
+extension SIMD2 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD2 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+// MARK: - SIMD3
 
 extension SIMD3 where Scalar == Double {
     /// Returns the sum of the squares of the vector’s elements.
@@ -624,8 +937,14 @@ extension SIMD3 where Scalar == Double {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -720,44 +1039,106 @@ extension SIMD3 where Scalar == Double {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD3 where Scalar == Double {
+    /**
+     Tests whether this point lies inside, on, or outside the circumsphere defined by four points.
+
+     - Parameters:
+       - a: The first point defining the circumsphere.
+       - b: The second point defining the circumsphere.
+       - c: The third point defining the circumsphere.
+       - d: The fourth point defining the circumsphere.
+     - Returns: A positive value if this point is inside the circumsphere, zero if on it, and negative if outside; the sign flips if the points are negatively oriented.
+     */
+    @inlinable
+    public func inCircumsphere(_ a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
+       simd_insphere(self, a, b, c, d)
+    }
+    
+    /**
+     Returns the orientation of three 3D vectors.
+
+     - Parameters:
+        - x: The first vector.
+        - y: The second vector.
+        - z: The third vector.
+     - Returns: A positive value if `(x, y, z)` are positively oriented, zero if they are collinear, and a negative value if they are negatively oriented.
+            
+        "Positively oriented" in 3D means vectors `x`, `y`, and `z` follow the right-hand rule, or equivalently, the dot product of `z` with the cross product of `x` and `y` is positive.
+     */
+    @inlinable
+    public static func orientiation(of x: Self, _ y: Self, _ z: Self) -> Scalar {
+        simd_orient(x, y, z)
+    }
+    
+    /**
+     Returns the orientation of a tetrahedron defined by the specified four points.
+
+     - Parameters:
+        - a: The first point of the tetrahedron.
+        - b: The second point of the tetrahedron.
+        - c: The third point of the tetrahedron.
+        - d: The fourth point of the tetrahedron.
+     - Returns: A positive value if the tetrahedron is positively oriented, `zero` if it is degenerate (four points in a plane), and a negative value if it is negatively oriented.
+     
+        "Positively oriented" means vectors `(a-d, b-d, c-d)` follow the right-hand rule, or equivalently, the dot product of `c-d` with the cross product of `a-d` and `b-d` is positive.
+     */
+    @inlinable
+    public static func orientiation(of a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
+        simd_orient(a, b, c, d)
     }
 }
 
@@ -824,8 +1205,14 @@ extension SIMD3 where Scalar == Float {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -920,44 +1307,251 @@ extension SIMD3 where Scalar == Float {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD3 where Scalar == Float {
+    /**
+     Tests whether this point lies inside, on, or outside the circumsphere defined by four points.
+
+     - Parameters:
+       - a: The first point defining the circumsphere.
+       - b: The second point defining the circumsphere.
+       - c: The third point defining the circumsphere.
+       - d: The fourth point defining the circumsphere.
+     - Returns: A positive value if this point is inside the circumsphere, zero if on it, and negative if outside; the sign flips if the points are negatively oriented.
+     */
+    @inlinable
+    public func inCircumsphere(_ a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
+       simd_insphere(self, a, b, c, d)
+    }
+    
+    /**
+     Returns the orientation of three 3D vectors.
+
+     - Parameters:
+        - x: The first vector.
+        - y: The second vector.
+        - z: The third vector.
+     - Returns: A positive value if `(x, y, z)` are positively oriented, zero if they are collinear, and a negative value if they are negatively oriented.
+            
+        "Positively oriented" in 3D means vectors `x`, `y`, and `z` follow the right-hand rule, or equivalently, the dot product of `z` with the cross product of `x` and `y` is positive.
+     */
+    @inlinable
+    public static func orientiation(of x: Self, _ y: Self, _ z: Self) -> Scalar {
+        simd_orient(x, y, z)
+    }
+    
+    /**
+     Returns the orientation of a tetrahedron defined by the specified four points.
+
+     - Parameters:
+        - a: The first point of the tetrahedron.
+        - b: The second point of the tetrahedron.
+        - c: The third point of the tetrahedron.
+        - d: The fourth point of the tetrahedron.
+     - Returns: A positive value if the tetrahedron is positively oriented, `zero` if it is degenerate (four points in a plane), and a negative value if it is negatively oriented.
+     
+        "Positively oriented" means vectors `(a-d, b-d, c-d)` follow the right-hand rule, or equivalently, the dot product of `c-d` with the cross product of `a-d` and `b-d` is positive.
+     */
+    @inlinable
+    public static func orientiation(of a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
+        simd_orient(a, b, c, d)
+    }
+}
+
+extension SIMD3 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD3 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+// MARK: - SIMD4
+
+extension SIMD4 {
+    /// Creates a new vector from two half-length vectors.
+    public init(_ lowHalf: SIMD2<Scalar>, _ highHalf: SIMD2<Scalar>) {
+        self.init(lowHalf: lowHalf, highHalf: highHalf)
     }
 }
 
@@ -1024,8 +1618,14 @@ extension SIMD4 where Scalar == Double {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -1120,44 +1720,56 @@ extension SIMD4 where Scalar == Double {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
     }
 }
 
@@ -1224,8 +1836,14 @@ extension SIMD4 where Scalar == Float {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -1320,44 +1938,201 @@ extension SIMD4 where Scalar == Float {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD4 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD4 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+// MARK: - SIMD8
+
+extension SIMD8 {
+    /// Creates a new vector from two half-length vectors.
+    public init(_ lowHalf: SIMD4<Scalar>, _ highHalf: SIMD4<Scalar>) {
+        self.init(lowHalf: lowHalf, highHalf: highHalf)
     }
 }
 
@@ -1424,8 +2199,14 @@ extension SIMD8 where Scalar == Double {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -1520,44 +2301,56 @@ extension SIMD8 where Scalar == Double {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
     }
 }
 
@@ -1624,8 +2417,14 @@ extension SIMD8 where Scalar == Float {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -1720,44 +2519,201 @@ extension SIMD8 where Scalar == Float {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD8 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    @inlinable
+    public var abs: Self {
+        simd_abs(self)
+    }
+
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+extension SIMD8 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func min(_ other: Self) -> Self {
+        simd_min(self, other)
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    @inlinable
+    public func max(_ other: Self) -> Self {
+        simd_max(self, other)
+    }
+}
+
+// MARK: - SIMD16
+
+extension SIMD16 {
+    /// Creates a new vector from two half-length vectors.
+    public init(_ lowHalf: SIMD8<Scalar>, _ highHalf: SIMD8<Scalar>) {
+        self.init(lowHalf: lowHalf, highHalf: highHalf)
     }
 }
 
@@ -1810,26 +2766,32 @@ extension SIMD16 where Scalar == Double {
     @inlinable
     public func distanceSquared(to other: Self) -> Scalar {
         let delta = self - other
-        return delta.dot(with: delta)
+        return delta.dot(delta)
     }
 
     /// Returns the projection of this vector onto another vector.
     @inlinable
     public func project(onto other: Self) -> Self {
-        other * (dot(with: other) / other.dot(with: other))
+        other * (dot(other) / other.dot(other))
     }
 
     /// Returns an approximate projection of this vector onto another vector.
     @inlinable
     public func projectFast(onto other: Self) -> Self {
         let otherLength = other.lengthFast
-        return other * (dot(with: other) / (otherLength * otherLength))
+        return other * (dot(other) / (otherLength * otherLength))
     }
 
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         (self * other).sum()
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
 
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -1841,7 +2803,7 @@ extension SIMD16 where Scalar == Double {
     /// Returns the infinity norm (maximum absolute value) of this vector.
     @inlinable
     public var normInf: Scalar {
-        max(simd_abs(lowHalf).max(), simd_abs(highHalf).max())
+        Swift.max(simd_abs(lowHalf).max(), simd_abs(highHalf).max())
     }
     
     /// Returns a vector containing the absolute value of each scalar.
@@ -1914,36 +2876,46 @@ extension SIMD16 where Scalar == Double {
     }
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
-    public func min(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.min(with: other.lowHalf), highHalf: highHalf.min(with: other.highHalf))
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
-    public func max(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.max(with: other.lowHalf), highHalf: highHalf.max(with: other.highHalf))
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func step(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.step(at: x.lowHalf), highHalf: highHalf.step(at: x.highHalf))
+    public func stepped(at x: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
     }
     
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
+         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    }
+
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
+    }
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount`.
     public func interpolated(towards other: Self, amount: Scalar) -> Self {
         .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount))
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Self) {
         self = interpolated(towards: other, amount: amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Scalar) {
         self = interpolated(towards: other, amount: amount)
     }
@@ -2012,8 +2984,14 @@ extension SIMD16 where Scalar == Float {
     
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         simd_dot(self, other)
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
     
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -2108,44 +3086,181 @@ extension SIMD16 where Scalar == Float {
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func min(with other: Self) -> Self {
+    public func min(_ other: Self) -> Self {
         simd_min(self, other)
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
     @inlinable
-    public func max(with other: Self) -> Self {
+    public func max(_ other: Self) -> Self {
         simd_max(self, other)
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
     @inlinable
-    public func step(at x: Self) -> Self {
+    public func stepped(at x: Self) -> Self {
         simd_step(self, x)
     }
         
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Self) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
         simd_smoothstep(self, other, amount)
     }
 
     /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
     @inlinable
-    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
         simd_smoothstep(self, other, Self(repeating: amount))
     }
-
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     @inlinable
-    public mutating func interpolate(towards other: Self, amount: Self) {
-        self = simd_smoothstep(self, other, amount)
+    public func interpolated(towards other: Self, amount: Self) -> Self {
+        simd_mix(self, other, amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
+    @inlinable
+    public func interpolated(towards other: Self, amount: Scalar) -> Self {
+        simd_mix(self, other, Self(repeating: amount))
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
+    @inlinable
+    public mutating func interpolate(towards other: Self, amount: Self) {
+        self = interpolated(towards: other, amount: amount)
+    }
+
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     @inlinable
     public mutating func interpolate(towards other: Self, amount: Scalar) {
-        self = simd_smoothstep(self, other, Self(repeating: amount))
+        self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD16 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD16 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+// MARK: - SIMD32
+
+extension SIMD32 {
+    /// Creates a new vector from two half-length vectors.
+    public init(_ lowHalf: SIMD16<Scalar>, _ highHalf: SIMD16<Scalar>) {
+        self.init(lowHalf: lowHalf, highHalf: highHalf)
     }
 }
 
@@ -2198,26 +3313,32 @@ extension SIMD32 where Scalar == Double {
     @inlinable
     public func distanceSquared(to other: Self) -> Scalar {
         let delta = self - other
-        return delta.dot(with: delta)
+        return delta.dot(delta)
     }
 
     /// Returns the projection of this vector onto another vector.
     @inlinable
     public func project(onto other: Self) -> Self {
-        other * (dot(with: other) / other.dot(with: other))
+        other * (dot(other) / other.dot(other))
     }
 
     /// Returns an approximate projection of this vector onto another vector.
     @inlinable
     public func projectFast(onto other: Self) -> Self {
         let otherLength = other.lengthFast
-        return other * (dot(with: other) / (otherLength * otherLength))
+        return other * (dot(other) / (otherLength * otherLength))
     }
 
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         (self * other).sum()
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
 
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -2229,7 +3350,7 @@ extension SIMD32 where Scalar == Double {
     /// Returns the infinity norm (maximum absolute value) of this vector.
     @inlinable
     public var normInf: Scalar {
-        max(lowHalf.abs.max(), highHalf.abs.max())
+        Swift.max(lowHalf.abs.max(), highHalf.abs.max())
     }
     
     /// Returns a vector containing the absolute value of each scalar.
@@ -2302,36 +3423,46 @@ extension SIMD32 where Scalar == Double {
     }
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
-    public func min(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.min(with: other.lowHalf), highHalf: highHalf.min(with: other.highHalf))
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
-    public func max(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.max(with: other.lowHalf), highHalf: highHalf.max(with: other.highHalf))
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func step(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.step(at: x.lowHalf), highHalf: highHalf.step(at: x.highHalf))
+    public func stepped(at x: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
     }
     
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
+         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    }
+
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
+    }
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount`.
     public func interpolated(towards other: Self, amount: Scalar) -> Self {
         .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount))
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Self) {
         self = interpolated(towards: other, amount: amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Scalar) {
         self = interpolated(towards: other, amount: amount)
     }
@@ -2386,26 +3517,32 @@ extension SIMD32 where Scalar == Float {
     @inlinable
     public func distanceSquared(to other: Self) -> Scalar {
         let delta = self - other
-        return delta.dot(with: delta)
+        return delta.dot(delta)
     }
 
     /// Returns the projection of this vector onto another vector.
     @inlinable
     public func project(onto other: Self) -> Self {
-        other * (dot(with: other) / other.dot(with: other))
+        other * (dot(other) / other.dot(other))
     }
 
     /// Returns an approximate projection of this vector onto another vector.
     @inlinable
     public func projectFast(onto other: Self) -> Self {
         let otherLength = other.lengthFast
-        return other * (dot(with: other) / (otherLength * otherLength))
+        return other * (dot(other) / (otherLength * otherLength))
     }
 
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         (self * other).sum()
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
 
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -2417,7 +3554,7 @@ extension SIMD32 where Scalar == Float {
     /// Returns the infinity norm (maximum absolute value) of this vector.
     @inlinable
     public var normInf: Scalar {
-        max(lowHalf.abs.max(), highHalf.abs.max())
+        Swift.max(lowHalf.abs.max(), highHalf.abs.max())
     }
     
     /// Returns a vector containing the absolute value of each scalar.
@@ -2490,38 +3627,173 @@ extension SIMD32 where Scalar == Float {
     }
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
-    public func min(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.min(with: other.lowHalf), highHalf: highHalf.min(with: other.highHalf))
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
-    public func max(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.max(with: other.lowHalf), highHalf: highHalf.max(with: other.highHalf))
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func step(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.step(at: x.lowHalf), highHalf: highHalf.step(at: x.highHalf))
+    public func stepped(at x: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
     }
     
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
+         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    }
+
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
+    }
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount`.
     public func interpolated(towards other: Self, amount: Scalar) -> Self {
         .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount))
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Self) {
         self = interpolated(towards: other, amount: amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Scalar) {
         self = interpolated(towards: other, amount: amount)
+    }
+}
+
+extension SIMD32 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
+    }
+    
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD32 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+// MARK: - SIMD64
+
+extension SIMD64 {
+    /// Creates a new vector from two half-length vectors.
+    public init(_ lowHalf: SIMD32<Scalar>, _ highHalf: SIMD32<Scalar>) {
+        self.init(lowHalf: lowHalf, highHalf: highHalf)
     }
 }
 
@@ -2574,26 +3846,32 @@ extension SIMD64 where Scalar == Double {
     @inlinable
     public func distanceSquared(to other: Self) -> Scalar {
         let delta = self - other
-        return delta.dot(with: delta)
+        return delta.dot(delta)
     }
 
     /// Returns the projection of this vector onto another vector.
     @inlinable
     public func project(onto other: Self) -> Self {
-        other * (dot(with: other) / other.dot(with: other))
+        other * (dot(other) / other.dot(other))
     }
 
     /// Returns an approximate projection of this vector onto another vector.
     @inlinable
     public func projectFast(onto other: Self) -> Self {
         let otherLength = other.lengthFast
-        return other * (dot(with: other) / (otherLength * otherLength))
+        return other * (dot(other) / (otherLength * otherLength))
     }
 
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         (self * other).sum()
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
 
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -2605,7 +3883,7 @@ extension SIMD64 where Scalar == Double {
     /// Returns the infinity norm (maximum absolute value) of this vector.
     @inlinable
     public var normInf: Scalar {
-        max(lowHalf.abs.max(), highHalf.abs.max())
+        Swift.max(lowHalf.abs.max(), highHalf.abs.max())
     }
     
     /// Returns a vector containing the absolute value of each scalar.
@@ -2678,36 +3956,46 @@ extension SIMD64 where Scalar == Double {
     }
     
     /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
-    public func min(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.min(with: other.lowHalf), highHalf: highHalf.min(with: other.highHalf))
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
     /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
-    public func max(with other: Self) -> Self {
-        .init(lowHalf: lowHalf.max(with: other.lowHalf), highHalf: highHalf.max(with: other.highHalf))
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
     
     /// Returns a vector where each scalar is `0` if less than the corresponding scalar in `x`, or `1` otherwise.
-    public func step(at x: Self) -> Self {
-        .init(lowHalf: lowHalf.step(at: x.lowHalf), highHalf: highHalf.step(at: x.highHalf))
+    public func stepped(at x: Self) -> Self {
+        .init(lowHalf: lowHalf.stepped(at: x.lowHalf), highHalf: highHalf.stepped(at: x.highHalf))
     }
     
     /// Returns a vector interpolated towards `other` using the per-component factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Self) -> Self {
+         .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount.highHalf))
+    }
+
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    public func steppedSmoothly(towards other: Self, amount: Scalar) -> Self {
+        .init(lowHalf: lowHalf.steppedSmoothly(towards: other.lowHalf, amount: amount), highHalf: highHalf.steppedSmoothly(towards: other.highHalf, amount: amount))
+    }
+    
+    /// Returns a vector interpolated towards `other` using the per-component factor `amount`.
     public func interpolated(towards other: Self, amount: Self) -> Self {
          .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount.lowHalf), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount.highHalf))
     }
 
-    /// Returns a vector interpolated towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Returns a vector interpolated towards `other` using the uniform factor `amount`.
     public func interpolated(towards other: Self, amount: Scalar) -> Self {
         .init(lowHalf: lowHalf.interpolated(towards: other.lowHalf, amount: amount), highHalf: highHalf.interpolated(towards: other.highHalf, amount: amount))
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the per-component factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Self) {
         self = interpolated(towards: other, amount: amount)
     }
 
-    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount` in the range 0…1.
+    /// Modifies this vector by interpolating it towards `other` using the uniform factor `amount`.
     public mutating func interpolate(towards other: Self, amount: Scalar) {
         self = interpolated(towards: other, amount: amount)
     }
@@ -2762,26 +4050,32 @@ extension SIMD64 where Scalar == Float {
     @inlinable
     public func distanceSquared(to other: Self) -> Scalar {
         let delta = self - other
-        return delta.dot(with: delta)
+        return delta.dot(delta)
     }
 
     /// Returns the projection of this vector onto another vector.
     @inlinable
     public func project(onto other: Self) -> Self {
-        other * (dot(with: other) / other.dot(with: other))
+        other * (dot(other) / other.dot(other))
     }
 
     /// Returns an approximate projection of this vector onto another vector.
     @inlinable
     public func projectFast(onto other: Self) -> Self {
         let otherLength = other.lengthFast
-        return other * (dot(with: other) / (otherLength * otherLength))
+        return other * (dot(other) / (otherLength * otherLength))
     }
 
     /// Returns the dot product of this vector with another.
     @inlinable
-    public func dot(with other: Self) -> Scalar {
+    public func dot(_ other: Self) -> Scalar {
         (self * other).sum()
+    }
+    
+    /// Returns the dot product of the left vector with the right vector.
+    @inlinable
+    public static func +* (lhs: Self, rhs: Self) -> Scalar {
+        lhs.dot(rhs)
     }
 
     /// Returns the 1-norm (sum of absolute values) of this vector.
@@ -2793,201 +4087,123 @@ extension SIMD64 where Scalar == Float {
     /// Returns the infinity norm (maximum absolute value) of this vector.
     @inlinable
     public var normInf: Scalar {
-        max(lowHalf.abs.max(), highHalf.abs.max())
+        Swift.max(lowHalf.abs.max(), highHalf.abs.max())
     }
 }
 
-extension SIMD2 where Scalar == Double {
-    /**
-     Tests whether this point lies inside, on, or outside the circumcircle defined by three points.
-
-     - Parameters:
-       - a: The first point defining the circumcircle.
-       - b: The second point defining the circumcircle.
-       - c: The third point defining the circumcircle.
-     - Returns: A positive value if this point is inside the circumcircle, zero if on it, and negative if outside; the sign flips if the triangle (a, b, c) is negatively oriented.
-     */
-    @inlinable
-    public func inCircumcircle(_ a: Self, _ b: Self, _ c: Self) -> Scalar {
-        simd_incircle(self, a, b, c)
+extension SIMD64 where Scalar == Int {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
     }
     
-    /**
-     Returns the orientation of two 2D vectors.
-     
-     - Parameters:
-        - x: The first vector.
-        - y: The second vector.
-     - Returns: A positive value, if `(x, y)` are positively oriented, `zero` if they are colinear, and a negative value if they are negatively oriented.
-            
-        In 2D, "positively oriented" means the sequence `(0, x, y)` proceeds counter-clockwise when viewed along the positive z-axis, or equivalently, the cross product of `x` and `y` extended to 3D has a positive z-component.
-     */
-    @inlinable
-    public static func orientiation(of x: Self, _ y: Self) -> Scalar {
-        simd_orient(x, y)
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
-    /**
-     Returns the orientation of a triangle defined by the specified points.
-          
-     - Parameters:
-        - a: The first point of the triangle.
-        - b: The second point of the triangle.
-        - c: The third point of the triangle.
-     - Returns: A positive value if the triangle is positively oriented, `zero` if it is degenerate (three points in a line), and a negative value if it is negatively oriented.
-            
-        "Positively oriented" means `(a, b, c)` proceeds counter-clockwise along the positive z-axis, or equivalently, the cross product of `a-c` and `b-c` extended to 3D has a positive z-component.
-     */
-    @inlinable
-    public static func orientiation(of a: Self, _ b: Self, _ c: Self) -> Scalar {
-        simd_orient(a, b, c)
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
 
-extension SIMD2 where Scalar == Float {
-    /**
-     Tests whether this point lies inside, on, or outside the circumcircle defined by three points.
-
-     - Parameters:
-       - a: The first point defining the circumcircle.
-       - b: The second point defining the circumcircle.
-       - c: The third point defining the circumcircle.
-     - Returns: A positive value if this point is inside the circumcircle, zero if on it, and negative if outside; the sign flips if the triangle (a, b, c) is negatively oriented.
-     */
-    @inlinable
-    public func inCircumcircle(_ a: Self, _ b: Self, _ c: Self) -> Scalar {
-        simd_incircle(self, a, b, c)
+extension SIMD64 where Scalar == Int8 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
     }
     
-    /**
-     Returns the orientation of two 2D vectors.
-     
-     - Parameters:
-        - x: The first vector.
-        - y: The second vector.
-     - Returns: A positive value, if `(x, y)` are positively oriented, `zero` if they are colinear, and a negative value if they are negatively oriented.
-            
-        In 2D, "positively oriented" means the sequence `(0, x, y)` proceeds counter-clockwise when viewed along the positive z-axis, or equivalently, the cross product of `x` and `y` extended to 3D has a positive z-component.
-     */
-    @inlinable
-    public static func orientiation(of x: Self, _ y: Self) -> Scalar {
-        simd_orient(x, y)
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
-    /**
-     Returns the orientation of a triangle defined by the specified points.
-          
-     - Parameters:
-        - a: The first point of the triangle.
-        - b: The second point of the triangle.
-        - c: The third point of the triangle.
-     - Returns: A positive value if the triangle is positively oriented, `zero` if it is degenerate (three points in a line), and a negative value if it is negatively oriented.
-            
-        "Positively oriented" means `(a, b, c)` proceeds counter-clockwise along the positive z-axis, or equivalently, the cross product of `a-c` and `b-c` extended to 3D has a positive z-component.
-     */
-    @inlinable
-    public static func orientiation(of a: Self, _ b: Self, _ c: Self) -> Scalar {
-        simd_orient(a, b, c)
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
 
-extension SIMD3 where Scalar == Double {
-    /**
-     Tests whether this point lies inside, on, or outside the circumsphere defined by four points.
-
-     - Parameters:
-       - a: The first point defining the circumsphere.
-       - b: The second point defining the circumsphere.
-       - c: The third point defining the circumsphere.
-       - d: The fourth point defining the circumsphere.
-     - Returns: A positive value if this point is inside the circumsphere, zero if on it, and negative if outside; the sign flips if the points are negatively oriented.
-     */
-    @inlinable
-    public func inCircumsphere(_ a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
-       simd_insphere(self, a, b, c, d)
+extension SIMD64 where Scalar == Int16 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
     }
     
-    /**
-     Returns the orientation of three 3D vectors.
-
-     - Parameters:
-        - x: The first vector.
-        - y: The second vector.
-        - z: The third vector.
-     - Returns: A positive value if `(x, y, z)` are positively oriented, zero if they are collinear, and a negative value if they are negatively oriented.
-            
-        "Positively oriented" in 3D means vectors `x`, `y`, and `z` follow the right-hand rule, or equivalently, the dot product of `z` with the cross product of `x` and `y` is positive.
-     */
-    @inlinable
-    public static func orientiation(of x: Self, _ y: Self, _ z: Self) -> Scalar {
-        simd_orient(x, y, z)
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
-    /**
-     Returns the orientation of a tetrahedron defined by the specified four points.
-
-     - Parameters:
-        - a: The first point of the tetrahedron.
-        - b: The second point of the tetrahedron.
-        - c: The third point of the tetrahedron.
-        - d: The fourth point of the tetrahedron.
-     - Returns: A positive value if the tetrahedron is positively oriented, `zero` if it is degenerate (four points in a plane), and a negative value if it is negatively oriented.
-     
-        "Positively oriented" means vectors `(a-d, b-d, c-d)` follow the right-hand rule, or equivalently, the dot product of `c-d` with the cross product of `a-d` and `b-d` is positive.
-     */
-    @inlinable
-    public static func orientiation(of a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
-        simd_orient(a, b, c, d)
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
 
-extension SIMD3 where Scalar == Float {
-    /**
-     Tests whether this point lies inside, on, or outside the circumsphere defined by four points.
-
-     - Parameters:
-       - a: The first point defining the circumsphere.
-       - b: The second point defining the circumsphere.
-       - c: The third point defining the circumsphere.
-       - d: The fourth point defining the circumsphere.
-     - Returns: A positive value if this point is inside the circumsphere, zero if on it, and negative if outside; the sign flips if the points are negatively oriented.
-     */
-    @inlinable
-    public func inCircumsphere(_ a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
-       simd_insphere(self, a, b, c, d)
+extension SIMD64 where Scalar == Int32 {
+    /// Returns a vector containing the absolute value of each scalar.
+    public var abs: Self {
+        .init(lowHalf: lowHalf.abs, highHalf: highHalf.abs)
     }
     
-    /**
-     Returns the orientation of three 3D vectors.
-
-     - Parameters:
-        - x: The first vector.
-        - y: The second vector.
-        - z: The third vector.
-     - Returns: A positive value if `(x, y, z)` are positively oriented, zero if they are collinear, and a negative value if they are negatively oriented.
-            
-        "Positively oriented" in 3D means vectors `x`, `y`, and `z` follow the right-hand rule, or equivalently, the dot product of `z` with the cross product of `x` and `y` is positive.
-     */
-    @inlinable
-    public static func orientiation(of x: Self, _ y: Self, _ z: Self) -> Scalar {
-        simd_orient(x, y, z)
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
     }
     
-    /**
-     Returns the orientation of a tetrahedron defined by the specified four points.
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
 
-     - Parameters:
-        - a: The first point of the tetrahedron.
-        - b: The second point of the tetrahedron.
-        - c: The third point of the tetrahedron.
-        - d: The fourth point of the tetrahedron.
-     - Returns: A positive value if the tetrahedron is positively oriented, `zero` if it is degenerate (four points in a plane), and a negative value if it is negatively oriented.
-     
-        "Positively oriented" means vectors `(a-d, b-d, c-d)` follow the right-hand rule, or equivalently, the dot product of `c-d` with the cross product of `a-d` and `b-d` is positive.
-     */
-    @inlinable
-    public static func orientiation(of a: Self, _ b: Self, _ c: Self, _ d: Self) -> Scalar {
-        simd_orient(a, b, c, d)
+extension SIMD64 where Scalar == UInt {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD64 where Scalar == UInt8 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD64 where Scalar == UInt16 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
+    }
+}
+
+extension SIMD64 where Scalar == UInt32 {
+    /// Returns the minimum of each scalar and the corresponding scalar in the other vector.
+    public func min(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.min(other.lowHalf), highHalf: highHalf.min(other.highHalf))
+    }
+    
+    /// Returns the maximum of each scalar and the corresponding scalar in the other vector.
+    public func max(_ other: Self) -> Self {
+        .init(lowHalf: lowHalf.max(other.lowHalf), highHalf: highHalf.max(other.highHalf))
     }
 }
 
@@ -3076,109 +4292,3 @@ extension SIMD64: SwiftUI.VectorArithmetic where Scalar == Double {
         lowHalf.magnitudeSquared + highHalf.magnitudeSquared
     }
 }
-
-/*
-extension SIMD8 where Scalar: AdditiveArithmetic {
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar) {
-        self.init(v0, v1, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar) {
-        self.init(v0, v1, v2, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar) {
-        self.init(v0, v1, v2, v3, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar) {
-        self.init(v0, v1, v2, v3, v4, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, .zero)
-    }
-}
-
-extension SIMD16 where Scalar: AdditiveArithmetic {
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar) {
-        self.init(v0, v1, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar) {
-        self.init(v0, v1, v2, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar) {
-        self.init(v0, v1, v2, v3, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar) {
-        self.init(v0, v1, v2, v3, v4, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, .zero, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, .zero, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, .zero, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, .zero, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, .zero, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar, _ v12: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, .zero, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar, _ v12: Scalar, _ v13: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, .zero, .zero)
-    }
-    
-    /// Creates a new vector from the given elements.
-    init(_ v0: Scalar, _ v1: Scalar, _ v2: Scalar, _ v3: Scalar, _ v4: Scalar, _ v5: Scalar, _ v6: Scalar, _ v7: Scalar, _ v8: Scalar, _ v9: Scalar, _ v10: Scalar, _ v11: Scalar, _ v12: Scalar, _ v13: Scalar, _ v14: Scalar) {
-        self.init(v0, v1, v2, v3, v4, v5, v6, v7, v8, v9, v10, v11, v12, v13, v14, .zero)
-    }
-}
-*/
