@@ -740,8 +740,7 @@ public extension Collection where Element == TimeDuration {
      - Returns: A `TimeDuration` instance representing the average duration. If the collection is empty, it returns `zerp`.
      */
     func average() -> TimeDuration {
-        guard !isEmpty else { return .zero }
-        return TimeDuration(compactMap(\.seconds).average().rounded(.down))
+        TimeDuration(map({$0.seconds}).average() ?? .zero)
     }
 }
 
