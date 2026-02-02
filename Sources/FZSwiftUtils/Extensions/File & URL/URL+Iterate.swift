@@ -379,7 +379,7 @@ extension URL.FileURLSequence {
     @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public func contentTypes(_ contentTypes: [UTType]) -> Self {
         var copy = self
-        copy.contentTypesFilter = contentTypes.isEmpty ? nil : { if let type = $0.contentType, contentTypes.contains(type) || type.conforms(toAny: contentTypes) { return true } else { return false } }
+        copy.contentTypesFilter = contentTypes.isEmpty ? nil : { $0.contentType?.conforms(toAny: contentTypes) == true }
         return copy
     }
     
