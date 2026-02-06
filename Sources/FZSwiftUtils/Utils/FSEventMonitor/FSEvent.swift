@@ -9,7 +9,7 @@
 import Foundation
 
 /// A file system event.
-public struct FSEvent: Hashable, Identifiable {
+public struct FSEvent: Hashable, Identifiable, CustomStringConvertible {
     /// The url of the file.
     public let url: URL
     /// The type of the item.
@@ -27,6 +27,10 @@ public struct FSEvent: Hashable, Identifiable {
 
     let date = Date()
     
+    public var description: String {
+        return "FSEvent \(actions.description): \(url.path)"
+    }
+    
     init(_ eventId: FSEventStreamEventId, _ eventPath: String, _ eventFlags: FSEventStreamEventFlags, _ fileID: UInt64?, _ documentID: Int?) {
         self.id = eventId
         self.fileID = fileID
@@ -37,26 +41,4 @@ public struct FSEvent: Hashable, Identifiable {
         self.url = URL(fileURLWithPath: eventPath, isDirectory: itemType.contains(.directory))
     }
 }
-
-extension FSEvent: CustomStringConvertible {
-    public var description: String {
-        return "FSEvent \(actions.debugDescription): \(url.path)"
-    }
-}
-
-/*
-extension Array where Element == FSEvent {
-    var mappedEvents: Self {
-        var events: [FSEvent] = []
-        for event in enumerated() {
-            var event = event.element
-            if event.actions.contains(.renamed), let fileID = event.fileID, let other = first(where: { $0.fileID == fileID && $0.id > event.id }) {
-                event.newURL = other.url
-            }
-            events += event
-        }
-        return events
-    }
-}
- */
 #endif

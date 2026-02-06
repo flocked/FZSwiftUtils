@@ -15,21 +15,20 @@ public final class FSEventMonitor {
     private var streamRef: FSEventStreamRef?
     private var startEventID: FSEventStreamEventId?
     private var isRunning: Bool { streamRef != nil }
-
+    static var activeMonitors: [ObjectIdentifier: FSEventMonitor] = [:]
+    var _callback: ((_ events: [FSEvent]) -> Void)?
     private var shouldMonitor: Bool {
-        isActive && !fileURLs.isEmpty && callback != nil && eventActions != .none
+        isActive && !fileURLs.isEmpty && (callback != nil || _callback != nil) && eventActions != []
     }
-
-    // MARK: - Public API
 
     /// A Boolean value indicating whether the monitor is monitoring the files.
     public private(set) var isActive: Bool = false
 
-    /// The handler that gets called when a file sytem event occurs for the monitored file.
+    /// The handler that gets called when a file sytem event occurs for the monitored files.
     public var callback: ((_ event: FSEvent) -> Void)? {
         didSet { updateMonitoring() }
     }
-
+    
     /**
      The event actions to monitor.
      
@@ -50,9 +49,9 @@ public final class FSEventMonitor {
      
      The default value is `[.monitorRoot, .monitorFolderContent]`.
      */
-    public var monitorOptions: MonitorOptions = [.monitorRoot, .monitorFolderContent] {
+    public var options: Options = [.monitorRoot, .monitorFolderContent] {
         didSet {
-            guard oldValue != monitorOptions else { return }
+            guard oldValue != options else { return }
             updateMonitoring()
         }
     }
@@ -104,8 +103,6 @@ public final class FSEventMonitor {
         }
     }
 
-    // MARK: - Init / Deinit
-
     /**
      Creates a file system event monitor.
      
@@ -113,7 +110,7 @@ public final class FSEventMonitor {
         - fileURLs: The urls of the files to observe.
         - eventActions: The event actions to monitor.
         - queue: The queue for the monitor.
-        - callback: The handler that gets called when a file sytem event occurs for the monitored file.
+        - callback: The handler that gets called when a file sytem event occurs for the monitored files.
      */
     public init(_ fileURLs: Set<URL> = [], eventActions: FSEvent.Actions = .all, queue: DispatchQueue = .main, callback: ((_ event: FSEvent) -> Void)? = nil) {
         self.queue = queue
@@ -171,7 +168,7 @@ public final class FSEventMonitor {
         guard !isRunning, shouldMonitor else { return }
         var context = FSEventStreamContext(version: 0, info: Unmanaged.passUnretained(self).toOpaque(), retain: retainCallback, release: releaseCallback, copyDescription: nil)
         let paths = fileURLs.map(\.path) as CFArray
-        guard let stream = FSEventStreamCreate(kCFAllocatorDefault, eventCallback, &context, paths, startEventID ?? FSEventStreamEventId(kFSEventStreamEventIdSinceNow), latency, monitorOptions.flags) else {
+        guard let stream = FSEventStreamCreate(kCFAllocatorDefault, eventCallback, &context, paths, startEventID ?? FSEventStreamEventId(kFSEventStreamEventIdSinceNow), latency, options.flags) else {
             isActive = false
             startEventID = nil
             return
@@ -201,10 +198,9 @@ public final class FSEventMonitor {
         self.streamRef = nil
     }
 
-    // MARK: - Sending
+    // MARK: - Callbacks
 
     private func sendEvents(_ events: [FSEvent]) {
-        guard let callback else { return }
         var events = events
         if events.contains(where: { $0.flags.contains(.eventIdsWrapped) }) {
             Self.eventIDInvalidationDate = Date()
@@ -213,21 +209,22 @@ public final class FSEventMonitor {
         if eventActions != .all {
             events.removeAll { !eventActions.contains(any: $0.actions) }
         }
-        if !monitorOptions.contains(.monitorFolderContent) {
-            let monitorRoot = monitorOptions.contains(.monitorRoot)
+        if !options.contains(.monitorFolderContent) {
+            let monitorRoot = options.contains(.monitorRoot)
             events.removeAll { !fileURLs.contains($0.url) && !(monitorRoot && $0.flags.contains(.rootChanged)) }
         }
         if let filter {
             events.removeAll { !filter($0) }
         }
-        events.forEach(callback)
+        if let callback = callback {
+            events.forEach(callback)
+        } else if let _callback = _callback {
+            _callback(events)
+            Self.activeMonitors[self] = nil
+        }
     }
 
-    // MARK: - Callbacks
-
-    private let eventCallback: FSEventStreamCallback = {
-        stream, contextInfo, numEvents, eventPaths, eventFlags, eventIds in
-        Swift.print("AAAA")
+    private let eventCallback: FSEventStreamCallback = { stream, contextInfo, numEvents, eventPaths, eventFlags, eventIds in
         guard let contextInfo else { return }
         let monitor = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo).takeUnretainedValue()
         let rawArray = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as NSArray
@@ -254,6 +251,25 @@ public final class FSEventMonitor {
     private let releaseCallback: CFAllocatorReleaseCallBack = { info in
         guard let info else { return }
         Unmanaged<FSEventMonitor>.fromOpaque(info).release()
+    }
+}
+
+extension FSEvent {
+    /**
+     Fetches file system events for a specific file or folder.
+     
+     - Parameters:
+       - url: The URL of the file or folder.
+       - date: The earliest date for which to retrieve events. Only events occurring **after this date** are delivered. If `nil`, all available events are retrieved.
+       - includeFolderContent: If `true`, all events for files inside the folder hierarchy are returned.
+       - handler: A closure called with an array of `FSEvent` objects representing the events that occurred.
+     */
+    public static func events(for url: URL, since date: Date? = nil, includeFolderContent: Bool = false, handler: @escaping ([FSEvent]) -> ()) {
+        let monitor = FSEventMonitor([url])
+        FSEventMonitor.activeMonitors[monitor] = monitor
+        monitor._callback = handler
+        monitor.options = includeFolderContent ? [.monitorFolderContent, .monitorRoot] : [.monitorRoot]
+        monitor.start(withEventsSince: date ?? .distantPast)
     }
 }
 

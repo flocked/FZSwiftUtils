@@ -85,12 +85,7 @@ extension FSEvent {
         init(_ rawValue: Int) {
             self.rawValue = UInt32(rawValue)
         }
-        
-        /// All flags.
-        public static let all: Flags = [.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted, .itemIsFile, .itemIsDirectory, .itemIsSymbolicLink, .itemIsHardlink, .itemIsLastHardlink, .mustScanSubDirectories, .userDropped, .kernelDropped, .eventIdsWrapped, .historyDone, .ownEvent]
-        
-        //  static let filter: Flags = [.mustScanSubDirectories, .userDropped, .kernelDropped, .historyDone]
-        
+                
         static let actions: Flags = [.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted]
         
         static let itemTypes: Flags = [.itemIsFile, .itemIsDirectory, .itemIsSymbolicLink, .itemIsHardlink, .itemIsLastHardlink]
@@ -107,7 +102,7 @@ extension FSEvent {
     }
 }
 
-extension FSEvent.Flags: CustomStringConvertible {
+extension FSEvent.Flags: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
         "[\(elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
@@ -142,7 +137,7 @@ extension FSEvent.Flags: CustomStringConvertible {
         case .itemIsHardlink: return "itemIsHardlink"
         case .itemIsLastHardlink: return "itemIsLastHardlink"
         case .itemCloned: return "itemCloned"
-        default: return "unkown"
+        default: return "\(rawValue)"
         }
     }
     
@@ -172,7 +167,7 @@ extension FSEvent.Flags: CustomStringConvertible {
         case .itemIsHardlink: return "Hardlink"
         case .itemIsLastHardlink: return "Last hardxlink"
         case .ownEvent: return "Own event"
-        default: return "Unkown"
+        default: return "\(rawValue)"
         }
     }
 }

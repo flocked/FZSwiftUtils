@@ -10,9 +10,11 @@ import Foundation
 
 extension FSEventMonitor {
     /// Options for monitoring.
-    public struct MonitorOptions: OptionSet, Hashable {
+    public struct Options: OptionSet, Hashable {
         /**
-         Monitors for changes along the path of the file urls you're watching. For example, if you watch `/foo/bar` and it is renamed to `/foo/bar.old`, you would receive a `rootChanged` event. The same is true if the directory `/foo` were renamed.
+         Monitors for changes along the path of the file urls you're watching.
+         
+         For example, if you watch `/foo/folder1/bar` and it is moved to `/foo/folder2/bar`, you would receive a `rootChanged` event.
 
          The `rootChanged` event contains the original file url, that may no longer exist because it or one of its parents was deleted or renamed.
          
