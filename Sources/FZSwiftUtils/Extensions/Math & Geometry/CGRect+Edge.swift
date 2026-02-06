@@ -11,7 +11,7 @@ import Foundation
 
 extension CGRect {
     /// An enumeration to indicate one edge of a rectangle.
-    public enum Edge: Int8, Hashable, Codable, CaseIterable, CustomStringConvertible {
+    public enum Edge: UInt8, Hashable, Codable, CaseIterable, CustomStringConvertible {
         /// Left edge.
         case left
         /// Right edge.
@@ -89,9 +89,9 @@ extension CGRect {
             /// Bottom and top edge.
             public static let vertical: Self = [.bottom, .top]
             
-            public let rawValue: Int8
+            public let rawValue: UInt8
             
-            public init(rawValue: Int8) {
+            public init(rawValue: UInt8) {
                 self.rawValue = rawValue
             }
             
@@ -132,7 +132,7 @@ extension CGRect {
 
 extension CGRect {
     /// An enumeration to indicate one corner of a rectangle.
-    public enum Corner: Int8, Hashable, Codable, CaseIterable, CustomStringConvertible {
+    public enum Corner: UInt8, Hashable, Codable, CaseIterable, CustomStringConvertible {
         /// Bottom-left corner.
         case bottomLeft
         /// Bottom-right corner.
@@ -222,9 +222,9 @@ extension CGRect {
                 return "[" + strings.sorted().joined(separator: ", ") + "]"
             }
             
-            public let rawValue: Int8
+            public let rawValue: UInt8
             
-            public init(rawValue: Int8) {
+            public init(rawValue: UInt8) {
                 self.rawValue = rawValue
             }
             
@@ -265,7 +265,7 @@ extension CGRect {
 
 extension CGRect {
     /// An enumeration to indicate one edge or corner of a rectangle.
-    public enum EdgeCorner: Int8, Hashable, Codable, CaseIterable, CustomStringConvertible {
+    public enum EdgeCorner: UInt8, Hashable, Codable, CaseIterable, CustomStringConvertible {
         /// Left edge.
         case left
         /// Right edge.
@@ -400,9 +400,9 @@ extension CGRect {
                 return "[" + strings.sorted().joined(separator: ", ") + "]"
             }
             
-            public let rawValue: Int8
+            public let rawValue: UInt8
             
-            public init(rawValue: Int8) {
+            public init(rawValue: UInt8) {
                 self.rawValue = rawValue
             }
             

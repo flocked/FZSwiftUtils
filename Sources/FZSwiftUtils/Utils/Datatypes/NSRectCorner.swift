@@ -32,10 +32,10 @@
         }
 
         /// Creates a structure that represents the corners of a rectangle.
-        public init(rawValue: Int) {
+        public init(rawValue: UInt8) {
             self.rawValue = rawValue
         }
 
-        public let rawValue: Int
+        public let rawValue: UInt8
     }
 #endif

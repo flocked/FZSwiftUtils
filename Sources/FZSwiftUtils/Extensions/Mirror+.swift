@@ -34,8 +34,8 @@ extension Mirror {
         /// Child Label, value type and value & superclass children.
         public static let all: PrintOptions = [.label, .valueType, .value, .superclass]
         
-        public let rawValue: Int32
-        public init(rawValue: Int32) { self.rawValue = rawValue }
+        public let rawValue: UInt32
+        public init(rawValue: UInt32) { self.rawValue = rawValue }
     }
     
     func strings(level: Int, maxLevel: Int? = nil, maxChildren: Int? = nil, options: PrintOptions = .all) -> [String] {
