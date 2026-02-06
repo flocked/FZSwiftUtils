@@ -9,7 +9,6 @@
 import Foundation
 import UniformTypeIdentifiers
 
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 public extension UTType {
     /// A type that represents a AC3 audio.
     static var ac3: UTType { UTType("public.ac3-audio")! }
@@ -47,15 +46,19 @@ public extension UTType {
      ```
      */
     var filenameExtensions: [String] {
-        tags[.filenameExtension]?.compactMap { $0.lowercased() } ?? [String]()
+        tags[.filenameExtension]?.map { $0.lowercased() } ?? [String]()
+    }
+    
+    /// Returns all MIME types associated with this type.
+    var mimeTypes: [String] {
+        tags[.mimeType] ?? []
     }
 
     /**
      Returns a Boolean value indicating whether a type conforms to any of the types.
 
-     - Parameters:
-        - types:UTType's.
-     - Returns: true if the type directly or indirectly conforms to any of the types, or if it’s equal to.
+     - Parameter types: The types to check conformance.
+     - Returns: `true` if the type directly or indirectly conforms to any of the types, or if it’s equal to.
      */
     func conforms<S: Sequence<UTType>>(toAny types: S) -> Bool {
         types.contains(where: { conforms(to: $0) })
@@ -65,7 +68,6 @@ public extension UTType {
 #if os(macOS)
 import AppKit
 
-@available(macOS 12.0, *)
 public extension UTType {
     /// An array of URLs to applications that support opening the `UTType`.
     var supportedApplicationURLs: [URL] {

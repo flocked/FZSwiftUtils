@@ -15,8 +15,8 @@ extension URL {
     
     /// The file system item of an url.
     public struct Item {
-        
-        let url: URL
+        /// The url of the item.
+        public let url: URL
         
         init(_ url: URL) {
             self.url = url
@@ -27,14 +27,24 @@ extension URL {
             FileManager.default.fileExists(at: url)
         }
         
+        /// Copies the item to the specified url.
+        public func copy(to url: URL) throws {
+            try FileManager.default.copyItem(at: self.url, to: url)
+        }
+        
         /// Copies the item to the specified folder.
-        public func copy(to folder: URL) throws {
-            try FileManager.default.copyItem(at: url, to: folder.appendingPathComponent(url.lastPathComponent))
+        public func copy(toFolder folder: URL) throws {
+            try copy(to: folder.appendingPathComponent(url.lastPathComponent))
+        }
+        
+        /// Moves the item to the specified url.
+        public func move(to url: URL) throws {
+            try FileManager.default.moveItem(at: self.url, to: url)
         }
         
         /// Moves the item to the specified folder.
-        public func move(to folder: URL) throws {
-            try FileManager.default.moveItem(at: url, to: folder.appendingPathComponent(url.lastPathComponent))
+        public func move(toFolder folder: URL) throws {
+            try move(to: folder.appendingPathComponent(url.lastPathComponent))
         }
         
         /// Deletes the item.
@@ -50,27 +60,47 @@ extension URL {
         }
         #endif
         
+        /// Creates a subfolder with the specified name.
+        @discardableResult
+        public func createSubfolder(named name: String) throws -> URL {
+            guard url.isDirectory else { throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteInvalidFileNameError, userInfo: [NSLocalizedDescriptionKey: "Cannot create subfolder inside a non-directory item"]) }
+            try FileManager.default.createDirectory(at: url.appendingPathComponent(name), withIntermediateDirectories: true)
+            return url.appendingPathComponent(name)
+        }
+        
+        /// Creates a symbolic link at the specified URL pointing to this item.
+        public func createSymbolicLink(at url: URL) throws {
+            try FileManager.default.createSymbolicLink(at: url, withDestinationURL: self.url)
+        }
+        
+        /// Creates a hard link at the specified URL pointing to this item.
+        public func createHardLink(at url: URL) throws {
+            try FileManager.default.linkItem(at: self.url, to: url)
+        }
+        
+        /// Creates a Finder alias at the specified URL pointing to this item.
+        public func createAlias(at url: URL) throws {
+            try FileManager.default.createAlias(at: self.url, to: url)
+        }
+        
         /// Reads the data of the file.
         public func read() throws -> Data {
             try Data(contentsOf: url)
         }
         
         /// Reads the file as a string.
-        public func readAsString(encodedAs encoding: String.Encoding = .utf8) throws -> String {
-            guard let string = try String(data: read(), encoding: encoding) else {
-                throw Errors.stringDecodingFailed
-            }
-            return string
+        public func readAsString(encoding: String.Encoding = .utf8) throws -> String {
+            try String(contentsOf: url, encoding: encoding)
         }
         
         /// Reads the file as the specified decodable type.
         public func read<V: Decodable>(as type: V.Type) throws -> V {
-            return try JSONDecoder().decode(type, from: try read())
+            try JSONDecoder().decode(type, from: read())
         }
         
         /// Reads the file as the specified decodable type.
         public func read<V: Decodable>(as type: V.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> V {
-            return try JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy).decode(type, from: try read())
+            try JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy).decode(type, from: read())
         }
         
         /// Writes the specified data to the url.
@@ -83,13 +113,13 @@ extension URL {
             try data.write(to: url, options: options)
         }
         
-        /// Creates a subfolder with the specified name.
-        public func createSubfolder(named name: String) throws {
-            try FileManager.default.createDirectory(at: url.appendingPathComponent(name), withIntermediateDirectories: true)
-        }
-        
-        enum Errors: Error {
-            case stringDecodingFailed
+        /// The attributes off the item.
+        public var attributes: FileAttributes? {
+            get { try? FileManager.default.attributes(for: url) }
+            set {
+                guard let newValue = newValue else { return }
+                try? FileManager.default.setAttributes(newValue, ofItemAt: url)
+            }
         }
     }
 }

@@ -248,8 +248,7 @@ public extension FileManager {
      - Throws: If the alias file couldn't be created.
      */
     func createAlias(at srcURL: URL, to dstURL: URL) throws {
-        let bookmarkData = try srcURL.bookmarkData(options: [.suitableForBookmarkFile], includingResourceValuesForKeys: nil, relativeTo: nil)
-        try URL.writeBookmarkData(bookmarkData, to: dstURL)
+        try URL.writeBookmarkData(srcURL.bookmarkData(options: [.suitableForBookmarkFile], includingResourceValuesForKeys: nil, relativeTo: nil), to: dstURL)
     }
     
     /**

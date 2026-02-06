@@ -11,75 +11,80 @@ import Foundation
 extension FSEvent {
     /// Represents the flags for a file system event.
     public struct Flags: OptionSet, Hashable {
+        
+        // MARK: - Item
+        
+        /// An item was created.
+        public static let itemCreated = Self(kFSEventStreamEventFlagItemCreated)
+        /// An item was removed.
+        public static let itemRemoved = Self(kFSEventStreamEventFlagItemRemoved)
+        /// An item was renamed.
+        public static let itemRenamed = Self(kFSEventStreamEventFlagItemRenamed)
+        /// The item is a clone or was cloned.
+        public static let itemCloned = Self(kFSEventStreamEventFlagItemCloned)
+        /// An item was modified.
+        public static let itemModified = Self(kFSEventStreamEventFlagItemModified)
+        /// An item's Finder information was modified.
+        public static let itemFinderInfoModified = Self(kFSEventStreamEventFlagItemFinderInfoMod)
+        /// An item's ownership information was changed.
+        public static let itemOwnerModified = Self(kFSEventStreamEventFlagItemChangeOwner)
+        /// An item's extended attributes were modified.
+        public static let itemXattrModied = Self(kFSEventStreamEventFlagItemXattrMod)
+        /// An item's inode metadata was modified.
+        public static let itemInodeMetaModied = Self(kFSEventStreamEventFlagItemInodeMetaMod)
+        
+        // MARK: - Hierarchy
+        
+        /// The root path of a watched hierarchy has changed.
+        public static let rootChanged = Self(kFSEventStreamEventFlagRootChanged)
+        
+        // MARK: - Item Type
+        
+        /// The item is a file.
+        public static let itemIsFile = Self(kFSEventStreamEventFlagItemIsFile)
+        /// The item is a directory.
+        public static let itemIsDirectory = Self(kFSEventStreamEventFlagItemIsDir)
+        /// The item is a symbolic link.
+        public static let itemIsSymbolicLink = Self(kFSEventStreamEventFlagItemIsSymlink)
+        /// The item is a hard link.
+        public static let itemIsHardlink = Self(kFSEventStreamEventFlagItemIsHardlink)
+        /// The item is the last hard link to a file.
+        public static let itemIsLastHardlink = Self(kFSEventStreamEventFlagItemIsLastHardlink)
+        
+        // MARK: - Volume
+        
+        /// A volume has been mounted.
+        public static let mounted = Self(kFSEventStreamEventFlagMount)
+        /// A volume has been unmounted.
+        public static let unmounted = Self(kFSEventStreamEventFlagUnmount)
+        
+        // MARK: - Monitor Info
+        
+        /// The event originated from the same process.
+        public static let ownEvent = Self(kFSEventStreamEventFlagOwnEvent)
+        /// The entire directory hierarchy must be scanned due to events.
+        public static let mustScanSubDirectories = Self(kFSEventStreamEventFlagMustScanSubDirs)
+        /// The user-space event queue overflowed, dropping events.
+        public static let userDropped = Self(kFSEventStreamEventFlagUserDropped)
+        /// The kernel event queue overflowed, dropping events.
+        public static let kernelDropped = Self(kFSEventStreamEventFlagKernelDropped)
+        /// Event IDs wrapped around, restarting from the beginning.
+        public static let eventIdsWrapped = Self(kFSEventStreamEventFlagEventIdsWrapped)
+        /// The completion of a historical event stream replay.
+        public static let historyDone = Self(kFSEventStreamEventFlagHistoryDone)
+        
+        /// No specific flags set for this event.
+        public static let none = Self(kFSEventStreamEventFlagNone)
+        
         public let rawValue: UInt32
         
         public init(rawValue: UInt32) {
             self.rawValue = rawValue
         }
         
-        // MARK: - Item
-        
-        /// An item was created.
-        public static let itemCreated = Flags(rawValue: 256)
-        /// An item was removed.
-        public static let itemRemoved = Flags(rawValue: 512)
-        /// An item was renamed.
-        public static let itemRenamed = Flags(rawValue: 2048)
-        /// The item is a clone or was cloned.
-        public static let itemCloned = Flags(rawValue: 4194304)
-        /// An item was modified.
-        public static let itemModified = Flags(rawValue: 4096)
-        /// An item's Finder information was modified.
-        public static let itemFinderInfoModified = Flags(rawValue: 8192)
-        /// An item's ownership information was changed.
-        public static let itemOwnerModified = Flags(rawValue: 16384)
-        /// An item's extended attributes were modified.
-        public static let itemXattrModied = Flags(rawValue: 32768)
-        /// An item's inode metadata was modified.
-        public static let itemInodeMetaModied = Flags(rawValue: 1024)
-        
-        // MARK: - Hierarchy
-        
-        /// The root path of a watched hierarchy has changed.
-        public static let rootChanged = Flags(rawValue: 32)
-        
-        // MARK: - Item Type
-        
-        /// The item is a file.
-        public static let itemIsFile = Flags(rawValue: 65536)
-        /// The item is a directory.
-        public static let itemIsDirectory = Flags(rawValue: 131072)
-        /// The item is a symbolic link.
-        public static let itemIsSymbolicLink = Flags(rawValue: 262144)
-        /// The item is a hard link.
-        public static let itemIsHardlink = Flags(rawValue: 1048576)
-        /// The item is the last hard link to a file.
-        public static let itemIsLastHardlink = Flags(rawValue: 2097152)
-        
-        // MARK: - Volume
-        
-        /// A volume has been mounted.
-        public static let mounted = Flags(rawValue: 64)
-        /// A volume has been unmounted.
-        public static let unmounted = Flags(rawValue: 128)
-        
-        // MARK: - Monitor Info
-        
-        /// The event originated from the same process.
-        public static let ownEvent = Flags(rawValue: 524288)
-        /// The entire directory hierarchy must be scanned due to events.
-        public static let mustScanSubDirectories = Flags(rawValue: 1)
-        /// The user-space event queue overflowed, dropping events.
-        public static let userDropped = Flags(rawValue: 2)
-        /// The kernel event queue overflowed, dropping events.
-        public static let kernelDropped = Flags(rawValue: 4)
-        /// Event IDs wrapped around, restarting from the beginning.
-        public static let eventIdsWrapped = Flags(rawValue: 8)
-        /// The completion of a historical event stream replay.
-        public static let historyDone = Flags(rawValue: 16)
-        
-        /// No specific flags set for this event.
-        public static let none: Flags = Flags(rawValue: 0)
+        init(_ rawValue: Int) {
+            self.rawValue = UInt32(rawValue)
+        }
         
         /// All flags.
         public static let all: Flags = [.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted, .itemIsFile, .itemIsDirectory, .itemIsSymbolicLink, .itemIsHardlink, .itemIsLastHardlink, .mustScanSubDirectories, .userDropped, .kernelDropped, .eventIdsWrapped, .historyDone, .ownEvent]
@@ -97,20 +102,18 @@ extension FSEvent {
         }
         
         var actions: Actions {
-            Actions(rawValue: intersection([.rootChanged, .itemCreated, .itemRemoved, .itemRenamed, .itemCloned, .itemModified, .itemXattrModied, .itemOwnerModified, .itemFinderInfoModified, .itemInodeMetaModied, .mounted, .unmounted]).rawValue)
+            Actions(rawValue: intersection(Self.actions).rawValue)
         }
-        
-        // MARK: - Description
     }
 }
 
 extension FSEvent.Flags: CustomStringConvertible {
     public var description: String {
-        "[\(self.elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+        "[\(elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
     
     public var debugDescription: String {
-        "[\(self.elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
+        "[\(elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
     }
     
     var _description: String {

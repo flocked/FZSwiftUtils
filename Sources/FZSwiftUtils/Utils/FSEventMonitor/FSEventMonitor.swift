@@ -8,76 +8,67 @@
 #if os(macOS)
 import Foundation
 
-/// Monitores files on the file system.
-public class FSEventMonitor {
+/// Monitors files on the file system.
+public final class FSEventMonitor {
+
     private static var eventIDInvalidationDate: Date?
-    private let id = UUID()
     private var streamRef: FSEventStreamRef?
+    private var startEventID: FSEventStreamEventId?
     private var isRunning: Bool { streamRef != nil }
-    private var startEventID: FSEventStreamEventId? = nil
+
     private var shouldMonitor: Bool {
         isActive && !fileURLs.isEmpty && callback != nil && eventActions != .none
     }
-    
-    /// The urls of the files to monitor.
-    public var fileURLs: [URL] {
-        didSet {
-            fileURLs = fileURLs.filter({ $0.isFileURL }).uniqued()
-            guard oldValue != fileURLs else { return }
-            updateMonitoring()
-        }
-    }
-    
-    /// The urls of files to exclude from monitoring.
-    public var excludingFileURLs: [URL] = [] {
-        didSet {
-            excludingFileURLs = excludingFileURLs.filter({ $0.isFileURL }).uniqued()
-            guard oldValue != excludingFileURLs, isRunning else { return }
-            restart()
-        }
-    }
-    
-    /**
-     The event actions to monitor.
-     
-     The default value is `all`.
-     */
-    public var eventActions: FSEvent.Actions = .all {
-        didSet { updateMonitoring() }
-    }
-    
-    /// The handler to filter the events provided to the callback.
-    public var filter: ((_ event: FSEvent)->(Bool))? {
-        didSet {
-            if isRunning { restart() }
-        }
-    }
-    
-    /// The options for monitoring the files.
-    public var monitorOptions: MonitorOptions = [] {
-        didSet {
-            guard oldValue != monitorOptions, isRunning else { return }
-            restart()
-        }
-    }
-    
+
+    // MARK: - Public API
+
+    /// A Boolean value indicating whether the monitor is monitoring the files.
+    public private(set) var isActive: Bool = false
+
     /// The handler that gets called when a file sytem event occurs for the monitored file.
     public var callback: ((_ event: FSEvent) -> Void)? {
         didSet { updateMonitoring() }
     }
-    
+
+    /**
+     The event actions to monitor.
+     
+     The default value is `.all`.
+     */
+    public var eventActions: FSEvent.Actions = .all {
+        didSet {
+            guard oldValue != eventActions else { return }
+            updateMonitoring()
+        }
+    }
+
+    /// The handler to filter the events provided to the callback.
+    public var filter: ((_ event: FSEvent) -> Bool)?
+
+    /**
+     The options for monitoring the files.
+     
+     The default value is `[.monitorRoot, .monitorFolderContent]`.
+     */
+    public var monitorOptions: MonitorOptions = [.monitorRoot, .monitorFolderContent] {
+        didSet {
+            guard oldValue != monitorOptions else { return }
+            updateMonitoring()
+        }
+    }
+
     /**
      The dispatch queue for the monitor.
      
-     The default value is `main`.
+     The default value is `.main`.
      */
     public var queue: DispatchQueue = .main {
         didSet {
-            guard oldValue != queue, isRunning else { return }
-            restart()
+            guard oldValue !== queue else { return }
+            updateMonitoring()
         }
     }
-    
+
     /**
      The amount of seconds the monitor should wait after hearing about an event before passing it to the callback.
      
@@ -85,161 +76,185 @@ public class FSEventMonitor {
      
      The default value is `0.0`.
      */
-    public var latency: CGFloat = 0.0 {
+    public var latency: TimeInterval = 0 {
         didSet {
-            latency = latency.clamped(min: 0.0)
-            guard oldValue != latency, isRunning else { return }
-            restart()
+            latency = max(0, latency)
+            guard oldValue != latency else { return }
+            updateMonitoring()
         }
     }
-    
-    /// A Boolean value indicating whether the monitor is monitoring the files.
-    public var isActive = false {
-        didSet { updateMonitoring() }
+
+    // MARK: - Paths
+
+    /// The urls of the files to monitor.
+    public var fileURLs: Set<URL> = [] {
+        didSet {
+            fileURLs = fileURLs.filter(\.isFileURL)
+            guard fileURLs != oldValue else { return }
+            updateMonitoring()
+        }
     }
-    
+
+    /// The urls of files to exclude from monitoring.
+    public var excludingFileURLs: Set<URL> = [] {
+        didSet {
+            excludingFileURLs = excludingFileURLs.filter(\.isFileURL)
+            guard excludingFileURLs != oldValue else { return }
+            updateMonitoring()
+        }
+    }
+
+    // MARK: - Init / Deinit
+
     /**
      Creates a file system event monitor.
      
      - Parameters:
         - fileURLs: The urls of the files to observe.
+        - eventActions: The event actions to monitor.
         - queue: The queue for the monitor.
+        - callback: The handler that gets called when a file sytem event occurs for the monitored file.
      */
-    public init(_ fileURLs: [URL] = [], queue: DispatchQueue = .main) {
-        self.fileURLs = fileURLs
+    public init(_ fileURLs: Set<URL> = [], eventActions: FSEvent.Actions = .all, queue: DispatchQueue = .main, callback: ((_ event: FSEvent) -> Void)? = nil) {
         self.queue = queue
+        self.fileURLs = fileURLs
+        self.eventActions = eventActions
+        self.callback = callback
     }
-    
+
+    deinit {
+        _stop()
+    }
+
+    // MARK: - Control
+
     /// Start monitoring the files.
     public func start() {
         isActive = true
+        updateMonitoring()
     }
-    
 
     /// Start monitoring the files and additionally provide all events that happened since the specified event.
     public func start(withEventsSince event: FSEvent) {
-        startEventID = (event.date >  Self.eventIDInvalidationDate ?? .distantPast)  ? event.id : nil
-        restart()
+        startEventID = (event.date > (Self.eventIDInvalidationDate ?? .distantPast)) ? event.id : nil
         isActive = true
+        updateMonitoring()
     }
-    
+
     /// Start monitoring the files and additionally provide all events that happened since the specified date.
     public func start(withEventsSince date: Date) {
-        startEventID = fileURLs.compactMap({ $0.resources.volume.url }).uniqued().compactMap({ eventID(for: date, url: $0) }).sorted(.smallestFirst).first
-        restart()
+        startEventID = fileURLs.compactMap(\.resources.volume.url).uniqued().compactMap { $0.lastFSEventID(before: date) }.sorted(.smallestFirst).first
         isActive = true
+        updateMonitoring()
     }
-    
+
     /// Stops observing the files for events.
     public func stop() {
         isActive = false
+        updateMonitoring()
     }
-    
+
+    // MARK: - Monitoring
+
     private func updateMonitoring() {
-        if !shouldMonitor {
+        guard shouldMonitor else {
             _stop()
-        } else if isActive {
-            restart()
+            return
         }
-    }
-    
-    private func restart() {
-        guard isRunning else { return }
-        _stop()
+        if isRunning {
+            _stop()
+        }
         _start()
     }
-    
+
     private func _start() {
         guard !isRunning, shouldMonitor else { return }
-        var context = FSEventStreamContext(version: 0, info: .unretained(self), retain: retainCallback, release: releaseCallback, copyDescription: nil)
-        streamRef = FSEventStreamCreate(
-            kCFAllocatorDefault,
-            eventCallback,
-            &context,
-            fileURLs.compactMap({$0.path}) as CFArray,
-            startEventID ?? FSEventStreamEventId(kFSEventStreamEventIdSinceNow),
-            CFTimeInterval(latency),
-            monitorOptions.stream.rawValue
-        )
-        if !excludingFileURLs.isEmpty {
-            FSEventStreamSetExclusionPaths(streamRef!, excludingFileURLs.compactMap({$0.path}) as CFArray)
+        var context = FSEventStreamContext(version: 0, info: Unmanaged.passUnretained(self).toOpaque(), retain: retainCallback, release: releaseCallback, copyDescription: nil)
+        let paths = fileURLs.map(\.path) as CFArray
+        guard let stream = FSEventStreamCreate(kCFAllocatorDefault, eventCallback, &context, paths, startEventID ?? FSEventStreamEventId(kFSEventStreamEventIdSinceNow), latency, monitorOptions.flags) else {
+            isActive = false
+            startEventID = nil
+            return
         }
-        FSEventStreamSetDispatchQueue(streamRef!, .userInitiated)
-        FSEventStreamSetDispatchQueue(streamRef!, queue)
-        FSEventStreamStart(streamRef!)
+
+        streamRef = stream
+
+        if !excludingFileURLs.isEmpty {
+            let exclusions = excludingFileURLs.map(\.path) as CFArray
+            FSEventStreamSetExclusionPaths(stream, exclusions)
+        }
+
+        FSEventStreamSetDispatchQueue(stream, queue)
+        guard FSEventStreamStart(stream) else {
+            startEventID = nil
+            stop()
+            return
+        }
         startEventID = nil
     }
-    
+
     private func _stop() {
-        guard isRunning else { return }
-        FSEventStreamStop(streamRef!)
-        FSEventStreamInvalidate(streamRef!)
-        FSEventStreamRelease(streamRef!)
-        streamRef = nil
+        guard let streamRef else { return }
+        FSEventStreamStop(streamRef)
+        FSEventStreamInvalidate(streamRef)
+        FSEventStreamRelease(streamRef)
+        self.streamRef = nil
     }
-    
-    private func eventID(for date: Date, url: URL? = nil) -> FSEventStreamEventId? {
-        guard let deviceID = (url ?? URL(fileURLWithPath: "/")).deviceID else { return nil }
-        let timestamp = date.timeIntervalSince1970
-        return FSEventsGetLastEventIdForDeviceBeforeTime(deviceID, timestamp)
-    }
-    
+
+    // MARK: - Sending
+
     private func sendEvents(_ events: [FSEvent]) {
+        guard let callback else { return }
         var events = events
         if events.contains(where: { $0.flags.contains(.eventIdsWrapped) }) {
-            FSEventMonitor.eventIDInvalidationDate = Date()
+            Self.eventIDInvalidationDate = Date()
         }
-        events = events.filter({ !$0.flags.contains(any: FSEvent.Flags.filter) })
+        events.removeAll { $0.flags.contains(any: FSEvent.Flags.filter) }
         if eventActions != .all {
-            events = events.filter({ eventActions.contains(any: $0.actions) })
+            events.removeAll { !eventActions.contains(any: $0.actions) }
         }
         if !monitorOptions.contains(.monitorFolderContent) {
             let monitorRoot = monitorOptions.contains(.monitorRoot)
-            events = events.filter({
-                if fileURLs.contains($0.url) || (monitorRoot && $0.actions.contains(.rootChanged)) { return true } else { return false }
-            })
+            events.removeAll { !fileURLs.contains($0.url) && !(monitorRoot && $0.flags.contains(.rootChanged)) }
         }
-        if let filter = filter {
-            events = events.filter({ filter($0) })
+        if let filter {
+            events.removeAll { !filter($0) }
         }
-        events.forEach({ callback?($0) })
-        /*
-        if !events.isEmpty, let allEventsHandler = fileSystemWatcher.allEventsHandler {
-            allEventsHandler(events)
-            FSEventMonitor.sharedMonitors[fileSystemWatcher.id] = nil
-            fileSystemWatcher.stop()
-        }
-         */
+        events.forEach(callback)
     }
+
+    // MARK: - Callbacks
+
     private let eventCallback: FSEventStreamCallback = {
         stream, contextInfo, numEvents, eventPaths, eventFlags, eventIds in
-        let eventMonitor = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo!).takeUnretainedValue()
-        let dictionaries = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as! [[String:Any]]
-        var events = (0..<numEvents).compactMap({ FSEvent(eventIds[$0], dictionaries[$0][kFSEventStreamEventExtendedDataPathKey] as! String, eventFlags[$0], dictionaries[$0][kFSEventStreamEventExtendedFileIDKey] as? UInt64, dictionaries[$0][kFSEventStreamEventExtendedDocIDKey] as? Int) })
-        eventMonitor.sendEvents(events)
+        Swift.print("AAAA")
+        guard let contextInfo else { return }
+        let monitor = Unmanaged<FSEventMonitor>.fromOpaque(contextInfo).takeUnretainedValue()
+        let rawArray = Unmanaged<CFArray>.fromOpaque(eventPaths).takeUnretainedValue() as NSArray
+        var events: [FSEvent] = .init(reserveCapacity: numEvents)
+        for i in 0..<numEvents {
+            guard i < rawArray.count else { break }
+            guard let dict = rawArray[i] as? [String: Any] else { continue }
+            guard let path = dict[kFSEventStreamEventExtendedDataPathKey] as? String else {
+                continue
+            }
+            let fileID = dict[kFSEventStreamEventExtendedFileIDKey] as? UInt64
+            let docID = dict[kFSEventStreamEventExtendedDocIDKey] as? Int
+            events.append(FSEvent(eventIds[i], path, eventFlags[i], fileID, docID))
+        }
+        monitor.sendEvents(events)
     }
-    
-    private let retainCallback: CFAllocatorRetainCallBack = {(info: UnsafeRawPointer?) in
-        _ = Unmanaged<FSEventMonitor>.fromOpaque(info!).retain()
+
+    private let retainCallback: CFAllocatorRetainCallBack = { info in
+        guard let info else { return nil }
+        _ = Unmanaged<FSEventMonitor>.fromOpaque(info).retain()
         return info
     }
-    
-    private let releaseCallback: CFAllocatorReleaseCallBack = {(info: UnsafeRawPointer?) in
-        Unmanaged<FSEventMonitor>.fromOpaque(info!).release()
+
+    private let releaseCallback: CFAllocatorReleaseCallBack = { info in
+        guard let info else { return }
+        Unmanaged<FSEventMonitor>.fromOpaque(info).release()
     }
-    
-    /*
-     var allEventsHandler: (([FSEvent])->())?
-     let id = UUID()
-     static var sharedMonitors: [UUID: FSEventMonitor] = [:]
-     static func events(for urls: [URL], since date: Date, handler: @escaping ([FSEvent])->()) {
-         let monitor = FSEventMonitor(urls)
-         monitor.allEventsHandler = handler
-         monitor.callback = { _ in }
-         monitor.start(withEventsSince: date)
-         Self.sharedMonitors[monitor.id] = monitor
-     }
-     */
 }
 
 fileprivate extension URL {
@@ -251,6 +266,11 @@ fileprivate extension URL {
             return stat(fsPath, &info)
         }
         return result == 0 ? info.st_dev : nil
+    }
+    
+    func lastFSEventID(before date: Date) -> FSEventStreamEventId? {
+        guard let deviceID else { return nil }
+        return FSEventsGetLastEventIdForDeviceBeforeTime(deviceID, date.timeIntervalSince1970)
     }
 }
 #endif

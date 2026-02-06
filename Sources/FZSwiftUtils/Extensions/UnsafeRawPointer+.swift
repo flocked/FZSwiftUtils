@@ -375,4 +375,14 @@ public extension UnsafeMutableRawPointer {
     func release<V: AnyObject>(of type: V.Type) {
         Unmanaged<V>.fromOpaque(self).release()
     }
+    
+    /**
+     Retains the object stored at this pointer.
+     
+     - Parameter type: The type of the object to retain.
+     */
+    @discardableResult
+    func retain<V: AnyObject>(of type: V.Type) -> Unmanaged<V> {
+        Unmanaged<V>.fromOpaque(self).retain()
+    }
 }

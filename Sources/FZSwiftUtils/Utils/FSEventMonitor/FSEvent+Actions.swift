@@ -15,38 +15,35 @@ extension FSEvent {
         // MARK: - Item
         
         /// An item was created.
-        public static let created = Actions(rawValue: 256)
+        public static let created = Self(kFSEventStreamEventFlagItemCreated)
         /// An item was removed.
-        public static let removed = Actions(rawValue: 512)
+        public static let removed = Self(kFSEventStreamEventFlagItemRemoved)
         /// An item was renamed.
-        public static let renamed = Actions(rawValue: 2048)
+        public static let renamed = Self(kFSEventStreamEventFlagItemRenamed)
         /// The item is a clone or was cloned.
-        public static let cloned = Actions(rawValue: 4194304)
+        public static let cloned = Self(kFSEventStreamEventFlagItemCloned)
         /// An item was modified.
-        public static let modified = Actions(rawValue: 4096)
+        public static let modified = Self(kFSEventStreamEventFlagItemModified)
         /// An item's Finder information was modified.
-        public static let finderInfoModified = Actions(rawValue: 8192)
+        public static let finderInfoModified = Self(kFSEventStreamEventFlagItemFinderInfoMod)
         /// An item's ownership information was changed.
-        public static let ownerModified = Actions(rawValue: 16384)
+        public static let ownerModified = Self(kFSEventStreamEventFlagItemChangeOwner)
         /// An item's extended attributes were modified.
-        public static let xattrModifed = Actions(rawValue: 32768)
+        public static let xattrModifed = Self(kFSEventStreamEventFlagItemXattrMod)
         /// An item's inode metadata was modified.
-        public static let inodeMetaModied = Actions(rawValue: 1024)
+        public static let inodeMetaModied = Self(kFSEventStreamEventFlagItemInodeMetaMod)
         
         // MARK: - Hierarchy
         
         /// The root path of a watched hierarchy has changed.
-        public static let rootChanged = Actions(rawValue: 32)
+        public static let rootChanged = Self(kFSEventStreamEventFlagRootChanged)
         
         // MARK: - Volume
         
         /// A volume has been mounted.
-        public static let mounted = Actions(rawValue: 64)
+        public static let mounted = Self(kFSEventStreamEventFlagMount)
         /// A volume has been unmounted.
-        public static let unmounted = Actions(rawValue: 128)
-        
-        /// No specific action set for this event.
-        public static let none: Actions = []
+        public static let unmounted = Self(kFSEventStreamEventFlagUnmount)
         
         /// All actions.
         public static let all: Actions = [.rootChanged, .created, .removed, .renamed, .cloned, .modified, .xattrModifed, .ownerModified, .finderInfoModified, .inodeMetaModied, .mounted, .unmounted]
@@ -56,21 +53,24 @@ extension FSEvent {
         public init(rawValue: UInt32) {
             self.rawValue = rawValue
         }
+        
+        init(_ rawValue: Int) {
+            self.rawValue = UInt32(rawValue)
+        }
     }
 }
 
 extension FSEvent.Actions: CustomStringConvertible {
     public var description: String {
-        "[\(self.elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+        "[\(elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
     
     public var debugDescription: String {
-        "[\(self.elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
+        "[\(elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
     }
     
     var _description: String {
         switch self {
-        case .none: return "none"
         case .rootChanged: return "rootChanged"
         case .mounted: return "mounted"
         case .unmounted: return "unmounted"
@@ -89,7 +89,6 @@ extension FSEvent.Actions: CustomStringConvertible {
     
     var _debugDescription: String {
         switch self {
-        case .none: return "None"
         case .rootChanged: return "Root changed"
         case .mounted: return "Mounted"
         case .unmounted: return "Unmounted"
