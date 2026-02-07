@@ -433,6 +433,10 @@ private extension KeyValueObservation {
             }
         }
         
+        deinit {
+            observerView?.removeFromSuperview()
+        }
+        
         class ObserverView: UIView {
             let handler: ((UITraitCollection, UITraitCollection) -> Void)
             
