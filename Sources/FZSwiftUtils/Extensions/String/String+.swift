@@ -26,11 +26,6 @@ public extension StringProtocol {
     func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
         strings.allSatisfy { contains($0) }
     }
-    
-    /// Returns a new string made by removing all emoji characters.
-    func trimmingEmojis() -> String {
-        unicodeScalars.filter { !$0.properties.isEmojiPresentation && !$0.properties.isEmoji }.reduce(into: "") { $0 += String($1) }
-    }
 
     /// A representation of the string where the first character is lowercased.
     func lowercasedFirst() -> String {
@@ -172,16 +167,6 @@ public extension StringProtocol {
     subscript(safe range: PartialRangeUpTo<Int>) -> SubSequence? {
         guard range.upperBound >= 0, let endIndex =  index(startIndex, offsetBy: range.upperBound, limitedBy: endIndex) else { return nil }
         return self[startIndex..<endIndex]
-    }
-    
-    /// Returns a new string with all characters in the specified character set removed.
-    func removingCharacters(in set: CharacterSet) -> String {
-        unicodeScalars.filter { !set.contains($0) }.map { String($0) }.joined()
-    }
-    
-    /// Returns a new string containing only the characters in the specified character set.
-    func keepingCharacters(in set: CharacterSet) -> String {
-        unicodeScalars.filter { set.contains($0) }.map { String($0) }.joined()
     }
     
     /// Checks whether all characters in the string are part of the specified character set.
@@ -358,9 +343,19 @@ public extension String {
         replacingOccurrences(of: " ", with: "\u{00A0}")
     }
     
+    /// Returns a new string containing only the characters in the specified character set.
+    func keepingCharacters(in set: CharacterSet) -> String {
+        String(unicodeScalars.filter { set.contains($0) })
+    }
+    
     /// Mutates the string, keeping only characters in the specified character set.
     mutating func keepCharacters(in set: CharacterSet) {
         self = keepingCharacters(in: set)
+    }
+    
+    /// Returns a new string with all characters in the specified character set removed.
+    func removingCharacters(in set: CharacterSet) -> String {
+        String(unicodeScalars.filter { !set.contains($0) })
     }
     
     /// Mutates the string by removing all characters in the specified character set.
@@ -371,6 +366,16 @@ public extension String {
     /// Mutates the string by removing from both ends of the String characters contained in a given character set.
     mutating func trimCharacters(in set: CharacterSet) {
         self = trimmingCharacters(in: set)
+    }
+    
+    /// Returns a new string made by removing all emoji characters.
+    func removingEmojis() -> String {
+        String(filter { !$0.isEmoji })
+    }
+    
+    /// Mutates the string by removing all emoji characters.
+    mutating func removeEmojis() {
+        self = removingEmojis()
     }
 }
 

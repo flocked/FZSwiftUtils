@@ -10,7 +10,6 @@ import Foundation
 extension Character {
     /// A Boolean value indicating whether the character is an emoji character.
     public var isEmoji: Bool {
-        guard let scalar = unicodeScalars.first else { return false }
-        return scalar.properties.isEmoji && (scalar.value > 0x238C || unicodeScalars.count > 1)
+        unicodeScalars.contains { $0.properties.isEmojiPresentation || $0.properties.isEmoji }
     }
 }

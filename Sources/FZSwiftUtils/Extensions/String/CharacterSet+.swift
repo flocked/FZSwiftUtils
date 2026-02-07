@@ -8,6 +8,9 @@
 import Foundation
 
 extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUnicodeScalarLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral {
+    /// A character set containing all hexadecimal digits (0–9, A–F, a–f).
+    public static let hexDigits = CharacterSet(charactersIn: "0123456789ABCDEFabcdef")
+    
     public init(stringLiteral value: String) {
         self = .init(charactersIn: value)
     }
@@ -27,7 +30,7 @@ extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUni
     }
     
     public static func += (lhs: inout Self, rhs: CharacterSet) {
-        lhs = lhs + rhs
+        lhs.formUnion(rhs)
     }
     
     public static func - (lhs: CharacterSet, rhs: CharacterSet) -> CharacterSet {
@@ -35,15 +38,12 @@ extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUni
     }
     
     public static func -= (lhs: inout Self, rhs: CharacterSet) {
-        lhs = lhs - rhs
+        lhs.subtract(rhs)
     }
-    
-    /// A character set containing all hexadecimal digits (0–9, A–F, a–f).
-    public static let hexDigits = CharacterSet(charactersIn: "0123456789ABCDEFabcdef")
 }
 
 extension Array where Element == CharacterSet {
     public var union: CharacterSet {
-        reduce(into: CharacterSet()) { $0 += $1 }
+        reduce(into: []) { $0.formUnion($1) }
     }
 }

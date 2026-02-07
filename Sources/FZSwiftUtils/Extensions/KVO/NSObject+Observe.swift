@@ -210,7 +210,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeWillChange<Value>(_ keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeWillChange<Value>(for keyPath: KeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, keyPath: keyPath, willChange: handler)
     }
     
@@ -243,7 +243,7 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeWillChange<Value>(_ keyPath: WritableKeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeWillChange<Value>(for keyPath: WritableKeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value) -> Void)) -> KeyValueObservation? {
         #if os(macOS) || os(iOS)
         KeyValueObservation(self, keyPath: keyPath, willChange: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, willChange: handler)
         #else
@@ -281,7 +281,7 @@ extension NSObjectProtocol where Self: NSObject {
 
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeWillChange<Value>(_ keyPath: WritableKeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeWillChange<Value>(for keyPath: WritableKeyPath<Self, Value>, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         KeyValueObservation(self, writableKeyPath: keyPath, willChange: handler)
     }
     #endif
