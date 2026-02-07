@@ -133,7 +133,7 @@ public extension StringProtocol {
     
     /// Returns the substring for the specified `NSRange`.
     subscript(range: NSRange) -> SubSequence {
-        return self[safe: range]!
+        get { self[safe: range]! }
     }
     
     /// Returns the substring for the specified `NSRange`, or `nil` if the range couldn't be found.
@@ -176,6 +176,24 @@ public extension StringProtocol {
 }
 
 public extension String {
+    /// The substring at the specified `NSRange`.
+    subscript(range: NSRange) -> SubSequence {
+        get { self[safe: range]! }
+        set { self[safe: range] = newValue }
+    }
+    
+    /// The substring at the specified `NSRange`.
+    subscript(safe range: NSRange) -> SubSequence? {
+        get {
+            guard let range = Range(range, in: self) else { return nil }
+            return self[range]
+        }
+        set {
+            guard let range = Range(range, in: self), let newValue else { return }
+            replaceSubrange(range, with: newValue)
+        }
+    }
+    
     /// The range of the specified prefix, or `nil` if it doesn't exist.
     func rangeOfPrefix(_ prefix: String) -> Range<Index>? {
         guard hasPrefix(prefix) else { return nil }
@@ -924,5 +942,27 @@ extension String {
             }
             return String(component)
         }
+    }
+}
+
+extension String {
+    /**
+     Returns the range of the specified substring within the receiver.
+     
+     - Parameters:
+        - string: The substring to search for.
+        - range: The range within the receiver to search, or `nil` to search the full string.
+        - options: The search options (e.g., case-insensitive, backwards, etc.).
+        - locale: The locale to use when comparing the receiver with the specified substring.
+     - Returns: The range of the first occurrence of the substring within the receiver. The range is relative to the start of the receivver. If the substring is not found or is empty (`""`), the returned range has a `location` equal to `NSNotFound`.
+     */
+    public func nsRange(of string: String, in range: NSRange? = nil, options: NSString.CompareOptions = [], locale: Locale? = nil) -> NSRange {
+        if let locale = locale {
+            return (self as NSString).range(of: string, options: options, range: range ?? nsRange, locale: locale)
+        } else if let range = range {
+           return (self as NSString).range(of: string, options: options, range: range)
+        }
+        return (self as NSString).range(of: string, options: options)
+
     }
 }
