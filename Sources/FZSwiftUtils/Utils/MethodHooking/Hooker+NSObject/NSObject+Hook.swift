@@ -28,10 +28,10 @@ public extension NSObject {
         print("hooked before")
      }
      ```
-
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -52,13 +52,14 @@ public extension NSObject {
      
      ```swift
      let label = UILabel()
-     try label.hookBefore(#selector(setter: UILabel.text) { object, selector, newText
+     try label.hookBefore(#selector(setter: UILabel.text), closure: { object, selector, newText
         print("hooked before with \(newText)")
-     }
+     } as @convention(block) (Self, Selector, String) -> Void)
      ```
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure as: `@convention(block) (Self, Selector, Arguments...) -> Void`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -79,14 +80,14 @@ public extension NSObject {
      
      ```swift
      let label = UILabel()
-     try label.hookAfter(#selector(setter: UILabel.text) {
+     try label.hookAfter(#selector(setter: UILabel.text)) {
         print("hooked after")
      }
      ```
-
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -109,13 +110,14 @@ public extension NSObject {
      
      ```swift
      let label = UILabel()
-     try label.hookAfter(#selector(setter: UILabel.text) { object, selector, newText
-        print("hooked after with \(newText)")
-     }
+     try label.hookAfter(#selector(setter: UILabel.text), closure: { object, selector, newText
+        print("hooked before with \(newText)")
+     } as @convention(block) (Self, Selector, String) -> Void)
      ```
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. Parameters: `(Self, Selector, ...)`. Return type: `Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure as: `@convention(block) (Self, Selector, Arguments...) -> Void`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -145,18 +147,18 @@ public extension NSObject {
      
      try! object.hook(#selector(MyObject.sum(of:and:)), closure: {
         original, object, selector, number1, number2 in
-        let originalValue = original(object, selector, number1, number2)
-        return originalValue * 2
+        let value = original(object, selector, number1, number2)
+        return value * 2
      } as @convention(block) (
          (MyObject, Selector, Int, Int) -> Int,
         MyObject, Selector, Int, Int) -> Int)
      
-     object.sum(of: 1, and: 2) // Returns 6
+     object.sum(of: 1, and: 2) // 6
      ```
-     
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. Parameters: `((Self, Selector, ...) -> ReturnType, Self, Selector, ...) -> ReturnType`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure as: `@convention(block) ((Self, Selector, Arguments...) -> ReturnType, Self, Selector, Arguments...) -> ReturnType`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -183,9 +185,10 @@ public extension NSObjectProtocol where Self: NSObject {
         print("before set text of \(object)")
      }
      ```
-     - parameter selector: The method you want to hook on.
-     - parameter closureObjSel: The hook closure. Parameters: `(Self, Selector) -> Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure. Parameters: `(Self, Selector) -> Void`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -210,9 +213,10 @@ public extension NSObjectProtocol where Self: NSObject {
         print("after set text of \(object)")
      }
      ```
-     - parameter selector: The method you want to hook on.
-     - parameter closureObjSel: The hook closure. Parameters: `(Self, Selector) -> Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure. Parameters: `(Self, Selector) -> Void`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles.
      */
@@ -237,7 +241,7 @@ public extension NSObjectProtocol where Self: NSObject {
      }
      ```
      - parameter closure: The hook closure. Parameter: `(Self) -> Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. Avoid retain cycles. Do not capture strong references to the object.
      */
@@ -261,7 +265,7 @@ public extension NSObject {
      }
      ```
      - parameter closure: The hook closure. Parameter: `() -> Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
@@ -283,7 +287,7 @@ public extension NSObject {
      }
      ```
      - parameter closure: The hook closure. Parameter: `() -> Void`.
-     - returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
@@ -307,7 +311,7 @@ public extension NSObject {
      }
      ```
      - Parameter closure: The hook closure with the original dealloc method as parameter. You have to call it to avoid memory leak.
-     - Returns: The token of this hook. You may cancel or reapply the hook through the token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
@@ -324,39 +328,18 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is get. It receives:
-         - `object`: The object.
-         - `value`: The value to be returned by the property.
+         - `object`: The instance whose property is being accessed.
 
      Example usage:
      ```swift
-     try textfield.hookBefore(\.stringValue) { textfield, stringValue in
+     try label.hookBefore(\.text) { label in
         // hooks before.
      }
      ```
      */
     @discardableResult
-    public func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.getterName(), closure: Hook.closure(for: closure))
-    }
-    
-    /**
-     Hooks before getting the specified property.
-
-     - Parameters:
-        - keyPath: The key path to the property to hook.
-       - closure: The handler that is invoked before the property is get. It receives:
-         - `object`: The object.
-         - `value`: The value to be returned by the property.
-
-     Example usage:
-     ```swift
-     try textfield.hookBefore(\.stringValue) { textfield, stringValue in
-        // hooks before.
-     }
-     ```
-     */
-    public func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookBefore(try keyPath.getterName(), closure: Hook.closure(for: closure))
+    public func hookBefore<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self)->()) throws -> Hook {
+        try hookBefore(keyPath.getterName()) { obj,_ in closure(obj) }
     }
     
     /**
@@ -365,19 +348,19 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `value`: The new value to be set to the property.
 
      Example usage:
      ```swift
-     try textfield.hookBefore(set: \.stringValue) { textfield, stringValue in
+     try label.hookBefore(set: \.text) { label, text in
         // hooks before.
      }
      ```
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookBefore(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -386,18 +369,63 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `value`: The new value to be set to the property.
 
      Example usage:
      ```swift
-     try textfield.hookBefore(set: \.stringValue) { textfield, stringValue in
+     try label.hookBefore(set: \.text) { label, text in
         // hooks before.
      }
      ```
      */
+    @discardableResult
     public func hookBefore<Value>(set keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookBefore(try keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookBefore(keyPath.setterName(), closure: Hook.closure(for: closure))
+    }
+    
+    /**
+     Hooks before setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - closure: The handler that is invoked before the property is set. It receives:
+            - `object`: The instance whose property is being set.
+            - `oldValue`: The current value of the property.
+            - `newValue`: The new value to be set to the property.
+
+     Example usage:
+     ```swift
+     try label.hookBefore(set: \.text) { label, oldText newText in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, keyPath))
+    }
+    
+    /**
+     Hooks before setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - closure: The handler that is invoked before the property is set. It receives:
+            - `object`: The instance whose property is being set.
+            - `oldValue`: The current value of the property.
+            - `newValue`: The new value to be set to the property.
+
+     Example usage:
+     ```swift
+     try label.hookBefore(set: \.text) { label, oldText newText in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, keyPath))
     }
     
     /**
@@ -407,19 +435,19 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value will change (i.e., when the new value is not equal to the current one).
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
-         - `value`: The new value to be set to the property.
-
+            - `object`: The instance whose property is being set.
+            - `oldValue`: The current value of the property.
+            - `newValue`: The new value to be set to the property.
      Example usage:
      ```swift
-     try textfield.hookBefore(set: \.stringValue) { textfield, stringValue in
+     try label.hookBefore(set: \.text, uniqueValues: true) { label, oldText, newText in
         // hooks before.
      }
      ```
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hookBefore(try keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -429,19 +457,19 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value will change (i.e., when the new value is not equal to the current one).
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
-         - `value`: The new value to be set to the property.
-
+            - `object`: The instance whose property is being set.
+            - `oldValue`: The current value of the property.
+            - `newValue`: The new value to be set to the property.
      Example usage:
      ```swift
-     try textfield.hookBefore(set: \.stringValue) { textfield, stringValue in
+     try label.hookBefore(set: \.text, uniqueValues: true) { label, oldText, newText in
         // hooks before.
      }
      ```
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hookBefore(try keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -450,39 +478,18 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is read. It receives:
-         - `object`: The object.
-         - `value`: The current value of the property.
+         - `object`: The instance whose property is being accessed.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(\.stringValue) { textfield, stringValue in
+     try label.hookAfter(\.text) { label in
         // hooks after.
      }
      ```
      */
     @discardableResult
-    public func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookAfter(try keyPath.getterName(), closure: Hook.closure(for: closure))
-    }
-    
-    /**
-     Hooks after getting the specified property.
-
-     - Parameters:
-        - keyPath: The key path to the property to hook.
-       - closure: The handler that is invoked after the property is read. It receives:
-         - `object`: The object.
-         - `value`: The current value of the property.
-
-     Example usage:
-     ```swift
-     try textfield.hookAfter(\.stringValue) { textfield, stringValue in
-        // hooks after.
-     }
-     ```
-     */
-    public func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookAfter(try keyPath.getterName(), closure: Hook.closure(for: closure))
+    public func hookAfter<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self)->()) throws -> Hook {
+        try hookAfter(keyPath.getterName()) { obj,_ in closure(obj) }
     }
     
     /**
@@ -491,19 +498,19 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `value`: The new value of the property.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set: \.stringValue) { textfield, stringValue in
+     try label.hookAfter(set: \.text) { label, text in
         // hooks after.
      }
      ```
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookAfter(try keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookAfter(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -512,19 +519,19 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `value`: The new value of the property.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set: \.stringValue) { textfield, stringValue in
+     try label.hookAfter(set: \.text) { label, text in
         // hooks after.
      }
      ```
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookAfter(try keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookAfter(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -533,20 +540,20 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+     try label.hookAfter(set: \.text) { label, oldText, newText in
         // hooks after.
      }
      ```
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
@@ -555,20 +562,20 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+     try label.hookAfter(set: \.text) { label, oldText, newText in
         // hooks after.
      }
      ```
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
@@ -578,20 +585,20 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value did change (i.e., when the new value is not equal to the previous value).
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+     try label.hookAfter(set: \.text, uniqueValues: true) { label, oldText, newText in
         // hooks after.
      }
      ```
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -601,20 +608,20 @@ extension NSObjectProtocol where Self: NSObject {
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value did change (i.e., when the new value is not equal to the previous value).
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `object`: The instance whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
-     try textfield.hookAfter(set: \.stringValue) { textfield, oldStringValue, stringValue in
+     try label.hookAfter(set: \.text, uniqueValues: true) { label, oldText, newText in
         // hooks after.
      }
      ```
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -623,20 +630,20 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: A closure that is invoked whenever the property is read. It receives:
-         - `object`: The instance on which the property is being accessed.
+         - `object`: The instance whose property is being accessed.
          - `original`: The value returned by the original getter.
          - Returns: The value to return from the getter. This can be the original value or a modified one.
 
      Example usage:
      ```swift
-     try textfield.hook(\.stringValue) { object, originalValue in
-        return originalValue.uppercased()
+     try label.hook(\.text) { label, text in
+        return text.uppercased()
      }
      ```
      */
     @discardableResult
     public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook {
-        return try hook(try keyPath.getterName(), closure: Hook.getterClosure(for: closure))
+        return try hook(keyPath.getterName(), closure: Hook.getterClosure(for: closure))
     }
     
     /**
@@ -645,20 +652,20 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: A closure that is invoked whenever the property is read. It receives:
-         - `object`: The instance on which the property is being accessed.
+         - `object`: The instance whose property is being accessed.
          - `original`: The value returned by the original getter.
          - Returns: The value to return from the getter. This can be the original value or a modified one.
 
      Example usage:
      ```swift
-     try textfield.hook(\.stringValue) { object, originalValue in
-        return originalValue.uppercased()
+     try label.hook(\.text) { label, text in
+        return text.uppercased()
      }
      ```
      */
     @discardableResult
     public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
-        return try hook(try keyPath.getterName(), closure: Hook.getterClosure(for: closure))
+        return try hook(keyPath.getterName(), closure: Hook.getterClosure(for: closure))
     }
     
     /**
@@ -667,23 +674,22 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the writable property to hook.
         - closure: The handler that is invoked whenever the property is set. It receives:
-            - `object`: The instance on which the property is being set.
+            - `object`: The instance whose property is being set.
             - `value`: The new value that is about to be written to the property.
-            - `original`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
+            - `setter`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
 
      Example usage:
      ```swift
-     try textfield.hook(set: \.stringValue) { textfield, stringValue, original in
-        if stringValue != "" {
-            // Sets the stringValue.
-            original(stringValue)
+     try label.hook(set: \.text) { label, text, setter in
+        if text != "" {
+            setter(text)
         }
      }
      ```
      */
     @discardableResult
-    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
-        return try hook(try keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ setter: (Value)->())->()) throws -> Hook {
+        return try hook(keyPath.setterName(), closure: Hook.setterClosure(for: closure))
     }
     
     /**
@@ -692,23 +698,66 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The key path to the writable property to hook.
         - closure: The handler that is invoked whenever the property is set. It receives:
-            - `object`: The instance on which the property is being set.
+            - `object`: The instance whose property is being set.
             - `value`: The new value that is about to be written to the property.
-            - `original`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
+            - `setter`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
 
      Example usage:
      ```swift
-     try textfield.hook(set: \.stringValue) { textfield, stringValue, original in
-        if stringValue != "" {
-            // Sets the stringValue.
-            original(stringValue)
+     try label.hook(set: \.text) { label, text, setter in
+        if text != "" {
+            setter(text)
         }
      }
      ```
      */
     @discardableResult
-    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ original: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
-        return try hook(try keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ setter: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
+        return try hook(keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+    }
+    
+    /**
+     Hooks setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the writable property to hook.
+        - closure: The handler that is invoked whenever the property is set. It receives:
+            - `object`: The instance whose property is being set.
+            - `value`: The new value that is about to be written to the property.
+            - Returns: The value to forward to the original setter.
+
+     Example usage:
+     ```swift
+     try label.hook(set: \.text) { label, text in
+        return text.uppercased()
+     }
+     ```
+     */
+    @discardableResult
+    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value)->(Value)) throws -> Hook {
+        try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
+    }
+    
+    /**
+     Hooks setting the specified property.
+
+     - Parameters:
+        - keyPath: The key path to the writable property to hook.
+        - closure: The handler that is invoked whenever the property is set. It receives:
+            - `object`:The instance whose property is being set.
+            - `value`: The new value that is about to be written to the property.
+            - Returns: The value to forward to the original setter.
+
+     Example usage:
+     ```swift
+     try label.hook(set: \.text) { label, text in
+        return text.uppercased()
+     }
+     ```
+     */
+    @discardableResult
+    public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
+        try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
 }
 #endif

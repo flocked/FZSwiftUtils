@@ -10,7 +10,7 @@ import Foundation
 
 extension FSEvent {
     /// Represents the actions for a file system event.
-    public struct Actions: OptionSet, Hashable, CustomStringConvertible, CustomDebugStringConvertible {
+    public struct Actions: OptionSet, Hashable {
         
         // MARK: - Item
         
@@ -48,14 +48,6 @@ extension FSEvent {
         /// All actions.
         public static let all: Actions = [.rootChanged, .created, .removed, .renamed, .cloned, .modified, .xattrModifed, .ownerModified, .finderInfoModified, .inodeMetaModied, .mounted, .unmounted]
         
-        public var description: String {
-            FSEvent.Flags(rawValue: rawValue).description
-        }
-        
-        public var debugDescription: String {
-            FSEvent.Flags(rawValue: rawValue).debugDescription
-        }
-        
         public let rawValue: UInt32
         
         public init(rawValue: UInt32) {
@@ -64,6 +56,30 @@ extension FSEvent {
         
         init(_ rawValue: Int) {
             self.rawValue = UInt32(rawValue)
+        }
+    }
+}
+
+extension FSEvent.Actions: CustomStringConvertible {
+    public var description: String {
+        "[\(elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+    }
+    
+    var _description: String {
+        switch self {
+        case .rootChanged: return "rootChanged"
+        case .mounted: return "mounted"
+        case .unmounted: return "unmounted"
+        case .created: return "created"
+        case .removed: return "removed"
+        case .inodeMetaModied: return "inodeMetaModied"
+        case .renamed: return "renamed"
+        case .modified: return "modified"
+        case .finderInfoModified: return "finderInfoModified"
+        case .ownerModified: return "ownerModified"
+        case .xattrModifed: return "xattrModied"
+        case .cloned: return "cloned"
+        default: return "unkown"
         }
     }
 }

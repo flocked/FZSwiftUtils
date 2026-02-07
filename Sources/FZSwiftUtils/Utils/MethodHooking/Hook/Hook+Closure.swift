@@ -15,6 +15,16 @@ import UIKit
 import CoreMedia
 
 extension Hook {
+    // MARK: - hook before set property
+    
+    static func beforeClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ keyPath: WritableKeyPath<Object, Value>) -> Any {
+        self.closure { (object: Object, value: Value) in closure(object, object[keyPath: keyPath], value) }
+    }
+    
+    static func beforeClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
+        self.closure { (object: Object, value: Value) in closure(object, object[keyPath: keyPath], value) }
+    }
+    
     // MARK: - hook before set property, unique values
     
     static func beforeClosure<Object, Value: Equatable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any {
@@ -33,10 +43,28 @@ extension Hook {
         }
     }
     
+    // MARK: - hook after set property
+    
+    static func afterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), keyPath: WritableKeyPath<Object, Value>) -> Any {
+        setterClosure { (object: Object, value: Value, apply: (Value)->()) in
+            let oldValue = object[keyPath: keyPath]
+            apply(value)
+            closure(object, oldValue, value)
+        }
+    }
+    
+    static func afterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
+        setterClosure { (object: Object, value: Value, apply: (Value)->()) in
+            let oldValue = object[keyPath: keyPath]
+            apply(value)
+            closure(object, oldValue, value)
+        }
+    }
+    
     // MARK: - hook after set property, unique values
 
     static func afterClosure<Object, Value: Equatable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any {
-        self.setterClosure { (object: Object, value: Value, apply: (Value)->()) in
+        setterClosure { (object: Object, value: Value, apply: (Value)->()) in
             let oldValue = object[keyPath: keyPath]
             apply(value)
             guard !uniqueValues || oldValue != value else { return }
@@ -45,28 +73,10 @@ extension Hook {
     }
     
     static func afterClosure<Object, Value: Equatable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
-        self.setterClosure { (object: Object, value: Value, apply: (Value)->()) in
+        setterClosure { (object: Object, value: Value, apply: (Value)->()) in
             let oldValue = object[keyPath: keyPath]
             apply(value)
             guard !uniqueValues || oldValue != value else { return }
-            closure(object, oldValue, value)
-        }
-    }
-    
-    // MARK: - hook after set property
-    
-    static func afterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), keyPath: WritableKeyPath<Object, Value>) -> Any {
-        self.setterClosure { (object: Object, value: Value, apply: (Value)->()) in
-            let oldValue = object[keyPath: keyPath]
-            apply(value)
-            closure(object, oldValue, value)
-        }
-    }
-    
-    static func afterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
-        self.setterClosure { (object: Object, value: Value, apply: (Value)->()) in
-            let oldValue = object[keyPath: keyPath]
-            apply(value)
             closure(object, oldValue, value)
         }
     }
@@ -79,11 +89,11 @@ extension Hook {
         switch Value.self {
         case _ where Value.self == Bool.self:
             return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
+                closure(object as! Object, original(object, selector) as! Value) as! Bool
             } as @convention(block) ((AnyObject, Selector) -> Bool, AnyObject, Selector) -> Bool
         case _ where Value.self == Int.self:
             return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
+                closure(object as! Object, original(object, selector) as! Value) as! Int
             } as @convention(block) ((AnyObject, Selector) -> Int, AnyObject, Selector) -> Int
         case _ where Value.self == Int8.self:
             return { original, object, selector in
@@ -137,18 +147,6 @@ extension Hook {
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> CGFloat, AnyObject, Selector) -> CGFloat
-        case _ where Value.self == Date.self:
-            return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
-            } as @convention(block) ((AnyObject, Selector) -> Date, AnyObject, Selector) -> Date
-        case _ where Value.self == Data.self:
-            return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
-            } as @convention(block) ((AnyObject, Selector) -> Data, AnyObject, Selector) -> Data
-        case _ where Value.self == URL.self:
-            return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
-            } as @convention(block) ((AnyObject, Selector) -> URL, AnyObject, Selector) -> URL
         case _ where Value.self == CGSize.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
@@ -218,13 +216,21 @@ extension Hook {
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> NSDirectionalRectEdge, AnyObject, Selector) -> NSDirectionalRectEdge
         case _ where Value.self == (() -> ()).self:
+            typealias Block = @convention(block) () -> Void
             return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
-            } as @convention(block) ((AnyObject, Selector) -> (@convention(block) () -> Void), AnyObject, Selector) -> (@convention(block) () -> Void)
+                let originalBlock = original(object, selector) as Block
+                let result = closure(cast(object), cast({ originalBlock() }))
+                return { (result as! () -> ())() } as Block
+            } as @convention(block) ((AnyObject, Selector) -> Block, AnyObject, Selector) -> Block
         case _ where Value.self == Optional<(() -> ())>.self:
+            typealias Block = @convention(block) () -> Void
             return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
-            } as @convention(block) ((AnyObject, Selector) -> ((@convention(block) () -> Void)?), AnyObject, Selector) -> ((@convention(block) () -> Void)?)
+                let originalBlock = original(object, selector)
+                let swiftInput: (() -> ())? = originalBlock.map { blk in { blk() }  }
+                let result = closure(cast(object), cast(swiftInput))
+                guard let blk = result as? (() -> ()) else { return nil }
+                return { blk() } as Block
+            } as @convention(block) ((AnyObject, Selector) -> Block?, AnyObject, Selector) -> Block?
         case _ where Value.self == UUID.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
@@ -243,10 +249,7 @@ extension Hook {
     }
     
     static func getterClosure<Object, Value>(for closure: @escaping ((_ object: Object, _ value: Value)->Value)) -> Any where Value: RawRepresentable {
-        let rawClosure:  ((_ object: Object, _ value: Value.RawValue)->Value.RawValue) = { object, rawValue in
-            closure(object, Value(rawValue: rawValue)!).rawValue
-        }
-        return self.getterClosure(for: rawClosure)
+        getterClosure(for: { closure($0, Value(rawValue: $1)!).rawValue })
     }
     
     // MARK: - hook set property
@@ -255,7 +258,7 @@ extension Hook {
         switch Value.self {
         case _ where Value.self == Bool.self:
             return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+                closure(object as! Object, value as! Value, { original(object, selector, $0 as! Bool) })
             } as @convention(block) ((AnyObject, Selector, Bool) -> Void, AnyObject, Selector, Bool) -> Void
         case _ where Value.self == Int.self:
             return { original, object, selector, value in
@@ -313,18 +316,6 @@ extension Hook {
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
             } as @convention(block) ((AnyObject, Selector, CGFloat) -> Void, AnyObject, Selector, CGFloat) -> Void
-        case _ where Value.self == Date.self:
-            return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-            } as @convention(block) ((AnyObject, Selector, Date) -> Void, AnyObject, Selector, Date) -> Void
-        case _ where Value.self == Data.self:
-            return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-            } as @convention(block) ((AnyObject, Selector, Data) -> Void, AnyObject, Selector, Data) -> Void
-        case _ where Value.self == URL.self:
-            return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-            } as @convention(block) ((AnyObject, Selector, URL) -> Void, AnyObject, Selector, URL) -> Void
         case _ where Value.self == CGSize.self:
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
@@ -394,13 +385,17 @@ extension Hook {
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
             } as @convention(block) ((AnyObject, Selector, NSDirectionalRectEdge) -> Void, AnyObject, Selector, NSDirectionalRectEdge) -> Void
         case _ where Value.self == (() -> ()).self:
+            typealias Block = @convention(block) () -> Void
             return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-            } as @convention(block) ((@convention(block) (AnyObject, Selector, @escaping () -> ()) -> Void), AnyObject, Selector, @escaping () -> ()) -> Void
+                let originalBlock = value as! Block
+                closure(cast(object), cast({ originalBlock() }), { original(object, selector, $0 as! ()->()) })
+            } as @convention(block) ((AnyObject, Selector, Block) -> Void, AnyObject, Selector, Block) -> Void
         case _ where Value.self == Optional<(() -> ())>.self:
+            typealias Block = @convention(block) () -> Void
             return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-            } as @convention(block) ((@convention(block) (AnyObject, Selector, (@convention(block) () -> Void)?) -> Void), AnyObject, Selector, (@convention(block) () -> Void)?) -> Void
+                let swiftValue: (() -> ())? = (value as? Block).map { blk in { blk() } }
+                closure(cast(object), cast(swiftValue)) { original(object, selector, $0 as? ()->()) }
+            } as @convention(block) (((AnyObject, Selector, Block?) -> Void), AnyObject, Selector, Block?) -> Void
         case _ where Value.self == UUID.self:
             return { original, object, selector, value in
             closure(cast(object), cast(value), { original(object, selector, cast($0)) })
@@ -419,12 +414,9 @@ extension Hook {
     }
     
     static func setterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value, _ apply: (Value)->())->()) -> Any where Value: RawRepresentable {
-        let rawClosure: (Object, Value.RawValue, (Value.RawValue)->())->() = { object, rawValue, original in
-            guard let newValue = Value(rawValue: rawValue) else { return }
-            let newOriginal: ((Value)->()) = { original($0.rawValue) }
-            closure(object, newValue, newOriginal)
-        }
-        return self.setterClosure(for: rawClosure)
+        setterClosure(for: { object, rawValue, original in
+            closure(object, Value(rawValue: rawValue)!, { original($0.rawValue) })
+        })
     }
     
     // MARK: - hook before/after set property
@@ -461,12 +453,6 @@ extension Hook {
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Decimal) -> Void
         case _ where Value.self == CGFloat.self:
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGFloat) -> Void
-        case _ where Value.self == Date.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Date) -> Void
-        case _ where Value.self == Data.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Data) -> Void
-        case _ where Value.self == URL.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, URL) -> Void
         case _ where Value.self == CGSize.self:
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGSize) -> Void
         case _ where Value.self == CGPoint.self:
@@ -502,9 +488,15 @@ extension Hook {
         case _ where Value.self == NSDirectionalRectEdge.self:
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSDirectionalRectEdge) -> Void
         case _ where Value.self == (()->()).self:
-            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, @escaping () -> ()) -> Void
+            return { obj, sel, value in
+                let originalBlock = value as! @convention(block) () -> Void
+                closure(cast(obj), cast({ originalBlock() }))
+            } as @convention(block) (AnyObject, Selector, @convention(block) () -> Void) -> Void
         case _ where Value.self == Optional<(() ->())>.self:
-            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+            return { obj, sel, value in
+                let swiftValue = (value as? @convention(block) () -> Void).map { blk in { blk() } }
+                closure(cast(obj), cast(swiftValue))
+            } as @convention(block) (AnyObject, Selector, (@convention(block) () -> Void)?) -> Void
         case _ where Value.self == UUID.self:
             return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
         #if os(macOS)
@@ -516,11 +508,8 @@ extension Hook {
         }
     }
     
-    static func closure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any where Value:RawRepresentable {
-        let rawClosure: (_ object: Object,_ value: Value.RawValue)->() = { object, rawValue in
-            closure(object, Value(rawValue: rawValue)!)
-        }
-        return self.closure(for: rawClosure)
+    static func closure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any where Value: RawRepresentable {
+        self.closure(for: { closure($0, Value(rawValue: $1)!) })
     }
 }
 

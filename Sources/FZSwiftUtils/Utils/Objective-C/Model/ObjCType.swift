@@ -580,6 +580,7 @@ extension ObjCType {
      - Returns: `true` if the types match, `false` if they don't, or `nil` if undecidable (e.g., struct/union types).
      */
     public func matches(_ swiftType: Any.Type) -> Bool? {
+        let swiftType = (swiftType.self as? any OptionalProtocol.Type)?.wrappedType ?? swiftType.self
         switch self {
         case .char: return swiftType == Int8.self || swiftType == CChar.self
         case .uchar: return swiftType == UInt8.self || swiftType == CUnsignedChar.self

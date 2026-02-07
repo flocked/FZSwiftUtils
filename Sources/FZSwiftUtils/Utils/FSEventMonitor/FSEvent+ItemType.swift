@@ -10,7 +10,7 @@ import Foundation
 
 extension FSEvent {
     /// Represents the item type for a file system event.
-    public struct ItemType: OptionSet, Hashable, CustomStringConvertible {
+    public struct ItemType: OptionSet, Hashable {
         /// The item is a file.
         public static let file = Self(kFSEventStreamEventFlagItemIsFile)
         /// The item is a directory.
@@ -22,10 +22,6 @@ extension FSEvent {
         /// The item is the last hard link to a file.
         public static let lastHardlink = Self(kFSEventStreamEventFlagItemIsLastHardlink)
         
-        public var description: String {
-            FSEvent.Flags(rawValue: rawValue).description
-        }
-        
         public let rawValue: UInt32
         
         public init(rawValue: UInt32) {
@@ -34,6 +30,23 @@ extension FSEvent {
         
         init(_ rawValue: Int) {
             self.rawValue = UInt32(rawValue)
+        }
+    }
+}
+
+extension FSEvent.ItemType: CustomStringConvertible {
+    public var description: String {
+        "[\(elements().compactMap({$0._description}).joined(separator: ", "))]"
+    }
+    
+    var _description: String {
+        switch self {
+        case .file: return "File"
+        case .directory: return "Directory"
+        case .symbolicLink: return "SymbolicLink"
+        case .hardlink: return "Hardlink"
+        case .lastHardlink: return "Last hardlink"
+        default: return ""
         }
     }
 }

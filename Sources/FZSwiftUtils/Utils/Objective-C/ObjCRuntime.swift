@@ -9,7 +9,7 @@ import Foundation
 import _ExceptionCatcher
 
 /// Objective-C utilities.
-public struct ObjCRuntime {
+public enum ObjCRuntime {
     /// Returns all classes.
     public static func classes() -> [AnyClass] {
         if let chachedClasses = Cache.classes {

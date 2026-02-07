@@ -16,19 +16,20 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-         class func sum(with number1: Int, number2: Int) -> Int {
+        static func sum(of number1: Int, and number2: Int) -> Int {
              return number1 + number2
-         }
+        }
      }
      
-     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:)), closure: {
+     try MyObject.hookBefore(#selector(MyObject.sum(of:and:)), closure: {
          print("hooked before class sum")
      } as @convention(block) (MyObject, Selector, Int, Int) -> Void)
      ```
 
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
     class func hookBefore(_ selector: Selector, closure: @escaping () -> Void) throws -> Hook {
@@ -47,18 +48,19 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-         class func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
+        static func sum(of number1: Int, and number2: Int) -> Int {
+            return number1 + number2
+        }
      }
      
-     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:))) {
+     try MyObject.hookAfter(#selector(MyObject.sum(of:and:))) {
          print("hooked after class sum")
      }
      ```
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
     class func hookAfter(_ selector: Selector, closure: @escaping () -> Void) throws -> Hook {
@@ -79,23 +81,21 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-         class func sum(with number1: Int, number2: Int) -> Int {
-             return number1 + number2
-         }
+        static func sum(of number1: Int, and number2: Int) -> Int {
+            return number1 + number2
+        }
      }
      
-     try MyObject.hookBefore(#selector(MyObject.sum(with:number2:)), closure: { object, selector, number1, number2 in
-         print("hooked before class sum of \(number1) and \(number2)")
+     try MyObject.hookBefore(#selector(MyObject.sum(of:and:)), closure: {
+        object, selector, number1, number2 in
+        print("hooked before class sum of \(number1) and \(number2)")
      } as @convention(block) ((MyObject, Selector, Int, Int) -> Int))
      ```
      
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. The following is a description of the closure
-         1. The first parameter has to be `NSObject`.
-         2. The second parameter has to be `Selector`.
-         3. The rest parameters are the same as the method's.
-         4. The return type has to be `Void`.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure as: `@convention(block) (Self, Selector, Arguments...) -> Void`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
     class func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
@@ -114,23 +114,21 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-         class func sum(with number1: Int, number2: Int) -> Int {
+         class func sum(of number1: Int, and number2: Int) -> Int {
              return number1 + number2
          }
      }
      
-     try MyObject.hookAfter(#selector(MyObject.sum(with:number2:)), closure: { object, selector, number1, number2 in
-         print("hooked after class sum of \(number1) and \(number2)")
+     try MyObject.hookAfter(#selector(MyObject.sum(of:and:)), closure: {
+     object, selector, number1, number2 in
+        print("hooked after class sum of \(number1) and \(number2)")
      } as @convention(block) ((MyObject, Selector, Int, Int) -> Int))
      ```
      
-     - parameter selector: The method you want to hook on.
-     - parameter closure: The hook closure. The following is a description of the closure
-         1. The first parameter has to be `NSObject`.
-         2. The second parameter has to be `Selector`.
-         3. The rest parameters are the same as the method's.
-         4. The return type has to be `Void`.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Parameters:
+        - selector: The method you want to hook on.
+        - closure: The hook closure as: `@convention(block) (Self, Selector, Arguments...) -> Void`.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
     class func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
@@ -187,7 +185,7 @@ public extension NSObject {
          3. The third parameter has to be `Selector`.
          4. The rest parameters are the same as the method's.
          5. The return type has to be the same as the original method's.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
     class func hook(_ selector: Selector, closure: Any) throws -> Hook {
@@ -220,15 +218,15 @@ public extension NSObjectProtocol where Self: NSObject {
      
      - parameter selector: The method you want to hook on.
      - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
-    static func hookBefore(_ selector: Selector, closure: @escaping (_ cls: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
+    static func hookBefore(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
         try ClassHook(self).hookBefore(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookBefore(_ selector: String, closure: @escaping (_ cls: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
+    static func hookBefore(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
         try ClassHook(self).hookBefore(selector, closure: closure)
     }
     
@@ -250,68 +248,47 @@ public extension NSObjectProtocol where Self: NSObject {
      ```
      - parameter selector: The method you want to hook on.
      - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
+     - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
-    static func hookAfter(_ selector: Selector, closure: @escaping (_ cls: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
+    static func hookAfter(_ selector: Selector, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
         try ClassHook(self).hookAfter(selector, closure: closure)
     }
     
     @discardableResult
-    static func hookAfter(_ selector: String, closure: @escaping (_ cls: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
+    static func hookAfter(_ selector: String, closure: @escaping (_ class: Self.Type, _ selector: Selector) -> Void) throws -> Hook {
         try ClassHook(self).hookAfter(selector, closure: closure)
     }
 }
 
 extension NSObjectProtocol where Self: NSObject {
     /**
-     Hooks before getting the specified property of the class.
+     Hooks before getting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is get. It receives:
-         - `object`: The object.
-         - `value`: The value to be returned by the property.
+         - `class`: The class whose property is being accessed.
 
      Example usage:
      ```swift
-     try MyObject.hookBefore(\.classProperty) { cls, value in
+     try MyObject.hookBefore(\.classProperty) { cls in
         // hooks before.
      }
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.getterName(), closure: Hook.closure(for: closure))
+    public static func hookBefore<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type)->()) throws -> Hook {
+        try hookBefore(keyPath.getterName()) { cls,_ in closure(cls) }
     }
     
     /**
-     Hooks before getting the specified property of the class.
-
-     - Parameters:
-        - keyPath: The key path to the property to hook.
-       - closure: The handler that is invoked before the property is get. It receives:
-         - `object`: The object.
-         - `value`: The value to be returned by the property.
-
-     Example usage:
-     ```swift
-     try MyObject.hookBefore(\.classProperty) { cls, value in
-        // hooks before.
-     }
-     ```
-     */
-    public static func hookBefore<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookBefore(try keyPath.getterName(), closure: Hook.closure(for: closure))
-    }
-    
-    /**
-     Hooks before setting the specified property of the class.
+     Hooks before setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `value`: The new value to be set to the property.
 
      Example usage:
@@ -322,17 +299,17 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(set keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.setterName(), closure: Hook.closure(for: closure))
+    public static func hookBefore<Value>(set keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type,_ value: Value)->()) throws -> Hook {
+        try hookBefore(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
-     Hooks before setting the specified property of the class.
+     Hooks before setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `value`: The new value to be set to the property.
 
      Example usage:
@@ -342,18 +319,63 @@ extension NSObjectProtocol where Self: NSObject {
      }
      ```
      */
-    public static func hookBefore<Value>(set keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookBefore(try keyPath.setterName(), closure: Hook.closure(for: closure))
+    @discardableResult
+    public static func hookBefore<Value>(set keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookBefore(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
-     Hooks before setting the specified property of the class.
+     Hooks before setting the specified class property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - closure: The handler that is invoked before the property is set. It receives:
+            - `class`: The class whose property is being set.
+            - `oldValue`: The current value of the property.
+            - `newValue`: The new value to be set to the property.
+
+     Example usage:
+     ```swift
+     try label.hookBefore(set: \.text) { label, oldText newText in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, keyPath))
+    }
+    
+    /**
+     Hooks before setting the specified class property.
+
+     - Parameters:
+        - keyPath: The key path to the property to hook.
+        - closure: The handler that is invoked before the property is set. It receives:
+            - `class`: The class whose property is being set.
+            - `oldValue`: The current value of the property.
+            - `newValue`: The new value to be set to the property.
+
+     Example usage:
+     ```swift
+     try label.hookBefore(set: \.text) { label, oldText newText in
+        // hooks before.
+     }
+     ```
+     */
+    @discardableResult
+    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, keyPath))
+    }
+    
+    /**
+     Hooks before setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value will change (i.e., when the new value is not equal to the current one).
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `value`: The new value to be set to the property.
 
      Example usage:
@@ -364,18 +386,18 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ cls: Self.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hookBefore(try keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: Self.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
-     Hooks before setting the specified property of the class.
+     Hooks before setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value will change (i.e., when the new value is not equal to the current one).
        - closure: The handler that is invoked before the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `value`: The new value to be set to the property.
 
      Example usage:
@@ -386,190 +408,169 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ cls: Self.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hookBefore(try keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+    public static func hookBefore<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: Self.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
+        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
-     Hooks after getting the specified property of the class.
+     Hooks after getting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is read. It receives:
-         - `object`: The object.
-         - `value`: The current value of the property.
+         - `class`: The class whose property is being accessed.
 
      Example usage:
      ```swift
-     try MyObject.hookAfter(\.classProperty) { cls, value in
-        // hooks before.
+     try MyObject.hookAfter(\.classProperty) { cls in
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook {
-        try hookAfter(try keyPath.getterName(), closure: Hook.closure(for: closure))
+    public static func hookAfter<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type)->()) throws -> Hook {
+        try hookAfter(keyPath.getterName()) { cls,_ in closure(cls) }
     }
     
     /**
-     Hooks after getting the specified property of the class.
-
-     - Parameters:
-        - keyPath: The key path to the property to hook.
-       - closure: The handler that is invoked after the property is read. It receives:
-         - `object`: The object.
-         - `value`: The current value of the property.
-
-     Example usage:
-     ```swift
-     try MyObject.hookAfter(\.classProperty) { cls, value in
-        // hooks before.
-     }
-     ```
-     */
-    public static func hookAfter<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookAfter(try keyPath.getterName(), closure: Hook.closure(for: closure))
-    }
-    
-    /**
-     Hooks after setting the specified property of the class.
+     Hooks after setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `value`: The new value of the property.
 
      Example usage:
      ```swift
      try MyObject.hookAfter(set: \.classProperty) { cls, value in
-        // hooks before.
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook {
-        try hookAfter(try keyPath.setterName(), closure: Hook.closure(for: closure))
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type,_ value: Value)->()) throws -> Hook {
+        try hookAfter(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
-     Hooks after setting the specified property of the class.
+     Hooks after setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `value`: The new value of the property.
 
      Example usage:
      ```swift
      try MyObject.hookAfter(set: \.classProperty) { cls, value in
-        // hooks before.
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookAfter(try keyPath.setterName(), closure: Hook.closure(for: closure))
+    public static func hookAfter<Value>(set keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookAfter(keyPath.setterName(), closure: Hook.closure(for: closure))
     }
     
     /**
-     Hooks after setting the specified property of the class.
+     Hooks after setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `class`:The class whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
-     try MyObject.hookAfter(set: \.classProperty) { cls, value in
-        // hooks before.
+     try MyObject.hookAfter(set: \.classProperty) { cls, oldValue, newValue in
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
-     Hooks after setting the specified property of the class.
+     Hooks after setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
      try MyObject.hookAfter(set: \.classProperty) { cls, value in
-        // hooks before.
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
-     Hooks after setting the specified property of the class.
+     Hooks after setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value did change (i.e., when the new value is not equal to the previous value).
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
      try MyObject.hookAfter(set: \.classProperty) { cls, value in
-        // hooks before.
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ cls: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
-     Hooks after setting the specified property of the class.
+     Hooks after setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
         - uniqueValues: A Boolean value indicating whether the handler should be called only when the property's value did change (i.e., when the new value is not equal to the previous value).
        - closure: The handler that is invoked after the property is set. It receives:
-         - `object`: The object.
+         - `class`: The class whose property is being set.
          - `oldValue`: The previous value of the property.
-         - `value`: The new value of the property.
+         - `newValue`: The new value of the property.
 
      Example usage:
      ```swift
      try MyObject.hookAfter(set: \.classProperty) { cls, value in
-        // hooks before.
+        // hooks after.
      }
      ```
      */
     @discardableResult
-    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ cls: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hook(try keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+    public static func hookAfter<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: Self.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
+        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
-     Hooks getting the specified property of the class.
+     Hooks getting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: A closure that is invoked whenever the property is read. It receives:
-         - `object`: The instance on which the property is being accessed.
+         - `class`: The class whose property is being accessed.
          - `original`: The value returned by the original getter.
          - Returns: The value to return from the getter. This can be the original value or a modified one.
 
@@ -581,17 +582,17 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hook<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type, _ original: Value)->(Value)) throws -> Hook {
-        try hook(try keyPath.getterName(), closure: Hook.getterClosure(for: closure))
+    public static func hook<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ original: Value)->(Value)) throws -> Hook {
+        try hook(keyPath.getterName(), closure: Hook.getterClosure(for: closure))
     }
     
     /**
-     Hooks getting the specified property of the class.
+     Hooks getting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the property to hook.
        - closure: A closure that is invoked whenever the property is read. It receives:
-         - `object`: The instance on which the property is being accessed.
+         - `class`: The class whose property is being accessed.
          - `original`: The value returned by the original getter.
          - Returns: The value to return from the getter. This can be the original value or a modified one.
 
@@ -603,58 +604,102 @@ extension NSObjectProtocol where Self: NSObject {
      ```
      */
     @discardableResult
-    public static func hook<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type, _ original: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
-        try hook(try keyPath.getterName(), closure: Hook.getterClosure(for: closure))
+    public static func hook<Value>(_ keyPath: KeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ original: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
+        try hook(keyPath.getterName(), closure: Hook.getterClosure(for: closure))
     }
     
     /**
-     Hooks setting the specified property of the class.
+     Hooks setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the writable property to hook.
         - closure: The handler that is invoked whenever the property is set. It receives:
-            - `object`: The instance on which the property is being set.
+            - `class`: The class whose property is being set.
             - `value`: The new value that is about to be written to the property.
-            - `original`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
+            - `setter`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
 
      Example usage:
      ```swift
      try MyObject.hook(set: \.classProperty) { cls, value, original in
         if stringValue != "" {
             // Sets the stringValue.
-            original(stringValue)
+            setter(stringValue)
         }
      }
      ```
      */
     @discardableResult
-    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
-        try hook(try keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ value: Value, _ setter: (Value)->())->()) throws -> Hook {
+        try hook(keyPath.setterName(), closure: Hook.setterClosure(for: closure))
     }
     
     /**
-     Hooks setting the specified property of the class.
+     Hooks setting the specified class property.
 
      - Parameters:
         - keyPath: The key path to the writable property to hook.
         - closure: The handler that is invoked whenever the property is set. It receives:
-            - `object`: The instance on which the property is being set.
+            - `class`: The class whose property is being set.
             - `value`: The new value that is about to be written to the property.
-            - `original`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
+            - `setter`: A block that invokes the original setter. If the block isn't called, the property will not be updated.
 
      Example usage:
      ```swift
      try MyObject.hook(set: \.classProperty) { cls, value, original in
         if stringValue != "" {
             // Sets the stringValue.
-            original(stringValue)
+            setter(stringValue)
         }
      }
      ```
      */
     @discardableResult
-    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ cls: Self.Type, _ value: Value, _ original: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
-        try hook(try keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ value: Value, _ setter: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
+        try hook(keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+    }
+    
+    /**
+     Hooks setting the specified class property.
+
+     - Parameters:
+        - keyPath: The key path to the writable property to hook.
+        - closure: The handler that is invoked whenever the property is set. It receives:
+            - `class`: The class whose property is being set.
+            - `value`: The new value that is about to be written to the property.
+            - Returns: The value to forward to the original setter.
+
+     Example usage:
+     ```swift
+     try MyObject.hook(set: \.classProperty) { cls, value in
+        value.uppercased()
+     }
+     ```
+     */
+    @discardableResult
+    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ value: Value)->(Value)) throws -> Hook {
+        try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
+    }
+    
+    /**
+     Hooks setting the specified class property.
+
+     - Parameters:
+        - keyPath: The key path to the writable property to hook.
+        - closure: The handler that is invoked whenever the property is set. It receives:
+            - `class`:The class whose property is being set.
+            - `value`: The new value that is about to be written to the property.
+            - Returns: The value to forward to the original setter.
+
+     Example usage:
+     ```swift
+     try MyObject.hook(set: \.classProperty) { cls, value in
+        value.uppercased()
+     }
+     ```
+     */
+    @discardableResult
+    public static func hook<Value>(set keyPath: WritableKeyPath<Self.Type, Value>, closure: @escaping (_ class: Self.Type, _ value: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
+        try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
 }
 #endif
