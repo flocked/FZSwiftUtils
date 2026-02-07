@@ -590,14 +590,14 @@ extension ObjCType {
         case .uint: return swiftType == UInt32.self || swiftType == CUnsignedInt.self
         case .long: return swiftType == Int.self || swiftType == Int64.self || swiftType == CLong.self
         case .ulong: return swiftType == UInt.self || swiftType == UInt64.self || swiftType == CUnsignedLong.self
-        case .longLong: return swiftType == Int64.self || swiftType == CLongLong.self
-        case .ulongLong: return swiftType == UInt64.self || swiftType == CUnsignedLongLong.self
+        case .longLong: return swiftType == Int64.self || swiftType == CLongLong.self || swiftType == Int.self
+        case .ulongLong: return swiftType == UInt64.self || swiftType == CUnsignedLongLong.self || swiftType == UInt.self
         case .int128:
             if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == Int128.self } else { return nil }
         case .uint128:
             if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == UInt128.self } else { return nil }
         case .float: return swiftType == Float.self
-        case .double: return swiftType == Double.self
+        case .double: return swiftType == Double.self || swiftType == CGFloat.self
         case .longDouble: return swiftType == Double.self
         case .bool: return swiftType == Bool.self || swiftType == ObjCBool.self
         case .void, .voidConst, .voidIn: return swiftType == Void.self
@@ -610,7 +610,9 @@ extension ObjCType {
             guard let cls = swiftType as? AnyClass else { return false }
             guard let name else { return true }
             return NSClassFromString(name) == cls
-        case .block: return swiftType is AnyObject.Type ? true : nil
+        case .block:
+            let swiftName = String(reflecting: swiftType)
+            return swiftName.hasPrefix("(") && swiftName.contains("->")
         case .functionPointer: return nil
         case .struct(name: let name, fields: _):
             guard let name = name, let swiftName = String(reflecting: swiftType).components(separatedBy: ".").last else { return nil }
