@@ -10,37 +10,38 @@ import Foundation
 
 /// Represents information about an Objective-C class.
 public struct ObjCClassInfo: Sendable {
-    /// Name of the class
+    /// The name of the class.
     public let name: String
-    /// Version of the class
+    /// The version of the class.
     public let version: Int32
-    /// Name of the dynamic library the class originated from.
+    /// The name of the dynamic library the class originated from.
     public let imageName: String?
 
-    /// Size of instances of the class.
+    /// The size of instances of the class.
     public let instanceSize: Int
 
-    /// Super class of the class.
+    /// The super class of the class.
     public let superClass: AnyClass?
     
+    /// The class information of the super class.
     public var superClassInfo: ObjCClassInfo? {
         superClass.map({ ObjCClassInfo($0) })
     }
 
-    /// List of protocols to which the class conforms.
+    /// The protocols to which the class conforms.
     public let protocols: [ObjCProtocolInfo]
 
-    /// List of instance variables held by the class.
+    /// The instance variables held by the class.
     public let ivars: [ObjCIvarInfo]
 
-    /// List of class properties held by the class.
+    /// The class properties held by the class.
     public let classProperties: [ObjCPropertyInfo]
-    /// List of instance properties held by the class.
+    /// The instance properties held by the class.
     public let properties: [ObjCPropertyInfo]
 
-    /// List of class methods held by the class.
+    /// The class methods held by the class.
     public let classMethods: [ObjCMethodInfo]
-    /// List of instance methods held by the class.
+    /// The instance methods held by the class.
     public let methods: [ObjCMethodInfo]
     
     /**
@@ -219,27 +220,27 @@ extension ObjCClassInfo {
         ivars.first(where: { $0.name == name }) ?? superClassInfo?.ivar(named: name)
     }
     
-    /// List of instance properties held by the class and it's superclasses.
+    /// Returns all instance properties held by the class and it's superclasses.
     public var allProperties: [ObjCPropertyInfo] {
         allClasses.flatMap({$0.properties}).uniqued(by: \.name)
     }
     
-    /// List of class properties held by the class and it's superclasses.
+    /// Returns all class properties held by the class and it's superclasses.
     public var allClassProperties: [ObjCPropertyInfo] {
         allClasses.flatMap({$0.classProperties}).uniqued(by: \.name)
     }
     
-    /// List of instance methods held by the class and it's superclasses.
+    /// Returns all instance methods held by the class and it's superclasses.
     public var allMethods: [ObjCMethodInfo] {
         allClasses.flatMap({$0.methods}).uniqued(by: \.name)
     }
     
-    /// List of class methods held by the class and it's superclasses.
+    /// Returns all class methods held by the class and it's superclasses.
     public var allClassMethods: [ObjCMethodInfo] {
         allClasses.flatMap({$0.classMethods}).uniqued(by: \.name)
     }
     
-    /// List of protocols to which the class and it's superclasses conform to.
+    /// Returns all protocols to which the class and it's superclasses conform to.
     public var allProtocols: [ObjCProtocolInfo] {
         allClasses.flatMap({$0.protocols}).uniqued(by: \.name)
     }

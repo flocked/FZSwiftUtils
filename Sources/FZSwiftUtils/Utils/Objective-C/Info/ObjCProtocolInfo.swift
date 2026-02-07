@@ -10,28 +10,28 @@ import Foundation
 
 /// Represents information about an Objective-C protocol.
 public struct ObjCProtocolInfo: Sendable, Equatable, Codable {
-    /// Name of the protocol
+    /// The name of the protocol.
     public let name: String
 
-    /// List of protocols to which the protocol conforms.
+    /// The protocols to which the protocol conforms.
     public let protocols: [ObjCProtocolInfo]
 
-    /// List of required class properties.
+    /// The required class properties of the protocol.
     public let classProperties: [ObjCPropertyInfo]
-    /// List of required instance properties.
+    /// The required instance properties of the protocol.
     public let properties: [ObjCPropertyInfo]
-    /// List of required class methods.
+    /// The required class methods of the protocol.
     public let classMethods: [ObjCMethodInfo]
-    /// List of required instance methods.
+    /// The required instance methods of the protocol.
     public let methods: [ObjCMethodInfo]
 
-    /// List of optional class properties.
+    /// The optional class properties of the protocol.
     public let optionalClassProperties: [ObjCPropertyInfo]
-    /// List of optional instance properties.
+    /// The optional instance properties of the protocol.
     public let optionalProperties: [ObjCPropertyInfo]
-    /// List of optional class methods.
+    /// The optional class methods of the protocol.
     public let optionalClassMethods: [ObjCMethodInfo]
-    /// List of optional instance methods.
+    /// The optional instance methods of the protocol.
     public let optionalMethods: [ObjCMethodInfo]
     
     /**
@@ -39,15 +39,15 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable {
 
      - Parameters:
        - name: Name of the protocol.
-       - protocols: List of protocols to which the protocol conforms.
-       - classProperties: List of required class properties.
-       - properties: List of required instance properties.
-       - classMethods: List of required class methods.
-       - methods: List of required instance methods.
-       - optionalClassProperties: List of optional class properties.
-       - optionalProperties: List of optional instance properties.
-       - optionalClassMethods: List of optional class methods.
-       - optionalMethods: List of optional instance methods.
+       - protocols: The protocols to which the protocol conforms.
+       - classProperties: The required class properties of the protocol.
+       - properties: The required instance properties of the protocol.
+       - classMethods: The required class methods of the protocol.
+       - methods: The required instance methods of the protocol.
+       - optionalClassProperties: The optional class properties of the protocol.
+       - optionalProperties: The optional instance properties of the protocol.
+       - optionalClassMethods: The optional class methods of the protocol.
+       - optionalMethods: The optional instance methods of the protocol.
      */
     public init(
         name: String,

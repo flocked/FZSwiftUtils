@@ -10,23 +10,23 @@ import Foundation
 
 /// Represents information about an Objective-C category.
 public struct ObjCCategoryInfo: Sendable, Equatable, Codable {
-    /// Name of the category
+    /// The name of the category.
     public let name: String
 
-    /// Name of the target class name
+    /// The name of the target class.
     public let className: String
 
-    /// List of protocols to which the class conforms.
+    /// The protocols to which the class conforms.
     public let protocols: [ObjCProtocolInfo]
 
-    /// List of class properties held by the category.
+    /// The class properties held by the category.
     public let classProperties: [ObjCPropertyInfo]
-    /// List of instance properties held by the category.
+    /// The instance properties held by the category.
     public let properties: [ObjCPropertyInfo]
 
-    /// List of class methods held by the category.
+    /// The class methods held by the category.
     public let classMethods: [ObjCMethodInfo]
-    /// List of instance methods held by the category.
+    /// The instance methods held by the category.
     public let methods: [ObjCMethodInfo]
 
     /**

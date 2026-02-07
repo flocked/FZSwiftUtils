@@ -10,13 +10,13 @@ import Foundation
 
 /// Represents information about an Objective-C property.
 public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
-    /// Name of the property
+    /// The name of the property.
     public let name: String
     
-    /// Attribute list of the property
+    /// The attributes of the property.
     public let attributes: [Attribute]
     
-    /// A Boolean value that indicates whatever the property is class property or not.
+    /// A Boolean value indicating whatever the property is a class property.
     public let isClassProperty: Bool
         
     /**

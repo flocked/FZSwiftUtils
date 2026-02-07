@@ -14,7 +14,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
     public let name: String
     /// The type information for the return value and parameters of the method.
     public let type: ObjCMethodSignature
-    /// A Boolean value indicating whatever the method is a class method or not.
+    /// A Boolean value indicating whatever the method is a class method.
     public let isClassMethod: Bool
         
     /**
