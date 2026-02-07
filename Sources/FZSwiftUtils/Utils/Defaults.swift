@@ -241,7 +241,7 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, postedBy: notificationKey(for: key)) { notification in
             handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["value"] as? Value)
         }
     }
@@ -299,7 +299,7 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, postedBy: notificationKey(for: key)) { notification in
             let oldValue = notification.userInfo?["oldValue"] as? Value
             let value = notification.userInfo?["value"] as? Value
             if !uniqueValues || (uniqueValues && oldValue != value) {
@@ -336,7 +336,7 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, postedBy: notificationKey(for: key)) { notification in
             handler(notification.userInfo?["oldValue"] as? Value, notification.userInfo?["value"] as? Value)
         }
     }
@@ -394,7 +394,7 @@ public final class Defaults {
                 handler(nil, nil)
             }
         }
-        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, object: notificationKey(for: key)) { notification in
+        return NotificationCenter.default.observe(Defaults._valueUpdatedNotification, postedBy: notificationKey(for: key)) { notification in
             let oldValue = notification.userInfo?["oldValue"] as? Value
             let value = notification.userInfo?["value"] as? Value
             if !uniqueValues || (uniqueValues && oldValue != value) {
