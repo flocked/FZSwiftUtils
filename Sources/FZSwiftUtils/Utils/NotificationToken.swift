@@ -20,12 +20,6 @@ public class NotificationToken: NSObject {
     fileprivate let notificationCenter: NotificationCenter
     private let token: Any
     
-    init(notificationCenter: NotificationCenter, token: Any, name: Notification.Name?) {
-        self.notificationCenter = notificationCenter
-        self.token = token
-        self.name = name
-    }
-    
     /**
      Creates a token for observing notifications with the specified name.
           
@@ -60,21 +54,17 @@ public class NotificationToken: NSObject {
         self.name = nil
         self.token = notificationCenter.addObserver(forName: nil, object: object, queue: queue, using: block)
     }
+    
+    init(tokens: [NotificationToken]) {
+        name = .init(tokens.compactMap({$0.name?.rawValue}).joined(separator: ", "))
+        token = tokens
+        notificationCenter = .default
+    }
 
     deinit {
+        guard !(token is [NotificationToken]) else { return }
         notificationCenter.removeObserver(token)
     }
-}
-
-class CombinedNotificationToken: NotificationToken {
-    let tokens: [NotificationToken]
-    
-    init(_ tokens: [NotificationToken]) {
-        self.tokens = tokens
-        super.init(notificationCenter: .default, token: "", name: .init(tokens.compactMap({$0.name?.rawValue}).joined(separator: ", ")))
-    }
-    
-    deinit { }
 }
 
 public extension NotificationCenter {
@@ -188,7 +178,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: A token that keeps the observation alive and removes it on deallocation.
      */
     func observe(_ keyPaths: [KeyPath<Self.Type, Notification.Name>], on queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
-        CombinedNotificationToken(keyPaths.map({ observe($0, on: queue, using: block) }))
+        NotificationToken(tokens: keyPaths.map({ observe($0, on: queue, using: block) }))
     }
     
     /**
@@ -203,7 +193,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: A token that keeps the observation alive and removes it on deallocation.
      */
     func observe(_ names: [Notification.Name], on queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
-        CombinedNotificationToken(names.map({observe($0, on: queue, using: block) }))
+        NotificationToken(tokens: names.map({observe($0, on: queue, using: block) }))
     }
     
     /**
@@ -218,7 +208,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: A token that keeps the observation alive and removes it on deallocation.
      */
     static func observe(_ keyPaths: [KeyPath<Self.Type, Notification.Name>], on queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
-        CombinedNotificationToken(keyPaths.map({ observe($0, on: queue, using: block) }))
+        NotificationToken(tokens: keyPaths.map({ observe($0, on: queue, using: block) }))
     }
     
     /**
@@ -233,7 +223,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: A token that keeps the observation alive and removes it on deallocation.
      */
     static func observe(_ names: [Notification.Name], on queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void) -> NotificationToken {
-        CombinedNotificationToken(names.map({observe($0, on: queue, using: block) }))
+        NotificationToken(tokens: names.map({observe($0, on: queue, using: block) }))
     }
 }
 
