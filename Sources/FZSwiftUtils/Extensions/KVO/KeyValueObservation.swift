@@ -8,6 +8,8 @@
 import Foundation
 #if os(macOS)
 import AppKit
+#else
+import UIKit
 #endif
 
 /**
@@ -130,6 +132,12 @@ public class KeyValueObservation: NSObject {
                 Swift.print(error)
                 return nil
             }
+        default: break
+        }
+        #elseif os(iOS)
+        switch (keyPath.stringValue, object) {
+        case ("traitCollection", let object as UIView) where Value.self is UITraitCollection.Type:
+            observer = TraitCollectionObserver(view: object, handler: {  handler($0 as! Value, $1 as! Value) })
         default: break
         }
         #endif
@@ -396,11 +404,78 @@ private extension KeyValueObservation {
            self.init(object: object, keyPath: keyPath) { [.init(name1, object: $0) { _ in handler(false as! V, true as! V) }, .init(name2, object: $0) { _ in handler(true as! V, false as! V) }] }
         }
     }
+    
+    #if os(iOS)
+    class TraitCollectionObserver: NSObject, KVObserver {
+        let keyPathString = "traitCollection"
+        weak var view: UIView?
+        var observerView: UIView?
+        let handler: (UITraitCollection, UITraitCollection)->()
+        
+        init(view: UIView, handler: @escaping (UITraitCollection, UITraitCollection) -> Void) {
+            self.view = view
+            self.handler = handler
+            super.init()
+            self.isActive = true
+        }
+        
+        var isActive: Bool {
+            get { view != nil && observerView != nil }
+            set {
+                guard newValue != isActive, let view = view else { return }
+                if newValue {
+                    observerView = ObserverView(handler: handler)
+                    view.addSubview(observerView!)
+                } else {
+                    observerView?.removeFromSuperview()
+                    observerView = nil
+                }
+            }
+        }
+        
+        class ObserverView: UIView {
+            let handler: ((UITraitCollection, UITraitCollection) -> Void)
+            
+            init(handler: @escaping (UITraitCollection, UITraitCollection) -> Void) {
+                self.handler = handler
+                super.init(frame: .zero)
+            }
+            
+            required init?(coder: NSCoder) {
+                fatalError("init(coder:) has not been implemented")
+            }
+            
+            override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+                guard previousTraitCollection != traitCollection else { return }
+                super.traitCollectionDidChange(previousTraitCollection)
+                handler(previousTraitCollection ?? traitCollection, traitCollection)
+            }
+        }
+    }
+    #endif
 }
 
 fileprivate protocol KVObserver: NSObject {
     var isActive: Bool { get set }
     var keyPathString: String { get }
+}
+
+fileprivate extension NSObject {
+    func isObservable<Value>(_ keyPath: String, _ type: Value.Type) -> Bool {
+        guard let type = Self.classInfo().propertyType(at: keyPath) else { return false }
+        guard type.matches(Value.self) ?? true else { return false }
+        let object = NSObject()
+        var context = 0
+        do {
+            return try ObjCRuntime.catchException {
+                addObserver(object, forKeyPath: keyPath, context: &context)
+                removeObserver(object, forKeyPath: keyPath, context: &context)
+                return true
+            }
+        } catch {
+            return false
+        }
+    }
 }
 
 #if os(macOS)
@@ -434,24 +509,6 @@ fileprivate extension NSView {
         guard ids != getAssociatedValue("subviewIDs_\(id)", initialValue: [ObjectIdentifier]()) else { return false }
         setAssociatedValue(ids, key: "subviewIDs_\(id)")
         return true
-    }
-}
-
-fileprivate extension NSObject {
-    func isObservable<Value>(_ keyPath: String, _ type: Value.Type) -> Bool {
-        guard let type = Self.classInfo().propertyType(at: keyPath) else { return false }
-        guard type.matches(Value.self) ?? true else { return false }
-        let object = NSObject()
-        var context = 0
-        do {
-            return try ObjCRuntime.catchException {
-                addObserver(object, forKeyPath: keyPath, context: &context)
-                removeObserver(object, forKeyPath: keyPath, context: &context)
-                return true
-            }
-        } catch {
-            return false
-        }
     }
 }
 #endif
