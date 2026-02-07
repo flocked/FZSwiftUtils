@@ -254,7 +254,7 @@ public extension NSObjectProtocol where Self: NSObject {
      Example usage:
      
      ```swift
-     MyObject.hookDeInitBefore { object in
+     MyObject.hookDeinitBefore { object in
          print("hooked before DeInit of \(object)")
      }
      ```
@@ -265,8 +265,8 @@ public extension NSObjectProtocol where Self: NSObject {
      - Note: In the closure, do not assign the object to anywhere outside the closure. Do not keep the reference of the object. Because the object is going to be released.
      */
     @discardableResult
-    static func hookDeInitBefore(closure: @escaping (_ object: Self) -> Void) throws -> Hook {
-        try ClassInstanceHook(self).hookDeInitBefore(closure: closure)
+    static func hookDeinitBefore(closure: @escaping (_ object: Self) -> Void) throws -> Hook {
+        try ClassInstanceHook(self).hookDeinitBefore(closure: closure)
     }
 }
 
@@ -278,7 +278,7 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     MyObject.hookDeInitBefore {
+     MyObject.hookDeinitBefore {
          print("hooked before DeInit")
      }
      ```
@@ -287,8 +287,8 @@ public extension NSObject {
      - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
-    class func hookDeInitBefore(closure: @escaping () -> Void) throws -> Hook {
-        try ClassInstanceHook(self).hookDeInitBefore(closure: closure)
+    class func hookDeinitBefore(closure: @escaping () -> Void) throws -> Hook {
+        try ClassInstanceHook(self).hookDeinitBefore(closure: closure)
     }
     
     // MARK: after deinit
@@ -298,7 +298,7 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     MyObject.hookDeInitAfter {
+     MyObject.hookDeinitAfter {
          print("hooked after DeInit")
      }
      ```
@@ -307,8 +307,8 @@ public extension NSObject {
      - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
-    class func hookDeInitAfter(closure: @escaping () -> Void) throws -> Hook {
-        try ClassInstanceHook(self).hookDeInitAfter(closure: closure)
+    class func hookDeinitAfter(closure: @escaping () -> Void) throws -> Hook {
+        try ClassInstanceHook(self).hookDeinitAfter(closure: closure)
     }
     
     // MARK: replace deinit
@@ -318,7 +318,7 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     MyObject.hookDeInit { original in
+     MyObject.hookDeinit { original in
          print("before release of MyObject")
          original()
          print("after release of MyObject")
@@ -329,8 +329,8 @@ public extension NSObject {
      - Returns: The token of this hook that can be used to cancel or reapply the hook.
      */
     @discardableResult
-    class func hookDeInit(closure: @escaping (_ original: () -> Void) -> Void) throws -> Hook {
-        try ClassInstanceHook(self).hookDeInit(closure: closure)
+    class func hookDeinit(closure: @escaping (_ original: () -> Void) -> Void) throws -> Hook {
+        try ClassInstanceHook(self).hookDeinit(closure: closure)
     }
 }
 

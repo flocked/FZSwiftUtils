@@ -236,7 +236,7 @@ public extension NSObjectProtocol where Self: NSObject {
      Example usage:
      
      ```swift     
-     try! object.hookDeInitBefore { object in
+     try! object.hookDeinitBefore { object in
         print("before dealloc of \(object)")
      }
      ```
@@ -246,8 +246,8 @@ public extension NSObjectProtocol where Self: NSObject {
      - Note: The object will retain the closure. Avoid retain cycles. Do not capture strong references to the object.
      */
     @discardableResult
-    func hookDeInitBefore(_ closure: @escaping (_ object: Self) -> Void) throws -> Hook {
-        try ObjectHook(self).hookDeInitBefore(closure: closure)
+    func hookDeinitBefore(_ closure: @escaping (_ object: Self) -> Void) throws -> Hook {
+        try ObjectHook(self).hookDeinitBefore(closure: closure)
     }
 }
 
@@ -260,7 +260,7 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     try! object.hookDeInitBefore {
+     try! object.hookDeinitBefore {
         print("before dealloc")
      }
      ```
@@ -270,8 +270,8 @@ public extension NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInitBefore(closure: @escaping () -> Void) throws -> Hook {
-        try ObjectHook(self).hookDeInitBefore(closure: closure)
+    func hookDeinitBefore(closure: @escaping () -> Void) throws -> Hook {
+        try ObjectHook(self).hookDeinitBefore(closure: closure)
     }
 
     // MARK: after deinit
@@ -282,7 +282,7 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     try! object.hookDeInitAfter {
+     try! object.hookDeinitAfter {
         print("after dealloc")
      }
      ```
@@ -292,8 +292,8 @@ public extension NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInitAfter(closure: @escaping () -> Void) throws -> Hook {
-        try ObjectHook(self).hookDeInitAfter(closure: closure)
+    func hookDeinitAfter(closure: @escaping () -> Void) throws -> Hook {
+        try ObjectHook(self).hookDeinitAfter(closure: closure)
     }
 
     // MARK: replace deinit
@@ -304,7 +304,7 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     try! object.hookDeInit { original in
+     try! object.hookDeinit { original in
         print("before release of object")
         original()
         print("after release of object")
@@ -316,8 +316,8 @@ public extension NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInit(closure: @escaping (_ original: () -> Void) -> Void) throws -> Hook {
-        try ObjectHook(self).hookDeInit(closure: closure)
+    func hookDeinit(closure: @escaping (_ original: () -> Void) -> Void) throws -> Hook {
+        try ObjectHook(self).hookDeinit(closure: closure)
     }
 }
 

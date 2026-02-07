@@ -289,7 +289,7 @@ extension ClassInstanceHook where T: NSObject {
      Example usage:
      
      ```
-     try! ClassInstanceHook(MyObject.self).hookDeInitBefore {
+     try! ClassInstanceHook(MyObject.self).hookDeinitBefore {
         print("hooked")
      }
      ```
@@ -300,7 +300,7 @@ extension ClassInstanceHook where T: NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInitBefore(closure: @escaping @convention(block) () -> Void) throws -> Hook {
+    func hookDeinitBefore(closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try Hook.Class(targetClass, selector: .dealloc, mode: .before, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
     
@@ -310,7 +310,7 @@ extension ClassInstanceHook where T: NSObject {
      Example usage:
      
      ```
-     try! ClassInstanceHook(MyObject.self).hookDeInitBefore { object in
+     try! ClassInstanceHook(MyObject.self).hookDeinitBefore { object in
         print("hooked")
      }
      ```
@@ -321,7 +321,7 @@ extension ClassInstanceHook where T: NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInitBefore(closure: @escaping (_ object: T) -> Void) throws -> Hook {
+    func hookDeinitBefore(closure: @escaping (_ object: T) -> Void) throws -> Hook {
         let closure = { obj in
             guard let obj = obj as? T else { fatalError() }
             closure(obj)
@@ -335,7 +335,7 @@ extension ClassInstanceHook where T: NSObject {
      Example usage:
      
      ```
-     try! ClassInstanceHook(MyObject.self).hookDeInitAfter {
+     try! ClassInstanceHook(MyObject.self).hookDeinitAfter {
         print("hooked")
      }
      ```
@@ -346,7 +346,7 @@ extension ClassInstanceHook where T: NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInitAfter(closure: @escaping @convention(block) () -> Void) throws -> Hook {
+    func hookDeinitAfter(closure: @escaping @convention(block) () -> Void) throws -> Hook {
         try Hook.Class(targetClass, selector: .dealloc, mode: .after, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
         
@@ -356,7 +356,7 @@ extension ClassInstanceHook where T: NSObject {
      Example usage:
      
      ```
-     try! ClassInstanceHook(MyObject.self).hookDeInit { original in
+     try! ClassInstanceHook(MyObject.self).hookDeinit { original in
         print("before release")
         original()
         print("after release")
@@ -369,7 +369,7 @@ extension ClassInstanceHook where T: NSObject {
      - Note: The object will retain the closure. So make sure that the closure doesn't retain the object in turn to avoid memory leak because of cycle retain.
      */
     @discardableResult
-    func hookDeInit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> Hook {
+    func hookDeinit(closure: @escaping @convention(block) (_ original: () -> Void) -> Void) throws -> Hook {
         try Hook.Class(targetClass, selector: .dealloc, mode: .instead, hookClosure: closure as AnyObject, isInstance: true).apply(shouldApply)
     }
 }

@@ -17,7 +17,7 @@ extension Selector {
 enum HookError: Error {
     case hookClassWithObjectAPI // Can't hook class with object hooking API. Please use "hookClassMethod" instead.
     case blacklist // Unsupport to hook current method. Search "blacklistSelectors" to see all methods unsupport.
-    case pureSwiftObjectDealloc // Technologically can't hook dealloc method for pure Swift Object with swizzling. Please use "hookDeInitAfterByTail" to hook pure swift object's dealloc method.
+    case pureSwiftObjectDealloc // Technologically can't hook dealloc method for pure Swift Object with swizzling. Please use "hookDeinitAfterByTail" to hook pure swift object's dealloc method.
     case noRespondSelector // Can't find the method by the selector from the class.
     case emptyStruct // The struct of the method's args or return value is empty, This case can't be compatible  with libffi. Please check the parameters or return type of the method.
     case wrongTypeForHookClosure // Please check the hook clousre. Is it a standard closure? Does it have keyword @convention(block)?
