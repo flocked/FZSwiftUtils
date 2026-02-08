@@ -122,6 +122,9 @@ public struct FractionalPoint: Hashable, Codable, ExpressibleByFloatLiteral, Cus
     public static let zero = FractionalPoint(0.0, 0.0)
     #endif
     
+    /// `CGPoint` representation of the point.
+    public var asPoint: CGPoint {  .init(x, y) }
+    
     var point: CGPoint {
         .init(x, y)
     }

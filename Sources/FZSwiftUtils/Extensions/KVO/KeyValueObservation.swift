@@ -65,18 +65,20 @@ public class KeyValueObservation: NSObject {
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) where Value: Equatable {
         var observer: KVObserver?
-        #if os(macOS)
         let keyPathString = keyPath.stringValue
+        #if os(macOS)
         if ((keyPathString == "inLiveScroll" || keyPathString == "inLiveMagnify") && object is NSScrollView) || (keyPathString == "isFullscreen" && object is NSWindow) {
             _ = object[keyPath: keyPath]
         }
+        #endif
         switch (keyPathString, object) {
+        #if os(macOS)
         case ("occlusionState", let object as NSApplication) where Value.self is NSApplication.OcclusionState.Type:
             object._occlusionState = object.occlusionState
             observer = NotificationObserver(object: object, keyPath: "occlusionState") {
                 [.init(NSApplication.didChangeOcclusionStateNotification, object: $0) {_ in
                     guard object.occlusionState != object._occlusionState else { return }
-                    handler(object._occlusionState as! Value, object.occlusionState as! Value)
+                    handler(cast(object._occlusionState), cast(object.occlusionState))
                     object._occlusionState = object.occlusionState } ] }
         case ("hidden", let object as NSApplication) where Value.self is Bool.Type:
             observer = NotificationObserver(object: object, keyPath: "hidden", NSApplication.didHideNotification, NSApplication.didUnhideNotification, handler)
@@ -91,13 +93,13 @@ public class KeyValueObservation: NSObject {
             observer = NotificationObserver(object: object, keyPath: "isOnActiveSpace") {
                 [.init(NSWorkspace.activeSpaceDidChangeNotification, object: $0) {_ in
                     guard object.isOnActiveSpace != object._isOnActiveSpace else { return }
-                    handler(object._isOnActiveSpace as! Value, object.isOnActiveSpace as! Value)
+                    handler(cast(object._isOnActiveSpace), cast(object.isOnActiveSpace))
                     object._isOnActiveSpace = object.isOnActiveSpace } ] }
         case ("inLiveResize", let object as NSView) where Value.self is Bool.Type:
             do {
                 observer = HookObserver(keyPath: keyPathString, hooks: [try object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
-                    handler(false as! Value, true as! Value)
-                }, try object.hookAfter(#selector(NSView.viewDidEndLiveResize)) { handler(true as! Value, false as! Value) }])
+                    handler(cast(false), cast(true))
+                }, try object.hookAfter(#selector(NSView.viewDidEndLiveResize)) { handler(cast(true), cast(false)) }])
             } catch {
                 return nil
             }
@@ -114,14 +116,14 @@ public class KeyValueObservation: NSObject {
                     object.hookAfter(set: \.subviews) { view, oldSubviews, subviews in
                         view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
                         guard !uniqueValues || oldSubviews != subviews else { return }
-                        handler(oldSubviews as! Value, subviews as! Value)
+                        handler(cast(oldSubviews), cast(subviews))
                     }, object.hookAfter(#selector(NSView.didAddSubview(_:))) { view, _ in
                         view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
                     }, object.hookAfter(#selector(NSView.willRemoveSubview(_:)), closure: { view, _, removed in
                         let newSubviews = view.subviews.filter({ $0 !== removed })
                         view.setSubviewIDs(newSubviews.map({ ObjectIdentifier($0) }), id: id)
                         guard !uniqueValues || newSubviews != view.subviews else { return }
-                        handler(view.subviews as! Value, newSubviews as! Value)
+                        handler(cast(view.subviews), cast(newSubviews))
                     } as @convention(block) (NSView, Selector, NSView) -> Void), try object.hookAfter(#selector(NSView.addSubview(_:positioned:relativeTo:))) { view,_ in
                         view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
                     }, object.hookAfter(#selector(NSView.addSubview(_:positioned:relativeTo:))) { view,_ in
@@ -132,15 +134,16 @@ public class KeyValueObservation: NSObject {
                 Swift.print(error)
                 return nil
             }
-        default: break
-        }
+        case ("parentViewAppearance", let object as CALayer) where Value.self is NSAppearance.Type:
+            observer = LayerAppearanceObserver(layer: object, sendInitial: sendInitalValue, handler: { handler(cast($0), cast($1)) })
         #elseif os(iOS)
-        switch (keyPath.stringValue, object) {
+        case ("parentViewUserInterfaceStyle", let object as CALayer) where Value.self is UIUserInterfaceStyle.Type:
+            observer = LayerAppearanceObserver(layer: object, sendInitial: sendInitalValue, handler: { handler(cast($0), cast($1)) })
         case ("traitCollection", let object as UIView) where Value.self is UITraitCollection.Type:
-            observer = TraitCollectionObserver(view: object, handler: {  handler($0 as! Value, $1 as! Value) })
+            observer = TraitCollectionObserver(view: object, handler: {  handler(cast($0), cast($1)) })
+        #endif
         default: break
         }
-        #endif
         if observer == nil, keyPath.kvcStringValue == nil {
             return nil
         }
@@ -401,7 +404,9 @@ private extension KeyValueObservation {
         }
         
        convenience init<V>(object: Object, keyPath: String,  _ name1: Notification.Name, _ name2: Notification.Name, _ handler: @escaping (V, V)->()) {
-           self.init(object: object, keyPath: keyPath) { [.init(name1, object: $0) { _ in handler(false as! V, true as! V) }, .init(name2, object: $0) { _ in handler(true as! V, false as! V) }] }
+           self.init(object: object, keyPath: keyPath) { [
+            .init(name1, object: $0) { _ in handler(cast(false), cast(true)) },
+            .init(name2, object: $0) { _ in handler(cast(true), cast(false)) }] }
         }
     }
     
@@ -457,7 +462,82 @@ private extension KeyValueObservation {
         }
     }
     #endif
+    #if os(macOS) || os(iOS)
+    class LayerAppearanceObserver: NSObject, KVObserver {
+        weak var layer: CALayer?
+        var handler: (_ old: Any, _ new: Any)->()
+        var superlayerObservations: [KeyValueObservation] = []
+        var viewUserStyleObservation: KeyValueObservation?
+        #if os(macOS)
+        let keyPathString = "parentViewAppearance"
+        #else
+        let keyPathString = "parentViewUserInterfaceStyle"
+        #endif
+        
+        var isActive: Bool {
+            get { layer != nil && !superlayerObservations.isEmpty }
+            set {
+                guard newValue != isActive, let layer = layer else { return }
+                if newValue {
+                    setupSuperlayerObservation()
+                } else {
+                    superlayerObservations.removeAll()
+                    viewUserStyleObservation = nil
+                }
+            }
+        }
+
+        init(layer: CALayer, sendInitial: Bool, handler: @escaping (_ old: Any, _ new: Any)->()) {
+            self.layer = layer
+            self.handler = handler
+            super.init()
+            self.setupSuperlayerObservation()
+            guard sendInitial else { return }
+            #if os(macOS)
+            let appearance = layer.parentView?.effectiveAppearance ?? .init(named: .aqua)
+            #else
+            let appearance = layer.parentView?.traitCollection.userInterfaceStyle ?? .light
+            #endif
+            handler(appearance, appearance)
+        }
+        
+        deinit {
+            isActive = false
+        }
+        
+        private func setupSuperlayerObservation() {
+            superlayerObservations = []
+            var currentLayer: CALayer? = layer
+            while let layer = currentLayer {
+                superlayerObservations += layer.observeChanges(for: \.superlayer) { [weak self] old, new in
+                    self?.setupSuperlayerObservation()
+                }
+                currentLayer = layer.superlayer
+            }
+            setupViewAppearanceObservation()
+        }
+        
+        private func setupViewAppearanceObservation() {
+            #if os(macOS)
+            viewUserStyleObservation = layer?.parentView?.observeChanges(for: \.effectiveAppearance, handler: handler)
+            #else
+            viewUserStyleObservation = layer?.parentView?.observeChanges(for: \.traitCollection) { [weak self] old, new in
+                guard old.userInterfaceStyle != new.userInterfaceStyle else { return }
+                self?.handler(old.userInterfaceStyle, new.userInterfaceStyle)
+            }
+            #endif
+        }
+    }
+    #endif
 }
+
+#if os(macOS) || os(iOS)
+fileprivate extension CALayer {
+    var parentView: NSUIView? {
+        delegate as? NSUIView ?? superlayer?.parentView
+    }
+}
+#endif
 
 fileprivate protocol KVObserver: NSObject {
     var isActive: Bool { get set }
@@ -503,7 +583,7 @@ fileprivate extension NSCell {
             let oldValue = object[keyPath: \.backgroundStyle]
             original(object, selector, style)
             guard !uniqueValues || oldValue != style else { return }
-            handler(oldValue as! Value, style as! Value)
+            handler(cast(oldValue), cast(style))
         } as @convention(block) ((NSCell, Selector, NSView.BackgroundStyle) -> Void, NSCell, Selector, NSView.BackgroundStyle) -> Void)
     }
 }
