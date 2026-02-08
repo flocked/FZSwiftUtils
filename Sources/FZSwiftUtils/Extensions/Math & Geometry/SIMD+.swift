@@ -1530,6 +1530,18 @@ extension SIMD3 where Scalar == UInt32 {
     }
 }
 
+extension SIMD3 {
+    /// Creates the vector from the specified scalar and vector.
+    public init(_ v0: Scalar, _ v12: SIMD2<Scalar>) {
+        self.init(v0, v12.x, v12.y)
+    }
+    
+    /// Creates the vector from the specified scalar and vector.
+    public init(_ v01: SIMD2<Scalar>, _ v2: Scalar) {
+        self.init(v01.x, v01.y, v2)
+    }
+}
+
 // MARK: - SIMD4
 
 extension SIMD4 {
@@ -2100,6 +2112,33 @@ extension SIMD4 where Scalar == UInt32 {
     @inlinable
     public func max(_ other: Self) -> Self {
         simd_max(self, other)
+    }
+}
+
+extension SIMD4 {
+    /// Creates the vector from the specified scalar and vector.
+    public init(_ v0: Scalar, _ v123: SIMD3<Scalar>) {
+        self.init(v0, v123.x, v123.y, v123.z)
+    }
+    
+    /// Creates the vector from the specified scalar and vector.
+    public init(_ v012: SIMD3<Scalar>, _ v3: Scalar) {
+        self.init(v012.x, v012.y, v012.z, v3)
+    }
+    
+    /// Creates the vector from the specified two vectors.
+    public init(_ v01: SIMD2<Scalar>, _ v2: Scalar, _ v3: Scalar) {
+        self.init(v01.x, v01.y, v2, v3)
+    }
+    
+    /// Creates the vector from the specified two vectors and scalar.
+    public init(_ v0: Scalar, _ v12: SIMD2<Scalar>, _ v3: Scalar) {
+        self.init(v0, v12.x, v12.y, v3)
+    }
+    
+    /// Creates the vector from the specified two vectors and scalar.
+    public init(_ v0: Scalar, _ v1: Scalar, _ v23: SIMD2<Scalar>) {
+        self.init(v0, v1, v23.x, v23.y)
     }
 }
 
