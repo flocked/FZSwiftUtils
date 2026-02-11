@@ -167,6 +167,21 @@ public enum ObjCRuntime {
         }
         return try result.get()
     }
+    
+    /// Returns the actual size and the aligned size of the specified encoded type.
+    public static func sizeAndAlignment(for typeEncoding: String) -> (size: Int, alignment: Int)? {
+        var alignment = 0
+        var size: Int = 0
+        do {
+            try ObjCRuntime.catchException {
+                NSGetSizeAndAlignment(typeEncoding, &size, &alignment)
+            }
+            return (size, alignment)
+        } catch {
+            Swift.print(error)
+            return nil
+        }
+    }
 }
 
 fileprivate extension ObjCRuntime {

@@ -10,24 +10,21 @@ import Foundation
 
 /// Represents information about an Objective-C instance variable.
 public struct ObjCIvarInfo: Sendable, Equatable, Codable {
-    /// The name of the Ivar.
+    /// The name of the instance variable.
     public let name: String
-    /// The encoded type of the Ivar.
+    /// The encoded type of the instance variable.
     public let typeEncoding: String
-    /// The offset of the Ivar.
+    /// The offset of the instance variable.
     public let offset: Int
     
-    /// The type of Ivar.
+    /// The type of the instance variable.
     public var type: ObjCType? {
         ObjCType(typeEncoding)
     }
     
-    /// The size of the Ivar.
+    /// The size of the instance variable.
     public var size: Int {
-        var alignment = 0
-        var size: Int = 0
-        NSGetSizeAndAlignment(typeEncoding, &size, &alignment)
-        return size
+        ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size ?? 0
     }
     
     /**

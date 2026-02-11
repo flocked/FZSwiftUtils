@@ -79,8 +79,7 @@ public extension ObjCPropertyInfo {
     /// The setter selector for the property.
     var setter: Selector? {
         guard !isReadOnly else { return nil }
-        if let setterName { return .string(setterName) }
-        return .string("set\(name.uppercasedFirst()):")
+        return .string(setterName ?? "set\(name.uppercasedFirst()):")
     }
 
     // MARK: - Access Semantics
