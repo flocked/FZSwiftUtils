@@ -37,10 +37,18 @@ public class Hook: Hashable {
     /// A Boolean value indicating whether the hook is active.
     public var isActive: Bool = false
     
-    /// A Boolean value indicating whether the hook should revert, restoring the original method implementation.
+    /**
+     A Boolean value indicating whether the hook automatically reverts when the hook is deallocated.
+     
+     The default value is `false`, so the hook will remain active even if you don’t keep a strong reference to it.
+     */
     public var revertOnDeinit: Bool = false
     
-    /// Sets Boolean value indicating whether the hook should revert, restoring the original method implementation.
+    /**
+     Sets the Boolean value indicating whether the hook automatically reverts when the hook is deallocated.
+     
+     The default value is `false`, so the hook will remain active even if you don’t keep a strong reference to it.
+     */
     @discardableResult
     public func revertOnDeinit(_ revert: Bool) -> Self {
         revertOnDeinit = revert

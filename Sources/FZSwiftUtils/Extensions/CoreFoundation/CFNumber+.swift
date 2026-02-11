@@ -14,7 +14,7 @@ public extension CFNumber {
     static let negativeInfinity = kCFNumberNegativeInfinity!
     /// A quiet NaN (“not a number”).
     static let nan = kCFNumberNaN!
-    
+        
     /// The number type.
     @inlinable var type: CFNumberType {
         CFNumberGetType(self)
