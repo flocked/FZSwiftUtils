@@ -247,7 +247,7 @@ extension NSObjectProtocol where Self: NSObject {
         #if os(macOS) || os(iOS)
         KeyValueObservation(self, keyPath: keyPath, willChange: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, willChange: handler)
         #else
-        KeyValueObservation(self, keyPath: keyPath, handler: handler)
+        KeyValueObservation(self, keyPath: keyPath, willChange: handler)
         #endif
     }
     
