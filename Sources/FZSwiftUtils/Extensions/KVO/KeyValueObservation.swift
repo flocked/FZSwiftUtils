@@ -113,35 +113,94 @@ public class KeyValueObservation: NSObject {
             do {
                 let id = UUID().uuidString
                 try observer = HookObserver(keyPath: keyPathString, hooks: [
-                    object.hookAfter(set: \.subviews) { view, oldSubviews, subviews in
-                        view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
-                        guard !uniqueValues || oldSubviews != subviews else { return }
+                    object.hookAfter(set: \.subviews, uniqueValues: uniqueValues) { view, oldSubviews, subviews in
+                        guard view.setSubviewIDs(subviews, id: id) else { return }
                         handler(cast(oldSubviews), cast(subviews))
-                    }, object.hookAfter(#selector(NSView.didAddSubview(_:))) { view, _ in
-                        view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
-                    }, object.hookAfter(#selector(NSView.willRemoveSubview(_:)), closure: { view, _, removed in
-                        let newSubviews = view.subviews.filter({ $0 !== removed })
-                        view.setSubviewIDs(newSubviews.map({ ObjectIdentifier($0) }), id: id)
-                        guard !uniqueValues || newSubviews != view.subviews else { return }
-                        handler(cast(view.subviews), cast(newSubviews))
-                    } as @convention(block) (NSView, Selector, NSView) -> Void), try object.hookAfter(#selector(NSView.addSubview(_:positioned:relativeTo:))) { view,_ in
-                        view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
-                    }, object.hookAfter(#selector(NSView.addSubview(_:positioned:relativeTo:))) { view,_ in
-                        view.setSubviewIDs(view.subviews.map({ ObjectIdentifier($0) }), id: id)
-                    }])
-                object.setSubviewIDs(object.subviews.map({ ObjectIdentifier($0) }), id: id)
+                    },
+                    object.hookAfter(#selector(NSView.didAddSubview(_:)), closure: { view, _, added in
+                        let oldSubviews = view.subviews.filter({ $0 !== added })
+                        guard view.setSubviewIDs(view.subviews, id: id) else { return }
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) (NSView, Selector, NSView) -> Void), try
+                        object.hook(#selector(NSView.addSubview(_:positioned:relativeTo:)), closure: { original, view, selector, newSubview, position, relative in
+                            let oldSubviews = view.subviews
+                            original(view, selector, newSubview, position, relative)
+                            guard view.setSubviewIDs(view.subviews, id: id) else { return }
+                            guard !uniqueValues || oldSubviews != view.subviews else { return }
+                            handler(cast(oldSubviews), cast(view.subviews))                        
+                        } as @convention(block) ((NSView, Selector, NSView, NSWindow.OrderingMode, NSView?) -> (), NSView, Selector, NSView, NSWindow.OrderingMode, NSView?) -> ()),
+                    object.hook(.string("_removeSubview:"), closure: { original, view, selector, subview in
+                        let oldSubviews = view.subviews
+                        original(view, selector, subview)
+                        guard view.setSubviewIDs(view.subviews, id: id) else { return }
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) ((NSView, Selector, NSView) -> (), NSView, Selector, NSView) -> ()),
+                ])
+                object.setSubviewIDs(object.subviews, id: id)
             } catch {
                 Swift.print(error)
                 return nil
             }
         case ("parentViewAppearance", let object as CALayer) where Value.self is NSAppearance.Type:
-            observer = LayerAppearanceObserver(layer: object, sendInitial: sendInitalValue, handler: { handler(cast($0), cast($1)) })
+            observer = LayerAppearanceObserver(layer: object) { handler(cast($0), cast($1)) }
         #elseif os(iOS)
         case ("parentViewUserInterfaceStyle", let object as CALayer) where Value.self is UIUserInterfaceStyle.Type:
-            observer = LayerAppearanceObserver(layer: object, sendInitial: sendInitalValue, handler: { handler(cast($0), cast($1)) })
+            observer = LayerAppearanceObserver(layer: object) { handler(cast($0), cast($1)) }
         case ("traitCollection", let object as UIView) where Value.self is UITraitCollection.Type:
-            observer = TraitCollectionObserver(view: object, handler: {  handler(cast($0), cast($1)) })
+            observer = TraitCollectionObserver(view: object) { handler(cast($0), cast($1)) }
+        case ("subviews", let object as UIView) where Value.self is [UIView].Type:
+            do {
+                let id = UUID().uuidString
+                try observer = HookObserver(keyPath: keyPathString, hooks: [
+                    object.hook(#selector(UIView.addSubview(_:)), closure: { original, view, selector, subview in
+                        let oldSubviews = view.subviews
+                        original(view, selector, subview)
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) ((UIView, Selector, UIView) -> (), UIView, Selector, UIView) -> ()),
+                    object.hook(#selector(UIView.insertSubview(_:at:)), closure: { original, view, selector, subview, position in
+                        let oldSubviews = view.subviews
+                        original(view, selector, subview, position)
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) ((UIView, Selector, UIView, Int) -> (), UIView, Selector, UIView, Int) -> ()),
+                    object.hook(#selector(UIView.insertSubview(_:aboveSubview:)), closure: { original, view, selector, subview, otherView in
+                        let oldSubviews = view.subviews
+                        original(view, selector, subview, otherView)
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) ((UIView, Selector, UIView, UIView) -> (), UIView, Selector, UIView, UIView) -> ()),
+                    object.hook(#selector(UIView.insertSubview(_:belowSubview:)), closure: { original, view, selector, subview, otherView in
+                        let oldSubviews = view.subviews
+                        original(view, selector, subview, otherView)
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) ((UIView, Selector, UIView, UIView) -> (), UIView, Selector, UIView, UIView) -> ()),
+                    object.hook(#selector(UIView.exchangeSubview(at:withSubviewAt:)), closure: { original, view, selector, from, to in
+                        let oldSubviews = view.subviews
+                        original(view, selector, from, to)
+                        guard !uniqueValues || oldSubviews != view.subviews else { return }
+                        handler(cast(oldSubviews), cast(view.subviews))
+                    } as @convention(block) ((UIView, Selector, Int, Int) -> (), UIView, Selector, Int, Int) -> ()),
+                    object.hookAfter(#selector(UIView.willRemoveSubview(_:)), closure: { view, selector in
+                        object.setAssociatedValue(view.subviews, key: id)
+                    }),
+                    object.hookAfter(.string("_didRemoveSubview:"), closure: { view, selector in
+                        guard let old: [UIView] = object.getAssociatedValue(id) else { return }
+                        let views: [UIView]? = nil
+                        object.setAssociatedValue(views, key: id)
+                        guard !uniqueValues || old != view.subviews else { return }
+                        handler(cast(old), cast(view.subviews))
+                    })])
+            } catch {
+                Swift.print(error)
+                return nil
+            }
         #endif
+        case ("frame", let object as CALayer) where Value.self is CGRect.Type:
+            observer = LayerFrameObserver(layer: object, uniqueValues: uniqueValues) { handler(cast($0), cast($1)) }
         default: break
         }
         if observer == nil, keyPath.kvcStringValue == nil {
@@ -233,7 +292,9 @@ private extension KeyValueObservation {
     class KeyPathObserver<Object: NSObject, Value>: NSObject, KVObserver {
         weak var object: Object?
         let keyPath: KeyPath<Object, Value>
-        var keyPathString: String { keyPath._kvcKeyPathString ?? "" }
+        var keyPathString: String {
+            keyPath._kvcKeyPathString ?? ""
+        }
         var observation: NSKeyValueObservation?
         let handler: ((NSKeyValueObservedChange<Value>) -> Void)
         let options: NSKeyValueObservingOptions
@@ -343,7 +404,7 @@ private extension KeyValueObservation {
         init?<Object: NSObject, Value>(object: Object, keyPath: WritableKeyPath<Object, Value>, uniqueValues: Bool = true, handler: @escaping (Value, Value) -> Void) where Value: Equatable {
             do {
                 let hook = try object.hookAfter(set: keyPath, uniqueValues: uniqueValues) {
-                   handler($1, $2)
+                    handler($1, $2)
                 }
                 hooks = [hook]
                 keyPathString = hook.selector.string
@@ -403,10 +464,10 @@ private extension KeyValueObservation {
             self.keyPathString = keyPath
         }
         
-       convenience init<V>(object: Object, keyPath: String,  _ name1: Notification.Name, _ name2: Notification.Name, _ handler: @escaping (V, V)->()) {
-           self.init(object: object, keyPath: keyPath) { [
-            .init(name1, object: $0) { _ in handler(cast(false), cast(true)) },
-            .init(name2, object: $0) { _ in handler(cast(true), cast(false)) }] }
+        convenience init<V>(object: Object, keyPath: String,  _ name1: Notification.Name, _ name2: Notification.Name, _ handler: @escaping (V, V)->()) {
+            self.init(object: object, keyPath: keyPath) { [
+                .init(name1, object: $0) { _ in handler(cast(false), cast(true)) },
+                .init(name2, object: $0) { _ in handler(cast(true), cast(false)) }] }
         }
     }
     
@@ -487,18 +548,11 @@ private extension KeyValueObservation {
             }
         }
 
-        init(layer: CALayer, sendInitial: Bool, handler: @escaping (_ old: Any, _ new: Any)->()) {
+        init(layer: CALayer, handler: @escaping (_ old: Any, _ new: Any)->()) {
             self.layer = layer
             self.handler = handler
             super.init()
             self.setupSuperlayerObservation()
-            guard sendInitial else { return }
-            #if os(macOS)
-            let appearance = layer.parentView?.effectiveAppearance ?? .init(named: .aqua)
-            #else
-            let appearance = layer.parentView?.traitCollection.userInterfaceStyle ?? .light
-            #endif
-            handler(appearance, appearance)
         }
         
         deinit {
@@ -529,6 +583,58 @@ private extension KeyValueObservation {
         }
     }
     #endif
+    class LayerFrameObserver: NSObject, KVObserver {
+        weak var layer: CALayer?
+        let handler: (CGRect, CGRect) -> Void
+        let keyPathString = "frame"
+        var observations: [KVObserver] = []
+        let uniqueValues: Bool
+        var isActive: Bool {
+            get { observations.first?.isActive == true }
+            set {
+                guard newValue != isActive, let layer = layer else { return }
+                if newValue {
+                    observations += layer.observeChanges(for: \.bounds, uniqueValues: uniqueValues) { [weak self] old, new in
+                        guard let self = self, let frame = self.layer?.frame else { return }
+                        self.handler(frame, frame)
+                    }?.observer
+                    observations += layer.observeChanges(for: \.position, uniqueValues: uniqueValues) { [weak self] old, new in
+                        guard let self = self, let frame = self.layer?.frame else { return }
+                        self.handler(frame, frame)
+                    }?.observer
+                    observations += layer.observeChanges(for: \.anchorPoint, uniqueValues: uniqueValues) { [weak self] old, new in
+                        guard let self = self, let frame = self.layer?.frame else { return }
+                        self.handler(frame, frame)
+                    }?.observer
+                } else {
+                    observations = []
+                }
+            }
+        }
+
+        init(layer: CALayer, uniqueValues: Bool, handler: @escaping (CGRect, CGRect) -> Void) {
+            self.layer = layer
+            self.handler = handler
+            self.uniqueValues = uniqueValues
+            super.init()
+            self.isActive = true
+        }
+    }
+    
+    class Combined: NSObject, KVObserver {
+        let keyPathString: String
+        let observers: [KVObserver]
+        
+        var isActive: Bool {
+            get { observers.first?.isActive == true }
+            set { observers.forEach({ $0.isActive = newValue}) }
+        }
+        
+        init(keyPath: String, observers: [KVObserver]) {
+            self.observers = observers
+            self.keyPathString = keyPath
+        }
+    }
 }
 
 #if os(macOS) || os(iOS)
@@ -589,8 +695,9 @@ fileprivate extension NSCell {
 }
 fileprivate extension NSView {
     @discardableResult
-    func setSubviewIDs(_ ids: [ObjectIdentifier], id: String) -> Bool {
-        guard ids != getAssociatedValue("subviewIDs_\(id)", initialValue: [ObjectIdentifier]()) else { return false }
+    func setSubviewIDs(_ views: [NSView], id: String) -> Bool {
+        let ids = views.map({ $0.objectID })
+        guard ids != getAssociatedValue("subviewIDs_\(id)") else { return false }
         setAssociatedValue(ids, key: "subviewIDs_\(id)")
         return true
     }
