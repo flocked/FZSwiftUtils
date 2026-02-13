@@ -76,6 +76,44 @@ public extension Dictionary {
         values(for: keys)
     }
     
+    /**
+     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue()`.
+
+     - Parameters:
+        - key: The key to find in the dictionary.
+        - initialValue: The initial value that is evaluated if `key` is not already present.
+     */
+    subscript(key: Key, initial initialValue: @autoclosure () -> Value) -> Value {
+        mutating get {
+            if let existing = self[key] { return existing }
+            let value = initialValue()
+            self[key] = value
+            return value
+        }
+        set {
+            self[key] = newValue
+        }
+    }
+    
+    /**
+     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue()`.
+
+     - Parameters:
+        - key: The key to find in the dictionary.
+     - initialValue: The initial value that is evaluated if `key` is not already present.
+     */
+    subscript(key: Key, initial initialValue: () -> Value) -> Value {
+        mutating get {
+            if let existing = self[key] { return existing }
+            let value = initialValue()
+            self[key] = value
+            return value
+        }
+        set {
+            self[key] = newValue
+        }
+    }
+    
     /// Returns values for the specified keys.
     func values<S>(for keys: S) -> [(key: Key, value: Value)] where S: Sequence<Key> {
         keys.compactMap({ if let value = self[$0] { return ($0, value) } else { return nil } })
