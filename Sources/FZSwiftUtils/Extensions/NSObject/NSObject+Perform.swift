@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import _NSObjectProxy
+import _FZSwiftUtilsObjC
 
 extension NSObject {
     /**

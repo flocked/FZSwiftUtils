@@ -6,7 +6,6 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 func wrapDynamicClassIfNeeded(object: AnyObject) throws -> AnyClass {
@@ -87,4 +86,3 @@ fileprivate class DynamicClassContext {
         byDynamicClass[ObjectIdentifier(dynamicClass)]
     }
 }
-#endif

@@ -164,7 +164,7 @@ extension NSObjectProtocol where Self: NSObject {
     public static func swizzle<Value>(_ keyPath: KeyPath<Self, Value>, with block: @escaping (_ object: Self, _ originalValue: Value) -> Value) throws {
         let selector = NSSelectorFromString(try keyPath.getterName())
         guard let method = class_getInstanceMethod(Self.self, selector) else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         if originalIMPs[selector] == nil {
             originalIMPs[selector] = method_getImplementation(method)
@@ -204,7 +204,7 @@ extension NSObjectProtocol where Self: NSObject {
     public static func swizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self, Value>, with block: @escaping (_ object: Self, _ newValue: Value, _ setter: (Value) -> Void) -> Void) throws {
         let selector = NSSelectorFromString(try keyPath.setterName())
         guard let method = class_getInstanceMethod(Self.self, selector) else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         if originalIMPs[selector] == nil {
             originalIMPs[selector] = method_getImplementation(method)
@@ -243,7 +243,7 @@ extension NSObjectProtocol where Self: NSObject {
     public static func swizzle<Value>(class keyPath: KeyPath<Self.Type, Value>, with block: @escaping (_ originalValue: Value) -> Value) throws {
         let selector = NSSelectorFromString(try keyPath.getterName())
         guard let method = class_getClassMethod(Self.self, selector) else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
 
         if originalClassIMPs[selector] == nil {
@@ -281,7 +281,7 @@ extension NSObjectProtocol where Self: NSObject {
     public static func swizzle<Value>(classSet keyPath: ReferenceWritableKeyPath<Self.Type, Value>, with block: @escaping (_ newValue: Value, _ setter: (Value) -> Void) -> Void) throws {
         let selector = NSSelectorFromString(try keyPath.setterName())
         guard let method = class_getClassMethod(Self.self, selector) else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         if originalClassIMPs[selector] == nil {
             originalClassIMPs[selector] = method_getImplementation(method)
@@ -304,7 +304,7 @@ extension NSObjectProtocol where Self: NSObject {
     static func revertSwizzle<Value>(_ keyPath: KeyPath<Self, Value>) throws {
         let selector = try NSSelectorFromString(keyPath.getterName())
         guard let method = class_getInstanceMethod(Self.self, selector), let imp = originalIMPs[selector] else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         method_setImplementation(method, imp)
         originalIMPs[selector] = nil
@@ -314,7 +314,7 @@ extension NSObjectProtocol where Self: NSObject {
     static func revertSwizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self, Value>) throws {
         let selector = try NSSelectorFromString(keyPath.setterName())
         guard let method = class_getInstanceMethod(Self.self, selector), let imp = originalIMPs[selector] else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         method_setImplementation(method, imp)
         originalIMPs[selector] = nil
@@ -324,7 +324,7 @@ extension NSObjectProtocol where Self: NSObject {
     static func revertSwizzle<Value>(_ keyPath: KeyPath<Self.Type, Value>) throws {
         let selector = try NSSelectorFromString(keyPath.getterName())
         guard let method = class_getClassMethod(Self.self, selector), let imp = originalClassIMPs[selector] else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         method_setImplementation(method, imp)
         originalClassIMPs[selector] = nil
@@ -334,7 +334,7 @@ extension NSObjectProtocol where Self: NSObject {
     static func revertSwizzle<Value>(set keyPath: ReferenceWritableKeyPath<Self.Type, Value>) throws {
         let selector = try NSSelectorFromString(keyPath.setterName())
         guard let method = class_getClassMethod(Self.self, selector), let imp = originalClassIMPs[selector] else {
-            throw SwizzleError.methodNotFound(Self.self, selector)
+            throw SwizzleError.methodNotFound(selector: selector, class: Self.self)
         }
         method_setImplementation(method, imp)
         originalClassIMPs[selector] = nil

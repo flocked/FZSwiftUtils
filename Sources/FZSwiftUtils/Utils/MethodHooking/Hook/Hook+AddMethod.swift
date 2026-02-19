@@ -2,58 +2,132 @@
 //  Hook+AddMethod.swift
 //
 //
-//  Created by Florian Zand on 11.05.25.
+//  Created by Codex on 2/19/26.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 extension Hook {
-    class Add: Hook {
-        let hook: AnyHook
+    class AddObjectMethod: Hook {
         weak var object: AnyObject?
+        var addedToClass: AnyClass?
+        var isApplied = false
         
-        init(for object: NSObject, selector: Selector, hookClosure: AnyObject) throws {
-            self.hook = try AddMethodHook(object: object, selector: selector, hookClosure: hookClosure)
-            super.init(selector: selector, hookClosure: hookClosure, mode: .instead, class_: type(of: object))
+        init(_ object: AnyObject, selector: Selector, hookClosure: AnyObject) {
             self.object = object
+            super.init(selector: selector, hookClosure: hookClosure, mode: .instead, class_: type(of: object))
         }
         
-        init<T: NSObject>(for class_: T.Type, selector: Selector, hookClosure: AnyObject) throws {
-            self.hook = try AddInstanceMethodHook(class_: class_, selector: selector, hookClosure: hookClosure)
+        override var isActive: Bool {
+            get { isApplied }
+            set { newValue ? try? apply() : try? revert() }
+        }
+        
+        override func apply() throws {
+            guard !isActive, let object = object else { return }
+            try hookSerialQueue.syncSafely {
+                let targetClass: AnyClass
+                if let object = object as? NSObject {
+                    targetClass = try object.wrapKVOIfNeeded(selector: selector)
+                } else {
+                    targetClass = try wrapDynamicClassIfNeeded(object: object)
+                }
+                let replacementIMP = imp_implementationWithBlock(hookClosure)
+                if let method = class_getInstanceMethod(targetClass, selector) {
+                    guard let addedToClass = addedToClass, addedToClass === targetClass else {
+                        throw HookError.methodAlreadyExists
+                    }
+                    method_setImplementation(method, replacementIMP)
+                } else {
+                    guard let resolvedProtocol = try inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: true) else {
+                        throw HookError.noRespondSelector
+                    }
+                    let typeEncoding = try typeEncodingForProtocolMethod(resolvedProtocol, selector: selector, isInstanceMethod: true)
+                    try Self.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure)
+                    guard class_addMethod(targetClass, selector, replacementIMP, typeEncoding) else {
+                        throw HookError.methodAlreadyExists
+                    }
+                    addedToClass = targetClass
+                }
+                isApplied = true
+                ObjectHooks(object).addedMethods.insert(selector)
+                ObjectHooks(object).addHook(self)
+            }
+        }
+        
+        override func revert(remove: Bool) throws {
+            guard isActive else { return }
+            hookSerialQueue.syncSafely {
+                guard let object = object, let targetClass = addedToClass else { return }
+                if let method = class_getInstanceMethod(targetClass, selector) {
+                    let noop: @convention(block) (AnyObject) -> Void = { _ in }
+                    method_setImplementation(method, imp_implementationWithBlock(noop))
+                }
+                ObjectHooks(object).addedMethods.remove(selector)
+                isApplied = false
+                if remove {
+                    ObjectHooks(object).removeHook(self)
+                }
+            }
+        }
+    }
+    
+    class AddClassMethod: Hook {
+        let isInstanceMethod: Bool
+        var addedToClass: AnyClass?
+        var isApplied = false
+        
+        init(_ class_: AnyClass, selector: Selector, hookClosure: AnyObject, isInstanceMethod: Bool) {
+            self.isInstanceMethod = isInstanceMethod
             super.init(selector: selector, hookClosure: hookClosure, mode: .instead, class_: class_)
         }
         
         override var isActive: Bool {
-            get { hook.isActive }
+            get { isApplied }
             set { newValue ? try? apply() : try? revert() }
         }
         
         override func apply() throws {
             guard !isActive else { return }
             try hookSerialQueue.syncSafely {
-                if hook is AddInstanceMethodHook {
-                    try hook.apply()
-                    ClassHooks(self.class).addHook(self)
-                } else if let object = object {
-                    try hook.apply()
-                    ObjectHooks(object).addHook(self)
+                let targetClass: AnyClass = self.class
+                let replacementIMP = imp_implementationWithBlock(hookClosure)
+                if let method = class_getInstanceMethod(targetClass, selector) {
+                    guard let addedToClass = addedToClass, addedToClass === targetClass else {
+                        throw HookError.methodAlreadyExists
+                    }
+                    method_setImplementation(method, replacementIMP)
+                } else {
+                    guard let resolvedProtocol = try inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: isInstanceMethod) else {
+                        throw HookError.noRespondSelector
+                    }
+                    let typeEncoding = try typeEncodingForProtocolMethod(resolvedProtocol, selector: selector, isInstanceMethod: isInstanceMethod)
+                    try Self.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure)
+                    guard class_addMethod(targetClass, selector, replacementIMP, typeEncoding) else {
+                        throw HookError.methodAlreadyExists
+                    }
+                    addedToClass = targetClass
                 }
+                isApplied = true
+                ClassHooks(targetClass, isInstance: isInstanceMethod).addedMethods.insert(selector)
+                ClassHooks(targetClass, isInstance: isInstanceMethod).addHook(self)
             }
         }
         
         override func revert(remove: Bool) throws {
             guard isActive else { return }
-            try hookSerialQueue.syncSafely {
-                try hook.revert()
-                guard remove else { return }
-                if hook is AddInstanceMethodHook {
-                    ClassHooks(self.class).removeHook(self)
-                } else if let object = object {
-                    ObjectHooks(object).removeHook(self)
+            hookSerialQueue.syncSafely {
+                guard let targetClass = addedToClass else { return }
+                if let method = class_getInstanceMethod(targetClass, selector) {
+                    let noop: @convention(block) (AnyObject) -> Void = { _ in }
+                    method_setImplementation(method, imp_implementationWithBlock(noop))
+                }
+                ClassHooks(targetClass, isInstance: isInstanceMethod).addedMethods.remove(selector)
+                isApplied = false
+                if remove {
+                    ClassHooks(targetClass, isInstance: isInstanceMethod).removeHook(self)
                 }
             }
         }
     }
 }
-#endif

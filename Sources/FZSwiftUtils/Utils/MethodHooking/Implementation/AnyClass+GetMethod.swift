@@ -6,7 +6,6 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 func getMethodWithoutSearchingSuperClasses(targetClass: AnyClass, selector: Selector) -> Method? {
@@ -21,4 +20,3 @@ func getMethodWithoutSearchingSuperClasses(targetClass: AnyClass, selector: Sele
     }
     return nil
 }
-#endif

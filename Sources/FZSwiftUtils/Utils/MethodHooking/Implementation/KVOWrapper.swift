@@ -6,9 +6,8 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
-import _OCSources
+import _FZSwiftUtilsObjC
 
 extension NSObject {
     func wrapKVOIfNeeded(selector: Selector) throws -> AnyClass {
@@ -145,4 +144,3 @@ fileprivate class Observer: NSObject {
         self.target.removeObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, context: &RealObserver.context)
     }
 }
-#endif

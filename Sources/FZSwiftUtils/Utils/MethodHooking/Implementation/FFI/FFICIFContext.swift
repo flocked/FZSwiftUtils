@@ -6,10 +6,9 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
-import _OCSources
+import _FZSwiftUtilsObjC
 
 class FFICIFContext {
     private let argTypes: UnsafeMutableBufferPointer<UnsafeMutablePointer<ffi_type>?>
@@ -58,4 +57,3 @@ class FFICIFContext {
         self.argTypes.deallocate()
     }
 }
-#endif

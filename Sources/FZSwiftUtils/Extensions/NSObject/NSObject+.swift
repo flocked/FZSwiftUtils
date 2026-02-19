@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import _ExceptionCatcher
 
 public extension NSObject {
     /// The identifier of the object.

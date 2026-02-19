@@ -14,6 +14,10 @@ extension Hook {
     private static let taggedPointerStringClass: AnyClass? = NSClassFromString("NSTaggedPointerString")
     
     static func parametersCheck(for object: AnyObject, selector: Selector, mode: HookMode, closure: AnyObject) throws {
+        try parametersCheck(for: object, selector: selector, mode: mode, closure: closure, protocolType: nil)
+    }
+    
+    static func parametersCheck(for object: AnyObject, selector: Selector, mode: HookMode, closure: AnyObject, protocolType: Protocol?) throws {
         guard !(object is AnyClass) else {
             throw HookError.hookClassWithObjectAPI
         }
@@ -23,10 +27,14 @@ extension Hook {
         guard baseClass != taggedPointerStringClass else {
             throw HookError.hookInstanceOfNSTaggedPointerString
         }
-        try parametersCheck(for: baseClass, selector: selector, mode: mode, closure: closure)
+        try parametersCheck(for: baseClass, selector: selector, mode: mode, closure: closure, protocolType: protocolType, isInstanceMethod: true)
     }
     
     static func parametersCheck(for targetClass: AnyClass, selector: Selector, mode: HookMode, closure: AnyObject) throws {
+        try parametersCheck(for: targetClass, selector: selector, mode: mode, closure: closure, protocolType: nil, isInstanceMethod: true)
+    }
+    
+    static func parametersCheck(for targetClass: AnyClass, selector: Selector, mode: HookMode, closure: AnyObject, protocolType: Protocol?, isInstanceMethod: Bool = true) throws {
         guard !blacklistSelectors.contains(selector) else {
             throw HookError.blacklist
         }
@@ -37,12 +45,17 @@ extension Hook {
             }
         }
         
-        guard let method = class_getInstanceMethod(targetClass, selector) else {
-            throw HookError.noRespondSelector
+        let methodSignature: Signature
+        if let method = class_getInstanceMethod(targetClass, selector) {
+            methodSignature = try Signature(method: method)
+        } else {
+            let resolvedProtocol = try protocolType ?? inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: isInstanceMethod)
+            guard let resolvedProtocol = resolvedProtocol else {
+                throw HookError.noRespondSelector
+            }
+            methodSignature = try methodSignatureForProtocol(resolvedProtocol, selector: selector, isInstanceMethod: isInstanceMethod)
         }
-        
-        let methodSignature = try Signature(method: method)
-        
+
         let closureSignature = try Signature(closure: closure)
         
         guard closureSignature.signatureType == .closure else {

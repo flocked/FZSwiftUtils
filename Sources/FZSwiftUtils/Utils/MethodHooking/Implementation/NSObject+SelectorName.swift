@@ -49,9 +49,12 @@ extension NSObject {
             return setterName
         }
         func check(_ name: String) -> String? {
-            var names = ["set\(name.uppercasedFirst()):"]
-            if name.hasPrefix("is") { names += "set\(name.dropFirst(2).uppercasedFirst()):" }
-            else if name.hasPrefix("get") { names += "set\(name.dropFirst(3).uppercasedFirst()):" }
+            let hasUnderscore = name.hasPrefix("_")
+            let searchName = hasUnderscore ? String(name.dropFirst()) : name
+            let prefix = hasUnderscore ? "_set" : "set"
+            var names = ["\(prefix)\(searchName.uppercasedFirst()):"]
+            if searchName.hasPrefix("is") { names += "\(prefix)\(searchName.dropFirst(2).uppercasedFirst()):" }
+            else if searchName.hasPrefix("get") { names += "\(prefix)\(searchName.dropFirst(3).uppercasedFirst()):" }
             guard let name = names.first(where: {
                 isInstance ? lookupClass.instancesRespond(to: Selector($0)) : lookupClass.responds(to: Selector($0))
             }) else { return nil }

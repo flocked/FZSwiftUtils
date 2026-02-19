@@ -34,6 +34,10 @@ ExtendedAttributes
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
 - https://github.com/sindresorhus/ExtendedAttributes/tree/main
 
+Libffi
+- Copyright (c) 1996-2025  Anthony Green, Red Hat, Inc and others.
+https://github.com/libffi/libffi
+
 LoremSwiftum
 - Copyright (c) 2014-2021 Lukas Kubanek
 - https://github.com/lukaskubanek/LoremSwiftum

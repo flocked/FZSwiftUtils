@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import _NSObjectProxy
+import _FZSwiftUtilsObjC
 
 /// An object proxy.
 open class NSObjectProxy<Object: NSObject>: ObjectProxy {

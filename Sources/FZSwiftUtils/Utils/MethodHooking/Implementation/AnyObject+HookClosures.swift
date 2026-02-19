@@ -6,7 +6,6 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 func hookClosures(for object: AnyObject, selector: Selector) -> (before: [AnyObject], after: [AnyObject], instead: [AnyObject]) {
@@ -73,4 +72,3 @@ fileprivate class ClosuresContext {
 fileprivate func closuresContext(for object: AnyObject) -> ClosuresContext? {
     getAssociatedValue("closuresContext", object: object)
 }
-#endif

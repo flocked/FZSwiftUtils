@@ -36,6 +36,12 @@ extension Hook {
                 } else {
                     targetClass = try wrapDynamicClassIfNeeded(object: object)
                 }
+                if class_getInstanceMethod(targetClass, selector) == nil {
+                    let resolvedProtocol = try inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: true)
+                    if let resolvedProtocol = resolvedProtocol {
+                        try addProtocolMethodIfNeeded(targetClass: targetClass, selector: selector, protocolType: resolvedProtocol, isInstanceMethod: true)
+                    }
+                }
                 let hookContext = try HookContext.get(for: targetClass, selector: selector, isSpecifiedInstance: true)
                 try appendHookClosure(hookClosure, selector: selector, mode: mode, to: object)
                 self.hookContext = hookContext

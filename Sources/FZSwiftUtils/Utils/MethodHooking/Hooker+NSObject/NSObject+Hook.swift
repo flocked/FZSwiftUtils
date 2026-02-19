@@ -5,14 +5,12 @@
 //  Created by Florian Zand on 06.05.25.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 #if os(macOS)
 import AppKit
 #else
 import UIKit
 #endif
-import CoreMedia
 
 public extension NSObject {
     // MARK: - empty closure
@@ -40,11 +38,6 @@ public extension NSObject {
         try hookBefore(selector, closure: closure as Any)
     }
     
-    @discardableResult
-    func hookBefore(_ selector: String, closure: @escaping () -> Void) throws -> Hook {
-        try hookBefore(selector, closure: closure as Any)
-    }
-    
     /**
      Execute the closure with all parameters before the execution of object's method.
      
@@ -65,11 +58,6 @@ public extension NSObject {
      */
     @discardableResult
     func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
-        try ObjectHook(self).hookBefore(selector, closure: closure)
-    }
-    
-    @discardableResult
-    func hookBefore(_ selector: String, closure: Any) throws -> Hook {
         try ObjectHook(self).hookBefore(selector, closure: closure)
     }
 
@@ -93,11 +81,6 @@ public extension NSObject {
      */
     @discardableResult
     func hookAfter(_ selector: Selector, closure: @escaping () -> Void) throws -> Hook {
-        try hookAfter(selector, closure: closure as Any)
-    }
-    
-    @discardableResult
-    func hookAfter(_ selector: String, closure: @escaping () -> Void) throws -> Hook {
         try hookAfter(selector, closure: closure as Any)
     }
 
@@ -125,11 +108,6 @@ public extension NSObject {
     func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
         try ObjectHook(self).hookAfter(selector, closure: closure)
     }
-    
-    @discardableResult
-    func hookAfter(_ selector: String, closure: Any) throws -> Hook {
-        try ObjectHook(self).hookAfter(selector, closure: closure)
-    }
 
     /**
      Replace the implementation of object's method by the closure.
@@ -138,7 +116,7 @@ public extension NSObject {
      
      ```swift
      class MyObject: NSObject {
-        @objc func sum(of number1: Int, and number2: Int) -> Int {
+        @objc dynamic func sum(of number1: Int, and number2: Int) -> Int {
             return number1 + number2
         }
      }
@@ -167,9 +145,30 @@ public extension NSObject {
         try ObjectHook(self).hook(selector, closure: closure)
     }
     
+    /**
+     Adds an unimplemented optional protocol method to this object.
+     
+     Example usage:
+     
+     ```swift
+     @objc protocol PingProtocol: NSObjectProtocol {
+         @objc optional func didPing(_ value: Int)
+     }
+     
+     class MyObject: NSObject, PingProtocol { }
+     
+     let object = MyObject()
+     let token = try object.addMethod(#selector(PingProtocol.didPing(_:)), closure: {
+         object, value in
+         print("didPing:", value)
+     } as @convention(block) (MyObject, Int) -> Void)
+     ```
+     
+     - Note: The selector must be an optional protocol requirement adopted by the object's class hierarchy.
+     */
     @discardableResult
-    func hook(_ selector: String, closure: Any) throws -> Hook {
-        try ObjectHook(self).hook(selector, closure: closure)
+    func addMethod(_ selector: Selector, closure: Any) throws -> Hook {
+        try Hook.AddObjectMethod(self, selector: selector, hookClosure: closure as AnyObject).apply(true)
     }
 }
 
@@ -360,7 +359,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookBefore(keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -381,7 +380,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookBefore(keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -403,7 +402,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
-        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, keyPath))
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, keyPath))
     }
     
     /**
@@ -425,7 +424,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, keyPath))
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, keyPath))
     }
     
     /**
@@ -447,7 +446,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -469,7 +468,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookBefore<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hookBefore(keyPath.setterName(), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -510,7 +509,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook {
-        try hookAfter(keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookAfter(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -531,7 +530,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hookAfter(keyPath.setterName(), closure: Hook.closure(for: closure))
+        try hookAfter(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
     }
     
     /**
@@ -553,7 +552,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
-        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
@@ -575,7 +574,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
-        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
     }
     
     /**
@@ -598,7 +597,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
-        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -621,7 +620,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hookAfter<Value>(set keyPath: WritableKeyPath<Self, Value>, uniqueValues: Bool = false, closure: @escaping (_ object: Self, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable, Value: RawRepresentable {
-        try hook(keyPath.setterName(), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
     /**
@@ -643,7 +642,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook {
-        return try hook(keyPath.getterName(), closure: Hook.getterClosure(for: closure))
+        return try hook(.string(keyPath.getterName()), closure: Hook.getterClosure(for: closure))
     }
     
     /**
@@ -665,7 +664,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(_ keyPath: KeyPath<Self, Value>, closure: @escaping (_ object: Self, _ original: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
-        return try hook(keyPath.getterName(), closure: Hook.getterClosure(for: closure))
+        return try hook(.string(keyPath.getterName()), closure: Hook.getterClosure(for: closure))
     }
     
     /**
@@ -689,7 +688,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ setter: (Value)->())->()) throws -> Hook {
-        return try hook(keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+        return try hook(.string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
     }
     
     /**
@@ -713,7 +712,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public func hook<Value>(set keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ setter: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
-        return try hook(keyPath.setterName(), closure: Hook.setterClosure(for: closure))
+        return try hook(.string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
     }
     
     /**
@@ -760,4 +759,3 @@ extension NSObjectProtocol where Self: NSObject {
         try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
 }
-#endif

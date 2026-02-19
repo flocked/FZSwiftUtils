@@ -6,7 +6,6 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
 
@@ -39,4 +38,3 @@ class FFIClosureContext {
         ffi_closure_free(self.ffiClosure)
     }
 }
-#endif

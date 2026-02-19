@@ -20,7 +20,7 @@ extension Hook {
         
         init(_ class_: AnyClass, selector: Selector, mode: HookMode, hookClosure: AnyObject, isInstance: Bool = false) throws {
             try hookSerialQueue.syncSafely {
-                try Self.parametersCheck(for: class_, selector: selector, mode: mode, closure: hookClosure)
+                try Self.parametersCheck(for: class_, selector: selector, mode: mode, closure: hookClosure, protocolType: nil, isInstanceMethod: isInstance)
             }
             self.isInstance = isInstance
             super.init(selector: selector, hookClosure: hookClosure, mode: mode, class_: class_)
@@ -29,6 +29,12 @@ extension Hook {
         override func apply() throws {
             guard !isActive else { return }
             try hookSerialQueue.syncSafely {
+                if class_getInstanceMethod(self.class, selector) == nil {
+                    let resolvedProtocol = try inferProtocolForMethod(targetClass: self.class, selector: selector, isInstanceMethod: isInstance)
+                    if let resolvedProtocol = resolvedProtocol {
+                        try addProtocolMethodIfNeeded(targetClass: self.class, selector: selector, protocolType: resolvedProtocol, isInstanceMethod: isInstance)
+                    }
+                }
                 let hookContext = try HookContext.get(for: self.class, selector: selector, isSpecifiedInstance: false)
                 try hookContext.append(hookClosure: hookClosure, mode: mode)
                 self.hookContext = hookContext

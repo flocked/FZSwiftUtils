@@ -8,7 +8,11 @@
 
 import Foundation
 
-let hookSerialQueue = DispatchQueue(label: "com.florianzand.FZSwiftUtils.HookSerialQueue")
+let hookSerialQueue: DispatchQueue = {
+    let queue = DispatchQueue(label: "com.florianzand.FZSwiftUtils.HookSerialQueue")
+    DispatchQueue.registerDetection(of: queue)
+    return queue
+}()
 
 extension Selector {
     static let dealloc = NSSelectorFromString("dealloc")
@@ -19,6 +23,8 @@ enum HookError: Error {
     case blacklist // Unsupport to hook current method. Search "blacklistSelectors" to see all methods unsupport.
     case pureSwiftObjectDealloc // Technologically can't hook dealloc method for pure Swift Object with swizzling. Please use "hookDeinitAfterByTail" to hook pure swift object's dealloc method.
     case noRespondSelector // Can't find the method by the selector from the class.
+    case inferredProtocolMethodAmbiguous(_ description: String) // Found multiple protocol methods with different signatures for the selector.
+    case methodAlreadyExists // Method already exists on the target class/object.
     case emptyStruct // The struct of the method's args or return value is empty, This case can't be compatible  with libffi. Please check the parameters or return type of the method.
     case wrongTypeForHookClosure // Please check the hook clousre. Is it a standard closure? Does it have keyword @convention(block)?
     case incompatibleClosureSignature(_ description: String) // Please check the hook closure if it match to the method.

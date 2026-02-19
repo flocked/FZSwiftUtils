@@ -5,7 +5,6 @@
 //  Created by Florian Zand on 12.08.25.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 #if os(macOS)
 import AppKit
@@ -187,10 +186,12 @@ extension Hook {
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> NSRange, AnyObject, Selector) -> NSRange
+            #if !os(watchOS)
         case _ where Value.self == CATransform3D.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> CATransform3D, AnyObject, Selector) -> CATransform3D
+            #endif
         case _ where Value.self == CMTime.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
@@ -356,10 +357,12 @@ extension Hook {
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
             } as @convention(block) ((AnyObject, Selector, NSRange) -> Void, AnyObject, Selector, NSRange) -> Void
+        #if !os(watchOS)
         case _ where Value.self == CATransform3D.self:
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
             } as @convention(block) ((AnyObject, Selector, CATransform3D) -> Void, AnyObject, Selector, CATransform3D) -> Void
+        #endif
         case _ where Value.self == CMTime.self:
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
@@ -473,8 +476,10 @@ extension Hook {
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, IndexPath) -> Void
         case _ where Value.self == NSRange.self:
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSRange) -> Void
+        #if !os(watchOS)
         case _ where Value.self == CATransform3D.self:
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CATransform3D) -> Void
+        #endif
         case _ where Value.self == CMTime.self:
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CMTime) -> Void
         case _ where Value.self == CMTimeRange.self:
@@ -513,4 +518,3 @@ extension Hook {
     }
 }
 
-#endif

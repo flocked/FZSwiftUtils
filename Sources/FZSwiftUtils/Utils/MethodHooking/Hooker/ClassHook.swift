@@ -5,7 +5,6 @@
 //  Created by Florian Zand on 05.05.25.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 /// Hooks class methods.
@@ -440,4 +439,3 @@ extension ClassHook {
         hooks[isInstance, default: [:]].values.flatMap({ val in val.flatMap({$0.value})  })
     }
 }
-#endif

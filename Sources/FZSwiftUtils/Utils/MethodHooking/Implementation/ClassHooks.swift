@@ -5,7 +5,6 @@
 //  Created by Florian Zand on 11.05.25.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 extension Hook {
@@ -90,4 +89,3 @@ extension Hook {
         }
     }
 }
-#endif

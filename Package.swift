@@ -15,17 +15,26 @@ let package = Package(
     dependencies: [
     ],
     targets: [
-        .target(name: "_Libffi", path: "Sources/FZSwiftUtils+ObjC/Libffi",
-            sources: ["src"], publicHeadersPath: "include",
-            cSettings: [.define("USE_DL_PREFIX"), .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-shorten-64-to-32"]),]),
-        .target(name: "_OCSources", dependencies: ["_Libffi"], path: "Sources/FZSwiftUtils+ObjC/OCSources", publicHeadersPath: ""),
-        .target(name: "_SuperBuilder", path: "Sources/FZSwiftUtils+ObjC/SuperBuilder"),
-        .target(name: "_ExceptionCatcher", path: "Sources/FZSwiftUtils+ObjC/ExceptionCatcher", publicHeadersPath: "", cSettings: [.headerSearchPath(".")]),
-        .target(name: "_NSObjectProxy", path: "Sources/FZSwiftUtils+ObjC/NSObjectProxy"),
-        .target(name: "FZSwiftUtils",
-            dependencies: ["_SuperBuilder", "_ExceptionCatcher", "_NSObjectProxy",
-                           .target(name: "_Libffi", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
-                           .target(name: "_OCSources", condition: .when(platforms: [.iOS, .macCatalyst, .macOS])),
-                          ]),
+        .target(name: "FZSwiftUtils", dependencies: ["_FZSwiftUtilsObjC", "_Libffi", ]),
+        .target(name: "_Libffi",
+                path: "Sources/Libffi",
+                exclude: ["vendor"],
+                publicHeadersPath: "include",
+            cSettings: [
+                .define("DARWIN"),
+                    .headerSearchPath("include"),
+                    .define("USE_DL_PREFIX"),
+                    .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-shorten-64-to-32"])
+            ]
+               ),
+        .target(
+            name: "_FZSwiftUtilsObjC",
+            dependencies: ["_Libffi"],
+            path: "Sources/FZSwiftUtils+ObjC",
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("include"),
+            ]
+        ),
     ]
 )

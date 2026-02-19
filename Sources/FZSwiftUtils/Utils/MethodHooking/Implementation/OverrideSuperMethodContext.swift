@@ -6,7 +6,6 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
 
@@ -79,4 +78,3 @@ fileprivate func overrideMethodCalled(cif: UnsafeMutablePointer<ffi_cif>?,
     }
     ffi_call(overrideMethodContext.methodCifContext.cif, unsafeBitCast(methodIMP, to: (@convention(c) () -> Void).self), ret, args)
 }
-#endif

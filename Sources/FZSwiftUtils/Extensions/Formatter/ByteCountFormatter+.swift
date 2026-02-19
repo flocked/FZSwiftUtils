@@ -132,7 +132,6 @@ private extension ByteCountFormatter {
         let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
         if shouldSwizzle, !isReplaced {
             do {
-                #if os(macOS) || os(iOS)
                 try hook(#selector(ByteCountFormatter.string(for:)), closure: { original, object, sel, obj in
                     (object as? ByteCountFormatter)?.localizedString(for: obj) ?? original(object, sel, obj)
                 } as @convention(block) (
@@ -148,26 +147,6 @@ private extension ByteCountFormatter {
                 } as @convention(block) (
                     (AnyObject, Selector, Measurement<UnitInformationStorage>) -> String,
                     AnyObject, Selector, Measurement<UnitInformationStorage>) -> String)
-                #else
-                try hook(#selector(ByteCountFormatter.string(for:)),
-                     methodSignature: (@convention(c)  (AnyObject, Selector, Any?) -> (String?)).self,
-                     hookSignature: (@convention(block)  (AnyObject, Any?) -> (String?)).self) { store in {
-                         object, obj in
-                         (object as? ByteCountFormatter)?.localizedString(for: obj) ?? store.original(object, #selector(ByteCountFormatter.string(for:)), obj)
-                     } }
-                 try hook(#selector(ByteCountFormatter.string(fromByteCount:)),
-                     methodSignature: (@convention(c)  (AnyObject, Selector, Int64) -> (String)).self,
-                     hookSignature: (@convention(block)  (AnyObject, Int64) -> (String)).self) { store in {
-                         object, byteCount in
-                         (object as? ByteCountFormatter)?.localizedString(fromByteCount: byteCount) ?? store.original(object, #selector(ByteCountFormatter.string(fromByteCount:)), byteCount)
-                     } }
-                 try hook(#selector(ByteCountFormatter.string(from:)),
-                     methodSignature: (@convention(c)  (AnyObject, Selector, Measurement<UnitInformationStorage>) -> (String)).self,
-                     hookSignature: (@convention(block)  (AnyObject, Measurement<UnitInformationStorage>) -> (String)).self) { store in {
-                         object, measurement in
-                         (object as? ByteCountFormatter)?.localizedString(from: measurement) ??  store.original(object, #selector(ByteCountFormatter.string(from:)), measurement)
-                     } }
-                #endif
             } catch {
                 debugPrint(error)
             }

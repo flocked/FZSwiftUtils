@@ -6,9 +6,8 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
-import _OCSources
+import _FZSwiftUtilsObjC
 
 public struct Signature {
     struct TypeValue: Equatable {
@@ -153,4 +152,3 @@ extension Array where Element == Signature.TypeValue {
     }
 }
 
-#endif

@@ -1,0 +1,4 @@
+module _Libffi [system] {
+  header "ffi.h"
+  export *
+}

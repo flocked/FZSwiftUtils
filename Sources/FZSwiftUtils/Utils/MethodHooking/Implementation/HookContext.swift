@@ -6,11 +6,10 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 import _Libffi
 #if SWIFT_PACKAGE
-import _OCSources
+import _FZSwiftUtilsObjC
 #endif
 
 class HookContext {
@@ -67,8 +66,6 @@ class HookContext {
         let methodSignature = try Signature(method: self.method)
         self.methodOriginalIMP = method_getImplementation(self.method)
         self.methodCifContext = try FFICIFContext.init(signature: methodSignature)
-        
-        
         
         // Before & after
         self.beforeAfterCifContext = try FFICIFContext.init(signature: Signature(argumentTypes: {
@@ -322,4 +319,3 @@ fileprivate func callBeforeOrAfterClosure(_ hookClosure: AnyObject, _ hookContex
         ffi_call(hookContext.beforeAfterCifContext.cif, unsafeBitCast(sh_blockInvoke(hookClosurePointer.pointee), to: (@convention(c) () -> Void).self), nil, hookArgsBuffer.baseAddress)
     }
 }
-#endif

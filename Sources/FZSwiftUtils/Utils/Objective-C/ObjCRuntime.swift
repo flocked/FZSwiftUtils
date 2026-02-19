@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import _ExceptionCatcher
+import _FZSwiftUtilsObjC
 
 /// Objective-C utilities.
 public enum ObjCRuntime {
@@ -250,6 +250,21 @@ extension Protocol {
         }
         return nil
     }
+    
+    static func typeEncoding(for selector: Selector, class: AnyClass, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
+        var protocolCount: UInt32 = 0
+        if let protocols = class_copyProtocolList(`class`, &protocolCount) {
+            for i in 0..<Int(protocolCount) {
+                if let typeEncoding = protocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
+                    return typeEncoding
+                }
+            }
+        }
+        if let superclass = class_getSuperclass(`class`), superclass != `class` {
+            return typeEncoding(for: selector, class: superclass, optionalOnly: optionalOnly)
+        }
+       return nil
+    }
 
     static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
         // Check required methods
@@ -278,7 +293,213 @@ extension Protocol {
     }
 }
 
+extension ObjCRuntime {
+    /// Property sequence wrapper
+    struct PropertySequence: Sequence {
+        let cls: AnyClass
+        let includeSuperclasses: Bool
+        let isInstance: Bool
 
+        func makeIterator() -> ObjCIterator<objc_property_t> {
+            ObjCIterator(cls: cls, includeSuperclasses: includeSuperclasses, isInstance: isInstance) { cls in
+                var count: UInt32 = 0
+                let ptr = class_copyPropertyList(cls, &count)
+                return (ptr, Int(count))
+            }
+        }
+    }
+
+    /// Method sequence wrapper
+    struct MethodSequence: Sequence {
+        let cls: AnyClass
+        let includeSuperclasses: Bool
+        let isInstance: Bool
+
+        func makeIterator() -> ObjCIterator<Method> {
+            ObjCIterator(cls: cls, includeSuperclasses: includeSuperclasses, isInstance: isInstance) { cls in
+                var count: UInt32 = 0
+                let ptr = class_copyMethodList(cls, &count)
+                return (ptr, Int(count))
+            }
+        }
+    }
+    
+    /// Generic iterator for Objective-C runtime buffers.
+    struct ObjCIterator<Element>: IteratorProtocol {
+        private class BufferOwner {
+            let pointer: UnsafeMutablePointer<Element>?
+            let count: Int
+            init(pointer: UnsafeMutablePointer<Element>?, count: Int) {
+                self.pointer = pointer
+                self.count = count
+            }
+            deinit { if let ptr = pointer { free(ptr) } }
+        }
+
+        var currentClass: AnyClass?
+        let includeSuperclasses: Bool
+        let isInstance: Bool
+        private let bufferLoader: (AnyClass) -> (UnsafeMutablePointer<Element>?, Int)
+
+        private var bufferOwner: BufferOwner?
+        private var index: Int = 0
+
+        init(cls: AnyClass, includeSuperclasses: Bool, isInstance: Bool,
+             bufferLoader: @escaping (AnyClass) -> (UnsafeMutablePointer<Element>?, Int)) {
+            self.currentClass = isInstance ? cls : object_getClass(cls)
+            self.includeSuperclasses = includeSuperclasses
+            self.isInstance = isInstance
+            self.bufferLoader = bufferLoader
+            loadBuffer()
+        }
+
+        private mutating func loadBuffer() {
+            guard let cls = currentClass else {
+                bufferOwner = nil
+                index = 0
+                return
+            }
+            let (ptr, count) = bufferLoader(cls)
+            bufferOwner = BufferOwner(pointer: ptr, count: count)
+            index = 0
+        }
+
+        mutating func next() -> Element? {
+            guard let owner = bufferOwner, let ptr = owner.pointer, index < owner.count else {
+                if includeSuperclasses, let superclass = currentClass.flatMap({ class_getSuperclass($0) }) {
+                    currentClass = superclass
+                    loadBuffer()
+                    return next()
+                }
+                return nil
+            }
+            defer { index += 1 }
+            return ptr[index]
+        }
+    }
+}
+
+extension ObjCRuntime {
+    /// Public API for protocol methods
+    struct ProtocolMethodSequence: Sequence {
+        let proto: Protocol
+        let isRequired: Bool
+        let isInstance: Bool
+        let includeInherentProtocols: Bool
+        let includeSuperProtocols: Bool
+
+        func makeIterator() -> ObjCProtocolIterator<objc_method_description> {
+            ObjCProtocolIterator(
+                startingProtocol: proto,
+                includeInherentProtocols: includeInherentProtocols,
+                includeSuperProtocols: includeSuperProtocols
+            ) { proto in
+                var count: UInt32 = 0
+                let ptr = protocol_copyMethodDescriptionList(proto, isRequired, isInstance, &count)
+                return (ptr, Int(count))
+            }
+        }
+    }
+
+    /// Public API for protocol properties
+    struct ProtocolPropertySequence: Sequence {
+        let proto: Protocol
+        let includeInherentProtocols: Bool
+        let includeSuperProtocols: Bool
+
+        func makeIterator() -> ObjCProtocolIterator<objc_property_t> {
+            ObjCProtocolIterator(startingProtocol: proto, includeInherentProtocols: includeInherentProtocols, includeSuperProtocols: includeSuperProtocols) { proto in
+                var count: UInt32 = 0
+                let ptr = protocol_copyPropertyList(proto, &count)
+                return (ptr, Int(count))
+            }
+        }
+    }
+    
+    /// Generic iterator over Objective-C protocol buffers (methods or properties)
+    struct ObjCProtocolIterator<Element>: IteratorProtocol {
+        // Internal class to manage unsafe buffer memory
+        private class BufferOwner {
+            let pointer: UnsafeMutablePointer<Element>?
+            let count: Int
+            init(pointer: UnsafeMutablePointer<Element>?, count: Int) {
+                self.pointer = pointer
+                self.count = count
+            }
+            deinit { if let ptr = pointer { free(ptr) } }
+        }
+
+        // Stack of protocols to process
+        private var protocolStack: [Protocol] = []
+        private var visited: Set<String> = []
+
+        private let bufferLoader: (Protocol) -> (UnsafeMutablePointer<Element>?, Int)
+        private let includeInherentProtocols: Bool
+        private let includeSuperProtocols: Bool
+
+        private var bufferOwner: BufferOwner?
+        private var index: Int = 0
+
+        init(startingProtocol: Protocol,
+             includeInherentProtocols: Bool,
+             includeSuperProtocols: Bool,
+             bufferLoader: @escaping (Protocol) -> (UnsafeMutablePointer<Element>?, Int)) {
+
+            self.bufferLoader = bufferLoader
+            self.includeInherentProtocols = includeInherentProtocols
+            self.includeSuperProtocols = includeSuperProtocols
+
+            self.protocolStack = [startingProtocol]
+            self.visited = []
+            loadNextProtocolBuffer()
+        }
+
+        private mutating func loadNextProtocolBuffer() {
+            bufferOwner = nil
+            index = 0
+            while !protocolStack.isEmpty {
+                let proto = protocolStack.removeLast()
+                let protoName = String(cString: protocol_getName(proto))
+                if visited.contains(protoName) { continue }
+                visited.insert(protoName)
+
+                // Add adopted protocols if flags are set
+                if includeSuperProtocols || includeInherentProtocols {
+                    var adoptedCount: UInt32 = 0
+                    if let adoptedProtocols = protocol_copyProtocolList(proto, &adoptedCount) {
+                        for i in 0..<Int(adoptedCount) {
+                            let adopted = adoptedProtocols[i]
+                            let name = String(cString: protocol_getName(adopted))
+                            if !visited.contains(name) {
+                                protocolStack.append(adopted)
+                            }
+                        }
+                    }
+                }
+
+                // Only load this protocol’s buffer if we want it
+                if bufferLoader(proto).0 != nil {
+                    let (ptr, count) = bufferLoader(proto)
+                    bufferOwner = BufferOwner(pointer: ptr, count: count)
+                    return
+                }
+            }
+        }
+
+        mutating func next() -> Element? {
+            guard let owner = bufferOwner, let ptr = owner.pointer, index < owner.count else {
+                loadNextProtocolBuffer()
+                guard let owner2 = bufferOwner, let ptr2 = owner2.pointer, index < owner2.count else {
+                    return nil
+                }
+                defer { index += 1 }
+                return ptr2[index]
+            }
+            defer { index += 1 }
+            return ptr[index]
+        }
+    }
+}
 
 /*
 public struct ObjcProtocol {

@@ -6,9 +6,8 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
-import _OCSources
+import _FZSwiftUtilsObjC
 
 class InsteadContext {
     let objectPointer: UnsafeMutableRawPointer
@@ -33,4 +32,3 @@ func createInsteadClosure(targetIMP: IMP, objectPointer: UnsafeMutableRawPointer
 func getInsteadContext(insteadClosure: AnyObject) -> InsteadContext? {
     getAssociatedValue("associatedInsteadContextHandle", object: insteadClosure)
 }
-#endif
