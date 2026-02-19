@@ -287,7 +287,7 @@ struct ClassHook<T: AnyObject> {
     }
 }
 
-extension ClassHook {
+extension ClassHook where T: NSObject  {
     @discardableResult
     func hookBefore<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in

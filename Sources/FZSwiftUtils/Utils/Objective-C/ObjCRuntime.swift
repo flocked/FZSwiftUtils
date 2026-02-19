@@ -69,7 +69,7 @@ public enum ObjCRuntime {
             return nil
         }
         if sorted {
-            return subclasses.map({(class: $0, name: NSStringFromClass($0 as! AnyClass))}).sorted(by: \.name).map({$0.class})
+            return subclasses.map({(class: $0, name: name(for: $0 as! AnyClass))}).sorted(by: \.name).map({$0.class})
         }
         return subclasses
     }
@@ -182,6 +182,24 @@ public enum ObjCRuntime {
             return nil
         }
     }
+    
+    static func name(for class: AnyClass) -> String {
+        if let name = Cache.cachedName[`class`] {
+            return name
+        }
+        let name = NSStringFromClass(`class`)
+        Cache.cachedName[`class`] = name
+        return name
+    }
+    
+    static func name(for protocol: Protocol) -> String {
+        if let name = Cache.cachedName[`protocol`] {
+            return name
+        }
+        let name = NSStringFromProtocol(`protocol`)
+        Cache.cachedName[`protocol`] = name
+        return name
+    }
 }
 
 fileprivate extension ObjCRuntime {
@@ -195,13 +213,18 @@ fileprivate extension ObjCRuntime {
             get { getAssociatedValue("protocols") }
             set { setAssociatedValue(newValue, key: "protocols") }
         }
+        
+        static var cachedName: [ObjectIdentifier: String] {
+            get { getAssociatedValue("cachedName") ?? [:] }
+            set { setAssociatedValue(newValue, key: "cachedName") }
+        }
     }
 }
 
 extension Protocol {
     /// The name of the protocol.
     public var name: String {
-        NSStringFromProtocol(self)
+        ObjCRuntime.name(for: self)
     }
     
     /// Returns all classes impelementing the protocol.
@@ -209,7 +232,7 @@ extension Protocol {
         ObjCRuntime.classes(implementing: self)
     }
     
-    /// RReturns a the protocol with the sepcified name.
+    /// Returns a the protocol with the specfiiec name.
     public static func named(_ name: String) -> Protocol? {
         NSProtocolFromString(name)
     }

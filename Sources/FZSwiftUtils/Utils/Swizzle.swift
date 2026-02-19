@@ -520,7 +520,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(_ old: KeyPath<V, Value>, _ new: KeyPath<V, Value>) {
+    public init<V: NSObject, Value>(_ old: KeyPath<V, Value>, _ new: KeyPath<V, Value>) {
         self.init(old as PartialKeyPath<V>, new, nil)
     }
     
@@ -531,7 +531,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject>(_ old: PartialKeyPath<V>, _ new: Selector) {
+    public init<V: NSObject>(_ old: PartialKeyPath<V>, _ new: Selector) {
         self.init(old, nil, new)
     }
     
@@ -542,7 +542,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject>(_ old: PartialKeyPath<V>, _ new: String) {
+    public init<V: NSObject>(_ old: PartialKeyPath<V>, _ new: String) {
         self.init(old, nil, NSSelectorFromString(new))
     }
     
@@ -553,7 +553,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(set old: WritableKeyPath<V, Value>, _ new: WritableKeyPath<V, Value>) {
+    public init<V: NSObject, Value>(set old: WritableKeyPath<V, Value>, _ new: WritableKeyPath<V, Value>) {
         self.init(old as PartialKeyPath<V>, new, nil, isSetter: true)
     }
     
@@ -564,7 +564,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(set old: WritableKeyPath<V, Value>, _ new: Selector) {
+    public init<V: NSObject, Value>(set old: WritableKeyPath<V, Value>, _ new: Selector) {
         self.init(old as PartialKeyPath<V>, nil, new, isSetter: true)
     }
     
@@ -575,7 +575,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(set old: WritableKeyPath<V, Value>, _ new: String) {
+    public init<V: NSObject, Value>(set old: WritableKeyPath<V, Value>, _ new: String) {
         self.init(old as PartialKeyPath<V>, nil, NSSelectorFromString(new), isSetter: true)
     }
     
@@ -586,7 +586,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(_ old: KeyPath<V.Type, Value>, _ new: KeyPath<V.Type, Value>) {
+    public init<V: NSObject, Value>(_ old: KeyPath<V.Type, Value>, _ new: KeyPath<V.Type, Value>) {
         self.init(old as PartialKeyPath<V.Type>, new, nil, isStatic: true)
     }
     
@@ -597,7 +597,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject>(_ old: PartialKeyPath<V.Type>, _ new: Selector) {
+    public init<V: NSObject>(_ old: PartialKeyPath<V.Type>, _ new: Selector) {
         self.init(old, nil, new, isStatic: true)
     }
     
@@ -608,7 +608,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject>(_ old: PartialKeyPath<V.Type>, _ new: String) {
+    public init<V: NSObject>(_ old: PartialKeyPath<V.Type>, _ new: String) {
         self.init(old, nil, NSSelectorFromString(new), isStatic: true)
     }
     
@@ -619,7 +619,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(set old: WritableKeyPath<V.Type, Value>, _ new: WritableKeyPath<V.Type, Value>) {
+    public init<V: NSObject, Value>(set old: WritableKeyPath<V.Type, Value>, _ new: WritableKeyPath<V.Type, Value>) {
         self.init(old as PartialKeyPath<V.Type>, new, nil, isSetter: true, isStatic: true)
     }
     
@@ -630,7 +630,7 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(set old: WritableKeyPath<V.Type, Value>, _ new: Selector) {
+    public init<V: NSObject, Value>(set old: WritableKeyPath<V.Type, Value>, _ new: Selector) {
         self.init(old as PartialKeyPath<V.Type>, nil, new, isSetter: true, isStatic: true)
     }
     
@@ -641,11 +641,11 @@ public struct SelectorPair: Hashable {
         - old: The old selector.
         - new: The new selector to replace the old.
      */
-    public init<V: AnyObject, Value>(set old: WritableKeyPath<V.Type, Value>, _ new: String) {
+    public init<V: NSObject, Value>(set old: WritableKeyPath<V.Type, Value>, _ new: String) {
         self.init(old as PartialKeyPath<V.Type>, nil, NSSelectorFromString(new), isSetter: true, isStatic: true)
     }
     
-    private init<V: AnyObject>(_ old: PartialKeyPath<V>, _ new: PartialKeyPath<V>?, _ newSel: Selector?, isSetter: Bool = false) {
+    private init<V: NSObject>(_ old: PartialKeyPath<V>, _ new: PartialKeyPath<V>?, _ newSel: Selector?, isSetter: Bool = false) {
         var failedKeyPath: (old: String?, new: String?) = (nil, nil)
         self.old = SelectorPair.selector(from: old, isSetter: isSetter, failedKeyPath: &failedKeyPath.old)
         self.new = new.map { SelectorPair.selector(from: $0, isSetter: isSetter, failedKeyPath: &failedKeyPath.new) } ?? newSel!
@@ -653,7 +653,7 @@ public struct SelectorPair: Hashable {
         self.isStatic = false
     }
     
-    private init<V: AnyObject>(_ old: PartialKeyPath<V.Type>, _ new: PartialKeyPath<V.Type>?, _ newSel: Selector?, isSetter: Bool = false, isStatic: Bool = true) {
+    private init<V: NSObject>(_ old: PartialKeyPath<V.Type>, _ new: PartialKeyPath<V.Type>?, _ newSel: Selector?, isSetter: Bool = false, isStatic: Bool = true) {
         var failedKeyPath: (old: String?, new: String?) = (nil, nil)
         self.old = SelectorPair.selector(from: old, isSetter: isSetter, failedKeyPath: &failedKeyPath.old)
         self.new = new.map { SelectorPair.selector(from: $0, isSetter: isSetter, failedKeyPath: &failedKeyPath.new) } ?? newSel!
@@ -661,7 +661,7 @@ public struct SelectorPair: Hashable {
         self.isStatic = isStatic
     }
     
-    private static func selector<V>(from keyPath: PartialKeyPath<V>, isSetter: Bool, failedKeyPath: inout String?) -> Selector where V: AnyObject {
+    private static func selector<V>(from keyPath: PartialKeyPath<V>, isSetter: Bool, failedKeyPath: inout String?) -> Selector where V: NSObject {
         do {
             let name = try isSetter ? keyPath.setterName() : keyPath.getterName()
             return NSSelectorFromString(name)
@@ -671,7 +671,7 @@ public struct SelectorPair: Hashable {
         }
     }
     
-    private static func selector<V>(from keyPath: PartialKeyPath<V.Type>, isSetter: Bool, failedKeyPath: inout String?) -> Selector where V: AnyObject {
+    private static func selector<V>(from keyPath: PartialKeyPath<V.Type>, isSetter: Bool, failedKeyPath: inout String?) -> Selector where V: NSObject {
         do {
             let name = try isSetter ? keyPath.setterName() : keyPath.getterName()
             return NSSelectorFromString(name)

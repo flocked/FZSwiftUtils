@@ -14,7 +14,7 @@ open class NSObjectProxy<Object: NSObject>: ObjectProxy {
     public init(object: Object) {
         super.init(targetObject: object)
     }
-        
+            
     /// The object of the proxy.
     public var object: Object {
         _target as! Object

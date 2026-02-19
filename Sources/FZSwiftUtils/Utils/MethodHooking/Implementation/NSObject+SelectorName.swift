@@ -8,28 +8,28 @@
 import Foundation
 
 extension PartialKeyPath {
-    func getterName() throws -> String where Root: AnyObject {
+    func getterName() throws -> String where Root: NSObject {
         guard let getterName = _kvcKeyPathString else {
             throw HookError.nonObjcProperty
         }
         return getterName
     }
     
-    func setterName() throws -> String where Root: AnyObject {
+    func setterName() throws -> String where Root: NSObject {
         guard let setterName = NSObject.setterName(for: Root.self, getterName: try getterName()) else {
             throw HookError.nonObjcProperty
         }
         return setterName
     }
     
-    func getterName<T>() throws -> String where Root == T.Type, T: AnyObject {
+    func getterName<T>() throws -> String where Root == T.Type, T: NSObject {
         guard let getterName = _kvcKeyPathString else {
             throw HookError.nonObjcProperty
         }
         return getterName
     }
     
-    func setterName<T>() throws -> String where Root == T.Type, T: AnyObject {
+    func setterName<T>() throws -> String where Root == T.Type, T: NSObject {
         guard let setterName = NSObject.setterName(for: T.self, getterName: try getterName(), isInstance: false) else {
             throw HookError.nonObjcProperty
         }
@@ -37,7 +37,7 @@ extension PartialKeyPath {
     }
 }
 
-extension NSObject {
+fileprivate extension NSObject {
     static var setterNames: [ObjectIdentifier: [String: String?]] {
         get { getAssociatedValue("setterNames") ?? [:] }
         set { setAssociatedValue(newValue, key: "setterNames") }
@@ -84,6 +84,7 @@ extension NSObject {
             }
             currentClass = class_getSuperclass(c)
         }
+        setterNames[lookupClass, default: [:]][getterName] = nil
         return nil
     }
 }

@@ -9,7 +9,7 @@
 import Foundation
 
 let hookSerialQueue: DispatchQueue = {
-    let queue = DispatchQueue(label: "com.florianzand.FZSwiftUtils.HookSerialQueue")
+    let queue = DispatchQueue(label: "com.FZSwiftUtils.HookSerialQueue")
     DispatchQueue.registerDetection(of: queue)
     return queue
 }()

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import _Libffi
 #if SWIFT_PACKAGE
 import _FZSwiftUtilsObjC
 #endif

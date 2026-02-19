@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import _Libffi
 import _FZSwiftUtilsObjC
 
 class FFICIFContext {

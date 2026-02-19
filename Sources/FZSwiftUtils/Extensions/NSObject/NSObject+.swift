@@ -12,6 +12,11 @@ public extension NSObject {
     var objectID: ObjectIdentifier {
         ObjectIdentifier(self)
     }
+    
+    /// The identifier of the class.
+    static var classID: ObjectIdentifier {
+        ObjectIdentifier(self)
+    }
 
     /**
      Returns the value for the property identified by a given key.

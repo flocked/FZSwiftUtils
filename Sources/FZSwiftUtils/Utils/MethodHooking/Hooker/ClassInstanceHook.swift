@@ -375,7 +375,7 @@ extension ClassInstanceHook where T: NSObject {
 
 // MARK: - Hook Property
 
-extension ClassInstanceHook {
+extension ClassInstanceHook where T: NSObject {
     @discardableResult
     func hookBefore<Value>(_ keyPath: KeyPath<T, Value>, closure: @escaping (_ object: T, _ value: Value)->()) throws -> Hook {
         try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in

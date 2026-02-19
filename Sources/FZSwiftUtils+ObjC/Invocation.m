@@ -17,6 +17,10 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     return type;
 }
 
+NS_INLINE BOOL IsCFBooleanPointerType(const char *type) {
+    return strstr(type, "CFBoolean") != NULL || strstr(type, "__CFBoolean") != NULL;
+}
+
 @interface Invocation ()
 
 @property (nonatomic, readwrite) BOOL isVoidReturnType;
@@ -173,6 +177,14 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
         } else {
             [_invocation getArgument:&ptr atIndex:index];
         }
+        if (IsCFBooleanPointerType(argType)) {
+            if (ptr == (void *)kCFBooleanTrue) {
+                return @YES;
+            }
+            if (ptr == (void *)kCFBooleanFalse) {
+                return @NO;
+            }
+        }
         return ptr ? [NSValue valueWithPointer:ptr] : nil;
     } else if (argType[0] == '{' || argType[0] == '(') {
         NSUInteger size;
@@ -256,6 +268,10 @@ NS_INLINE const char *SkipTypeQualifiers(const char *type) {
     } else if (argType[0] == '^') {
         void *ptr = NULL;
         if ([arg isKindOfClass:[NSValue class]]) ptr = [arg pointerValue];
+        else if (IsCFBooleanPointerType(argType) && [arg respondsToSelector:@selector(boolValue)]) {
+            const void *cfBool = [arg boolValue] ? kCFBooleanTrue : kCFBooleanFalse;
+            ptr = (void *)cfBool;
+        }
         if (index == -1) {
             [_invocation setReturnValue:&ptr];
         } else {
