@@ -45,7 +45,7 @@ extension Hook {
                 let hookContext = try HookContext.get(for: targetClass, selector: selector, isSpecifiedInstance: true)
                 try appendHookClosure(hookClosure, selector: selector, mode: mode, to: object)
                 self.hookContext = hookContext
-                ObjectHooks(object).addHook(self)
+                Storage(object).addHook(self)
             }
         }
         
@@ -57,7 +57,7 @@ extension Hook {
                 try removeHookClosure(hookClosure, selector: hookContext.selector, mode: mode, for: object)
                 self.hookContext = nil
                 if remove {
-                    ObjectHooks(object).removeHook(self)
+                    Storage(object).removeHook(self)
                 }
                 guard object_getClass(object) == hookContext.targetClass else { return }
                 guard !(try hookContext.isIMPChanged()) else { return }

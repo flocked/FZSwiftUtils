@@ -28,7 +28,7 @@ extension Hook {
             let delegate = getAssociatedValue("deinitDelegate", object: object, initialValue: DeallocDelegate())
             delegate.hookClosures.append(hookClosure)
             self.delegate = delegate
-            ObjectHooks(object).addHook(self)
+            Storage(object).addHook(self)
         }
         
         override func revert(remove: Bool) throws {
@@ -37,7 +37,7 @@ extension Hook {
             delegate.hookClosures.removeFirst(where: { $0 === self.hookClosure })
             self.delegate = nil
             guard remove, let object = object else { return }
-            ObjectHooks(object).removeHook(self)
+            Storage(object).removeHook(self)
         }
         
         class DeallocDelegate {

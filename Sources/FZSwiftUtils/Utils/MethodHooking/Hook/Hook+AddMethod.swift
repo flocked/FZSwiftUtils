@@ -50,8 +50,8 @@ extension Hook {
                     addedToClass = targetClass
                 }
                 isApplied = true
-                ObjectHooks(object).addedMethods.insert(selector)
-                ObjectHooks(object).addHook(self)
+                Storage(object).addedMethods.insert(selector)
+                Storage(object).addHook(self)
             }
         }
         
@@ -63,10 +63,10 @@ extension Hook {
                     let noop: @convention(block) (AnyObject) -> Void = { _ in }
                     method_setImplementation(method, imp_implementationWithBlock(noop))
                 }
-                ObjectHooks(object).addedMethods.remove(selector)
+                Storage(object).addedMethods.remove(selector)
                 isApplied = false
                 if remove {
-                    ObjectHooks(object).removeHook(self)
+                    Storage(object).removeHook(self)
                 }
             }
         }
@@ -109,8 +109,8 @@ extension Hook {
                     addedToClass = targetClass
                 }
                 isApplied = true
-                ClassHooks(targetClass, isInstance: isInstanceMethod).addedMethods.insert(selector)
-                ClassHooks(targetClass, isInstance: isInstanceMethod).addHook(self)
+                Storage(targetClass, isInstance: isInstanceMethod).addedMethods.insert(selector)
+                Storage(targetClass, isInstance: isInstanceMethod).addHook(self)
             }
         }
         
@@ -122,10 +122,10 @@ extension Hook {
                     let noop: @convention(block) (AnyObject) -> Void = { _ in }
                     method_setImplementation(method, imp_implementationWithBlock(noop))
                 }
-                ClassHooks(targetClass, isInstance: isInstanceMethod).addedMethods.remove(selector)
+                Storage(targetClass, isInstance: isInstanceMethod).addedMethods.remove(selector)
                 isApplied = false
                 if remove {
-                    ClassHooks(targetClass, isInstance: isInstanceMethod).removeHook(self)
+                    Storage(targetClass, isInstance: isInstanceMethod).removeHook(self)
                 }
             }
         }
