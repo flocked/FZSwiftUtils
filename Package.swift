@@ -12,19 +12,18 @@ let package = Package(
             targets: ["FZSwiftUtils"]
         ),
     ],
-    dependencies: [
-    ],
+    dependencies: [],
     targets: [
-        .target(name: "FZSwiftUtils", dependencies: ["_FZSwiftUtilsObjC", "_Libffi", ]),
+        .target(name: "FZSwiftUtils", dependencies: ["_FZSwiftUtilsObjC", "_Libffi"]),
         .target(name: "_Libffi",
                 path: "Sources/Libffi",
                 exclude: ["vendor"],
                 publicHeadersPath: "include",
             cSettings: [
                 .define("DARWIN"),
-                    .headerSearchPath("include"),
-                    .define("USE_DL_PREFIX"),
-                    .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-shorten-64-to-32"])
+                .headerSearchPath("include"),
+                .define("USE_DL_PREFIX"),
+                .unsafeFlags(["-Wno-deprecated-declarations", "-Wno-shorten-64-to-32"])
             ]
                ),
         .target(
