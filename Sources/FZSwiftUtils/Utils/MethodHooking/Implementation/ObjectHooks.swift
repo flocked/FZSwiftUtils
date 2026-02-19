@@ -66,24 +66,28 @@ extension Hook {
             set {
                 setAssociatedValue(newValue, key: "addedMethods", object: object)
                 guard let object = object as? NSObject else { return }
-                if newValue.count == 1 {
+                if newValue.isEmpty {
+                    try? addedMethodHook?.revert()
+                    addedMethodHook = nil
+                } else if addedMethodHook == nil {
                     do {
-                        try object.hook(#selector(NSObject.responds(to:)), closure: {
+                        addedMethodHook = try object.hook(#selector(NSObject.responds(to:)), closure: {
                             original, object, sel, selector in
                             if let selector = selector, ObjectHooks(object).addedMethods.contains(selector) {
                                 return true
                             }
                             return original(object, sel, selector)
-                        } as @convention(block) (
-                            (NSObject, Selector, Selector?) -> Bool,
-                            NSObject, Selector, Selector?) -> Bool)
+                        } as @convention(block) ((NSObject, Selector, Selector?) -> Bool, NSObject, Selector, Selector?) -> Bool)
                     } catch {
                         Swift.print(error)
                     }
-                } else if newValue.isEmpty {
-                    revertHooks(for: #selector(NSObject.responds(to:)))
                 }
             }
+        }
+        
+        private var addedMethodHook: Hook? {
+            get { getAssociatedValue("addedMethodHook", object: object) }
+            set { setAssociatedValue(newValue, key: "addedMethodHook", object: object) }
         }
     }
 }
