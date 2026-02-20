@@ -254,7 +254,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: An array of `Protocol` objects representing all protocols the class conforms to, optionally including those of its superclasses and inherited protocols.
      */
     static func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-        ObjCRuntime.protocols(of: self, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
+        ObjCClass(self).protocols(includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
     }
     
     /**
@@ -267,16 +267,7 @@ public extension NSObjectProtocol where Self: NSObject {
      - Returns: `true` if the object overrides the selector, `false` otherwise.
      */
     static func overrides(_ selector: Selector, isInstance: Bool) -> Bool {
-        guard let method = isInstance ? class_getInstanceMethod(self, selector) : class_getClassMethod(self, selector) else { return false }
-        var currentClass: AnyClass? = class_getSuperclass(self)
-        while let superClass = currentClass {
-            let superMethod = isInstance ? class_getInstanceMethod(superClass, selector) : class_getClassMethod(superClass, selector)
-            if let superMethod = superMethod, superMethod != method {
-                return true
-            }
-            currentClass = class_getSuperclass(superClass)
-        }
-        return false
+        ObjCClass(self).overrides(selector, isInstance: isInstance)
     }
 
     /**
@@ -287,7 +278,7 @@ public extension NSObjectProtocol where Self: NSObject {
         - sorted: A Boolean value indicating whether the subclasses should be sorted by name.
      */
     static func subclasses(includeNested: Bool = false, sorted: Bool = false) -> [Self.Type] {
-        ObjCRuntime.subclasses(of: self, includeNested: includeNested, sorted: sorted)
+        return ObjCRuntime.subclasses(of: self, includeNested: includeNested, sorted: sorted)
     }
 }
 

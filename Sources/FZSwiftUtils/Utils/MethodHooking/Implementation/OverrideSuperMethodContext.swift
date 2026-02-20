@@ -10,7 +10,7 @@ import Foundation
 import _Libffi
 
 func overrideSuperMethodIfNeeded(_ selector: Selector, of targetClass: AnyClass) throws {
-    guard getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) == nil else { return }
+    guard ObjCClass(targetClass).method(for: selector, declaredOnly: true) == nil else { return }
     let overrideMethodContext = try OverrideMethodContext(targetClass: targetClass, selector: selector)
     OverrideMethodContext.pool.insert(overrideMethodContext)
 }

@@ -30,8 +30,7 @@ extension Hook {
             guard !isActive else { return }
             try hookSerialQueue.syncSafely {
                 if class_getInstanceMethod(self.class, selector) == nil {
-                    let resolvedProtocol = try inferProtocolForMethod(targetClass: self.class, selector: selector, isInstanceMethod: isInstance)
-                    if let resolvedProtocol = resolvedProtocol {
+                    if let resolvedProtocol = try ObjCClass(self.class).protocol(for: selector, isInstanceMethod: isInstance) {
                         try addProtocolMethodIfNeeded(targetClass: self.class, selector: selector, protocolType: resolvedProtocol, isInstanceMethod: isInstance)
                     }
                 }

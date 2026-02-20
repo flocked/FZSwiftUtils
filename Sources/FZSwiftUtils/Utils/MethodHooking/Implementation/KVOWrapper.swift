@@ -20,7 +20,7 @@ extension NSObject {
         guard let KVOedClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        if getMethodWithoutSearchingSuperClasses(targetClass: KVOedClass, selector: selector) == nil, let propertyName = try getKVOName(setter: selector) {
+        if ObjCClass(KVOedClass).method(for: selector, declaredOnly: true) == nil, let propertyName = try getKVOName(setter: selector) {
             guard let observer = hookObserver else {
                 throw HookError.internalError(file: #file, line: #line)
             }

@@ -8,6 +8,7 @@
 import Foundation
 import _FZSwiftUtilsObjC
 
+
 /// Objective-C utilities.
 public enum ObjCRuntime {
     /// Returns all classes.
@@ -74,11 +75,12 @@ public enum ObjCRuntime {
         return subclasses
     }
     
+    /*
     public static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
         var visited = Set<ObjectIdentifier>()
         var result: [Protocol] = []
         func visit(_ proto: Protocol) {
-            guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
+            guard visited.insert(proto).inserted else { return }
             result.append(proto)
             guard includeInheritedProtocols else { return }
             var count: UInt32 = 0
@@ -100,6 +102,7 @@ public enum ObjCRuntime {
         }
         return result
     }
+    */
     
     /**
       Executes the specified block that may throw an Objective-C `NSException` and catches it.
@@ -221,100 +224,28 @@ fileprivate extension ObjCRuntime {
     }
 }
 
-extension Protocol {
-    /// The name of the protocol.
-    public var name: String {
-        ObjCRuntime.name(for: self)
-    }
-    
-    /// Returns all classes impelementing the protocol.
-    public func conformingClasses() -> [AnyClass] {
-        ObjCRuntime.classes(implementing: self)
-    }
-    
-    /// Returns a the protocol with the specfiiec name.
-    public static func named(_ name: String) -> Protocol? {
-        NSProtocolFromString(name)
-    }
-    
-    func containsSelector(_ selector: Selector) -> Bool {
-        if protocol_getMethodDescription(self, selector, true, true).name != nil || protocol_getMethodDescription(self, selector, false, true).name != nil {
-            return true
-        }
-        var protocolCount: UInt32 = 0
-        guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return false }
-        if (0..<Int(protocolCount)).contains(where: { superProtocols[$0].containsSelector(selector) }) {
-            return true
-        }
-        return false
-    }
+/*
 
-    func typeEncoding(for selector: Selector, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
-        var methodDesc: objc_method_description!
-        if optionalOnly {
-            methodDesc = protocol_getMethodDescription(self, selector, false, true)
-        } else {
-            methodDesc = protocol_getMethodDescription(self, selector, true, true)
-            if methodDesc.types == nil {
-                methodDesc = protocol_getMethodDescription(self, selector, false, true)
-            }
-        }
-        if let types = methodDesc.types {
-            return withUnsafePointer(to: &types.pointee) { pointer in
-                return pointer
-            }
-        }
-        var protocolCount: UInt32 = 0
-        guard let superProtocols = protocol_copyProtocolList(self, &protocolCount) else { return nil }
-        for i in 0..<Int(protocolCount) {
-            if let typeEncoding = superProtocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
-                return typeEncoding
-            }
-        }
-        return nil
-    }
-    
-    static func typeEncoding(for selector: Selector, class: AnyClass, optionalOnly: Bool = false) -> UnsafePointer<CChar>? {
-        var protocolCount: UInt32 = 0
-        if let protocols = class_copyProtocolList(`class`, &protocolCount) {
-            for i in 0..<Int(protocolCount) {
-                if let typeEncoding = protocols[i].typeEncoding(for: selector, optionalOnly: optionalOnly) {
-                    return typeEncoding
-                }
-            }
-        }
-        if let superclass = class_getSuperclass(`class`), superclass != `class` {
-            return typeEncoding(for: selector, class: superclass, optionalOnly: optionalOnly)
-        }
-       return nil
-    }
 
-    static func typeEncoding(for selector: Selector, protocol proto: Protocol) -> UnsafePointer<CChar>? {
-        // Check required methods
-        var methodDesc = protocol_getMethodDescription(proto, selector, true, true)
-        if methodDesc.name != nil, let types = methodDesc.types {
-            return UnsafePointer(types)
-        }
-
-        // Check optional methods
-        methodDesc = protocol_getMethodDescription(proto, selector, false, true)
-        if methodDesc.name != nil, let types = methodDesc.types {
-            return UnsafePointer(types)
-        }
-
-        // Recursively check inherited protocols
-        var inheritedCount: UInt32 = 0
-        if let inherited = protocol_copyProtocolList(proto, &inheritedCount) {
-            for i in 0..<Int(inheritedCount) {
-                if let typeEncoding = typeEncoding(for: selector, protocol: inherited[i]) {
-                    return typeEncoding
-                }
-            }
-        }
-
-        return nil
-    }
-}
+ private func methodDescription(protocol proto: Protocol, selector: Selector, isInstanceMethod: Bool) -> objc_method_description? {
+     if let description = methodDescriptionWithoutSearchingInheritedProtocols(protocol: proto, selector: selector, isInstanceMethod: isInstanceMethod) {
+         return description
+     }
+     var protocolsCount: UInt32 = 0
+     guard let protocolsPointer = protocol_copyProtocolList(proto, &protocolsCount) else {
+         return nil
+     }
+     defer {
+         free(UnsafeMutableRawPointer(protocolsPointer))
+     }
+     for inheritedProtocol in protocolsPointer.buffer(count: protocolsCount) {
+         if let description = methodDescription(protocol: inheritedProtocol, selector: selector, isInstanceMethod: isInstanceMethod) {
+             return description
+         }
+     }
+     return nil
+ }
+ */
 
 extension ObjCRuntime {
     /// Property sequence wrapper

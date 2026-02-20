@@ -69,8 +69,8 @@ fileprivate class DynamicClassContext {
         } as @convention(block) ((AnyObject, Selector) -> AnyClass, AnyObject, Selector) -> AnyClass as AnyObject, mode: .instead)
         self.dynamicClass = dynamicClass
         deallocateHelper = nil
-        Self.byDynamicClass[ObjectIdentifier(dynamicClass)] = self
-        Self.byClass[ObjectIdentifier(baseClass)] = self
+        Self.byDynamicClass[dynamicClass] = self
+        Self.byClass[baseClass] = self
     }
     
     deinit {
@@ -78,11 +78,10 @@ fileprivate class DynamicClassContext {
     }
     
     static subscript(base baseClass: AnyClass) -> DynamicClassContext? {
-        byClass[ObjectIdentifier(baseClass)]
+        byClass[baseClass]
     }
     
-    
     static subscript(dynamic dynamicClass: AnyClass) -> DynamicClassContext? {
-        byDynamicClass[ObjectIdentifier(dynamicClass)]
+        byDynamicClass[dynamicClass]
     }
 }

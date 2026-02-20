@@ -89,6 +89,28 @@ public extension UnsafeMutablePointer {
     }
 }
 
+public extension AutoreleasingUnsafeMutablePointer {
+    /**
+     Returns an `UnsafeMutableBufferPointer` containing the specified number of elements starting at this pointer.
+     
+     - Parameter count: The number of elements in the buffer.
+     - Returns: An `UnsafeMutableBufferPointer` of length `count`.
+     */
+    func buffer<I: BinaryInteger>(count: I) -> UnsafeBufferPointer<Pointee> {
+        UnsafeBufferPointer(start: self, count: Int(count))
+    }
+    
+    /**
+     Copies the sepcified amount of elements from the memory pointed to by this pointer into an array.
+     
+     - Parameter count: The number of elements to copy.
+     - Returns: An array containing the elements.
+     */
+    func array<I: BinaryInteger>(count: I) -> [Pointee] {
+        Array(buffer(count: count))
+    }
+}
+
 public extension Optional {
     /**
      Returns an `UnsafeBufferPointer` for the optional mutable pointer.
@@ -146,5 +168,11 @@ extension UnsafeMutablePointer<CChar> {
     public func string(free: Bool) -> String {
         defer { if free { ObjectiveC.free(self) } }
         return String(cString: self)
+    }
+}
+
+public extension  UnsafeMutablePointer {
+    var asUnsafePointer: UnsafePointer<Pointee> {
+        return UnsafePointer(self)
     }
 }

@@ -219,9 +219,13 @@ extension Hook {
         case _ where Value.self == (() -> ()).self:
             typealias Block = @convention(block) () -> Void
             return { original, object, selector in
-                let originalBlock = original(object, selector) as Block
-                let result = closure(cast(object), cast({ originalBlock() }))
-                return { (result as! () -> ())() } as Block
+                Swift.print("AAAAA")
+                let originalBlock = original(object, selector)
+                let swiftInput: () -> () = { originalBlock() }
+                let result = closure(cast(object), cast(swiftInput))
+                let swiftResult: () -> () = cast(result)
+                let blockResult: Block = { swiftResult() }
+                return blockResult
             } as @convention(block) ((AnyObject, Selector) -> Block, AnyObject, Selector) -> Block
         case _ where Value.self == Optional<(() -> ())>.self:
             typealias Block = @convention(block) () -> Void
@@ -229,8 +233,10 @@ extension Hook {
                 let originalBlock = original(object, selector)
                 let swiftInput: (() -> ())? = originalBlock.map { blk in { blk() }  }
                 let result = closure(cast(object), cast(swiftInput))
-                guard let blk = result as? (() -> ()) else { return nil }
-                return { blk() } as Block
+                let swiftResult: (() -> ())? = cast(result)
+                guard let blk = swiftResult else { return nil }
+                let blockResult: Block = { blk() }
+                return blockResult
             } as @convention(block) ((AnyObject, Selector) -> Block?, AnyObject, Selector) -> Block?
         case _ where Value.self == UUID.self:
             return { original, object, selector in
@@ -390,13 +396,21 @@ extension Hook {
         case _ where Value.self == (() -> ()).self:
             typealias Block = @convention(block) () -> Void
             return { original, object, selector, value in
-                let originalBlock = value as! Block
-                closure(cast(object), cast({ originalBlock() }), { original(object, selector, $0 as! ()->()) })
+                withoutActuallyEscaping(value) { escapable in
+                    let swiftValue: () -> () = escapable
+                    closure(cast(object), cast(swiftValue), { original(object, selector, $0 as! ()->()) })
+                }
             } as @convention(block) ((AnyObject, Selector, Block) -> Void, AnyObject, Selector, Block) -> Void
         case _ where Value.self == Optional<(() -> ())>.self:
             typealias Block = @convention(block) () -> Void
             return { original, object, selector, value in
-                let swiftValue: (() -> ())? = (value as? Block).map { blk in { blk() } }
+                let swiftValue: (() -> ())? = {
+                    guard let value else { return nil }
+                    return withoutActuallyEscaping(value) { escapable in
+                        let converted: () -> () = escapable
+                        return converted
+                    }
+                }()
                 closure(cast(object), cast(swiftValue)) { original(object, selector, $0 as? ()->()) }
             } as @convention(block) (((AnyObject, Selector, Block?) -> Void), AnyObject, Selector, Block?) -> Void
         case _ where Value.self == UUID.self:
@@ -494,12 +508,21 @@ extension Hook {
          return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSDirectionalRectEdge) -> Void
         case _ where Value.self == (()->()).self:
             return { obj, sel, value in
-                let originalBlock = value as! @convention(block) () -> Void
-                closure(cast(obj), cast({ originalBlock() }))
+                let swiftValue: () -> () = withoutActuallyEscaping(value) { escapable in
+                    let converted: () -> () = escapable
+                    return converted
+                }
+                closure(cast(obj), cast(swiftValue))
             } as @convention(block) (AnyObject, Selector, @convention(block) () -> Void) -> Void
         case _ where Value.self == Optional<(() ->())>.self:
             return { obj, sel, value in
-                let swiftValue = (value as? @convention(block) () -> Void).map { blk in { blk() } }
+                let swiftValue: (() -> ())? = {
+                    guard let value else { return nil }
+                    return withoutActuallyEscaping(value) { escapable in
+                        let converted: () -> () = escapable
+                        return converted
+                    }
+                }()
                 closure(cast(obj), cast(swiftValue))
             } as @convention(block) (AnyObject, Selector, (@convention(block) () -> Void)?) -> Void
         case _ where Value.self == UUID.self:
@@ -517,4 +540,3 @@ extension Hook {
         self.closure(for: { closure($0, Value(rawValue: $1)!) })
     }
 }
-

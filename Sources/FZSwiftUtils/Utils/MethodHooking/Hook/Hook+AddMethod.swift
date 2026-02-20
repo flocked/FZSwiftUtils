@@ -11,6 +11,7 @@ extension Hook {
     class AddObjectMethod: Hook {
         weak var object: AnyObject?
         var addedToClass: AnyClass?
+        var inactiveImplementation: ProtocolMethodImplementation?
         var isApplied = false
         
         init(_ object: AnyObject, selector: Selector, hookClosure: AnyObject) {
@@ -39,11 +40,12 @@ extension Hook {
                     }
                     method_setImplementation(method, replacementIMP)
                 } else {
-                    guard let resolvedProtocol = try inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: true) else {
+                    guard let resolvedProtocol = try ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: true) else {
                         throw HookError.noRespondSelector
                     }
-                    let typeEncoding = try typeEncodingForProtocolMethod(resolvedProtocol, selector: selector, isInstanceMethod: true)
+                    guard let typeEncoding = resolvedProtocol.methodTypeEncoding(for: selector, isInstanceMethod: true) else { throw HookError.noRespondSelector }
                     try Self.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure)
+                    inactiveImplementation = try makeProtocolMethodImplementation(protocolType: resolvedProtocol, selector: selector, isInstanceMethod: true)
                     guard class_addMethod(targetClass, selector, replacementIMP, typeEncoding) else {
                         throw HookError.methodAlreadyExists
                     }
@@ -59,15 +61,13 @@ extension Hook {
             guard isActive else { return }
             hookSerialQueue.syncSafely {
                 guard let object = object, let targetClass = addedToClass else { return }
-                if let method = class_getInstanceMethod(targetClass, selector) {
-                    let noop: @convention(block) (AnyObject) -> Void = { _ in }
-                    method_setImplementation(method, imp_implementationWithBlock(noop))
+                if let method = class_getInstanceMethod(targetClass, selector), let inactiveImplementation = inactiveImplementation {
+                    method_setImplementation(method, inactiveImplementation.targetIMP)
                 }
                 Storage(object).addedMethods.remove(selector)
                 isApplied = false
-                if remove {
-                    Storage(object).removeHook(self)
-                }
+                guard remove else { return }
+                Storage(object).removeHook(self)
             }
         }
     }
@@ -75,6 +75,7 @@ extension Hook {
     class AddClassMethod: Hook {
         let isInstanceMethod: Bool
         var addedToClass: AnyClass?
+        var inactiveImplementation: ProtocolMethodImplementation?
         var isApplied = false
         
         init(_ class_: AnyClass, selector: Selector, hookClosure: AnyObject, isInstanceMethod: Bool) {
@@ -98,11 +99,12 @@ extension Hook {
                     }
                     method_setImplementation(method, replacementIMP)
                 } else {
-                    guard let resolvedProtocol = try inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: isInstanceMethod) else {
+                    guard let resolvedProtocol = try ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: isInstanceMethod) else {
                         throw HookError.noRespondSelector
                     }
-                    let typeEncoding = try typeEncodingForProtocolMethod(resolvedProtocol, selector: selector, isInstanceMethod: isInstanceMethod)
+                    guard let typeEncoding = resolvedProtocol.methodTypeEncoding(for: selector, isInstanceMethod: isInstanceMethod) else { throw HookError.noRespondSelector }
                     try Self.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure)
+                    inactiveImplementation = try makeProtocolMethodImplementation(protocolType: resolvedProtocol, selector: selector, isInstanceMethod: isInstanceMethod)
                     guard class_addMethod(targetClass, selector, replacementIMP, typeEncoding) else {
                         throw HookError.methodAlreadyExists
                     }
@@ -118,15 +120,13 @@ extension Hook {
             guard isActive else { return }
             hookSerialQueue.syncSafely {
                 guard let targetClass = addedToClass else { return }
-                if let method = class_getInstanceMethod(targetClass, selector) {
-                    let noop: @convention(block) (AnyObject) -> Void = { _ in }
-                    method_setImplementation(method, imp_implementationWithBlock(noop))
+                if let method = class_getInstanceMethod(targetClass, selector), let inactiveImplementation = inactiveImplementation {
+                    method_setImplementation(method, inactiveImplementation.targetIMP)
                 }
                 Storage(targetClass, isInstance: isInstanceMethod).addedMethods.remove(selector)
                 isApplied = false
-                if remove {
-                    Storage(targetClass, isInstance: isInstanceMethod).removeHook(self)
-                }
+                guard remove else { return }
+                Storage(targetClass, isInstance: isInstanceMethod).removeHook(self)
             }
         }
     }

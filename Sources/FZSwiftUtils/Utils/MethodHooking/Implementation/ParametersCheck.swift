@@ -6,7 +6,6 @@
 //  Copyright © 2020 Yanni. All rights reserved.
 //
 
-#if os(macOS) || os(iOS)
 import Foundation
 
 extension Hook {
@@ -49,11 +48,10 @@ extension Hook {
         if let method = class_getInstanceMethod(targetClass, selector) {
             methodSignature = try Signature(method: method)
         } else {
-            let resolvedProtocol = try protocolType ?? inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: isInstanceMethod)
-            guard let resolvedProtocol = resolvedProtocol else {
+            guard let resolvedProtocol = try protocolType ?? ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: isInstanceMethod) else {
                 throw HookError.noRespondSelector
             }
-            methodSignature = try methodSignatureForProtocol(resolvedProtocol, selector: selector, isInstanceMethod: isInstanceMethod)
+            methodSignature = try resolvedProtocol.methodSignature(for: selector, isInstanceMethod: isInstanceMethod)
         }
 
         let closureSignature = try Signature(closure: closure)
@@ -195,6 +193,3 @@ extension Hook {
         }
     }
 }
-
-
-#endif

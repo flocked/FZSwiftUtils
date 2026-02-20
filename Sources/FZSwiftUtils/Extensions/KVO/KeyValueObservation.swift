@@ -99,9 +99,9 @@ public class KeyValueObservation: NSObject {
                     object._isOnActiveSpace = object.isOnActiveSpace } ] }
         case ("inLiveResize", let object as NSView) where Value.self is Bool.Type:
             do {
-                try observer = HookObserver(keyPath: keyPathString, hooks: [ object.hookAfter(#selector(NSView.viewWillStartLiveResize)) { _,_ in
+                try observer = HookObserver(keyPath: keyPathString, hooks: [ object.hookAfter(#selector(NSView.viewWillStartLiveResize)) {
                     handler(cast(false), cast(true))
-                }, object.hookAfter(#selector(NSView.viewDidEndLiveResize)) { _,_ in handler(cast(true), cast(false)) }])
+                }, object.hookAfter(#selector(NSView.viewDidEndLiveResize)) { handler(cast(true), cast(false)) }])
             } catch {
                 return nil
             }

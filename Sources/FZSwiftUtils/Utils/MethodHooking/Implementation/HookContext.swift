@@ -55,7 +55,7 @@ class HookContext {
         self.selector = selector
         self.isSpecifiedInstance = isSpecifiedInstance
 
-        guard let method = getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) else {
+        guard let method = ObjCClass(targetClass).method(for: selector, declaredOnly: true) else {
             throw HookError.internalError(file: #file, line: #line)
         }
         self.method = method
@@ -138,7 +138,7 @@ class HookContext {
     }
     
     func isIMPChanged() throws -> Bool {
-        guard let currentMethod = getMethodWithoutSearchingSuperClasses(targetClass: targetClass, selector: selector) else {
+        guard let currentMethod = ObjCClass(targetClass).method(for: selector, declaredOnly: true) else {
             throw HookError.internalError(file: #file, line: #line)
         }
         return method != currentMethod ||

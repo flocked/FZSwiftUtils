@@ -37,8 +37,7 @@ extension Hook {
                     targetClass = try wrapDynamicClassIfNeeded(object: object)
                 }
                 if class_getInstanceMethod(targetClass, selector) == nil {
-                    let resolvedProtocol = try inferProtocolForMethod(targetClass: targetClass, selector: selector, isInstanceMethod: true)
-                    if let resolvedProtocol = resolvedProtocol {
+                    if let resolvedProtocol = try ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: true) {
                         try addProtocolMethodIfNeeded(targetClass: targetClass, selector: selector, protocolType: resolvedProtocol, isInstanceMethod: true)
                     }
                 }

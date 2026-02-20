@@ -10,80 +10,35 @@ import Foundation
 /// Hooks class methods.
 struct ClassHook<T: AnyObject> {
     let targetClass: AnyClass
-    var shouldApply = true
 
     public init(_ targetClass: T.Type) {
         self.targetClass = targetClass
     }
     
-    /**
-     Returns the hooks without applying them.
-     
-     To apply the hooks, use the tokens ``Hook/apply()``.
-     */
-    public var prepare: Self {
-        .init(targetClass, false)
+    public func revertHooks(for selector: Selector, type: HookMode? = nil) {
+        Hook.Storage(targetClass, isInstance: false).revertHooks(for: selector, type: type)
     }
     
-    init(_ targetClass: AnyClass, _ shouldApply: Bool) {
-        self.targetClass = targetClass
-        self.shouldApply = shouldApply
+    public func revertAllHooks() {
+        Hook.Storage(targetClass, isInstance: false).revertAllHooks()
     }
     
-    // MARK: - Before
+    public func isMethodHooked(_ selector: Selector, type: HookMode? = nil) -> Bool {
+        Hook.Storage(targetClass, isInstance: false).isMethodHooked(selector, type: type)
+    }
     
-    /**
-     Execute the closure before the execution of class's method.
-     
-     Example usage:
-     
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hookBefore(#selector(MyObject.sum(_:_:)) {
-        print("hooked")
-     }
-     ```
+    // MARK: - Hook Before
 
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
     public func hookBefore(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         return try hookBefore(selector, closure: closure as Any)
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> Hook {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
+    public func hookBefore(_ selector: Selector, closure: @escaping (_ class: T.Type) -> Void) throws -> Hook {
+        try hookBefore(selector) { cls,_ in closure(cls) }
     }
     
-    /**
-     Execute the closure with the object and the selector before the execution of class's method.
-     
-     Example usage:
-
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hookBefore(#selector(MyObject.sum(_:_:)) { obj, sel in
-        print("hooked")
-     }
-     ```
-
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
     public func hookBefore(_ selector: Selector, closure: @escaping (_ class: T.Type, _ selector: Selector) -> Void) throws -> Hook {
         let closure = { obj, sel in
@@ -94,103 +49,22 @@ struct ClassHook<T: AnyObject> {
     }
     
     @discardableResult
-    public func hookBefore(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> Hook {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
-    }
-    
-    /**
-     Execute the closure with all parameters before the execution of class's method.
-     
-     Example usage:
-
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hookBefore(#selector(MyObject.sum(_:_:)), closure: { obj, sel, number1, number2 in
-        print("hooked")
-     } as @convention(block) (AnyObject, Selector, Int, Int) -> Void)
-     ```
-
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure as following:
-        1. The first parameter has to be `AnyObject` or your class (When it's your class.
-        2. The second parameter has to be `Selector`.
-        3. The rest parameters are the same as the method's.
-        4. The return type has to be `Void`.
-        5. The keyword `@convention(block)` is necessary
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
-    @discardableResult
     public func hookBefore(_ selector: Selector, closure: Any) throws -> Hook {
-        guard let targetClass = object_getClass(targetClass) else {
-            throw HookError.internalError(file: #file, line: #line)
-        }
-        return try Hook.Class(targetClass, selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Class(getClass(), selector: selector, mode: .before, hookClosure: closure as AnyObject).apply(true)
     }
     
-    @discardableResult
-    public func hookBefore(_ selector: String, closure: Any) throws -> Hook {
-        try hookBefore(NSSelectorFromString(selector), closure: closure)
-    }
-    
-    // MARK: - After
-    
-    /**
-     Execute the closure after the execution of class's method.
-     
-     Example usage:
+    // MARK: - Hook After
 
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hookAfter(#selector(MyObject.sum(_:_:)) {
-        print("hooked")
-     }
-     ```
-
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
     public func hookAfter(_ selector: Selector, closure: @escaping @convention(block) () -> Void) throws -> Hook {
         return try hookAfter(selector, closure: closure as Any)
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping @convention(block) () -> Void) throws -> Hook {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
+    public func hookAfter(_ selector: Selector, closure: @escaping (_ class: T.Type) -> Void) throws -> Hook {
+        try hookAfter(selector) { cls,_ in closure(cls) }
     }
             
-    /**
-     Execute the closure with the object and the selector after the execution of class's method.
-     
-     Example usage:
-
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hookAfter(#selector(MyObject.sum(_:_:)) { obj, sel in
-        print("hooked")
-     }
-     ```
-
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure.
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
     public func hookAfter(_ selector: Selector, closure: @escaping (_ class: T.Type, _ selector: Selector) -> Void) throws -> Hook {
         let closure = { obj, sel in
@@ -201,241 +75,124 @@ struct ClassHook<T: AnyObject> {
     }
     
     @discardableResult
-    public func hookAfter(_ selector: String, closure: @escaping (_ `class`: T.Type, _ selector: Selector) -> Void) throws -> Hook {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
-    }
-    
-    /**
-     Execute the closure with all parameters after the execution of class's method.
-     
-     Example usage:
-
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hookAfter(#selector(MyObject.sum(_:_:)), closure: { obj, sel, number1, number2 in
-        print("hooked")
-     } as @convention(block) (AnyObject, Selector, Int, Int) -> Void)
-     ```
-
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure as following:
-        1. The first parameter has to be `AnyObject` or your class (When it's your class.
-        2. The second parameter has to be `Selector`.
-        3. The rest parameters are the same as the method's.
-        4. The return type has to be `Void`.
-        5. The keyword `@convention(block)` is necessary
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
-    @discardableResult
     public func hookAfter(_ selector: Selector, closure: Any) throws -> Hook {
-        guard let targetClass = object_getClass(targetClass) else {
-            throw HookError.internalError(file: #file, line: #line)
-        }
-        return try Hook.Class(targetClass, selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(shouldApply)
+        try Hook.Class(getClass(), selector: selector, mode: .after, hookClosure: closure as AnyObject).apply(true)
     }
     
-    @discardableResult
-    public func hookAfter(_ selector: String, closure: Any) throws -> Hook {
-        try hookAfter(NSSelectorFromString(selector), closure: closure)
-    }
-    
-    // MARK: - Instead
-    
-    /**
-     Replace the implementation of class's method by the closure.
-     
-     Example usage:
+    // MARK: - Hook Instead
 
-     ```
-     class MyObject {
-        @objc dynamic class func sum(_ number1: Int, _ number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
-     
-     try! ClassHook(MyObject.self).hook(#selector(MyObject.sum(_:_:)), closure: { original, obj, sel, number1, numebr2 in
-        return original(obj, sel, number1, numebr2) * 2
-     } as @convention(block) ((AnyObject, Selector, Int, Int) -> Int, AnyObject, Selector, Int, Int) -> Int )
-     ```
-     
-     - parameter selector: The method you want to hook on.  It has to be declared with the keywords  `@objc` and `dynamic`.
-     - parameter closure: The hook closure as following:
-        1. The first parameter has to be a closure. This closure means original method. The closure's parameters and return type are the same as the original method's (The parameters contain `AnyObject` and `Selector` at the beginning)..
-        2. The second parameter has to be `AnyObject` or your class (When it's your class.
-        3. The third parameter has to be `Selector`.
-        4. The rest parameters are the same as the method's.
-        5. The return type has to be the same as the original method's.
-        6. The keyword `@convention(block)` is necessary,
-     - returns: The token of this hook behavior. You may cancel this hook through this token.
-     */
     @discardableResult
     public func hook(_ selector: Selector, closure: Any) throws -> Hook {
+        try Hook.Class(getClass(), selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(true)
+    }
+    
+    private func getClass() throws -> AnyClass {
         guard let targetClass = object_getClass(targetClass) else {
             throw HookError.internalError(file: #file, line: #line)
         }
-        return try Hook.Class(targetClass, selector: selector, mode: .instead, hookClosure: closure as AnyObject).apply(shouldApply)
-    }
-    
-    @discardableResult
-    public func hook(_ selector: String, closure: Any) throws -> Hook {
-        try hook(NSSelectorFromString(selector), closure: closure)
+        return targetClass
     }
 }
 
-extension ClassHook where T: NSObject  {
+// MARK: - Hook KeyPath
+extension ClassHook where T: NSObject {
     @discardableResult
-    func hookBefore<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.getterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? T.Type else { return }
-            closure(obj, val)
-        } as @convention(block) (AnyObject, Selector, Any) -> Void )
+    func hookBefore<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type)->()) throws -> Hook {
+        try hookBefore(.string(keyPath.getterName())) { cls,_ in closure(cls) }
     }
-    
-    @discardableResult
-    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
-        try hookBefore(try keyPath.setterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? T.Type else { return }
-            closure(obj, val)
-        } as @convention(block) (AnyObject, Selector, Any) -> Void )
-    }
-    
-    @discardableResult
-    func hookAfter<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
-        try hookAfter(try keyPath.getterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? T.Type else { return }
-            closure(obj, val)
-        } as @convention(block) (AnyObject, Selector, Any) -> Void )
-    }
-    
-    @discardableResult
-    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value)->()) throws -> Hook {
-        try hookAfter(try keyPath.setterName(), closure: { obj, sel, val in
-            guard let val = val as? Value, let obj = obj as? T.Type else { return }
-            closure(obj, val)
-        } as @convention(block) (AnyObject, Selector, Any) -> Void )
-    }
-    
-    @discardableResult
-    func hook<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ original: Value)->(Value)) throws -> Hook {
-        try hook(try keyPath.getterName(), closure: { original, obj, sel in
-            if let value = original(obj, sel) as? Value, let obj = obj as? T.Type {
-                return closure(obj, value)
-            }
-            return original(obj, sel)
-        } as @convention(block) ((AnyObject, Selector) -> Any,
-                                 AnyObject, Selector) -> Any)
-    }
-    
-    @discardableResult
-    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class_: T.Type, _ value: Value, _ original: (Value)->())->()) throws -> Hook {
-        try hook(try keyPath.setterName(), closure: { original, obj, sel, val in
-            if let val = val as? Value, let ob = obj as? T.Type {
-                let original: (Value)->() = { original(obj, sel, $0) }
-                closure(ob, val, original)
-            } else {
-                original(obj, sel, val)
-            }
-        } as @convention(block) ((AnyObject, Selector, Any) -> Void,
-                                 AnyObject, Selector,  Any) -> Void)
-    }
-}
 
-extension ClassHook {
-    func setAssociatedValue<V>(_ value: V?, key: String) {
-        FZSwiftUtils.setAssociatedValue(value, key: key, object: targetClass)
+    @discardableResult
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type,_ value: Value)->()) throws -> Hook {
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
     }
     
-    func getAssociatedValue<V>(_ key: String) -> V? {
-        FZSwiftUtils.getAssociatedValue(key, object: targetClass)
+    @discardableResult
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
     }
-    
-    func getAssociatedValue<V>(_ key: String, initialValue: @autoclosure () -> V) -> V {
-        FZSwiftUtils.getAssociatedValue(key, object: targetClass, initialValue: initialValue)
-    }
-    
-    func getAssociatedValue<V>(_ key: String, initialValue: () -> V) -> V {
-        FZSwiftUtils.getAssociatedValue(key, object: targetClass, initialValue: initialValue)
-    }
-    
-    var addedMethods: Set<Selector> {
-        get { getAssociatedValue("addedMethods") ?? [] }
-        set {
-            setAssociatedValue(newValue, key: "addedMethods")
-            guard let targetClass = targetClass as? NSObject.Type else { return }
-            if newValue.count == 1 {
-                do {
-                    try targetClass.hook(all: "respondsToSelector:", closure: {
-                        original, object, sel, selector in
-                        if let selector = selector {
-                            let added: Set<Selector> = FZSwiftUtils.getAssociatedValue("addedMethods", object: targetClass) ?? []
-                            if added.contains(selector) {
-                                return true
-                            }
-                        }
-                        return original(object, sel, selector)
-                    } as @convention(block) ( (NSObject, Selector, Selector?) -> Bool, NSObject, Selector, Selector?) -> Bool)
-                } catch {
-                    Swift.print(error)
-                }
-            } else if newValue.isEmpty {
-                revertHooks(for: "respondsToSelector:")
-            }
-        }
-    }
-}
 
-extension ClassHook {
-    private var hooks: [Bool: [Selector: [HookMode: Set<Hook>]]] {
-        get { getAssociatedValue("hooks") ?? [:] }
-        set { setAssociatedValue(newValue, key: "hooks") }
+    @discardableResult
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, keyPath))
+    }
+
+    @discardableResult
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, keyPath))
     }
     
-    func revertHooks(for selector: Selector, type: HookMode? = nil, isInstance: Bool = false) {
-       var classHook = self
-        if let type = type {
-            classHook.hooks[isInstance, default: [:]][selector, default: [:]][type]?.forEach({ try? $0.revert(remove: false) })
-            classHook.hooks[isInstance, default: [:]][selector, default: [:]][type] = []
-        } else {
-            classHook.hooks[isInstance, default: [:]][selector]?.flatMap({$0.value}).forEach({ try? $0.revert(remove: false) })
-            classHook.hooks[isInstance, default: [:]][selector] = [:]
-        }
+    @discardableResult
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: T.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
     }
     
-    func revertHooks(for selector: String, type: HookMode? = nil, isInstance: Bool = false) {
-        revertHooks(for: NSSelectorFromString(selector), type: type, isInstance: isInstance)
+    @discardableResult
+    func hookBefore<Value>(set keyPath: WritableKeyPath<T.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: T.Type,_ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable & RawRepresentable {
+        try hookBefore(.string(keyPath.setterName()), closure: Hook.beforeClosure(for: closure, uniqueValues, keyPath))
+    }
+
+    @discardableResult
+    func hookAfter<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type)->()) throws -> Hook {
+        try hookAfter(.string(keyPath.getterName())) { cls,_ in closure(cls) }
+    }
+
+    @discardableResult
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type,_ value: Value)->()) throws -> Hook {
+        try hookAfter(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
+    }
+
+    @discardableResult
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type,_ value: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hookAfter(.string(keyPath.setterName()), closure: Hook.closure(for: closure))
+    }
+
+    @discardableResult
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook {
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+    }
+
+    @discardableResult
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: RawRepresentable {
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, keyPath: keyPath))
+    }
+
+    @discardableResult
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: T.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable {
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
+    }
+
+    @discardableResult
+    func hookAfter<Value>(set keyPath: WritableKeyPath<T.Type, Value>, uniqueValues: Bool = false, closure: @escaping (_ class: T.Type, _ oldValue: Value, _ newValue: Value)->()) throws -> Hook where Value: Equatable & RawRepresentable {
+        try hook(.string(keyPath.setterName()), closure: Hook.afterClosure(for: closure, uniqueValues, keyPath))
     }
     
-    func revertAllHooks(isInstance: Bool) {
-        hooks[isInstance, default: [:]].keys.forEach({ revertHooks(for: $0, isInstance: isInstance) })
+    @discardableResult
+    func hook<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ original: Value)->(Value)) throws -> Hook {
+        try hook(.string(keyPath.getterName()), closure: Hook.getterClosure(for: closure))
     }
-    
-    func isMethodHooked(_ selector: Selector, type: HookMode? = nil, isInstance: Bool = false) -> Bool {
-        if let type = type {
-            return hooks[isInstance, default: [:]][selector]?[type]?.isEmpty == false
-        }
-        return hooks[isInstance, default: [:]][selector]?.isEmpty == false
+
+    @discardableResult
+    func hook<Value>(_ keyPath: KeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ original: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
+        try hook(.string(keyPath.getterName()), closure: Hook.getterClosure(for: closure))
     }
-    
-    func isMethodHooked(_ selector: String, type: HookMode? = nil, isInstance: Bool = false) -> Bool {
-        isMethodHooked(NSSelectorFromString(selector), type: type, isInstance: isInstance)
+
+    @discardableResult
+    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ value: Value, _ setter: (Value)->())->()) throws -> Hook {
+        try hook(.string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
     }
-    
-    func addHook(_ token: Hook, isInstance: Bool = false) {
-        var classHook = self
-        classHook.hooks[isInstance, default: [:]][token.selector, default: [:]][token.mode, default: []].insert(token)
+
+    @discardableResult
+    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ value: Value, _ setter: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
+        try hook(.string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
     }
-    
-    func removeHook(_ token: Hook, isInstance: Bool = false) {
-        var classHook = self
-        classHook.hooks[isInstance, default: [:]][token.selector, default: [:]][token.mode, default: []].remove(token)
+
+    @discardableResult
+    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ value: Value)->(Value)) throws -> Hook {
+        try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
-    
-    func allHooks(isInstance: Bool = false) -> [Hook] {
-        hooks[isInstance, default: [:]].values.flatMap({ val in val.flatMap({$0.value})  })
+
+    @discardableResult
+    func hook<Value>(set keyPath: WritableKeyPath<T.Type, Value>, closure: @escaping (_ class: T.Type, _ value: Value)->(Value)) throws -> Hook where Value: RawRepresentable {
+        try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
 }
