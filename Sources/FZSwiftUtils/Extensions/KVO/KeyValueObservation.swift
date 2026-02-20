@@ -651,7 +651,7 @@ fileprivate extension NSApplication {
 
 fileprivate extension NSObject {
     func observeBackgroundStyle<Value>(_ uniqueValues: Bool, _ handler: @escaping (Value, Value)->()) -> Hook? {
-         try? hook("setBackgroundStyle:", closure: { original, object, selector, style in
+        try? hook(.string("setBackgroundStyle:"), closure: { original, object, selector, style in
              let oldValue: NSView.BackgroundStyle = object.value(forKey: "backgroundStyle") ?? .normal
              original(object, selector, style)
              guard !uniqueValues || oldValue != style else { return }

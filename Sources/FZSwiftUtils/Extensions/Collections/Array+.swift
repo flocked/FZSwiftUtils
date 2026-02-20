@@ -39,6 +39,24 @@ public extension Array {
     init(first: Element, next: @escaping (Element) -> Element?) {
         self = Array(sequence(first: first, next: next))
     }
+    
+    /**
+     Creates an array formed from `first` and repeated applications of `next`.
+     
+     The first element of the array is always `first`, and each successive element is the result of invoking `next` with the previous element. The array ends when next returns `nil`.
+          
+     - Parameters:
+        - first: The first element of the array.
+        - next: A closure that accepts the previous sequence element and returns the next element.
+     */
+    @_disfavoredOverload
+    init(first: Element?, next: @escaping (Element) -> Element?) {
+        if let first = first {
+            self = Array(sequence(first: first, next: next))
+        } else {
+            self = []
+        }
+    }
 }
 
 public extension ArraySlice {

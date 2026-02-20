@@ -254,6 +254,16 @@ public extension UnsafeRawPointer {
     func release<V: AnyObject>(of type: V.Type) {
         Unmanaged<V>.fromOpaque(self).release()
     }
+    
+    /**
+     Retains the object at this pointer.
+     
+     - Returns: An `Unmanaged` reference with +1 retain count.
+     - Warning: The pointer must be valid and point to an object of type `V`.
+     */
+    func retain<V: AnyObject>(of type: V.Type) -> Unmanaged<V> {
+        Unmanaged<V>.fromOpaque(self).retain()
+    }
 }
 
 public extension UnsafeMutableRawPointer {

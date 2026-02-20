@@ -101,6 +101,11 @@ extension ObjCPropertyInfo.Attribute {
         }
     }
     
+    var size: Int? {
+        guard let typeEncoding = type?.encoded() else { return nil }
+        return ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size
+    }
+    
     var ivarName: String? {
         switch self {
         case .ivar(name: let name): return name

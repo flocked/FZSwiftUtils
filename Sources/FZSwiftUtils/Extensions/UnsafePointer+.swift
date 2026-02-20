@@ -30,33 +30,6 @@ public extension UnsafePointer {
     }
 }
 
-public extension Optional {
-    /**
-     Returns an `UnsafeBufferPointer` for the optional pointer.
-     
-     If the pointer is `nil`, an empty buffer is returned.
-
-     - Parameter count: The number of elements in the buffer.
-     - Returns: An `UnsafeBufferPointer` of length `count`, or empty if the pointer is `nil`.
-     */
-    func buffer<Pointee, I: BinaryInteger>(count: I) -> UnsafeBufferPointer<Pointee> where Wrapped == UnsafePointer<Pointee> {
-        guard let ptr = self else { return UnsafeBufferPointer(start: nil, count: 0) }
-        return ptr.buffer(count: count)
-    }
-    
-    /**
-     Copies the specified amount of elements from the optional pointer into an array.
-     
-     If the pointer is `nil`, an empty array is returned.
-
-     - Parameter count: The number of elements to copy.
-     - Returns: An array containing the elements, or empty if the pointer is `nil`.
-     */
-    func array<Pointee, I: BinaryInteger>(count: I) -> [Pointee] where Wrapped == UnsafePointer<Pointee> {
-        Array(buffer(count: count))
-    }
-}
-
 public extension UnsafeMutablePointer {
     /**
      Returns an `UnsafeBufferPointer` containing the specified number of elements starting at this pointer.
@@ -87,6 +60,16 @@ public extension UnsafeMutablePointer {
     func array<I: BinaryInteger>(count: I) -> [Pointee] {
         Array(buffer(count: count))
     }
+    
+    /// Converts the pointer to an immutable pointer.
+    var asUnsafePointer: UnsafePointer<Pointee> {
+        return UnsafePointer(self)
+    }
+    
+    /// Converts the pointer to an autoreleasing mutable pointer.
+    var asAutoreleasingPointer: AutoreleasingUnsafeMutablePointer<Pointee> {
+        AutoreleasingUnsafeMutablePointer(self)
+    }
 }
 
 public extension AutoreleasingUnsafeMutablePointer {
@@ -111,47 +94,6 @@ public extension AutoreleasingUnsafeMutablePointer {
     }
 }
 
-public extension Optional {
-    /**
-     Returns an `UnsafeBufferPointer` for the optional mutable pointer.
-     
-     If the pointer is `nil`, an empty buffer is returned.
-
-     - Parameters:
-       - count: The number of elements in the buffer.
-     - Returns: An `UnsafeBufferPointer` of length `count`, or empty if the pointer is `nil`.
-     */
-    func buffer<Pointee, I: BinaryInteger>(count: I) -> UnsafeBufferPointer<Pointee> where Wrapped == UnsafeMutablePointer<Pointee> {
-        guard let ptr = self else { return UnsafeBufferPointer(start: nil, count: 0) }
-        return ptr.buffer(count: count)
-    }
-    
-    /**
-     Returns an `UnsafeMutableBufferPointer` for the optional mutable pointer.
-     
-     If the pointer is `nil`, an empty buffer is returned.
-
-     - Parameter count: The number of elements in the buffer.
-     - Returns: An `UnsafeMutableBufferPointer` of length `count`, or empty if the pointer is `nil`.
-     */
-    func mutableBuffer<Pointee, I: BinaryInteger>(count: I) -> UnsafeMutableBufferPointer<Pointee> where Wrapped == UnsafeMutablePointer<Pointee> {
-        guard let ptr = self else { return UnsafeMutableBufferPointer(start: nil, count: 0) }
-        return ptr.mutableBuffer(count: count)
-    }
-    
-    /**
-     Copies the specified amount of elements from the optional mutable pointer into an array.
-     
-     If the pointer is `nil`, an empty array is returned.
-     
-     - Parameter count: The number of elements to copy.
-     - Returns: An array containing the elements, or empty if the pointer is `nil`.
-     */
-    func array<Pointee, I: BinaryInteger>(count: I) -> [Pointee] where Wrapped == UnsafeMutablePointer<Pointee> {
-        Array(buffer(count: count))
-    }
-}
-
 extension UnsafePointer<CChar> {
     /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer.
     public var string: String {
@@ -160,19 +102,18 @@ extension UnsafePointer<CChar> {
 }
 
 extension UnsafeMutablePointer<CChar> {
-    /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer and releasing the pointer.
+    /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer.
     public var string: String {
         String(cString: self)
     }
     
-    public func string(free: Bool) -> String {
-        defer { if free { ObjectiveC.free(self) } }
+    /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer and releasing the pointer.
+    public func stringAndFree() -> String {
+        defer { free(self) }
         return String(cString: self)
     }
 }
 
 public extension  UnsafeMutablePointer {
-    var asUnsafePointer: UnsafePointer<Pointee> {
-        return UnsafePointer(self)
-    }
+
 }

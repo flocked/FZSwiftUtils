@@ -40,14 +40,13 @@ private func addProtocolAndInheritedProtocols(_ proto: Protocol, result: inout [
     }
 }
 
-private var protocolMethodContextPool = Set<ProtocolMethodContext>()
-
 private class ProtocolMethodContext: Hashable {
+    fileprivate static var pool = Set<ProtocolMethodContext>()
     fileprivate let targetClass: AnyClass
     fileprivate let selector: Selector
     fileprivate let methodCifContext: FFICIFContext
     fileprivate let methodClosureContext: FFIClosureContext
-    
+        
     init(targetClass: AnyClass, selector: Selector, protocolType: Protocol, isInstanceMethod: Bool) throws {
         guard let description = protocolType.methodDescription(for: selector, isInstanceMethod: isInstanceMethod), let types = description.types else {
             throw HookError.noRespondSelector
@@ -104,5 +103,5 @@ func addProtocolMethodIfNeeded(targetClass: AnyClass, selector: Selector, protoc
         return
     }
     let context = try ProtocolMethodContext(targetClass: targetClass, selector: selector, protocolType: protocolType, isInstanceMethod: isInstanceMethod)
-    protocolMethodContextPool.insert(context)
+    ProtocolMethodContext.pool.insert(context)
 }

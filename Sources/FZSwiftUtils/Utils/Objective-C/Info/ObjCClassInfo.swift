@@ -350,13 +350,14 @@ extension ObjCClassInfo {
      */
     public static func ivars(of cls: AnyClass, isInstance: Bool = true, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
         var ivars: [ObjCIvarInfo] = []
-        var seen: Set<String> = []
+        var seen: Set<String> = ["_?"]
         for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
             var count: UInt32 = 0
-            guard let start = class_copyIvarList(cls, &count) else { continue }
-            defer { free(start) }
-            ivars += UnsafeBufferPointer(start: start, count: Int(count)).compactMap {
-                if let name = ivar_getName($0)?.string, seen.insert(name).inserted { return ObjCIvarInfo($0) } else { return nil } }
+            guard let list = class_copyIvarList(cls, &count) else { continue }
+            defer { free(list) }
+            ivars += list.buffer(count: count).compactMap {
+                seen.insert(ivar_getName($0)?.string ?? "_?").inserted ? ObjCIvarInfo($0) : nil
+            }
         }
         return ivars
     }
@@ -389,10 +390,10 @@ extension ObjCClassInfo {
         var seen: Set<String> = []
         for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
             var count: UInt32 = 0
-            guard let start = class_copyPropertyList(cls, &count) else { continue }
-            defer { free(start) }
-            properties += UnsafeBufferPointer(start: start, count: Int(count))
-                .compactMap { seen.insert(property_getName($0).string).inserted ? ObjCPropertyInfo($0, isClassProperty: !isInstance) : nil }
+            guard let list = class_copyPropertyList(cls, &count) else { continue }
+            defer { free(list) }
+            properties += list.buffer(count: count).compactMap { seen.insert(property_getName($0).string).inserted ? ObjCPropertyInfo($0, isClassProperty: !isInstance) : nil
+            }
         }
         return properties
     }
@@ -425,9 +426,9 @@ extension ObjCClassInfo {
         var seen: Set<Selector> = []
         for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
             var count: UInt32 = 0
-            guard let start = class_copyMethodList(cls, &count) else { continue }
-            defer { free(start) }
-            methods += UnsafeBufferPointer(start: start, count: Int(count)).compactMap({
+            guard let list = class_copyMethodList(cls, &count) else { continue }
+            defer { free(list) }
+            methods += list.buffer(count: count).compactMap({
                 seen.insert(method_getName($0)).inserted ? ObjCMethodInfo($0, isClassMethod: !isInstance) : nil })
         }
         return methods

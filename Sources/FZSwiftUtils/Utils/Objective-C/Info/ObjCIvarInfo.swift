@@ -23,8 +23,8 @@ public struct ObjCIvarInfo: Sendable, Equatable, Codable {
     }
     
     /// The size of the instance variable.
-    public var size: Int {
-        ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size ?? 0
+    public var size: Int? {
+        ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size
     }
     
     /**

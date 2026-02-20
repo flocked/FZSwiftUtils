@@ -211,7 +211,7 @@ public struct _Any {
     
     /// A Boolean value indicating whether the valus is a class based.
     public var isClass: Bool {
-        Self.isClassType(unwrappedType)
+        (unwrappedType as? AnyObject.Type) != nil
     }
     
     /// The type of the value.
@@ -291,9 +291,5 @@ public struct _Any {
         default:
             return true
         }
-    }
-    
-    private static func isClassType(_ type: Any.Type) -> Bool {
-        return (type as? AnyObject.Type) != nil
     }
 }

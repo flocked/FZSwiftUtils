@@ -216,12 +216,28 @@ public extension NSObject {
     static func classVariable(named name: String) -> Ivar? {
         class_getClassVariable(self, name)
     }
-}
+    
+    /**
+     Returns all protocols the class conforms to.
 
-public extension NSObjectProtocol where Self: NSObject {
-    /// The type of the object.
-    var classType: Self.Type {
-        type(of: self)
+     - Parameters:
+       - includeSuperclasses: A Boolean value indicating whether to include protocols of superclasses in the search
+       - includeInheritedProtocols: A Boolean value indicating whether to include protocols inherited by each protocol recursively.
+
+     - Returns: An array of `Protocol` objects representing all protocols the class conforms to, optionally including those of its superclasses and inherited protocols.
+     */
+    static func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
+        ObjCClass(self).protocols(includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
+    }
+    
+    /// Checks if the class overrides the specified instance method.
+    static func overrides(_ selector: Selector) -> Bool {
+        ObjCClass(self).overrides(selector)
+    }
+    
+    /// Checks if the class overrides the specified class method.
+    static func classOverrides(_ selector: Selector) -> Bool {
+        ObjCClass(self).classOverrides(selector)
     }
     
     /// A Boolean value indicating whether the object is a subclass of, or identical to the specified class.
@@ -241,33 +257,103 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /// Returns all superclasses of the class.
     static func superclasses() -> [AnyClass] {
-        ObjCRuntime.superclasses(of: self)
+        Array(first: superclass(), next: { $0?.superclass() }).nonNil
+     }
+
+    /// Returns the instance method for the specified selector.
+    static func instanceMethod(for selector: Selector) -> Method? {
+        class_getInstanceMethod(self, selector)
     }
-
-    /**
-     Returns all protocols the class conforms to.
-
-     - Parameters:
-       - includeSuperclasses: A Boolean value indicating whether to include protocols of superclasses in the search
-       - includeInheritedProtocols: A Boolean value indicating whether to include protocols inherited by each protocol recursively.
-
-     - Returns: An array of `Protocol` objects representing all protocols the class conforms to, optionally including those of its superclasses and inherited protocols.
-     */
-    static func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-        ObjCClass(self).protocols(includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
+    
+    /// Returns the class method for the specified selector.
+    static func classMethod(for selector: Selector) -> Method? {
+        class_getClassMethod(self, selector)
     }
     
     /**
-     Checks if the object overrides the specified selector.
+     Returns the implementation function for an instance method of this object, cast to the given function type.
 
      - Parameters:
-        - selector: The selector to check for override.
-        - isInstance: A Boolean value indicating whether the method is a instance or class method.
+        - selector: The Objective-C selector identifying the class method.
+        - clsoure: The Swift function type that matches the method's IMP signature.
+     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
+     
+     The function type **must** use the C calling convention and include the receiver (`AnyObject`) and selector (`Selector`) as the first two parameters, followed by the method’s actual parameters, and finally its return type.
+     
+     For example, an Objective-C method declared as:
+     ```objc
+     - (NSString *)greet:(NSString *)name;
+     ```
+     should be represented in Swift as:
+     ```swift
+     typealias Function = @convention(c) (AnyObject, Selector, String) -> String
+     ```
+     
+     - Note: The caller is responsible for ensuring the provided type matches the Objective-C method’s actual signature. Using an incompatible type results in undefined behavior.
+     
+     Example usage:
 
-     - Returns: `true` if the object overrides the selector, `false` otherwise.
+     ```swift
+     let selector = NSSelectorFromString("_symbolWeightForFontWeight:")
+     typealias Function = @convention(c) (AnyObject, Selector, NSFont.Weight) -> NSFont.Weight
+
+     if let method = NSFont.instanceMethod(for: selector, as: Function.self) {
+         let result = method(NSFont.self, selector, .black)
+         print(result)
+     }
+     ```
      */
-    static func overrides(_ selector: Selector, isInstance: Bool) -> Bool {
-        ObjCClass(self).overrides(selector, isInstance: isInstance)
+    class func instanceMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
+        guard let method = class_getInstanceMethod(self, selector) else { return nil }
+        let imp = method_getImplementation(method)
+        return unsafeBitCast(imp, to: F.self)
+    }
+    
+    
+    /**
+     Returns the implementation function for a class method of this class, cast to the given function type.
+
+     - Parameters:
+        - selector: The Objective-C selector identifying the class method.
+        - clsoure: The Swift function type that matches the method's IMP signature.
+     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
+     
+     The function type **must** use the C calling convention and include the receiver (`AnyObject`) and selector (`Selector`) as the first two parameters, followed by the method’s actual parameters, and finally its return type.
+     
+     For example, an Objective-C method declared as:
+     ```objc
+     - (NSString *)greet:(NSString *)name;
+     ```
+     should be represented in Swift as:
+     ```swift
+     typealias Function = @convention(c) (AnyObject, Selector, String) -> String
+     ```
+     
+     - Note: The caller is responsible for ensuring the provided type matches the Objective-C method’s actual signature. Using an incompatible type results in undefined behavior.
+     
+     Example usage:
+
+     ```swift
+     let selector = NSSelectorFromString("_symbolWeightForFontWeight:")
+     typealias Function = @convention(c) (AnyObject, Selector, NSFont.Weight) -> NSFont.Weight
+
+     if let method = NSFont.classMethod(for: selector, as: Function.self) {
+         let result = method(NSFont.self, selector, .black)
+         print(result)
+     }
+     ```
+     */
+    class func classMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
+        guard let method = class_getClassMethod(self, selector) else { return nil }
+        let imp = method_getImplementation(method)
+        return unsafeBitCast(imp, to: F.self)
+    }
+}
+
+public extension NSObjectProtocol where Self: NSObject {
+    /// The type of the object.
+    var classType: Self.Type {
+        type(of: self)
     }
 
     /**
@@ -310,120 +396,5 @@ extension NSObjectProtocol where Self: NSObject {
     public func removeObserver<Value>(_ observer: NSObject, for keypath: KeyPath<Self, Value>, context: UnsafeMutableRawPointer? = nil) {
         guard let keypathString = keypath._kvcKeyPathString else { return }
         removeObserver(observer, forKeyPath: keypathString, context: context)
-    }
-}
-
-public extension NSObject {
-    /// Returns the instance method for the specified selector.
-    static func instanceMethod(for selector: Selector) -> Method? {
-        class_getInstanceMethod(self, selector)
-    }
-    
-    /// Returns the class method for the specified selector.
-    static func classMethod(for selector: Selector) -> Method? {
-        class_getClassMethod(self, selector)
-    }
-    
-    /**
-     Returns the implementation function for an instance method of this object, cast to the given function type.
-
-     - Parameters:
-        - selector: The Objective-C selector identifying the class method.
-        - clsoure: The Swift function type that matches the method's IMP signature.
-     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
-     
-     The function type **must** use the C calling convention and include the receiver (`AnyObject`) and selector (`Selector`) as the first two parameters, followed by the method’s actual parameters, and finally its return type.
-     
-     For example, an Objective-C method declared as:
-     ```objc
-     - (NSString *)greet:(NSString *)name;
-     ```
-     should be represented in Swift as:
-     ```swift
-     typealias Function = @convention(c) (AnyObject, Selector, String) -> String
-     ```
-     
-     - Note: The caller is responsible for ensuring the provided type matches the Objective-C method’s actual signature. Using an incompatible type results in undefined behavior.
-     
-     Example usage:
-
-     ```swift
-     let selector = NSSelectorFromString("_symbolWeightForFontWeight:")
-     typealias Function = @convention(c) (AnyObject, Selector, NSFont.Weight) -> NSFont.Weight
-
-     if let function = NSFont.instanceMethod(for: selector, as: Function.self) {
-         let result = function(NSFont.self, selector, .black)
-         print(result)
-     }
-     ```
-     */
-    class func instanceMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
-        guard let method = class_getInstanceMethod(self, selector) else { return nil }
-        let imp = method_getImplementation(method)
-        return unsafeBitCast(imp, to: F.self)
-    }
-    
-    /**
-     Returns the implementation function for an instance method of this object, cast to the given function type.
-
-     - Parameters:
-        - selector: The Objective-C selector identifying the class method.
-        - clsoure: The Swift function type that matches the method's IMP signature.
-     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
-     */
-    class func instanceMethod<F>(for selector: String, as clsoure: F.Type) -> F? {
-        instanceMethod(for: .string(selector), as: clsoure)
-    }
-    
-    
-    /**
-     Returns the implementation function for a class method of this class, cast to the given function type.
-
-     - Parameters:
-        - selector: The Objective-C selector identifying the class method.
-        - clsoure: The Swift function type that matches the method's IMP signature.
-     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
-     
-     The function type **must** use the C calling convention and include the receiver (`AnyObject`) and selector (`Selector`) as the first two parameters, followed by the method’s actual parameters, and finally its return type.
-     
-     For example, an Objective-C method declared as:
-     ```objc
-     - (NSString *)greet:(NSString *)name;
-     ```
-     should be represented in Swift as:
-     ```swift
-     typealias Function = @convention(c) (AnyObject, Selector, String) -> String
-     ```
-     
-     - Note: The caller is responsible for ensuring the provided type matches the Objective-C method’s actual signature. Using an incompatible type results in undefined behavior.
-     
-     Example usage:
-
-     ```swift
-     let selector = NSSelectorFromString("_symbolWeightForFontWeight:")
-     typealias Function = @convention(c) (AnyObject, Selector, NSFont.Weight) -> NSFont.Weight
-
-     if let function = NSFont.classMethod(for: selector, as: Function.self) {
-         let result = function(NSFont.self, selector, .black)
-         print(result)
-     }
-     ```
-     */
-    class func classMethod<F>(for selector: Selector, as clsoure: F.Type) -> F? {
-        guard let method = class_getClassMethod(self, selector) else { return nil }
-        let imp = method_getImplementation(method)
-        return unsafeBitCast(imp, to: F.self)
-    }
-    
-    /**
-     Returns the implementation function for a class method of this class, cast to the given function type.
-
-     - Parameters:
-        - selector: The Objective-C selector identifying the class method.
-        - clsoure: The Swift function type that matches the method's IMP signature.
-     - Returns: A function pointer of the given type, or `nil` if the selector is not found.
-     */
-    class func classMethod<F>(for selector: String, as clsoure: F.Type) -> F? {
-        classMethod(for: .string(selector), as: clsoure)
     }
 }

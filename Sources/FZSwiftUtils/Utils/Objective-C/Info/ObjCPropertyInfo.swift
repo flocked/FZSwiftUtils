@@ -55,6 +55,11 @@ public extension ObjCPropertyInfo {
     var type: ObjCType {
         attributes.lazy.compactMap(\.type).first ?? .unknown
     }
+    
+    /// The size of the property.
+    var size: Int? {
+        attributes.lazy.compactMap(\.size).first
+    }
 
     /// The name of the backing instance variable for the property.
     var ivarName: String? {

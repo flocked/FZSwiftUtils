@@ -231,7 +231,6 @@ extension CountedSet: Hashable {
 extension CountedSet: Sequence {
     public func makeIterator() -> AnyIterator<Element> {
         var keysIterator = storage.keys.makeIterator()
-        AnyIterator(storage.keys.makeIterator())
         return AnyIterator { keysIterator.next() }
     }
     
