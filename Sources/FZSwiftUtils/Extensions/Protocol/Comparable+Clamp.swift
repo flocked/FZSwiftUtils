@@ -9,6 +9,18 @@ import Foundation
 
 public extension Comparable {
     /**
+     Clamps the value to the specified minimum and maximum value.
+
+     - Parameters:
+        - minValue: The minimum value.
+        - maxValue: The maximum value.
+     - Returns: The clamped value.
+     */
+    func clamped(to minValue: Self, _ maxValue: Self) -> Self {
+        clamped(to: min(minValue, maxValue)...max(minValue, maxValue))
+    }
+    
+    /**
      Clamps the value to the specified closed range.
 
      - Parameter range: The closed range to clamp the value to.
@@ -68,6 +80,17 @@ public extension Comparable {
     func clamped(max maxValue: Self) -> Self {
         min(maxValue, self)
     }
+    
+    /**
+     Clamps the value to the specified minimum and maximum value.
+
+     - Parameters:
+        - minValue: The minimum value.
+        - maxValue: The maximum value.
+     */
+    mutating func clamp(to minValue: Self, _ maxValue: Self) {
+        self = clamped(to: minValue, maxValue)
+    }
 
     /**
      Clamps the value to the specified closed range.
@@ -116,6 +139,18 @@ public extension Comparable {
 }
 
 public extension Sequence where Element: Comparable {
+    /**
+     Clamps the elements of the sequence to the specified minimum and maximum value.
+     
+     - Parameters:
+        - minValue: The minimum value.
+        - maxValue: The maximum value.
+     - Returns: The clamped elements.
+     */
+    func clamped(to minValue: Element, _ maxValue: Element) -> [Element] {
+        clamped(to: Swift.min(minValue, maxValue)...Swift.max(minValue, maxValue))
+    }
+
     /**
      Clamps the elements of the sequence to the specified range.
 
@@ -168,6 +203,17 @@ public extension Sequence where Element: Comparable {
 }
 
 public extension Sequence where Element: Comparable, Self: RangeReplaceableCollection {
+    /**
+     Clamps the elements of the sequence to the specified minimum and maximum value.
+     
+     - Parameters:
+        - minValue: The minimum value.
+        - maxValue: The maximum value.
+     */
+    mutating func clamped(to minValue: Element, _ maxValue: Element) {
+        clamp(to: Swift.min(minValue, maxValue)...Swift.max(minValue, maxValue))
+    }
+    
     /**
      Clamps the elements of the sequence to the specified range.
 
