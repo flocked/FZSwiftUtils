@@ -100,8 +100,7 @@ public extension CGRect {
      - Parameter view: The view for scale.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let window = view.window else { return self }
-        return scaledIntegral(for: window)
+        CGRect(origin: origin.scaledIntegral(for: view), size: size.scaledIntegral(for: view))
     }
     
     /**
@@ -124,6 +123,17 @@ public extension CGRect {
      */
     func scaledIntegral(for application: NSApplication) -> Self {
         CGRect(origin.scaledIntegral(for: application), size.scaledIntegral(for: application))
+    }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Returns the scaled integral value of the value for the specified screen.
+
+     The value is scaled based on the screen's backing scale factor.
+
+     - Parameter screen: The screen for the scale factor.
+     */
+    func scaledIntegral(for screen: UIScreen) -> Self {
+        CGRect(origin: origin.scaledIntegral(for: screen), size: size.scaledIntegral(for: screen))
     }
     #endif
 
@@ -525,7 +535,7 @@ public extension CGRect {
     }
     
     /*
-     /**
+     /*
       Returns a new rectangle by expanding the specified edges by the given amount.
 
       - Parameters:
@@ -538,7 +548,7 @@ public extension CGRect {
          expand(edges, to: CGSize(width: edges.contains(any: [.left, .right]) ? width + amount : width, height: edges.contains(any: [.bottom, .top]) ? height + amount : height))
      }
      
-     /**
+     /*
       Returns a new rectangle by expanding the specified edges by the given size.
 
       - Parameters:
@@ -1018,7 +1028,7 @@ public extension CGRect {
     func distance(to point: CGPoint, signed: Bool = false) -> CGFloat {
         if signed {
             let d = abs(SIMD2(x: point.x.native, y: point.y.native) - SIMD2(x: midX.native, y: midY.native))
-                    - SIMD2(x: width.native, y: height.native) / 2
+                - SIMD2(x: width.native, y: height.native) / 2
             return CGFloat(all(d .> 0) ? length(d) : d.max())
         } else {
             let dx = max(minX - point.x, 0, point.x - maxX)
@@ -1028,30 +1038,30 @@ public extension CGRect {
     }
 
     /**
-     Returns the distance from this rectangle to another rectangle.
+      Returns the distance from this rectangle to another rectangle.
 
-     - Parameters:
-       - rect: The rectangle to measure distance to.
-       - signed: A Boolean indicating whether the distance should be signed.
-         - `true`: Returns a negative value if the rectangles overlap along any axis, positive if separated along both axes.
-         - `false`: Returns the standard (non-signed) distance. Returns `0` if rectangles touch or overlap along an edge.
+      - Parameters:
+        - rect: The rectangle to measure distance to.
+        - signed: A Boolean indicating whether the distance should be signed.
+          - `true`: Returns a negative value if the rectangles overlap along any axis, positive if separated along both axes.
+          - `false`: Returns the standard (non-signed) distance. Returns `0` if rectangles touch or overlap along an edge.
      
-     - Returns: The distance.
+      - Returns: The distance.
      
-     - Note: Distance is measured along the closest edges along both axes.
+      - Note: Distance is measured along the closest edges along both axes.
 
-    Example usage:
-     ```swift
-     let rect1 = CGRect(x: 0, y: 0, width: 10, height: 10)
-     let rect2 = CGRect(x: 5, y: 5, width: 10, height: 10)
-     rect1.distance(to: rect2, signed: false) // 0, overlap
-     rect1.distance(to: rect2, signed: true) // -5, overlap
+     Example usage:
+      ```swift
+      let rect1 = CGRect(x: 0, y: 0, width: 10, height: 10)
+      let rect2 = CGRect(x: 5, y: 5, width: 10, height: 10)
+      rect1.distance(to: rect2, signed: false) // 0, overlap
+      rect1.distance(to: rect2, signed: true) // -5, overlap
      
-     let rect3 = CGRect(x: 20, y: 0, width: 5, height: 5)
-     rect1.distance(to: rect3, signed: false) // 10, outside
-     rect1.distance(to: rect3, signed: true) // 10, outside
-     ```
-     */
+      let rect3 = CGRect(x: 20, y: 0, width: 5, height: 5)
+      rect1.distance(to: rect3, signed: false) // 10, outside
+      rect1.distance(to: rect3, signed: true) // 10, outside
+      ```
+      */
     func distance(to rect: CGRect, signed: Bool = false) -> CGFloat {
         signed ? signedDistance(to: rect) : unsignedDistance(to: rect)
     }
@@ -1172,7 +1182,7 @@ public extension CGRectEdge {
     static let bottom: Self = .minYEdge
     /// The top edge of the rectangle.
     static let top: Self = .maxYEdge
-        #else
+    #else
     /// The bottom edge of the rectangle.
     static let bottom: Self = .maxYEdge
     /// The top edge of the rectangle.

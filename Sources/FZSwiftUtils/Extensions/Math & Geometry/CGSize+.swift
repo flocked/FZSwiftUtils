@@ -57,8 +57,7 @@ public extension CGSize {
      - Parameter view: The view for the scale.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let window = view.window else { return self }
-        return scaledIntegral(for: window)
+        CGSize(width: width.scaledIntegral(for: view), height: height.scaledIntegral(for: view))
     }
 
     /**
@@ -81,6 +80,17 @@ public extension CGSize {
      */
     func scaledIntegral(for application: NSApplication) -> Self {
         CGSize(width.scaledIntegral(for: application), height.scaledIntegral(for: application))
+    }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Returns the scaled integral value of the value for the specified screen.
+
+     The value is scaled based on the screen's backing scale factor.
+
+     - Parameter screen: The screen for the scale factor.
+     */
+    func scaledIntegral(for screen: UIScreen) -> Self {
+        CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
     }
     #endif
     

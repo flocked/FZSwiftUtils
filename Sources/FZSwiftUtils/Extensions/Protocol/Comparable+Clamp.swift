@@ -9,18 +9,6 @@ import Foundation
 
 public extension Comparable {
     /**
-     Clamps the value to the specified minimum and maximum value.
-
-     - Parameters:
-        - minValue: The minimum value.
-        - maxValue: The maximum value.
-     - Returns: The clamped value.
-     */
-    func clamped(to minValue: Self, _ maxValue: Self) -> Self {
-        clamped(to: min(minValue, maxValue)...max(minValue, maxValue))
-    }
-    
-    /**
      Clamps the value to the specified closed range.
 
      - Parameter range: The closed range to clamp the value to.
@@ -36,9 +24,18 @@ public extension Comparable {
      - Parameter range: The closed range to clamp the value to.
      - Returns: The clamped value.
      */
-
     func clamped(to range: Range<Self>) -> Self where Self: BinaryInteger {
         max(range.lowerBound, min(self, range.upperBound-1))
+    }
+    
+    /**
+     Clamps the value to the specified closed range.
+
+     - Parameter range: The closed range to clamp the value to.
+     - Returns: The clamped value.
+     */
+    func clamped(to range: (Self, Self)) -> Self {
+        clamped(to: min(range.0, range.1)...max(range.0, range.1))
     }
 
     /**
@@ -80,17 +77,6 @@ public extension Comparable {
     func clamped(max maxValue: Self) -> Self {
         min(maxValue, self)
     }
-    
-    /**
-     Clamps the value to the specified minimum and maximum value.
-
-     - Parameters:
-        - minValue: The minimum value.
-        - maxValue: The maximum value.
-     */
-    mutating func clamp(to minValue: Self, _ maxValue: Self) {
-        self = clamped(to: minValue, maxValue)
-    }
 
     /**
      Clamps the value to the specified closed range.
@@ -98,6 +84,24 @@ public extension Comparable {
      - Parameter range: The closed range to clamp the value to.
      */
     mutating func clamp(to range: ClosedRange<Self>) {
+        self = clamped(to: range)
+    }
+    
+    /**
+     Clamps the value to the specified range.
+
+     - Parameter range: The range to clamp the value to.
+     */
+    mutating func clamp(to range: Range<Self>) where Self: BinaryInteger {
+        self = clamped(to: range)
+    }
+    
+    /**
+     Clamps the value to the specified closed range.
+
+     - Parameter range: The closed range to clamp the value to.
+     */
+    mutating func clamp(to range: (Self, Self)) {
         self = clamped(to: range)
     }
 

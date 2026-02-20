@@ -66,8 +66,7 @@ public extension BinaryFloatingPoint {
      - Parameter view: The view for the scale factor.
      */
     func scaledIntegral(for view: NSView) -> Self {
-        guard let window = view.window else { return self }
-        return scaledIntegral(for: window)
+        rounded(toMultiple: 1.0 / Self(view.backingScaleFactor))
     }
     
     /**
@@ -91,8 +90,19 @@ public extension BinaryFloatingPoint {
     func scaledIntegral(for application: NSApplication) -> Self {
         rounded(toMultiple: 1.0 / Self(application.backingScaleFactor))
     }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Returns the scaled integral value of the value for the specified screen.
+     
+     The value is scaled based on the screen's backing scale factor.
+     
+     - Parameter screen: The screen for the scale factor.
+     */
+    func scaledIntegral(for screen: UIScreen) -> Self {
+        rounded(toMultiple: 1.0 / Self(screen.scale))
+    }
     #endif
-    
+
     /**
      Returns the fractional remainder of the value after dividing by the given divisor.
      
@@ -283,40 +293,30 @@ public extension Sequence where Element: BinaryFloatingPoint {
     func scaledIntegral(for application: NSApplication) -> [Element] {
         map({ $0.scaledIntegral(for: application) })
     }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Returns the scaled integral value of the elements in the sequence for the specified screen.
+     
+     The elements are scaled based on the screen's backing scale factor.
+     
+     - Parameter screen: The screen for the scale factor.
+     */
+    func scaledIntegral(for screen: UIScreen) -> Self {
+        map({ $0.scaledIntegral(for: screen) })
+    }
     #endif
 }
 
 #if os(macOS)
-/// A type that provides access to a backing scale factor used for point-to-pixel conversion.
-protocol BackingScaleProviding {
-    /// The backing scale factor.
-    var backingScaleFactor: CGFloat { get }
-}
-
-extension NSWindow: BackingScaleProviding { }
-extension NSScreen: BackingScaleProviding { }
-
-extension NSView: BackingScaleProviding {
+fileprivate extension NSView {
     var backingScaleFactor: CGFloat {
         window?.backingScaleFactor ?? NSApp.backingScaleFactor
     }
 }
 
-extension NSApplication: BackingScaleProviding {
+fileprivate extension NSApplication {
     var backingScaleFactor: CGFloat {
         (keyWindow ?? mainWindow ?? windows.first(where: { $0.isVisible }))?.backingScaleFactor ?? (NSScreen.main ?? .screens.first)?.backingScaleFactor ?? 1.0
-    }
-}
-
-extension CGContext: BackingScaleProviding {
-    var backingScaleFactor: CGFloat {
-        ctm.a
-    }
-}
-
-extension NSGraphicsContext: BackingScaleProviding {
-    var backingScaleFactor: CGFloat {
-        cgContext.backingScaleFactor
     }
 }
 #endif
