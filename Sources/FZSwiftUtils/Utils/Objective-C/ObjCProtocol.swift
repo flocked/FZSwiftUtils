@@ -29,71 +29,80 @@ extension Protocol {
     }
     
     /// The required instance properties of the protocol.
-    public func properties() -> [objc_property_t] {
-        properties(isRequired: true, isInstance: true)
+    public func properties(recursive: Bool = false) -> [objc_property_t] {
+        properties(isRequired: true, isInstance: true, includeProtocols: recursive)
     }
     
     /// The optional instance properties of the protocol.
-    public func optionalProperties() -> [objc_property_t] {
-        properties(isRequired: false, isInstance: true)
+    public func optionalProperties(recursive: Bool = false) -> [objc_property_t] {
+        properties(isRequired: false, isInstance: true, includeProtocols: recursive)
     }
     
     /// The required class properties of the protocol.
-    public func classProperties() -> [objc_property_t] {
-        properties(isRequired: true, isInstance: false)
+    public func classProperties(recursive: Bool = false) -> [objc_property_t] {
+        properties(isRequired: true, isInstance: false, includeProtocols: recursive)
     }
     
     /// The optional class properties of the protocol.
-    public func optionalClassProperties() -> [objc_property_t] {
-        properties(isRequired: false, isInstance: false)
+    public func optionalClassProperties(recursive: Bool = false) -> [objc_property_t] {
+        properties(isRequired: false, isInstance: false, includeProtocols: recursive)
     }
     
-    private func properties(isRequired: Bool, isInstance: Bool) -> [objc_property_t] {
-        var count: UInt32 = 0
-        guard let list = protocol_copyPropertyList2(self, &count, isRequired, isInstance) else { return [] }
-        defer { free(list) }
-        return list.array(count: count)
+    private func properties(isRequired: Bool, isInstance: Bool, includeProtocols: Bool) -> [objc_property_t] {
+        var properties: [objc_property_t] = []
+        var seen: Set<String> = []
+        for proto in includeProtocols ? [self] + protocols(recursive: true) : [self] {
+            var count: UInt32 = 0
+            guard let list = protocol_copyPropertyList2(proto, &count, isRequired, isInstance) else { continue }
+            defer { free(list) }
+            properties += list.buffer(count: count).filter({ seen.insert(property_getName($0).string).inserted })
+        }
+        return properties
     }
     
     /// Defines an Objective-C method.
-    public struct MethodDescription {
+    public struct MethodDescription: Hashable {
         /// The name of the method.
-        public let name: Selector?
+        public let name: Selector
         /// The types of the method arguments.
         public let types: String?
         
         init?(_ description: objc_method_description?) {
-            guard let description = description else { return nil }
-            self.name = description.name
-            self.types = description.types?.string
+            guard let name = description?.name else { return nil }
+            self.name = name
+            self.types = description?.types?.string
         }
     }
     
     /// The required instance methods of the protocol.
-    public func methods() -> [MethodDescription] {
-        methods(isRequired: true, isInstance: true)
+    public func methods(recursive: Bool = false) -> [MethodDescription] {
+        methods(isRequired: true, isInstance: true, includeProtocols: recursive)
     }
     
     /// The optional instance methods of the protocol.
-    public func optionalMethods() -> [MethodDescription] {
-        methods(isRequired: false, isInstance: true)
+    public func optionalMethods(recursive: Bool = false) -> [MethodDescription] {
+        methods(isRequired: false, isInstance: true, includeProtocols: recursive)
     }
     
     /// The required class methods of the protocol.
-    public func classMethods() -> [MethodDescription] {
-        methods(isRequired: true, isInstance: false)
+    public func classMethods(recursive: Bool = false) -> [MethodDescription] {
+        methods(isRequired: true, isInstance: false, includeProtocols: recursive)
     }
     
     /// The optional class methods of the protocol.
-    public func optionalClassMethods() -> [MethodDescription] {
-        methods(isRequired: false, isInstance: false)
+    public func optionalClassMethods(recursive: Bool = false) -> [MethodDescription] {
+        methods(isRequired: false, isInstance: false, includeProtocols: recursive)
     }
     
-    private func methods(isRequired: Bool, isInstance: Bool) -> [MethodDescription] {
-        var count: UInt32 = 0
-        guard let list = protocol_copyMethodDescriptionList(self, isRequired, isInstance, &count) else { return [] }
-        defer { free(list) }
-        return list.buffer(count: count).compactMap({ MethodDescription($0) })
+    private func methods(isRequired: Bool, isInstance: Bool, includeProtocols: Bool) -> [MethodDescription] {
+        var methods: [MethodDescription] = []
+        for proto in includeProtocols ? [self] + protocols(recursive: true) : [self] {
+            var count: UInt32 = 0
+            guard let list = protocol_copyMethodDescriptionList(proto, isRequired, isInstance, &count) else { continue }
+            defer { free(list) }
+            methods += list.buffer(count: count).compactMap({ MethodDescription($0) })
+        }
+        return methods.uniqued()
     }
     
     /// Returns the required instance property with the specififed name.
@@ -139,15 +148,15 @@ extension Protocol {
     /**
      Returns all protocols this protocol conforms to.
      
-     - Parameter includeInheritedProtocols: A Boolean value indicating whether to include protocols inherited by each protocol recursively.
+     - Parameter recursive: A Boolean value indicating whether to include protocols inherited by each protocol recursively.
      */
-    public func protocols(includeInheritedProtocols: Bool = true) -> [Protocol] {
+    public func protocols(recursive: Bool = true) -> [Protocol] {
         var seen = Set<String>()
         var protocols: [Protocol] = []
         func collect(_ proto: Protocol) {
             guard seen.insert(proto.name).inserted else { return }
             protocols.append(proto)
-            guard includeInheritedProtocols else { return }
+            guard recursive else { return }
             var count: UInt32 = 0
             guard let list = protocol_copyProtocolList(proto, &count) else { return }
             defer { free(UnsafeMutableRawPointer(list)) }
@@ -164,7 +173,7 @@ extension Protocol {
         if let description = methodDescriptionWithoutSearchingInheritedProtocols(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly) {
             return description
         }
-        return protocols(includeInheritedProtocols: false).lazy.compactMap( { $0.methodDescription(for: selector, isInstanceMethod: isInstanceMethod) }).first
+        return protocols(recursive: false).lazy.compactMap( { $0.methodDescription(for: selector, isInstanceMethod: isInstanceMethod) }).first
     }
     
     func methodTypeEncoding(for selector: Selector, isInstanceMethod: Bool, optionalOnly: Bool = false) -> String? {
