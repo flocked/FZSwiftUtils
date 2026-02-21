@@ -113,7 +113,3 @@ extension UnsafeMutablePointer<CChar> {
         return String(cString: self)
     }
 }
-
-public extension  UnsafeMutablePointer {
-
-}

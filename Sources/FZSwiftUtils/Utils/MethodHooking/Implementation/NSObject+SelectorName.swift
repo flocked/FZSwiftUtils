@@ -16,7 +16,7 @@ extension PartialKeyPath {
     }
     
     func setterName() throws -> String where Root: NSObject {
-        guard let setterName = NSObject.setterName(for: Root.self, getterName: try getterName()) else {
+        guard let setterName = Root.setterName(for: try getterName()) else {
             throw HookError.nonObjcProperty
         }
         return setterName
@@ -30,7 +30,7 @@ extension PartialKeyPath {
     }
     
     func setterName<T>() throws -> String where Root == T.Type, T: NSObject {
-        guard let setterName = NSObject.setterName(for: T.self, getterName: try getterName(), isInstance: false) else {
+        guard let setterName = T.setterName(for: try getterName(), isInstance: false) else {
             throw HookError.nonObjcProperty
         }
         return setterName
@@ -38,14 +38,9 @@ extension PartialKeyPath {
 }
 
 fileprivate extension NSObject {
-    static var setterNames: [ObjectIdentifier: [String: String?]] {
-        get { getAssociatedValue("setterNames") ?? [:] }
-        set { setAssociatedValue(newValue, key: "setterNames") }
-    }
-    
-    static func setterName(for cls: AnyClass, getterName: String, isInstance: Bool = true) -> String? {
-        let lookupClass: AnyClass = isInstance ? cls : object_getClass(cls) ?? cls
-        if let setterName = setterNames[lookupClass, default: [:]][getterName] {
+    static func setterName(for getterName: String, isInstance: Bool = true) -> String? {
+        let lookupClass: AnyClass = isInstance ? self : object_getClass(self) ?? self
+        if let setterName = NSObject.setterNames[lookupClass, default: [:]][getterName] {
             return setterName
         }
         func check(_ name: String) -> String? {
@@ -58,41 +53,44 @@ fileprivate extension NSObject {
             guard let name = names.first(where: {
                 isInstance ? lookupClass.instancesRespond(to: Selector($0)) : lookupClass.responds(to: Selector($0))
             }) else { return nil }
-            setterNames[lookupClass, default: [:]][getterName] = name
+            NSObject.setterNames[lookupClass, default: [:]][getterName] = name
             return name
         }
         if let name = check(getterName) {
             return name
         }
         var currentClass: AnyClass? = lookupClass
-        while let c = currentClass {
-            var propertyCount: UInt32 = 0
-            guard let properties = class_copyPropertyList(c, &propertyCount) else {
-                currentClass = class_getSuperclass(c)
-                continue
-            }
+        while let cls = currentClass {
+            currentClass = cls.superclass()
+            var count: UInt32 = 0
+            guard let properties = class_copyPropertyList(cls, &count) else { continue }
             defer { free(properties) }
-            for i in 0..<propertyCount {
-                let property = properties[Int(i)]
-                let name = String(cString: property_getName(property))
+            for property in properties.buffer(count: count) {
+                let name = property_getName(property).string
                 guard getterName == property.attribute(for: "G") ?? name else { continue }
-                if let explicitSetter = property.attribute(for: "S") {
-                    setterNames[lookupClass, default: [:]][getterName] = explicitSetter
-                    return explicitSetter
+                if property.attribute(for: "R") != nil {
+                    setterNames[lookupClass, default: [:]][getterName] = nil
+                    return nil
+                }
+                if let setterName = property.attribute(for: "S") {
+                    NSObject.setterNames[lookupClass, default: [:]][getterName] = setterName
+                    return setterName
                 }
                 return check(getterName)
             }
-            currentClass = class_getSuperclass(c)
         }
-        setterNames[lookupClass, default: [:]][getterName] = nil
+        NSObject.setterNames[lookupClass, default: [:]][getterName] = nil
         return nil
+    }
+    
+    static var setterNames: SynchronizedDictionary<ObjectIdentifier, [String: String?]> {
+        get { getAssociatedValue("setterNames", initialValue: [:]) }
+        set { setAssociatedValue(newValue, key: "setterNames") }
     }
 }
 
 fileprivate extension objc_property_t {
     func attribute(for key: String) -> String? {
-        guard let pointer = property_copyAttributeValue(self, key) else { return nil }
-        defer { free(pointer) }
-        return String(cString: pointer)
+        property_copyAttributeValue(self, key)?.stringAndFree()
     }
 }

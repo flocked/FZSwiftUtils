@@ -690,7 +690,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public static func hook<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ setter: (Value)->())->()) throws -> Hook {
-        return try hook(all: .string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
+        try hook(all: .string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
     }
     
     /**
@@ -714,7 +714,7 @@ extension NSObjectProtocol where Self: NSObject {
      */
     @discardableResult
     public static func hook<Value>(setAll keyPath: WritableKeyPath<Self, Value>, closure: @escaping (_ object: Self, _ value: Value, _ setter: (Value)->())->()) throws -> Hook where Value: RawRepresentable {
-        return try hook(all: .string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
+        try hook(all: .string(keyPath.setterName()), closure: Hook.setterClosure(for: closure))
     }
     
     /**

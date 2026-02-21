@@ -20,7 +20,7 @@ extension Hook {
         self.closure { (object: Object, value: Value) in closure(object, object[keyPath: keyPath], value) }
     }
     
-    static func beforeClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
+    static func beforeClosure<Object, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ keyPath: WritableKeyPath<Object, Value>) -> Any {
         self.closure { (object: Object, value: Value) in closure(object, object[keyPath: keyPath], value) }
     }
     
@@ -34,7 +34,7 @@ extension Hook {
         }
     }
     
-    static func beforeClosure<Object, Value: Equatable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
+    static func beforeClosure<Object, Value: Equatable & RawRepresentable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any {
         self.closure { (object: Object, value: Value) in
             let oldValue = object[keyPath: keyPath]
             guard !uniqueValues || value != oldValue else { return }
@@ -52,7 +52,7 @@ extension Hook {
         }
     }
     
-    static func afterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
+    static func afterClosure<Object, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), keyPath: WritableKeyPath<Object, Value>) -> Any {
         setterClosure { (object: Object, value: Value, apply: (Value)->()) in
             let oldValue = object[keyPath: keyPath]
             apply(value)
@@ -71,7 +71,7 @@ extension Hook {
         }
     }
     
-    static func afterClosure<Object, Value: Equatable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any where Value: RawRepresentable {
+    static func afterClosure<Object, Value: Equatable & RawRepresentable>(for closure: @escaping (_ object: Object,_ oldValue: Value, _ newValue: Value)->(), _ uniqueValues: Bool, _ keyPath: WritableKeyPath<Object, Value>) -> Any {
         setterClosure { (object: Object, value: Value, apply: (Value)->()) in
             let oldValue = object[keyPath: keyPath]
             apply(value)
@@ -81,10 +81,28 @@ extension Hook {
     }
     
     // MARK: - hook get property
+    
+    private static func optionalToAnyObject<Value>(_ value: Value) -> AnyObject? {
+        guard let optional = value as? any OptionalProtocol else {
+            return value as AnyObject
+        }
+        guard let wrapped = optional.optional else { return nil }
+        return wrapped as AnyObject
+    }
+    
+    private static func isOptionalObjectType<Value>(_ type: Value.Type) -> Bool {
+        guard let wrappedType = (Value.self as? (any OptionalProtocol.Type))?.wrappedType else { return false }
+        return wrappedType is AnyObject.Type || wrappedType is any _ObjectiveCBridgeable.Type
+    }
 
     static func getterClosure<Object, Value>(
         for closure: @escaping ((_ object: Object, _ value: Value) -> Value)
     ) -> Any {
+        if isOptionalObjectType(Value.self) {
+            return { original, object, selector in
+                optionalToAnyObject(closure(cast(object), cast(original(object, selector))))
+            } as @convention(block) ((AnyObject, Selector) -> AnyObject?, AnyObject, Selector) -> AnyObject?
+        }
         switch Value.self {
         case _ where Value.self == Bool.self:
             return { original, object, selector in
@@ -186,12 +204,6 @@ extension Hook {
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> NSRange, AnyObject, Selector) -> NSRange
-            #if !os(watchOS)
-        case _ where Value.self == CATransform3D.self:
-            return { original, object, selector in
-                cast(closure(cast(object), cast(original(object, selector))))
-            } as @convention(block) ((AnyObject, Selector) -> CATransform3D, AnyObject, Selector) -> CATransform3D
-            #endif
         case _ where Value.self == CMTime.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
@@ -219,13 +231,11 @@ extension Hook {
         case _ where Value.self == (() -> ()).self:
             typealias Block = @convention(block) () -> Void
             return { original, object, selector in
-                Swift.print("AAAAA")
                 let originalBlock = original(object, selector)
                 let swiftInput: () -> () = { originalBlock() }
                 let result = closure(cast(object), cast(swiftInput))
                 let swiftResult: () -> () = cast(result)
-                let blockResult: Block = { swiftResult() }
-                return blockResult
+                return { swiftResult() }
             } as @convention(block) ((AnyObject, Selector) -> Block, AnyObject, Selector) -> Block
         case _ where Value.self == Optional<(() -> ())>.self:
             typealias Block = @convention(block) () -> Void
@@ -235,18 +245,39 @@ extension Hook {
                 let result = closure(cast(object), cast(swiftInput))
                 let swiftResult: (() -> ())? = cast(result)
                 guard let blk = swiftResult else { return nil }
-                let blockResult: Block = { blk() }
-                return blockResult
+                return { blk() }
             } as @convention(block) ((AnyObject, Selector) -> Block?, AnyObject, Selector) -> Block?
         case _ where Value.self == UUID.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> UUID, AnyObject, Selector) -> UUID
+        case _ where Value.self == Selector.self:
+            return { original, object, selector in
+                cast(closure(cast(object), cast(original(object, selector))))
+            } as @convention(block) ((AnyObject, Selector) -> Selector, AnyObject, Selector) -> Selector
+        case _ where Value.self == AnyClass.self:
+            return { original, object, selector in
+                cast(closure(cast(object), cast(original(object, selector))))
+            } as @convention(block) ((AnyObject, Selector) -> AnyClass, AnyObject, Selector) -> AnyClass
+        case _ where Value.self == UnsafeMutableRawPointer.self:
+            return { original, object, selector in
+                cast(closure(cast(object), cast(original(object, selector))))
+            } as @convention(block) ((AnyObject, Selector) -> UnsafeMutableRawPointer, AnyObject, Selector) -> UnsafeMutableRawPointer
+        case _ where Value.self == NSDirectionalEdgeInsets.self:
+            return { original, object, selector in
+                cast(closure(cast(object), cast(original(object, selector))))
+            } as @convention(block) ((AnyObject, Selector) -> NSDirectionalEdgeInsets, AnyObject, Selector) -> NSDirectionalEdgeInsets
         #if os(macOS)
         case _ where Value.self == AffineTransform.self:
             return { original, object, selector in
                 cast(closure(cast(object), cast(original(object, selector))))
             } as @convention(block) ((AnyObject, Selector) -> AffineTransform, AnyObject, Selector) -> AffineTransform
+        #endif
+        #if !os(watchOS)
+        case _ where Value.self == CATransform3D.self:
+            return { original, object, selector in
+                cast(closure(cast(object), cast(original(object, selector))))
+            } as @convention(block) ((AnyObject, Selector) -> CATransform3D, AnyObject, Selector) -> CATransform3D
         #endif
         default:
             return { original, object, selector in
@@ -255,13 +286,18 @@ extension Hook {
         }
     }
     
-    static func getterClosure<Object, Value>(for closure: @escaping ((_ object: Object, _ value: Value)->Value)) -> Any where Value: RawRepresentable {
+    static func getterClosure<Object, Value: RawRepresentable>(for closure: @escaping ((_ object: Object, _ value: Value)->Value)) -> Any {
         getterClosure(for: { closure($0, Value(rawValue: $1)!).rawValue })
     }
     
     // MARK: - hook set property
     
     static func setterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value, _ apply:(Value)->())->()) -> Any {
+        if isOptionalObjectType(Value.self) {
+            return { original, object, selector, value in
+                closure(cast(object), cast(value), { original(object, selector, optionalToAnyObject($0)) })
+            } as @convention(block) ((AnyObject, Selector, AnyObject?) -> Void, AnyObject, Selector, AnyObject?) -> Void
+        }
         switch Value.self {
         case _ where Value.self == Bool.self:
             return { original, object, selector, value in
@@ -363,12 +399,6 @@ extension Hook {
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
             } as @convention(block) ((AnyObject, Selector, NSRange) -> Void, AnyObject, Selector, NSRange) -> Void
-        #if !os(watchOS)
-        case _ where Value.self == CATransform3D.self:
-            return { original, object, selector, value in
-                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-            } as @convention(block) ((AnyObject, Selector, CATransform3D) -> Void, AnyObject, Selector, CATransform3D) -> Void
-        #endif
         case _ where Value.self == CMTime.self:
             return { original, object, selector, value in
                 closure(cast(object), cast(value), { original(object, selector, cast($0)) })
@@ -407,21 +437,42 @@ extension Hook {
                 let swiftValue: (() -> ())? = {
                     guard let value else { return nil }
                     return withoutActuallyEscaping(value) { escapable in
-                        let converted: () -> () = escapable
-                        return converted
+                        return escapable
                     }
                 }()
                 closure(cast(object), cast(swiftValue)) { original(object, selector, $0 as? ()->()) }
             } as @convention(block) (((AnyObject, Selector, Block?) -> Void), AnyObject, Selector, Block?) -> Void
         case _ where Value.self == UUID.self:
             return { original, object, selector, value in
-            closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-        } as @convention(block) ((AnyObject, Selector, UUID) -> Void, AnyObject, Selector, UUID) -> Void
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, UUID) -> Void, AnyObject, Selector, UUID) -> Void
+        case _ where Value.self == Selector.self:
+            return { original, object, selector, value in
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, Selector) -> Void, AnyObject, Selector, Selector) -> Void
+        case _ where Value.self == AnyClass.self:
+            return { original, object, selector, value in
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, AnyClass) -> Void, AnyObject, Selector, AnyClass) -> Void
+        case _ where Value.self == UnsafeMutableRawPointer.self:
+            return { original, object, selector, value in
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, UnsafeMutableRawPointer) -> Void, AnyObject, Selector, UnsafeMutableRawPointer) -> Void
+        case _ where Value.self == NSDirectionalEdgeInsets.self:
+            return { original, object, selector, value in
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, NSDirectionalEdgeInsets) -> Void, AnyObject, Selector, NSDirectionalEdgeInsets) -> Void
         #if os(macOS)
         case _ where Value.self == AffineTransform.self:
             return { original, object, selector, value in
-            closure(cast(object), cast(value), { original(object, selector, cast($0)) })
-        } as @convention(block) ((AnyObject, Selector, AffineTransform) -> Void, AnyObject, Selector, AffineTransform) -> Void
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, AffineTransform) -> Void, AnyObject, Selector, AffineTransform) -> Void
+        #endif
+        #if !os(watchOS)
+        case _ where Value.self == CATransform3D.self:
+            return { original, object, selector, value in
+                closure(cast(object), cast(value), { original(object, selector, cast($0)) })
+            } as @convention(block) ((AnyObject, Selector, CATransform3D) -> Void, AnyObject, Selector, CATransform3D) -> Void
         #endif
         default:
             return { original, object, selector, value in
@@ -430,7 +481,7 @@ extension Hook {
         }
     }
     
-    static func setterClosure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value, _ apply: (Value)->())->()) -> Any where Value: RawRepresentable {
+    static func setterClosure<Object, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ value: Value, _ apply: (Value)->())->()) -> Any {
         setterClosure(for: { object, rawValue, original in
             closure(object, Value(rawValue: rawValue)!, { original($0.rawValue) })
         })
@@ -439,78 +490,78 @@ extension Hook {
     // MARK: - hook before/after set property
     
     static func closure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any {
+        if isOptionalObjectType(Value.self) {
+            return { obj, sel, value in
+                closure(cast(obj), cast(value))
+            } as @convention(block) (AnyObject, Selector, AnyObject?) -> Void
+        }
         switch Value.self {
         case _ where Value.self == Bool.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Bool) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Bool) -> Void
         case _ where Value.self == Int.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int) -> Void
         case _ where Value.self == Int8.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int8) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int8) -> Void
         case _ where Value.self == Int16.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int16) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int16) -> Void
         case _ where Value.self == Int32.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int32) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int32) -> Void
         case _ where Value.self == Int64.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int64) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Int64) -> Void
         case _ where Value.self == UInt.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt) -> Void
         case _ where Value.self == UInt8.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt8) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt8) -> Void
         case _ where Value.self == UInt16.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt16) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt16) -> Void
         case _ where Value.self == UInt32.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt32) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt32) -> Void
         case _ where Value.self == UInt64.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt64) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UInt64) -> Void
         case _ where Value.self == Double.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Double) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Double) -> Void
         case _ where Value.self == Float.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Float) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Float) -> Void
         case _ where Value.self == Decimal.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Decimal) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Decimal) -> Void
         case _ where Value.self == CGFloat.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGFloat) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGFloat) -> Void
         case _ where Value.self == CGSize.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGSize) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGSize) -> Void
         case _ where Value.self == CGPoint.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGPoint) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGPoint) -> Void
         case _ where Value.self == CGRect.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGRect) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGRect) -> Void
         case _ where Value.self == CGColor.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGColor) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGColor) -> Void
         case _ where Value.self == CGImage.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGImage) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGImage) -> Void
         case _ where Value.self == CGVector.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGVector) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGVector) -> Void
         case _ where Value.self == CGAffineTransform.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGAffineTransform) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CGAffineTransform) -> Void
         case _ where Value.self == IndexSet.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, IndexSet) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, IndexSet) -> Void
         case _ where Value.self == IndexPath.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, IndexPath) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, IndexPath) -> Void
         case _ where Value.self == NSRange.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSRange) -> Void
-        #if !os(watchOS)
-        case _ where Value.self == CATransform3D.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CATransform3D) -> Void
-        #endif
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSRange) -> Void
         case _ where Value.self == CMTime.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CMTime) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CMTime) -> Void
         case _ where Value.self == CMTimeRange.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CMTimeRange) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CMTimeRange) -> Void
         case _ where Value.self == UnsafeRawPointer.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UnsafeRawPointer) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UnsafeRawPointer) -> Void
         case _ where Value.self == Optional<UnsafeRawPointer>.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Optional<UnsafeRawPointer>) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Optional<UnsafeRawPointer>) -> Void
         case _ where Value.self == NSUIEdgeInsets.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSUIEdgeInsets) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSUIEdgeInsets) -> Void
         case _ where Value.self == NSDirectionalRectEdge.self:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSDirectionalRectEdge) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSDirectionalRectEdge) -> Void
         case _ where Value.self == (()->()).self:
             return { obj, sel, value in
                 let swiftValue: () -> () = withoutActuallyEscaping(value) { escapable in
-                    let converted: () -> () = escapable
-                    return converted
+                    return escapable
                 }
                 closure(cast(obj), cast(swiftValue))
             } as @convention(block) (AnyObject, Selector, @convention(block) () -> Void) -> Void
@@ -519,24 +570,35 @@ extension Hook {
                 let swiftValue: (() -> ())? = {
                     guard let value else { return nil }
                     return withoutActuallyEscaping(value) { escapable in
-                        let converted: () -> () = escapable
-                        return converted
+                        return escapable
                     }
                 }()
                 closure(cast(obj), cast(swiftValue))
             } as @convention(block) (AnyObject, Selector, (@convention(block) () -> Void)?) -> Void
         case _ where Value.self == UUID.self:
-            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UUID) -> Void
+        case _ where Value.self == Selector.self:
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Selector) -> Void
+        case _ where Value.self == AnyClass.self:
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, AnyClass) -> Void
+        case _ where Value.self == UnsafeMutableRawPointer.self:
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, UnsafeMutableRawPointer) -> Void
+        case _ where Value.self == NSDirectionalEdgeInsets.self:
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, NSDirectionalEdgeInsets) -> Void
         #if os(macOS)
         case _ where Value.self == AffineTransform.self:
-            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, (() -> ())?) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, AffineTransform) -> Void
+        #endif
+        #if !os(watchOS)
+        case _ where Value.self == CATransform3D.self:
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, CATransform3D) -> Void
         #endif
         default:
-         return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Any) -> Void
+            return { closure(cast($0), cast($2)) } as @convention(block) (AnyObject, Selector, Any) -> Void
         }
     }
     
-    static func closure<Object, Value>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any where Value: RawRepresentable {
+    static func closure<Object, Value: RawRepresentable>(for closure: @escaping (_ object: Object,_ value: Value)->()) -> Any {
         self.closure(for: { closure($0, Value(rawValue: $1)!) })
     }
 }

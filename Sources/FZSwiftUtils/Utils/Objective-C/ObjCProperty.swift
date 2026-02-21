@@ -29,6 +29,11 @@ public struct ObjCProperty {
         return list.buffer(count: count).map({ Attribute(name: $0.name.string, value: $0.value.string) })
     }
     
+    /// Returns the attribute value for the attribute with the specified name.
+    public func attributeValue(for name: String) -> String? {
+        property_copyAttributeValue(property, name)?.stringAndFree()
+    }
+        
     /// An attribute of a property.
     public struct Attribute {
         /// The name of the attribute.
