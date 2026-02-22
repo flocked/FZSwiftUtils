@@ -447,12 +447,10 @@ private extension NSObject {
             let iv = ivars[i]
             guard ivar_getOffset(iv) == targetOffset,
                   let encC = ivar_getTypeEncoding(iv) else { continue }
-
             let enc = String(cString: encC)
             guard enc.first == "b",
                   let width = Int(enc.dropFirst()),
                   width > 0 else { continue }
-
             if iv == target {
                 targetWidth = width
             } else if targetWidth == nil {
@@ -463,12 +461,7 @@ private extension NSObject {
 
         guard let width = targetWidth else { return nil }
         let storageBytes = max(1, (totalBits + 7) / 8)
-        return BitfieldInfo(
-            byteOffset: targetOffset,
-            bitOffset: bitOffset,
-            width: width,
-            storageBytes: storageBytes
-        )
+        return BitfieldInfo(byteOffset: targetOffset, bitOffset: bitOffset, width: width, storageBytes: storageBytes)
     }
 
     static func getBitfieldValue(object: NSObject, bitfieldInfo: BitfieldInfo) -> UInt64 {
@@ -512,50 +505,40 @@ private extension NSObject {
             }
         }
     }
-
+    
     static func toUInt64<T>(_ value: T) -> UInt64? {
-        if let b = value as? Bool { return b ? 1 : 0 }
-        if let v = value as? UInt8 { return UInt64(v) }
-        if let v = value as? UInt16 { return UInt64(v) }
-        if let v = value as? UInt32 { return UInt64(v) }
-        if let v = value as? UInt64 { return v }
-        if let v = value as? UInt { return UInt64(v) }
-        if let v = value as? Int8 { return UInt64(bitPattern: Int64(v)) }
-        if let v = value as? Int16 { return UInt64(bitPattern: Int64(v)) }
-        if let v = value as? Int32 { return UInt64(bitPattern: Int64(v)) }
-        if let v = value as? Int64 { return UInt64(bitPattern: v) }
-        if let v = value as? Int { return UInt64(bitPattern: Int64(v)) }
+        if let int = value as? any BinaryInteger {
+            return UInt64(truncatingIfNeeded: int)
+        }
+        if let b = value as? Bool {
+            return b ? 1 : 0
+        }
         return nil
     }
 
-    static func fromUInt64<T>(_ raw: UInt64, width: Int, as _: T.Type) -> T? {
+    private static func fromUInt64<T>(_ raw: UInt64, width: Int, as _: T.Type) -> T? {
         if T.self == Bool.self { return (raw != 0) as? T }
-
-        if T.self == UInt8.self { return UInt8(truncatingIfNeeded: raw) as? T }
+        if T.self == UInt.self   { return UInt(truncatingIfNeeded: raw) as? T }
+        if T.self == UInt8.self  { return UInt8(truncatingIfNeeded: raw) as? T }
         if T.self == UInt16.self { return UInt16(truncatingIfNeeded: raw) as? T }
         if T.self == UInt32.self { return UInt32(truncatingIfNeeded: raw) as? T }
         if T.self == UInt64.self { return raw as? T }
-        if T.self == UInt.self { return UInt(truncatingIfNeeded: raw) as? T }
 
-        let signed: Int64 = {
-            guard width > 0 && width < 64 else { return Int64(bitPattern: raw) }
-            let signBit = UInt64(1) << UInt64(width - 1)
-            let fullMask = (UInt64(1) << UInt64(width)) - 1
-            let v = raw & fullMask
-            if (v & signBit) != 0 {
-                return Int64(bitPattern: v | ~fullMask) // sign extend
-            } else {
-                return Int64(bitPattern: v)
-            }
-        }()
-
-        if T.self == Int8.self { return Int8(truncatingIfNeeded: signed) as? T }
+        let signed = signExtend(raw, width: width)
+        if T.self == Int.self   { return Int(truncatingIfNeeded: signed) as? T }
+        if T.self == Int8.self  { return Int8(truncatingIfNeeded: signed) as? T }
         if T.self == Int16.self { return Int16(truncatingIfNeeded: signed) as? T }
         if T.self == Int32.self { return Int32(truncatingIfNeeded: signed) as? T }
         if T.self == Int64.self { return signed as? T }
-        if T.self == Int.self { return Int(truncatingIfNeeded: signed) as? T }
-
         return nil
+    }
+
+    private static func signExtend(_ raw: UInt64, width: Int) -> Int64 {
+        guard width > 0 && width < 64 else { return Int64(bitPattern: raw) }
+        let signBit = UInt64(1) << UInt64(width - 1)
+        let mask = (UInt64(1) << UInt64(width)) - 1
+        let v = raw & mask
+        return (v & signBit) != 0 ? Int64(bitPattern: v | ~mask) : Int64(bitPattern: v)
     }
 }
 
