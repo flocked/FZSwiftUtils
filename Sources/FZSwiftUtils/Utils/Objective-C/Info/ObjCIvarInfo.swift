@@ -24,12 +24,14 @@ public struct ObjCIvarInfo: Sendable, Equatable, Codable {
     
     /// The size of the instance variable.
     public var size: Int? {
-        bitfieldBits ?? ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size
+        ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size
     }
     
-    var bitfieldBits: Int? {
-        guard typeEncoding.first == "b", let bits = Int(typeEncoding.dropFirst()) else { return nil }
-        return max(1, (bits + 7) / 8)
+    var isBitfield: Bool { typeEncoding.first == "b" }
+
+    var bitWidth: Int? {
+        guard isBitfield else { return nil }
+        return Int(typeEncoding.dropFirst())
     }
     
     /**
