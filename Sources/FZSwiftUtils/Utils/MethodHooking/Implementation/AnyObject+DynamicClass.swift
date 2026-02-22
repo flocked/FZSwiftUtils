@@ -13,7 +13,7 @@ func wrapDynamicClassIfNeeded(object: AnyObject) throws -> AnyClass {
         throw HookError.internalError(file: #file, line: #line)
     }
 
-    guard DynamicClassContext[dynamic: baseClass] != nil else {
+    guard DynamicClassContext[dynamic: baseClass] == nil else {
         return baseClass
     }
     
