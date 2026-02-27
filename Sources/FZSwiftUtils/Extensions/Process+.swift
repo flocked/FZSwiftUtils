@@ -15,15 +15,12 @@ extension Process {
      - Note: If the stream is read from outside of the handler, or more than once inside it, it may be called once when stream is closed and empty.
      */
     public var onStringOutput: ((String)->())? {
-        get { stdout?.onStringOutput }
+        get { standardOutputPipe?.fileHandleStream.onStringOutput }
         set {
-            if let newValue = newValue {
-                onOutput = nil
-                setupOutputPipe()
-                stdout?.onStringOutput = newValue
-            } else {
-                stdout?.onStringOutput = nil
+            if newValue != nil, standardOutputPipe == nil {
+                standardOutput = Pipe()
             }
+            standardOutputPipe?.fileHandleStream.onStringOutput = newValue
         }
     }
     
@@ -33,96 +30,81 @@ extension Process {
      - Note: If the stream is read from outside of the handler, or more than once inside it, it may be called once when stream is closed and empty.
      */
     public var onOutput: ((Process)->())? {
-        get { getAssociatedValue("onOutput") }
+        get { standardOutputPipe?.onOutput }
         set {
-            setAssociatedValue(newValue, key: "onOutput")
+            if newValue != nil, standardOutputPipe == nil {
+                standardOutput = Pipe()
+            }
+            standardOutputPipe?.onOutput = newValue
             if let newValue = newValue {
-                onStringOutput = nil
-                setupOutputPipe()
-                stdout?.onOutput = { [weak self] _ in
+                standardOutputPipe?.fileHandleStream.onOutput = { [weak self] _ in
                     guard let self = self else { return }
                     newValue(self)
                 }
             } else {
-                stdout?.onOutput = nil
+                standardOutputPipe?.fileHandleStream.onOutput = nil
             }
         }
     }
     
     /// The handler to be called whenever there is new error output available.
     public var onErrorOutput: ((Process)->())? {
-        get { getAssociatedValue("onErrorOutput") }
+        get { standardErrorPipe?.onOutput }
         set {
-            setAssociatedValue(newValue, key: "onErrorOutput")
+            if newValue != nil, standardErrorPipe == nil {
+                standardError = Pipe()
+            }
+            standardErrorPipe?.onOutput = newValue
             if let newValue = newValue {
-                onErrorStringOutput = nil
-                setupOutputPipe(error: true)
-                stderror?.onOutput = { [weak self] _ in
+                standardErrorPipe?.fileHandleStream.onOutput = { [weak self] _ in
                     guard let self = self else { return }
                     newValue(self)
                 }
             } else {
-                stderror?.onOutput = nil
+                standardErrorPipe?.fileHandleStream.onOutput = nil
             }
         }
     }
     
     /// The handler to be called whenever there is new error text output available.
     public var onErrorStringOutput: ((String)->())? {
-        get { stderror?.onStringOutput }
+        get { standardErrorPipe?.fileHandleStream.onStringOutput }
         set {
-            if let newValue = newValue {
-                onErrorOutput = nil
-                setupOutputPipe(error: true)
-                stderror?.onStringOutput = newValue
-            } else {
-                stderror?.onStringOutput = nil
+            if newValue != nil, standardErrorPipe == nil {
+                standardError = Pipe()
             }
+            standardErrorPipe?.fileHandleStream.onStringOutput = newValue
         }
     }
     
     public func readStringOutput() -> String {
-        setupOutputPipe(error: false)
-        return stdout!.read()
+        if standardOutputPipe == nil { standardOutput = Pipe() }
+        return standardOutputPipe?.fileHandleStream.read() ?? ""
     }
     
     public func readErrorStringOutput() -> String {
-        setupOutputPipe(error: true)
-        return stderror!.read()
+        if standardErrorPipe == nil { standardError = Pipe() }
+        return standardErrorPipe?.fileHandleStream.read() ?? ""
     }
     
-    private var stdout: FileHandleStream? {
-        get { getAssociatedValue("stdout") }
-        set { setAssociatedValue(newValue, key: "stdout") }
+    private var standardOutputPipe: Pipe? {
+        standardOutput as? Pipe
     }
     
-    private var stderror: FileHandleStream? {
-        get { getAssociatedValue("stderror") }
-        set { setAssociatedValue(newValue, key: "stderror") }
-    }
-    
-    private func setupOutputPipe(error: Bool = false) {
-        if error {
-            guard stderror == nil else { return }
-            if let pipe = standardError as? Pipe {
-                stderror = .init(pipe.fileHandleForReading)
-            } else {
-                let pipe = Pipe()
-                standardError = pipe
-                stderror = .init(pipe.fileHandleForReading)
-            }
-        } else {
-            guard stdout == nil else { return }
-            if let pipe = standardOutput as? Pipe {
-                stdout = .init(pipe.fileHandleForReading)
-            } else {
-                let pipe = Pipe()
-                standardOutput = pipe
-                stdout = .init(pipe.fileHandleForReading)
-            }
-        }
+    private var standardErrorPipe: Pipe? {
+        standardError as? Pipe
     }
 }
 
+fileprivate extension Pipe {
+    var fileHandleStream: FileHandleStream {
+        getAssociatedValue("fileHandleStream", initialValue: .init(fileHandleForReading))
+    }
+    
+    var onOutput: ((Process)->())? {
+        get { getAssociatedValue("onOutput") }
+        set { setAssociatedValue(newValue, key: "onOutput") }
+    }
+}
 
 #endif

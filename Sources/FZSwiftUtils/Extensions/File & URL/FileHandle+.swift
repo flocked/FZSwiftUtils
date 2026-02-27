@@ -15,13 +15,7 @@ extension FileHandle {
      - Returns: The contents, or `nil` the file handle has reached end.
      */
     public func readSome(encoding: String.Encoding = .utf8) throws -> String? {
-        var data: Data?
-        if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, watchOS 6.2, *) {
-            data = try readToEnd()
-        } else {
-            data = availableData
-        }
-        guard let data = data, !data.isEmpty else { return nil }
+        guard let data = try readToEnd(), !data.isEmpty else { return nil }
         guard let result = String(data: data, encoding: encoding) else {
             throw Errors.couldntConvertBinrayToText
         }
@@ -34,13 +28,7 @@ extension FileHandle {
      - Parameter encoding: The string encoding to use.
      */
     public func read(encoding: String.Encoding = .utf8) throws -> String {
-        var data: Data?
-        if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, watchOS 6.2, *) {
-            data = try readToEnd()
-        } else {
-            data = readDataToEndOfFile()
-        }
-        guard let data = data else {
+        guard let data = try readToEnd() else {
             throw Errors.noData
         }
         guard let result = String(data: data, encoding: encoding) else {
@@ -60,11 +48,7 @@ extension FileHandle {
         guard let data = string.data(using: encoding, allowLossyConversion: false) else {
             fatalError("Could not convert text to binary data.")
         }
-        if #available(macOS 10.15.4, iOS 13.4, tvOS 13.4, watchOS 6.2, *) {
-            try write(contentsOf: data)
-        } else {
-            write(data)
-        }
+        try write(contentsOf: data)
     }
     
     fileprivate enum Errors: Error {
