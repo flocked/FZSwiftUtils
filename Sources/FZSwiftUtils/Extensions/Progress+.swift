@@ -68,30 +68,29 @@ extension Progress {
 
     /// A Boolean value indicating whether the progress should auomatically update the estimated time remaining and throughput.
     public var autoUpdateEstimatedTimeRemaining: Bool {
-        get { eta.observer != nil }
+        get { !eta.observations.isEmpty }
         set {
             guard newValue != autoUpdateEstimatedTimeRemaining else { return }
             if newValue {
                 eta.count = 0
-                eta.observer = KeyValueObserver(self)
-                eta.observer?.add(\.isPaused) { [weak self] old, new in
+                eta.observations += observeChanges(for: \.isPaused) { [weak self] old, new in
                     guard let self = self else { return }
                     self.eta.count = 0
                     self.updateEstimatedTimeRemaining()
                 }
-                eta.observer?.add(\.isCancelled) { [weak self] old, new in
+                eta.observations += observeChanges(for: \.isCancelled) { [weak self] old, new in
                     guard let self = self else { return }
                     self.eta.count = 0
                     self.updateEstimatedTimeRemaining()
                 }
-                eta.observer?.add(\.fractionCompleted, sendInitalValue: true) { [weak self] old, new in
+                eta.observations += observeChanges(for: \.fractionCompleted, sendInitalValue: true) { [weak self] old, new in
                     guard let self = self else { return }
                     self.eta.count = 0
                     self.updateEstimatedTimeRemaining()
                 }
             } else {
                 eta.delayedUpdate?.cancel()
-                eta.observer = nil
+                eta.observations = []
             }
         }
     }
@@ -112,7 +111,7 @@ extension Progress {
         let sampleLimit = 30
         var sampleEvaluationTimeInterval: TimeInterval = 30
         var delayedUpdate: DispatchWorkItem?
-        var observer: KeyValueObserver<Progress>?
+        var observations: [KeyValueObservation] = []
         var count = 0
         let maxCount = 30
         

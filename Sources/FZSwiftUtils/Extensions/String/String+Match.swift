@@ -262,7 +262,7 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     /// The extracted components.
     public let components: Components
     /// The matched groups of a regular expression string match.
-    public let groups: [StringMatch]
+    public let groups: [StringMatch?]
     /// The pattern of a regular expression match.
     public let regularExpression: String?
     
@@ -272,7 +272,7 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         if self.range == range {
             return self
         }
-        return groups.first(where: { $0.range == range })
+        return groups.nonNil.first(where: { $0.range == range })
     }
     
     /// The matched group with the specified name of a regular expression string match.
@@ -349,11 +349,11 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     private func strings(depth: Int = 0) -> [String] {
         var strings: [String] = []
         strings += "  ".repeating(amount: depth) + "[\(range), \(string)]"
-        strings += groups.flatMap({ $0.strings(depth: depth + 1) })
+        strings += groups.flatMap({ $0?.strings(depth: depth + 1) ?? ["  ".repeating(amount: depth+1) + "-"] })
         return strings
     }
     
-    init(_ type: ResultType, string: String, range: Range<String.Index>, groups: [StringMatch] = [], result: NSTextCheckingResult? = nil) {
+    init(_ type: ResultType, string: String, range: Range<String.Index>, groups: [StringMatch?] = [], result: NSTextCheckingResult? = nil) {
         self.type = type
         self.string = String(string[range])
         self.range = range
@@ -369,11 +369,11 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     }
     
     init?(_ result: NSTextCheckingResult, string: String, type: ResultType = .regularExpression) {
-        let matches: [StringMatch] = (0..<result.numberOfRanges).compactMap {
+        let matches: [StringMatch?] = (0..<result.numberOfRanges).map {
             guard let range = Range(result.range(at: $0), in: string) else { return nil }
             return StringMatch(type, string: string, range: range)
         }
-        guard let first = matches.first else { return nil }
+        guard let first = matches.first?.optional else { return nil }
         self.init(type, string: string, range: first.range, groups: Array(matches.dropFirst()), result: result)
     }
     

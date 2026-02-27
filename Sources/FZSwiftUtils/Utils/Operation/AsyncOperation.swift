@@ -12,7 +12,7 @@ import Foundation
  
  You have to override ``main()`` to perform your desired task and finish the operation by calling ``finish()``.
   
- Always call `super` when overriding `start()`, `cancel()`, `finish()`, `pause()` or `resume()`.
+ Always call `super` when overriding ``start()``, ``cancel()`` ``finish(success:)``, ``pause()`` or ``resume()``.
  */
 open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     
@@ -24,10 +24,10 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     open var startHandler: (()->())? = nil
     
     /// The maximum amount of retries.
-    open var maximumRetries = 1
+    public var maximumRetries = 1
 
     /// The current retry attempt.
-    open private(set) var currentAttempt = 0
+    public private(set) var currentAttempt = 0
     
     /// The state of the operation.
     @objc public enum State: Int, Hashable, CustomStringConvertible {
@@ -57,7 +57,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     }
     
     /// The state of the operation.
-    @objc dynamic open internal(set) var state: State {
+    @objc dynamic public private(set) var state: State {
         get { stateQueue.sync { _state } }
         set {
             guard newValue != _state else { return }
@@ -86,28 +86,32 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         }
     }
     
-    override open var isReady: Bool {
+    override public var isReady: Bool {
         state == .ready
     }
 
-    override open var isExecuting: Bool {
+    override public var isExecuting: Bool {
         state == .executing || state == .paused
     }
 
-    override open var isFinished: Bool {
+    override public var isFinished: Bool {
         state == .finished || state == .cancelled || state == .failed
     }
     
-    override open var isAsynchronous: Bool {
+    override public var isAsynchronous: Bool {
         true
     }
     
     /// A Boolean value indicating whether the operation has been paused.
-    open var isPaused: Bool {
+    public var isPaused: Bool {
         state == .paused
     }
     
-    /// Starts the operation,
+    /**
+     Starts the operation.
+     
+     If you overwrite this method, call `super.start()`.
+     */
     override open func start() {
         guard !isCancelled, !isExecuting, !isFinished else { return }
         state = .executing
@@ -120,7 +124,11 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
       fatalError("Subclasses of `AsyncOperation` must implement `main()`.")
     }
     
-    /// Cancels the operation.
+    /**
+     Cancels the operation.
+     
+     If you overwrite this method, call `super.cancel()`.
+     */
     override open func cancel() {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
@@ -137,10 +145,12 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     /**
      Finishes the operation.
      
-     - Parameter success: A Boolean value indicating whether the operation finished successfully.
+     If you overwrite this method, call `super.finish(success: sucess)`.
      
-     - If `success` is `true`, the operation's state is set to `finish`.
-     - If `false`, the operation may retry if the maximum amount of retries isn't reached, otherwise the state is set to `failed`.
+     - Parameter success: A Boolean value indicating whether the operation finished successfully.
+            
+        - If `sucess` is `true`, the operation's state is set to `finish`.
+        - If `false`, the operation may retry if the maximum amount of retries isn't reached (``maximumRetries``), otherwise the state is set to `failed`.
      */
     open func finish(success: Bool = true) {
         pauseCondition.lock()
@@ -156,7 +166,11 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         }
     }
 
-    /// Pauses the operation.
+    /**
+     Pauses the operation.
+     
+     If you overwrite this method, call `super.pause()`.
+     */
     open func pause() {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
@@ -164,7 +178,11 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         state = .paused
     }
     
-    /// Resumes the operation, if it's paused.
+    /**
+     Resumes the operation, if it's paused.
+     
+     If you overwrite this method, call `super.resume()`.
+     */
     open func resume() {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
@@ -200,7 +218,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         }
         pauseCondition.unlock()
     }
-    
+        
     override open class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
         if ["isReady", "isFinished", "isExecuting"].contains(key) {
             return ["state"]
@@ -208,7 +226,6 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         return super.keyPathsForValuesAffectingValue(forKey: key)
     }
 }
-
 
 /// An asynchronous, pausable operation executing a specifed handler.
 open class AsyncBlockOperation: AsyncOperation, @unchecked Sendable {

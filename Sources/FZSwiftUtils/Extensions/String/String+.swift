@@ -533,7 +533,7 @@ public extension String {
             let matches = result.matches(pattern: #"Optional\(([^()]*?)\)"#)
             if matches.isEmpty { break }
             for match in matches.reversed() {
-                if let content = match.groups[safe: 0]?.string {
+                if let content = match.groups[safe: 0]??.string {
                     if content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { continue }
                     result.replaceSubrange(match.range, with: String(content))
                 }
