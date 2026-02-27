@@ -129,6 +129,12 @@ open class MutableProgress: Progress, @unchecked Sendable {
                 self.updateProgresses()
             }
         }
+        observer.addWillChange(\.isFinished) { [weak self] _ in
+            self?.willChangeValue(for: \.completedUnitCount)
+        }
+        observer.add(\.isFinished) { [weak self] _,_ in
+            self?.didChangeValue(for: \.completedUnitCount)
+        }
         if report {
             didChangeValue(for: \.children)
             didChangeValue(for: \.fractionCompleted)
