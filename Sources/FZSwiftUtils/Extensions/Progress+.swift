@@ -231,6 +231,6 @@ extension Progress {
         formatter.locale = locale
         formatter.units = units
         formatter.fractionLength = fractionLength
-        return formatter.string(for: throughput ?? 0)
+        return formatter.string(from: throughput ?? 0)
     }
 }

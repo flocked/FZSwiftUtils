@@ -143,17 +143,16 @@ public class ThroughputFormatter: Formatter {
     }
     
     /// The formatter string for the specified throughput (bytes per second).
-    public func string(for dataSizePerSecond: DataSize) -> String {
-        string(for: dataSizePerSecond.bytes)
+    public func string(from dataSizePerSecond: DataSize) -> String {
+        string(from: dataSizePerSecond.bytes)
     }
     
     /// The formatted string for the specified throughput (bytes per second).
-    public func string<I: BinaryInteger>(for bytesPerSecond: I) -> String {
+    public func string<I: BinaryInteger>(from bytesPerSecond: I) -> String {
         if units.isEmpty {
             units = [.bytes]
-            let string = string(for: bytesPerSecond)
-            units = []
-            return string
+            defer { units = [] }
+            return string(from: bytesPerSecond)
         }
         let units = units.ordered
         var speed = Double(bytesPerSecond)
@@ -172,12 +171,11 @@ public class ThroughputFormatter: Formatter {
         return strings.joined(separator: " ")
     }
     
-    @_disfavoredOverload
     public override func string(for obj: Any?) -> String? {
         if let dataSizePerSecond = obj as? DataSize {
-            return string(for: dataSizePerSecond)
+            return string(from: dataSizePerSecond)
         } else if let bytesPerSecond = obj as? any BinaryInteger {
-            return string(for: bytesPerSecond)
+            return string(from: bytesPerSecond)
         }
         return nil
     }
