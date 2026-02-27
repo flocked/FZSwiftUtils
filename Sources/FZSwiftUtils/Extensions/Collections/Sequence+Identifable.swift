@@ -10,7 +10,7 @@ import Foundation
 public extension Sequence where Element: Identifiable {
     /// An array of the element identifiers.
     var ids: [Element.ID] {
-        compactMap(\.id)
+        map(\.id)
     }
 
     /// The element with the specified identifier, or `nil` if the sequence doesn't contain an element with the identifier.
@@ -20,7 +20,8 @@ public extension Sequence where Element: Identifiable {
 
     /// The elements with the specified identifiers.
     subscript<S: Sequence<Element.ID>>(ids ids: S) -> [Element] {
-        filter { ids.contains($0.id) }
+        let ids = Set(ids)
+        return filter { ids.contains($0.id) }
     }
 }
 
@@ -73,45 +74,45 @@ public extension RangeReplaceableCollection where Element: Identifiable {
     }
 }
 /*
-public extension Collection where Element: Identifiable {
-    /**
-     Returns the first index of the specified element.
+ public extension Collection where Element: Identifiable {
+     /*
+      Returns the first index of the specified element.
 
-     - Parameter element: The element for returning the index.
-     - Returns: The first index of the element, or `nil` if the collection doesn't contain the element.
-     */
-    func firstIndex(of element: Element) -> Index? {
-        firstIndex(where: { $0.id == element.id })
-    }
+      - Parameter element: The element for returning the index.
+      - Returns: The first index of the element, or `nil` if the collection doesn't contain the element.
+      */
+     func firstIndex(of element: Element) -> Index? {
+         firstIndex(where: { $0.id == element.id })
+     }
     
-    /**
-     Returns the first index of the specified element identifier.
+     /*
+      Returns the first index of the specified element identifier.
 
-     - Parameter id: The element identifier for returning the index.
-     - Returns: The first index of the elemen identifiert, or `nil` if the collection doesn't contain any element with the identifier.
-     */
-    func firstIndex(of id: Element.ID) -> Index? {
-        firstIndex(where: { $0.id == id })
-    }
+      - Parameter id: The element identifier for returning the index.
+      - Returns: The first index of the elemen identifiert, or `nil` if the collection doesn't contain any element with the identifier.
+      */
+     func firstIndex(of id: Element.ID) -> Index? {
+         firstIndex(where: { $0.id == id })
+     }
 
-    /**
-     Returns the indexes of the specified elements.
+     /*
+      Returns the indexes of the specified elements.
 
-     - Parameter elements: The elements for returning the indexes.
-     - Returns: An array of indexes for the specified elements.
-     */
-    func indexes<S: Sequence<Element>>(of elements: S) -> [Index] {
-        elements.compactMap { firstIndex(of: $0) }
-    }
+      - Parameter elements: The elements for returning the indexes.
+      - Returns: An array of indexes for the specified elements.
+      */
+     func indexes<S: Sequence<Element>>(of elements: S) -> [Index] {
+         elements.compactMap { firstIndex(of: $0) }
+     }
     
-    /**
-     Returns the indexes of the specified element identifiers.
+     /*
+      Returns the indexes of the specified element identifiers.
 
-     - Parameter ids: The element identifiers for returning the indexes.
-     - Returns: An array of indexes for the specified element identifiers.
-     */
-    func indexes<S: Sequence<Element.ID>>(of ids: S) -> [Index] {
-        ids.compactMap { firstIndex(of: $0) }
-    }
-}
-*/
+      - Parameter ids: The element identifiers for returning the indexes.
+      - Returns: An array of indexes for the specified element identifiers.
+      */
+     func indexes<S: Sequence<Element.ID>>(of ids: S) -> [Index] {
+         ids.compactMap { firstIndex(of: $0) }
+     }
+ }
+ */

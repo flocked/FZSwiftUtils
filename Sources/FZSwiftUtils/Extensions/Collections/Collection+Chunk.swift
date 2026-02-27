@@ -19,7 +19,7 @@ public extension Collection where Index == Int {
      array.chunked(size: 2) // [[1,2], [3,4], [5,6], [7,8], [9]]
      ```
 
-     - Parameter size: The size of the chunk.
+     - Parameter size: The size of each chunk.
      - Returns: Returns an array of chunks.
      */
     func chunked(size: Int) -> [[Element]] {
@@ -64,8 +64,8 @@ public extension Sequence {
      - Parameter keyPath: The keyPath of the value.
      - Returns: Returns an array of chunks for each unique keypath value.
      */
-    func chunked<C: Comparable>(by keyPath: KeyPath<Element, C?>, ascending: Bool = true) -> [(C, [Element])] {
-        chunked(by: { $0[keyPath: keyPath] }, ascending: ascending)
+    func chunked<C: Comparable>(by keyPath: KeyPath<Element, C?>, order: SortOrder = .forward) -> [(C, [Element])] {
+        chunked(by: { $0[keyPath: keyPath] }, order: order)
     }
 
     /**
@@ -74,8 +74,8 @@ public extension Sequence {
      - Parameter keyPath: The keyPath of the value.
      - Returns: Returns an array of chunks for each unique keypath value.
      */
-    func chunked<C: Comparable>(by keyPath: KeyPath<Element, C>, ascending: Bool = true) -> [(C, [Element])] {
-        chunked(by: { $0[keyPath: keyPath] }, ascending: ascending)
+    func chunked<C: Comparable>(by keyPath: KeyPath<Element, C>, order: SortOrder = .forward) -> [(C, [Element])] {
+        chunked(by: { $0[keyPath: keyPath] }, order: order)
     }
     
     /**
@@ -84,10 +84,10 @@ public extension Sequence {
      - Parameter comparison: A comparison handler returning a comparable value.
      - Returns: Returns an array of chunks for each unique comparison value.
      */
-    func chunked<C: Comparable>(by comparison: (Element) -> C?, ascending: Bool = true) -> [(C, [Element])] {
+    func chunked<C: Comparable>(by comparison: (Element) -> C?, order: SortOrder = .forward) -> [(C, [Element])] {
         let items = compactMap { (comparison($0), $0) }
         var uniqueValues = items.compactMap(\.0).uniqued()
-        if !ascending {
+        if order == .descending {
           uniqueValues.reverse()
         }
         
@@ -102,12 +102,12 @@ public extension Sequence {
      - Parameter comparison: A comparison handler returning a comparable value.
      - Returns: Returns an array of chunks for each unique comparison value.
      */
-    func chunked<C: Comparable & Hashable>(by comparison: (Element) -> C?, ascending: Bool = true) -> [(C, [Element])] {
+    func chunked<C: Comparable & Hashable>(by comparison: (Element) -> C?, order: SortOrder = .forward) -> [(C, [Element])] {
         let groups: [C: [Element]] = reduce(into: [:]) { groups, element in
             guard let key = comparison(element) else { return }
             groups[key, default: []] += element
         }
-        return groups.keys.sorted(ascending ? .ascending : .descending).map { ($0, groups[$0]!) }
+        return groups.keys.sorted(order).map { ($0, groups[$0]!) }
     }
 }
 
