@@ -20,7 +20,7 @@ public extension CGRect {
 }
 #endif
 
-extension NSUIEdgeInsets: Swift.Hashable, Swift.Equatable {
+extension NSUIEdgeInsets: Swift.Hashable {
     #if os(macOS)
     /// An edge insets struct whose top, left, bottom, and right fields are all set to 0.
     public static let zero = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -139,6 +139,10 @@ extension NSUIEdgeInsets: Swift.Hashable, Swift.Equatable {
 }
 
 #if os(macOS)
+extension NSEdgeInsets: Swift.Equatable { }
+#endif
+
+#if os(macOS)
 extension NSUIEdgeInsets: Swift.Encodable, Swift.Decodable {
     public enum CodingKeys: String, CodingKey {
         case top
@@ -162,7 +166,7 @@ extension NSUIEdgeInsets: Swift.Encodable, Swift.Decodable {
 }
 #endif
 
-extension NSDirectionalEdgeInsets: Swift.Hashable, Swift.Equatable {
+extension NSDirectionalEdgeInsets: Swift.Hashable {
     #if os(macOS)
     /// A directional edge insets structure whose top, leading, bottom, and trailing fields all have a value of ´0´.
     public static let zero = NSDirectionalEdgeInsets(0)
@@ -287,6 +291,10 @@ extension NSDirectionalEdgeInsets: Swift.Hashable, Swift.Equatable {
         lhs = lhs - rhs
     }
 }
+
+#if os(macOS)
+extension NSDirectionalEdgeInsets: Swift.Equatable { }
+#endif
 
 #if os(macOS)
 extension NSDirectionalEdgeInsets: Swift.Encodable, Swift.Decodable {
