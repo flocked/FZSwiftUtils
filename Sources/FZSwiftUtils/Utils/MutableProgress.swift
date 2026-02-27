@@ -109,19 +109,16 @@ open class MutableProgress: Progress, @unchecked Sendable {
             guard let self = self else { return }
             self.updateProgresses()
         }
-        
         observer.add(\.completedUnitCount) { [weak self] _, _ in
             guard let self = self else { return }
             self.updateProgresses()
         }
-        
-        observer.add(\.fractionCompleted) { [weak self] _, _ in
-            guard let self = self else { return }
-            self.updateProgresses()
-            self.willChangeValue(for: \.fractionCompleted)
-            self.didChangeValue(for: \.fractionCompleted)
+        observer.addWillChange(\.fractionCompleted) { [weak self] _ in
+            self?.willChangeValue(for: \.fractionCompleted)
         }
-
+        observer.add(\.fractionCompleted) { [weak self] _, _ in
+            self?.didChangeValue(for: \.fractionCompleted)
+        }
         observer.add(\.isCancelled) { [weak self] _, isCancelled in
             guard let self = self else { return }
             if isCancelled, self.removesCancelledChildren {
