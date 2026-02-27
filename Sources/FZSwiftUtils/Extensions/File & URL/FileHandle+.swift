@@ -17,7 +17,7 @@ extension FileHandle {
     public func readSome(encoding: String.Encoding = .utf8) throws -> String? {
         guard let data = try readToEnd(), !data.isEmpty else { return nil }
         guard let result = String(data: data, encoding: encoding) else {
-            throw Errors.couldntConvertBinrayToText
+            throw Errors.failedToConvertDataToString
         }
         return result
     }
@@ -32,7 +32,7 @@ extension FileHandle {
             throw Errors.noData
         }
         guard let result = String(data: data, encoding: encoding) else {
-            throw Errors.couldntConvertBinrayToText
+            throw Errors.failedToConvertDataToString
         }
         return result
     }
@@ -46,14 +46,15 @@ extension FileHandle {
     */
     public func write(_ string: String, encoding: String.Encoding = .utf8) throws {
         guard let data = string.data(using: encoding, allowLossyConversion: false) else {
-            fatalError("Could not convert text to binary data.")
+            throw Errors.failedToConvertStringToDara
         }
         try write(contentsOf: data)
     }
     
     fileprivate enum Errors: Error {
         case noData
-        case couldntConvertBinrayToText
+        case failedToConvertDataToString
+        case failedToConvertStringToDara
     }
 }
 

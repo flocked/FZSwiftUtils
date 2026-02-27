@@ -9,6 +9,7 @@ import Foundation
 
 /// A stream of text.
 public protocol ReadableStream: AnyObject, TextOutputStreamable {
+    /// The string encoding used reading strings.
     var encoding: String.Encoding { get set }
     var filehandle: FileHandle { get }
 

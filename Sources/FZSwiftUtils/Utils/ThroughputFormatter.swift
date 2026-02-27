@@ -8,7 +8,7 @@
 import Foundation
 
 /// A formatter that creates string representations of a data throughput (bytes per second).
-public class ThroughputFormatter {
+public class ThroughputFormatter: Formatter {
     private let formatter = NumberFormatter()
 
     /// The allowed units to be used for formatting.
@@ -34,7 +34,7 @@ public class ThroughputFormatter {
      The default value is `short`.
      */
     @discardableResult
-    func unitStyle(_ style: Formatter.UnitStyle) -> Self {
+    public func unitStyle(_ style: Formatter.UnitStyle) -> Self {
         unitStyle = style
         return self
     }
@@ -52,7 +52,7 @@ public class ThroughputFormatter {
      The default value is `file`.
      */
     @discardableResult
-    func countStyle(_ style: ByteCountFormatter.CountStyle) -> Self {
+    public func countStyle(_ style: ByteCountFormatter.CountStyle) -> Self {
         countStyle = style
         return self
     }
@@ -103,17 +103,45 @@ public class ThroughputFormatter {
      The default value is `current`.
      */
     @discardableResult
-    func locale(_ locale: Locale) -> Self {
+    public func locale(_ locale: Locale) -> Self {
         self.locale = locale
         return self
     }
     
     /// Creates a throughput formatter.
     public init(units: Units = .all, fractionLength: NumberFormatter.DigitLength = .max(2)) {
+        super.init()
         self.units = units
         self.fractionLength = fractionLength
     }
-            
+    
+    required init?(coder: NSCoder) {
+        if let rawValue: Int = coder.decode(forKey: "units") {
+            units = .init(rawValue: rawValue)
+        }
+        if let rawValue: Int = coder.decode(forKey: "unitStyle") {
+            unitStyle = .init(rawValue: rawValue) ?? unitStyle
+        }
+        if let rawValue: Int = coder.decode(forKey: "countStyle") {
+            countStyle = .init(rawValue: rawValue) ?? countStyle
+        }
+        locale = coder.decode(forKey: "locale") ?? locale
+        includesCount = coder.decode(forKey: "includesCount") ?? includesCount
+        includesUnit = coder.decode(forKey: "includesUnit") ?? includesUnit
+        super.init(coder: coder)
+        fractionLength = NumberFormatter.DigitLength(coder: coder) ?? fractionLength
+    }
+    
+    public override func encode(with coder: NSCoder) {
+        fractionLength.encode(with: coder)
+        coder.encode(units.rawValue, forKey: "units")
+        coder.encode(locale, forKey: "locale")
+        coder.encode(unitStyle.rawValue, forKey: "unitStyle")
+        coder.encode(countStyle.rawValue, forKey: "countStyle")
+        coder.encode(includesCount, forKey: "includesCount")
+        coder.encode(includesUnit, forKey: "includesUnit")
+    }
+    
     /// The formatter string for the specified throughput (bytes per second).
     public func string(for dataSizePerSecond: DataSize) -> String {
         string(for: dataSizePerSecond.bytes)
@@ -142,6 +170,16 @@ public class ThroughputFormatter {
             strings += units[unitIndex].localized(to: locale, unitStyle: unitStyle) + "/s"
         }
         return strings.joined(separator: " ")
+    }
+    
+    @_disfavoredOverload
+    public override func string(for obj: Any?) -> String? {
+        if let dataSizePerSecond = obj as? DataSize {
+            return string(for: dataSizePerSecond)
+        } else if let bytesPerSecond = obj as? any BinaryInteger {
+            return string(for: bytesPerSecond)
+        }
+        return nil
     }
     
     /// Units for formatting data throughput.

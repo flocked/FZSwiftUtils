@@ -407,3 +407,58 @@ public extension NumberFormatter {
         }
     }
 }
+
+extension NumberFormatter.DigitLength {
+    private enum CodingKeys {
+        static let kind = "kind"
+        static let value = "value"
+        static let lower = "lower"
+        static let upper = "upper"
+    }
+
+    private enum Kind: Int {
+        case fixed
+        case range
+        case min
+        case max
+    }
+
+    func encode(with coder: NSCoder) {
+        switch self {
+        case .fixed(let value):
+            coder.encode(Kind.fixed.rawValue, forKey: CodingKeys.kind)
+            coder.encode(value, forKey: CodingKeys.value)
+
+        case .range(let range):
+            coder.encode(Kind.range.rawValue, forKey: CodingKeys.kind)
+            coder.encode(range.lowerBound, forKey: CodingKeys.lower)
+            coder.encode(range.upperBound, forKey: CodingKeys.upper)
+
+        case .min(let value):
+            coder.encode(Kind.min.rawValue, forKey: CodingKeys.kind)
+            coder.encode(value, forKey: CodingKeys.value)
+
+        case .max(let value):
+            coder.encode(Kind.max.rawValue, forKey: CodingKeys.kind)
+            coder.encode(value, forKey: CodingKeys.value)
+        }
+    }
+
+    init?(coder: NSCoder) {
+        guard let kind = Kind(rawValue: coder.decodeInteger(forKey: CodingKeys.kind)) else {
+            return nil
+        }
+        switch kind {
+        case .fixed:
+            self = .fixed(coder.decodeInteger(forKey: CodingKeys.value))
+        case .range:
+            let lower = coder.decodeInteger(forKey: CodingKeys.lower)
+            let upper = coder.decodeInteger(forKey: CodingKeys.upper)
+            self = .range(lower...upper)
+        case .min:
+            self = .min(coder.decodeInteger(forKey: CodingKeys.value))
+        case .max:
+            self = .max(coder.decodeInteger(forKey: CodingKeys.value))
+        }
+    }
+}
