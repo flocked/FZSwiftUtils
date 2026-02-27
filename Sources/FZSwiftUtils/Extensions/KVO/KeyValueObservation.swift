@@ -728,10 +728,10 @@ fileprivate extension NSUIView {
                 original(view, selector, from, to)
                 view.didChangeValue(for: \.subviews)
             } as @convention(block) ((UIView, Selector, Int, Int) -> (), UIView, Selector, Int, Int) -> ())
-            try hookAfter(#selector(UIView.willRemoveSubview(_:)), closure: { view, selector in
+            try hookAfter(#selector(UIView.willRemoveSubview(_:)), closure: { view in
                 view.willChangeValue(for: \.subviews)
             })
-            try hookAfter(.string("_didRemoveSubview:"), closure: { view, selector in
+            try hookAfter(.string("_didRemoveSubview:"), closure: { view in
                 view.didChangeValue(for: \.subviews)
             })
         } catch {

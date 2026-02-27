@@ -9,6 +9,8 @@ import CoreGraphics
 import Foundation
 #if os(macOS)
 import AppKit
+#elseif os(iOS) || os(tvOS)
+import UIKit
 #endif
 
 public extension CGPoint {

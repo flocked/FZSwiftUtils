@@ -301,7 +301,7 @@ public extension Sequence where Element: BinaryFloatingPoint {
      
      - Parameter screen: The screen for the scale factor.
      */
-    func scaledIntegral(for screen: UIScreen) -> Self {
+    func scaledIntegral(for screen: UIScreen) -> [Element] {
         map({ $0.scaledIntegral(for: screen) })
     }
     #endif
