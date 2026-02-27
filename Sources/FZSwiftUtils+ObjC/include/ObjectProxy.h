@@ -15,7 +15,7 @@
 
 - (nonnull instancetype)initWithTargetObject:(nonnull NSObject *)targetObject;
 - (void)forwardingInvocation:(Invocation *_Nonnull)invocation;
-- (MethodSignature *_Nullable)getMethodSignatureForSelector:(SEL _Nonnull )sel;
+- (MethodSignature *_Nullable)_getMethodSignatureForSelector:(SEL _Nonnull )sel;
 
 @end
 

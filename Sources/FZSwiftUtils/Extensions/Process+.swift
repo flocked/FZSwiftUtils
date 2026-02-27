@@ -14,7 +14,7 @@ extension Process {
      
      - Note: If the stream is read from outside of the handler, or more than once inside it, it may be called once when stream is closed and empty.
      */
-    var onStringOutput: ((String)->())? {
+    public var onStringOutput: ((String)->())? {
         get { stdout?.onStringOutput }
         set {
             if let newValue = newValue {
@@ -32,7 +32,7 @@ extension Process {
      
      - Note: If the stream is read from outside of the handler, or more than once inside it, it may be called once when stream is closed and empty.
      */
-    var onOutput: ((Process)->())? {
+    public var onOutput: ((Process)->())? {
         get { getAssociatedValue("onOutput") }
         set {
             setAssociatedValue(newValue, key: "onOutput")
@@ -49,7 +49,8 @@ extension Process {
         }
     }
     
-    var onErrorOutput: ((Process)->())? {
+    /// The handler to be called whenever there is new error output available.
+    public var onErrorOutput: ((Process)->())? {
         get { getAssociatedValue("onErrorOutput") }
         set {
             setAssociatedValue(newValue, key: "onErrorOutput")
@@ -66,7 +67,8 @@ extension Process {
         }
     }
     
-    var onErrorStringOutput: ((String)->())? {
+    /// The handler to be called whenever there is new error text output available.
+    public var onErrorStringOutput: ((String)->())? {
         get { stderror?.onStringOutput }
         set {
             if let newValue = newValue {

@@ -23,7 +23,7 @@ public extension CGRect {
 extension NSUIEdgeInsets: Swift.Hashable, Swift.Equatable {
     #if os(macOS)
     /// An edge insets struct whose top, left, bottom, and right fields are all set to 0.
-    public static var zero = NSEdgeInsets(0)
+    public static let zero = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     #endif
 
     /// Creates an edge insets structure with the specified value for top, bottom, left and right.
@@ -165,7 +165,7 @@ extension NSUIEdgeInsets: Swift.Encodable, Swift.Decodable {
 extension NSDirectionalEdgeInsets: Swift.Hashable, Swift.Equatable {
     #if os(macOS)
     /// A directional edge insets structure whose top, leading, bottom, and trailing fields all have a value of ´0´.
-    public static var zero = NSDirectionalEdgeInsets(0)
+    public static let zero = NSDirectionalEdgeInsets(0)
     #endif
 
     /// Creates an edge insets structure with the specified value for top, bottom, leading and trailing.
@@ -228,7 +228,7 @@ extension NSDirectionalEdgeInsets: Swift.Hashable, Swift.Equatable {
     public func clamped(min: Self) -> Self {
         NSDirectionalEdgeInsets(top: top.clamped(min: min.top), leading: leading.clamped(min: min.leading), bottom: bottom.clamped(min: min.bottom), trailing: trailing.clamped(min: min.trailing))
     }
-
+    
     /// Clamps the insets to the specified maximum value.
     public func clamped(max: Self) -> Self {
         NSDirectionalEdgeInsets(top: top.clamped(max: max.top), leading: leading.clamped(max: max.leading), bottom: bottom.clamped(max: max.bottom), trailing: trailing.clamped(max: max.trailing))
@@ -314,7 +314,7 @@ extension NSDirectionalEdgeInsets: Swift.Encodable, Swift.Decodable {
 
 extension EdgeInsets: Swift.Hashable, Swift.Encodable, Swift.Decodable {
     /// An edge insets struct whose top, leading, bottom, and trailing fields are all set to 0.
-    public static var zero: EdgeInsets = .init(top: 0, leading: 0, bottom: 0, trailing: 0)
+    public static let zero = EdgeInsets(0)
 
     /// Creates an edge insets structure whose specified edges have the value.
     public init(_ edges: Edge.Set, _ value: CGFloat) {
@@ -458,12 +458,8 @@ extension EdgeInsets: Swift.Hashable, Swift.Encodable, Swift.Decodable {
 
 extension Edge.Set {
     /// Leading and trailing edge.
-    public static var width: Self {
-        [.leading, .trailing]
-    }
+    public static let width: Self = [.leading, .trailing]
 
     /// Top and bottom edge.
-    public static var height: Self {
-        [.top, .bottom]
-    }
+    public static let height: Self = [.top, .bottom]
 }

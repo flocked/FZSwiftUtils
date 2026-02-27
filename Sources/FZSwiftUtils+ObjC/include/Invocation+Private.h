@@ -10,5 +10,4 @@
 
 @interface Invocation ()
 - (nonnull instancetype)initWithInvocation:(nonnull NSInvocation *)invocation;
-- (nonnull instancetype)initWithMethodSignature:(nonnull NSMethodSignature *)methodSignature;
 @end

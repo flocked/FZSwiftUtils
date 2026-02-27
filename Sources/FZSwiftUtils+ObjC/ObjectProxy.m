@@ -17,14 +17,14 @@
 }
 
 - (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
-    MethodSignature *signature = [self getMethodSignatureForSelector:sel];
+    MethodSignature *signature = [self _getMethodSignatureForSelector:sel];
     if (signature != nil) {
         return [signature methodSignature];
     }
     return nil;
 }
 
-- (MethodSignature *)getMethodSignatureForSelector:(SEL)sel {
+- (MethodSignature *)_getMethodSignatureForSelector:(SEL)sel {
     NSMethodSignature *methodSignature = [__target methodSignatureForSelector:sel];
     if (methodSignature != nil) {
         return [[MethodSignature alloc] initWithMethodSignature:methodSignature];;

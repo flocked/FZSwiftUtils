@@ -26,7 +26,7 @@ extension NSObject {
                 } else if arguments.count == 2 {
                     perform(selector, with: arguments[0], with: arguments[1])
                 } else {
-                    guard let signature = getMethodSignature(for: selector) else { return }
+                    guard let signature = _getMethodSignature(for: selector) else { return }
                     let invocation = Invocation(signature: signature)
                     invocation.target = self
                     invocation.selector = selector
@@ -61,7 +61,7 @@ extension NSObject {
     public func perform<V>(_ selector: Selector, withArguments arguments: [Any?] = []) -> V? {
         do {
             return try ObjCRuntime.catchException {
-                guard let signature = getMethodSignature(for: selector) else { return nil }
+                guard let signature = _getMethodSignature(for: selector) else { return nil }
                 let invocation = Invocation(signature: signature)
                 invocation.target = self
                 invocation.selector = selector
@@ -99,7 +99,7 @@ extension NSObject {
     public func perform(_ selector: Selector, withArguments arguments: [Any?] = []) -> Any? {
         do {
           return try ObjCRuntime.catchException {
-                guard let signature = getMethodSignature(for: selector) else { return nil }
+                guard let signature = _getMethodSignature(for: selector) else { return nil }
                 let invocation = Invocation(signature: signature)
                 invocation.target = self
                 invocation.selector = selector
@@ -413,7 +413,7 @@ fileprivate extension NSObject {
                 typealias Closure = (@convention(c) (AnyObject, Selector, Any, Any, Any, Any, Any, Any,  Any, Any, Any, Any) -> Any)
                 return unsafeBitCast(imp, to: Closure.self)(object, selector, values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8], values[9])
             default:
-                guard let signature = getMethodSignature(for: selector) else {
+                guard let signature = _getMethodSignature(for: selector) else {
                     throw CallError.unrecognizedSelector(selector: selector, class: type(of: object), isInstance: true)
                 }
                 let invocation = Invocation(signature: signature)

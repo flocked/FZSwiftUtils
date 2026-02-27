@@ -21,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 @interface NSObject (MethodSignature)
-- (nullable MethodSignature *)getMethodSignatureForSelector:(SEL)aSelector;
+- (nullable MethodSignature *)_getMethodSignatureForSelector:(SEL)aSelector;
 @end
 
 NS_ASSUME_NONNULL_END

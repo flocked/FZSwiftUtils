@@ -42,15 +42,6 @@ NS_INLINE BOOL IsCFBooleanPointerType(const char *type) {
     return self;
 }
 
-- (instancetype)initWithMethodSignature:(NSMethodSignature *)methodSignature {
-    self = [super init];
-    if (self) {
-        _invocation = [NSInvocation invocationWithMethodSignature:methodSignature];
-        _isVoidReturnType = NO;
-    }
-    return self;
-}
-
 - (instancetype)initWithSignature:(MethodSignature *)methodSignature {
     self = [super init];
     if (self) {

@@ -40,6 +40,7 @@ static NSRegularExpression *regex;
 // We need to remove the unused char like from "@?<@"NSNumber"@?@:q>" to "@?<@@?@:q>". Because we can get "NSNumber" from block. But can't get this from method. When do the metching. "NSNumber" is not helpful.
 - (NSString *)ignoreUnusedChar:(NSString *)type
 {
+    return type;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         regex = [NSRegularExpression regularExpressionWithPattern:@"\\\".+?\\\"" options:NSRegularExpressionCaseInsensitive error:NULL];
@@ -52,7 +53,7 @@ static NSRegularExpression *regex;
 @end
 
 @implementation NSObject (MethodSignature)
-- (MethodSignature *)getMethodSignatureForSelector:(SEL)aSelector {
+- (MethodSignature *)_getMethodSignatureForSelector:(SEL)aSelector {
     NSMethodSignature *signature = [self methodSignatureForSelector:aSelector];
     if (!signature) {
         return nil;
