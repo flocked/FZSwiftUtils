@@ -77,7 +77,7 @@ public extension BinaryFloatingPoint {
      - Parameter window: The window for the scale factor.
      */
     func scaledIntegral(for window: NSWindow) -> Self {
-        rounded(toMultiple: 1.0 / Self(window.backingScaleFactor))
+        rounded(toMultiple: 1.0 / Self(window.screen?.backingScaleFactor ?? window.backingScaleFactor))
     }
     
     /**
@@ -308,13 +308,13 @@ public extension Sequence where Element: BinaryFloatingPoint {
 }
 
 #if os(macOS)
-fileprivate extension NSView {
+extension NSView {
     var backingScaleFactor: CGFloat {
-        window?.backingScaleFactor ?? NSApp.backingScaleFactor
+        window?.screen?.backingScaleFactor ?? window?.backingScaleFactor ?? NSApp.backingScaleFactor
     }
 }
 
-fileprivate extension NSApplication {
+extension NSApplication {
     var backingScaleFactor: CGFloat {
         (keyWindow ?? mainWindow ?? windows.first(where: { $0.isVisible }))?.backingScaleFactor ?? (NSScreen.main ?? .screens.first)?.backingScaleFactor ?? 1.0
     }

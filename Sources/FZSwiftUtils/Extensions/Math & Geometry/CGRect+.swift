@@ -1108,6 +1108,96 @@ public extension CGRect {
             return CGFloat(length(max(delta, SIMD2<CGFloat.NativeType>.zero)))
         }
     }
+    
+    /// Defines strategies for aligning rectangle edges to device pixel boundaries.
+    enum PixelSnapRule {
+        /// Expands the rectangle so it fully contains the original.
+        case outward
+        /// Shrinks the rectangle so it remains fully inside the original.
+        case inward
+        /// Rounds each edge of the rectangle to the nearest pixel.
+        case nearest
+    }
+    
+    /**
+     Returns a rectangle aligned to device pixel boundaries.
+     
+     - Parameters:
+        - scale: The backing scale factor to align against.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(scale: CGFloat, rule: PixelSnapRule = .outward) -> CGRect {
+        guard scale > 0 else { return self }
+        let scaled = applying(.init(scaleX: scale, y: scale))
+        let values: (minX: CGFloat, minY: CGFloat, maxX: CGFloat, maxY: CGFloat)
+        switch rule {
+        case .outward:
+            values = (floor(scaled.minX), floor(scaled.minY), ceil(scaled.maxX), ceil(scaled.maxY))
+        case .inward:
+            values = (ceil(scaled.minX), ceil(scaled.minY), floor(scaled.maxX), floor(scaled.maxY))
+        case .nearest:
+            values = (round(scaled.minX), round(scaled.minY), round(scaled.maxX), round(scaled.maxY))
+        }
+        let snappedScaled = CGRect(x: values.minX, y: values.minY, width: values.maxX - values.minX, height: values.maxY - values.minY)
+        return snappedScaled.applying(.init(scaleX: 1 / scale, y: 1 / scale))
+    }
+    
+    #if os(macOS)
+    /**
+     Returns a rectangle aligned to the device pixel grid defined by the specified window.
+     
+     - Parameters:
+        - window: The window whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of window: NSWindow, rule: PixelSnapRule = .outward) -> CGRect {
+        snappedToPixels(scale: window.screen?.backingScaleFactor ?? window.backingScaleFactor, rule: rule)
+    }
+    
+    /**
+     Returns a rectangle aligned to the device pixel grid defined by the specified screen.
+     
+     - Parameters:
+        - screen: The screen whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of screen: NSScreen, rule: PixelSnapRule = .outward) -> CGRect {
+        snappedToPixels(scale: screen.backingScaleFactor, rule: rule)
+    }
+    
+    /**
+     Returns a rectangle aligned to the device pixel grid defined by the specified voew.
+     
+     - Parameters:
+        - voew: The voew whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of view: NSView, rule: PixelSnapRule = .outward) -> CGRect {
+        snappedToPixels(scale: view.backingScaleFactor, rule: rule)
+    }
+    
+    /**
+     Returns a rectangle aligned to the device pixel grid defined by the specified application.
+     
+     - Parameters:
+        - application: The application whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of application: NSApplication, rule: PixelSnapRule = .outward) -> CGRect {
+        snappedToPixels(scale: application.backingScaleFactor, rule: rule)
+    }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Returns a rectangle aligned to the device pixel grid defined by the specified screen.
+     
+     - Parameters:
+        - screen: The screen whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of screen: UIScreen, rule: PixelSnapRule = .outward) -> CGRect {
+        snappedToPixels(scale: screen.scale, rule: rule)
+    }
+    #endif
 }
 
 #if compiler(>=6.0)

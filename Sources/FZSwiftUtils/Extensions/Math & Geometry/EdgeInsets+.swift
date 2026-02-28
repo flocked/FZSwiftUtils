@@ -43,6 +43,26 @@ extension NSUIEdgeInsets: Swift.Hashable {
         self.init()
         self.height = height
     }
+    
+    /// Creates an edge insets with the specified `left` value.
+    public static func left(_ left: CGFloat) -> Self {
+        Self(top: 0, left: left, bottom: 0, right: 0)
+    }
+    
+    /// Creates an edge insets with the specified `right` value.
+    public static func right(_ right: CGFloat) -> Self {
+        Self(top: 0, left: 0, bottom: 0, right: right)
+    }
+    
+    /// Creates an edge insets with the specified `top` value.
+    public static func top(_ top: CGFloat) -> Self {
+        Self(top: top, left: 0, bottom: 0, right: 0)
+    }
+    
+    /// Creates an edge insets with the specified `bottom` value.
+    public static func bottom(_ bottom: CGFloat) -> Self {
+        Self(top: 0, left: 0, bottom: bottom, right: 0)
+    }
 
     /// The width (left + right) of the insets.
     public var width: CGFloat {
@@ -189,6 +209,26 @@ extension NSDirectionalEdgeInsets: Swift.Hashable {
         self.init()
         self.height = height
     }
+    
+    /// Creates an edge insets with the specified `leading` value.
+    public static func leading(_ leading: CGFloat) -> Self {
+        Self(top: 0, leading: leading, bottom: 0, trailing: 0)
+    }
+    
+    /// Creates an edge insets with the specified `trailing` value.
+    public static func trailing(_ trailing: CGFloat) -> Self {
+        Self(top: 0, leading: 0, bottom: 0, trailing: trailing)
+    }
+    
+    /// Creates an edge insets with the specified `top` value.
+    public static func top(_ top: CGFloat) -> Self {
+        Self(top: top, leading: 0, bottom: 0, trailing: 0)
+    }
+    
+    /// Creates an edge insets with the specified `bottom` value.
+    public static func bottom(_ bottom: CGFloat) -> Self {
+        Self(top: 0, leading: 0, bottom: bottom, trailing: 0)
+    }
 
     /// The width (leading + trailing) of the insets.
     public var width: CGFloat {
@@ -326,6 +366,7 @@ extension EdgeInsets: Swift.Hashable, Swift.Encodable, Swift.Decodable {
 
     /// Creates an edge insets structure whose specified edges have the value.
     public init(_ edges: Edge.Set, _ value: CGFloat) {
+        CGRect().fill()
         self.init(top: edges.contains(.top) ? value : 0, leading: edges.contains(.leading) ? value : 0, bottom: edges.contains(.bottom) ? value : 0, trailing: edges.contains(.trailing) ? value : 0)
     }
 
@@ -345,6 +386,26 @@ extension EdgeInsets: Swift.Hashable, Swift.Encodable, Swift.Decodable {
     public init(height: CGFloat) {
         self.init()
         self.height = height
+    }
+    
+    /// Creates an edge insets with the specified `leading` value.
+    public static func leading(_ leading: CGFloat) -> Self {
+        Self(top: 0, leading: leading, bottom: 0, trailing: 0)
+    }
+    
+    /// Creates an edge insets with the specified `trailing` value.
+    public static func trailing(_ trailing: CGFloat) -> Self {
+        Self(top: 0, leading: 0, bottom: 0, trailing: trailing)
+    }
+    
+    /// Creates an edge insets with the specified `top` value.
+    public static func top(_ top: CGFloat) -> Self {
+        Self(top: top, leading: 0, bottom: 0, trailing: 0)
+    }
+    
+    /// Creates an edge insets with the specified `bottom` value.
+    public static func bottom(_ bottom: CGFloat) -> Self {
+        Self(top: 0, leading: 0, bottom: bottom, trailing: 0)
     }
 
     /// The width (leading + trailing) of the insets.

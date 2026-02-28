@@ -371,6 +371,94 @@ public extension CGSize {
     var swapped: CGSize {
         CGSize(height, width)
     }
+    
+    /// Defines strategies for aligning sizes to device pixel boundaries.
+    enum PixelSnapRule {
+        /// Expands the size so it is at least as large as the original.
+        case outward
+        /// Shrinks the size so it is at most as large as the original.
+        case inward
+        /// Rounds the width and height to nearest pixel.
+        case nearest
+    }
+    
+    /**
+     Returns a size aligned to device pixel boundaries.
+     
+     - Parameters:
+        - scale: The backing scale factor to align against.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(scale: CGFloat, rule: PixelSnapRule = .nearest) -> CGSize {
+        guard scale > 0 else { return self }
+        let snapped: CGSize
+        switch rule {
+        case .outward:
+            snapped = CGSize(ceil(width * scale), ceil(height * scale))
+        case .inward:
+            snapped = CGSize(floor(width * scale), floor(height * scale))
+        case .nearest:
+            snapped = CGSize(round(width * scale), round(height * scale))
+        }
+        return CGSize(width: snapped.width / scale, height: snapped.height / scale)
+    }
+    
+    #if os(macOS)
+    /**
+     Returns a size aligned to the device pixel grid defined by the specified window.
+ 
+     - Parameters:
+        - window: The window whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of window: NSWindow, rule: PixelSnapRule = .outward) -> CGSize {
+        snappedToPixels(scale: window.screen?.backingScaleFactor ?? window.backingScaleFactor, rule: rule)
+    }
+
+    /**
+     Returns a size aligned to the device pixel grid defined by the specified screen.
+ 
+     - Parameters:
+        - screen: The screen whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of screen: NSScreen, rule: PixelSnapRule = .outward) -> CGSize {
+        snappedToPixels(scale: screen.backingScaleFactor, rule: rule)
+    }
+
+    /**
+     Returns a size aligned to the device pixel grid defined by the specified voew.
+ 
+     - Parameters:
+        - voew: The voew whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of view: NSView, rule: PixelSnapRule = .outward) -> CGSize {
+        snappedToPixels(scale: view.backingScaleFactor, rule: rule)
+    }
+
+    /**
+     Returns a size aligned to the device pixel grid defined by the specified application.
+ 
+     - Parameters:
+        - application: The application whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of application: NSApplication, rule: PixelSnapRule = .outward) -> CGSize {
+        snappedToPixels(scale: application.backingScaleFactor, rule: rule)
+    }
+    #elseif os(iOS) || os(tvOS)
+    /**
+     Returns a size aligned to the device pixel grid defined by the specified screen.
+ 
+     - Parameters:
+        - screen: The screen whose backing scale factor defines the pixel grid.
+        - rule: The edge alignment strategy.
+     */
+    func snappedToPixels(of screen: UIScreen, rule: PixelSnapRule = .outward) -> CGSize {
+        snappedToPixels(scale: screen.scale, rule: rule)
+    }
+    #endif
 }
 
 extension CGSize: Swift.AdditiveArithmetic {
