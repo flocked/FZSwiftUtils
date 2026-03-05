@@ -7,16 +7,24 @@
 
 import Foundation
 
-/// A formatter that creates string representations of a data throughput (bytes per second).
-public class ThroughputFormatter: Formatter {
+/// A formatter that creates string representations of a data throughput (bytes per second) (e.g. `14,66 MB/s`).
+open class ThroughputFormatter: Formatter {
     private let formatter = NumberFormatter()
 
-    /// The allowed units to be used for formatting.
-    public var units: Units = .all
+    /**
+     The allowed units to be used for formatting.
+     
+     The default value is `all`.
+     */
+    open var units: Units = .all
     
-    /// Sets the allowed units to be used for formatting.
+    /**
+     Sets the allowed units to be used for formatting.
+     
+     The default value is `all`.
+     */
     @discardableResult
-    public func units( _ units: Units) -> Self {
+    open func units( _ units: Units) -> Self {
         self.units = units
         return self
     }
@@ -26,7 +34,7 @@ public class ThroughputFormatter: Formatter {
      
      The default value is `short`.
      */
-    public var unitStyle: Formatter.UnitStyle = .short
+    open var unitStyle: Formatter.UnitStyle = .short
     
     /**
      Sets the unit style.
@@ -34,7 +42,7 @@ public class ThroughputFormatter: Formatter {
      The default value is `short`.
      */
     @discardableResult
-    public func unitStyle(_ style: Formatter.UnitStyle) -> Self {
+    open func unitStyle(_ style: Formatter.UnitStyle) -> Self {
         unitStyle = style
         return self
     }
@@ -44,7 +52,7 @@ public class ThroughputFormatter: Formatter {
      
      The default value is `file`.
      */
-    public var countStyle: ByteCountFormatter.CountStyle = .file
+    open var countStyle: ByteCountFormatter.CountStyle = .file
     
     /**
      Sets the count style.
@@ -52,40 +60,56 @@ public class ThroughputFormatter: Formatter {
      The default value is `file`.
      */
     @discardableResult
-    public func countStyle(_ style: ByteCountFormatter.CountStyle) -> Self {
+    open func countStyle(_ style: ByteCountFormatter.CountStyle) -> Self {
         countStyle = style
         return self
     }
     
-    /// A Boolean value indicating whether to include the units in the resulting formatted string.
-    public var includesUnit: Bool = true
+    /**
+     A Boolean value indicating whether to include the units in the resulting formatted string.
+     
+     The default value is `true`.
+     */
+    open var includesUnit: Bool = true
     
-    /// Sets the Boolean value indicating whether to include the units in the resulting formatted string.
+    /**
+     Sets the Boolean value indicating whether to include the units in the resulting formatted string.
+     
+     The default value is `true`.
+     */
     @discardableResult
-    public func includesUnit( _ includes: Bool) -> Self {
+    open func includesUnit( _ includes: Bool) -> Self {
         includesUnit = includes
         return self
     }
     
-    /// A Boolean value indicating whether to include the count in the resulting formatted string.
-    public var includesCount: Bool = true
+    /**
+     A Boolean value indicating whether to include the count in the resulting formatted string.
+     
+     The default value is `true`.
+     */
+    open var includesCount: Bool = true
     
-    /// Sets the Boolean value indicating whether to include the count in the resulting formatted string.
+    /**
+     Sets the Boolean value indicating whether to include the count in the resulting formatted string.
+     
+     The default value is `true`.
+     */
     @discardableResult
-    public func includesCount( _ includes: Bool) -> Self {
+    open func includesCount( _ includes: Bool) -> Self {
         includesCount = includes
         return self
     }
     
     /// The allowed number of digits after the decimal separator.
-    public var fractionLength: NumberFormatter.DigitLength {
+    open var fractionLength: NumberFormatter.DigitLength {
         get { formatter.fractionLength }
         set { formatter.fractionLength = newValue }
     }
     
     /// Sets the allowed number of digits after the decimal separator.
     @discardableResult
-    public func fractionLength( _ length: NumberFormatter.DigitLength) -> Self {
+    open func fractionLength( _ length: NumberFormatter.DigitLength) -> Self {
         fractionLength = length
         return self
     }
@@ -95,7 +119,7 @@ public class ThroughputFormatter: Formatter {
      
      The default value is `current`.
      */
-    public var locale: Locale = .current
+    open var locale: Locale = .current
     
     /**
      Sets the locale of the formatter.
@@ -103,7 +127,7 @@ public class ThroughputFormatter: Formatter {
      The default value is `current`.
      */
     @discardableResult
-    public func locale(_ locale: Locale) -> Self {
+    open func locale(_ locale: Locale) -> Self {
         self.locale = locale
         return self
     }
@@ -115,7 +139,7 @@ public class ThroughputFormatter: Formatter {
         self.fractionLength = fractionLength
     }
     
-    required init?(coder: NSCoder) {
+    public required init?(coder: NSCoder) {
         if let rawValue: Int = coder.decode(forKey: "units") {
             units = .init(rawValue: rawValue)
         }
@@ -143,12 +167,12 @@ public class ThroughputFormatter: Formatter {
     }
     
     /// The formatter string for the specified throughput (bytes per second).
-    public func string(from dataSizePerSecond: DataSize) -> String {
+    open func string(from dataSizePerSecond: DataSize) -> String {
         string(from: dataSizePerSecond.bytes)
     }
     
     /// The formatted string for the specified throughput (bytes per second).
-    public func string<I: BinaryInteger>(from bytesPerSecond: I) -> String {
+    open func string<I: BinaryInteger>(from bytesPerSecond: I) -> String {
         if units.isEmpty {
             units = [.bytes]
             defer { units = [] }
@@ -171,7 +195,7 @@ public class ThroughputFormatter: Formatter {
         return strings.joined(separator: " ")
     }
     
-    public override func string(for obj: Any?) -> String? {
+    open override func string(for obj: Any?) -> String? {
         if let dataSizePerSecond = obj as? DataSize {
             return string(from: dataSizePerSecond)
         } else if let bytesPerSecond = obj as? any BinaryInteger {

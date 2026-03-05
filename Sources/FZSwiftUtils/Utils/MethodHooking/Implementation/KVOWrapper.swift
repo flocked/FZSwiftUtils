@@ -34,7 +34,7 @@ extension NSObject {
         hookObserver = nil
     }
     
-    private func isSupportedKVO() throws -> Bool {
+    fileprivate func isSupportedKVO() throws -> Bool {
         if let isSupportedKVO: Bool = FZSwiftUtils.getAssociatedValue("isSupportedKVO", object: self) {
             return isSupportedKVO
         }
@@ -55,7 +55,7 @@ extension NSObject {
                 guard let isaClassNew = object_getClass(self) else {
                     throw HookError.internalError(file: #file, line: #line)
                 }
-                result = isaClass != isaClassNew
+                result = isaClass != isaClassNew || (try? isKVOed()) ?? false
             } catch {
                 result = false
             }
@@ -93,6 +93,9 @@ extension NSObject {
     }
     
     fileprivate func isKVOed() throws -> Bool {
+        if let observances: [NSObject] = observationInfo?.unretained(as: NSObject.self).value(forKey: "_observances"), !observances.isEmpty {
+            return true
+        }
         guard let isaClass = object_getClass(self) else {
             throw HookError.internalError(file: #file, line: #line)
         }
@@ -144,3 +147,21 @@ fileprivate class Observer: NSObject {
         self.target.removeObserver(RealObserver.shared, forKeyPath: RealObserver.keyPath, context: &RealObserver.context)
     }
 }
+
+/*
+ fileprivate func hasDynamicProperty() -> Bool {
+     var current: AnyClass? = type(of: self)
+     while let cls = current {
+         current = cls.superclass()
+         var count: UInt32 = 0
+         guard let list = class_copyPropertyList(cls, &count) else { continue }
+         defer { free(list) }
+         for property in UnsafeBufferPointer(start: list, count: Int(count)) {
+             if property_copyAttributeValue(property, "D") != nil, property_copyAttributeValue(property, "R") == nil {
+                 return true
+             }
+         }
+     }
+     return false
+ }
+ */
