@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension NSKeyValueObservingOptions: CustomStringConvertible {
+extension NSKeyValueObservingOptions: Swift.CustomStringConvertible {
     public var description: String {
         "[\(elements().map({$0.string}).joined(separator: ", "))]"
     }
