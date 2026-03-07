@@ -23,8 +23,27 @@ public extension Array {
         - generate: The closure that returns an element.
         - count: The number of times to repeat the closure's value passed in the `generate` parameter.
      */
+    init(generate: ()->(Element), count: Int) {
+        self = count >= 0 ? (0..<count).map({ _ in generate() }) : []
+    }
+    
+    /**
+     Creates a new array containing the specified number of elements returned by a closure.
+     
+     Here’s an example of creating an array initialized with five random integers.
+     
+     ```swift
+     let numbers = Array(generate: { Int.random(in: 0..<10) }, count: 5)
+     print(numbers)
+     // Prints "[4, 7, 3, 2, 7]"
+     ```
+     
+     - Parameters:
+        - generate: The closure that returns an element.
+        - count: The number of times to repeat the closure's value passed in the `generate` parameter.
+     */
     init(generate: @autoclosure ()->(Element), count: Int) {
-        self = count >= 0 ? (0..<count).compactMap({ _ in generate() }) : []
+        self = count >= 0 ? (0..<count).map({ _ in generate() }) : []
     }
     
     /**

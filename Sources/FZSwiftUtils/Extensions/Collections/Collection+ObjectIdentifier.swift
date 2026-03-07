@@ -36,6 +36,7 @@ public extension Set where Element == ObjectIdentifier {
     }
     
     /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
+    @_disfavoredOverload
     func contains(_ key: AnyObject) -> Bool { contains(ObjectIdentifier(key)) }
     
     subscript(_ key: AnyObject) -> Bool {

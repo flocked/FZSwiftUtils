@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents information about an Objective-C protocol.
-public struct ObjCProtocolInfo: Sendable, Equatable, Codable {
+public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
     /// The name of the protocol.
     public let name: String
 
@@ -33,6 +33,10 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable {
     public let optionalClassMethods: [ObjCMethodInfo]
     /// The optional instance methods of the protocol.
     public let optionalMethods: [ObjCMethodInfo]
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(name)
+    }
     
     /**
      Initializes a new instance of `ObjCProtocolInfo`.

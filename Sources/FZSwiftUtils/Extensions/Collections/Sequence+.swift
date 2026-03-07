@@ -40,7 +40,7 @@ public extension Sequence {
      - Parameter elements: The elements to find in the sequence.
      - Returns: `true` if any of the elements was found in the sequence; otherwise, `false`.
      */
-    func contains<S>(any elements: S) -> Bool where Element: Equatable, S: Sequence<Element> {
+    func contains<S: Sequence<Element>>(any elements: S) -> Bool where Element: Equatable {
         elements.contains(where: { contains($0) })
     }
     
@@ -50,7 +50,7 @@ public extension Sequence {
      - Parameter elements: The elements to find in the sequence.
      - Returns: `true` if any of the elements was found in the sequence; otherwise, `false`.
      */
-    func contains<S>(any elements: S) -> Bool where Element: Hashable, S: Sequence<Element> {
+    func contains<S: Sequence<Element>>(any elements: S) -> Bool where Element: Hashable {
         let set = Set(self)
         return elements.contains { set.contains($0) }
     }
@@ -63,7 +63,7 @@ public extension Sequence {
         - inSameOrder: A Boolean value indicating whether the elements to find need to appear in the same order.
      - Returns: `true` if all elements were found in the sequence; otherwise, `false`.
      */
-    func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where Element: Equatable, S: Sequence<Element> {
+    func contains<S: Sequence<Element>>(all elements: S, inSameOrder: Bool = false) -> Bool where Element: Equatable {
         if !inSameOrder {
             return elements.allSatisfy { contains($0) }
         } else {
@@ -79,7 +79,7 @@ public extension Sequence {
         - inSameOrder: A Boolean value indicating whether the elements to find need to appear in the same order.
      - Returns: `true` if all elements were found in the sequence; otherwise, `false`.
      */
-    func contains<S>(all elements: S, inSameOrder: Bool = false) -> Bool where Element: Hashable, S: Sequence<Element> {
+    func contains<S: Sequence<Element>>(all elements: S, inSameOrder: Bool = false) -> Bool where Element: Hashable {
         if !inSameOrder {
             let set = Set(self)
             return elements.allSatisfy { set.contains($0) }
@@ -99,6 +99,23 @@ public extension Sequence {
         try Dictionary(grouping: self, by: keyForValue)
     }
     
+    
+    /**
+     Groups the elements of the sequence into a dictionary using keys produced by the given closure.
+     
+     The closure returns a sequence of keys for each element. Each element is inserted into every group corresponding to the produced keys.
+     
+     - Parameter keyForValue: A closure that returns a sequence of grouping keys for an element.
+     - Returns: A dictionary mapping each key to the elements that produced that key.
+     */
+    func groupedByEach<S: Sequence>(by keyForValue: (Element) throws -> S) rethrows -> [S.Element: [Element]] {
+        try reduce(into: [:]) { result, element in
+            for key in try keyForValue(element) {
+                result[key, default: []].append(element)
+            }
+        }
+    }
+    
     /**
      Returns a dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
      
@@ -107,9 +124,27 @@ public extension Sequence {
     func grouped<Key>(byNonNil keyForValue: (Element) throws -> Key?) rethrows -> [Key: [Element]] {
         try Dictionary(grouping: self, byNonNil: keyForValue)
     }
+    
+    /**
+     Groups the elements of the sequence into a dictionary using keys produced by the given closure.
+     
+     The closure returns a sequence of keys for each element. Each element is inserted into every group corresponding to the produced keys.
+     
+     - Parameter keyForValue: A closure that returns a sequence of grouping keys for an element.
+     - Returns: A dictionary mapping each key to the elements that produced that key.
+     */
+    func groupedByEach<S: Sequence>(nonNil keyForValue: (Element) throws -> S) rethrows -> [S.Element.Wrapped: [Element]] where S.Element: OptionalProtocol {
+        try reduce(into: [:]) { result, element in
+            for key in try keyForValue(element) {
+                if let key = key.optional {
+                    result[key, default: []].append(element)
+                }
+            }
+        }
+    }
 
     /// Splits the elements of sequence by the key returned from the specified closure and values that are returned for each key.
-    func split<Key>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] where Key: Equatable {
+    func split<Key: Equatable>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] {
         try reduce(into: []) { values, value in
             let key = try keyForValue(value)
             if let index = values.firstIndex(where: { $0.key == key }) {
@@ -168,20 +203,20 @@ public extension Sequence where Element: OptionalProtocol {
     }
         
     /**
-     Returns the first non-`nil` result obtained from applying the given transformation to the elements of the sequence.
+      Returns the first non-`nil` result obtained from applying the given transformation to the elements of the sequence.
      
-     Example:
-     ```swift
-         let strings = ["three", "3.14", "-5", "2"]
-         if let firstInt = strings.firstNonNil({ Int($0) }) {
-             print(firstInt)
-             // -5
-         }
-     ```
+      Example:
+      ```swift
+          let strings = ["three", "3.14", "-5", "2"]
+          if let firstInt = strings.firstNonNil({ Int($0) }) {
+              print(firstInt)
+              // -5
+          }
+      ```
 
-     - Parameter transform: A closure that takes an element of the sequence as its argument and returns an optional transformed value.
-     - Returns: The first non-`nil` return value of the transformation, or `nil` if no transformation is successful.
-    */
+      - Parameter transform: A closure that takes an element of the sequence as its argument and returns an optional transformed value.
+      - Returns: The first non-`nil` return value of the transformation, or `nil` if no transformation is successful.
+     */
     func firstNonNil<Result>( _ transform: (Element) throws -> Result?) rethrows -> Result? {
         try self.lazy.compactMap({ try transform($0) }).first
     }
@@ -196,7 +231,7 @@ public extension BidirectionalCollection where Element: OptionalProtocol {
 
 public extension Sequence {
     var asArray: [Element] {
-        /// The sequence as `Array`.
+        // The sequence as `Array`.
         Array(self)
     }
 }

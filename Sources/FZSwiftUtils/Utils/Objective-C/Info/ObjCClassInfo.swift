@@ -182,6 +182,25 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.name == rhs.name && lhs.version == rhs.version && lhs.imageName == rhs.imageName && lhs.instanceSize == rhs.instanceSize && lhs.protocols == rhs.protocols && lhs.ivars == rhs.ivars && lhs.classProperties == rhs.classProperties && lhs.properties == rhs.properties && lhs.classMethods == rhs.classMethods && lhs.methods == rhs.methods
     }
+    
+    func containsSearchString(_ searchString: String) -> Bool {
+        if name.lowercased().contains(searchString) {
+            return true
+        }
+        if protocols.contains(where: { $0.name.lowercased().contains(searchString) }) {
+            return true
+        }
+        if (methods + classMethods).contains(where: { $0.name.lowercased().contains(searchString) }) {
+            return true
+        }
+        if (properties + classProperties).contains(where: { $0.name.lowercased().contains(searchString) }) {
+            return true
+        }
+        if ivars.contains(where: { $0.name.lowercased().contains(searchString) }) {
+            return true
+        }
+        return false
+    }
 }
 
 extension ObjCClassInfo {
@@ -301,28 +320,34 @@ extension ObjCClassInfo {
      - Returns: An array of `ObjCProtocolInfo` objects representing the protocols adopted by the class.
      */
     public static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [ObjCProtocolInfo] {
-        var visited = Set<ObjectIdentifier>()
         var protocols: [ObjCProtocolInfo] = []
-
-        func check(_ proto: Protocol) {
-            guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
-            protocols += ObjCProtocolInfo(proto)
-            guard includeInheritedProtocols else { return }
-            var count: UInt32 = 0
-            guard let list = protocol_copyProtocolList(proto, &count) else { return }
-            for i in 0..<Int(count) {
-                check(list[i])
+        do {
+            return try ObjCRuntime.catchException {
+                var visited = Set<ObjectIdentifier>()
+                
+                func check(_ proto: Protocol) {
+                    guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
+                    protocols += ObjCProtocolInfo(proto)
+                    guard includeInheritedProtocols else { return }
+                    var count: UInt32 = 0
+                    guard let list = protocol_copyProtocolList(proto, &count) else { return }
+                    for i in 0..<Int(count) {
+                        check(list[i])
+                    }
+                }
+                
+                for cls in classes(for: cls, isInstance: true, includeSuperclasses: includeSuperclasses) {
+                    var count: UInt32 = 0
+                    guard let list = class_copyProtocolList(cls, &count) else { continue }
+                    for i in 0..<Int(count) {
+                        check(list[i])
+                    }
+                }
+                return protocols
             }
+        } catch {
+            return protocols
         }
-        
-        for cls in classes(for: cls, isInstance: true, includeSuperclasses: includeSuperclasses) {
-            var count: UInt32 = 0
-            guard let list = class_copyProtocolList(cls, &count) else { continue }
-            for i in 0..<Int(count) {
-                check(list[i])
-            }
-        }
-        return protocols
     }
     
     /**
@@ -349,17 +374,23 @@ extension ObjCClassInfo {
      - Returns: An array of `ObjCIvarInfo` objects representing the instance variables of the class.
      */
     public static func ivars(of cls: AnyClass, isInstance: Bool = true, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
-        var ivars: [ObjCIvarInfo] = []
-        var seen: Set<String> = ["_?"]
-        for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
-            var count: UInt32 = 0
-            guard let list = class_copyIvarList(cls, &count) else { continue }
-            defer { free(list) }
-            ivars += list.buffer(count: count).compactMap {
-                seen.insert(ivar_getName($0)?.string ?? "_?").inserted ? ObjCIvarInfo($0) : nil
+        do {
+            return try ObjCRuntime.catchException {
+                var ivars: [ObjCIvarInfo] = []
+                var seen: Set<String> = ["_?"]
+                for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
+                    var count: UInt32 = 0
+                    guard let list = class_copyIvarList(cls, &count) else { continue }
+                    defer { free(list) }
+                    ivars += list.buffer(count: count).compactMap {
+                        seen.insert(ivar_getName($0)?.string ?? "_?").inserted ? ObjCIvarInfo($0) : nil
+                    }
+                }
+                return ivars
             }
+        } catch {
+            return []
         }
-        return ivars
     }
     
     /**
@@ -386,16 +417,22 @@ extension ObjCClassInfo {
      - Returns: An array of `ObjCPropertyInfo` objects representing the properties of the class.
      */
     public static func properties(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
-        var properties: [ObjCPropertyInfo] = []
-        var seen: Set<String> = []
-        for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
-            var count: UInt32 = 0
-            guard let list = class_copyPropertyList(cls, &count) else { continue }
-            defer { free(list) }
-            properties += list.buffer(count: count).compactMap { seen.insert(property_getName($0).string).inserted ? ObjCPropertyInfo($0, isClassProperty: !isInstance) : nil
+        do {
+            return try ObjCRuntime.catchException {
+                var properties: [ObjCPropertyInfo] = []
+                var seen: Set<String> = []
+                for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
+                    var count: UInt32 = 0
+                    guard let list = class_copyPropertyList(cls, &count) else { continue }
+                    defer { free(list) }
+                    properties += list.buffer(count: count).compactMap { seen.insert(property_getName($0).string).inserted ? ObjCPropertyInfo($0, isClassProperty: !isInstance) : nil
+                    }
+                }
+                return properties
             }
+        } catch {
+            return []
         }
-        return properties
     }
     
     /**
@@ -422,16 +459,22 @@ extension ObjCClassInfo {
      - Returns: An array of `ObjCMethodInfo` objects representing the methods of the class.
      */
     public static func methods(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
-        var methods: [ObjCMethodInfo] = []
-        var seen: Set<Selector> = []
-        for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
-            var count: UInt32 = 0
-            guard let list = class_copyMethodList(cls, &count) else { continue }
-            defer { free(list) }
-            methods += list.buffer(count: count).compactMap({
-                seen.insert(method_getName($0)).inserted ? ObjCMethodInfo($0, isClassMethod: !isInstance) : nil })
+        do {
+            return try ObjCRuntime.catchException {
+                var methods: [ObjCMethodInfo] = []
+                var seen: Set<Selector> = []
+                for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
+                    var count: UInt32 = 0
+                    guard let list = class_copyMethodList(cls, &count) else { continue }
+                    defer { free(list) }
+                    methods += list.buffer(count: count).compactMap({
+                        seen.insert(method_getName($0)).inserted ? ObjCMethodInfo($0, isClassMethod: !isInstance) : nil })
+                }
+                return methods
+            }
+        } catch {
+            return []
         }
-        return methods
     }
     
     /**

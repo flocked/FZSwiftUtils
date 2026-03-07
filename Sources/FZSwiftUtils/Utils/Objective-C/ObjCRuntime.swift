@@ -18,8 +18,11 @@ public enum ObjCRuntime {
         }
         var count: UInt32 = 0
         guard let classList = objc_copyClassList(&count) else { return [] }
-        let toSkip = Set(["__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"])
-        let allClasses = UnsafeBufferPointer(start: classList, count: Int(count)).filter({ !toSkip.contains(String(cString: class_getName($0))) })
+        let allClasses = UnsafeBufferPointer(start: classList, count: Int(count)).filter({
+            return !Self._classesToSkip.contains(NSStringFromClass($0))
+            return !Self.classesToSkip.contains(ObjectIdentifier($0))
+        })
+        defer { free(UnsafeMutableRawPointer(classList)) }
         Cache.classes = allClasses
         return allClasses
     }
@@ -73,6 +76,43 @@ public enum ObjCRuntime {
             return subclasses.map({(class: $0, name: name(for: $0 as! AnyClass))}).sorted(by: \.name).map({$0.class})
         }
         return subclasses
+    }
+    
+    /**
+      Executes the specified block that may throw an Objective-C `NSException` and catches it.
+
+      This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
+
+      - Parameter tryBlock: A closure containing Objective-C code that may throw an exception.
+     - Returns: The value returned from the given callback.
+
+      Example usage:
+
+     ```swift
+     let object: NSObject // …
+
+     do {
+         let value = try ObjCRuntime.catch {
+             object.value(forKey: "someProperty")
+         }
+         print("Value:", value)
+     } catch {
+         print("Error:", error.localizedDescription)
+         //=> Error: The operation couldn’t be completed. [valueForUndefinedKey:]: this class is not key value coding-compliant for the key nope.
+     }
+     ```
+     */
+    @discardableResult
+    public static func catchException<T>(_ tryBlock: () throws -> T) throws -> T {
+        var result: Result<T, Error>!
+        try NSObject._catchException {
+            do {
+                result = .success(try tryBlock())
+            } catch {
+                result = .failure(error)
+            }
+        }
+        return try result.get()
     }
     
     /*
@@ -134,43 +174,6 @@ public enum ObjCRuntime {
         try catchException(tryBlock)
     }
     
-    /**
-      Executes the specified block that may throw an Objective-C `NSException` and catches it.
-
-      This method enables safer bridging of Objective-C code into Swift, where exceptions cannot be caught using `do-try-catch`.
-
-      - Parameter tryBlock: A closure containing Objective-C code that may throw an exception.
-     - Returns: The value returned from the given callback.
-
-      Example usage:
-
-     ```swift
-     let object: NSObject // …
-
-     do {
-         let value = try ObjCRuntime.catch {
-             object.value(forKey: "someProperty")
-         }
-         print("Value:", value)
-     } catch {
-         print("Error:", error.localizedDescription)
-         //=> Error: The operation couldn’t be completed. [valueForUndefinedKey:]: this class is not key value coding-compliant for the key nope.
-     }
-     ```
-     */
-    @discardableResult
-    public static func catchException<T>(_ tryBlock: () throws -> T) throws -> T {
-        var result: Result<T, Error>!
-        try NSObject._catchException {
-            do {
-                result = .success(try tryBlock())
-            } catch {
-                result = .failure(error)
-            }
-        }
-        return try result.get()
-    }
-    
     /// Returns the actual size and the aligned size of the specified encoded type.
     public static func sizeAndAlignment(for typeEncoding: String) -> (size: Int, alignment: Int)? {
         var alignment = 0
@@ -203,23 +206,150 @@ public enum ObjCRuntime {
         Cache.cachedName[`protocol`] = name
         return name
     }
+    
+    private static let _classesToSkip = Set([
+        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"
+    ])
+    
+    private static let classesToSkip = Set([
+        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"
+    ].compactMap({NSClassFromString($0)}).map({ObjectIdentifier($0)}))
+}
+
+extension ObjCRuntime {
+    /**
+     Returns the Objective-C classes whose name or members match the provided string.
+     
+     `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns all known classes.
+     
+     - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
+     - Returns: An array of `ObjCClassInfo` values representing classes that match the search.
+     */
+    public static func classes(containing searchString: String? = nil) -> [ObjCClassInfo] {
+        guard let searchString = searchString?.lowercased(), !searchString.isEmpty else { return Cache.searchClasses.map(\.info) }
+        return Cache.searchClasses.filter({$0.containsSearchString(searchString)}).map(\.info)
+    }
+    
+    /**
+     Returns the Objective-C classes grouped by protocol whose name or members match the provided search string.
+     
+     `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns all classes grouped by the protocols they adopt.
+     
+     - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
+     - Returns: An array of tuples where each element contains a protocol and the classes that adopt it and match the search.
+     */
+    public static func classesByProtocol(containing searchString: String? = nil) -> [(protocol: ObjCProtocolInfo, classes: [ObjCClassInfo])] {
+        guard let searchString = searchString?.lowercased(), !searchString.isEmpty else {
+            return Cache.classesByProtocol.map({ ($0.key, $0.value.map(\.info)) })
+        }
+        var result: [(protocol: ObjCProtocolInfo, classes: [ObjCClassInfo])] = []
+        for val in Cache.classesByProtocol {
+            let filtered = val.value.filter({ $0.containsSearchString(searchString) })
+            guard !filtered.isEmpty else { continue }
+            result += (val.key, filtered.map(\.info))
+        }
+        return result
+    }
+    
+    /**
+     Returns Objective-C classes grouped by the dynamic library image they originate from.
+     
+     `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns all classes grouped by their originating dynamic library image.
+     
+     - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
+     - Returns: An array of tuples where each element contains a dynamic library image and the classes originating from that image that match the search. The image may be `nil` if it cannot be determined.
+     */
+    public static func classesByImage(containing searchString: String? = nil) -> [(image: ObjcDynamicLibrary?, classes: [ObjCClassInfo])] {
+        guard let searchString = searchString?.lowercased(), !searchString.isEmpty else {
+            return Cache.classesByImage.map({ ($0.key, $0.value.map(\.info)) })
+        }
+        var result: [(image: ObjcDynamicLibrary?, classes: [ObjCClassInfo])] = []
+        for val in Cache.classesByImage {
+            let filtered = val.value.filter({ $0.containsSearchString(searchString) })
+            guard !filtered.isEmpty else { continue }
+            result += (val.key, filtered.map(\.info))
+        }
+        return result
+    }
+    
+    /**
+     Returns class hierarchy nodes for Objective-C classes whose name or members match the provided search string.
+     
+     `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns the hierarchy includes all classes.
+     
+     - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
+     - Returns: An array of `ObjCClassNode` values representing the hierarchy of matching classes.
+     */
+    public static func classNodes(containing searchString: String? = nil) -> [ObjCClassNode] {
+        Cache.classNodes.compactMap({ $0.node(containing: searchString) })
+    }
+    
+    /**
+     Parses all known Objective-C classes.
+     
+     - Parameter completion: The handler that is called after parsing has been finished.
+     */
+    public static func parseClasses(completion: (()->())? = nil) {
+        Cache.reset()
+        DispatchQueue.background.async {
+            Cache.parseIfNeeded()
+            completion?()
+        }
+    }
 }
 
 fileprivate extension ObjCRuntime {
     class Cache: NSObject {
-        static var classes: [AnyClass]? {
-            get { getAssociatedValue("classes") }
-            set { setAssociatedValue(newValue, key: "classes") }
+        static var classes: [AnyClass]?
+        static var protocols: [Protocol]?
+        static var cachedName: [ObjectIdentifier: String] = [:]
+        
+        static var searchClasses: [SearchClass] {
+            if _searchClasses.isEmpty {
+                _searchClasses = ObjCRuntime.classes().map({ SearchClass($0) })
+            }
+            return _searchClasses
+        }
+        static var _searchClasses: [SearchClass] = []
+        
+        static var classesByImage: OrderedDictionary<ObjcDynamicLibrary?, [SearchClass]> {
+            if _classesByImage.isEmpty {
+                let clsByImg = searchClasses.grouped(by: { ObjcDynamicLibrary($0.info.imageName) })
+                _classesByImage = OrderedDictionary(uniqueKeysWithValues: clsByImg.keys.sorted().map({($0, clsByImg[$0]!)}))
+            }
+            return _classesByImage
+        }
+        static var _classesByImage: OrderedDictionary<ObjcDynamicLibrary?, [SearchClass]> = [:]
+        
+        static var classesByProtocol: OrderedDictionary<ObjCProtocolInfo, [SearchClass]> {
+            if _classesByProtocol.isEmpty {
+                let proToCls = searchClasses.groupedByEach(by: \.info.allProtocols)
+                _classesByProtocol = OrderedDictionary(uniqueKeysWithValues: proToCls.keys.sorted(by: \.name).map({ ($0, proToCls[$0]!) }))
+            }
+            return _classesByProtocol
+        }
+        static var _classesByProtocol: OrderedDictionary<ObjCProtocolInfo, [SearchClass]> = [:]
+
+        static var classNodes: [ObjCClassNode] {
+            if _classNodes.isEmpty {
+                _classNodes = ObjCClassNode.rootNodes(for: searchClasses)
+            }
+            return _classNodes
+        }
+        static var _classNodes: [ObjCClassNode] = []
+                
+        static func reset() {
+            _classNodes.removeAll()
+            _searchClasses.removeAll()
+            _classesByImage.removeAll()
+            _classesByProtocol.removeAll()
         }
         
-        static var protocols: [Protocol]? {
-            get { getAssociatedValue("protocols") }
-            set { setAssociatedValue(newValue, key: "protocols") }
-        }
-        
-        static var cachedName: [ObjectIdentifier: String] {
-            get { getAssociatedValue("cachedName") ?? [:] }
-            set { setAssociatedValue(newValue, key: "cachedName") }
+        static func parseIfNeeded() {
+            _ = searchClasses
+            _ = classesByImage
+            _ = classesByProtocol
+            _ = classNodes
         }
     }
 }

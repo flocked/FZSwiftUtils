@@ -472,7 +472,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter key: The key of the associated value.
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
-    public static func getAssociatedValue<T>(_ key: KeyPath<Self, T>) -> T? {
+    public static func getAssociatedValue<T>(_ key: KeyPath<Self.Type, T>) -> T? {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self)
     }
     
@@ -484,7 +484,7 @@ extension NSObjectProtocol where Self: NSObject {
         - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
-    public static func getAssociatedValue<T>(_ key: KeyPath<Self, T>, initialValue: @autoclosure () -> T) -> T {
+    public static func getAssociatedValue<T>(_ key: KeyPath<Self.Type, T>, initialValue: @autoclosure () -> T) -> T {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self, initialValue: initialValue)
     }
     
@@ -496,7 +496,7 @@ extension NSObjectProtocol where Self: NSObject {
         - initialValue: The initial value of the associated value.
      - Returns: The associated value for the object and key.
      */
-    public static func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self, T>, weakInitialValue initialValue: @autoclosure () -> T?) -> T? {
+    public static func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self.Type, T>, weakInitialValue initialValue: @autoclosure () -> T?) -> T? {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self, weakInitialValue: initialValue)
     }
     
@@ -510,7 +510,7 @@ extension NSObjectProtocol where Self: NSObject {
         - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
-    public static func getAssociatedValue<T>(_ key: KeyPath<Self, T>, initialValue: () -> T) -> T {
+    public static func getAssociatedValue<T>(_ key: KeyPath<Self.Type, T>, initialValue: () -> T) -> T {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self, initialValue: initialValue)
     }
     
@@ -524,7 +524,7 @@ extension NSObjectProtocol where Self: NSObject {
         - initialValue: The initial value of the associated value.
      - Returns: The associated value for the key.
      */
-    public static func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self, T>, weakInitialValue initialValue: () -> T) -> T? {
+    public static func getAssociatedValue<T: AnyObject>(_ key: KeyPath<Self.Type, T>, weakInitialValue initialValue: () -> T) -> T? {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self, weakInitialValue: initialValue)
     }
     
@@ -535,7 +535,7 @@ extension NSObjectProtocol where Self: NSObject {
         - value: The value to set.
         - key: The key of the associated value.
      */
-    public static func setAssociatedValue<T>(_ value: T?, key: KeyPath<Self, T>) {
+    public static func setAssociatedValue<T>(_ value: T?, key: KeyPath<Self.Type, T>) {
         FZSwiftUtils.setAssociatedValue(value, key: key.stringValue, object: self)
     }
     
@@ -546,7 +546,7 @@ extension NSObjectProtocol where Self: NSObject {
         - value: The weak value to set.
         - key: The key of the associated value.
      */
-    public static func setAssociatedValue<T: AnyObject>(weak value: T?, key: KeyPath<Self, T>) {
+    public static func setAssociatedValue<T: AnyObject>(weak value: T?, key: KeyPath<Self.Type, T>) {
         FZSwiftUtils.setAssociatedValue(weak: value, key: key.stringValue, object: self)
     }
 }
