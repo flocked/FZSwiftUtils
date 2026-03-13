@@ -148,6 +148,9 @@ public extension NSError {
         
         /// Mac OS 9/Carbon error domain.
         public static let osStatus = Self(NSOSStatusErrorDomain)
+        
+        /// URL loading system error domain.
+        public static let url = Self(NSURLErrorDomain)
     }
     
     /// The error code of a `NSError`.

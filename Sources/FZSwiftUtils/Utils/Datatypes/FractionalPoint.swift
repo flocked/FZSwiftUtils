@@ -146,11 +146,16 @@ public class __FractionalPoint: NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __FractionalPoint(point: point)
+        self
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        point == (object as? __FractionalPoint)?.point
+        guard let other = object as? Self else { return false }
+        return self === other || point == other.point
+    }
+    
+    public override var hash: Int {
+        Hasher.hash(point)
     }
 }
 

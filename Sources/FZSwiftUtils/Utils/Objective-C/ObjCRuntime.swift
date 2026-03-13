@@ -189,6 +189,58 @@ public enum ObjCRuntime {
         }
     }
     
+    /**
+     Returns runtime origin information for the specified method.
+     
+     - Parameter method: The method to retrive runtime origin information.
+
+     The returned `imagePath` is the path of the Mach-O image that contains the method.
+     The returned `symbolName` is the symbol name associated with the method.
+     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
+     */
+    public static func origin(of method: Method) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
+        origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
+    }
+    
+    /**
+     Returns runtime origin information for the specified class.
+     
+     - Parameter class: The class to retrive runtime origin information.
+
+     The returned `imagePath` is the path of the Mach-O image that contains the class.
+     The returned `symbolName` is the symbol name associated with the class.
+     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
+     */
+    public static func origin(of class: AnyClass) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
+        origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))
+    }
+    
+    /**
+     Returns runtime origin information for the specified address.
+     
+     - Parameter pointer: The address of a class object or method implementation.
+     
+     The returned `imagePath` is the path of the Mach-O image that contains the address.
+     The returned `symbolName` is the symbol name associated with the address.
+     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
+     */
+    public static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
+        var info = Dl_info()
+        let result = dladdr(pointer, &info)
+        guard result != 0 else {
+            return (nil, nil, nil)
+        }
+        let imagePath = info.dli_fname.map { String(cString: $0) }
+        let symbolName = info.dli_sname.map { String(cString: $0) }
+        let categoryName: String?
+        if let symbolName, let start = symbolName.firstIndex(of: "("), let end = symbolName.firstIndex(of: ")"), start < end {
+            categoryName = String(symbolName[symbolName.index(after: start)..<end])
+        } else {
+            categoryName = nil
+        }
+        return (imagePath, symbolName, categoryName)
+    }
+    
     static func name(for class: AnyClass) -> String {
         if let name = Cache.cachedName[`class`] {
             return name

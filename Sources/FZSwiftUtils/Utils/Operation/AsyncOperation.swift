@@ -98,6 +98,10 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         state == .finished || state == .cancelled || state == .failed
     }
     
+    override public var isCancelled: Bool {
+        state == .cancelled
+    }
+    
     override public var isAsynchronous: Bool {
         true
     }
@@ -132,6 +136,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     override open func cancel() {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
+        guard isReady || isExecuting else { return }
         if state == .ready {
             state = .executing
         }
@@ -220,7 +225,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     }
         
     override open class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
-        if ["isReady", "isFinished", "isExecuting"].contains(key) {
+        if ["isReady", "isFinished", "isExecuting", "isCancelled"].contains(key) {
             return ["state"]
         }
         return super.keyPathsForValuesAffectingValue(forKey: key)

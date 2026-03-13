@@ -15,8 +15,8 @@ public extension URLSessionTask {
      */
     func setRequest(_ request: URLRequest) {
         guard state == .suspended else { return }
-        setValue(request, forKeyPath: "originalRequest")
-        setValue(request, forKeyPath: "currentRequest")
+        setValue(safely: request, forKeyPath: "originalRequest")
+        setValue(safely: request, forKeyPath: "currentRequest")
     }
 
     /// The expected length of the content.
@@ -27,5 +27,11 @@ public extension URLSessionTask {
         }
         guard fileSize > 0 else { return nil }
         return fileSize
+    }
+    
+    /// The expected content size.
+    var expectedContentSize: DataSize? {
+        guard let bytes = expectedContentLength else { return nil }
+        return .bytes(bytes)
     }
 }

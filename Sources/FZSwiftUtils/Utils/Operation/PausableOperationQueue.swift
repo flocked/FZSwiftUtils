@@ -100,7 +100,7 @@ open class PausableOperationQueue: OperationQueue, @unchecked Sendable {
         isPaused = false
     }
     
-    internal class BlockOperation: Operation, @unchecked Sendable {
+    private class BlockOperation: Operation, @unchecked Sendable {
         let block: ()->()
         init(_ block: @escaping () -> Void) {
             self.block = block
@@ -111,44 +111,3 @@ open class PausableOperationQueue: OperationQueue, @unchecked Sendable {
         }
     }
 }
-
-/*
- extension OperationQueue {
-     /**
-      A Boolean value indicating whether operations are paused if the queue is suspended.
-      
-      If set to `true`, operations conforming to ``Pausable`` are paused/resumed depending on `isSuspended`.
-      */
-     public var autoPauseOperations: Bool {
-         get { getAssociatedValue("autoPauseOperations") ?? false }
-         set {
-             guard newValue != autoPauseOperations else { return }
-             setAssociatedValue(newValue, key: "autoPauseOperations")
-             if newValue {
-                 isSuspendedObservation = observeChanges(for: \.isSuspended) { [weak self] old, new in
-                     guard let self = self else { return }
-                     self.pauseOperations()
-                 }
-                 pauseOperations()
-             } else {
-                 isSuspendedObservation = nil
-             }
-         }
-     }
-     
-     func pauseOperations() {
-         let isSuspended = isSuspended
-         operations.compactMap({ $0 as? Pausable & Operation }).filter({ $0.isExecuting }).forEach({
-             if isSuspended { $0.pause() } else { $0.resume() } })
-     }
-     
-     var isSuspendedObservation: KeyValueObservation? {
-         get { getAssociatedValue("isSuspendedObservation") }
-         set { setAssociatedValue(newValue, key: "isSuspendedObservation") }
-     }
-     
-     var _pausableOperations: [Pausable & Operation] {
-         operations.compactMap({ $0 as? Pausable & Operation })
-     }
- }
- */

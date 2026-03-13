@@ -50,4 +50,15 @@ public struct ObjCMethod {
     public var description: objc_method_description {
         method_getDescription(method).pointee
     }
+    
+    /**
+     Returns runtime origin information for the method.
+
+     The returned `imagePath` is the path of the Mach-O image that contains the method.
+     The returned `symbolName` is the symbol name associated with the method.
+     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
+     */
+    public func origin() -> (imagePath: String?, symbolName: String?, categoryName: String?) {
+        ObjCRuntime.origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
+    }
 }

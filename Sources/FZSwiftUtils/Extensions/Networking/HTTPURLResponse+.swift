@@ -8,30 +8,86 @@
 import Foundation
 
 public extension HTTPURLResponse {
+    /// Returns the value that corresponds to the given header field.
+    @_disfavoredOverload
+    func value(forHTTPHeaderField httpHeaderField: HTTPHeaderField) -> String? {
+        value(forHTTPHeaderField: httpHeaderField.rawValue)
+    }
+    
+    ///The cookies set by the response, parsed from the `Set-Cookie` response header fields.
+    var cookies: [HTTPCookie] {
+        guard let url else { return [] }
+        return HTTPCookie.cookies(withResponseHeaderFields: allHeaderFields.mapKeyValues({ (String(describing: $0), String(describing: $1)) }), for: url)
+    }
+    
+    /// The response’s HTTP status code.
+    var status: HTTPStatusCode {
+        HTTPStatusCode(rawValue: statusCode)
+    }
+    
+    /// A localized string of the response’s HTTP status code.
+    var localizedStatusCode: String {
+        Self.localizedString(forStatusCode: statusCode)
+    }
+    
+    /// A Boolean value indicating whether the response’s HTTP status code is in the informational (`1xx`) range.
+    var isInformational: Bool {
+        (100..<200).contains(statusCode)
+    }
+    
     /// A Boolean value indicating whether the response’s HTTP status code is sucessful (`200`–`299`).
-    var statusIsSucess: Bool {
+    var isSuccessful: Bool {
         statusCode >= 200 && statusCode < 300
+    }
+
+    /// A Boolean value indicating whether the response’s HTTP status code is in the redirection (`3xx`) range.
+    var isRedirection: Bool {
+        (300..<400).contains(statusCode)
+    }
+
+    /// A Boolean value indicating whether the response’s HTTP status code is in the client error (`4xx`) range.
+    var isClientError: Bool {
+        (400..<500).contains(statusCode)
+    }
+
+    /// A Boolean value indicating whether the response’s HTTP status code is in the server error (`5xx`) range.
+    var isServerError: Bool {
+        (500..<600).contains(statusCode)
+    }
+
+    /**
+     The parameters declared in the `Content-Type` response header field.
+     
+     Returns `nil` if the header field is missing.
+     */
+    var contentTypeParameters: [String: String]? {
+        guard let raw = value(forHTTPHeaderField: "Content-Type")?.trimmingCharacters(in: .whitespacesAndNewlines) else { return nil }
+        var parameters: [String: String] = [:]
+        for match in raw.matches(pattern: #";\s*([^=;]+)=("(?:\\.|[^"])*"|[^;]*)"#) {
+            guard let key = match.groups.nonNil[safe: 0]?.string.trimmingCharacters(in: .whitespaces).lowercased(), var value = match.groups.nonNil[safe: 1]?.string else { continue }
+            if value.hasPrefix("\""), value.hasSuffix("\"") {
+                value.removeFirst()
+                value.removeLast()
+            }
+            parameters[key] = value
+        }
+        return parameters
     }
     
     /// The validator which identifies the current state of the resource on the server.
     var validator: String? {
-        guard statusCode == 200 /* OK */ || statusCode == 206, (allHeaderFields["Accept-Ranges"] as? String)?.lowercased() == "bytes" else { return nil }
-        if let entityTag = allHeaderFields["ETag"] as? String {
-            return entityTag
-        }
-        // There seems to be a bug with ETag where HTTPURLResponse would canonicalize it to Etag instead of ETag (https://bugs.swift.org/browse/SR-2429)
-        if let entityTag = allHeaderFields["Etag"] as? String {
-            return entityTag
-        }
-        if let lastModified = allHeaderFields["Last-Modified"] as? String {
-            return lastModified
-        }
-        return nil
+        guard statusCode == 200 || statusCode == 206, value(forHTTPHeaderField: "Accept-Ranges")?.localizedCaseInsensitiveContains("bytes") == true else { return nil }
+        return value(forHTTPHeaderField: "ETag") ?? value(forHTTPHeaderField: "Etag") ?? value(forHTTPHeaderField: "Last-Modified")
     }
-
+    
+    /// A Boolean value indicating whether the server advertises support for byte-range requests via the `Accept-Ranges: bytes` HTTP header.
+    var acceptsByteRanges: Bool {
+        value(forHTTPHeaderField: "Accept-Ranges")?.lowercased() == "bytes"
+    }
+    
     /// All HTTP header fields of the response.
-    var allHeaderFieldsMapped: [HTTPHeaderField: Any]? {
-        allHeaderFields.compactMapKeys({ if let key = $0 as? String { return HTTPHeaderField(key) } else { return nil } })
+    var headerFields: [HTTPHeaderField: String] {
+        allHeaderFields.mapKeyValues({ (HTTPHeaderField(String(describing: $0)), String(describing: $1)) })
     }
     
     /// A representation of an HTTP response header field key.
@@ -152,17 +208,5 @@ public extension HTTPURLResponse {
         public static let timingAllowOrigin = Self("Timing-Allow-Origin")
         /// Used for network error logging configuration.
         public static let nel = Self("NEL")
-
-        /// An array containing all predefined HTTP header fields.
-        public static let allCases: [HTTPHeaderField] = [
-            acceptRanges, age, allow, cacheControl, connection, contentEncoding, contentLanguage,
-            contentLength, contentLocation, contentMD5, contentDisposition, contentRange,
-            contentSecurityPolicy, contentType, eTag, expires, keepAlive, lastModified, link,
-            location, p3p, pragma, proxyAuthorization, proxyAuthenticate, refresh, retryAfter,
-            server, setCookie, tk, trailer, transferEncoding, vary, via, warning, wwwAuthenticate,
-            date, strictTransportSecurity, xContentTypeOptions, xFrameOptions, xXSSProtection,
-            permissionsPolicy, accessControlExposeHeaders, clearSiteData, xPoweredBy, xRequestID,
-            xCache, serverTiming, timingAllowOrigin, nel
-        ]
     }
 }

@@ -95,11 +95,16 @@ public class __Point3D: NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __Point3D(point: point)
+        self
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        point == (object as? __Point3D)?.point
+        guard let other = object as? Self else { return false }
+        return self === other || point == other.point
+    }
+    
+    public override var hash: Int {
+        Hasher.hash(point)
     }
 }
 

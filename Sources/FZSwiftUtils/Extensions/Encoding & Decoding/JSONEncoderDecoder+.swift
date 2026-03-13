@@ -58,7 +58,7 @@ public extension JSONDecoder {
      - Parameters:
         - dateDecodingStrategy: The strategy to use for decoding dates.
         - keyDecodingStrategy: The strategy to use for decoding keys.
-        - dataDecodingStrategy: The strategy that a decoder uses to decode raw data.
+        - dataDecodingStrategy: The strategy tto use for decoding raw data.
      */
     convenience init(dateDecodingStrategy: DateDecodingStrategy,
                      keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys,

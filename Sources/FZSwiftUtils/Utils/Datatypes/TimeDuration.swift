@@ -887,7 +887,16 @@ public class __TimeDuration: NSObject, NSCopying {
     }
 
     public func copy(with zone: NSZone? = nil) -> Any {
-        __TimeDuration(seconds: seconds)
+        self
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else { return false }
+        return self === other || seconds == other.seconds
+    }
+    
+    public override var hash: Int {
+        Hasher.hash(seconds)
     }
 }
 

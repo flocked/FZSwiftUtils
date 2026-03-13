@@ -99,11 +99,16 @@ public class __Scale: NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __Scale(scale: scale)
+        self
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        scale == (object as? __Scale)?.scale
+        guard let other = object as? Self else { return false }
+        return self === other || scale == other.scale
+    }
+    
+    public override var hash: Int {
+        Hasher.hash(scale)
     }
 }
 

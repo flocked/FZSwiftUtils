@@ -146,7 +146,48 @@ public extension FileManager {
      - Returns: `true` if a directory at the specified url exists, or `false` if the directory does not exist or its existence could not be determined.
      */
     func directoryExists(at url: URL) -> Bool {
-        directoryExists(atPath: url.path)
+        var isDirectory: ObjCBool = false
+        return fileExists(atPath: url.path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+    
+    /// Returns a Boolean value indicating whether a directory exists or can be created at the specified URL.
+    func isDirectoryUsable(at url: URL) -> Bool {
+        var isDirectory: ObjCBool = false
+        if fileExists(atPath: url.path, isDirectory: &isDirectory) {
+            return isDirectory.boolValue
+        }
+        var current = url
+        while current.path != "/" {
+            current.deleteLastPathComponent()
+            if fileExists(atPath: current.path, isDirectory: &isDirectory) {
+                return isDirectory.boolValue && isWritableFile(atPath: current.path)
+            }
+        }
+        return false
+    }
+    
+    /**
+     Creates a directory with the given attributes at the specified URL  if one does not already exist.
+     
+     If you specify `nil` for the `attributes` parameter, this method uses a default set of values for the owner, group, and permissions of any newly created directories in the path. Similarly, if you omit a specific attribute, the default value is used. The default values for newly created directories are as follows:
+     
+     - Permissions are set according to the umask of the current process. For more information, see umask.
+     - The owner ID is set to the effective user ID of the process.
+     - The group ID is set to that of the parent directory.
+     
+     - Parameters:
+        - url: A file URL that specifies the directory to create.
+        - createIntermediates: If `true`, this method creates any nonexistent parent directories as part of creating the directory in url. If `false`, this method fails if any of the intermediate parent directories does not exist.
+        - attributes: The file attributes for the new directory. You can set the owner and group numbers, file permissions, and modification date. If you specify `nil` for this parameter, the directory is created according to the umask(2) macOS Developer Tools Manual Page of the process. Some of the keys, such as [hfsCreatorCode](https://developer.apple.com/documentation/foundation/fileattributekey/hfscreatorcode) and [hfsTypeCode](https://developer.apple.com/documentation/foundation/fileattributekey/hfstypecode), do not apply to directories.
+     */
+    func createDirectoryIfMissing(at url: URL, withIntermediateDirectories createIntermediates: Bool = true, attributes: [FileAttributeKey: Any]? = nil) throws {
+        var isDirectory: Bool = false
+        if fileExists(at: url, isDirectory: &isDirectory) {
+            guard !isDirectory else { return }
+            throw CocoaError(.fileWriteFileExists)
+        } else {
+            try createDirectory(at: url, withIntermediateDirectories: createIntermediates, attributes: attributes)
+        }
     }
     
     /**

@@ -9,6 +9,41 @@ import Foundation
 
 public extension URLRequest {
     /**
+     The cookies attached to the request.
+     
+     Setting this value updates the request's `Cookie` header field.
+     */
+    var cookies: [HTTPCookie] {
+        get {
+            guard let url = url else { return [] }
+            return HTTPCookie.cookies(withResponseHeaderFields: allHTTPHeaderFields ?? [:], for: url)
+        }
+        set {
+            guard !newValue.isEmpty else {
+                setValue(nil, forHTTPHeaderField: "Cookie")
+                return
+            }
+            for (field, value) in HTTPCookie.requestHeaderFields(with: newValue) {
+                setValue(value, forHTTPHeaderField: field)
+            }
+        }
+    }
+    
+    /// Sets the cookies attached to the request by replacing the `Cookie` header field.
+    func cookies(_ cookies: [HTTPCookie]) -> Self {
+        var request = self
+        request.cookies = cookies
+        return request
+    }
+    
+    /// Sets the HTTP request method.
+    func httpMethod(_ method: HTTPMethod) -> Self {
+        var request = self
+        request.httpMethod = method.rawValue
+        return request
+    }
+    
+    /**
      Adds a `Range` HTTP header to the request, specifying that the request should continue from the end of the given `Data` object.
 
      This is useful for resuming interrupted downloads or uploads, allowing the server to send only the remaining bytes.
@@ -18,12 +53,8 @@ public extension URLRequest {
        - validator: A validator (e.g. `ETag` or `last-modified date`). If provided, it will be added as the `If-Range` header to ensure the requested range is only served if the validator still matches.
      */
     mutating func addRangeHeader(for data: Data, validator: String? = nil) {
-        var headers = allHTTPHeaderFields ?? [:]
-        headers["Range"] = "bytes=\(data.count)-"
-        if let validator = validator {
-            headers["If-Range"] = validator
-        }
-        allHTTPHeaderFields = headers
+        bytesRange = .from(UInt64(data.count))
+        setValue(validator, forHTTPHeaderField: "If-Range")
     }
 
 
@@ -40,12 +71,8 @@ public extension URLRequest {
      */
     mutating func addRangeHeader(for file: URL, validator: String? = nil) {
         guard let fileSize = file.resources.fileSize, fileSize != .zero else { return }
-        var headers = allHTTPHeaderFields ?? [:]
-        headers["Range"] = "bytes=\(fileSize.bytes)-"
-        if let validator = validator {
-            headers["If-Range"] = validator
-        }
-        allHTTPHeaderFields = headers
+        bytesRange = .from(fileSize.bytes)
+        setValue(validator, forHTTPHeaderField: "If-Range")
     }
 
     /**
@@ -57,89 +84,135 @@ public extension URLRequest {
      Certain header fields are reserved (see Reserved HTTP Headers). Do not use this method to change such headers.
      */
     mutating func addHTTPHeaders(_ headerValues: [String: String]) {
-        headerValues.forEach { self.addValue($0.value, forHTTPHeaderField: $0.key) }
+        headerValues.forEach { addValue($0.value, forHTTPHeaderField: $0.key) }
     }
-
+    
     /**
-     The range of bytes specified in the "Range" header field of the request.
+     Represents an HTTP byte range used by the `Range`  request header field.
 
-     The range is represented as a closed range of integer values, indicating the start and end positions of the byte range.
+     The `Range` header field allows a client to request only a portion of a resource instead of the entire body.
      */
-    var bytesRanges: ClosedRange<Int>? {
+    enum HTTPByteRange {
+        /// Requests bytes between the specified start and end offsets, inclusive.
+        case range(from: UInt64, to: UInt64)
+        /// Requests all bytes starting at the specified offset until the end of the resource.
+        case from(UInt64)
+        /// Requests the specified number of bytes from the end of the resource.
+        case last(UInt64)
+    }
+    
+    /**
+     The HTTP byte range requested by the `Range` header field.
+     
+     Setting this value updates the request's `Range` header field.
+     */
+    var bytesRange: HTTPByteRange? {
         get {
-            guard let matches = allHTTPHeaderFields?["Range"]?.matches(pattern: #"bytes=(\d+)-(\d*)"#).compactMap(\.string) else { return nil }
-            guard matches.count == 2, let from = Int(matches[0]) else {
+            guard let value = value(forHTTPHeaderField: "Range"), value.hasPrefix("bytes=") else { return nil }
+            let parts = value.dropFirst("bytes=".count).split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+            switch (UInt64(parts[safe: 0] ?? ""), UInt64(parts[safe: 1] ?? "")) {
+            case let (start?, end?):
+                return .range(from: start, to: end)
+            case let (start?, nil):
+                return .from(start)
+            case let (nil, end?):
+                return .last(end)
+            case (nil, nil):
                 return nil
-            }
-            if let to = Int(matches[1]), !matches[1].isEmpty {
-                return from...to
-            } else {
-                return from...Int.max
             }
         }
         set {
-            if let byteRange = newValue {
-                let headerValue: String
-                if byteRange.upperBound == Int.max {
-                    headerValue = "bytes=\(byteRange.lowerBound)-"
-                } else {
-                    headerValue = "bytes=\(byteRange.lowerBound)-\(byteRange.upperBound)"
-                }
-                setValue(headerValue, forHTTPHeaderField: "Range")
-            } else {
+            switch newValue {
+            case let .range(start, end):
+                setValue("bytes=\(start)-\(end)", forHTTPHeaderField: "Range")
+            case let .from(start):
+                setValue("bytes=\(start)-", forHTTPHeaderField: "Range")
+            case let .last(length):
+                setValue("bytes=-\(length)", forHTTPHeaderField: "Range")
+            case nil:
                 setValue(nil, forHTTPHeaderField: "Range")
             }
         }
     }
-
+    
     /**
      Returns the curl command equivalent of the request.
 
      The curl command string includes the URL, HTTP method, headers, and body (if present) of the request.
-
-     - Important: The generated curl command may not accurately represent all aspects of the request, such as multipart form data.
-
+     
+     - Parameter includeCookies: A Boolean value indicating whether to include the cookies of the request.
      - Returns: A string representing the curl command equivalent of the request.
+     - Important: The generated curl command may not accurately represent all aspects of the request, such as multipart form data.
      */
-    var curlString: String {
-        guard let url = url else { return "" }
-        
-        // Quote URL to handle spaces/special characters
-        let escapedURL = "'\(url.absoluteString.replacingOccurrences(of: "'", with: "'\\''"))'"
-        
-        var baseCommand = "curl \(escapedURL)"
-        
-        if httpMethod == "HEAD" {
-            baseCommand += " --head"
-        }
-        
-        var command = [baseCommand]
-        
-        if let method = httpMethod, method != "GET", method != "HEAD" {
-            command.append("-X \(method)")
-        }
-        
-        if let headers = allHTTPHeaderFields {
-            for (key, value) in headers where key.caseInsensitiveCompare("Cookie") != .orderedSame {
-                let escapedKey = key.replacingOccurrences(of: "'", with: "'\\''")
-                let escapedValue = value.replacingOccurrences(of: "'", with: "'\\''")
-                command.append("-H '\(escapedKey): \(escapedValue)'")
-            }
-        }
-        
-        if let data = httpBody,
-           let body = String(data: data, encoding: .utf8) {
-            let escapedBody = body.replacingOccurrences(of: "'", with: "'\\''")
-            command.append("-d '\(escapedBody)'")
-        }
-        
-        return command.joined(separator: " \\\n\t")
-    }
+      func curlString(includeCookies: Bool = false) -> String {
+          guard let url else { return "" }
+          
+          func shellEscape(_ string: String) -> String {
+              "'" + string.replacingOccurrences(of: "'", with: "'\\''") + "'"
+          }
+          
+          var components = ["curl"]
+                    
+          if let method = httpMethod, method != "GET" {
+              if method == "HEAD" {
+                  components += "--head"
+              } else {
+                  components += "-X \(method)"
+              }
+          }
+          
+          if let headers = allHTTPHeaderFields {
+              var shouldAddCompressed = false
+              for (key, value) in headers.sorted(by: \.key, options: .localizedStandard) {
+                  if !includeCookies && key.caseInsensitiveCompare("Cookie") == .orderedSame {
+                      continue
+                  }
+                  if key.caseInsensitiveCompare("Accept-Encoding") == .orderedSame {
+                      shouldAddCompressed = true
+                  }
+                  components += "-H \(shellEscape("\(key): \(value)"))"
+              }
+              if shouldAddCompressed {
+                  components += "--compressed"
+              }
+          }
+          
+          if let bodyData = httpBody {
+              if let body = String(data: bodyData, encoding: .utf8) {
+                  components += "--data-raw \(shellEscape(body))"
+              } else {
+                  components += "--data-binary @<(echo \(shellEscape(bodyData.base64EncodedString())) | base64 --decode)"
+              }
+          } else if httpBodyStream != nil {
+              components += "# Body is provided via httpBodyStream and cannot be represented"
+          }
+          
+          components += shellEscape(url.absoluteString)
+          return components.joined(separator: " \\\n\t")
+      }
 
     /// A dictionary containing all of the HTTP header fields for a request.
     var httpHeaderFields: [HTTPRequestHeaderField: String] {
         get { allHTTPHeaderFields?.mapKeys({ HTTPRequestHeaderField($0) }) ?? [:] }
-        set { allHTTPHeaderFields = newValue.mapKeys({$0.rawValue}) }
+        set { allHTTPHeaderFields =  newValue.mapKeys({$0.rawValue}) }
+    }
+    
+    internal func copy(as httpMethod: HTTPMethod) -> Self {
+        var request = self
+        request.httpMethod = httpMethod.rawValue
+        request.httpBody = nil
+        request.httpBodyStream = nil
+        return request
+    }
+}
+
+extension URLRequest: Codable {
+    public init(from decoder: any Decoder) throws {
+        self = try NSURLRequest.unarchive(decoder.decodeSingle()) as URLRequest
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+        try encoder.encodeSingle((self as NSURLRequest).archivedData())
     }
 }
 
@@ -177,16 +250,10 @@ public struct HTTPRequestHeaderField: RawRepresentable, ExpressibleByStringLiter
     public static let accessControlRequestHeaders: Self = "Access-Control-Request-Headers"
     /// Indicates the HTTP method to be used in a CORS request.
     public static let accessControlRequestMethod: Self = "Access-Control-Request-Method"
-    /// Credentials for authenticating the client with the server.
-    public static let authorization: Self = "Authorization"
     /// Directives for caching mechanisms.
     public static let cacheControl: Self = "Cache-Control"
-    /// Options for the connection (e.g., keep-alive).
-    public static let connection: Self = "Connection"
     /// Cookies previously sent by the server.
     public static let cookie: Self = "Cookie"
-    /// The size of the request body in octets (8-bit bytes).
-    public static let contentLength: Self = "Content-Length"
     /// Base64-encoded 128-bit MD5 digest of the message body.
     public static let contentMD5: Self = "Content-MD5"
     /// Indicates how content should be presented (e.g., inline, attachment).
@@ -207,8 +274,6 @@ public struct HTTPRequestHeaderField: RawRepresentable, ExpressibleByStringLiter
     public static let forwarded: Self = "Forwarded"
     /// The email address of the user making the request.
     public static let from: Self = "From"
-    /// The domain name of the server and optionally the port number.
-    public static let host: Self = "Host"
     /// A conditional request header matching the entity tag.
     public static let ifMatch: Self = "If-Match"
     /// A conditional request header checking the modification date.
@@ -227,8 +292,6 @@ public struct HTTPRequestHeaderField: RawRepresentable, ExpressibleByStringLiter
     public static let origin: Self = "Origin"
     /// Implementation-specific directives that might influence caching.
     public static let pragma: Self = "Pragma"
-    /// Credentials for authenticating with a proxy.
-    public static let proxyAuthorization: Self = "Proxy-Authorization"
     /// Specifies the part(s) of a document that the server should return.
     public static let range: Self = "Range"
     /// The address of the previous web page from which a link to the current page was followed.
@@ -255,18 +318,87 @@ public struct HTTPRequestHeaderField: RawRepresentable, ExpressibleByStringLiter
     public static let xForwardedProto: Self = "X-Forwarded-Proto"
     /// Indicates the client’s real IP address when behind a reverse proxy.
     public static let xRealIP: Self = "X-Real-IP"
-
-    /// Returns all standard HTTP request header fields.
-    public static let allCases: [Self] = [
-        .accept, .acceptCharset, .acceptEncoding, .acceptLanguage, .acceptPatch,
-        .accessControlRequestHeaders, .accessControlRequestMethod,
-        .authorization, .cacheControl, .connection, .cookie,
-        .contentLength, .contentMD5, .contentDisposition, .contentType, .contentLanguage,
-        .date, .dnt, .etag, .expect, .forwarded, .from, .host,
-        .ifMatch, .ifModifiedSince, .ifNoneMatch, .ifRange, .ifUnmodifiedSince,
-        .link, .maxForwards, .origin, .pragma, .proxyAuthorization, .range,
-        .referer, .retryAfter, .te, .transferEncoding, .upgrade,
-        .userAgent, .via, .warning,
-        .xRequestedWith, .xForwardedFor, .xForwardedProto, .xRealIP
-    ]
+    /*
+     /// Credentials for authenticating the client with the server.
+     public static let authorization: Self = "Authorization"
+     /// Options for the connection (e.g., keep-alive).
+     public static let connection: Self = "Connection"
+     /// The size of the request body in octets (8-bit bytes).
+     public static let contentLength: Self = "Content-Length"
+     /// The domain name of the server and optionally the port number.
+     public static let host: Self = "Host"
+     /// Credentials for authenticating with a proxy.
+     public static let proxyAuthorization: Self = "Proxy-Authorization"
+      */
 }
+
+/*
+/// Creates and initializes a URL request with the given curl command.
+init?(curlString: String) {
+    func unescape(_ string: String) -> String {
+        guard string.hasPrefix("'"), string.hasSuffix("'") else { return string }
+        return String(string.dropFirst().dropLast()).replacingOccurrences(of: "'\\''", with: "'")
+    }
+    var method = "GET"
+    var headers: [String:String] = [:]
+    var body: Data?
+    var urlString: String?
+    
+    let tokens = curlString
+        .replacingOccurrences(of: "\\\n", with: " ")
+        .split(separator: " ")
+        .map(String.init)
+    var i = 0
+    while i < tokens.count {
+        let token = tokens[i]
+        switch token {
+        case "curl":
+            break
+        case "-X":
+            i += 1
+            if i < tokens.count { method = tokens[i] }
+        case "--head":
+            method = "HEAD"
+        case "-H":
+            i += 1
+            if i < tokens.count {
+                let header = unescape(tokens[i])
+                if let colon = header.firstIndex(of: ":") {
+                    let key = String(header[..<colon])
+                    let value = header[header.index(after: colon)...].trimmingCharacters(in: .whitespaces)
+                    headers[key] = value
+                }
+            }
+        case "--data-raw", "-d":
+            i += 1
+            if i < tokens.count {
+                let bodyString = unescape(tokens[i])
+                body = bodyString.data(using: .utf8)
+                if method == "GET" { method = "POST" }
+            }
+        case "--data-binary":
+            i += 1
+            if i < tokens.count {
+                let token = tokens[i]
+                if let base64Range = token.range(of: "echo ") {
+                    let base64 = token[base64Range.upperBound...]
+                        .replacingOccurrences(of: "|", with: "")
+                        .trimmingCharacters(in: .whitespaces)
+                    body = Data(base64Encoded: unescape(base64))
+                }
+                if method == "GET" { method = "POST" }
+            }
+        default:
+            if token.hasPrefix("http://") || token.hasPrefix("https://") {
+                urlString = unescape(token)
+            }
+        }
+        i += 1
+    }
+    guard let urlString, let url = URL(string: urlString) else { return nil }
+    self.init(url: url)
+    httpMethod = method
+    allHTTPHeaderFields = headers.isEmpty ? nil : headers
+    httpBody = body
+}
+*/

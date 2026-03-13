@@ -91,11 +91,16 @@ public class __Rotation: NSObject, NSCopying {
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __Rotation(rotation: rotation)
+       self
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
-        rotation == (object as? __Rotation)?.rotation
+        guard let other = object as? Self else { return false }
+        return self === other || rotation == other.rotation
+    }
+    
+    public override var hash: Int {
+        Hasher.hash(rotation)
     }
 }
 

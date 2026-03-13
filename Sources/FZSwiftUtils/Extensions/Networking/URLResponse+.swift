@@ -6,13 +6,27 @@
 //
 
 import Foundation
+import UniformTypeIdentifiers
 
 public extension URLResponse {
-    /// The `HTTP` response, or `nil` if the reponse isn't `HTTP`.
+    /// The response as `HTTPURLResponse` response, or `nil` if the reponse isn't `HTTP` based.
     var http: HTTPURLResponse? {
         self as? HTTPURLResponse
     }
     
+    /// The expected length of the response’s content.
+    var expectedContentSize: DataSize? {
+        guard expectedContentLength >= 0 else { return nil }
+        return .bytes(expectedContentLength)
+    }
+    
+    /// The content type type of the response.
+    var contentType: UTType? {
+        guard let mimeType = mimeType else { return nil }
+        return UTType(mimeType: mimeType)
+    }
+    
+    /*
     /// A suggested filename for the response data.
     var extendedSuggestedFilename: String? {
         guard var fileName = suggestedFilename else { return nil }
@@ -24,4 +38,5 @@ public extension URLResponse {
         }
         return fileName
     }
+     */
 }

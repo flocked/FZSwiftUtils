@@ -17,6 +17,10 @@ extension Progress {
         set { setAssociatedValue(newValue, key: "identifier") }
     }
     
+    func sdsd() {
+        (URLRequest(url: .string("")!) as NSURLRequest) as URLRequest
+    }
+    
     /// The estimate time remaining.
     public var estimateDurationRemaining: TimeDuration? {
         get {

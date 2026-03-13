@@ -265,15 +265,13 @@ extension DataSize: Codable {
     }
 
     public init(from decoder: Decoder) throws {
-        if let singleValue = try? decoder.singleValueContainer(),
-           let bytes = try? singleValue.decode(UInt64.self) {
+        if let bytes = try? decoder.decodeSingle(UInt64.self) {
             self.bytes = bytes
-            self.countStyle = .file
-            return
+        } else {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            self.bytes = try container.decode(UInt64.self, forKey: .bytes)
+            self.countStyle = try container.decodeIfPresent(CountStyle.self, forKey: .countStyle) ?? .file
         }
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.bytes = try container.decode(UInt64.self, forKey: .bytes)
-        self.countStyle = try container.decodeIfPresent(CountStyle.self, forKey: .countStyle) ?? .file
     }
 }
 
@@ -590,11 +588,11 @@ extension DataSize: ReferenceConvertible {
     }
 
     public func _bridgeToObjectiveC() -> __DataSize {
-        return __DataSize(bytes: bytes, countStyle: countStyle)
+        return __DataSize(size: self)
     }
 
     public static func _forceBridgeFromObjectiveC(_ source: __DataSize, result: inout DataSize?) {
-        result = DataSize(source.bytes, countStyle: source.countStyle)
+        result = source.size
     }
 
     public static func _conditionallyBridgeFromObjectiveC(_ source: __DataSize, result: inout DataSize?) -> Bool {
@@ -615,16 +613,23 @@ extension DataSize: ReferenceConvertible {
 /// The Objective-C type for `DataSize`.
 public class __DataSize: NSObject, NSCopying {
     
-    let bytes: UInt64
-    let countStyle: DataSize.CountStyle
+    let size: DataSize
     
-    init(bytes: UInt64, countStyle: DataSize.CountStyle) {
-        self.bytes = bytes
-        self.countStyle = countStyle
+    init(size: DataSize) {
+        self.size = size
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
-        __DataSize(bytes: bytes, countStyle: countStyle)
+        self
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else { return false }
+        return self === other || size == other.size
+    }
+    
+    public override var hash: Int {
+        Hasher.hash(size)
     }
 }
 

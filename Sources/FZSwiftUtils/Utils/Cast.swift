@@ -64,15 +64,17 @@ public func cast<X, T>(_ x: X) -> T {
  */
 public func unbridgedType(of value: Any) -> Any.Type {
     var type: Any.Type = type(of: value)
-    if type == NSClassFromString("__SwiftValue"), let value = value as? NSObject {
-        let selector: Selector = NSSelectorFromString("_swiftTypeMetadata")
-        let methodIMP: IMP! = value.method(for: selector)
-        let metadataPtr = unsafeBitCast(methodIMP, to:(@convention(c)(Any?,Selector)->OpaquePointer).self)(value,selector)
-        withUnsafeMutablePointer(to: &type) {
-            let unsafePtr = UnsafeMutablePointer<OpaquePointer>.allocate(capacity: 1)
-            unsafePtr.pointee = metadataPtr
-            $0.update(from: UnsafePointer<Any.Type>(OpaquePointer(unsafePtr)), count: 1)
-        }
+    guard type == swiftValueType, let value = value as? NSObject else {
+        return type
+    }
+    let pointer = unsafeBitCast(value.method(for: swiftTypeSelector)!, to: (@convention(c)(Any?,Selector)->OpaquePointer).self)(value, swiftTypeSelector)
+    withUnsafeMutablePointer(to: &type) {
+        let unsafePtr = UnsafeMutablePointer<OpaquePointer>.allocate(capacity: 1)
+        unsafePtr.pointee = pointer
+        $0.update(from: UnsafePointer<Any.Type>(OpaquePointer(unsafePtr)), count: 1)
     }
     return type
 }
+
+fileprivate let swiftValueType: AnyClass? = NSClassFromString("__SwiftValue")
+fileprivate let swiftTypeSelector = NSSelectorFromString("_swiftTypeMetadata")
