@@ -119,7 +119,8 @@ public struct ObjCClassInfo: Sendable {
                 classProperties: Self.properties(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
                 properties: Self.properties(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses),
                 classMethods: Self.methods(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
-                methods: Self.methods(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses)
+                methods: Self.methods(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses),
+                class: `class`
             )
             Self.cache[key] = self
         }
