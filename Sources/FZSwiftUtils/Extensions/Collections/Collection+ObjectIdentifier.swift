@@ -7,10 +7,38 @@
 
 import Foundation
 
+extension Dictionary where Key == ObjectIdentifier {
+    public subscript(_ key: AnyObject) -> Value? {
+        get { self[ObjectIdentifier(key)] }
+        set { self[ObjectIdentifier(key)] = newValue }
+    }
+
+    public subscript(_ key: AnyObject, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { self[ObjectIdentifier(key), default: defaultValue()] }
+        set { self[ObjectIdentifier(key)] = newValue }
+    }
+    
+    public subscript(_ cls: AnyClass) -> Value? {
+        get { self[ObjectIdentifier(cls)] }
+        set { self[ObjectIdentifier(cls)] = newValue }
+    }
+
+    public subscript(_ cls: AnyClass, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { self[ObjectIdentifier(cls), default: defaultValue()] }
+        set { self[ObjectIdentifier(cls)] = newValue }
+    }
+}
+
 public extension Set where Element == ObjectIdentifier {
     /// Inserts the identifier for the given object in the set if it is not already present.
     @discardableResult
     mutating func insert(_ newMember: AnyObject) -> (inserted: Bool, memberAfterInsert: Element) {
+        insert(ObjectIdentifier(newMember))
+    }
+    
+    /// Inserts the identifier for the given object in the set if it is not already present.
+    @discardableResult
+    mutating func insert(_ newMember: AnyClass) -> (inserted: Bool, memberAfterInsert: Element) {
         insert(ObjectIdentifier(newMember))
     }
     
@@ -19,13 +47,28 @@ public extension Set where Element == ObjectIdentifier {
         insert(objects.map({ ObjectIdentifier($0) }))
     }
     
+    /// Inserts the identifiers for the given objects in the set.
+    mutating func insert<S>(_ objects: S) where S: Sequence<AnyClass> {
+        insert(objects.map({ ObjectIdentifier($0) }))
+    }
+    
     /// Removes the identifier for the specified object from the set.
     @discardableResult
     mutating func remove(_ object: AnyObject) -> ObjectIdentifier? { remove(ObjectIdentifier(object))
     }
     
+    /// Removes the identifier for the specified object from the set.
+    @discardableResult
+    mutating func remove(_ object: AnyClass) -> ObjectIdentifier? { remove(ObjectIdentifier(object))
+    }
+    
     /// Removes the identifiers for the specified objects from the set.
     mutating func remove<S>(_ objects: S) where S: Sequence<AnyObject> {
+        remove(objects.map({ ObjectIdentifier($0) }))
+    }
+    
+    /// Removes the identifiers for the specified objects from the set.
+    mutating func remove<S>(_ objects: S) where S: Sequence<AnyClass> {
         remove(objects.map({ ObjectIdentifier($0) }))
     }
     
@@ -35,9 +78,19 @@ public extension Set where Element == ObjectIdentifier {
         update(with: ObjectIdentifier(newMember))
     }
     
+    /// Inserts the given element into the set unconditionally.
+    @discardableResult
+    mutating func update(with newMember: AnyClass) -> Element? {
+        update(with: ObjectIdentifier(newMember))
+    }
+    
     /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
     @_disfavoredOverload
     func contains(_ key: AnyObject) -> Bool { contains(ObjectIdentifier(key)) }
+    
+    /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
+    @_disfavoredOverload
+    func contains(_ key: AnyClass) -> Bool { contains(ObjectIdentifier(key)) }
     
     subscript(_ key: AnyObject) -> Bool {
         get { contains(key) }
@@ -49,17 +102,16 @@ public extension Set where Element == ObjectIdentifier {
             }
         }
     }
-}
-
-extension Dictionary where Key == ObjectIdentifier {
-    public subscript(_ key: AnyObject) -> Value? {
-        get { self[ObjectIdentifier(key)] }
-        set { self[ObjectIdentifier(key)] = newValue }
-    }
-
-    public subscript(_ key: AnyObject, default defaultValue: @autoclosure () -> Value) -> Value {
-        get { self[ObjectIdentifier(key), default: defaultValue()] }
-        set { self[ObjectIdentifier(key)] = newValue }
+    
+    subscript(_ key: AnyClass) -> Bool {
+        get { contains(key) }
+        set {
+            if newValue {
+                insert(key)
+            } else {
+                remove(key)
+            }
+        }
     }
 }
 
@@ -69,8 +121,18 @@ public extension SynchronizedSet where Element == ObjectIdentifier {
         insert(ObjectIdentifier(newMember))
     }
     
+    /// Inserts the identifier for the given object in the set if it is not already present.
+    func insert(_ newMember: AnyClass) {
+        insert(ObjectIdentifier(newMember))
+    }
+    
     /// Inserts the identifiers for the given objects in the set.
     func insert<S>(_ objects: S) where S: Sequence<AnyObject> {
+        insert(objects.map({ ObjectIdentifier($0) }))
+    }
+    
+    /// Inserts the identifiers for the given objects in the set.
+    func insert<S>(_ objects: S) where S: Sequence<AnyClass> {
         insert(objects.map({ ObjectIdentifier($0) }))
     }
     
@@ -79,15 +141,39 @@ public extension SynchronizedSet where Element == ObjectIdentifier {
         remove(ObjectIdentifier(object))
     }
     
+    /// Removes the identifier for the specified object from the set.
+    func remove(_ object: AnyClass) {
+        remove(ObjectIdentifier(object))
+    }
+    
     /// Removes the identifiers for the specified objects from the set.
     func remove<S>(_ objects: S) where S: Sequence<AnyObject> {
+        remove(objects.map({ ObjectIdentifier($0) }))
+    }
+    
+    /// Removes the identifiers for the specified objects from the set.
+    func remove<S>(_ objects: S) where S: Sequence<AnyClass> {
         remove(objects.map({ ObjectIdentifier($0) }))
     }
     
     /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
     func contains(_ key: AnyObject) -> Bool { contains(ObjectIdentifier(key)) }
     
+    /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
+    func contains(_ key: AnyClass) -> Bool { contains(ObjectIdentifier(key)) }
+    
     subscript(_ key: AnyObject) -> Bool {
+        get { contains(key) }
+        set {
+            if newValue {
+                insert(key)
+            } else {
+                remove(key)
+            }
+        }
+    }
+    
+    subscript(_ key: AnyClass) -> Bool {
         get { contains(key) }
         set {
             if newValue {
@@ -108,5 +194,15 @@ extension SynchronizedDictionary where Key == ObjectIdentifier {
     public subscript(_ key: AnyObject, default defaultValue: @autoclosure @escaping () -> Value) -> Value {
         get { self[ObjectIdentifier(key), default: defaultValue()] }
         set { self[ObjectIdentifier(key)] = newValue }
+    }
+    
+    public subscript(_ cls: AnyClass) -> Value? {
+        get { self[ObjectIdentifier(cls)] }
+        set { self[ObjectIdentifier(cls)] = newValue }
+    }
+
+    public subscript(_ cls: AnyClass, default defaultValue: @autoclosure @escaping () -> Value) -> Value {
+        get { self[ObjectIdentifier(cls), default: defaultValue()] }
+        set { self[ObjectIdentifier(cls)] = newValue }
     }
 }
