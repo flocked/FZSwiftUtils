@@ -46,9 +46,9 @@ public struct ObjCClassInfo: Sendable {
     
     let cls: AnyClass?
     
-    var groupedMethodsHeaderString: String? {
+    var methodHeaderSections: [HeaderSection]? {
         guard let cls = cls else { return nil }
-        return Self.headerSections(for: cls).headerString(className: name)
+        return Self.headerSections(for: cls)
     }
     
     /**
@@ -161,7 +161,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     }
     
     /// Returns a string representing the class in a Objective-C header.
-    public func headerString(group: Bool) -> String {
+    public func headerString(group: Bool, includeAllMethods: Bool = true) -> String {
         var decl = "@interface \(name)"
         if let superClass {
             decl += " : \(NSStringFromClass(superClass))"
@@ -182,7 +182,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         if !properties.isEmpty {
             lines += "" + properties.map(\.headerString)
         }
-        if group, let methodString = groupedMethodsHeaderString {
+        if group, let methodString = methodHeaderSections?.headerString(className: name, classImagePath: imageName ?? "", includeAllMethods: includeAllMethods) {
             lines +=  "" + methodString
         } else {
             if !classMethods.isEmpty {
@@ -838,16 +838,17 @@ extension [ObjCClassInfo.HeaderSection] {
         case plain
     }
     
-    func headerString(className: String, style: HeaderStyle = .commented) -> String {
+    func headerString(className: String, classImagePath: String, style: HeaderStyle = .commented, includeAllMethods: Bool = true) -> String {
         var header: [String] = []
         switch style {
         case .commented:
+            let sections = includeAllMethods ? self : filter({ $0.imagePath == classImagePath })
             let hasMethodsFromMoreThanOneImage: Bool = {
-                guard let firstImagePath = first?.imagePath else { return false }
-                return contains { $0.imagePath != firstImagePath }
+                guard let firstImagePath = sections.first?.imagePath else { return false }
+                return sections.contains { $0.imagePath != firstImagePath }
             }()
             var imagePath: String?
-            for (index, section) in enumerated() {
+            for (index, section) in sections.enumerated() {
                 if index > 0 {
                     header.append("")
                 }

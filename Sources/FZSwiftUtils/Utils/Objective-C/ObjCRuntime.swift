@@ -199,7 +199,13 @@ public enum ObjCRuntime {
      The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
      */
     public static func origin(of method: Method) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
+        let key = ObjCMethodKey(method)
+        if let origin = Cache.methodOrigins[key] {
+            return origin
+        }
+        let origin = origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
+        Cache.methodOrigins[key] = origin
+       return origin
     }
     
     /**
@@ -212,7 +218,12 @@ public enum ObjCRuntime {
      The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
      */
     public static func origin(of class: AnyClass) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))
+        if let origin = Cache.classOrigins[`class`] {
+            return origin
+        }
+        let origin = origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))
+        Cache.classOrigins[`class`] = origin
+        return origin
     }
     
     /**
@@ -226,6 +237,7 @@ public enum ObjCRuntime {
      */
     public static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
         var info = Dl_info()
+        var aaa: [UnsafeRawPointer: String] = [:]
         let result = dladdr(pointer, &info)
         guard result != 0 else {
             return (nil, nil, nil)
@@ -389,6 +401,11 @@ fileprivate extension ObjCRuntime {
             return _classNodes
         }
         static var _classNodes: [ObjCClassNode] = []
+        
+        static var methodOrigins: [ObjCMethodKey: (imagePath: String?, symbolName: String?, categoryName: String?)] = [:]
+        
+        static var classOrigins: [ObjectIdentifier: (imagePath: String?, symbolName: String?, categoryName: String?)] = [:]
+
                 
         static func reset() {
             _classNodes.removeAll()

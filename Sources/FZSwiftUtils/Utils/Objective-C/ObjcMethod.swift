@@ -59,6 +59,23 @@ public struct ObjCMethod {
      The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
      */
     public func origin() -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        ObjCRuntime.origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
+        ObjCRuntime.origin(of: method)
+    }
+}
+
+/// A key representing an Objective-C method.
+public struct ObjCMethodKey: Hashable, RawRepresentable {
+    public let rawValue: Method
+    
+    public init(rawValue: Method) {
+        self.rawValue = rawValue
+    }
+    
+    public init(_ method: Method) {
+        self.rawValue = method
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(UInt(bitPattern: rawValue))
     }
 }

@@ -312,7 +312,7 @@ public struct ObjCClass {
      The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
      */
     public func origin() -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        ObjCRuntime.origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))
+        ObjCRuntime.origin(of: `class`)
     }
     
     func `protocol`(for selector: Selector, isInstanceMethod: Bool) throws -> Protocol? {
