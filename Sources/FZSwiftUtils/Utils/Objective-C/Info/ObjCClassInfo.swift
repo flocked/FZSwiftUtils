@@ -169,13 +169,16 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         /// Writable properties include `readwrite` attribute and properties that are not `nonatomic` include `atomic` attribute.
         public static let includeDefaultPropertyAttributes = Self(rawValue: 1 << 1)
         
+        /// Include comments for dynamic and/or synthesized properties.
+        public static let includePropertyComments = Self(rawValue: 1 << 2)
+        
         public init(rawValue: UInt32) {
             self.rawValue = rawValue
         }
     }
     
     /// Returns a string representing the class in a Objective-C header.
-    public func headerString(options: HeaderStringOptions = []) -> String {
+    public func headerString(options: HeaderStringOptions = [.includePropertyComments]) -> String {
         var decl = "@interface \(name)"
         if options.contains(.groupMethods), let imageName = imageName {
             decl = "// Image: \(imageName)\n\n" + decl
@@ -195,10 +198,10 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
             lines += "}"
         }
         if !classProperties.isEmpty {
-            lines += "" + classProperties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes))})
+            lines += "" + classProperties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes), includeComments: options.contains(.includePropertyComments))})
         }
         if !properties.isEmpty {
-            lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes))})
+            lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes), includeComments: options.contains(.includePropertyComments))})
         }
         if options.contains(.groupMethods), let methodString = methodHeaderSections?.headerString(className: name, classImagePath: imageName ?? "", includeAllMethods: true) {
             lines +=  "" + methodString

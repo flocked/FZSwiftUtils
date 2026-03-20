@@ -133,7 +133,7 @@ extension ObjCPropertyInfo: CustomStringConvertible {
      
      - Parameter includeDefaultAttributes: A Boolean value indicating whether to include attributes that are normally implicit:  Writable properties include `readwrite` and properties that are not `nonatomic` include `atomic`.
      */
-    public func headerString(includeDefaultAttributes: Bool) -> String {
+    public func headerString(includeDefaultAttributes: Bool, includeComments: Bool = true) -> String {
         let typeString = type.decodedStringForArgument
 
         var _attributes: [String] = []
@@ -187,8 +187,10 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         } else {
             result += " \(name);"
         }
-        for comment in comments {
-            result += " // \(comment)"
+        if includeComments {
+            for comment in comments {
+                result += " // \(comment)"
+            }
         }
         return result
     }
