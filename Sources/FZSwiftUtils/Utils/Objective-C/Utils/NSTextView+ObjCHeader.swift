@@ -26,7 +26,6 @@ open class ObjCHeaderTextView: NSTextView {
     open override func updateTrackingAreas() {
         super.updateTrackingAreas()
         if let trackingArea = trackingAreas.first(where: { $0.userInfo?["track"] != nil }) {
-            Swift.print("FOUND")
             removeTrackingArea(trackingArea)
         }
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.inVisibleRect, .activeInKeyWindow, .mouseMoved, .mouseEnteredAndExited, .cursorUpdate], owner: self, userInfo: ["track": true]))
