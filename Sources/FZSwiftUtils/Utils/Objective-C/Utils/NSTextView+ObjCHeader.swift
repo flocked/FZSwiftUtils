@@ -16,7 +16,6 @@ open class ObjCHeaderTextView: NSTextView {
     /// The handler that gets called when the user clicks on an Objective-C protocol name in the text.
     public var onProtocolClick: ((String) -> Void)?
 
-    private var trackingArea: NSTrackingArea?
     private var hoveredClickableRange: NSRange?
 
     open override func viewDidMoveToWindow() {
@@ -26,12 +25,8 @@ open class ObjCHeaderTextView: NSTextView {
 
     open override func updateTrackingAreas() {
         super.updateTrackingAreas()
-        if let trackingArea {
-            removeTrackingArea(trackingArea)
-        }
-        let trackingArea = NSTrackingArea(rect: .zero, options: [.inVisibleRect, .activeInKeyWindow, .mouseMoved, .mouseEnteredAndExited, .cursorUpdate], owner: self, userInfo: nil)
-        addTrackingArea(trackingArea)
-        self.trackingArea = trackingArea
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.inVisibleRect, .activeInKeyWindow, .mouseMoved, .mouseEnteredAndExited, .cursorUpdate], owner: self, userInfo: nil))
     }
 
     open override func mouseMoved(with event: NSEvent) {
