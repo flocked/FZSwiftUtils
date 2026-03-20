@@ -88,7 +88,7 @@ extension NSAttributedString {
     }()
 
     private static let objcHeaderKeywordSet: Set<String> = [
-        "NSUInteger", "nonatomic", "readwrite", "NSInteger", "readonly", "register", "uint16_t", "uint32_t",
+        "NSUInteger", "nonatomic", "readwrite", "NSInteger", "readonly", "readWrite", "register", "uint16_t", "uint32_t",
         "uint64_t", "continue", "unsigned", "volatile", "IBAction", "IBOutlet", "typedef", "uint8_t",
         "unichar", "int16_t", "int32_t", "int64_t", "default", "atomic", "assign", "strong", "retain",
         "signed", "sizeof", "static", "oneway", "struct", "setter", "return", "switch", "UInt16",
