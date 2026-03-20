@@ -71,6 +71,11 @@ extension ObjCMethodInfo {
 extension ObjCMethodInfo: CustomStringConvertible {
     /// Returns a string representing the method in a Objective-C header.
     public var headerString: String {
+        headerString(includeTypeEncoding: false)
+    }
+    
+    /// Returns a string representing the method in a Objective-C header.
+    public func headerString(includeTypeEncoding: Bool) -> String {
         let prefix = isClassMethod ? "+" : "-"
         let returnType = returnType.decodedStringForArgument
         let nameAndLabels = name.split(separator: ":")
@@ -80,6 +85,9 @@ extension ObjCMethodInfo: CustomStringConvertible {
         var result = "\(prefix) (\(returnType))"
         result += zip(nameAndLabels, argumentTypes.map({$0.decodedStringForArgument})).enumerated().map({  "\($1.0):(\($1.1))arg\($0)" }).joined(separator: " ")
         result += ";"
+        if includeTypeEncoding {
+            result += " // \(type.encoded)"
+        }
         return result
     }
     

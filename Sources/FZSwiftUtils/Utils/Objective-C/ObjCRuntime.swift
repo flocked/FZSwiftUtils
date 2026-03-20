@@ -319,7 +319,7 @@ public enum ObjCRuntime {
         return name
     }
     
-    private static let classNamesToSkip = Set([
+    static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"
     ])
     

@@ -20,12 +20,10 @@ public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible,
     public let returnValue: MethodValue
     
     /// The type encoding of the method.
-    public func encoded() -> String {
-        "\(returnValue.typeEncoding)\(stackSize?.string ?? "")\(arguments.map({ $0.encoded() }).joined())"
-    }
+    public let encoded: String
     
     public var description: String {
-        encoded()
+        encoded
     }
     
     /// Represents a value of an Objective-C method.
@@ -133,7 +131,7 @@ extension ObjCMethodSignature {
         while i < type.endIndex {
             arguments.append(.init(typeEncoding: popType(), offset: popInt()))
         }
-        self = .init(arguments: arguments, stackSize: stackSize, returnValue: .init(typeEncoding: returnType, offset: nil))
+        self = .init(arguments: arguments, stackSize: stackSize, returnValue: .init(typeEncoding: returnType, offset: nil), encoded: typeEncoding)
     }
     
     /// Creates a new instance for the specified Objective-C method.
