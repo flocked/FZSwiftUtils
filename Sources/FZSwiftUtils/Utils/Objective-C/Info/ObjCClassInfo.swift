@@ -715,7 +715,7 @@ fileprivate extension ObjCClassInfo {
             minimumCapacity: classMethods.count + methods.count)
         
         func append(_ method: Method, isClassMethod: Bool) {
-            guard let info = ObjCMethodInfo(method) else { return }
+            guard let info = ObjCMethodInfo(method, isClassMethod: isClassMethod) else { return }
             let origin = ObjCRuntime.origin(of: method)
             let keyPath: WritableKeyPath<CategoryBucket, [HeaderSection.HeaderMethod]> = isClassMethod ? \.classMethods : \.instanceMethods
             bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath] += .init(name: info.name, headerString: info.headerString)
