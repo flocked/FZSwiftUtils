@@ -18,9 +18,8 @@ public enum ObjCRuntime {
         }
         var count: UInt32 = 0
         guard let classList = objc_copyClassList(&count) else { return [] }
-        let allClasses = UnsafeBufferPointer(start: classList, count: Int(count)).filter({
-            return !Self._classesToSkip.contains(NSStringFromClass($0))
-            return !Self.classesToSkip.contains(ObjectIdentifier($0))
+        let allClasses = classList.buffer(count: count).filter({
+            !Self.classNamesToSkip.contains(NSStringFromClass($0))
         })
         defer { free(UnsafeMutableRawPointer(classList)) }
         Cache.classes = allClasses
@@ -43,9 +42,19 @@ public enum ObjCRuntime {
         }
         var count: UInt32 = 0
         guard let protocolList = objc_copyProtocolList(&count) else { return [] }
-        let allProtocols = Array(UnsafeBufferPointer(start: protocolList, count: Int(count)))
+        defer { free(UnsafeMutableRawPointer(protocolList)) }
+        let allProtocols = protocolList.array(count: count)
         Cache.protocols = allProtocols
         return allProtocols
+    }
+    
+    static func protocolNames() -> Set<String> {
+        if let cached = Cache.protocolNames {
+            return cached
+        }
+        let names = Set(protocols().map({ protocol_getName($0).string }))
+        Cache.protocolNames = names
+        return names
     }
     
     /// Returns all clases implementing the specified protocol.
@@ -64,27 +73,58 @@ public enum ObjCRuntime {
      - Parameters:
         - baseClass: The class for which to return its subclasses.
         - includeNested: A Boolean value indicating whether to include nested subclasses.
-        - sorted: A Boolean value indicating whether the subclasses should be sorted by name.
      */
-    public static func subclasses<T>(of baseClass: T, includeNested: Bool = false, sorted: Bool = false) -> [T] {
+    public static func subclasses<T: AnyObject>(of baseClass: T.Type, includeNested: Bool = false) -> [T.Type] {
         func address(of object: Any?) -> UnsafeMutableRawPointer {
             Unmanaged.passUnretained(object as AnyObject).toOpaque()
         }
         let basePtr = address(of: baseClass)
-        let subclasses = classes().compactMap { cls -> T? in
+        let subclasses: [T.Type] = classes().compactMap { cls in
             var current: AnyClass? = cls
             while let superClass = class_getSuperclass(current) {
                 if address(of: superClass) == basePtr {
-                    return cls as? T
+                    return cls as? T.Type
                 }
                 current = includeNested ? superClass : nil
             }
             return nil
         }
-        if sorted {
-            return subclasses.map({(class: $0, name: name(for: $0 as! AnyClass))}).sorted(by: \.name).map({$0.class})
+        return subclasses.map { (type: $0, name: name(for: $0)) }.sorted(by: \.name).map { $0.type }
+    }
+    
+    /**
+     Returns all subclasses for the specified class.
+     
+     - Parameters:
+        - baseClass: The class for which to return its subclasses.
+        - includeNested: A Boolean value indicating whether to include nested subclasses.
+     */
+    @_disfavoredOverload
+    public static func subclasses(of baseClass: AnyClass, includeNested: Bool = false) -> [AnyClass] {
+        func address(of object: Any?) -> UnsafeMutableRawPointer {
+            Unmanaged.passUnretained(object as AnyObject).toOpaque()
         }
-        return subclasses
+        let basePtr = address(of: baseClass)
+        return classes().filter({
+            var current: AnyClass? = $0
+            while let superClass = class_getSuperclass(current) {
+                if address(of: superClass) == basePtr { return true }
+                current = includeNested ? superClass : nil
+            }
+            return false
+        }).map({(class: $0 as AnyClass, name: name(for: $0))}).sorted(by: \.name).map({$0.class})
+    }
+    
+    /**
+     Returns all subclasses for the class with the specified name.
+     
+     - Parameters:
+        - className: The name of the class for which to return its subclasses.
+        - includeNested: A Boolean value indicating whether to include nested subclasses.
+     */
+    public static func subclasses(of className: String, includeNested: Bool = false) -> [AnyClass] {
+        guard let cls = NSClassFromString(className) else { return [] }
+        return subclasses(of: cls, includeNested: includeNested)
     }
     
     /**
@@ -125,33 +165,33 @@ public enum ObjCRuntime {
     }
     
     /*
-    public static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-        var visited = Set<ObjectIdentifier>()
-        var result: [Protocol] = []
-        func visit(_ proto: Protocol) {
-            guard visited.insert(proto).inserted else { return }
-            result.append(proto)
-            guard includeInheritedProtocols else { return }
-            var count: UInt32 = 0
-            if let list = protocol_copyProtocolList(proto, &count) {
-                for i in 0..<Int(count) {
-                    visit(list[i])
-                }
-            }
-        }
-        var cls: AnyClass? = cls
-        while let current = cls {
-            var count: UInt32 = 0
-            if let list = class_copyProtocolList(current, &count) {
-                for i in 0..<Int(count) {
-                    visit(list[i])
-                }
-            }
-            cls = includeSuperclasses ? current.superclass() : nil
-        }
-        return result
-    }
-    */
+     public static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
+         var visited = Set<ObjectIdentifier>()
+         var result: [Protocol] = []
+         func visit(_ proto: Protocol) {
+             guard visited.insert(proto).inserted else { return }
+             result.append(proto)
+             guard includeInheritedProtocols else { return }
+             var count: UInt32 = 0
+             if let list = protocol_copyProtocolList(proto, &count) {
+                 for i in 0..<Int(count) {
+                     visit(list[i])
+                 }
+             }
+         }
+         var cls: AnyClass? = cls
+         while let current = cls {
+             var count: UInt32 = 0
+             if let list = class_copyProtocolList(current, &count) {
+                 for i in 0..<Int(count) {
+                     visit(list[i])
+                 }
+             }
+             cls = includeSuperclasses ? current.superclass() : nil
+         }
+         return result
+     }
+     */
     
     /**
       Executes the specified block that may throw an Objective-C `NSException` and catches it.
@@ -214,7 +254,7 @@ public enum ObjCRuntime {
         }
         let origin = origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
         Cache.methodOrigins[key] = origin
-       return origin
+        return origin
     }
     
     /**
@@ -279,13 +319,11 @@ public enum ObjCRuntime {
         return name
     }
     
-    private static let _classesToSkip = Set([
+    private static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"
     ])
     
-    private static let classesToSkip = Set([
-        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"
-    ].compactMap({NSClassFromString($0)}).map({ObjectIdentifier($0)}))
+    private static let classesToSkip = Set(classNamesToSkip.compactMap({NSClassFromString($0)}).map({ObjectIdentifier($0)}))
 }
 
 extension ObjCRuntime {
@@ -374,6 +412,7 @@ fileprivate extension ObjCRuntime {
     class Cache: NSObject {
         static var classes: [AnyClass]?
         static var classNames: Set<String>?
+        static var protocolNames: Set<String>?
         static var protocols: [Protocol]?
         static var cachedName: [ObjectIdentifier: String] = [:]
         
@@ -580,7 +619,7 @@ extension ObjCRuntime {
     
     /// Generic iterator over Objective-C protocol buffers (methods or properties)
     struct ObjCProtocolIterator<Element>: IteratorProtocol {
-        // Internal class to manage unsafe buffer memory
+        /// Internal class to manage unsafe buffer memory
         private class BufferOwner {
             let pointer: UnsafeMutablePointer<Element>?
             let count: Int
@@ -662,193 +701,3 @@ extension ObjCRuntime {
         }
     }
 }
-
-/*
-public struct ObjcProtocol {
-    public let proto: Protocol
-    
-    public var name: String {
-        NSStringFromProtocol(proto)
-    }
-    
-    public init(_ proto: Protocol) {
-        self.proto = proto
-    }
-    
-    public init?(_ name: String) {
-        guard let proto = NSProtocolFromString(name) else { return nil }
-        self.proto = proto
-    }
-}
-
-public struct ObjcMethod {
-    public let method: Method
-    
-    public var name: String {
-        NSStringFromSelector(method_getName(method))
-    }
-    
-    public var typeEncoding: String? {
-        method_getTypeEncoding(method)?.string
-    }
-    
-    public var argumentTypes: [String] {
-        (0..<numberOfArguments).compactMap({ method_copyArgumentType(method, $0+2)?.string })
-    }
-    
-    public var returnType: String {
-        method_copyReturnType(method).string
-    }
-    
-    public var numberOfArguments: UInt32 {
-        method_getNumberOfArguments(method)-2
-    }
-    
-    public var implementation: IMP {
-        method_getImplementation(method)
-    }
-    
-    public func exchangeImplementation(with method: Self) {
-        method_exchangeImplementations(self.method, method.method)
-    }
-}
-
-public struct ObjcClass {
-    let cls: AnyClass
-            
-    public init(_ cls: AnyClass) {
-        self.cls = cls
-    }
-    
-    public init?(_ name: String) {
-        guard let cls = NSClassFromString(name) else { return nil }
-        self.cls = cls
-    }
-    
-    public var name: String {
-        NSStringFromClass(cls)
-    }
-    
-    public var superclass: ObjcClass? {
-        guard let superclass = class_getSuperclass(cls), superclass != cls else { return nil }
-        return ObjcClass(superclass)
-    }
-    
-    public var superclasses: [ObjcClass] {
-        var classes: [ObjcClass] = []
-        var cls = superclass
-        while var supercls = cls {
-            classes.append(supercls)
-            cls = supercls.superclass
-        }
-        return classes
-    }
-    
-    public var rootSuperclass: ObjcClass? {
-        superclasses.last
-    }
-    
-    public func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-        var visited = Set<ObjectIdentifier>()
-        var result: [Protocol] = []
-
-        func visit(_ proto: Protocol) {
-            guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
-            result.append(proto)
-            guard includeInheritedProtocols else { return }
-            var count: UInt32 = 0
-            if let list = protocol_copyProtocolList(proto, &count) {
-                for i in 0..<Int(count) {
-                    visit(list[i])
-                }
-            }
-        }
-
-        var cls: AnyClass? = cls
-        while let current = cls {
-            var count: UInt32 = 0
-            if let list = class_copyProtocolList(current, &count) {
-                for i in 0..<Int(count) {
-                    visit(list[i])
-                }
-            }
-            cls = includeSuperclasses ? class_getSuperclass(current) : nil
-        }
-        return result
-    }
-    
-    public func ivar(named name: String) -> ObjCIvar? {
-        guard let ivar = class_getInstanceVariable(cls, name) else { return nil }
-        return ObjCIvar(ivar)
-    }
-    
-    public func classIvar(named name: String) -> ObjCIvar? {
-        guard let ivar = class_getClassVariable(cls, name) else { return nil }
-        return ObjCIvar(ivar)
-    }
-                    
-    public func method(selector: Selector) -> IMP? {
-        class_getMethodImplementation(cls, selector)
-    }
-    
-    public func classMethod(selector: Selector) -> IMP? {
-        class_getClassMethod(cls, selector)
-    }
-}
-
-public static func protocols(for cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
-    var visited = Set<ObjectIdentifier>()
-    var result: [Protocol] = []
-
-    func visit(_ proto: Protocol) {
-        guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
-        result.append(proto)
-        guard includeInheritedProtocols else { return }
-        var count: UInt32 = 0
-        if let list = protocol_copyProtocolList(proto, &count) {
-            for i in 0..<Int(count) {
-                visit(list[i])
-            }
-        }
-    }
-
-    var cls: AnyClass? = cls
-    while let current = cls {
-        var count: UInt32 = 0
-        if let list = class_copyProtocolList(current, &count) {
-            for i in 0..<Int(count) {
-                visit(list[i])
-            }
-        }
-        cls = includeSuperclasses ? superclass(for: current) : nil
-    }
-    return result
-}
-
-public static func superclass(for cls: AnyClass) -> AnyClass? {
-    class_getSuperclass(cls)
-}
-
-/*
-public struct Class {
-    let cls: AnyClass
-
-    static func all() -> [AnyClass] {
-        if let allClasses = allClasses {
-            return allClasses
-        }
-        var count: UInt32 = 0
-        guard let classList = objc_copyClassList(&count) else { return [] }
-        let allClasses = Array(UnsafeBufferPointer(start: classList, count: Int(count)))
-        self.allClasses = allClasses
-        return allClasses
-    }
-    
-    static var allClasses: [AnyClass]?
-    
-    public var name: String {
-        NSStringFromClass(cls)
-    }
-}
-*/
- */

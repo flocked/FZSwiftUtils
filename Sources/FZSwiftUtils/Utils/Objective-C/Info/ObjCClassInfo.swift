@@ -48,10 +48,6 @@ public struct ObjCClassInfo: Sendable {
     public let classMethods: [ObjCMethodInfo]
     /// The instance methods held by the class.
     public let methods: [ObjCMethodInfo]
-        
-    var methodHeaderSections: [HeaderSection]? {
-        return Self.headerSections(for: name)
-    }
     
     /**
      Initializes a new instance of `ObjCClassInfo`.
@@ -203,8 +199,8 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         if !properties.isEmpty {
             lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes), includeComments: options.contains(.includePropertyComments))})
         }
-        if options.contains(.groupMethods), let methodString = methodHeaderSections?.headerString(className: name, classImagePath: imageName ?? "", includeAllMethods: true) {
-            lines +=  "" + methodString
+        if options.contains(.groupMethods), let groupedMethodsHeaderLines = groupedMethodsHeaderLines(includeAllMethods: true) {
+            lines += groupedMethodsHeaderLines
         } else {
             if !classMethods.isEmpty {
                 lines += "" + classMethods.map(\.headerString)
@@ -383,6 +379,7 @@ extension ObjCClassInfo {
                     guard includeInheritedProtocols else { return }
                     var count: UInt32 = 0
                     guard let list = protocol_copyProtocolList(proto, &count) else { return }
+                    defer { free(UnsafeMutableRawPointer(list)) }
                     for i in 0..<Int(count) {
                         check(list[i])
                     }
@@ -391,6 +388,7 @@ extension ObjCClassInfo {
                 for cls in classes(for: cls, isInstance: true, includeSuperclasses: includeSuperclasses) {
                     var count: UInt32 = 0
                     guard let list = class_copyProtocolList(cls, &count) else { continue }
+                    defer { free(UnsafeMutableRawPointer(list)) }
                     for i in 0..<Int(count) {
                         check(list[i])
                     }
@@ -672,213 +670,99 @@ extension [(imagePath: String, categories: [(categoryName: String, methods: [(me
     }
 }
 
-extension ObjCClassInfo {
-    func makeHeader(from grouped: [(imagePath: String, categories: [(categoryName: String, methods: [(method: Method, info: ObjCMethodInfo)])])],
-                    className: String) -> String {
-        var header: [String] = []
-        let hasMethodsFromMoreThanOneImage = grouped.count > 1
-
-        for (index, imageGroup) in grouped.enumerated() {
+fileprivate extension ObjCClassInfo {
+    func groupedMethodsHeaderLines(includeAllMethods: Bool = true) -> [String]? {
+        guard var sections = methodHeaderSections else { return nil }
+        var lines: [String] = []
+        sections = includeAllMethods ? sections : sections.filter({ $0.imagePath == imageName ?? "" })
+        let hasMethodsFromMoreThanOneImage: Bool = {
+            guard let firstImagePath = sections.first?.imagePath else { return false }
+            return sections.contains { $0.imagePath != firstImagePath }
+        }()
+        var imagePath: String?
+        for (index, section) in sections.enumerated() {
             if index > 0 {
-                header.append("")
+                lines += ""
             }
-
-            if hasMethodsFromMoreThanOneImage {
-                header.append("// Image: \(imageGroup.imagePath)")
-                header.append("")
+            if hasMethodsFromMoreThanOneImage, imagePath != section.imagePath {
+                imagePath = section.imagePath
+                lines += "// Image: \(section.imagePath)"
+                lines += ""
             }
-
-            appendHeaderLines(for: imageGroup.categories, className: className, to: &header)
+            if !section.categoryName.isEmpty {
+                lines += "// \(name) (\(section.categoryName))"
+                lines += ""
+            }
+            lines.append(contentsOf: section.classMethods.map({$0.headerString}))
+            if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
+                lines += ""
+            }
+            lines += section.instanceMethods.map({$0.headerString})
         }
-
-        return header.joined(separator: "\n")
-    }
-
-    func appendHeaderLines(for categories: [(categoryName: String, methods: [(method: Method, info: ObjCMethodInfo)])], className: String, to header: inout [String]) {
-        for (categoryIndex, category) in categories.enumerated() {
-            if categoryIndex > 0 {
-                header.append("")
-            }
-
-            if !category.categoryName.isEmpty {
-                header.append("// \(className) (\(category.categoryName))")
-                header.append("")
-            }
-
-            var previousIsClassMethod: Bool?
-
-            for entry in category.methods {
-                let currentIsClassMethod = entry.info.isClassMethod
-
-                if let previousIsClassMethod, currentIsClassMethod != previousIsClassMethod {
-                    header.append("")
-                }
-
-                previousIsClassMethod = currentIsClassMethod
-                header.append(entry.info.headerString)
-            }
+        if !lines.isEmpty {
+            return ("" + lines)
         }
+        return lines
     }
     
-    static func groupedMethods(for cls: AnyClass) -> [(imagePath: String, categories: [(categoryName: String, methods: [(method: Method, info: ObjCMethodInfo)])])] {
-        let objcClass = ObjCClass(cls)
-        let classMethods = objcClass.classMethods()
-        let instanceMethods = objcClass.methods()
-        let classImagePath = objcClass.imageName ?? ""
-        var bucketsByImage: [String: [String: CategoryBucket]] = .init(minimumCapacity: classMethods.count + instanceMethods.count)
+    var methodHeaderSections: [HeaderSection]? {
+        if let cached = Self.cachedHeaderSections[name] {
+            return cached
+        }
+        guard let objcClass = ObjCClass(name) else { return nil }
+        
+        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
+            minimumCapacity: classMethods.count + methods.count)
+        
         func append(_ method: Method, isClassMethod: Bool) {
             guard let info = ObjCMethodInfo(method) else { return }
             let origin = ObjCRuntime.origin(of: method)
-            let imagePath = origin.imagePath ?? ""
-            let categoryName = origin.categoryName ?? ""
-            let entry = Entry(method: method, info: info)
-            if isClassMethod {
-                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].classMethods.append(entry)
-            } else {
-                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].instanceMethods.append(entry)
-            }
+            let keyPath: WritableKeyPath<CategoryBucket, [HeaderSection.HeaderMethod]> = isClassMethod ? \.classMethods : \.instanceMethods
+            bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath] += .init(name: info.name, headerString: info.headerString)
         }
-        for method in classMethods {
+        for method in objcClass.methods() {
             append(method, isClassMethod: true)
         }
-        for method in instanceMethods {
+        for method in objcClass.methods() {
             append(method, isClassMethod: false)
         }
-        var sortedImagePaths = bucketsByImage.keys.sorted()
-        if let index = sortedImagePaths.firstIndex(of: classImagePath) {
-            sortedImagePaths.remove(at: index)
-            sortedImagePaths.insert(classImagePath, at: 0)
-        }
-        return sortedImagePaths.reduce(into: .init(reserveCapacity: sortedImagePaths.count)) { result, imagePath in
-            let categories = bucketsByImage[imagePath]!
-                .sorted(by: \.key)
-                .map { ($0.key, $0.value.sortedMapped()) }
-            result += (imagePath: imagePath, categories: categories)
-        }
-    }
-    
-    struct Entry {
-        let method: Method
-        let info: ObjCMethodInfo
-    }
-
-    struct CategoryBucket {
-        var classMethods: [Entry] = []
-        var instanceMethods: [Entry] = []
         
-        func sortedMapped() -> [(method: Method, info: ObjCMethodInfo)] {
-            var result: [(method: Method, info: ObjCMethodInfo)] = .init(reserveCapacity: classMethods.count + instanceMethods.count)
-            for entry in classMethods.sorted(by: \.info.name) {
-                result += (method: entry.method, info: entry.info)
-            }
-            for entry in instanceMethods.sorted(by: \.info.name) {
-                result += (method: entry.method, info: entry.info)
-            }
-            return result
+        var sortedImagePaths = bucketsByImage.sorted(by: \.key)
+        let imageName = imageName ?? ""
+        if let index = sortedImagePaths.firstIndex(where: { $0.key == imageName }) {
+            sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
         }
+        let headerSections = sortedImagePaths.flatMap({ element in
+            element.value.sorted(by: \.key).map({ $0.value.headerSeaction(imagePath: element.key, categoryName: $0.key) })
+        })
+        Self.cachedHeaderSections[name] = headerSections
+        return headerSections
+        /*
+         var sortedImagePaths = bucketsByImage.keys.sorted()
+
+        if let index = sortedImagePaths.firstIndex(of: imageName ?? ""), index != 0 {
+            sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
+        }
+        let headerSections: [HeaderSection] = sortedImagePaths.reduce(into: []) { result, imagePath in
+            result += bucketsByImage[imagePath]!.sorted(by: \.key).map {
+                categoryName, bucket in
+                return bucket.headerSeaction(imagePath: imagePath, categoryName: categoryName)
+               // HeaderSection(imagePath: imagePath, categoryName: categoryName, classMethods: bucket.classMethods.sorted(by: \.name), instanceMethods: bucket.instanceMethods.sorted(by: \.name))
+            }
+        }
+        Self.cachedHeaderSections[name] = headerSections
+        return headerSections
+         */
     }
     
     static var cachedHeaderSections: [String: [HeaderSection]] = [:]
     
-    static func headerSections(for className: String) -> [HeaderSection]? {
-        if let cached = cachedHeaderSections[className] {
-            return cached
-        }
-        guard let cls = NSClassFromString(className) else { return nil }
-        struct CategoryBucket {
-            var classMethods: [HeaderSection.HeaderMethod] = []
-            var instanceMethods: [HeaderSection.HeaderMethod] = []
-        }
+    struct CategoryBucket {
+        var classMethods: [HeaderSection.HeaderMethod] = []
+        var instanceMethods: [HeaderSection.HeaderMethod] = []
         
-        let objcClass = ObjCClass(cls)
-        let classMethods = objcClass.classMethods()
-        let instanceMethods = objcClass.methods()
-        let classImagePath = objcClass.imageName ?? ""
-        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
-            minimumCapacity: classMethods.count + instanceMethods.count)
-        
-        func append(_ method: Method, isClassMethod: Bool) {
-            guard let info = ObjCMethodInfo(method) else { return }
-            let origin = ObjCRuntime.origin(of: method)
-            let imagePath = origin.imagePath ?? ""
-            let categoryName = origin.categoryName ?? ""
-            if isClassMethod {
-                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].classMethods += .init(name: info.name, headerString: info.headerString)
-            } else {
-                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].instanceMethods += .init(name: info.name, headerString: info.headerString)
-            }
-        }
-        
-        for method in classMethods {
-            append(method, isClassMethod: true)
-        }
-        for method in instanceMethods {
-            append(method, isClassMethod: false)
-        }
-        
-        var sortedImagePaths = bucketsByImage.keys.sorted()
-        if let index = sortedImagePaths.firstIndex(of: classImagePath) {
-            sortedImagePaths.remove(at: index)
-            sortedImagePaths.insert(classImagePath, at: 0)
-        }
-        let headerSections: [HeaderSection] = sortedImagePaths.reduce(into: []) { result, imagePath in
-            result += bucketsByImage[imagePath]!.sorted(by: \.key).map { categoryName, bucket in
-                HeaderSection(imagePath: imagePath, categoryName: categoryName, classMethods: bucket.classMethods.sorted(by: \.name), instanceMethods: bucket.instanceMethods.sorted(by: \.name))
-            }
-        }
-        cachedHeaderSections[className] = headerSections
-        return headerSections
-    }
-    
-    static func headerSections(for cls: AnyClass) -> [HeaderSection] {
-        struct CategoryBucket {
-            var classMethods: [HeaderSection.HeaderMethod] = []
-            var instanceMethods: [HeaderSection.HeaderMethod] = []
-        }
-        
-        let objcClass = ObjCClass(cls)
-        let classMethods = objcClass.classMethods()
-        let instanceMethods = objcClass.methods()
-        let classImagePath = objcClass.imageName ?? ""
-        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
-            minimumCapacity: classMethods.count + instanceMethods.count)
-        
-        func append(_ method: Method, isClassMethod: Bool) {
-            guard let info = ObjCMethodInfo(method) else { return }
-            let origin = ObjCRuntime.origin(of: method)
-            let imagePath = origin.imagePath ?? ""
-            let categoryName = origin.categoryName ?? ""
-            if isClassMethod {
-                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].classMethods += .init(name: info.name, headerString: info.headerString)
-            } else {
-                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].instanceMethods += .init(name: info.name, headerString: info.headerString)
-            }
-        }
-        
-        for method in classMethods {
-            append(method, isClassMethod: true)
-        }
-        for method in instanceMethods {
-            append(method, isClassMethod: false)
-        }
-        
-        var sortedImagePaths = bucketsByImage.keys.sorted()
-        if let index = sortedImagePaths.firstIndex(of: classImagePath) {
-            sortedImagePaths.remove(at: index)
-            sortedImagePaths.insert(classImagePath, at: 0)
-        }
-        return sortedImagePaths.reduce(into: []) { result, imagePath in
-            let sections = bucketsByImage[imagePath]!
-                .sorted(by: \.key)
-                .map { categoryName, bucket in
-                    HeaderSection(
-                        imagePath: imagePath,
-                        categoryName: categoryName,
-                        classMethods: bucket.classMethods.sorted(by: \.name),
-                        instanceMethods: bucket.instanceMethods.sorted(by: \.name)
-                    )
-                }
-            result.append(contentsOf: sections)
+        func headerSeaction(imagePath: String, categoryName: String) -> HeaderSection {
+            .init(imagePath: imagePath, categoryName: categoryName, classMethods: classMethods, instanceMethods: instanceMethods)
         }
     }
     
@@ -899,54 +783,5 @@ extension ObjCClassInfo {
                 lhs.name < rhs.name
             }
         }
-    }
-}
-
-extension [ObjCClassInfo.HeaderSection] {
-    enum HeaderStyle {
-        case commented
-        case plain
-    }
-    
-    func headerString(className: String, classImagePath: String, style: HeaderStyle = .commented, includeAllMethods: Bool = true) -> String {
-        var header: [String] = []
-        switch style {
-        case .commented:
-            let sections = includeAllMethods ? self : filter({ $0.imagePath == classImagePath })
-            let hasMethodsFromMoreThanOneImage: Bool = {
-                guard let firstImagePath = sections.first?.imagePath else { return false }
-                return sections.contains { $0.imagePath != firstImagePath }
-            }()
-            var imagePath: String?
-            for (index, section) in sections.enumerated() {
-                if index > 0 {
-                    header.append("")
-                }
-                if hasMethodsFromMoreThanOneImage, imagePath != section.imagePath {
-                    imagePath = section.imagePath
-                    header.append("// Image: \(section.imagePath)")
-                    header.append("")
-                }
-                if !section.categoryName.isEmpty {
-                    header.append("// \(className) (\(section.categoryName))")
-                    header.append("")
-                }
-                header.append(contentsOf: section.classMethods.map({$0.headerString}))
-                if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
-                    header.append("")
-                }
-                header.append(contentsOf: section.instanceMethods.map({$0.headerString}))
-            }
-        case .plain:
-            var hasWrittenAnyMethods = false
-            let classMethods = flatMap({$0.classMethods}).sorted().map({$0.headerString})
-            let instanceMethods = flatMap({$0.instanceMethods}).sorted().map({$0.headerString})
-            header += classMethods
-            if !classMethods.isEmpty, !instanceMethods.isEmpty {
-                header.append("")
-            }
-            header += instanceMethods
-        }
-        return header.joined(separator: "\n")
     }
 }

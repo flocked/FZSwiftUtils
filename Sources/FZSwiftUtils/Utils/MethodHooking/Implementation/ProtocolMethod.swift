@@ -32,9 +32,7 @@ private func addProtocolAndInheritedProtocols(_ proto: Protocol, result: inout [
     guard let protocolsPointer = protocol_copyProtocolList(proto, &protocolsCount) else {
         return
     }
-    defer {
-        free(UnsafeMutableRawPointer(protocolsPointer))
-    }
+    defer { free(UnsafeMutableRawPointer(protocolsPointer)) }
     for inheritedProtocol in protocolsPointer.buffer(count: protocolsCount) {
         addProtocolAndInheritedProtocols(inheritedProtocol, result: &result, includedProtocolNames: &includedProtocolNames)
     }

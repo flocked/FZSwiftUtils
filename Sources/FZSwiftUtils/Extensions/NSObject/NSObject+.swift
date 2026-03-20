@@ -417,12 +417,10 @@ public extension NSObjectProtocol where Self: NSObject {
     /**
      Returns all subclasses of the class.
      
-     - Parameters:
-        - includeNested: A Boolean value indicating whether to include nested subclasses.
-        - sorted: A Boolean value indicating whether the subclasses should be sorted by name.
+     - Parameter includeNested: A Boolean value indicating whether to include nested subclasses.
      */
-    static func subclasses(includeNested: Bool = false, sorted: Bool = false) -> [Self.Type] {
-        return ObjCRuntime.subclasses(of: self, includeNested: includeNested, sorted: sorted)
+    static func subclasses(includeNested: Bool = false) -> [Self.Type] {
+        return ObjCRuntime.subclasses(of: self, includeNested: includeNested)
     }
 }
 

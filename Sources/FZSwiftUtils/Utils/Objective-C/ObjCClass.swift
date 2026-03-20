@@ -16,6 +16,11 @@ public struct ObjCClass {
         self.`class` = `class`
     }
     
+    public init?(_ className: String) {
+        guard let cls = NSClassFromString(className) else { return nil }
+        self.`class` = cls
+    }
+    
     /// The name of the class.
     public var name: String {
         ObjCRuntime.name(for: `class`)
@@ -53,12 +58,10 @@ public struct ObjCClass {
     /**
      Returns all subclasses of the class.
      
-     - Parameters:
-        - includeNested: A Boolean value indicating whether to include nested subclasses.
-        - sorted: A Boolean value indicating whether the subclasses should be sorted by name.
+     - Parameter includeNested: A Boolean value indicating whether to include nested subclasses.
      */
-    public func subclasses(includeNested: Bool = false, sorted: Bool = false) -> [AnyClass] {
-        ObjCRuntime.subclasses(of: `class`, includeNested: includeNested, sorted: sorted)
+    public func subclasses(includeNested: Bool = false) -> [AnyClass] {
+        ObjCRuntime.subclasses(of: `class`, includeNested: includeNested)
     }
     
     /// A Boolean value indicating whether the class is a subclass of the specified other class.

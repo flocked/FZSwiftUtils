@@ -207,9 +207,9 @@ extension ObjCProtocolInfo {
      */
     public static func protocols(of `protocol`: Protocol) -> [ObjCProtocolInfo] {
         var count: UInt32 = 0
-        guard let start = protocol_copyProtocolList(`protocol`, &count) else { return [] }
-        defer { free(.init(start)) }
-        return UnsafeBufferPointer(start: start, count: Int(count)).map { ObjCProtocolInfo($0) }
+        guard let list = protocol_copyProtocolList(`protocol`, &count) else { return [] }
+        defer { free(.init(list)) }
+        return list.buffer(count: count).map({ ObjCProtocolInfo($0) })
     }
 
     /**
@@ -223,9 +223,9 @@ extension ObjCProtocolInfo {
      */
     public static func properties(of `protocol`: Protocol, isRequired: Bool, isInstance: Bool) -> [ObjCPropertyInfo] {
         var count: UInt32 = 0
-        guard let start = protocol_copyPropertyList2(`protocol`, &count, isRequired, isInstance) else { return [] }
-        defer { free(start) }
-        return UnsafeBufferPointer(start: start, count: Int(count)).compactMap { ObjCPropertyInfo($0, isClassProperty: !isInstance) }
+        guard let list = protocol_copyPropertyList2(`protocol`, &count, isRequired, isInstance) else { return [] }
+        defer { free(list) }
+        return list.buffer(count: count).compactMap { ObjCPropertyInfo($0, isClassProperty: !isInstance) }
     }
 
     /**
@@ -239,8 +239,8 @@ extension ObjCProtocolInfo {
      */
     public static func methods(of `protocol`: Protocol, isRequired: Bool, isInstance: Bool) -> [ObjCMethodInfo] {
         var count: UInt32 = 0
-        guard let start = protocol_copyMethodDescriptionList(`protocol`, isRequired, isInstance, &count) else { return [] }
-        defer { free(start) }
-       return UnsafeBufferPointer(start: start, count: Int(count)).compactMap { ObjCMethodInfo($0, isClassMethod: !isInstance) }
+        guard let list = protocol_copyMethodDescriptionList(`protocol`, isRequired, isInstance, &count) else { return [] }
+        defer { free(list) }
+        return list.buffer(count: count).compactMap { ObjCMethodInfo($0, isClassMethod: !isInstance) }
     }
 }
