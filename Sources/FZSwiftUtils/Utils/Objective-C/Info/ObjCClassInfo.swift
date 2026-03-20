@@ -216,7 +216,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     
     /**
     Returns an attributed string representing the class in a Objective-C header.
-     
+          
      - Parameters:
         - options: The header string options.
         - font: The font of the attributed string, or `nil` to use the default font.

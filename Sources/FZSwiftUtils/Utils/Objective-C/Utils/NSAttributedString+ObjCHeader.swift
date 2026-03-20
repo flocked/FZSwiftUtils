@@ -1,10 +1,11 @@
 //
 //  NSAttributedString+ObjCHeader.swift
-//  FZSwiftUtils
+//
 //
 //  Created by Florian Zand on 20.03.26.
 //
 
+#if os(macOS) || canImport(UIKit)
 #if canImport(AppKit)
 import AppKit
 #elseif canImport(UIKit)
@@ -121,3 +122,4 @@ public extension NSAttributedString.Key {
     /// The Objective-C protocol name of the text.
     static let objcProtocolName = NSAttributedString.Key("objcProtocolName")
 }
+#endif
