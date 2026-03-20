@@ -7,6 +7,11 @@
 //
 
 import Foundation
+#if canImport(AppKit)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 /// Represents information about an Objective-C class.
 public struct ObjCClassInfo: Sendable {
@@ -43,12 +48,9 @@ public struct ObjCClassInfo: Sendable {
     public let classMethods: [ObjCMethodInfo]
     /// The instance methods held by the class.
     public let methods: [ObjCMethodInfo]
-    
-    let cls: AnyClass?
-    
+        
     var methodHeaderSections: [HeaderSection]? {
-        guard let cls = cls else { return nil }
-        return Self.headerSections(for: cls)
+        return Self.headerSections(for: name)
     }
     
     /**
@@ -78,8 +80,7 @@ public struct ObjCClassInfo: Sendable {
         classProperties: [ObjCPropertyInfo],
         properties: [ObjCPropertyInfo],
         classMethods: [ObjCMethodInfo],
-        methods: [ObjCMethodInfo],
-        class: AnyClass? = nil
+        methods: [ObjCMethodInfo]
     ) {
         self.name = name
         self.version = version
@@ -92,7 +93,6 @@ public struct ObjCClassInfo: Sendable {
         self.properties = properties
         self.classMethods = classMethods
         self.methods = methods
-        self.cls = `class`
     }
 
     /**
@@ -119,8 +119,7 @@ public struct ObjCClassInfo: Sendable {
                 classProperties: Self.properties(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
                 properties: Self.properties(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses),
                 classMethods: Self.methods(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
-                methods: Self.methods(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses),
-                class: `class`
+                methods: Self.methods(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses)
             )
             Self.cache[key] = self
         }
@@ -157,11 +156,26 @@ public struct ObjCClassInfo: Sendable {
 extension ObjCClassInfo: CustomStringConvertible, Equatable {
     /// Returns a string representing the class in a Objective-C header.
     public var headerString: String {
-        headerString(group: false)
+        headerString()
+    }
+    
+    /// Options for the header string.
+    public struct HeaderStringOptions: OptionSet {
+        public let rawValue: UInt32
+        
+        /// Groups methods by image path and category and add comments for each.
+        public static let groupMethods = Self(rawValue: 1 << 0)
+        
+        /// Writable properties include `readwrite` attribute and properties that are not `nonatomic` include `atomic` attribute.
+        public static let includeDefaultPropertyAttributes = Self(rawValue: 1 << 1)
+        
+        public init(rawValue: UInt32) {
+            self.rawValue = rawValue
+        }
     }
     
     /// Returns a string representing the class in a Objective-C header.
-    public func headerString(group: Bool, includeAllMethods: Bool = true) -> String {
+    public func headerString(options: HeaderStringOptions = []) -> String {
         var decl = "@interface \(name)"
         if let superClass {
             decl += " : \(NSStringFromClass(superClass))"
@@ -177,12 +191,12 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
             lines += "}"
         }
         if !classProperties.isEmpty {
-            lines += "" + classProperties.map(\.headerString)
+            lines += "" + classProperties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes))})
         }
         if !properties.isEmpty {
-            lines += "" + properties.map(\.headerString)
+            lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes))})
         }
-        if group, let methodString = methodHeaderSections?.headerString(className: name, classImagePath: imageName ?? "", includeAllMethods: includeAllMethods) {
+        if options.contains(.groupMethods), let methodString = methodHeaderSections?.headerString(className: name, classImagePath: imageName ?? "", includeAllMethods: true) {
             lines +=  "" + methodString
         } else {
             if !classMethods.isEmpty {
@@ -194,6 +208,17 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         }
         lines += ["", "@end"]
         return lines.joined(separator: "\n")
+    }
+    
+    /**
+    Returns an attributed string representing the class in a Objective-C header.
+     
+     - Parameters:
+        - options: The header string options.
+        - font: The font of the attributed string, or `nil` to use the default font.
+     */
+    public func attributedHeaderString(options: HeaderStringOptions = [], font: NSUIFont? = nil) -> NSAttributedString {
+        .objCHeader(for: headerString(options: options), protocols: protocols.map(\.name), font: font)
     }
     
     public var description: String {
@@ -345,7 +370,6 @@ extension ObjCClassInfo {
         do {
             return try ObjCRuntime.catchException {
                 var visited = Set<ObjectIdentifier>()
-                
                 func check(_ proto: Protocol) {
                     guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
                     protocols += ObjCProtocolInfo(proto)
@@ -364,7 +388,7 @@ extension ObjCClassInfo {
                         check(list[i])
                     }
                 }
-                return protocols
+                return protocols.sorted(by: \.name)
             }
         } catch {
             return protocols
@@ -407,7 +431,7 @@ extension ObjCClassInfo {
                         seen.insert(ivar_getName($0)?.string ?? "_?").inserted ? ObjCIvarInfo($0) : nil
                     }
                 }
-                return ivars
+                return ivars.sorted(by: \.name)
             }
         } catch {
             return []
@@ -449,7 +473,7 @@ extension ObjCClassInfo {
                     properties += list.buffer(count: count).compactMap { seen.insert(property_getName($0).string).inserted ? ObjCPropertyInfo($0, isClassProperty: !isInstance) : nil
                     }
                 }
-                return properties
+                return properties.sorted(by: \.name)
             }
         } catch {
             return []
@@ -491,28 +515,11 @@ extension ObjCClassInfo {
                     methods += list.buffer(count: count).compactMap({
                         seen.insert(method_getName($0)).inserted ? ObjCMethodInfo($0, isClassMethod: !isInstance) : nil })
                 }
-                return methods
+                return methods.sorted(by: \.name)
             }
         } catch {
             return []
         }
-    }
-    
-    public static func sortedMethods(of cls: AnyClass) {
-        let objcClass = ObjCClass(cls)
-        objcClass.classMethods().extended()
-        objcClass.classMethods().compactMap({
-            if let info = ObjCMethodInfo($0) {
-                return  (method: $0, info: info, origin: ObjCRuntime.origin(of: $0))
-            } else {
-                return nil
-            }
-        }).sorted(by: \.info.name)
-        
-        let classMethods = methods(of: cls, isInstance: false).sorted(by: \.name)
-        let instanceMethods = methods(of: cls, isInstance: true).sorted(by: \.name)
-        // (classMethods + instanceMethods).map({ (method: $0, origin: ObjCRuntime.origin(of: $0)) })
-        
     }
     
     /**
@@ -660,7 +667,7 @@ extension [(imagePath: String, categories: [(categoryName: String, methods: [(me
 
 extension ObjCClassInfo {
     func makeHeader(from grouped: [(imagePath: String, categories: [(categoryName: String, methods: [(method: Method, info: ObjCMethodInfo)])])],
-        className: String) -> String {
+                    className: String) -> String {
         var header: [String] = []
         let hasMethodsFromMoreThanOneImage = grouped.count > 1
 
@@ -764,6 +771,58 @@ extension ObjCClassInfo {
         }
     }
     
+    static var cachedHeaderSections: [String: [HeaderSection]] = [:]
+    
+    static func headerSections(for className: String) -> [HeaderSection]? {
+        if let cached = cachedHeaderSections[className] {
+            return cached
+        }
+        guard let cls = NSClassFromString(className) else { return nil }
+        struct CategoryBucket {
+            var classMethods: [HeaderSection.HeaderMethod] = []
+            var instanceMethods: [HeaderSection.HeaderMethod] = []
+        }
+        
+        let objcClass = ObjCClass(cls)
+        let classMethods = objcClass.classMethods()
+        let instanceMethods = objcClass.methods()
+        let classImagePath = objcClass.imageName ?? ""
+        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
+            minimumCapacity: classMethods.count + instanceMethods.count)
+        
+        func append(_ method: Method, isClassMethod: Bool) {
+            guard let info = ObjCMethodInfo(method) else { return }
+            let origin = ObjCRuntime.origin(of: method)
+            let imagePath = origin.imagePath ?? ""
+            let categoryName = origin.categoryName ?? ""
+            if isClassMethod {
+                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].classMethods += .init(name: info.name, headerString: info.headerString)
+            } else {
+                bucketsByImage[imagePath, default: [:]][categoryName, default: CategoryBucket()].instanceMethods += .init(name: info.name, headerString: info.headerString)
+            }
+        }
+        
+        for method in classMethods {
+            append(method, isClassMethod: true)
+        }
+        for method in instanceMethods {
+            append(method, isClassMethod: false)
+        }
+        
+        var sortedImagePaths = bucketsByImage.keys.sorted()
+        if let index = sortedImagePaths.firstIndex(of: classImagePath) {
+            sortedImagePaths.remove(at: index)
+            sortedImagePaths.insert(classImagePath, at: 0)
+        }
+        let headerSections: [HeaderSection] = sortedImagePaths.reduce(into: []) { result, imagePath in
+            result += bucketsByImage[imagePath]!.sorted(by: \.key).map { categoryName, bucket in
+                HeaderSection(imagePath: imagePath, categoryName: categoryName, classMethods: bucket.classMethods.sorted(by: \.name), instanceMethods: bucket.instanceMethods.sorted(by: \.name))
+            }
+        }
+        cachedHeaderSections[className] = headerSections
+        return headerSections
+    }
+    
     static func headerSections(for cls: AnyClass) -> [HeaderSection] {
         struct CategoryBucket {
             var classMethods: [HeaderSection.HeaderMethod] = []
@@ -826,8 +885,12 @@ extension ObjCClassInfo {
             let name: String
             let headerString: String
             
-            static func == (lhs: Self, rhs: Self) -> Bool { lhs.name == rhs.name }
-            static func < (lhs: Self, rhs: Self) -> Bool { lhs.name < rhs.name }
+            static func == (lhs: Self, rhs: Self) -> Bool {
+                lhs.name == rhs.name
+            }
+            static func < (lhs: Self, rhs: Self) -> Bool {
+                lhs.name < rhs.name
+            }
         }
     }
 }
@@ -880,4 +943,3 @@ extension [ObjCClassInfo.HeaderSection] {
         return header.joined(separator: "\n")
     }
 }
-

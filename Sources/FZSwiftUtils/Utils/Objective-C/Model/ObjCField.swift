@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents a field in an Objective-C struct or union.
-public struct ObjCField: Sendable, Equatable, Codable {
+public struct ObjCField: Sendable, Codable, Hashable {
     
     /// The type of the field.
     public let type: ObjCType

@@ -27,6 +27,15 @@ public enum ObjCRuntime {
         return allClasses
     }
     
+    static func classNames() -> Set<String> {
+        if let cached = Cache.classNames {
+            return cached
+        }
+        let names = Set(classes().map({ class_getName($0).string }))
+        Cache.classNames = names
+        return names
+    }
+    
     /// Returns all protocols.
     public static func protocols() -> [Protocol] {
         if let cachedProtocols = Cache.protocols {
@@ -237,7 +246,6 @@ public enum ObjCRuntime {
      */
     public static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
         var info = Dl_info()
-        var aaa: [UnsafeRawPointer: String] = [:]
         let result = dladdr(pointer, &info)
         guard result != 0 else {
             return (nil, nil, nil)
@@ -365,6 +373,7 @@ extension ObjCRuntime {
 fileprivate extension ObjCRuntime {
     class Cache: NSObject {
         static var classes: [AnyClass]?
+        static var classNames: Set<String>?
         static var protocols: [Protocol]?
         static var cachedName: [ObjectIdentifier: String] = [:]
         

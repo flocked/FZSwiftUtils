@@ -125,6 +125,15 @@ public extension ObjCPropertyInfo {
 extension ObjCPropertyInfo: CustomStringConvertible {
     /// Returns a string representing the property in a Objective-C header.
     public var headerString: String {
+        headerString(includeDefaultAttributes: false)
+    }
+    
+    /**
+     Returns a string representing the property in a Objective-C header.
+     
+     - Parameter includeDefaultAttributes: A Boolean value indicating whether to include attributes that are normally implicit:  Writable properties include `readwrite` and properties that are not `nonatomic` include `atomic`.
+     */
+    public func headerString(includeDefaultAttributes: Bool) -> String {
         let typeString = type.decodedStringForArgument
 
         var _attributes: [String] = []
@@ -139,6 +148,8 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         }
         if isReadOnly {
             _attributes.append("readonly")
+        } else if includeDefaultAttributes {
+            _attributes.append("readWrite")
         }
         if isWeak {
             _attributes.append("weak")
@@ -151,6 +162,8 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         }
         if isNonatomic {
             _attributes.append("nonatomic")
+        } else if includeDefaultAttributes {
+            _attributes.append("atomic")
         }
 
         var comments: [String] = []

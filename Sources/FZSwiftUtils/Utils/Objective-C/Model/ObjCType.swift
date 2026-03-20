@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents an Objective-C type, including primitive, pointer, object, struct, union, and modified types.
-public indirect enum ObjCType: Sendable, Equatable, Codable {
+public indirect enum ObjCType: Sendable, Hashable, Codable {
     /// Objective-C class.
     case `class`
     /// Objective-C selector (`SEL`).

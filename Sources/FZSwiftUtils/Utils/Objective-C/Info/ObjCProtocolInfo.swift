@@ -7,6 +7,11 @@
 //
 
 import Foundation
+#if canImport(AppKit)
+import AppKit
+#elseif canImport(UIKit)
+import UIKit
+#endif
 
 /// Represents information about an Objective-C protocol.
 public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
@@ -83,12 +88,11 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
      - Parameter protocol: The protocol of the target for which information is to be obtained.
      */
     public init(_ `protocol`: Protocol) {
-        let name = String(cString: protocol_getName(`protocol`))
-        if let info = Self.cache[name] {
+        if let info = Self.cache[ObjectIdentifier(`protocol`)] {
             self = info
         } else {
             self.init(
-                name: name,
+                name: String(cString: protocol_getName(`protocol`)),
                 protocols: Self.protocols(of: `protocol`),
                 classProperties: Self.properties(of: `protocol`, isRequired: true, isInstance: false),
                 properties:  Self.properties(of: `protocol`, isRequired: true, isInstance: true),
@@ -99,7 +103,7 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
                 optionalClassMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: false),
                 optionalMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: true)
             )
-            Self.cache[name] = self
+            Self.cache[`protocol`] = self
         }
     }
     
@@ -114,7 +118,7 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
         self.init(proto)
     }
     
-    private static var cache: SynchronizedDictionary<String, Self> = [:]
+    private static var cache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
 }
 
 extension ObjCProtocolInfo: CustomStringConvertible {
@@ -180,6 +184,17 @@ extension ObjCProtocolInfo: CustomStringConvertible {
         lines += ["", "@end"]
         return lines.joined(separator: "\n")
     }
+    
+    /**
+     Returns an attributed string representing the protocol in a Objective-C header.
+     
+     - Parameter font: The font of the attributed string, or `nil` to use the default font.
+     */
+    public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
+        .objCHeader(for: headerString, protocols: protocols.map({$0.name}), font: font)
+    }
+    
+    
     public var description: String { headerString }
 }
 
