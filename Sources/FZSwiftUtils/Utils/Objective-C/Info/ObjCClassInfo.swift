@@ -159,14 +159,20 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     public struct HeaderStringOptions: OptionSet {
         public let rawValue: UInt32
         
-        /// Groups methods by image path and category and add comments for each.
-        public static let groupMethods = Self(rawValue: 1 << 0)
-        
         /// Writable properties include `readwrite` attribute and properties that are not `nonatomic` include `atomic` attribute.
-        public static let includeDefaultPropertyAttributes = Self(rawValue: 1 << 1)
+        public static let includeDefaultPropertyAttributes = Self(rawValue: 1 << 0)
         
-        /// Include comments for dynamic and/or synthesized properties.
-        public static let includePropertyComments = Self(rawValue: 1 << 2)
+        /// Include comments for `dynamic` and/or `synthesized` properties.
+        public static let includePropertyComments = Self(rawValue: 1 << 1)
+        
+        /// Groups methods by library and category and add comments for each.
+        public static let groupMethods = Self(rawValue: 1 << 2)
+        
+        /// Include methods fromi libraries other than the library of the class.
+        public static let includeMethodsFromOtherImages = Self(rawValue: 1 << 3)
+        
+        /// Include methods for categories.
+        public static let includeMethodsFromCategories = Self(rawValue: 1 << 4)
         
         public init(rawValue: UInt32) {
             self.rawValue = rawValue
@@ -174,7 +180,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     }
     
     /// Returns a string representing the class in a Objective-C header.
-    public func headerString(options: HeaderStringOptions = [.includePropertyComments]) -> String {
+    public func headerString(options: HeaderStringOptions = [.includePropertyComments, .includeMethodsFromOtherImages, .includeMethodsFromCategories]) -> String {
         var decl = "@interface \(name)"
         if options.contains(.groupMethods), let imageName = imageName {
             decl = "// Image: \(imageName)\n\n" + decl
@@ -199,16 +205,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         if !properties.isEmpty {
             lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeDefaultPropertyAttributes), includeComments: options.contains(.includePropertyComments))})
         }
-        if options.contains(.groupMethods), let groupedMethodsHeaderLines = groupedMethodsHeaderLines(includeAllMethods: true) {
-            lines += groupedMethodsHeaderLines
-        } else {
-            if !classMethods.isEmpty {
-                lines += "" + classMethods.map(\.headerString)
-            }
-            if !methods.isEmpty {
-                lines += "" + methods.map(\.headerString)
-            }
-        }
+        lines += methodHeaderLines(options: options)
         lines += ["", "@end"]
         return lines.joined(separator: "\n")
     }
@@ -671,10 +668,32 @@ extension [(imagePath: String, categories: [(categoryName: String, methods: [(me
 }
 
 fileprivate extension ObjCClassInfo {
-    func groupedMethodsHeaderLines(includeAllMethods: Bool = true) -> [String]? {
-        guard var sections = methodHeaderSections else { return nil }
+    func methodHeaderLines(options: HeaderStringOptions) -> [String] {
         var lines: [String] = []
-        sections = includeAllMethods ? sections : sections.filter({ $0.imagePath == imageName ?? "" })
+        guard options.contains(.groupMethods) || !options.contains(.includeMethodsFromCategories) || !options.contains(.includeMethodsFromOtherImages), var sections = methodHeaderSections else {
+            if !classMethods.isEmpty {
+                lines += "" + classMethods.map({$0.headerString})
+            }
+            if !methods.isEmpty {
+                lines += "" + methods.map({$0.headerString})
+            }
+            return lines
+        }
+        sections = options.contains(.includeMethodsFromOtherImages) ? sections : sections.filter({ $0.imagePath == imageName ?? "" })
+        sections = options.contains(.includeMethodsFromCategories) ? sections : sections.filter({ $0.categoryName.isEmpty })
+        
+        if !options.contains(.groupMethods) {
+            let classMethods = sections.flatMap({$0.classMethods}).sorted(by: \.name)
+            let instanceMethods = sections.flatMap({$0.instanceMethods}).sorted(by: \.name)
+            if !classMethods.isEmpty {
+                lines += "" + classMethods.map({$0.headerString})
+            }
+            if !instanceMethods.isEmpty {
+                lines += "" + instanceMethods.map({$0.headerString})
+            }
+            return lines
+        }
+        
         let hasMethodsFromMoreThanOneImage: Bool = {
             guard let firstImagePath = sections.first?.imagePath else { return false }
             return sections.contains { $0.imagePath != firstImagePath }
@@ -693,16 +712,13 @@ fileprivate extension ObjCClassInfo {
                 lines += "// \(name) (\(section.categoryName))"
                 lines += ""
             }
-            lines.append(contentsOf: section.classMethods.map({$0.headerString}))
+            lines += section.classMethods.map({$0.headerString})
             if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
                 lines += ""
             }
             lines += section.instanceMethods.map({$0.headerString})
         }
-        if !lines.isEmpty {
-            return ("" + lines)
-        }
-        return lines
+        return !lines.isEmpty ? "" + lines : lines
     }
     
     var methodHeaderSections: [HeaderSection]? {
