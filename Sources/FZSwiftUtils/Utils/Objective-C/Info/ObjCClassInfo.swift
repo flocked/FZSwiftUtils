@@ -177,6 +177,10 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     /// Returns a string representing the class in a Objective-C header.
     public func headerString(options: HeaderStringOptions = []) -> String {
         var decl = "@interface \(name)"
+        if options.contains(.groupMethods), let imageName = imageName {
+            decl = "// Image: \(imageName)\n\n" + decl
+        }
+        
         if let superClass {
             decl += " : \(NSStringFromClass(superClass))"
         }
