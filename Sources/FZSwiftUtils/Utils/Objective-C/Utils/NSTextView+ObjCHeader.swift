@@ -10,13 +10,55 @@ import AppKit
 
 /// A `NSTextView` subclass with clickable Objective-C class and protocol names.
 open class ObjCHeaderTextView: NSTextView {
-    /// The handler that gets called when the user clicks on an Objective-C class name in the text.
-    public var onClassClick: ((String) -> Void)?
     
+    /// A Boolean value indicating whether classes can be clicked.
+    public var canClickClasses: Bool = true
+    /// A Boolean value indicating whether protocols can be clicked.
+    public var canClickProtocols: Bool = true
+    /// A Boolean value indicating whether images can be clicked.
+    public var canClickImages: Bool = true
+    
+    /// The handler that gets called when the user clicks on an Objective-C class name in the text.
+    public var onClassClick: ((_ class: String) -> Void)?
     /// The handler that gets called when the user clicks on an Objective-C protocol name in the text.
-    public var onProtocolClick: ((String) -> Void)?
+    public var onProtocolClick: ((_ protocol: String) -> Void)?
+    /// The handler that gets called when the user clicks on an Objective-C library or framework in the text.
+    public var onImageClick: ((_ image: String) -> Void)?
+    
+    /// The handler that provides a menu for the given class.
+    public var classMenuHandler: ((_ class: String) -> NSMenu?)?
+    /// The handler that provides a menu for the given protocol.
+    public var protocolMenuHandler: ((_ protocol: String) -> NSMenu?)?
+    /// The handler that provides a menu for the given image.
+    public var imageMenuHandler: ((_ image: String) -> NSMenu?)?
 
     private var hoveredClickableRange: NSRange?
+    
+    open override func menu(for event: NSEvent) -> NSMenu? {
+        guard let characterIndex = characterIndex(at: event.locationInWindow),
+              let symbol = clickableSymbol(at: characterIndex) else {
+            return super.menu(for: event)
+        }
+        switch symbol {
+        case .class(let name):
+            guard let classMenuHandler else {
+                return super.menu(for: event)
+            }
+            return classMenuHandler(name)
+
+        case .protocol(let name):
+            guard let protocolMenuHandler else {
+                return super.menu(for: event)
+            }
+            return protocolMenuHandler(name)
+
+        case .image(let name):
+            guard let imageMenuHandler else {
+                return super.menu(for: event)
+            }
+            return imageMenuHandler(name)
+        }
+    }
 
     open override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
@@ -64,7 +106,7 @@ open class ObjCHeaderTextView: NSTextView {
         case .protocol(let name):
             onProtocolClick?(name)
         case .image(let name):
-            break
+            onImageClick?(name)
         }
     }
 
@@ -90,14 +132,14 @@ open class ObjCHeaderTextView: NSTextView {
         guard let textStorage, characterIndex >= 0, characterIndex < textStorage.length else {
             return nil
         }
-        if let className = textStorage.attribute(.objcClassName, at: characterIndex, effectiveRange: nil) as? String {
+        if canClickClasses, let className = textStorage.attribute(.objcClassName, at: characterIndex, effectiveRange: nil) as? String {
             return .class(className)
         }
-        if let protocolName = textStorage.attribute(.objcProtocolName, at: characterIndex, effectiveRange: nil) as? String {
+        if canClickProtocols, let protocolName = textStorage.attribute(.objcProtocolName, at: characterIndex, effectiveRange: nil) as? String {
             return .protocol(protocolName)
         }
-        if let protocolName = textStorage.attribute(.objcImageName, at: characterIndex, effectiveRange: nil) as? String {
-            return .image(protocolName)
+        if canClickImages, let imageName = textStorage.attribute(.objcImageName, at: characterIndex, effectiveRange: nil) as? String {
+            return .image(imageName)
         }
         return nil
     }
@@ -107,13 +149,13 @@ open class ObjCHeaderTextView: NSTextView {
             return nil
         }
         var range = NSRange()
-        if textStorage.attribute(.objcClassName, at: characterIndex, effectiveRange: &range) != nil {
+        if canClickClasses, textStorage.attribute(.objcClassName, at: characterIndex, effectiveRange: &range) != nil {
             return range
         }
-        if textStorage.attribute(.objcProtocolName, at: characterIndex, effectiveRange: &range) != nil {
+        if canClickProtocols, textStorage.attribute(.objcProtocolName, at: characterIndex, effectiveRange: &range) != nil {
             return range
         }
-        if textStorage.attribute(.objcImageName, at: characterIndex, effectiveRange: &range) != nil {
+        if canClickImages, textStorage.attribute(.objcImageName, at: characterIndex, effectiveRange: &range) != nil {
             return range
         }
         return nil
