@@ -23,6 +23,12 @@ extension NSAttributedString {
 
         let commentRanges = commentRegex.matches(in: headerString, options: [], range: fullRange).map(\.range)
         apply(ranges: commentRanges, to: attributed, color: objcHeaderColors.comments, font: font)
+        
+        for commentRange in commentRanges {
+            guard let imageMatch = imageRegex.firstMatch(in: headerString, range: commentRange), let pathRange = Range(imageMatch.range(at: 1), in: headerString) else { continue }
+            let imagePath = String(headerString[pathRange])
+            attributed.addAttribute(.objcImageName, value: imagePath, range: imageMatch.range(at: 1))
+        }
 
         let protocols = Set(protocols)
         var searchLocation = 0
@@ -60,8 +66,6 @@ extension NSAttributedString {
                 attributed.addAttribute(.objcClassName, value: token, range: tokenRange)
             } else if protocolsSet.contains(token) {
                 attributed.addAttribute(.objcProtocolName, value: token, range: tokenRange)
-            } else if imageNames.contains(token) {
-                attributed.addAttribute(.objcImageName, value: token, range: tokenRange)
             }
         }
     }
@@ -80,6 +84,13 @@ extension NSAttributedString {
     private static let commentRegex: NSRegularExpression = {
         try! NSRegularExpression(
             pattern: #"/\*[\s\S]*?\*/|//.*"#,
+            options: [.anchorsMatchLines]
+        )
+    }()
+    
+    private static let imageRegex: NSRegularExpression = {
+        try! NSRegularExpression(
+            pattern: #"^// Image:\s+(.+)$"#,
             options: [.anchorsMatchLines]
         )
     }()
