@@ -44,6 +44,9 @@ open class ObjCHeaderTextView: NSTextView {
             guard let classMenuHandler else {
                 return super.menu(for: event)
             }
+            if let range =  clickableRange(at: characterIndex) {
+                setSelectedRange(range)
+            }
             return classMenuHandler(name)
 
         case .protocol(let name):
