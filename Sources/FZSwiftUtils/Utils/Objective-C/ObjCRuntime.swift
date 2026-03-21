@@ -301,6 +301,22 @@ public enum ObjCRuntime {
         return (imagePath, symbolName, categoryName)
     }
     
+    /// Returns the names of all the loaded Objective-C frameworks and dynamic libraries.
+    public static func imageNames() -> [String] {
+        var count: UInt32 = 0
+        let list = objc_copyImageNames(&count)
+        defer { free(list) }
+        return list.buffer(count: count).map({$0.string})
+    }
+    
+    /// Returns the names of all the classes within the specified library or framework.
+    public static func classNames(forImage image: String) -> [String]? {
+        var count: UInt32 = 0
+        guard let list = objc_copyClassNamesForImage(image, &count) else { return nil }
+        defer { free(list) }
+        return list.buffer(count: count).map({$0.string})
+    }
+    
     static func name(for class: AnyClass) -> String {
         if let name = Cache.cachedName[`class`] {
             return name
