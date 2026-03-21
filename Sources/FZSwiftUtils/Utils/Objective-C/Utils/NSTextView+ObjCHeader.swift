@@ -39,29 +39,29 @@ open class ObjCHeaderTextView: NSTextView {
               let symbol = clickableSymbol(at: characterIndex) else {
             return super.menu(for: event)
         }
+        var menu: NSMenu?
         switch symbol {
         case .class(let name):
-            guard let classMenuHandler else {
-                return super.menu(for: event)
-            }
-            if let range =  clickableRange(at: characterIndex) {
-                setSelectedRange(range)
-            }
-            return classMenuHandler(name)
-
+            menu = classMenuHandler?(name)
         case .protocol(let name):
-            guard let protocolMenuHandler else {
-                return super.menu(for: event)
-            }
-            return protocolMenuHandler(name)
-
+            menu = protocolMenuHandler?(name)
         case .image(let name):
-            guard let imageMenuHandler else {
-                return super.menu(for: event)
-            }
-            return imageMenuHandler(name)
+            menu = imageMenuHandler?(name)
         }
+        guard let menu = menu else {
+            return super.menu(for: event)
+        }
+        if let range = clickableRange(at: characterIndex) {
+            setSelectedRange(range)
+        }
+        menuNotificationToken = NotificationCenter.default.observe(NSMenu.didEndTrackingNotification, postedBy: menu) { [weak self] _ in
+            self?.menuNotificationToken = nil
+            self?.setSelectedRange(NSRange(location: NSNotFound, length: 0))
+        }
+        return menu
     }
+    
+    var menuNotificationToken: NotificationToken?
 
     open override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
