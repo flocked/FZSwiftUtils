@@ -136,6 +136,113 @@ open class ObjCHeaderTextView: NSTextView {
         }
         return characterIndex
     }
+    
+    /// Scrolls the text view in its enclosing scroll view so the specified protocol is visible.
+    public func scroll(toProtocol protocolName: String) {
+        guard let range = firstRange(ofProtocol: protocolName) else { return }
+        scrollRangeToVisible(range)
+    }
+
+    /// Scrolls the text view in its enclosing scroll view so the specified class is visible.
+    public func scroll(toClass cls: String) {
+        guard let range = firstRange(ofClass: cls) else { return }
+        scrollRangeToVisible(range)
+    }
+
+    /// The frames of the specified protocol.
+    public func frames(ofProtocol protocolName: String) -> [CGRect] {
+        ranges(ofAttribute: .objcProtocolName, value: protocolName).flatMap(frames(forCharacterRange:))
+    }
+
+    /// The frames of the specified class.
+    public func frames(ofClass className: String) -> [CGRect] {
+        ranges(ofAttribute: .objcClassName, value: className).flatMap(frames(forCharacterRange:))
+    }
+    
+    /// The text ranges of the specified class.
+    public func ranges(ofClass className: String) -> [NSRange] {
+        ranges(ofAttribute: .objcClassName, value: className)
+    }
+
+    /// The text ranges of the specified protocol.
+    public func ranges(ofProtocol protocolName: String) -> [NSRange] {
+        ranges(ofAttribute: .objcProtocolName, value: protocolName)
+    }
+
+    /// The protocol names in the specified rectangle.
+    public func protocols(in rect: CGRect) -> [String] {
+        names(in: rect, attribute: .objcProtocolName)
+    }
+
+    /// The class names in the specified rectangle.
+    public func classes(in rect: CGRect) -> [String] {
+        names(in: rect, attribute: .objcClassName)
+    }
+
+    /// The protocol names visible in the text view.
+    public var visibleProtocols: [String] {
+        protocols(in: visibleRect)
+    }
+
+    /// The class names visible in the text view.
+    public var visibleClasses: [String] {
+        classes(in: visibleRect)
+    }
+
+    private func firstRange(ofProtocol protocolName: String) -> NSRange? {
+        ranges(ofAttribute: .objcProtocolName, value: protocolName).first
+    }
+
+    private func firstRange(ofClass cls: String) -> NSRange? {
+        ranges(ofAttribute: .objcClassName, value: cls).first
+    }
+
+    private func ranges(ofAttribute attribute: NSAttributedString.Key, value: String) -> [NSRange] {
+        guard let textStorage, textStorage.length > 0 else {
+            return []
+        }
+        var results: [NSRange] = []
+        let fullRange = NSRange(location: 0, length: textStorage.length)
+        textStorage.enumerateAttribute(attribute, in: fullRange) { attributeValue, range, _ in
+            guard let name = attributeValue as? String, name == value else { return }
+            results.append(range)
+        }
+        return results
+    }
+
+    private func frames(forCharacterRange characterRange: NSRange) -> [CGRect] {
+        guard let layoutManager, let textContainer, characterRange.length > 0 else {
+            return []
+        }
+        let glyphRange = layoutManager.glyphRange(forCharacterRange: characterRange, actualCharacterRange: nil)
+        guard glyphRange.length > 0 else {
+            return []
+        }
+        var rects: [CGRect] = []
+        layoutManager.enumerateEnclosingRects(forGlyphRange: glyphRange, withinSelectedGlyphRange: .notFound, in: textContainer) { rect, _ in
+            let viewRect = rect.offsetBy(dx: self.textContainerOrigin.x, dy: self.textContainerOrigin.y)
+            rects.append(viewRect)
+        }
+        return rects
+    }
+
+    private func names(in rect: CGRect, attribute: NSAttributedString.Key) -> [String] {
+        guard let textStorage, textStorage.length > 0 else {
+            return []
+        }
+        var results: [String] = []
+        var seen = Set<String>()
+        let fullRange = NSRange(location: 0, length: textStorage.length)
+        textStorage.enumerateAttribute(attribute, in: fullRange) { attributeValue, range, _ in
+            guard let name = attributeValue as? String else { return }
+            let frames = self.frames(forCharacterRange: range)
+            guard frames.contains(where: { $0.intersects(rect) }) else { return }
+            if seen.insert(name).inserted {
+                results.append(name)
+            }
+        }
+        return results
+    }
 
     private enum ClickableSymbol {
         case `class`(String)

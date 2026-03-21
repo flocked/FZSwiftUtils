@@ -557,8 +557,8 @@ extension ObjCClassInfo {
         
         properties.forEach({ addNames($0.type.names()) })
         classProperties.forEach({ addNames($0.type.names()) })
-        methods.forEach({ addNames($0.typeNames()) })
-        classMethods.forEach({ addNames($0.typeNames()) })
+        // methods.forEach({ addNames($0.typeNames()) })
+       // classMethods.forEach({ addNames($0.typeNames()) })
         ivars.forEach({
             if let names = $0.type?.names() {
                 addNames(names)
