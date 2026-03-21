@@ -7,6 +7,59 @@
 
 import Foundation
 
+extension SortComparator {
+    /**
+     Provides the relative ordering of two optional elements based on the sort order of the comparator.
+     
+     - Parameters:
+        - lhs: The first optional element to compare.
+        - rhs: The second optional element to compare.
+     - Returns: The relative ordering between the two elements according to the sort order of the comparator.
+     */
+   public func compare(_ lhs: Compared?, _ rhs: Compared?) -> ComparisonResult {
+       switch (lhs, rhs) {
+       case let (lhs?, rhs?):
+           return compare(lhs, rhs)
+       case (nil, nil):
+           return .orderedSame
+       case (nil, _):
+           return .orderedDescending
+       case (_, nil):
+           return .orderedAscending
+       }
+    }
+}
+
+extension Sequence {
+    /**
+     Returns the elements of the sequence, sorted using the given comparator to compare elements.
+     
+     - Parameter comparator: The comparator to use in ordering elements
+     - Returns: An array of the elements sorted using `comparator.
+     */
+    public func sorted<Comparator>(using comparator: Comparator) -> [Element] where Comparator : SortComparator, Element == Comparator.Compared? {
+        sorted { comparator.compare($0, $1) == .orderedAscending }
+    }
+
+    /**
+     Returns the elements of the sequence, sorted using the given array of `SortComparators` to compare elements.
+     
+     - Parameter comparators: An array of comparators used to compare elements. The first comparator specifies the primary comparator to be used in sorting the sequence’s elements. Any subsequent comparators are used to further refine the order of elements with equal values.
+     - Returns: An array of the elements sorted using `comparators`.
+     */
+    public func sorted<S, Comparator>(using comparators: S) -> [Element] where S : Sequence, Comparator : SortComparator, Comparator == S.Element, Element == Comparator.Compared? {
+        sorted { lhs, rhs in
+            for comparator in comparators {
+                let result = comparator.compare(lhs, rhs)
+                if result != .orderedSame {
+                    return result == .orderedAscending
+                }
+            }
+            return false
+        }
+    }
+}
+
 public extension MutableCollection where Element: SortComparator {
     /// Sets the order of all sort comparators.
     @discardableResult
@@ -134,11 +187,8 @@ public struct StringComparator<Compared>: SortComparator, Hashable {
         self.locale = locale
         self.range = range
         self._compare = { lhs, rhs, order, options, range, locale in
-            switch lhs.compare(rhs, options: options, range: range, locale: locale) {
-            case .orderedSame: return .orderedSame
-            case .orderedAscending: return order == .forward ? .orderedAscending : .orderedDescending
-            case .orderedDescending: return order == .forward ? .orderedDescending : .orderedAscending
-            }
+            let result = lhs.compare(rhs, options: options, range: range, locale: locale)
+            return order == .forward ? result : result.reversed
         }
     }
     
@@ -159,7 +209,9 @@ public struct StringComparator<Compared>: SortComparator, Hashable {
         self.range = range
         self._compare = { lhs, rhs, order, options, range, locale in
             switch (lhs.optional, rhs.optional) {
-            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale)
+            case let (a?, b?):
+                let result = a.compare(b, options: options, range: range, locale: locale)
+                return order == .forward ? result : result.reversed
             case (nil, nil): return .orderedSame
             case (nil, _): return .orderedAscending
             case (_, nil): return .orderedDescending
@@ -184,11 +236,8 @@ public struct StringComparator<Compared>: SortComparator, Hashable {
         self.locale = locale
         self.range = range
         self._compare = { lhs, rhs, order, options, range, locale in
-            switch lhs[keyPath: keyPath].compare(rhs[keyPath: keyPath], options: options, range: range, locale: locale) {
-            case .orderedSame: return .orderedSame
-            case .orderedAscending: return order == .forward ? .orderedAscending : .orderedDescending
-            case .orderedDescending: return order == .forward ? .orderedDescending : .orderedAscending
-            }
+            let result = lhs[keyPath: keyPath].compare(rhs[keyPath: keyPath], options: options, range: range, locale: locale)
+            return order == .forward ? result : result.reversed
         }
     }
     
@@ -211,11 +260,8 @@ public struct StringComparator<Compared>: SortComparator, Hashable {
         self._compare = { lhs, rhs, order, options, range, locale in
             switch (lhs[keyPath: keyPath].optional, rhs[keyPath: keyPath].optional) {
             case let (a?, b?):
-                switch a.compare(b, options: options, range: range, locale: locale) {
-                case .orderedSame: return .orderedSame
-                case .orderedAscending: return order == .forward ? .orderedAscending : .orderedDescending
-                case .orderedDescending: return order == .forward ? .orderedDescending : .orderedAscending
-                }
+                let result = a.compare(b, options: options, range: range, locale: locale)
+                return order == .forward ? result : result.reversed
             case (nil, nil): return .orderedSame
             case (nil, _): return order == .forward ? .orderedAscending : .orderedDescending
             case (_, nil): return order == .forward ? .orderedDescending : .orderedAscending

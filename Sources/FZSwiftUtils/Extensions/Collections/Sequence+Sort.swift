@@ -415,3 +415,42 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         self = .init(sorted(by: keyPath, order: order))
     }
 }
+
+extension Sequence where Element: StringProtocol {
+    /**
+     Returns the elements of the sequence sorted using the specified string comparison options.
+     
+     - Parameters:
+        - options: The options to use when comparing elements.
+        - range: The range of each element to compare, or `nil` to compare the full element.
+        - locale: The locale to use for the comparison.
+        - order: The sort order.
+     - Returns: The elements of the sequence sorted in ascending order.
+     */
+    func sorted(options: String.CompareOptions, range: Range<Element.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> [Element] {
+        sorted { $0.compare($1, options: options, range: range, locale: locale) == order.order }
+    }
+}
+
+extension Sequence where Element: OptionalProtocol, Element.Wrapped: StringProtocol {
+    /**
+     Returns the elements of the sequence sorted using the specified string comparison options.
+     
+     - Parameters:
+        - options: The options to use when comparing elements.
+        - range: The range of each element to compare, or `nil` to compare the full element.
+        - locale: The locale to use for the comparison.
+        - order: The sort order.
+     - Returns: The elements of the sequence sorted in ascending order.
+     */
+    func sorted(options: String.CompareOptions, range: Range<Element.Wrapped.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> [Element] {
+        sorted { lhs, rhs in
+            switch (lhs.optional, rhs.optional) {
+            case let (a?, b?):
+                return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+}

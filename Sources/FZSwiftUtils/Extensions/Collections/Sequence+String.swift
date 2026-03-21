@@ -7,6 +7,126 @@
 
 import Foundation
 
+public extension Sequence {
+    /**
+     Returns the elements whose string value produced by the given closure matches the specified string.
+          
+     - Parameters:
+        - value: A closure that returns the string value to search for each element, or `nil` to exclude the element.
+        - string: The string to search for in each element's value.
+        - options: The options to use when comparing values.
+        - range: The range of each value to search, or `nil` to search the full value.
+        - locale: The locale to use for the comparison.
+        - sortByBestMatch: A Boolean value that determines whether matching elements are sorted by best match.
+
+         If `true`, matches are ordered by relevance, prioritizing exact matches, then prefix matches, then later substring matches.
+     - Returns: An array containing the elements whose non-`nil` values match `string`.
+     */
+    func filter<S: StringProtocol, T: StringProtocol>(by value: (Element) throws -> (S?), matching string: T, options: String.CompareOptions = [], range: Range<S.Index>? = nil, locale: Locale? = nil, sortByBestMatch: Bool = false) rethrows -> [Element] {
+        guard !string.isEmpty else { return [] }
+        let results: [(element: Element, value: S, score: Int, offset: Int)] = try compactMap { element in
+            guard let value = try value(element) else { return nil }
+            guard let matchRange = value.range(of: string, options: options, range: range, locale: locale) else {
+                return nil
+            }
+            if value.count == string.count {
+                return (element, value, 0, 0)
+            } else if matchRange.lowerBound == value.startIndex {
+                return (element, value,  1, 0)
+            } else {
+                return (element, value, 2, value.distance(from: value.startIndex, to: matchRange.lowerBound))
+            }
+        }
+        if !sortByBestMatch { return results.map(\.element) }
+        return results.sorted { lhs, rhs in
+            if lhs.score != rhs.score {
+                return lhs.score < rhs.score
+            }
+            if lhs.offset != rhs.offset {
+                return lhs.offset < rhs.offset
+            }
+            return lhs.value.compare(rhs.value, options: options, range: range, locale: locale) == .orderedAscending
+        }.map(\.element)
+    }
+    
+    /**
+     Returns the elements whose string value at the given key path contains the specified string.
+     
+     - Parameters:
+        - keyPath: A key path to the string value used for matching.
+        - string: The string to search for in each element’s value.
+        - options: The options to use when comparing values.
+        - range: The range of each value to search., or `nil` to search the full value.
+        - locale: The locale to use for the comparison.
+        - sortByBestMatch: A Boolean value that determines whether matching elements are sorted by best match.
+   
+            If `true`, matches are ordered by relevance, prioritizing exact matches, then prefix matches, then later substring matches.
+     - Returns: An array containing the elements whose values match `string`.
+     */
+    func filter<S: StringProtocol, T: StringProtocol>(by keyPath: KeyPath<Element, S>, matching string: T, options: String.CompareOptions = [],  range: Range<S.Index>? = nil, locale: Locale? = nil, sortByBestMatch: Bool = false) -> [Element] {
+        filter(by: { $0[keyPath: keyPath] }, matching: string, options: options, range: range, locale: locale, sortByBestMatch: sortByBestMatch)
+    }
+
+    /**
+     Returns the elements whose optional string value at the given key path contains the specified string.
+     
+     Elements whose value at `keyPath` is `nil` are excluded from the result.
+     
+     - Parameters:
+        - keyPath: A key path to the optional string value used for matching.
+        - string: The string to search for in each element’s value.
+        - options: The options to use when comparing values.
+        - range: The range of each value to search, or `nil` to search the full value.
+        - locale: The locale to use for the comparison.
+        - sortByBestMatch: A Boolean value that determines whether matching elements are sorted by best match.
+
+            If `true`, matches are ordered by relevance, prioritizing exact matches, then prefix matches, then later substring matches.
+     - Returns: An array containing the elements whose non-`nil` values match `string`.
+     */
+    func filter<S: StringProtocol, T: StringProtocol>(by keyPath: KeyPath<Element, S?>, matching string: T, options: String.CompareOptions = [], range: Range<S.Index>? = nil, locale: Locale? = nil, sortByBestMatch: Bool = false) -> [Element] {
+        filter(by: { $0[keyPath: keyPath] }, matching: string, options: options, range: range, locale: locale, sortByBestMatch: sortByBestMatch)
+    }
+}
+
+public extension Sequence where Element: StringProtocol {
+    /**
+     Returns the elements that contain the given string using the specified comparison options.
+     
+     - Parameters:
+       - string: The string to search for in each element.
+       - options: The options to use when comparing each element to `string`.
+       - range: The range of each element to search, or `nil` to search the full element.
+       - locale: The locale to use for the comparison.
+       - sortByBestMatch: A Boolean value that determines whether matching elements are sorted by best match.
+     
+            If `true`, matches are ordered by relevance, prioritizing exact matches, then prefix matches, then later substring matches.
+     - Returns: An array containing the elements that match `string`.
+     */
+    func filter<T: StringProtocol>(by string: T, options: String.CompareOptions = [], range: Range<Element.Index>? = nil, locale: Locale? = nil, sortByBestMatch: Bool = false) -> [Element] {
+        filter(by: { $0 }, matching: string, options: options, range: range, locale: locale, sortByBestMatch: sortByBestMatch)
+    }
+}
+
+public extension Sequence where Element: OptionalProtocol, Element.Wrapped: StringProtocol {
+    /**
+     Returns the elements that contain the given string using the specified comparison options.
+     
+     - Parameters:
+       - string: The string to search for in each element.
+       - options: The options to use when comparing each element to `string`.
+       - range: The range of each element to search, or `nil` to search the full element.
+       - locale: The locale to use for the comparison.
+       - sortByBestMatch: A Boolean value that determines whether matching elements are sorted by best match.
+     
+            If `true`, matches are ordered by relevance, prioritizing exact matches, then prefix matches, then later substring matches.
+     - Returns: An array containing the elements that match `string`.
+     */
+    func filter<T: StringProtocol>(by string: T, options: String.CompareOptions = [], range: Range<Element.Wrapped.Index>? = nil, locale: Locale? = nil, sortByBestMatch: Bool = false) -> [Element] {
+        filter(by: ({ $0.optional }), matching: string, options: options, range: range, locale: locale, sortByBestMatch: sortByBestMatch)
+    }
+}
+
+
 public extension Sequence where Element == String {
     #if os(macOS) || os(iOS)
     /**

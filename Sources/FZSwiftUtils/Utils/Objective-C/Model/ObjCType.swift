@@ -258,6 +258,30 @@ extension ObjCType: CustomStringConvertible {
         case .other(let str): return str
         }
     }
+    
+    func names() -> Set<String> {
+        var typeNames: Set<String> = []
+        func visit(_ type: ObjCType) {
+            switch type {
+            case .object(name: let name):
+                typeNames += name
+            case .modified(_, type: let type), .array(type: let type, size: _), .pointer(type: let type):
+                visit(type)
+            case .struct(name: let name, fields: let fields), .union(name: let name, fields: let fields):
+                typeNames += name
+                fields?.forEach({
+                    typeNames += $0.name
+                    visit($0.type)
+                })
+            case .block(return: let returnType, args: let arguments):
+                if let returnType = returnType { visit(returnType) }
+                arguments?.forEach(visit)
+            default: break
+            }
+        }
+        visit(self)
+        return typeNames
+    }
 }
 
 extension ObjCType {

@@ -92,4 +92,11 @@ extension ObjCMethodInfo: CustomStringConvertible {
     }
     
     public var description: String { headerString }
+    
+    func typeNames() -> Set<String> {
+        var names: Set<String> = []
+        names.insert(returnType.names())
+        argumentTypes.forEach({ names.insert($0.names()) })
+        return names
+    }
 }

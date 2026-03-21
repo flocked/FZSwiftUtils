@@ -541,6 +541,24 @@ extension ObjCClassInfo {
     }
 }
 
+extension ObjCClassInfo {
+    static var cachedTypeNames: [String: Set<String>] = [:]
+    
+    public func typeNames() -> Set<String> {
+        if let cached = Self.cachedTypeNames[name] {
+            return cached
+        }
+        var names: Set<String> = []
+        properties.forEach({ names.insert($0.type.names()) })
+        classProperties.forEach({ names.insert($0.type.names()) })
+        methods.forEach({ names.insert($0.typeNames()) })
+        classMethods.forEach({ names.insert($0.typeNames()) })
+        ivars.forEach({ names.insert($0.type?.names() ?? []) })
+        Self.cachedTypeNames[name] = names
+        return names
+    }
+}
+
 extension NSObjectProtocol where Self: NSObject {
     /**
      Returns information of the class.
