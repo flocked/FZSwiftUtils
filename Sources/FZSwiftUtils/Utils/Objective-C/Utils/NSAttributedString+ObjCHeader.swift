@@ -13,6 +13,8 @@ import UIKit
 #endif
 
 extension NSAttributedString {
+    static let imageNames = Set(ObjCRuntime.imageNames())
+    
     static func objCHeader(for headerString: String, protocols: [String] = [], font: NSUIFont? = nil) -> NSAttributedString {
         let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
         let attributed = NSMutableAttributedString(string: headerString, attributes: [.font: font])
@@ -58,6 +60,8 @@ extension NSAttributedString {
                 attributed.addAttribute(.objcClassName, value: token, range: tokenRange)
             } else if protocolsSet.contains(token) {
                 attributed.addAttribute(.objcProtocolName, value: token, range: tokenRange)
+            } else if imageNames.contains(token) {
+                attributed.addAttribute(.objcImageName, value: token, range: tokenRange)
             }
         }
     }
@@ -122,5 +126,7 @@ public extension NSAttributedString.Key {
     static let objcClassName = NSAttributedString.Key("objcClassName")
     /// The Objective-C protocol name of the text.
     static let objcProtocolName = NSAttributedString.Key("objcProtocolName")
+    /// The Objective-C image name of the text.
+    static let objcImageName = NSAttributedString.Key("objcImageName")
 }
 #endif

@@ -63,6 +63,8 @@ open class ObjCHeaderTextView: NSTextView {
             onClassClick?(name)
         case .protocol(let name):
             onProtocolClick?(name)
+        case .image(let name):
+            break
         }
     }
 
@@ -91,9 +93,11 @@ open class ObjCHeaderTextView: NSTextView {
         if let className = textStorage.attribute(.objcClassName, at: characterIndex, effectiveRange: nil) as? String {
             return .class(className)
         }
-
         if let protocolName = textStorage.attribute(.objcProtocolName, at: characterIndex, effectiveRange: nil) as? String {
             return .protocol(protocolName)
+        }
+        if let protocolName = textStorage.attribute(.objcImageName, at: characterIndex, effectiveRange: nil) as? String {
+            return .image(protocolName)
         }
         return nil
     }
@@ -107,6 +111,9 @@ open class ObjCHeaderTextView: NSTextView {
             return range
         }
         if textStorage.attribute(.objcProtocolName, at: characterIndex, effectiveRange: &range) != nil {
+            return range
+        }
+        if textStorage.attribute(.objcImageName, at: characterIndex, effectiveRange: &range) != nil {
             return range
         }
         return nil
@@ -247,6 +254,7 @@ open class ObjCHeaderTextView: NSTextView {
     private enum ClickableSymbol {
         case `class`(String)
         case `protocol`(String)
+        case image(String)
     }
 }
 
