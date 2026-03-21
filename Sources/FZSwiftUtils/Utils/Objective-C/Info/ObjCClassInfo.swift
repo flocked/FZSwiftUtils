@@ -542,20 +542,30 @@ extension ObjCClassInfo {
 }
 
 extension ObjCClassInfo {
-    static var cachedTypeNames: [String: Set<String>] = [:]
+    static var cachedTypeNames: [String: (types: Set<String>, fields: Set<String>)] = [:]
     
-    public func typeNames() -> Set<String> {
+    public func typeNames() -> (types: Set<String>, fields: Set<String>) {
         if let cached = Self.cachedTypeNames[name] {
             return cached
         }
-        var names: Set<String> = []
-        properties.forEach({ names.insert($0.type.names()) })
-        classProperties.forEach({ names.insert($0.type.names()) })
-        methods.forEach({ names.insert($0.typeNames()) })
-        classMethods.forEach({ names.insert($0.typeNames()) })
-        ivars.forEach({ names.insert($0.type?.names() ?? []) })
-        Self.cachedTypeNames[name] = names
-        return names
+        var types: Set<String> = []
+        var fields: Set<String> = []
+        func addNames(_ names: (types: Set<String>, fields: Set<String>)) {
+            types.insert(names.types)
+            fields.insert(names.fields)
+        }
+        
+        properties.forEach({ addNames($0.type.names()) })
+        classProperties.forEach({ addNames($0.type.names()) })
+        methods.forEach({ addNames($0.typeNames()) })
+        classMethods.forEach({ addNames($0.typeNames()) })
+        ivars.forEach({
+            if let names = $0.type?.names() {
+                addNames(names)
+            }
+        })
+        Self.cachedTypeNames[name] = (types, fields)
+        return (types, fields)
     }
 }
 

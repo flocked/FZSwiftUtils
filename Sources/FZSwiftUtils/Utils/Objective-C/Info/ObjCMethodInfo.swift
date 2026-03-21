@@ -93,10 +93,17 @@ extension ObjCMethodInfo: CustomStringConvertible {
     
     public var description: String { headerString }
     
-    func typeNames() -> Set<String> {
-        var names: Set<String> = []
-        names.insert(returnType.names())
-        argumentTypes.forEach({ names.insert($0.names()) })
-        return names
+    func typeNames() -> (types: Set<String>, fields: Set<String>) {
+        var typeNames: Set<String> = []
+        var fieldNames: Set<String> = []
+        var names = returnType.names()
+        typeNames.insert(names.types)
+        fieldNames.insert(names.fields)
+        argumentTypes.forEach({
+           names = $0.names()
+            typeNames.insert(names.types)
+            fieldNames.insert(names.fields)
+        })
+        return (typeNames, fieldNames)
     }
 }

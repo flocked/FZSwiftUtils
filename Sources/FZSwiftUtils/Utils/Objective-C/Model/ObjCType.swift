@@ -259,8 +259,9 @@ extension ObjCType: CustomStringConvertible {
         }
     }
     
-    func names() -> Set<String> {
+    func names() -> (types: Set<String>, fields: Set<String>) {
         var typeNames: Set<String> = []
+        var fieldNames: Set<String> = []
         func visit(_ type: ObjCType) {
             switch type {
             case .object(name: let name):
@@ -270,7 +271,7 @@ extension ObjCType: CustomStringConvertible {
             case .struct(name: let name, fields: let fields), .union(name: let name, fields: let fields):
                 typeNames += name
                 fields?.forEach({
-                    typeNames += $0.name
+                    fieldNames += $0.name
                     visit($0.type)
                 })
             case .block(return: let returnType, args: let arguments):
@@ -280,7 +281,7 @@ extension ObjCType: CustomStringConvertible {
             }
         }
         visit(self)
-        return typeNames
+        return (typeNames, fieldNames)
     }
 }
 
