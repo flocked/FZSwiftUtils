@@ -51,6 +51,7 @@ open class ObjCHeaderTextView: NSTextView {
         guard let menu = menu else {
             return super.menu(for: event)
         }
+        menu.allowsContextMenuPlugIns = false
         if let range = clickableRange(at: characterIndex) {
             setSelectedRange(range)
         }

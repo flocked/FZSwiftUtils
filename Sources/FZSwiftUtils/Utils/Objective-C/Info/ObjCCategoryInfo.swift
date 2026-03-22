@@ -16,7 +16,7 @@ public struct ObjCCategoryInfo: Sendable, Equatable, Codable {
     /// The name of the target class.
     public let className: String
 
-    /// The protocols to which the class conforms.
+    /// The protocols to which the category conforms.
     public let protocols: [ObjCProtocolInfo]
 
     /// The class properties held by the category.
@@ -83,6 +83,15 @@ extension ObjCCategoryInfo: CustomStringConvertible {
         }
         lines += ["", "@end"]
         return lines.joined(separator: "\n")
+    }
+    
+    /**
+     Returns an attributed string representing the category in a Objective-C header.
+     
+     - Parameter font: The font of the attributed string, or `nil` to use the default font.
+     */
+    public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
+        .objCHeader(for: headerString, protocols: protocols.map({$0.name}), font: font)
     }
     
     public var description: String { headerString }
