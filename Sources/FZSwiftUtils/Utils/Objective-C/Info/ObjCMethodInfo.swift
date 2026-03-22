@@ -79,11 +79,16 @@ extension ObjCMethodInfo: CustomStringConvertible {
         let prefix = isClassMethod ? "+" : "-"
         let returnType = returnType.decodedStringForArgument
         let nameAndLabels = name.split(separator: ":")
-        guard nameAndLabels.count > 0 else {
-            return "\(prefix) (\(returnType))\(name);"
-        }
+
         var result = "\(prefix) (\(returnType))"
-        result += zip(nameAndLabels, argumentTypes.map({$0.decodedStringForArgument})).enumerated().map({  "\($1.0):(\($1.1))arg\($0)" }).joined(separator: " ")
+        if argumentTypes.isEmpty {
+            result += name
+        } else {
+            result += zip(nameAndLabels, argumentTypes.map(\.decodedStringForArgument))
+                .enumerated()
+                .map { "\($1.0):(\($1.1))arg\($0)" }
+                .joined(separator: " ")
+        }
         result += ";"
         if includeTypeEncoding {
             result += " // \(type.encoded)"

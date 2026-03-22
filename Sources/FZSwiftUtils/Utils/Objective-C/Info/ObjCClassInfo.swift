@@ -701,7 +701,7 @@ fileprivate extension ObjCClassInfo {
             let keyPath: WritableKeyPath<CategoryBucket, [ObjCMethodInfo]> = isClassMethod ? \.classMethods : \.instanceMethods
             bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath] += info
         }
-        for method in objcClass.methods() {
+        for method in objcClass.classMethods() {
             append(method, isClassMethod: true)
         }
         for method in objcClass.methods() {

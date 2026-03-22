@@ -149,7 +149,7 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         if isReadOnly {
             _attributes.append("readonly")
         } else if includeDefaultAttributes {
-            _attributes.append("readWrite")
+            _attributes.append("readwrite")
         }
         if isWeak {
             _attributes.append("weak")
