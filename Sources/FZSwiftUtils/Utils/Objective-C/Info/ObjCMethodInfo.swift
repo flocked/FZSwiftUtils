@@ -59,7 +59,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
 extension ObjCMethodInfo {
     /// The argument types of the method.
     public var argumentTypes: [ObjCType] {
-        type.arguments.map({ $0.type })
+        type.arguments.dropFirst(2).map({ $0.type })
     }
     
     /// The return type of the object.
