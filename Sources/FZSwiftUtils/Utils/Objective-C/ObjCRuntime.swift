@@ -442,7 +442,7 @@ fileprivate extension ObjCRuntime {
         
         static var classesByImage: OrderedDictionary<ObjcDynamicLibrary?, [SearchClass]> {
             if _classesByImage.isEmpty {
-                let clsByImg = searchClasses.grouped(by: { ObjcDynamicLibrary($0.info.imageName) })
+                let clsByImg = searchClasses.grouped(by: { ObjcDynamicLibrary($0.info.imagePath) })
                 _classesByImage = OrderedDictionary(uniqueKeysWithValues: clsByImg.keys.sorted().map({($0, clsByImg[$0]!)}))
             }
             return _classesByImage

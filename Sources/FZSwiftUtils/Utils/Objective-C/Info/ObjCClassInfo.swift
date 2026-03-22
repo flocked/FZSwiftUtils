@@ -19,8 +19,8 @@ public struct ObjCClassInfo: Sendable {
     public let name: String
     /// The version of the class.
     public let version: Int32
-    /// The name of the dynamic library the class originated from.
-    public let imageName: String?
+    /// The path of the dynamic library / framework the class originated from.
+    public let imagePath: String?
 
     /// The size of instances of the class.
     public let instanceSize: Int
@@ -55,7 +55,7 @@ public struct ObjCClassInfo: Sendable {
      - Parameters:
        - name: Name of the class.
        - version: Version of the class.
-       - imageName: Name of the dynamic library the class originated from.
+       - imagePath: Path to the dynamic library the class originated from.
        - instanceSize: Size of instances of the class.
        - superClassName: Superclass name of the class.
        - protocols: List of protocols to which the class conforms.
@@ -68,7 +68,7 @@ public struct ObjCClassInfo: Sendable {
     public init(
         name: String,
         version: Int32,
-        imageName: String?,
+        imagePath: String?,
         instanceSize: Int,
         superClass: AnyClass?,
         protocols: [ObjCProtocolInfo],
@@ -80,7 +80,7 @@ public struct ObjCClassInfo: Sendable {
     ) {
         self.name = name
         self.version = version
-        self.imageName = imageName
+        self.imagePath = imagePath
         self.instanceSize = instanceSize
         self.superClass = superClass
         self.protocols = protocols
@@ -107,7 +107,7 @@ public struct ObjCClassInfo: Sendable {
             self.init(
                 name: NSStringFromClass(`class`),
                 version: class_getVersion(`class`),
-                imageName: class_getImageName(`class`).flatMap({ String(cString: $0) }),
+                imagePath: class_getImageName(`class`).flatMap({ String(cString: $0) }),
                 instanceSize: class_getInstanceSize(`class`),
                 superClass: class_getSuperclass(`class`),
                 protocols: Self.protocols(of: `class`, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols),
@@ -228,8 +228,8 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     /// Returns a string representing the class in a Objective-C header.
     public func headerString(options: HeaderStringOptions = [.groupMethodsByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .includePropertyImplementationComments]) -> String {
         var decl = "@interface \(name)"
-        if options.contains(.groupMethodsByOrigin), let imageName = imageName {
-            decl = "// Image: \(imageName)\n\n" + decl
+        if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
+            decl = "// Image: \(imagePath)\n\n" + decl
         }
         
         if let superClass {
@@ -272,7 +272,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     }
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.name == rhs.name && lhs.version == rhs.version && lhs.imageName == rhs.imageName && lhs.instanceSize == rhs.instanceSize && lhs.protocols == rhs.protocols && lhs.ivars == rhs.ivars && lhs.classProperties == rhs.classProperties && lhs.properties == rhs.properties && lhs.classMethods == rhs.classMethods && lhs.methods == rhs.methods
+        lhs.name == rhs.name && lhs.version == rhs.version && lhs.imagePath == rhs.imagePath && lhs.instanceSize == rhs.instanceSize && lhs.protocols == rhs.protocols && lhs.ivars == rhs.ivars && lhs.classProperties == rhs.classProperties && lhs.properties == rhs.properties && lhs.classMethods == rhs.classMethods && lhs.methods == rhs.methods
     }
     
     func containsSearchString(_ searchString: String) -> Bool {
@@ -644,7 +644,7 @@ fileprivate extension ObjCClassInfo {
             return lines
         }
         
-        sections = options.contains(.includeMethodsFromOtherImages) ? sections : sections.filter({ $0.imagePath == imageName ?? "" })
+        sections = options.contains(.includeMethodsFromOtherImages) ? sections : sections.filter({ $0.imagePath == self.imagePath ?? "" })
         sections = options.contains(.includeCategoryMethods) ? sections : sections.filter({ $0.categoryName.isEmpty })
         
         if !options.contains(.groupMethodsByOrigin) {
@@ -709,8 +709,8 @@ fileprivate extension ObjCClassInfo {
         }
         
         var sortedImagePaths = bucketsByImage.sorted(by: \.key)
-        let imageName = imageName ?? ""
-        if let index = sortedImagePaths.firstIndex(where: { $0.key == imageName }) {
+        let imagePath = imagePath ?? ""
+        if let index = sortedImagePaths.firstIndex(where: { $0.key == imagePath }) {
             sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
         }
         let headerSections = sortedImagePaths.flatMap({ element in
