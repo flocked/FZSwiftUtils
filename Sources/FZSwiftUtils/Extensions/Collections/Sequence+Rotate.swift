@@ -94,7 +94,7 @@ public extension RangeReplaceableCollection {
      
      - Parameter index: The index of the element that should be at the start after rotating.
     */
-    func rotated(toStartAt index: Int) -> Self {
+    func rotated(toStartAt index: Int) -> Self where Index == Int {
         guard index >= 0, index < endIndex else { return self }
         return rotated(by: -index)
     }
@@ -121,7 +121,7 @@ public extension RangeReplaceableCollection {
      
      - Parameter index: The index of the element that should be at the start after rotating.
     */
-    mutating func rotate(toStartAt index: Int) {
+    mutating func rotate(toStartAt index: Int) where Index == Int {
         guard index >= 0, index < endIndex else { return }
         rotate(by: -index)
     }

@@ -60,6 +60,7 @@ public extension Comparable {
         return self <= other
     }
     
+    /*
     @_disfavoredOverload
     static func < (lhs: Self, other: any Comparable) -> Bool {
         guard let other = other as? Self else { return false }
@@ -107,6 +108,7 @@ public extension Comparable {
         guard let other = other as? Self else { return false }
         return lhs >= other
     }
+     */
 }
 
 public extension Comparable {

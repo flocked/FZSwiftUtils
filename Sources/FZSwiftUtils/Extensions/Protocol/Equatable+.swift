@@ -34,6 +34,7 @@ public extension Equatable {
         return self == other
     }
     
+    /*
     @_disfavoredOverload
     static func == (lhs: Self, rhs: any Equatable) -> Bool {
         guard let rhs = rhs as? Self else { return false }
@@ -57,6 +58,7 @@ public extension Equatable {
         guard let rhs = rhs as? Self else { return false }
         return lhs != rhs
     }
+    */
 }
 
 
