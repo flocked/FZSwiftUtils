@@ -14,7 +14,9 @@ extension Operation {
         completionBlock = completion
         return self
     }
-    
+}
+
+extension NSObjectProtocol where Self: Operation {
     /// Sets the handler to execute after the operation’s main task is completed.
     @discardableResult
     public func completion(_ completion: @Sendable @escaping (_ operation: Self)->()) -> Self {
