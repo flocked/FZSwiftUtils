@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import AppKit
 
 /**
  A token representing an observer for notifications.
