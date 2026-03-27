@@ -366,7 +366,6 @@ extension EdgeInsets: Swift.Hashable, Swift.Encodable, Swift.Decodable {
 
     /// Creates an edge insets structure whose specified edges have the value.
     public init(_ edges: Edge.Set, _ value: CGFloat) {
-        CGRect().fill()
         self.init(top: edges.contains(.top) ? value : 0, leading: edges.contains(.leading) ? value : 0, bottom: edges.contains(.bottom) ? value : 0, trailing: edges.contains(.trailing) ? value : 0)
     }
 
