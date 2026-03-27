@@ -162,7 +162,10 @@ public extension NSObject {
     func ivarValue<T>(named name: String, as type: T.Type = T.self, verifyType:  Bool = false) -> T? {
         guard let ivar = Self.instanceVariable(named: name),
               let info = ObjCIvarInfo(ivar) else { return nil }
-        if verifyType {
+        
+
+        let isObjCBridgeable = T.self is (any _ObjectiveCBridgeable)
+        if verifyType && !isObjCBridgeable {
             guard info.type?.matches(T.self) == true else { return nil }
         }
 
@@ -172,7 +175,7 @@ public extension NSObject {
             return Self.fromUInt64(raw, width: bitfieldInfo.width, as: T.self)
         }
 
-        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize else { return nil }
+        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize || (isObjCBridgeable && MemoryLayout<NSObject>.stride <= ivarSize) else { return nil }
         switch info.typeEncoding.first {
         case "@", "#", ":":
             return object_getIvar(self, ivar) as? T
@@ -197,7 +200,9 @@ public extension NSObject {
     func setIvarValue<T>(_ value: T, named name: String, verifyType:  Bool = false) {
         guard let ivar = Self.instanceVariable(named: name),
               let info = ObjCIvarInfo(ivar) else { return }
-        if verifyType {
+        
+        let isObjCBridgeable = T.self is (any _ObjectiveCBridgeable)
+        if verifyType && !isObjCBridgeable {
             guard info.type?.matches(T.self) == true else { return }
         }
 
@@ -207,8 +212,8 @@ public extension NSObject {
             Self.setBitfieldValue(object: self, bitfieldInfo: bitfieldInfo, rawValue: rawValue)
             return
         }
-
-        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize else { return }
+        
+        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize || (isObjCBridgeable && MemoryLayout<NSObject>.stride <= ivarSize) else { return }
         switch info.typeEncoding.first {
         case "@", "#", ":":
             object_setIvar(self, ivar, value as AnyObject)
@@ -284,7 +289,7 @@ public extension NSObject {
     /// Returns all superclasses of the class.
     static func superclasses() -> [AnyClass] {
         Array(first: superclass(), next: { $0?.superclass() }).nonNil
-     }
+    }
 
     /// Returns the instance method for the specified selector.
     static func instanceMethod(for selector: Selector) -> Method? {
@@ -385,7 +390,7 @@ public extension NSObject {
     struct KeyValueObservance: CustomStringConvertible {
         /// The object that observers the property.
         public let observer: NSObject?
-        // The key path of the property being observed.
+        /// The key path of the property being observed.
         public let keyPath: String
         /// The options of the observation.
         public let options: NSKeyValueObservingOptions
