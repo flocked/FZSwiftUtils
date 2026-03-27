@@ -34,41 +34,25 @@ public extension FileManager {
 
      - Parameter url: The item to move to the trash.
      - Throws: Throws an error if the item couldn't be moved to the trash.
-     - Returns: Returns the url of the trashed item.
+     - Returns: The URL of the trashed item.
      */
     @discardableResult
     func trashItem(at url: URL) throws -> URL {
         var trashedFileURL: NSURL?
         try trashItem(at: url, resultingItemURL: &trashedFileURL)
         guard let trashedFileURL = trashedFileURL as? URL else {
-            throw Errors.trashItemFailed(url: url)
+            throw URLError(.cannotRemoveFile, failingURL: url)
         }
         return trashedFileURL
-    }
-    
-    fileprivate enum Errors: LocalizedError {
-        case trashItemFailed(url: URL)
-            
-        var errorDescription: String? {
-            switch self {
-            case .trashItemFailed: return "Tashing Failed."
-            }
-        }
-            
-        var failureReason: String? {
-            switch self {
-            case .trashItemFailed(let url): return "Failed to trash item \(url)."
-            }
-        }
     }
     #endif
 
     #if os(macOS)
-    /// The type of appliction support directory.
-    enum AppSupportDirectoryType {
-        /// Uses the application identifier.
+    /// A strategy describing how the app-specific Application Support directory name is derived.
+    enum AppSupportDirectoryNaming {
+        /// Uses the bundle identifier, falling back to the bundle name if unavailable.
         case identifier
-        /// Uses the application name.
+        /// Uses the bundle name, falling back to the bundle identifier if unavailable.
         case name
     }
 
@@ -76,30 +60,28 @@ public extension FileManager {
      Returns the application support directory for the current app.
          
      - Parameters:
-        - type: The type of application support directory (either `identifier` or `name`).
+        - naming: The strategy used to determine the app-specific directory name.
         - createIfNeeded: A Boolean value indicating whether the directory should be created if it doesn't exist.
+     - Returns: The URL of the app-specific Application Support directory, or `nil` if it cannot be determined or created.
      */
-    func appSupportDirectory(using type: AppSupportDirectoryType = .name, createIfNeeded: Bool = false) -> URL? {
+    func appSupportDirectory(using naming: AppSupportDirectoryNaming = .identifier, createIfNeeded: Bool = false) -> URL? {
+        guard let name = naming == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
         let appSupportURL: URL
-        if #available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *) {
-            appSupportURL = .applicationSupportDirectory
+        if #available(macOS 13.0, *) {
+            appSupportURL = .applicationSupportDirectory.appendingPathComponent(name, isDirectory: true)
         } else {
             guard let url = urls(for: .applicationSupportDirectory, in: .userDomainMask).first else { return nil }
-            appSupportURL = url
+            appSupportURL = url.appendingPathComponent(name, isDirectory: true)
         }
-        guard let name = type == .identifier ? Bundle.main.bundleIdentifier ?? Bundle.main.bundleName : Bundle.main.bundleName ?? Bundle.main.bundleIdentifier else { return nil }
-        let directoryURL = appSupportURL.appendingPathComponent(name, isDirectory: true)
-        if directoryExists(at: directoryURL) {
-            return directoryURL
-        } else if createIfNeeded {
+        if !directoryExists(at: appSupportURL), createIfNeeded {
             do {
-                try createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
-                return directoryURL
+                try createDirectory(at: appSupportURL, withIntermediateDirectories: true, attributes: nil)
             } catch {
                 debugPrint(error)
+                return nil
             }
         }
-        return nil
+        return appSupportURL
     }
     #endif
     
