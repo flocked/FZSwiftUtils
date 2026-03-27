@@ -74,7 +74,7 @@ public class KeyValueObservation: NSObject {
         case ("occlusionState", let object as NSApplication) where Value.self is NSApplication.OcclusionState.Type:
             object._occlusionState = object.occlusionState
             observer = NotificationObserver(object, keyPath: "occlusionState") {
-                [.init(NSApplication.didChangeOcclusionStateNotification, object: $0) {_ in
+                [.init(for: NSApplication.didChangeOcclusionStateNotification, postedBy: $0) {_ in
                     guard object.occlusionState != object._occlusionState else { return }
                     handler(cast(object._occlusionState), cast(object.occlusionState))
                     object._occlusionState = object.occlusionState } ] }
@@ -393,8 +393,8 @@ fileprivate extension KeyValueObservation {
         
         convenience init<V>(_ object: Object, keyPath: String,  _ name1: Notification.Name, _ name2: Notification.Name, _ handler: @escaping (V, V)->()) {
             self.init(object, keyPath: keyPath) { [
-                .init(name1, object: $0) { _ in handler(cast(false), cast(true)) },
-                .init(name2, object: $0) { _ in handler(cast(true), cast(false)) }] }
+                .init(for: name1, postedBy: $0) { _ in handler(cast(false), cast(true)) },
+                .init(for: name2, postedBy: $0) { _ in handler(cast(true), cast(false)) }] }
         }
         
         deinit {

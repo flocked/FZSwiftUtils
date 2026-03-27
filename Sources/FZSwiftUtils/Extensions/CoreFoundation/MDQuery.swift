@@ -133,7 +133,7 @@ public extension MDQuery {
             
         }
          */
-        NotificationCenter.default.post(name: MDQuery.MDQueryDidStartGatheringNotification, object: self)
+        NotificationCenter.default.post(name: MDQuery.queryDidStartGatheringNotification, object: self)
         return true
     }
    
@@ -385,13 +385,13 @@ public extension MDQuery {
     }
     
     /// Posted when the receiver begins with the initial result-gathering phase of the query.
-    static let MDQueryDidStartGatheringNotification = Notification.Name("MDQueryDidStartGathering")
+    static let queryDidStartGatheringNotification = Notification.Name("MDQueryDidStartGathering")
     /// Posted as the receiver is collecting results during the initial result-gathering phase of the query.
-    static let MDQueryGatheringProgressNotification = Notification.Name(kMDQueryProgressNotification as String)
+    static let queryGatheringProgressNotification = Notification.Name(kMDQueryProgressNotification as String)
     /// Posted when the receiver has finished with the initial result-gathering phase of the query.
-    static let MDQueryDidFinishGatheringNotification = Notification.Name(kMDQueryDidFinishNotification as String)
+    static let queryDidFinishGatheringNotification = Notification.Name(kMDQueryDidFinishNotification as String)
     /// Posted when the receiver’s results have changed during the live-update phase of the query.
-    static let MDQueryDidUpdateNotification = Notification.Name(kMDQueryDidUpdateNotification as String)
+    static let queryDidUpdateNotification = Notification.Name(kMDQueryDidUpdateNotification as String)
    
     /// The handlers of the metadata query.
     var handlers: Handlers {
@@ -665,17 +665,6 @@ extension MDQuery {
         }
         MDQuerySetSortComparator(self, sortComparator, nil)
     }
-}
-
-public extension Notification.Name {
-    /// Posted when the receiver begins with the initial result-gathering phase of the query.
-    static let MDQueryDidStartGatheringNotification = Self("MDQueryDidStartGathering")
-    /// Posted as the receiver is collecting results during the initial result-gathering phase of the query.
-    static let MDQueryGatheringProgressNotification = Self(kMDQueryProgressNotification as String)
-    /// Posted when the receiver has finished with the initial result-gathering phase of the query.
-    static let MDQueryDidFinishGatheringNotification = Self(kMDQueryDidFinishNotification as String)
-    /// Posted when the receiver’s results have changed during the live-update phase of the query.
-    static let MDQueryDidUpdateNotification = Self(kMDQueryDidUpdateNotification as String)
 }
 
 /*

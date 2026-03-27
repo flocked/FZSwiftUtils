@@ -402,12 +402,6 @@ public extension NSObject {
     }
 }
 
-extension NSObjectProtocol where Self: NSObject {
-    func sdsd() {
-        self.method(for: NSSelectorFromString(""))
-    }
-}
-
 public extension NSObjectProtocol where Self: NSObject {
     /// The type of the object.
     var classType: Self.Type {
