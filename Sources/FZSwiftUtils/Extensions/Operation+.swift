@@ -9,16 +9,16 @@ import Foundation
 
 extension Operation {
     /// Sets the handler to execute after the operation’s main task is completed.
-    public func completion(_ completion: (@Sendable () -> Void)?) -> Self {
-        self.completionBlock = completion
+    @discardableResult
+    public func completion(_ completion: (@Sendable ()->())?) -> Self {
+        completionBlock = completion
         return self
     }
-}
-
-extension NSObjectProtocol where Self: Operation {
+    
     /// Sets the handler to execute after the operation’s main task is completed.
-    public func completion(_ completion: @escaping (@Sendable (Self) -> Void)) -> Self {
-        self.completionBlock = {  completion(self) }
+    @discardableResult
+    public func completion(_ completion: @Sendable @escaping (_ operation: Self)->()) -> Self {
+        completionBlock = { completion(self) }
         return self
     }
 }
