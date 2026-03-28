@@ -143,7 +143,6 @@ extension ObjCPropertyInfo {
     
     fileprivate func _classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let baseType = type.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
-        let className = NSStringFromClass(`class`)
         let propertyName = swiftIdentifier(for: name)
         let isOptional = type.isObjectLike
         let propertyType = isOptional ? "\(baseType)?" : baseType
@@ -152,15 +151,19 @@ extension ObjCPropertyInfo {
 
         if isReadOnly {
             return """
-            \(declarationKeyword) \(propertyName): \(propertyType) {
-            \(getter.indented(by: 1))
-            }
-            """
+        \(declarationKeyword) \(propertyName): \(propertyType) {
+        \(getter.indented(by: "        "))
+        }
+        """
         }
         return """
         \(declarationKeyword) \(propertyName): \(propertyType) {
-            get { \(getter.indented(by: 2)) }
-            set { setValue(safely: newValue, forKey: "\(name)") }
+            get {
+        \(getter.indented(by: "        "))
+            }
+            set {
+                setValue(safely: newValue, forKey: "\(name)")
+            }
         }
         """
     }
@@ -203,23 +206,25 @@ extension ObjCIvarInfo {
         let getter = getterString(propertyType: baseType, isOptional: isOptional)
         return """
         var \(propertyName): \(propertyType) {
-        \(getter.indented(by: 1))
-            set { setIvarValue(newValue, named: "\(name)") }
+            get {
+        \(getter.indented(by: "        "))
+            }
+            set {
+                setIvarValue(newValue, named: "\(name)")
+            }
         }
         """
     }
 
     private func getterString(propertyType: String, isOptional: Bool) -> String {
         if isOptional {
-            return "get { ivarValue(named: \"\(name)\") }"
+            return "ivarValue(named: \"\(name)\")"
         }
         return """
-        get { 
-            guard let value: \(propertyType) = ivarValue(named: "\(name)") else {
-                fatalError("Failed to read ivar \(name)")
-            }
-            return value
+        guard let value: \(propertyType) = ivarValue(named: "\(name)") else {
+            fatalError("Failed to read ivar \(name)")
         }
+        return value
         """
     }
 }
