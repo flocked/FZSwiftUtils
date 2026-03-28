@@ -262,34 +262,23 @@ public extension NSAttributedString {
         return value.attributedSubstring(from: range)
     }
 
-    static func += (lhs: inout NSAttributedString, rhs: NSAttributedString) {
-        let string = NSMutableAttributedString(attributedString: lhs)
-        string.append(rhs)
-        lhs = string
-    }
-
     static func + (lhs: NSAttributedString, rhs: NSAttributedString) -> NSAttributedString {
         let string = NSMutableAttributedString(attributedString: lhs)
         string.append(rhs)
         return NSAttributedString(attributedString: string)
     }
-
-    static func += (lhs: inout NSAttributedString, rhs: String) {
-        let index = (lhs.string as NSString).length - 1
-        if index >= 0, let font = lhs.attribute(.font, at: index, effectiveRange: nil) {
-            lhs += NSAttributedString(string: rhs, attributes: [.font: font])
-        } else {
-            lhs += NSAttributedString(string: rhs)
-        }
+    
+    static func += (lhs: inout NSAttributedString, rhs: NSAttributedString) {
+        lhs = lhs + rhs
     }
 
     static func + (lhs: NSAttributedString, rhs: String) -> NSAttributedString {
-        let index = (lhs.string as NSString).length - 1
-        if index >= 0, let font = lhs.attribute(.font, at: index, effectiveRange: nil) {
-            return lhs + NSAttributedString(string: rhs, attributes: [.font: font])
-        } else {
-            return lhs + NSAttributedString(string: rhs)
-        }
+        let index = lhs.string.nsRange.length - 1
+        return lhs + NSAttributedString(string: rhs, attributes: index >= 0 ? lhs.attributes(at: index, effectiveRange: nil) : nil)
+    }
+    
+    static func += (lhs: inout NSAttributedString, rhs: String) {
+       lhs = lhs + rhs
     }
 
     /**
@@ -968,10 +957,10 @@ extension NSAttributedString {
         public var documentType: NSAttributedString.DocumentType?
         
         #if os(macOS)
-        /// The file type of the document (e.g., RTF, HTML, etc.).
+        /// The file type identifier of the document (e.g., RTF, HTML, etc.).
         public var fileTypeIdentifier: String?
         
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        /// The file type of the document (e.g., RTF, HTML, etc.).
         public var fileType: UTType? {
             get {
                 guard let fileTypeIdentifier = fileTypeIdentifier else { return nil }
@@ -1062,7 +1051,6 @@ extension NSAttributedString {
         /// The file type of the document (e.g., RTF, HTML, etc.).
         public var fileTypeIdentifier: String?
         
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
         public var fileType: UTType? {
             get {
                 guard let fileTypeIdentifier = fileTypeIdentifier else { return nil }
