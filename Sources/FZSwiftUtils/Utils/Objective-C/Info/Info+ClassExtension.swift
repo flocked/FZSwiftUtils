@@ -158,12 +158,8 @@ extension ObjCPropertyInfo {
         }
         return """
         \(declarationKeyword) \(propertyName): \(propertyType) {
-            get {
-        \(getter.indented(by: "        "))
-            }
-            set {
-                setValue(safely: newValue, forKey: "\(name)")
-            }
+        \(inlineAccessor(keyword: "get", body: getter, indentation: "    "))
+        \(inlineAccessor(keyword: "set", body: "setValue(safely: newValue, forKey: \"\(name)\")", indentation: "    "))
         }
         """
     }
@@ -204,14 +200,11 @@ extension ObjCIvarInfo {
         let isOptional = type?.isObjectLike == true
         let propertyType = isOptional ? "\(baseType)?" : baseType
         let getter = getterString(propertyType: baseType, isOptional: isOptional)
+
         return """
         var \(propertyName): \(propertyType) {
-            get {
-        \(getter.indented(by: "        "))
-            }
-            set {
-                setIvarValue(newValue, named: "\(name)")
-            }
+        \(inlineAccessor(keyword: "get", body: getter, indentation: "    "))
+        \(inlineAccessor(keyword: "set", body: "setIvarValue(newValue, named: \"\(name)\")", indentation: "    "))
         }
         """
     }
@@ -335,4 +328,15 @@ fileprivate extension String {
     func indented(by indentation: String) -> String {
         lines.map({ indentation + $0 }).joined(separator: "\n")
     }
+}
+
+fileprivate func inlineAccessor(keyword: String, body: String, indentation: String) -> String {
+    if body.contains("\n") {
+        return """
+        \(keyword) {
+        \(body.indented(by: indentation + "    "))
+        }
+        """
+    }
+    return "\(keyword) { \(body) }"
 }
