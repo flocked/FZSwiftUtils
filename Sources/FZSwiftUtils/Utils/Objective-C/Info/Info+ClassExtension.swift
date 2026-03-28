@@ -153,13 +153,13 @@ extension ObjCPropertyInfo {
         if isReadOnly {
             return """
             \(declarationKeyword) \(propertyName): \(propertyType) {
-                \(getter)
+            \(getter.indented(by: 1))
             }
             """
         }
         return """
         \(declarationKeyword) \(propertyName): \(propertyType) {
-            get { \(getter) }
+            get { \(getter.indented(by: 2)) }
             set { setValue(safely: newValue, forKey: "\(name)") }
         }
         """
@@ -197,15 +197,13 @@ extension ObjCIvarInfo {
     
     fileprivate func _classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let baseType = type?.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
-        let className = NSStringFromClass(`class`)
         let propertyName = swiftIdentifier(for: name)
         let isOptional = type?.isObjectLike == true
         let propertyType = isOptional ? "\(baseType)?" : baseType
         let getter = getterString(propertyType: baseType, isOptional: isOptional)
-
         return """
         var \(propertyName): \(propertyType) {
-            get { \(getter) }
+        \(getter.indented(by: 1))
             set { setIvarValue(newValue, named: "\(name)") }
         }
         """
@@ -213,13 +211,15 @@ extension ObjCIvarInfo {
 
     private func getterString(propertyType: String, isOptional: Bool) -> String {
         if isOptional {
-            return "ivarValue(named: \"\(name)\")"
+            return "get { ivarValue(named: \"\(name)\") }"
         }
         return """
-        guard let value: \(propertyType) = ivarValue(named: "\(name)") else {
-            fatalError("Failed to read ivar \(name)")
+        get { 
+            guard let value: \(propertyType) = ivarValue(named: "\(name)") else {
+                fatalError("Failed to read ivar \(name)")
+            }
+            return value
         }
-        return value
         """
     }
 }
@@ -316,7 +316,7 @@ fileprivate extension ObjCType {
             return name
         case .atom, .unknown, .other, .union, .bitField, .array:
             return nil
-        case .modified(_, type: let type):
+        case .modified(_, type: _):
             let resolved = resolved
             return resolved != .charPtr ? resolved.resolvedSwiftType : modifiers.contains(.const) ? "UnsafePointer<CChar>" : "UnsafeMutablePointer<CChar>"
         }
@@ -324,8 +324,10 @@ fileprivate extension ObjCType {
 }
 
 fileprivate extension String {
+    func indented(by count: Int) -> String {
+        indented(by: Array(repeating: "\t", count: count.clamped(min: 0)).joined())
+    }
     func indented(by indentation: String) -> String {
-        split(separator: "\n", omittingEmptySubsequences: false)
-            .map({ indentation + $0 }).joined(separator: "\n")
+        lines.map({ indentation + $0 }).joined(separator: "\n")
     }
 }
