@@ -13,6 +13,39 @@ import UIKit
 #endif
 
 extension NSAttributedString {
+    static func updateObjCHeader(_ attributed: NSMutableAttributedString, protocols: [String] = [], font: NSUIFont?) {
+        let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
+        let headerString = attributed.string
+        let fullRange = attributed.string.nsRange
+        let classes = ObjCRuntime.classNames()
+
+        let commentRanges = commentRegex.matches(in: attributed.string, options: [], range: fullRange).map(\.range)
+        apply(ranges: commentRanges, to: attributed, color: objcHeaderColors.comments, font: font)
+        
+        for commentRange in commentRanges {
+            guard let imageMatch = imageRegex.firstMatch(in: headerString, range: commentRange), let pathRange = Range(imageMatch.range(at: 1), in: headerString) else { continue }
+            let imagePath = String(headerString[pathRange])
+            attributed.addAttribute(.objcImageName, value: imagePath, range: imageMatch.range(at: 1))
+        }
+
+        let protocols = Set(protocols)
+        var searchLocation = 0
+        
+        for commentRange in commentRanges {
+            if searchLocation < commentRange.location {
+                let range = NSRange(location: searchLocation, length: commentRange.location - searchLocation)
+                colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywordSet: objcHeaderKeywordSet, classSet: classes, protocolsSet: protocols, font: font)
+            }
+            searchLocation = commentRange.location + commentRange.length
+        }
+        if searchLocation < fullRange.length {
+            let range = NSRange(location: searchLocation, length: fullRange.length - searchLocation)
+            colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywordSet: objcHeaderKeywordSet, classSet: classes, protocolsSet: protocols, font: font)
+        }
+    }
+}
+
+extension NSAttributedString {
     static let imageNames = Set(ObjCRuntime.imageNames())
     
     static func objCHeader(for headerString: String, protocols: [String] = [], font: NSUIFont? = nil) -> NSAttributedString {

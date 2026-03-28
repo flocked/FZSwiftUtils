@@ -772,3 +772,239 @@ fileprivate extension ObjCClassInfo {
         }
     }
 }
+
+extension ObjCClassInfo {
+    public func attributedHeaderStringAlt(
+        options: HeaderStringOptions = [
+            .groupMethodsByOrigin,
+            .includeMethodsFromOtherImages,
+            .includeCategoryMethods,
+            .includePropertyImplementationComments
+        ], font: NSUIFont? = nil
+    ) -> NSAttributedString {
+        let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
+        let result = NSMutableAttributedString(string: headerString, attributes: [.font: font])
+        
+        func append(_ string: String) {
+            result.append(NSAttributedString(string: string))
+        }
+
+        func appendLine(_ string: String = "") {
+            result.append(NSAttributedString(string: string + "\n"))
+        }
+
+        func appendAttributedLine(
+            _ string: String,
+            key: NSAttributedString.Key,
+            value: Any
+        ) {
+            let start = result.length
+            result.append(NSAttributedString(string: string))
+            let range = NSRange(location: start, length: (string as NSString).length)
+            result.addAttribute(key, value: value, range: range)
+            result.append(NSAttributedString(string: "\n"))
+        }
+
+        if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
+            appendLine("// Image: \(imagePath)")
+            appendLine()
+        }
+
+        var decl = "@interface \(name)"
+        if let superClass {
+            decl += " : \(NSStringFromClass(superClass))"
+        }
+        if !protocols.isEmpty {
+            decl += " <\(protocols.map(\.name).joined(separator: ", "))>"
+        }
+
+        if !ivars.isEmpty {
+            appendLine(decl + " {")
+            for ivar in ivars {
+                let indented = ivar.headerString
+                    .components(separatedBy: .newlines)
+                    .map { "    \($0)" }
+                    .joined(separator: "\n")
+                appendAttributedLine(indented, key: .objcIvar, value: ivar.name)
+            }
+            appendLine("}")
+        } else {
+            appendLine(decl)
+        }
+
+        if !classProperties.isEmpty {
+            appendLine()
+            for property in classProperties {
+                appendAttributedLine(
+                    property.headerString(
+                        includeDefaultAttributes: options.contains(.includeImplicitPropertyAttributes),
+                        includeComments: options.contains(.includePropertyImplementationComments)
+                    ),
+                    key: .objcClassProperty,
+                    value: property.name
+                )
+            }
+        }
+
+        if !properties.isEmpty {
+            appendLine()
+            for property in properties {
+                appendAttributedLine(
+                    property.headerString(
+                        includeDefaultAttributes: options.contains(.includeImplicitPropertyAttributes),
+                        includeComments: options.contains(.includePropertyImplementationComments)
+                    ),
+                    key: .objcProperty,
+                    value: property.name
+                )
+            }
+        }
+        
+        result.append(methodHeaderAttributedString(options: options))
+
+        appendLine()
+        append("@end")
+        NSAttributedString.updateObjCHeader(result, protocols: protocols.map(\.name), font: font)
+
+        return result
+    }
+
+    func methodHeaderAttributedString(options: HeaderStringOptions) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+
+        func append(_ string: String) {
+            result.append(NSAttributedString(string: string))
+        }
+
+        func appendLine(_ string: String = "") {
+            result.append(NSAttributedString(string: string + "\n"))
+        }
+
+        func appendMethodLine(
+            _ string: String,
+            key: NSAttributedString.Key,
+            value: Any
+        ) {
+            let start = result.length
+            result.append(NSAttributedString(string: string))
+            let range = NSRange(location: start, length: (string as NSString).length)
+            result.addAttribute(key, value: value, range: range)
+            result.append(NSAttributedString(string: "\n"))
+        }
+
+        let includeMethodTypeEncodings = options.contains(.includeMethodTypeEncodings)
+
+        guard options.contains(.groupMethodsByOrigin)
+                || !options.contains(.includeCategoryMethods)
+                || !options.contains(.includeMethodsFromOtherImages),
+              var sections = methodHeaderSections else {
+            if !classMethods.isEmpty {
+                appendLine()
+                for method in classMethods {
+                    appendMethodLine(
+                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        key: .objcClassMethod,
+                        value: method.name
+                    )
+                }
+            }
+            if !methods.isEmpty {
+                appendLine()
+                for method in methods {
+                    appendMethodLine(
+                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        key: .objcMethod,
+                        value: method.name
+                    )
+                }
+            }
+            return result
+        }
+
+        sections = options.contains(.includeMethodsFromOtherImages)
+            ? sections
+            : sections.filter { $0.imagePath == self.imagePath ?? "" }
+
+        sections = options.contains(.includeCategoryMethods)
+            ? sections
+            : sections.filter { $0.categoryName.isEmpty }
+
+        if !options.contains(.groupMethodsByOrigin) {
+            let classMethods = sections.flatMap(\.classMethods).sorted(by: \.name)
+            if !classMethods.isEmpty {
+                appendLine()
+                for method in classMethods {
+                    appendMethodLine(
+                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        key: .objcClassMethod,
+                        value: method.name
+                    )
+                }
+            }
+
+            let instanceMethods = sections.flatMap(\.instanceMethods).sorted(by: \.name)
+            if !instanceMethods.isEmpty {
+                appendLine()
+                for method in instanceMethods {
+                    appendMethodLine(
+                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        key: .objcMethod,
+                        value: method.name
+                    )
+                }
+            }
+
+            return result
+        }
+
+        let hasMethodsFromMoreThanOneImage: Bool = {
+            guard let firstImagePath = sections.first?.imagePath else { return false }
+            return sections.contains { $0.imagePath != firstImagePath }
+        }()
+
+        var currentImagePath: String?
+
+        if !sections.isEmpty {
+            appendLine()
+        }
+
+        for (index, section) in sections.enumerated() {
+            if index > 0 {
+                appendLine()
+            }
+
+            if hasMethodsFromMoreThanOneImage, currentImagePath != section.imagePath {
+                currentImagePath = section.imagePath
+                appendLine("// Image: \(section.imagePath)")
+                appendLine()
+            }
+
+            if !section.categoryName.isEmpty {
+                appendLine("// \(name) (\(section.categoryName))")
+                appendLine()
+            }
+
+            for method in section.classMethods {
+                appendMethodLine(
+                    method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                    key: .objcClassMethod,
+                    value: method.name
+                )
+            }
+
+            if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
+                appendLine()
+            }
+
+            for method in section.instanceMethods {
+                appendMethodLine(
+                    method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                    key: .objcMethod,
+                    value: method.name
+                )
+            }
+        }
+
+        return result
+    }
+}

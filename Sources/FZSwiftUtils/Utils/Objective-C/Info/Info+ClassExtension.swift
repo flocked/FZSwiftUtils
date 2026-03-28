@@ -143,44 +143,55 @@ extension ObjCPropertyInfo {
     
     fileprivate func _classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let baseType = type.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
-        
         let propertyName = swiftIdentifier(for: name)
         let isOptional = type.isObjectLike
         let propertyType = isOptional ? "\(baseType)?" : baseType
-        let keyword = isClassProperty ? "class var" : "var"
-        
-        // Define the internal logic lines
-        let coreLines: [String]
-        if isOptional {
-            coreLines = ["value(forKey: \"\(name)\")"]
-        } else {
-            coreLines = [
-                "guard let value: \(baseType) = value(forKey: \"\(name)\") else {",
-                "    fatalError(\"Failed to read property \(name)\")",
-                "}",
-                "return value"
-            ]
-        }
+        let declarationKeyword = isClassProperty ? "class var" : "var"
+        let getter = getterString(propertyType: baseType, isOptional: isOptional, readOnly: isReadOnly)
 
-        // Map lines to the correct indentation (4 or 8 spaces)
-        let getterBody = coreLines.map { "        \($0)" }.joined(separator: "\n")
-        
         if isReadOnly {
             return """
-            \(keyword) \(propertyName): \(propertyType) {
-            \(getterBody)
-            }
-            """
-        } else {
-            return """
-            \(keyword) \(propertyName): \(propertyType) {
-                get {
-            \(getterBody)
-                }
-                set { setValue(safely: newValue, forKey: \"\(name)\") }
-            }
-            """
+        \(declarationKeyword) \(propertyName): \(propertyType) {
+        \(getter)
         }
+        """
+        }
+        return """
+        \(declarationKeyword) \(propertyName): \(propertyType) {
+        \(getter)
+            set { setValue(safely: newValue, forKey: "\(name)") }
+        }
+        """
+    }
+    
+    func getterString(propertyType: String, isOptional: Bool, readOnly: Bool) -> String {
+        readOnly ?  getterStringReadOnly(propertyType: propertyType, isOptional: isOptional) : getterString(propertyType: propertyType, isOptional: isOptional)
+    }
+
+    private func getterString(propertyType: String, isOptional: Bool) -> String {
+        if isOptional {
+            return "    get { value(forKey: \"\(name)\") }"
+        }
+        return """
+            get {
+                guard let value: \(propertyType) = value(forKey: "\(name)") else {
+                    fatalError("Failed to read property \(name)")
+                }
+                return value
+            }
+        """
+    }
+    
+    private func getterStringReadOnly(propertyType: String, isOptional: Bool) -> String {
+        if isOptional {
+            return "    value(forKey: \"\(name)\")"
+        }
+        return """
+            guard let value: \(propertyType) = value(forKey: "\(name)") else {
+                fatalError("Failed to read property \(name)")
+            }
+            return value
+        """
     }
 }
 
