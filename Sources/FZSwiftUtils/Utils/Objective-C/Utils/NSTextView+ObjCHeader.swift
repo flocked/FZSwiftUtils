@@ -297,9 +297,63 @@ open class ObjCHeaderTextView: NSTextView {
         return results
     }
     
-    public func selectedClassValues() -> (properties: [String], classProperties: [String], methods: [String], classMethods: [String], ivars: [String]) {
+    public struct ClassValues {
+        public var properties: [String] = []
+        public var classProperties: [String] = []
+        public var methods: [String] = []
+        public var classMethods: [String] = []
+        public var ivars: [String] = []
+        
+        public func filter(_ info: ObjCClassInfo) -> ClassValues {
+            var values = self
+            values.properties = values.properties.filter({ name in info.properties.contains(where: { $0.name == name }) })
+            values.classProperties = values.classProperties.filter({ name in info.classProperties.contains(where: { $0.name == name }) })
+            values.methods = values.methods.filter({ name in info.methods.contains(where: { $0.name == name }) })
+            values.classMethods = values.classMethods.filter({ name in info.classMethods.contains(where: { $0.name == name }) })
+            values.ivars = values.ivars.filter({ name in info.ivars.contains(where: { $0.name == name }) })
+            return values
+        }
+        
+        public func classExtensionString(for info: ObjCClassInfo) -> String? {
+            info.classExtensionString(forMethods: Set(methods), classMethods: Set(classMethods), properties: Set(properties), classProperties: Set(classProperties), ivars: Set(ivars))
+        }
+        
+        public var title: String {
+            var tiles: [String] = []
+            let propertiesCount = (properties + classProperties).count
+            if propertiesCount > 0 {
+                tiles += propertiesCount == 1 ? "property" : "properties"
+            }
+            let methodsCount = (methods + classMethods).count
+            if methodsCount > 0 {
+                tiles += methodsCount == 1 ? "method" : "methods"
+            }
+            if ivars.count > 0 {
+                tiles += ivars.count == 1 ? "ivar" : "ivars"
+            }
+            if tiles.count == 3 {
+                return "\(tiles[0]), \(tiles[1]) and \(tiles[2])"
+            } else if tiles.count == 2 {
+                return "\(tiles[0]) and \(tiles[1])"
+            } else if tiles.count == 1 {
+                return "\(tiles[0])"
+            }
+            return tiles.joined(separator: ", ")
+        }
+        
+        public var isEmpty: Bool {
+            count == 0
+        }
+        
+        public var count: Int {
+            properties.count + classProperties.count + methods.count + classMethods.count + ivars.count
+        }
+
+    }
+    
+    public func selectedClassValues() -> ClassValues {
         guard let textStorage, textStorage.length > 0 else {
-            return ([], [], [], [], [])
+            return ClassValues()
         }
         var seenValues: [NSAttributedString.Key: Set<String>] = [:]
         var _values: [NSAttributedString.Key: [String]] = [:]
@@ -320,7 +374,7 @@ open class ObjCHeaderTextView: NSTextView {
             collect(.objcClassMethod, in: boundedRange)
             collect(.objcIvar, in: boundedRange)
         }
-        return (values(for: .objcProperty), values(for: .objcClassProperty), values(for: .objcMethod), values(for: .objcClassMethod), values(for: .objcIvar))
+        return ClassValues(properties: values(for: .objcProperty), classProperties: values(for: .objcClassProperty), methods: values(for: .objcMethod), classMethods: values(for: .objcClassMethod), ivars: values(for: .objcIvar))
     }
 
     private enum ClickableSymbol {
