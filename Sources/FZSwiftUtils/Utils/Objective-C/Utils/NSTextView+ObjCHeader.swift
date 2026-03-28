@@ -78,14 +78,16 @@ open class ObjCHeaderTextView: NSTextView {
     }
 
     open override func mouseMoved(with event: NSEvent) {
-        updateHover(for: event)
-        window?.invalidateCursorRects(for: self)
+        if updateHover(for: event) {
+            window?.invalidateCursorRects(for: self)
+        }
         super.mouseMoved(with: event)
     }
 
     open override func mouseExited(with event: NSEvent) {
-        clearHover()
-        window?.invalidateCursorRects(for: self)
+        if clearHover() {
+            window?.invalidateCursorRects(for: self)
+        }
         super.mouseExited(with: event)
     }
 
@@ -114,22 +116,25 @@ open class ObjCHeaderTextView: NSTextView {
         }
     }
 
-    private func updateHover(for event: NSEvent) {
+    @discardableResult
+    private func updateHover(for event: NSEvent) -> Bool {
         guard let characterIndex = characterIndex(at: event.locationInWindow),
               let range = clickableRange(at: characterIndex) else {
-            clearHover()
-            return
+            return clearHover()
         }
-        guard hoveredClickableRange != range else { return }
+        guard hoveredClickableRange != range else { return false }
         clearHover()
         layoutManager?.addTemporaryAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, forCharacterRange: range)
         hoveredClickableRange = range
+        return true
     }
 
-    private func clearHover() {
-        guard let hoveredClickableRange else { return }
+    @discardableResult
+    private func clearHover() -> Bool {
+        guard let hoveredClickableRange else { return false }
         layoutManager?.removeTemporaryAttribute(.underlineStyle, forCharacterRange: hoveredClickableRange)
         self.hoveredClickableRange = nil
+        return true
     }
 
     private func clickableSymbol(at characterIndex: Int) -> ClickableSymbol? {
