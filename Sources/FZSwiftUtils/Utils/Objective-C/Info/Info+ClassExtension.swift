@@ -151,28 +151,30 @@ extension ObjCPropertyInfo {
 
         if isReadOnly {
             return """
-            \(declarationKeyword) \(propertyName): \(propertyType) {
-            \(getterBody(getter))
-            }
-            """
+        \(declarationKeyword) \(propertyName): \(propertyType) {
+        \(getter)
+        }
+        """
         }
         return """
         \(declarationKeyword) \(propertyName): \(propertyType) {
-            \(accessorString(keyword: "get", body: getter))
-            \(accessorString(keyword: "set", body: "setValue(safely: newValue, forKey: \"\(name)\")"))
+        \(getter)
+            set { setValue(safely: newValue, forKey: "\(name)") }
         }
         """
     }
 
     private func getterString(propertyType: String, isOptional: Bool) -> String {
         if isOptional {
-            return "value(forKey: \"\(name)\")"
+            return "    get { value(forKey: \"\(name)\") }"
         }
         return """
-        guard let value: \(propertyType) = value(forKey: "\(name)") else {
-            fatalError("Failed to read property \(name)")
-        }
-        return value
+            get { v
+                guard let value: \(propertyType) = value(forKey: "\(name)") else {
+                    fatalError("Failed to read property \(name)")
+                }
+                return value
+            }
         """
     }
 }
@@ -200,24 +202,25 @@ extension ObjCIvarInfo {
         let isOptional = type?.isObjectLike == true
         let propertyType = isOptional ? "\(baseType)?" : baseType
         let getter = getterString(propertyType: baseType, isOptional: isOptional)
-
         return """
         var \(propertyName): \(propertyType) {
-            \(accessorString(keyword: "get", body: getter))
-            \(accessorString(keyword: "set", body: "setIvarValue(newValue, named: \"\(name)\")"))
+        \(getter)
+            set { setIvarValue(newValue, named: "\(name)") }
         }
         """
     }
 
     private func getterString(propertyType: String, isOptional: Bool) -> String {
         if isOptional {
-            return "ivarValue(named: \"\(name)\")"
+            return "    get { ivarValue(named: \"\(name)\") }"
         }
         return """
-        guard let value: \(propertyType) = ivarValue(named: "\(name)") else {
-            fatalError("Failed to read ivar \(name)")
-        }
-        return value
+            get { 
+                guard let value: \(propertyType) = ivarValue(named: "\(name)") else {
+                    fatalError("Failed to read ivar \(name)")
+                }
+                return value
+            }
         """
     }
 }
@@ -328,22 +331,4 @@ fileprivate extension String {
     func indented(by indentation: String) -> String {
         lines.map({ indentation + $0 }).joined(separator: "\n")
     }
-}
-
-fileprivate func accessorString(keyword: String, body: String) -> String {
-    if body.contains("\n") {
-        return """
-            \(keyword) {
-        \(body.indented(by: "        "))
-            }
-        """
-    }
-    return "    \(keyword) { \(body) }"
-}
-
-fileprivate func getterBody(_ body: String) -> String {
-    if body.contains("\n") {
-        return body.indented(by: "    ")
-    }
-    return "    \(body)"
 }
