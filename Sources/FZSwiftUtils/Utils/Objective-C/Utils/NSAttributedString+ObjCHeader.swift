@@ -121,14 +121,26 @@ extension NSAttributedString {
     #endif
 }
 
-fileprivate extension NSMutableAttributedString {
-    func setTextColor(_ color: NSUIColor, font: NSUIFont?, range: NSRange) {
+extension NSMutableAttributedString {
+    fileprivate func setTextColor(_ color: NSUIColor, font: NSUIFont?, range: NSRange) {
         guard NSMaxRange(range) <= length else {
             return
         }
         var attributes: [NSAttributedString.Key : Any] = [.foregroundColor: color]
         attributes[.font] = font
         setAttributes(attributes, range: range)
+    }
+    
+    func addObjCDeclarationAttributes(_ declarations: [(line: String, key: NSAttributedString.Key, value: String)]) {
+        let text = string as NSString
+        var searchLocation = 0
+        for declaration in declarations where !declaration.line.isEmpty {
+            let searchRange = NSRange(location: searchLocation, length: text.length - searchLocation)
+            let range = text.range(of: declaration.line, options: [], range: searchRange)
+            guard range.location != NSNotFound else { continue }
+            addAttribute(declaration.key, value: declaration.value, range: range)
+            searchLocation = range.location + range.length
+        }
     }
 }
 
@@ -139,5 +151,16 @@ public extension NSAttributedString.Key {
     static let objcProtocolName = NSAttributedString.Key("objcProtocolName")
     /// The Objective-C image name of the text.
     static let objcImageName = NSAttributedString.Key("objcImageName")
+    
+    /// The Objective-C method of the text.
+    static let objcMethod = NSAttributedString.Key("objcMethod")
+    /// The Objective-C method of the text.
+    static let objcClassMethod = NSAttributedString.Key("objcClassMethod")
+    /// The Objective-C property of the text.
+    static let objcProperty = NSAttributedString.Key("objcProperty")
+    /// The Objective-C property of the text.
+    static let objcClassProperty = NSAttributedString.Key("objcClassProperty")
+    /// The Objective-C ivar of the text.
+    static let objcIvar = NSAttributedString.Key("objcIvar")
 }
 #endif

@@ -163,19 +163,15 @@ public extension NSObject {
         guard let ivar = Self.instanceVariable(named: name),
               let info = ObjCIvarInfo(ivar) else { return nil }
         
-
-        let isObjCBridgeable = T.self is (any _ObjectiveCBridgeable)
-        if verifyType && !isObjCBridgeable {
+        if verifyType {
             guard info.type?.matches(T.self) == true else { return nil }
         }
 
         if info.isBitfield {
-            guard let bitfieldInfo = Self.bitfieldInfo(for: ivar, in: classType) else { return nil }
-            let raw = Self.getBitfieldValue(object: self, bitfieldInfo: bitfieldInfo)
-            return Self.fromUInt64(raw, width: bitfieldInfo.width, as: T.self)
+            return bitfieldValue(for: ivar)
         }
 
-        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize || (isObjCBridgeable && MemoryLayout<NSObject>.stride <= ivarSize) else { return nil }
+        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize || (T.self is (any _ObjectiveCBridgeable.Type) && MemoryLayout<NSObject>.stride <= ivarSize) else { return nil }
         switch info.typeEncoding.first {
         case "@", "#", ":":
             return object_getIvar(self, ivar) as? T
@@ -201,19 +197,16 @@ public extension NSObject {
         guard let ivar = Self.instanceVariable(named: name),
               let info = ObjCIvarInfo(ivar) else { return }
         
-        let isObjCBridgeable = T.self is (any _ObjectiveCBridgeable)
-        if verifyType && !isObjCBridgeable {
+        if verifyType {
             guard info.type?.matches(T.self) == true else { return }
         }
 
         if info.isBitfield {
-            guard let bitfieldInfo = Self.bitfieldInfo(for: ivar, in: type(of: self)),
-                  let rawValue = Self.toUInt64(value) else { return }
-            Self.setBitfieldValue(object: self, bitfieldInfo: bitfieldInfo, rawValue: rawValue)
+            setBitfieldValue(value, for: ivar)
             return
         }
         
-        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize || (isObjCBridgeable && MemoryLayout<NSObject>.stride <= ivarSize) else { return }
+        guard let ivarSize = info.size, MemoryLayout<T>.stride <= ivarSize || (T.self is (any _ObjectiveCBridgeable.Type) && MemoryLayout<NSObject>.stride <= ivarSize) else { return }
         switch info.typeEncoding.first {
         case "@", "#", ":":
             object_setIvar(self, ivar, value as AnyObject)
@@ -229,6 +222,18 @@ public extension NSObject {
             } else {
                 pointer.storeBytes(of: value, as: T.self)
             }
+        }
+    }
+    
+    /// Sets the value of the instance variable with the specified name.
+    func setIvarValue<T>(_ value: T?, named name: String, verifyType: Bool = false) {
+        guard let ivar = Self.instanceVariable(named: name),  let info = ObjCIvarInfo(ivar) else { return }
+        switch info.typeEncoding.first {
+        case "@", "#", ":":
+            object_setIvar(self, ivar, value as AnyObject?)
+        default:
+            guard let value else { return }
+            setIvarValue(value, named: name, verifyType: verifyType)
         }
     }
     
@@ -454,20 +459,69 @@ extension NSObjectProtocol where Self: NSObject {
     }
 }
 
-private extension NSObject {
+public extension NSObject {
+    func bitfieldValue<T>(for name: String, type: T.Type = T.self) -> T? {
+        guard let ivar = Self.instanceVariable(named: name) else { return nil }
+        return bitfieldValue(for: ivar)
+    }
+    
+    func bitfieldValue<T>(for ivar: Ivar, type: T.Type = T.self) -> T? {
+        guard let bitfieldInfo = bitfieldInfo(for: ivar) else { return nil }
+        let base = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
+            .advanced(by: bitfieldInfo.byteOffset)
+        let bytes = base.assumingMemoryBound(to: UInt8.self)
+        var raw: UInt64 = 0
+        let count = min(bitfieldInfo.width, 64)
+        for i in 0..<count {
+            let absoluteBit = bitfieldInfo.bitOffset + i
+            let byteIndex = absoluteBit / 8
+            guard byteIndex < bitfieldInfo.storageBytes else { break }
+            let bitInByte = absoluteBit % 8
+            let bit = (bytes[byteIndex] >> bitInByte) & 1
+            raw |= UInt64(bit) << UInt64(i)
+        }
+        return Self.fromUInt64(raw, width: bitfieldInfo.width)
+    }
+    
+    func setBitfieldValue(_ value: Any, for name: String) {
+        guard let ivar = Self.instanceVariable(named: name) else { return }
+        setBitfieldValue(value, for: ivar)
+    }
+    
+    func setBitfieldValue(_ value: Any, for ivar: Ivar) {
+        guard let bitfieldInfo = bitfieldInfo(for: ivar), let rawValue = Self.toUInt64(value) else { return }
+        let base = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+            .advanced(by: bitfieldInfo.byteOffset)
+        let bytes = base.assumingMemoryBound(to: UInt8.self)
+        let count = min(bitfieldInfo.width, 64)
+        for i in 0..<count {
+            let absoluteBit = bitfieldInfo.bitOffset + i
+            let byteIndex = absoluteBit / 8
+            guard byteIndex < bitfieldInfo.storageBytes else { break }
+            let bitInByte = absoluteBit % 8
+            let mask: UInt8 = 1 << UInt8(bitInByte)
+            let bit = UInt8((rawValue >> UInt64(i)) & 1)
+            if bit == 1 {
+                bytes[byteIndex] |= mask
+            } else {
+                bytes[byteIndex] &= ~mask
+            }
+        }
+    }
+    
     struct BitfieldInfo {
         let byteOffset: Int
         let bitOffset: Int
         let width: Int
         let storageBytes: Int
     }
-
-    static func bitfieldInfo(for target: Ivar, in cls: AnyClass) -> BitfieldInfo? {
+    
+    func bitfieldInfo(for ivar: Ivar) -> BitfieldInfo? {
         var count: UInt32 = 0
-        guard let ivars = class_copyIvarList(cls, &count) else { return nil }
+        guard let ivars = class_copyIvarList(type(of: self), &count) else { return nil }
         defer { free(ivars) }
 
-        let targetOffset = ivar_getOffset(target)
+        let targetOffset = ivar_getOffset(ivar)
         var bitOffset = 0
         var totalBits = 0
         var targetWidth: Int?
@@ -480,7 +534,7 @@ private extension NSObject {
             guard enc.first == "b",
                   let width = Int(enc.dropFirst()),
                   width > 0 else { continue }
-            if iv == target {
+            if iv == ivar {
                 targetWidth = width
             } else if targetWidth == nil {
                 bitOffset += width
@@ -492,67 +546,23 @@ private extension NSObject {
         let storageBytes = max(1, (totalBits + 7) / 8)
         return BitfieldInfo(byteOffset: targetOffset, bitOffset: bitOffset, width: width, storageBytes: storageBytes)
     }
-
-    static func getBitfieldValue(object: NSObject, bitfieldInfo: BitfieldInfo) -> UInt64 {
-        let base = UnsafeRawPointer(Unmanaged.passUnretained(object).toOpaque())
-            .advanced(by: bitfieldInfo.byteOffset)
-        let bytes = base.assumingMemoryBound(to: UInt8.self)
-
-        var result: UInt64 = 0
-        let count = min(bitfieldInfo.width, 64)
-
-        for i in 0..<count {
-            let absoluteBit = bitfieldInfo.bitOffset + i
-            let byteIndex = absoluteBit / 8
-            guard byteIndex < bitfieldInfo.storageBytes else { break }
-            let bitInByte = absoluteBit % 8
-            let bit = (bytes[byteIndex] >> bitInByte) & 1
-            result |= UInt64(bit) << UInt64(i)
-        }
-        return result
-    }
-
-    static func setBitfieldValue(object: NSObject, bitfieldInfo: BitfieldInfo, rawValue: UInt64) {
-        let base = UnsafeMutableRawPointer(Unmanaged.passUnretained(object).toOpaque())
-            .advanced(by: bitfieldInfo.byteOffset)
-        let bytes = base.assumingMemoryBound(to: UInt8.self)
-
-        let count = min(bitfieldInfo.width, 64)
-
-        for i in 0..<count {
-            let absoluteBit = bitfieldInfo.bitOffset + i
-            let byteIndex = absoluteBit / 8
-            guard byteIndex < bitfieldInfo.storageBytes else { break }
-            let bitInByte = absoluteBit % 8
-            let mask: UInt8 = 1 << UInt8(bitInByte)
-            let bit = UInt8((rawValue >> UInt64(i)) & 1)
-
-            if bit == 1 {
-                bytes[byteIndex] |= mask
-            } else {
-                bytes[byteIndex] &= ~mask
-            }
-        }
-    }
     
     static func toUInt64<T>(_ value: T) -> UInt64? {
         if let int = value as? any BinaryInteger {
             return UInt64(truncatingIfNeeded: int)
-        }
-        if let b = value as? Bool {
+        } else if let b = value as? Bool {
             return b ? 1 : 0
         }
         return nil
     }
 
-    private static func fromUInt64<T>(_ raw: UInt64, width: Int, as _: T.Type) -> T? {
+    private static func fromUInt64<T>(_ raw: UInt64, width: Int, as _: T.Type = T.self) -> T? {
         if T.self == Bool.self { return (raw != 0) as? T }
         if T.self == UInt.self   { return UInt(truncatingIfNeeded: raw) as? T }
         if T.self == UInt8.self  { return UInt8(truncatingIfNeeded: raw) as? T }
         if T.self == UInt16.self { return UInt16(truncatingIfNeeded: raw) as? T }
         if T.self == UInt32.self { return UInt32(truncatingIfNeeded: raw) as? T }
         if T.self == UInt64.self { return raw as? T }
-
         let signed = signExtend(raw, width: width)
         if T.self == Int.self   { return Int(truncatingIfNeeded: signed) as? T }
         if T.self == Int8.self  { return Int8(truncatingIfNeeded: signed) as? T }
@@ -571,3 +581,139 @@ private extension NSObject {
     }
 }
 
+public extension NSObject {
+    // Thread-safe cache for Bitfield metadata
+    private static var bitfieldCache: [UnsafeRawPointer: BitfieldInfo] = [:]
+    private static let cacheLock = NSLock()
+    
+    func bitfieldValueAlt<T>(for name: String, type: T.Type = T.self) -> T? {
+        guard let ivar = Self.instanceVariable(named: name) else { return nil }
+        return bitfieldValueAlt(for: ivar)
+    }
+
+    func bitfieldValueAlt<T>(for ivar: Ivar, type: T.Type = T.self) -> T? {
+        guard let info = bitfieldInfoAlt(for: ivar) else { return nil }
+        
+        let basePtr = Unmanaged.passUnretained(self).toOpaque().advanced(by: info.byteOffset)
+        
+        // Load the storage bytes into a 64-bit container safely
+        var container: UInt64 = 0
+        withUnsafeMutableBytes(of: &container) { buffer in
+            buffer.copyMemory(from: UnsafeRawBufferPointer(start: basePtr, count: info.storageBytes))
+        }
+        
+        // Extract using bitwise shift and mask
+        let mask: UInt64 = (info.width >= 64) ? .max : (1 << UInt64(info.width)) - 1
+        let extracted = (container >> UInt64(info.bitOffset)) & mask
+        
+        return Self.fromUInt64Alt(extracted, width: info.width)
+    }
+    
+    func setBitfieldValueAlt(_ value: Any, for name: String) {
+        guard let ivar = Self.instanceVariable(named: name) else { return }
+        setBitfieldValueAlt(value, for: ivar)
+    }
+
+    func setBitfieldValueAlt(_ value: Any, for ivar: Ivar) {
+        guard let info = bitfieldInfoAlt(for: ivar), let rawNewValue = Self.toUInt64Alt(value) else { return }
+        let basePtr = Unmanaged.passUnretained(self).toOpaque().advanced(by: info.byteOffset)
+        
+        // 1. Load existing bytes
+        var container: UInt64 = 0
+        withUnsafeMutableBytes(of: &container) { buffer in
+            buffer.copyMemory(from: UnsafeRawBufferPointer(start: basePtr, count: info.storageBytes))
+        }
+        
+        // 2. Clear old bits and set new bits
+        let mask: UInt64 = (info.width >= 64) ? .max : (1 << UInt64(info.width)) - 1
+        let shiftedMask = mask << UInt64(info.bitOffset)
+        let shiftedValue = (rawNewValue & mask) << UInt64(info.bitOffset)
+        
+        container = (container & ~shiftedMask) | shiftedValue
+        
+        // 3. Write back to memory
+        withUnsafeBytes(of: &container) { buffer in
+            basePtr.copyMemory(from: buffer.baseAddress!, byteCount: info.storageBytes)
+        }
+    }
+
+    // MARK: - Metadata & Caching
+
+    private func bitfieldInfoAlt(for ivar: Ivar) -> BitfieldInfo? {
+        let key = UnsafeRawPointer(ivar)
+        Self.cacheLock.lock()
+        if let cached = Self.bitfieldCache[key] {
+            Self.cacheLock.unlock()
+            return cached
+        }
+        Self.cacheLock.unlock()
+
+        // Cache miss: Calculate info
+        var count: UInt32 = 0
+        guard let ivars = class_copyIvarList(type(of: self), &count) else { return nil }
+        defer { free(ivars) }
+
+        let targetOffset = ivar_getOffset(ivar)
+        var bitOffset = 0
+        var totalBits = 0
+        var targetWidth: Int?
+
+        for i in 0..<Int(count) {
+            let iv = ivars[i]
+            guard ivar_getOffset(iv) == targetOffset,
+                  let encC = ivar_getTypeEncoding(iv) else { continue }
+            
+            let enc = String(cString: encC)
+            guard enc.first == "b", let width = Int(enc.dropFirst()) else { continue }
+            
+            if iv == ivar {
+                targetWidth = width
+                bitOffset = totalBits
+            }
+            totalBits += width
+        }
+
+        guard let width = targetWidth else { return nil }
+        let storageBytes = (totalBits + 7) / 8
+        let info = BitfieldInfo(byteOffset: targetOffset, bitOffset: bitOffset, width: width, storageBytes: storageBytes)
+        
+        Self.cacheLock.lock()
+        Self.bitfieldCache[key] = info
+        Self.cacheLock.unlock()
+        
+        return info
+    }
+
+    // MARK: - Helpers
+
+    static func toUInt64Alt<T>(_ value: T) -> UInt64? {
+        if let int = value as? any BinaryInteger {
+            return UInt64(truncatingIfNeeded: int)
+        } else if let b = value as? Bool {
+            return b ? 1 : 0
+        }
+        return nil
+    }
+
+    private static func fromUInt64Alt<T>(_ raw: UInt64, width: Int) -> T? {
+        if T.self == Bool.self { return (raw != 0) as? T }
+        if T.self == UInt.self   { return UInt(truncatingIfNeeded: raw) as? T }
+        if T.self == UInt8.self  { return UInt8(truncatingIfNeeded: raw) as? T }
+        if T.self == UInt16.self { return UInt16(truncatingIfNeeded: raw) as? T }
+        if T.self == UInt32.self { return UInt32(truncatingIfNeeded: raw) as? T }
+        if T.self == UInt64.self { return raw as? T }
+        let signed = signExtendAlt(raw, width: width)
+        if T.self == Int.self    { return Int(truncatingIfNeeded: signed) as? T }
+        if T.self == Int8.self   { return Int8(truncatingIfNeeded: signed) as? T }
+        if T.self == Int16.self  { return Int16(truncatingIfNeeded: signed) as? T }
+        if T.self == Int32.self  { return Int32(truncatingIfNeeded: signed) as? T }
+        if T.self == Int64.self  { return signed as? T }
+        return nil
+    }
+
+    private static func signExtendAlt(_ raw: UInt64, width: Int) -> Int64 {
+        guard width < 64 else { return Int64(bitPattern: raw) }
+        let shift = 64 - width
+        return (Int64(bitPattern: raw << shift)) >> shift
+    }
+}

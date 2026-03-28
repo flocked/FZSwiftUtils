@@ -296,6 +296,32 @@ open class ObjCHeaderTextView: NSTextView {
         }
         return results
     }
+    
+    public func selectedClassValues() -> (properties: [String], classProperties: [String], methods: [String], classMethods: [String], ivars: [String]) {
+        guard let textStorage, textStorage.length > 0 else {
+            return ([], [], [], [], [])
+        }
+        var seenValues: [NSAttributedString.Key: Set<String>] = [:]
+        var _values: [NSAttributedString.Key: [String]] = [:]
+        func values(for key: NSAttributedString.Key) -> [String] { _values[key, default: []] }
+        func collect(_ key: NSAttributedString.Key, in range: NSRange) {
+            textStorage.enumerateAttribute(key, in: range) { value, _, _ in
+                guard let name = value as? String, seenValues[key, default: []].insert(name).inserted else { return }
+                _values[key, default: []] += name
+            }
+        }
+        for selectedRange in selectedRanges.map(\.rangeValue) {
+            guard selectedRange.location != NSNotFound, selectedRange.length > 0 else { continue }
+            let boundedRange = NSIntersectionRange(selectedRange, NSRange(location: 0, length: textStorage.length))
+            guard boundedRange.length > 0 else { continue }
+            collect(.objcProperty, in: boundedRange)
+            collect(.objcClassProperty, in: boundedRange)
+            collect(.objcMethod, in: boundedRange)
+            collect(.objcClassMethod, in: boundedRange)
+            collect(.objcIvar, in: boundedRange)
+        }
+        return (values(for: .objcProperty), values(for: .objcClassProperty), values(for: .objcMethod), values(for: .objcClassMethod), values(for: .objcIvar))
+    }
 
     private enum ClickableSymbol {
         case `class`(String)

@@ -7,6 +7,13 @@
 
 import Foundation
 
+extension _ObjectiveCBridgeable {
+    /// The bridged Objective-C type.
+    public static var _ObjectiveCClass: AnyClass {
+        _ObjectiveCType.self
+    }
+}
+
 extension ReferenceConvertible where ReferenceType == __ObjectiveCBox<Self> {
     public var debugDescription: String { description }
 }

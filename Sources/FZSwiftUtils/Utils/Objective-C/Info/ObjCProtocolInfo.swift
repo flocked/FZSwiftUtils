@@ -191,7 +191,16 @@ extension ObjCProtocolInfo: CustomStringConvertible {
      - Parameter font: The font of the attributed string, or `nil` to use the default font.
      */
     public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
-        .objCHeader(for: headerString, protocols: protocols.map({$0.name}), font: font)
+        let attributed = NSMutableAttributedString(
+            attributedString: .objCHeader(for: headerString, protocols: protocols.map({ $0.name }), font: font)
+        )
+        var declarations: [(line: String, key: NSAttributedString.Key, value: String)] = []
+        declarations += classProperties.map({ ($0.headerString, .objcClassProperty, $0.name) })
+        declarations += properties.map({ ($0.headerString, .objcProperty, $0.name) })
+        declarations += classMethods.map({ ($0.headerString, .objcClassMethod, $0.name) })
+        declarations += methods.map({ ($0.headerString, .objcMethod, $0.name) })
+        attributed.addObjCDeclarationAttributes(declarations)
+        return attributed
     }
     
     

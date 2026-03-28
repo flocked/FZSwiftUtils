@@ -264,7 +264,29 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         - font: The font of the attributed string, or `nil` to use the default font.
      */
     public func attributedHeaderString(options: HeaderStringOptions = [], font: NSUIFont? = nil) -> NSAttributedString {
-        .objCHeader(for: headerString(options: options), protocols: protocols.map(\.name), font: font)
+        let headerString = headerString(options: options)
+        let attributed = NSMutableAttributedString(
+            attributedString: .objCHeader(for: headerString, protocols: protocols.map(\.name), font: font)
+        )
+        let propertyOptions = options.contains(.includeImplicitPropertyAttributes)
+        let propertyComments = options.contains(.includePropertyImplementationComments)
+        let methodTypeEncodings = options.contains(.includeMethodTypeEncodings)
+        var declarations: [(line: String, key: NSAttributedString.Key, value: String)] = []
+        declarations += ivars.map({ ($0.headerString, .objcIvar, $0.name) })
+        declarations += classProperties.map({
+            ($0.headerString(includeDefaultAttributes: propertyOptions, includeComments: propertyComments), .objcClassProperty, $0.name)
+        })
+        declarations += properties.map({
+            ($0.headerString(includeDefaultAttributes: propertyOptions, includeComments: propertyComments), .objcProperty, $0.name)
+        })
+        declarations += classMethods.map({
+            ($0.headerString(includeTypeEncoding: methodTypeEncodings), .objcClassMethod, $0.name)
+        })
+        declarations += methods.map({
+            ($0.headerString(includeTypeEncoding: methodTypeEncodings), .objcMethod, $0.name)
+        })
+        attributed.addObjCDeclarationAttributes(declarations)
+        return attributed
     }
     
     public var description: String {

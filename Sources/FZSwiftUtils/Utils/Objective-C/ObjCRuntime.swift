@@ -422,6 +422,11 @@ extension ObjCRuntime {
             completion?()
         }
     }
+    
+    /// Returns the bridged Objective-C type for the specified type.
+    public static func objcType(for swiftType: Any.Type) -> AnyClass? {
+        (swiftType as? (any _ObjectiveCBridgeable.Type))?._ObjectiveCClass ?? swiftType as? AnyClass
+    }
 }
 
 fileprivate extension ObjCRuntime {
