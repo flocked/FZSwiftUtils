@@ -783,14 +783,15 @@ extension ObjCClassInfo {
         ], font: NSUIFont? = nil
     ) -> NSAttributedString {
         let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
-        let result = NSMutableAttributedString(string: headerString, attributes: [.font: font])
+        let attributes: [NSAttributedString.Key : Any] = [.font: font]
+        let result = NSMutableAttributedString(string: headerString, attributes: attributes)
         
         func append(_ string: String) {
-            result.append(NSAttributedString(string: string))
+            result.append(NSAttributedString(string: string, attributes: attributes))
         }
 
         func appendLine(_ string: String = "") {
-            result.append(NSAttributedString(string: string + "\n"))
+            result.append(NSAttributedString(string: string + "\n", attributes: attributes))
         }
 
         func appendAttributedLine(
@@ -799,10 +800,10 @@ extension ObjCClassInfo {
             value: Any
         ) {
             let start = result.length
-            result.append(NSAttributedString(string: string))
+            result.append(NSAttributedString(string: string, attributes: attributes))
             let range = NSRange(location: start, length: (string as NSString).length)
             result.addAttribute(key, value: value, range: range)
-            result.append(NSAttributedString(string: "\n"))
+            result.append(NSAttributedString(string: "\n", attributes: attributes))
         }
 
         if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
@@ -860,7 +861,7 @@ extension ObjCClassInfo {
             }
         }
         
-        result.append(methodHeaderAttributedString(options: options))
+        result.append(methodHeaderAttributedString(options: options, attributes: attributes))
 
         appendLine()
         append("@end")
@@ -869,15 +870,15 @@ extension ObjCClassInfo {
         return result
     }
 
-    func methodHeaderAttributedString(options: HeaderStringOptions) -> NSAttributedString {
+    func methodHeaderAttributedString(options: HeaderStringOptions, attributes: [NSAttributedString.Key : Any]) -> NSAttributedString {
         let result = NSMutableAttributedString()
 
         func append(_ string: String) {
-            result.append(NSAttributedString(string: string))
+            result.append(NSAttributedString(string: string, attributes: attributes))
         }
 
         func appendLine(_ string: String = "") {
-            result.append(NSAttributedString(string: string + "\n"))
+            result.append(NSAttributedString(string: string + "\n", attributes: attributes))
         }
 
         func appendMethodLine(
@@ -886,10 +887,10 @@ extension ObjCClassInfo {
             value: Any
         ) {
             let start = result.length
-            result.append(NSAttributedString(string: string))
+            result.append(NSAttributedString(string: string, attributes: attributes))
             let range = NSRange(location: start, length: (string as NSString).length)
             result.addAttribute(key, value: value, range: range)
-            result.append(NSAttributedString(string: "\n"))
+            result.append(NSAttributedString(string: "\n", attributes: attributes))
         }
 
         let includeMethodTypeEncodings = options.contains(.includeMethodTypeEncodings)

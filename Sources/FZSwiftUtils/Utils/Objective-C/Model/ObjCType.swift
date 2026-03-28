@@ -220,7 +220,7 @@ extension ObjCType: CustomStringConvertible {
             guard let ret, let args else { return "id /* block */" }
             return "\(ret.decoded(tab: tab)) (^)(\(args.map({ $0.decoded(tab: tab) }).joined(separator: ", ")))"
         case .functionPointer:
-            return "void * /* function pointer */"
+            return "IMP"
         case .array(let type, let size):
             return "\(type.decoded(tab: tab))[\(size?.string ?? "")]"
         case .pointer(let type):
