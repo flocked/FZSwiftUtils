@@ -393,24 +393,205 @@ public extension Array where Element: NSAttributedString {
 }
 
 public extension NSObjectProtocol where Self: NSAttributedString {
-    /**
-     The font of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
+    /// The font of the attributed string.
+    var font: NSUIFont? {
+        self[.font]
+    }
+    
+    /// The foreground color of the attributed string.
+    var foregroundColor: NSUIColor? {
+        self[.foregroundColor]
+    }
+    
+    /// The background color of the attributed string.
+    var backgroundColor: NSUIColor? {
+        self[.backgroundColor]
+    }
+    
+    /// The stroke color of the attributed string.
+    var strokeColor: NSUIColor? {
+        get { self[.strokeColor] }
+    }
+
+    /// The stroke width of the attributed string.
+    var strokeWidth: CGFloat? {
+        get { self[.strokeWidth] }
+    }
+
+    /// The shadow of the attributed string.
+    var shadow: NSShadow? {
+        get { self[.shadow] }
+    }
+
+    /// The link for the text.
+    var link: URL? {
+        get { self[.link] }
+    }
+
+    #if os(macOS)
+    /// The tooltip text.
+    var toolTip: String? {
+        get { self[.toolTip] }
+    }
+    #endif
+
+    /// The underline color of the attributed string.
+    var underlineColor: NSUIColor? {
+        get { self[.underlineColor] }
+    }
+
+    /// The underline style of the attributed string.
+    var underlineStyle: NSUnderlineStyle? {
+        get { self[.underlineStyle] }
+    }
+    
+    /// The strikethrough color of the attributed string.
+    var strikethroughColor: NSUIColor? {
+        get { self[.strikethroughColor] }
+    }
+
+    /// The strikethrough style of the attributed string.
+    var strikethroughStyle: NSUnderlineStyle? {
+        get { self[.strikethroughStyle] }
+    }
+    
+    #if os(macOS) || os(iOS) || os(tvOS)
+    /// The attachment of the attributed string.
+    var attachment: NSTextAttachment? {
+        get { self[.attachment] }
+    }
+    #endif
+
+    /// The vertical offset for the position of the text.
+    var baselineOffset: CGFloat? {
+        get { self[.baselineOffset] }
+    }
+
+    /// The kerning of the text.
+    var kern: CGFloat? {
+        get { self[.kern] }
+    }
+
+    /// The paragraph style of the attributed text.
+    var paragraphStyle: ParagraphStyle? {
+        get {
+            guard let style = nsParagraphStyle else { return nil }
+            return ParagraphStyle(style: style)
+        }
+    }
+
+    private var nsParagraphStyle: NSParagraphStyle? {
+        get { self[.paragraphStyle] }
+    }
+}
+
+public extension NSObjectProtocol where Self: NSMutableAttributedString {
+    /// The font of the attributed string.
     var font: NSUIFont? {
         get { self[.font] }
         set { self[.font] = newValue }
     }
     
-    /**
-     The foreground color of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
+    /// The foreground color of the attributed string.
     var foregroundColor: NSUIColor? {
         get { self[.foregroundColor] }
         set { self[.foregroundColor] = newValue }
+    }
+    
+    /// The background color of the attributed string.
+    var backgroundColor: NSUIColor? {
+        get { self[.backgroundColor] }
+        set { self[.backgroundColor] = newValue }
+    }
+    
+    /// The stroke color of the attributed string.
+    var strokeColor: NSUIColor? {
+        get { self[.strokeColor] }
+        set { self[.strokeColor] = newValue }
+    }
+
+    /// The stroke width of the attributed string.
+    var strokeWidth: CGFloat? {
+        get { self[.strokeWidth] }
+        set { self[.strokeWidth] = newValue }
+    }
+
+    /// The shadow of the attributed string.
+    var shadow: NSShadow? {
+        get { self[.shadow] }
+        set { self[.shadow] = newValue }
+    }
+
+    /// The link for the text.
+    var link: URL? {
+        get { self[.link] }
+        set { self[.link] = newValue }
+    }
+
+    #if os(macOS)
+    /// The tooltip text.
+    var toolTip: String? {
+        get { self[.toolTip] }
+        set { self[.toolTip] = newValue }
+    }
+    #endif
+
+    /// The underline color of the attributed string.
+    var underlineColor: NSUIColor? {
+        get { self[.underlineColor] }
+        set { self[.underlineColor] = newValue }
+    }
+
+    /// The underline style of the attributed string.
+    var underlineStyle: NSUnderlineStyle? {
+        get { self[.underlineStyle] }
+        set { self[.underlineStyle] = newValue }
+    }
+    
+    /// The strikethrough color of the attributed string.
+    var strikethroughColor: NSUIColor? {
+        get { self[.strikethroughColor] }
+        set { self[.strikethroughColor] = newValue }
+    }
+
+    /// The strikethrough style of the attributed string.
+    var strikethroughStyle: NSUnderlineStyle? {
+        get { self[.strikethroughStyle] }
+        set { self[.strikethroughStyle] = newValue }
+    }
+    
+    #if os(macOS) || os(iOS) || os(tvOS)
+    /// The attachment of the attributed string.
+    var attachment: NSTextAttachment? {
+        get { self[.attachment] }
+        set { self[.attachment] = newValue }
+    }
+    #endif
+
+    /// The vertical offset for the position of the text.
+    var baselineOffset: CGFloat? {
+        get { self[.baselineOffset] }
+        set { self[.baselineOffset] = newValue }
+    }
+
+    /// The kerning of the text.
+    var kern: CGFloat? {
+        get { self[.kern] }
+        set { self[.kern] = newValue }
+    }
+
+    /// The paragraph style of the attributed text.
+    var paragraphStyle: ParagraphStyle? {
+        get {
+            guard let style = nsParagraphStyle else { return nil }
+            return ParagraphStyle(style: style)
+        }
+        set { nsParagraphStyle = newValue?.nsParagraphStyle() }
+    }
+
+    private var nsParagraphStyle: NSParagraphStyle? {
+        get { self[.paragraphStyle] }
+        set { self[.paragraphStyle] = newValue }
     }
 }
 
@@ -450,153 +631,6 @@ public extension NSAttributedString {
             guard let self = self as? NSMutableAttributedString else { return }
             self.setAttribute(name, to: newValue?.rawValue, at: range)
         }
-    }
-
-    /**
-     The background color of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var backgroundColor: NSUIColor? {
-        get { self[.backgroundColor] }
-        set { self[.backgroundColor] = newValue }
-    }
-
-    /**
-     The stroke color of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var strokeColor: NSUIColor? {
-        get { self[.strokeColor] }
-        set { self[.strokeColor] = newValue }
-    }
-
-    /**
-     The stroke width of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var strokeWidth: CGFloat? {
-        get { self[.strokeWidth] }
-        set { self[.strokeWidth] = newValue }
-    }
-
-    /**
-     The shadow of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var shadow: NSShadow? {
-        get { self[.shadow] }
-        set { self[.shadow] = newValue }
-    }
-
-    /**
-     The link for the text.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var link: URL? {
-        get { self[.link] }
-        set { self[.link] = newValue }
-    }
-
-    #if os(macOS)
-    /**
-     The tooltip text.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var toolTip: String? {
-        get { self[.toolTip] }
-        set { self[.toolTip] = newValue }
-    }
-    #endif
-
-    /**
-     The underline color of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var underlineColor: NSUIColor? {
-        get { self[.underlineColor] }
-        set { self[.underlineColor] = newValue }
-    }
-
-    /**
-     The underline style of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var underlineStyle: NSUnderlineStyle? {
-        get { self[.underlineStyle] }
-        set { self[.underlineStyle] = newValue }
-    }
-
-    /**
-     The strikethrough color of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var strikethroughColor: NSUIColor? {
-        get { self[.strikethroughColor] }
-        set { self[.strikethroughColor] = newValue }
-    }
-
-    /**
-     The strikethrough style of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var strikethroughStyle: NSUnderlineStyle? {
-        get { self[.strikethroughStyle] }
-        set { self[.strikethroughStyle] = newValue }
-    }
-
-    #if os(macOS) || os(iOS) || os(tvOS)
-    /**
-     The attachment of the attributed string.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var attachment: NSTextAttachment? {
-        get { self[.attachment] }
-        set { self[.attachment] = newValue }
-    }
-    #endif
-
-    /**
-     The vertical offset for the position of the text.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var baselineOffset: CGFloat? {
-        get { self[.baselineOffset] }
-        set { self[.baselineOffset] = newValue }
-    }
-
-    /**
-     The kerning of the text.
-     
-     Modifying this value only works, if it is a `NSMutableAttributedString`.
-     */
-    var kern: CGFloat? {
-        get { self[.kern] }
-        set { self[.kern] = newValue }
-    }
-    
-    var paragraphStyle: ParagraphStyle? {
-        get {
-            guard let style = nsParagraphStyle else { return nil }
-            return ParagraphStyle(style: style)
-        }
-        set { nsParagraphStyle = newValue?.nsParagraphStyle() }
-    }
-    
-    private var nsParagraphStyle: NSParagraphStyle? {
-        get { self[.paragraphStyle] }
-        set { self[.paragraphStyle] = newValue }
     }
 }
 
@@ -1304,21 +1338,5 @@ extension NSAttributedString {
                 isDefaultFontExcluded = dict[.defaultFontExcluded] as? Bool
             }
         }
-    }
-}
-
-
-
-protocol RawCodingKey<Value> {
-    associatedtype Value: RawRepresentableByString
-}
-
-protocol RawRepresentableByString: RawRepresentable where RawValue == String {
-    
-}
-
-extension NSAttributedString.DocumentAttributeKey: Swift.CodingKeyRepresentable {
-    public var codingKey: any CodingKey {
-        AnyCodingKey(stringLiteral: rawValue)
     }
 }
