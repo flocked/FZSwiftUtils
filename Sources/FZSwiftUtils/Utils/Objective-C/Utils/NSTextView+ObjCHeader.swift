@@ -77,12 +77,20 @@ open class ObjCHeaderTextView: NSTextView {
         addTrackingArea(NSTrackingArea(rect: .zero, options: [.inVisibleRect, .activeInKeyWindow, .mouseMoved, .mouseEnteredAndExited, .cursorUpdate], owner: self, userInfo: ["track": true]))
     }
 
+    private var isHoveringClickableSymbol = false
     open override func mouseMoved(with event: NSEvent) {
-        if updateHover(for: event) {
-            window?.invalidateCursorRects(for: self)
+        let wasHoveringClickableSymbol = isHoveringClickableSymbol
+        let hoverChanged = updateHover(for: event)
+        if hoverChanged || wasHoveringClickableSymbol != isHoveringClickableSymbol {
+            if isHoveringClickableSymbol {
+                NSCursor.pointingHand.set()
+            } else {
+                NSCursor.arrow.set()
+            }
         }
         super.mouseMoved(with: event)
     }
+
 
     open override func mouseExited(with event: NSEvent) {
         if clearHover() {
@@ -129,8 +137,10 @@ open class ObjCHeaderTextView: NSTextView {
         return true
     }
 
+
     @discardableResult
     private func clearHover() -> Bool {
+        isHoveringClickableSymbol = false
         guard let hoveredClickableRange else { return false }
         layoutManager?.removeTemporaryAttribute(.underlineStyle, forCharacterRange: hoveredClickableRange)
         self.hoveredClickableRange = nil
