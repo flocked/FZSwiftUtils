@@ -37,7 +37,7 @@ open class ObjCHeaderTextView: NSTextView {
     open override func menu(for event: NSEvent) -> NSMenu? {
         guard let characterIndex = characterIndex(at: event.locationInWindow),
               let symbol = clickableSymbol(at: characterIndex) else {
-            return super.menu(for: event)
+            return menu
         }
         var menu: NSMenu?
         switch symbol {
@@ -49,7 +49,7 @@ open class ObjCHeaderTextView: NSTextView {
             menu = imageMenuHandler?(name)
         }
         guard let menu = menu else {
-            return super.menu(for: event)
+            return menu
         }
         menu.allowsContextMenuPlugIns = false
         if let range = clickableRange(at: characterIndex) {
