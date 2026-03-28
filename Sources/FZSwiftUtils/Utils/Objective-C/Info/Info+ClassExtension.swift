@@ -151,15 +151,15 @@ extension ObjCPropertyInfo {
 
         if isReadOnly {
             return """
-        \(declarationKeyword) \(propertyName): \(propertyType) {
-        \(getter.indented(by: "        "))
-        }
-        """
+            \(declarationKeyword) \(propertyName): \(propertyType) {
+            \(getterBody(getter))
+            }
+            """
         }
         return """
         \(declarationKeyword) \(propertyName): \(propertyType) {
-        \(inlineAccessor(keyword: "get", body: getter, indentation: "    "))
-        \(inlineAccessor(keyword: "set", body: "setValue(safely: newValue, forKey: \"\(name)\")", indentation: "    "))
+            \(accessorString(keyword: "get", body: getter))
+            \(accessorString(keyword: "set", body: "setValue(safely: newValue, forKey: \"\(name)\")"))
         }
         """
     }
@@ -203,8 +203,8 @@ extension ObjCIvarInfo {
 
         return """
         var \(propertyName): \(propertyType) {
-        \(inlineAccessor(keyword: "get", body: getter, indentation: "    "))
-        \(inlineAccessor(keyword: "set", body: "setIvarValue(newValue, named: \"\(name)\")", indentation: "    "))
+            \(accessorString(keyword: "get", body: getter))
+            \(accessorString(keyword: "set", body: "setIvarValue(newValue, named: \"\(name)\")"))
         }
         """
     }
@@ -330,13 +330,20 @@ fileprivate extension String {
     }
 }
 
-fileprivate func inlineAccessor(keyword: String, body: String, indentation: String) -> String {
+fileprivate func accessorString(keyword: String, body: String) -> String {
     if body.contains("\n") {
         return """
-        \(keyword) {
-        \(body.indented(by: indentation + "    "))
-        }
+            \(keyword) {
+        \(body.indented(by: "        "))
+            }
         """
     }
-    return "\(keyword) { \(body) }"
+    return "    \(keyword) { \(body) }"
+}
+
+fileprivate func getterBody(_ body: String) -> String {
+    if body.contains("\n") {
+        return body.indented(by: "    ")
+    }
+    return "    \(body)"
 }
