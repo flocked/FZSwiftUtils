@@ -142,37 +142,42 @@ extension ObjCPropertyInfo {
     }
     
     fileprivate func _classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
-        // 1. Resolve the base type or return nil/placeholder
         guard let baseType = type.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
         
         let propertyName = swiftIdentifier(for: name)
         let isOptional = type.isObjectLike
         let propertyType = isOptional ? "\(baseType)?" : baseType
         let keyword = isClassProperty ? "class var" : "var"
-
-        // 2. Generate the internal logic for fetching the value
-        let coreLogic: String
+        
+        // Define the internal logic lines
+        let coreLines: [String]
         if isOptional {
-            coreLogic = "value(forKey: \"\(name)\")"
+            coreLines = ["value(forKey: \"\(name)\")"]
         } else {
-            coreLogic = """
-                guard let value: \(baseType) = value(forKey: "\(name)") else {
-                    fatalError("Failed to read property \(name)")
-                }
-                return value
-            """
+            coreLines = [
+                "guard let value: \(baseType) = value(forKey: \"\(name)\") else {",
+                "    fatalError(\"Failed to read property \(name)\")",
+                "}",
+                "return value"
+            ]
         }
 
-        // 3. Assemble the final string
+        // Map lines to the correct indentation (4 or 8 spaces)
+        let getterBody = coreLines.map { "        \($0)" }.joined(separator: "\n")
+        
         if isReadOnly {
-            return "\(keyword) \(propertyName): \(propertyType) {\n\(coreLogic)\n}"
+            return """
+            \(keyword) \(propertyName): \(propertyType) {
+            \(getterBody)
+            }
+            """
         } else {
             return """
             \(keyword) \(propertyName): \(propertyType) {
-                get { 
-            \(coreLogic) 
+                get {
+            \(getterBody)
                 }
-                set { setValue(safely: newValue, forKey: "\(name)") }
+                set { setValue(safely: newValue, forKey: \"\(name)\") }
             }
             """
         }
