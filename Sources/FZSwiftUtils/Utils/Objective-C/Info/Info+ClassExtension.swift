@@ -147,7 +147,7 @@ extension ObjCPropertyInfo {
         let isOptional = type.isObjectLike
         let propertyType = isOptional ? "\(baseType)?" : baseType
         let declarationKeyword = isClassProperty ? "class var" : "var"
-        let getter = getterString(propertyType: baseType, isOptional: isOptional)
+        let getter = getterString(propertyType: baseType, isOptional: isOptional, readOnly: isReadOnly)
 
         if isReadOnly {
             return """
@@ -163,18 +163,34 @@ extension ObjCPropertyInfo {
         }
         """
     }
+    
+    func getterString(propertyType: String, isOptional: Bool, readOnly: Bool) -> String {
+        readOnly ?  getterStringReadOnly(propertyType: propertyType, isOptional: isOptional) : getterString(propertyType: propertyType, isOptional: isOptional)
+    }
 
     private func getterString(propertyType: String, isOptional: Bool) -> String {
         if isOptional {
             return "    get { value(forKey: \"\(name)\") }"
         }
         return """
-            get { v
+            get {
                 guard let value: \(propertyType) = value(forKey: "\(name)") else {
                     fatalError("Failed to read property \(name)")
                 }
                 return value
             }
+        """
+    }
+    
+    private func getterStringReadOnly(propertyType: String, isOptional: Bool) -> String {
+        if isOptional {
+            return "    value(forKey: \"\(name)\")"
+        }
+        return """
+            guard let value: \(propertyType) = value(forKey: "\(name)") else {
+                fatalError("Failed to read property \(name)")
+            }
+            return value
         """
     }
 }
