@@ -17,6 +17,11 @@ enum ObjCHeader {
     static var categoriesByClass: [String: [Category]] = [:]
     static var didCollect = false
     
+    static func getClass(named name: String) -> Class? {
+        collectAll()
+        return classesByName[name]
+    }
+    
     public static func collectAll() {
         guard !didCollect else { return }
         didCollect = true

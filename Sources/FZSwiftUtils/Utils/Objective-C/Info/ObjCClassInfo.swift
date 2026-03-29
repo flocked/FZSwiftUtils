@@ -165,7 +165,7 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
          @property(readWrite, atomic) CGSize itemSize;
          ```
          */
-        public static let includeImplicitPropertyAttributes = Self(rawValue: 1 << 0)
+        public static let addImplicitPropertyAttributes = Self(rawValue: 1 << 0)
         
         /**
          Include inline comments for properties implemented using `@dynamic` and/or `@synthesize`.
@@ -176,7 +176,10 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
          @property BOOL usesAutomaticRowHeights; // @dynamic usesAutomaticRowHeights
          ```
          */
-        public static let includePropertyImplementationComments = Self(rawValue: 1 << 1)
+        public static let addPropertyAttributesComments = Self(rawValue: 1 << 1)
+        
+        /// Adds type encoding comments to methods.
+        public static let addMethodTypeEncodingComments = Self(rawValue: 1 << 5)
         
         /// Groups methods by library and category and add comments for each.
         public static let groupMethodsByOrigin = Self(rawValue: 1 << 2)
@@ -191,17 +194,29 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         /// Includes methods declared in Objective-C categories.
         public static let includeCategoryMethods = Self(rawValue: 1 << 4)
         
-        /// Includes Objective-C type encodings as comments for methods.
-        public static let includeMethodTypeEncodings = Self(rawValue: 1 << 5)
+        /// Strips methods from the header that are synthesized from properties.
+        public static let stripSynthesizedMethods = Self(rawValue: 1 << 6)
         
-        /// Include the methods to access the properties.
-        public static let includePropertyMethods = Self(rawValue: 1 << 6)
+        /// Strips Ivars from the header that are synthesized from properties.
+        public static let stripSynthesizedIvars = Self(rawValue: 1 << 10)
         
-        /// Include public methods and properties.
-        public static let includePublic = Self(rawValue: 1 << 7)
+        /// Strips methods and properties from the header that are overrides from the superclass.
+        public static let stripOverrides = Self(rawValue: 1 << 11)
         
-        /// Include private methods and properties.
-        public static let includePrivate = Self(rawValue: 1 << 7)
+        /// Strips methods and properties from the header that correspond to conforming protocols.
+        public static let stripProtocolConformance = Self(rawValue: 1 << 9)
+        
+        /// Strips methods and properties from the are public.
+        public static let stripPublic = Self(rawValue: 1 << 7)
+        
+        /// Strips Dtor method from the header string.
+        public static let stripDtorMethod = Self(rawValue: 1 << 12)
+        
+        /// Strips CTor method from the header string.
+        public static let stripCtorMethod = Self(rawValue: 1 << 13)
+
+                
+
         /*
         /// Include instance variables of the class.
         public static let includeIvars = Self(rawValue: 1 << 6)
@@ -234,36 +249,53 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     }
     
     /// Returns a string representing the class in a Objective-C header.
-    public func headerString(options: HeaderStringOptions = [.groupMethodsByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .includePropertyImplementationComments]) -> String {
-        var properties = properties
-        var classProperties = classProperties
-        var methods = methods
-        var classMethods = classMethods
-        
-        if !options.isSubset(of: [.includePublic, .includePrivate]), let info = ObjCHeader.classesByName[name] {
-            
-            let classMethodNames = info.classMethods.map({$0.name})
-            let methodNames = info.methods.map({$0.name})
-            let propertyNames = info.properties.map({$0.name})
-            let classPropertyNames = info.classProperties.map({$0.name})
-            if options.contains(.includePublic) {
-                classMethods = classMethods.filter({ classMethodNames.contains($0.name) })
-                methods = methods.filter({ methodNames.contains($0.name) })
-                properties = properties.filter({ propertyNames.contains($0.name) })
-                classProperties = classProperties.filter({ classPropertyNames.contains($0.name) })
-            } else {
-                classMethods = classMethods.filter({ !classMethodNames.contains($0.name) })
-                methods = methods.filter({ !methodNames.contains($0.name) })
-                properties = properties.filter({ !propertyNames.contains($0.name) })
-                classProperties = classProperties.filter({ !classPropertyNames.contains($0.name) })
+    public func headerString(options: HeaderStringOptions = [.groupMethodsByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .addPropertyAttributesComments]) -> String {
+        var stripProperties: Set<String> = []
+        var stripClassProperties: Set<String> = []
+        var stripMethods: Set<String> = []
+        var stripClassMethods: Set<String> = []
+        var stripIvars: Set<String> = []
+        if options.contains(.stripCtorMethod) {
+            stripMethods.insert(".cxx_construct")
+        }
+        if options.contains(.stripDtorMethod){
+            stripMethods.insert(".cxx_destruct")
+        }
+        if options.contains(.stripPublic), let info = ObjCHeader.getClass(named: name) {
+            stripMethods += info.methods.map({$0.name})
+            stripClassMethods += info.classMethods.map({$0.name})
+            stripProperties += info.properties.map({$0.name})
+            stripClassProperties += info.classProperties.map({$0.name})
+        }
+        if options.contains(.stripOverrides) {
+            var superclass = superClassInfo
+            while let info = superclass {
+                stripMethods += info.methods.map({$0.name})
+                stripClassMethods += info.classMethods.map({$0.name})
+                stripProperties += info.properties.map({$0.name})
+                stripClassProperties += info.classProperties.map({$0.name})
+                superclass = info.superClassInfo
             }
         }
-        if !options.contains(.includePropertyMethods) {
-            let propertyMethods = properties.flatMap({ [$0.getter.string] + $0.setter?.string })
-            let classpPropertyMethods = properties.flatMap({ [$0.getter.string] + $0.setter?.string })
-            methods = methods.filter({ !propertyMethods.contains($0.name) })
-            classMethods = classMethods.filter({ !classpPropertyMethods.contains($0.name) })
+        if options.contains(.stripSynthesizedMethods) {
+            stripMethods += properties.flatMap({ [$0.getter.string] + $0.setter?.string})
+            stripClassMethods += classProperties.flatMap({ [$0.getter.string] + $0.setter?.string})
         }
+        if options.contains(.stripSynthesizedIvars) {
+            stripIvars += properties.compactMap({$0.ivarName})
+        }
+        if options.contains(.stripProtocolConformance) {
+            for info in protocols {
+                stripMethods += info.methods.map({$0.name})
+                stripClassMethods += info.classMethods.map({$0.name})
+                stripProperties += info.properties.map({$0.name})
+                stripClassProperties += info.classProperties.map({$0.name})
+            }
+        }
+        let properties = properties.filter({ !stripProperties.contains($0.name)})
+        let classProperties = classProperties.filter({ !stripClassProperties.contains($0.name)})
+        let methods = methods.filter({ !stripMethods.contains($0.name)})
+        let classMethods = classMethods.filter({ !stripClassMethods.contains($0.name)})
         
         var decl = "@interface \(name)"
         if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
@@ -284,12 +316,12 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
             lines += "}"
         }
         if !classProperties.isEmpty {
-            lines += "" + classProperties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeImplicitPropertyAttributes), includeComments: options.contains(.includePropertyImplementationComments))})
+            lines += "" + classProperties.map({$0.headerString(includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes), includeComments: options.contains(.addPropertyAttributesComments))})
         }
         if !properties.isEmpty {
-            lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.includeImplicitPropertyAttributes), includeComments: options.contains(.includePropertyImplementationComments))})
+            lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes), includeComments: options.contains(.addPropertyAttributesComments))})
         }
-        lines += methodHeaderLines(options: options)
+        lines += methodHeaderLines(for: methods, classMethods: classMethods, options: options)
         lines += ["", "@end"]
         return lines.joined(separator: "\n")
     }
@@ -306,9 +338,9 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         let attributed = NSMutableAttributedString(
             attributedString: .objCHeader(for: headerString, protocols: protocols.map(\.name), font: font)
         )
-        let propertyOptions = options.contains(.includeImplicitPropertyAttributes)
-        let propertyComments = options.contains(.includePropertyImplementationComments)
-        let methodTypeEncodings = options.contains(.includeMethodTypeEncodings)
+        let propertyOptions = options.contains(.addImplicitPropertyAttributes)
+        let propertyComments = options.contains(.addPropertyAttributesComments)
+        let methodTypeEncodings = options.contains(.addMethodTypeEncodingComments)
         var declarations: [(line: String, key: NSAttributedString.Key, value: String)] = []
         declarations += ivars.map({ ($0.headerString, .objcIvar, $0.name) })
         declarations += classProperties.map({
@@ -691,38 +723,30 @@ extension NSObjectProtocol where Self: NSObject {
 }
 
 fileprivate extension ObjCClassInfo {
-    func methodHeaderLines(options: HeaderStringOptions) -> [String] {
+    func methodHeaderLines(for methods: [ObjCMethodInfo], classMethods: [ObjCMethodInfo], options: HeaderStringOptions) -> [String] {
         var lines: [String] = []
-        let includeMethodTypeEncodings = options.contains(.includeMethodTypeEncodings)
-        guard options.contains(.groupMethodsByOrigin) || !options.contains(.includeCategoryMethods) || !options.contains(.includeMethodsFromOtherImages), var sections = methodHeaderSections else {
-            if !options.contains(.includePropertyMethods) {
-                let names = (classProperties + properties).flatMap({ [$0.getter.string] + $0.setter?.string })
-            }
-            
+        let addMethodTypeEncodingComments = options.contains(.addMethodTypeEncodingComments)
+        guard options.contains(.groupMethodsByOrigin) || !options.contains(.includeCategoryMethods) || !options.contains(.includeMethodsFromOtherImages), var sections = methodHeaderSections(for: methods, classMethods) else {
             if !classMethods.isEmpty {
-                lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
+                lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
             }
             if !methods.isEmpty {
-                lines += "" + methods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
+                lines += "" + methods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
             }
             return lines
         }
         
         sections = options.contains(.includeMethodsFromOtherImages) ? sections : sections.filter({ $0.imagePath == self.imagePath ?? "" })
         sections = options.contains(.includeCategoryMethods) ? sections : sections.filter({ $0.categoryName.isEmpty })
-        if !options.contains(.includePropertyMethods) {
-            let names = (classProperties + properties).flatMap({ [$0.getter.string] + $0.setter?.string })
-            sections = sections.compactMap({ $0.filter(names) })
-        }
         
         if !options.contains(.groupMethodsByOrigin) {
             let classMethods = sections.flatMap({$0.classMethods}).sorted(by: \.name)
             if !classMethods.isEmpty {
-                lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
+                lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
             }
             let instanceMethods = sections.flatMap({$0.instanceMethods}).sorted(by: \.name)
             if !instanceMethods.isEmpty {
-                lines += "" + instanceMethods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
+                lines += "" + instanceMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
             }
             return lines
         }
@@ -745,15 +769,44 @@ fileprivate extension ObjCClassInfo {
                 lines += "// \(name) (\(section.categoryName))"
                 lines += ""
             }
-            lines += section.classMethods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
+            lines += section.classMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
             if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
                 lines += ""
             }
-            lines += section.instanceMethods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
+            lines += section.instanceMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
         }
         return !lines.isEmpty ? "" + lines : lines
     }
+    
+    func methodHeaderSections(for methods: [ObjCMethodInfo], _ classMethods: [ObjCMethodInfo]) -> [HeaderSection]? {
+        guard let objcClass = ObjCClass(name) else { return nil }
         
+        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
+            minimumCapacity: classMethods.count + methods.count)
+        
+        func append(_ method: Method, isClassMethod: Bool) {
+            guard let info = ObjCMethodInfo(method, isClassMethod: isClassMethod) else { return }
+            let origin = ObjCRuntime.origin(of: method)
+            let keyPath: WritableKeyPath<CategoryBucket, [ObjCMethodInfo]> = isClassMethod ? \.classMethods : \.instanceMethods
+            bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath] += info
+        }
+        for method in objcClass.classMethods() {
+            append(method, isClassMethod: true)
+        }
+        for method in objcClass.methods() {
+            append(method, isClassMethod: false)
+        }
+        
+        var sortedImagePaths = bucketsByImage.sorted(by: \.key)
+        let imagePath = imagePath ?? ""
+        if let index = sortedImagePaths.firstIndex(where: { $0.key == imagePath }) {
+            sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
+        }
+        let headerSections = sortedImagePaths.flatMap({ element in
+            element.value.sorted(by: \.key).map({ $0.value.headerSeaction(imagePath: element.key, categoryName: $0.key) })
+        })
+        return headerSections
+    }
     var methodHeaderSections: [HeaderSection]? {
         if let cached = Self.cachedHeaderSections[name] {
             return cached
@@ -832,7 +885,7 @@ extension ObjCClassInfo {
             .groupMethodsByOrigin,
             .includeMethodsFromOtherImages,
             .includeCategoryMethods,
-            .includePropertyImplementationComments
+            .addPropertyAttributesComments
         ], font: NSUIFont? = nil
     ) -> NSAttributedString {
         let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
@@ -891,8 +944,8 @@ extension ObjCClassInfo {
             for property in classProperties {
                 appendAttributedLine(
                     property.headerString(
-                        includeDefaultAttributes: options.contains(.includeImplicitPropertyAttributes),
-                        includeComments: options.contains(.includePropertyImplementationComments)
+                        includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes),
+                        includeComments: options.contains(.addPropertyAttributesComments)
                     ),
                     key: .objcClassProperty,
                     value: property.name
@@ -905,8 +958,8 @@ extension ObjCClassInfo {
             for property in properties {
                 appendAttributedLine(
                     property.headerString(
-                        includeDefaultAttributes: options.contains(.includeImplicitPropertyAttributes),
-                        includeComments: options.contains(.includePropertyImplementationComments)
+                        includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes),
+                        includeComments: options.contains(.addPropertyAttributesComments)
                     ),
                     key: .objcProperty,
                     value: property.name
@@ -946,7 +999,7 @@ extension ObjCClassInfo {
             result.append(NSAttributedString(string: "\n", attributes: attributes))
         }
 
-        let includeMethodTypeEncodings = options.contains(.includeMethodTypeEncodings)
+        let addMethodTypeEncodingComments = options.contains(.addMethodTypeEncodingComments)
 
         guard options.contains(.groupMethodsByOrigin)
                 || !options.contains(.includeCategoryMethods)
@@ -956,7 +1009,7 @@ extension ObjCClassInfo {
                 appendLine()
                 for method in classMethods {
                     appendMethodLine(
-                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
                         key: .objcClassMethod,
                         value: method.name
                     )
@@ -966,7 +1019,7 @@ extension ObjCClassInfo {
                 appendLine()
                 for method in methods {
                     appendMethodLine(
-                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
                         key: .objcMethod,
                         value: method.name
                     )
@@ -989,7 +1042,7 @@ extension ObjCClassInfo {
                 appendLine()
                 for method in classMethods {
                     appendMethodLine(
-                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
                         key: .objcClassMethod,
                         value: method.name
                     )
@@ -1001,7 +1054,7 @@ extension ObjCClassInfo {
                 appendLine()
                 for method in instanceMethods {
                     appendMethodLine(
-                        method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
                         key: .objcMethod,
                         value: method.name
                     )
@@ -1040,7 +1093,7 @@ extension ObjCClassInfo {
 
             for method in section.classMethods {
                 appendMethodLine(
-                    method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                    method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
                     key: .objcClassMethod,
                     value: method.name
                 )
@@ -1052,7 +1105,7 @@ extension ObjCClassInfo {
 
             for method in section.instanceMethods {
                 appendMethodLine(
-                    method.headerString(includeTypeEncoding: includeMethodTypeEncodings),
+                    method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
                     key: .objcMethod,
                     value: method.name
                 )
