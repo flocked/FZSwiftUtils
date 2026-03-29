@@ -34,6 +34,11 @@ public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible,
         /// The offset of the value in the stack.
         public let offset: Int?
         
+        public init(typeEncoding: String, offset: Int? = nil) {
+            self.typeEncoding = typeEncoding
+            self.offset = offset
+        }
+        
         /// The type of the value.
         public var type: ObjCType {
             ObjCType(typeEncoding) ?? .unknown

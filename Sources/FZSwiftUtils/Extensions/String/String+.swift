@@ -966,3 +966,44 @@ extension String {
 
     }
 }
+
+extension String {
+    /**
+     Returns a new string where each line is indented by repeating `unit` `levels` times.
+     
+     - Parameters:
+        - level: The number of times to repeat the indentation unit.
+        - unit: The string used for a single indentation level. Defaults to four spaces.
+        - stripExistingIndentation: If `true`, removes leading spaces and tabs from each line before applying indentation.
+     */
+    public func indent(by levels: Int = 1, using unit: String = "    ", stripExistingIndentation: Bool = false) -> String {
+        guard levels > 0, !isEmpty else { return self }
+        let prefix = String(repeating: unit, count: levels)
+        return self
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .map {
+                prefix + (stripExistingIndentation ? $0.drop(while: { $0 == " " || $0 == "\t" }) : $0)
+            }.joined(separator: "\n")
+    }
+}
+
+public extension String.StringInterpolation {
+    /// Appends the wrapped value if present, or the provided fallback string if the value is `nil.
+    mutating func appendInterpolation<T>(_ value: T?, or ifnil: @autoclosure () -> String) {
+        if let value = value {
+            appendInterpolation(value)
+        }  else {
+            appendLiteral(ifnil())
+        }
+    }
+    
+    /// Appends the wrapped value if present, or the string `"nil"` if the value is `nil`.
+    mutating func appendInterpolation<T>(nil value: T?) {
+        appendInterpolation(value, or: "nil")
+    }
+    
+    /// Appends the wrapped value if present, or an empty string if the value is nil.
+    mutating func appendInterpolation<T>(empty value: T?) {
+        appendInterpolation(value, or: "")
+    }
+}

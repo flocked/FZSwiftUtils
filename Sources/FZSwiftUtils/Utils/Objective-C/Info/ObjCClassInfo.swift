@@ -194,6 +194,14 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
         /// Includes Objective-C type encodings as comments for methods.
         public static let includeMethodTypeEncodings = Self(rawValue: 1 << 5)
         
+        /// Include the methods to access the properties.
+        public static let includePropertyMethods = Self(rawValue: 1 << 6)
+        
+        /// Include public methods and properties.
+        public static let includePublic = Self(rawValue: 1 << 7)
+        
+        /// Include private methods and properties.
+        public static let includePrivate = Self(rawValue: 1 << 7)
         /*
         /// Include instance variables of the class.
         public static let includeIvars = Self(rawValue: 1 << 6)
@@ -227,6 +235,36 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
     
     /// Returns a string representing the class in a Objective-C header.
     public func headerString(options: HeaderStringOptions = [.groupMethodsByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .includePropertyImplementationComments]) -> String {
+        var properties = properties
+        var classProperties = classProperties
+        var methods = methods
+        var classMethods = classMethods
+        
+        if !options.isSubset(of: [.includePublic, .includePrivate]), let info = ObjCHeader.classesByName[name] {
+            
+            let classMethodNames = info.classMethods.map({$0.name})
+            let methodNames = info.methods.map({$0.name})
+            let propertyNames = info.properties.map({$0.name})
+            let classPropertyNames = info.classProperties.map({$0.name})
+            if options.contains(.includePublic) {
+                classMethods = classMethods.filter({ classMethodNames.contains($0.name) })
+                methods = methods.filter({ methodNames.contains($0.name) })
+                properties = properties.filter({ propertyNames.contains($0.name) })
+                classProperties = classProperties.filter({ classPropertyNames.contains($0.name) })
+            } else {
+                classMethods = classMethods.filter({ !classMethodNames.contains($0.name) })
+                methods = methods.filter({ !methodNames.contains($0.name) })
+                properties = properties.filter({ !propertyNames.contains($0.name) })
+                classProperties = classProperties.filter({ !classPropertyNames.contains($0.name) })
+            }
+        }
+        if !options.contains(.includePropertyMethods) {
+            let propertyMethods = properties.flatMap({ [$0.getter.string] + $0.setter?.string })
+            let classpPropertyMethods = properties.flatMap({ [$0.getter.string] + $0.setter?.string })
+            methods = methods.filter({ !propertyMethods.contains($0.name) })
+            classMethods = classMethods.filter({ !classpPropertyMethods.contains($0.name) })
+        }
+        
         var decl = "@interface \(name)"
         if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
             decl = "// Image: \(imagePath)\n\n" + decl
@@ -657,6 +695,10 @@ fileprivate extension ObjCClassInfo {
         var lines: [String] = []
         let includeMethodTypeEncodings = options.contains(.includeMethodTypeEncodings)
         guard options.contains(.groupMethodsByOrigin) || !options.contains(.includeCategoryMethods) || !options.contains(.includeMethodsFromOtherImages), var sections = methodHeaderSections else {
+            if !options.contains(.includePropertyMethods) {
+                let names = (classProperties + properties).flatMap({ [$0.getter.string] + $0.setter?.string })
+            }
+            
             if !classMethods.isEmpty {
                 lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: includeMethodTypeEncodings)})
             }
@@ -668,6 +710,10 @@ fileprivate extension ObjCClassInfo {
         
         sections = options.contains(.includeMethodsFromOtherImages) ? sections : sections.filter({ $0.imagePath == self.imagePath ?? "" })
         sections = options.contains(.includeCategoryMethods) ? sections : sections.filter({ $0.categoryName.isEmpty })
+        if !options.contains(.includePropertyMethods) {
+            let names = (classProperties + properties).flatMap({ [$0.getter.string] + $0.setter?.string })
+            sections = sections.compactMap({ $0.filter(names) })
+        }
         
         if !options.contains(.groupMethodsByOrigin) {
             let classMethods = sections.flatMap({$0.classMethods}).sorted(by: \.name)
@@ -756,8 +802,15 @@ fileprivate extension ObjCClassInfo {
     struct HeaderSection {
         let imagePath: String
         let categoryName: String
-        let classMethods: [ObjCMethodInfo]
-        let instanceMethods: [ObjCMethodInfo]
+        var classMethods: [ObjCMethodInfo]
+        var instanceMethods: [ObjCMethodInfo]
+        
+        func filter(_ names: [String]) -> HeaderSection? {
+            var section = self
+            section.classMethods = section.classMethods.filter({ !names.contains($0.name) })
+            section.instanceMethods = section.instanceMethods.filter({ !names.contains($0.name) })
+            return !section.classMethods.isEmpty && !section.instanceMethods.isEmpty ? section : nil
+        }
         
         struct HeaderMethod: Comparable {
             let name: String
@@ -784,7 +837,7 @@ extension ObjCClassInfo {
     ) -> NSAttributedString {
         let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
         let attributes: [NSAttributedString.Key : Any] = [.font: font]
-        let result = NSMutableAttributedString(string: headerString, attributes: attributes)
+        let result = NSMutableAttributedString()
         
         func append(_ string: String) {
             result.append(NSAttributedString(string: string, attributes: attributes))
