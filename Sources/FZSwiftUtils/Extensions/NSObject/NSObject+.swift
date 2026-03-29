@@ -235,11 +235,6 @@ public extension NSObject {
         class_getInstanceVariable(self, name)
     }
     
-    /// Returns the class variable with the specified  name of the class.
-    static func classVariable(named name: String) -> Ivar? {
-        class_getClassVariable(self, name)
-    }
-    
     /**
      Returns all protocols the class conforms to.
 
@@ -375,25 +370,26 @@ public extension NSObject {
     /// All active key value (`KVO`) observances on this object.
     var kvoObservances: [KeyValueObservance] {
         guard let observances: [NSObject] = observationInfo?.unretained(as: NSObject.self).value(forKey: "_observances") else { return [] }
-        return observances.map({ KeyValueObservance($0) })
+        return observances.compactMap({ KeyValueObservance($0) })
     }
     
     /// Represents a single key-value (`KVO`) observation on an object.
     struct KeyValueObservance: CustomStringConvertible {
         /// The object that observers the property.
-        public let observer: NSObject?
+        public let observer: NSObject
         /// The key path of the property being observed.
         public let keyPath: String
         /// The options of the observation.
         public let options: NSKeyValueObservingOptions
         
         public var description: String {
-            "KeyValueObservance(observer: \(observer.map({ "\(type(of: $0))" }) ?? "-"), keyPath: \(keyPath), options: \(options))"
+            "KeyValueObservance(observer: \(type(of: observer)), keyPath: \(keyPath), options: \(options))"
         }
 
-        init(_ obj: NSObject) {
+        init?(_ obj: NSObject) {
+            guard let obj = obj.value(forKeySafely: "_observer") as? NSObject else { return nil }
+            observer = obj
             keyPath = (obj.value(forKeySafely: "property") as? NSObject)?.value(forKeyPath: "keyPath") ?? "unknown"
-            observer = obj.value(forKeySafely: "_observer") as? NSObject
             options = NSKeyValueObservingOptions(rawValue: obj.ivarValue(named: "_options") ?? 0)
         }
     }
