@@ -28,6 +28,11 @@ public struct ObjCIvarInfo: Sendable, Equatable, Codable {
     }
     
     var isBitfield: Bool { typeEncoding.first == "b" }
+    
+    var isObjectLike: Bool {
+        let first = typeEncoding.first
+        return first == "@" || first == "#" || first == ":"
+    }
 
     var bitWidth: Int? {
         guard isBitfield else { return nil }
