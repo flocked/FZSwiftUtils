@@ -252,4 +252,8 @@ extension ObjCProtocolInfo {
         defer { free(list) }
         return list.buffer(count: count).compactMap { ObjCMethodInfo($0, isClassMethod: !isInstance) }
     }
+    
+    var allProtocols: [ObjCProtocolInfo] {
+        protocols + protocols.flatMap({$0.allProtocols})
+    }
 }

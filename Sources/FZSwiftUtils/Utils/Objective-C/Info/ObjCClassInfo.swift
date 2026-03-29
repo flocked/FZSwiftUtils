@@ -285,6 +285,8 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
             stripIvars += properties.compactMap({$0.ivarName})
         }
         if options.contains(.stripProtocolConformance) {
+            var protocols = allProtocols
+            protocols = (protocols + protocols.flatMap({$0.allProtocols})).uniqued(by: \.name)
             for info in protocols {
                 stripMethods += info.methods.map({$0.name})
                 stripClassMethods += info.classMethods.map({$0.name})
