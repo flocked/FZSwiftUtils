@@ -769,12 +769,18 @@ fileprivate extension ObjCClassInfo {
         var bucketsByImage: [String: [String: CategoryBucket]] = .init(
             minimumCapacity: classProperties.count + properties.count + classMethods.count + methods.count
         )
+        
+        var methodsByName: [String: Method] = [:]
+        var classMethodsByName: [String: Method] = [:]
+        for method in objcClass.methods() {
+            methodsByName[method_getName(method).string] = method
+        }
+        for method in objcClass.classMethods() {
+            classMethodsByName[method_getName(method).string] = method
+        }
 
         func append(_ methodInfo: ObjCMethodInfo, isClassMethod: Bool) {
-            let selector = Selector.string(methodInfo.name)
-            let method = isClassMethod
-                ? objcClass.classMethod(for: selector)
-                : objcClass.method(for: selector)
+            let method = isClassMethod ? classMethodsByName[methodInfo.name] : methodsByName[methodInfo.name]
             let origin: (imagePath: String?, categoryName: String?, symbolName: String?) =
                 method.map(ObjCRuntime.origin(of:)) ?? (imagePath: primaryImagePath, categoryName: nil, symbolName: nil)
             let keyPath: WritableKeyPath<CategoryBucket, [ObjCMethodInfo]> = isClassMethod ? \.classMethods : \.instanceMethods
@@ -783,9 +789,10 @@ fileprivate extension ObjCClassInfo {
 
         func append(_ propertyInfo: ObjCPropertyInfo, isClassProperty: Bool) {
             let selector = propertyInfo.getter
-            let method = isClassProperty
+            var method = isClassProperty ? classMethodsByName[propertyInfo.getterName] : methodsByName[propertyInfo.getterName]
+            method = method ?? (isClassProperty
                 ? objcClass.classMethod(for: selector)
-                : objcClass.method(for: selector)
+                : objcClass.method(for: selector))
             let origin: (imagePath: String?, categoryName: String?, symbolName: String?) =
                 method.map(ObjCRuntime.origin(of:)) ?? (imagePath: primaryImagePath, categoryName: nil, symbolName: nil)
             let keyPath: WritableKeyPath<CategoryBucket, [ObjCPropertyInfo]> = isClassProperty ? \.classProperties : \.instanceProperties
