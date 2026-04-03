@@ -109,8 +109,7 @@ extension ObjCMethodInfo: CustomStringConvertible {
             result += name
         } else {
             result += zip(nameAndLabels, argumentTypes.map(\.decodedStringForArgument))
-                .enumerated()
-                .map { "\($1.0):(\($1.1))arg\($0)" }
+                .map { "\($0):(\($1))\(NamingIntelligent.parameterName(from: String($0)))" }
                 .joined(separator: " ")
         }
         result += ";"
@@ -134,5 +133,152 @@ extension ObjCMethodInfo: CustomStringConvertible {
             fieldNames.insert(names.fields)
         })
         return (typeNames, fieldNames)
+    }
+}
+
+private enum NamingIntelligent {
+    /// Common prepositions used in Objective-C method names (lowercase).
+    /// Ordered by length (longest first) to match longer prepositions before shorter ones.
+    private static let prepositions: [String] = [
+        "withcontentsof",
+        "byappending",
+        "byreplacing",
+        "fromstring",
+        "tostring",
+        "containing",
+        "including",
+        "excluding",
+        "replacing",
+        "returning",
+        "matching",
+        "starting",
+        "between",
+        "through",
+        "without",
+        "within",
+        "during",
+        "before",
+        "behind",
+        "except",
+        "under",
+        "using",
+        "after",
+        "about",
+        "above",
+        "along",
+        "among",
+        "below",
+        "named",
+        "called",
+        "having",
+        "where",
+        "until",
+        "since",
+        "with",
+        "from",
+        "into",
+        "onto",
+        "upon",
+        "over",
+        "like",
+        "near",
+        "past",
+        "for",
+        "and",
+        "but",
+        "nor",
+        "yet",
+        "via",
+        "per",
+        "at",
+        "by",
+        "in",
+        "of",
+        "on",
+        "to",
+        "as",
+    ]
+
+    /// Prefixes that should be stripped before looking for prepositions.
+    private static let prefixes: [String] = [
+        "_set",
+        "_get",
+        "set",
+        "get",
+    ]
+
+    /// Guesses a parameter name from an Objective-C method label.
+    ///
+    /// - Parameter label: The method label (e.g., "initWithTitle", "objectForKey")
+    /// - Returns: The guessed parameter name (e.g., "title", "key")
+    static func parameterName(from label: String) -> String {
+        guard !label.isEmpty else { return "arg" }
+
+        var workingLabel = label
+        let lowercasedLabel = label.lowercased()
+
+        // First, strip known prefixes like set/get
+        for prefix in prefixes {
+            if lowercasedLabel.hasPrefix(prefix) && label.count > prefix.count {
+                let afterPrefix = label.index(label.startIndex, offsetBy: prefix.count)
+                // Make sure the next character is uppercase (word boundary)
+                if label[afterPrefix].isUppercase {
+                    workingLabel = String(label[afterPrefix...])
+                    break
+                }
+            }
+        }
+
+        // Now search for prepositions from the beginning, find the LAST match
+        let lowercasedWorking = workingLabel.lowercased()
+        var lastMatchEnd: String.Index?
+
+        for preposition in prepositions {
+            // Search for all occurrences from the beginning
+            var searchStart = lowercasedWorking.startIndex
+            while let range = lowercasedWorking.range(of: preposition, range: searchStart ..< lowercasedWorking.endIndex) {
+                // Calculate the corresponding range in the working label
+                let startDistance = lowercasedWorking.distance(from: lowercasedWorking.startIndex, to: range.lowerBound)
+                let endDistance = lowercasedWorking.distance(from: lowercasedWorking.startIndex, to: range.upperBound)
+                let originalStart = workingLabel.index(workingLabel.startIndex, offsetBy: startDistance)
+                let originalEnd = workingLabel.index(workingLabel.startIndex, offsetBy: endDistance)
+
+                // Check word boundary for camelCase:
+                // 1. The preposition must start with uppercase (e.g., "With" in "initWithTitle")
+                // 2. After: must be uppercase letter (the next word starts)
+                let prepositionStartChar = workingLabel[originalStart]
+                let startsWithUppercase = prepositionStartChar.isUppercase
+
+                let hasValidEnd: Bool
+                if originalEnd >= workingLabel.endIndex {
+                    // Preposition at the end of the label is not valid
+                    hasValidEnd = false
+                } else {
+                    let nextChar = workingLabel[originalEnd]
+                    hasValidEnd = nextChar.isUppercase
+                }
+
+                if startsWithUppercase && hasValidEnd {
+                    // Use the last (rightmost) preposition match
+                    if lastMatchEnd == nil || originalEnd > lastMatchEnd! {
+                        lastMatchEnd = originalEnd
+                    }
+                }
+
+                // Move search start forward
+                searchStart = range.upperBound
+            }
+        }
+
+        // Extract the part after the last preposition
+        if let end = lastMatchEnd {
+            let afterPreposition = String(workingLabel[end...])
+            if !afterPreposition.isEmpty {
+                return afterPreposition.lowercasedFirst()
+            }
+        }
+
+        // No preposition found, use the working label
+        return workingLabel.lowercasedFirst()
     }
 }

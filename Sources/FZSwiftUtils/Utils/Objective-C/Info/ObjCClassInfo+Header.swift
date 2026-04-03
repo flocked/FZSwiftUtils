@@ -707,8 +707,10 @@ fileprivate extension ObjCClassInfo {
             }
             if hasMembersFromMoreThanOneImage, currentImagePath != section.imagePath {
                 currentImagePath = section.imagePath
-                lines += "// Image: \(section.imagePath)"
+                let line = "// Image: \(section.imagePath)"
+                lines += line
                 lines += ""
+                declarations += (section.imagePath, .objcImageName, section.imagePath)
             }
             if !section.categoryName.isEmpty {
                 lines += "// \(name) (\(section.categoryName))"
