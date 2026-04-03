@@ -99,18 +99,19 @@ extension ObjCMethodInfo: CustomStringConvertible {
     }
     
     /// Returns a string representing the method in a Objective-C header.
-    public func headerString(includeTypeEncoding: Bool, renameArguments: Bool) -> String {
+    public func headerString(includeArgumentFields: Bool = false, includeTypeEncoding: Bool, renameArguments: Bool) -> String {
         let prefix = isClassMethod ? "+" : "-"
-        let returnType = returnType.decodedStringForArgument
+        let returnType = returnType.decodedStringForArgument(includeFields: includeArgumentFields)
         let nameAndLabels = name.split(separator: ":")
 
         var result = "\(prefix) (\(returnType))"
         if argumentTypes.isEmpty {
             result += name
         } else {
-            result += zip(nameAndLabels, argumentTypes.map(\.decodedStringForArgument))
+            var takenNames: Set<String> = []
+            result += zip(nameAndLabels,argumentTypes.map({$0.decodedStringForArgument(includeFields: includeArgumentFields)}))
                 .enumerated()
-                .map { "\($1.0):(\($1.1))\(renameArguments ? NamingIntelligent.parameterName(from: String($1.0)) : "arg\($0)")" }
+                .map { "\($1.0):(\($1.1))\(renameArguments ? NamingIntelligent.parameterName(from: String($1.0), takenNames: &takenNames) : "arg\($0)")" }
                 .joined(separator: " ")
         }
         result += ";"
@@ -212,8 +213,10 @@ private enum NamingIntelligent {
     ///
     /// - Parameter label: The method label (e.g., "initWithTitle", "objectForKey")
     /// - Returns: The guessed parameter name (e.g., "title", "key")
-    static func parameterName(from label: String) -> String {
-        guard !label.isEmpty else { return "arg" }
+    static func parameterName(from label: String, takenNames: inout Set<String>) -> String {
+        guard !label.isEmpty else {
+            return takenNames.insert("arg").memberAfterInsert
+        }
 
         var workingLabel = label
         let lowercasedLabel = label.lowercased()
@@ -275,11 +278,14 @@ private enum NamingIntelligent {
         if let end = lastMatchEnd {
             let afterPreposition = String(workingLabel[end...])
             if !afterPreposition.isEmpty {
-                return afterPreposition.lowercasedFirst()
+                let name = afterPreposition.lowercasedFirst()
+                if takenNames.insert(name).inserted {
+                    return name
+                }
             }
         }
 
         // No preposition found, use the working label
-        return workingLabel.lowercasedFirst()
+        return takenNames.insert(workingLabel.lowercasedFirst()).memberAfterInsert
     }
 }

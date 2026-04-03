@@ -8,11 +8,6 @@
 import Foundation
 import _FZSwiftUtilsObjC
 
-struct AAAA: Hashable {
-    let pointer: Method
-    
-}
-
 /// Objective-C utilities.
 public enum ObjCRuntime {
     /// Returns all classes.

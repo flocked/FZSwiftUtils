@@ -183,7 +183,7 @@ public extension ObjCType {
 }
 
 extension ObjCType: CustomStringConvertible {
-    public func decoded(tab: String = "    ") -> String {
+    public func decoded(tab: String = "    ", includeFields: Bool = true) -> String {
         switch self {
         case .class: return "Class"
         case .selector: return "SEL"
@@ -226,7 +226,7 @@ extension ObjCType: CustomStringConvertible {
             return "int x : \(width)"
         case .union(let name, let fields), .struct(let name, let fields):
             let type = typeKind.rawValue
-            guard let fields, !fields.isEmpty else {
+            guard includeFields, let fields, !fields.isEmpty else {
                 return "\(type) \(name ?? "{}")"
             }
             let name = name != nil ? " \(name!) " : " "
@@ -539,7 +539,10 @@ extension ObjCType {
         }
     }
     
-    var decodedStringForArgument: String {
+    func decodedStringForArgument(includeFields: Bool = false) -> String {
+        if includeFields {
+            return decoded(tab: "", includeFields: includeFields).components(separatedBy: .newlines).joined(separator: " ")
+        }
         switch self {
         case .struct(let name, let fields), .union(let name, let fields):
             if let name { return name }

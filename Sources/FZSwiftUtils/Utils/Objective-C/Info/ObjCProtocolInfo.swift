@@ -192,7 +192,7 @@ extension ObjCProtocolInfo: CustomStringConvertible {
      */
     public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
         let attributed = NSMutableAttributedString(
-            attributedString: .objCHeader(for: headerString, protocols: protocols.map({ $0.name }), font: font)
+            attributedString: .objCHeader(for: headerString, font: font)
         )
         var declarations: [(line: String, key: NSAttributedString.Key, value: String)] = []
         declarations += classProperties.map({ ($0.headerString, .objcClassProperty, $0.name) })

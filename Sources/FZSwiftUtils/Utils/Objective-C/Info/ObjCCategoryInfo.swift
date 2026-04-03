@@ -97,7 +97,7 @@ extension ObjCCategoryInfo: CustomStringConvertible {
      - Parameter font: The font of the attributed string, or `nil` to use the default font.
      */
     public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
-        .objCHeader(for: headerString, protocols: protocols.map({$0.name}), font: font)
+        .objCHeader(for: headerString, font: font)
     }
     
     public var description: String { headerString }

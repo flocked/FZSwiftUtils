@@ -48,11 +48,12 @@ extension NSAttributedString {
 extension NSAttributedString {
     static let imageNames = Set(ObjCRuntime.imageNames())
     
-    static func objCHeader(for headerString: String, protocols: [String] = [], font: NSUIFont? = nil) -> NSAttributedString {
+    static func objCHeader(for headerString: String, font: NSUIFont? = nil) -> NSAttributedString {
         let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
         let attributed = NSMutableAttributedString(string: headerString, attributes: [.font: font])
         let fullRange = headerString.nsRange
         let classes = ObjCRuntime.classNames()
+        let protocols = ObjCRuntime.protocolNames()
 
         let commentRanges = commentRegex.matches(in: headerString, options: [], range: fullRange).map(\.range)
         apply(ranges: commentRanges, to: attributed, color: objcHeaderColors.comments, font: font)
@@ -63,9 +64,7 @@ extension NSAttributedString {
             attributed.addAttribute(.objcImageName, value: imagePath, range: imageMatch.range(at: 1))
         }
 
-        let protocols = Set(protocols)
         var searchLocation = 0
-        
         for commentRange in commentRanges {
             if searchLocation < commentRange.location {
                 let range = NSRange(location: searchLocation, length: commentRange.location - searchLocation)

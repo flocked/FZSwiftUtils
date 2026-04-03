@@ -37,15 +37,7 @@ public struct ObjCField: Sendable, Codable, Hashable {
         }
     }
 
-    public func decoded(tab: String = "    ") -> String {
-        if let bitWidth {
-            "\(type.decoded(tab: tab)) \(name ?? "x") : \(bitWidth);"
-        } else {
-            "\(type.decoded(tab: tab)) \(name ?? "x");"
-        }
-    }
-
-    func decoded(fallbackName: String, tab: String = "    ") -> String {
+   public func decoded(fallbackName: String = "x", tab: String = "    ") -> String {
         if let bitWidth {
             "\(type.decoded(tab: tab)) \(name ?? fallbackName) : \(bitWidth);"
         } else {
