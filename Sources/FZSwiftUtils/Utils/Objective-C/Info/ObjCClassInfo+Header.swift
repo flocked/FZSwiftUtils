@@ -714,7 +714,10 @@ fileprivate extension ObjCClassInfo {
                 lines += "// \(name) (\(section.categoryName))"
                 lines += ""
             }
-            lines += self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
+            let newLines = self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
+            if !newLines.isEmpty {
+                lines += newLines.dropFirst()
+            }
             /*
             lines += section.headerLines(
                 propertyOptions: propertyOptions,
