@@ -259,7 +259,7 @@ private enum NamingIntelligent {
                     hasValidEnd = nextChar.isUppercase
                 }
 
-                if startsWithUppercase && hasValidEnd || (startsWithUppercase && originalStart == workingLabel.startIndex) {
+                if startsWithUppercase && hasValidEnd || (hasValidEnd && originalStart == workingLabel.startIndex) {
                     // Use the last (rightmost) preposition match
                     if lastMatchEnd == nil || originalEnd > lastMatchEnd! {
                         lastMatchEnd = originalEnd
