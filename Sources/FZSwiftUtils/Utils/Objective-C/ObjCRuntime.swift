@@ -282,7 +282,7 @@ public enum ObjCRuntime {
         } else {
             categoryName = nil
         }
-        return (imagePath, symbolName, categoryName)
+        return (imagePath, categoryName, symbolName)
     }
     
     /// Returns the names of all the loaded Objective-C frameworks and dynamic libraries.
