@@ -36,8 +36,14 @@ public struct ObjCClass {
         class_getInstanceSize(`class`)
     }
     
-    public var imageName: String? {
+    /// The path of the dynamic library / framework the class originated from.
+    public var imagePath: String? {
         class_getImageName(`class`)?.string
+    }
+    
+    /// The runtime origin of the class.
+    public var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
+        ObjCRuntime.origin(of: `class`)
     }
     
     /// The superclass of the class.
@@ -90,15 +96,13 @@ public struct ObjCClass {
      - Parameter includeSuperclasses: A Boolean value indicating whether to include instance methods of the superclasses.
      */
     public func methods(includeSuperclasses: Bool = false) -> [Method] {
+        var count: UInt32 = 0
         var methods: [Method] = []
         var seen: Set<Selector> = []
-        var current: AnyClass? = `class`
-        while let cls = current {
-            current = includeSuperclasses ? class_getSuperclass(cls) : nil
-            var count: UInt32 = 0
+        for cls in classes(includeSuperclasses) {
             guard let list = class_copyMethodList(cls, &count) else { continue }
             defer { free(list) }
-            methods += list.buffer(count: count).filter({ seen.insert(method_getName($0)).inserted })
+            methods += includeSuperclasses ? list.buffer(count: count).filter({ seen.insert(method_getName($0)).inserted }) : list.array(count: count)
         }
         return methods
     }
@@ -118,13 +122,13 @@ public struct ObjCClass {
      - Parameter includeSuperclasses: A Boolean value indicating whether to include instance properties of the superclasses.
      */
     public func properties(includeSuperclasses: Bool = false) -> [objc_property_t] {
+        var count: UInt32 = 0
         var properties: [objc_property_t] = []
         var seen: Set<String> = []
         for cls in classes(includeSuperclasses) {
-            var count: UInt32 = 0
             guard let list = class_copyPropertyList(cls, &count) else { continue }
             defer { free(list) }
-            properties += list.buffer(count: count).filter({ seen.insert(property_getName($0).string).inserted })
+            properties += includeSuperclasses ? list.buffer(count: count).filter({ seen.insert(property_getName($0).string).inserted }) : list.array(count: count)
         }
         return properties
     }
@@ -143,7 +147,7 @@ public struct ObjCClass {
 
      - Parameter includeSuperclasses: A Boolean value indicating whether to include instance variables of the superclasses.
      */
-    public func variables(includeSuperclasses: Bool = false) -> [Ivar] {
+    public func ivars(includeSuperclasses: Bool = false) -> [Ivar] {
         var ivars: [Ivar] = []
         for cls in classes(includeSuperclasses) {
             var count: UInt32 = 0
@@ -152,15 +156,6 @@ public struct ObjCClass {
             ivars += list.array(count: count)
         }
         return ivars
-    }
-    
-    /**
-     Returns all class variables of the class.
-
-     - Parameter includeSuperclasses: A Boolean value indicating whether to include class variables of the superclasses.
-     */
-    public func classVariables(includeSuperclasses: Bool = false) -> [Ivar] {
-        ObjCClass(metaClass).variables(includeSuperclasses: includeSuperclasses)
     }
     
     /**
@@ -173,17 +168,16 @@ public struct ObjCClass {
     public func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [Protocol] {
         var visited = Set<ObjectIdentifier>()
         var protocols: [Protocol] = []
+        var count: UInt32 = 0
         func visit(_ proto: Protocol) {
             guard visited.insert(proto).inserted else { return }
             protocols.append(proto)
             guard includeInheritedProtocols else { return }
-            var count: UInt32 = 0
             guard let list = protocol_copyProtocolList(proto, &count) else { return }
             defer { free(UnsafeMutableRawPointer(list)) }
             list.buffer(count: count).forEach({ visit($0) })
         }
         for cls in classes(includeSuperclasses) {
-            var count: UInt32 = 0
             guard let list = class_copyProtocolList(cls, &count) else { continue }
             defer { free(UnsafeMutableRawPointer(list)) }
             list.buffer(count: count).forEach({ visit($0) })
@@ -223,11 +217,6 @@ public struct ObjCClass {
     /// Returns the instance variable of the class with the specified name.
     public func variable(named name: String) -> Ivar? {
         class_getInstanceVariable(`class`, name)
-    }
-    
-    /// Returns the class variable of the class with the specified name.
-    public func classVariable(named name: String) -> Ivar? {
-        class_getClassVariable(`class`, name)
     }
     
     /**
@@ -305,17 +294,6 @@ public struct ObjCClass {
             currentClass = class_getSuperclass(superClass)
         }
         return false
-    }
-    
-    /**
-     Returns runtime origin information for the class.
-
-     The returned `imagePath` is the path of the Mach-O image that contains the class.
-     The returned `symbolName` is the symbol name associated with the class.
-     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
-     */
-    public func origin() -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        ObjCRuntime.origin(of: `class`)
     }
     
     func `protocol`(for selector: Selector, isInstanceMethod: Bool) throws -> Protocol? {

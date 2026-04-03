@@ -67,7 +67,7 @@ public extension Dictionary {
         - keysAndValues: A sequence of key-value pairs to use for the new ordered dictionary. Every key in `keysAndValues` must be unique.
         - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
      */
-    init<S: Sequence>(_ keysAndValues: S, retainLastOccurences: Bool) where S.Element == (Key, Value) {
+    init<S: Sequence>(_ keysAndValues: S, retainLastOccurences: Bool = false) where S.Element == (Key, Value) {
         self = Self(keysAndValues) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
@@ -228,7 +228,7 @@ public extension Dictionary {
     /// The keys of the values that are different to the other dictionary.
     func difference(to other: Self) -> (removed: [Key], added: [Key], changed: [Key])  {
         let checkChanged = ((other.first?.value ?? first?.value) as? (any Equatable)) != nil
-        let added: [Key] = self.keys.filter({ other[$0] == nil })
+        let added: [Key] = keys.filter({ other[$0] == nil })
         let removed: [Key] = other.keys.filter({ self[$0] == nil })
         let changed = checkChanged ? reduce(into: [Key]()) { partialResult, val in
             if let old = other[val.key] as? (any Equatable), let new = val.value as? (any Equatable), !old.isEqual(new) {
@@ -268,6 +268,31 @@ public extension Dictionary {
             }
         }
     }
+
+    /// Returns an array with the elements of the dictionary.
+    var elements: [Element] {
+        map({ $0 })
+    }
+    
+    /// Returns an array with the elements of the dictionary sorted by key.
+    func sorted(_ sortOrder: SortOrder = .forward) -> [Element] where Key: Comparable {
+        sorted(by: \.key, sortOrder)
+    }
+    
+    /// Returns an array with the elements of the dictionary sorted by key.
+    func sorted<Wrapped>(_ sortOrder: SortOrder = .forward) -> [Element] where Key == Wrapped?, Wrapped: Comparable {
+        sorted(by: \.key, sortOrder)
+    }
+    
+    /// Returns an array with the elements of the dictionary sorted by key.
+    func sorted(options: String.CompareOptions = [], range: Range<Key.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .forward) -> [Element] where Key: StringProtocol {
+        sorted(by: \.key, options: options, range: range, locale: locale, order)
+    }
+    
+    /// Returns an array with the elements of the dictionary sorted by key.
+    func sorted<Wrapped>(options: String.CompareOptions = [], range: Range<Wrapped.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .forward) -> [Element] where Key == Wrapped?, Wrapped: StringProtocol {
+        sorted(by: \.key, options: options, range: range, locale: locale, order)
+    }
     
     /// The dictionary as `CFDictionary`.
     var cfDictionary: CFDictionary {
@@ -280,6 +305,7 @@ public extension Dictionary {
     }
 }
 
+
 public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
     /// Returns the dictionary with non optional keys.
     @_disfavoredOverload
@@ -290,6 +316,7 @@ public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
 
 public extension Dictionary where Value: OptionalProtocol {
     /// Returns the dictionary with non optional values.
+    @_disfavoredOverload
     var nonNil: [Key: Value.Wrapped] {
         compactMapValues({ $0.optional })
     }
@@ -317,13 +344,18 @@ public extension Dictionary where Value: Equatable {
 
 public extension Dictionary where Value == Any {
     /// Returns the value casted to the requested type, or `nil` if the value is missing or of a different type.
-    subscript<T>(typed key: Key) -> T? {
+    subscript<T>(key: Key) -> T? {
         self[key] as? T
     }
 
     /// Returns the value casted to the requested type, or the specified default value if missing or of a different type.
-    subscript<T>(typed key: Key, default defaultValue: @autoclosure () -> T) -> T {
-        self[typed: key] ?? defaultValue()
+    subscript<T>(key: Key, default defaultValue: @autoclosure () -> T) -> T {
+        (self[key] as? T) ?? defaultValue()
+    }
+    
+    /// Returns the value casted to the requested type, or the specified default value if missing or of a different type.
+    subscript<T>(key: Key, default defaultValue: () -> T) -> T {
+        (self[key] as? T) ?? defaultValue()
     }
     
     /**
@@ -348,9 +380,7 @@ public extension Dictionary where Value == Any {
 public extension NSDictionary {
     /// The dictionary as `Dictionary`.
     func toDictionary() -> [String: Any] {
-        reduce(into: [:]) {
-            $0[$1.key as? String ?? "\($1.key)"] = $1.value
-        }
+        reduce(into: [:]) { $0[$1.key as? String ?? "\($1.key)"] = $1.value }
     }
 
     /// The dictionary as `CFDictionary`.

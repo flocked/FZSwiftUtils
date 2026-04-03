@@ -841,8 +841,10 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      
      - Returns: A new dictionary containing the merged results.
      */
-    public func merged(with other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
-        merged(with: other.map({$0}), strategy: strategy)
+    public func merging(_ other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
+        var merged = self
+        merged.merge(other, strategy: strategy)
+        return merged
     }
     
     /**
@@ -854,24 +856,9 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      
      - Returns: A new dictionary containing the merged results.
      */
-    public func merged(with other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
-        merged(with: other.map({$0}), strategy: strategy)
-    }
-    
-    private func merged(with other: [Element], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
+    public func merging(_ other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) -> Self {
         var merged = self
-        for (key, value) in other {
-            switch strategy.rawValue {
-            case "keepOriginal":
-                if merged[key] == nil {
-                    merged[key] = value
-                }
-            case "custom":
-                merged[key] = strategy.handler!(key, merged[key], value)
-            default:
-                merged[key] = value
-            }
-        }
+        merged.merge(other, strategy: strategy)
         return merged
     }
     
@@ -884,8 +871,14 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      
      - Returns: A new dictionary containing the merged results.
      */
-    public mutating func merge(with other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
-        self = merged(with: other, strategy: strategy)
+    public mutating func merge(_ other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
+        for (key, new) in other {
+            if let old = self[key] {
+                self[key] = strategy.handler(old, new)
+            } else {
+                self[key] = new
+            }
+        }
     }
     
     /**
@@ -897,8 +890,14 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
      
      - Returns: A new dictionary containing the merged results.
      */
-    public mutating func merge(with other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
-        self = merged(with: other, strategy: strategy)
+    public mutating func merge(_ other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
+        for (key, new) in other {
+            if let old = self[key] {
+                self[key] = strategy.handler(old, new)
+            } else {
+                self[key] = new
+            }
+        }
     }
     
     // MARK: - Capacity

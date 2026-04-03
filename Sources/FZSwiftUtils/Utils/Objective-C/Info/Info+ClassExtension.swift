@@ -317,7 +317,7 @@ fileprivate extension ObjCType {
         case .double: return "Double"
         case .longDouble: return "Float80"
         case .bool: return "Bool"
-        case .void, .voidConst, .voidIn: return "Void"
+        case .void: return "Void"
         case .charPtr:
             return modifiers.contains(.const) ? "UnsafePointer<CChar>" : "UnsafeMutablePointer<CChar>"
         case .object(let name):

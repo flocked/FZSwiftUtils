@@ -176,6 +176,26 @@ public extension StringProtocol {
 }
 
 public extension String {
+    /**
+     Returns the range of characters representing the line or lines containing the specified range.
+     
+     - Parameter range: A range within the string.
+     - Returns: The range of characters representing the line or lines containing aRange, including the line termination characters.
+     */
+    func lineRange(for range: NSRange) -> NSRange {
+        (self as NSString).lineRange(for: range)
+    }
+    
+    /**
+     Returns the range of characters representing the line or lines containing the specified range.
+     
+     - Parameter range: A range within the string.
+     - Returns: The range of characters representing the line or lines containing aRange, including the line termination characters.
+     */
+    func lineRange(for range: Range<Index>) -> Range<Index>? {
+        Range(lineRange(for: NSRange(range, in: self)), in: self)
+    }
+    
     /// The substring at the specified `NSRange`.
     subscript(range: NSRange) -> SubSequence {
         get { self[safe: range]! }

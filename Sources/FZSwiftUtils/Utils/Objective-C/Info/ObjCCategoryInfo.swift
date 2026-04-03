@@ -15,6 +15,9 @@ public struct ObjCCategoryInfo: Sendable, Equatable, Codable {
 
     /// The name of the target class.
     public let className: String
+    
+    /// The path of the dynamic library the category originated from.
+    public let imagePath: String?
 
     /// The protocols to which the category conforms.
     public let protocols: [ObjCProtocolInfo]
@@ -33,17 +36,19 @@ public struct ObjCCategoryInfo: Sendable, Equatable, Codable {
      Initializes a new instance of `ObjCCategoryInfo`.
 
      - Parameters:
-       - name: Name of the category.
-       - className: Name of the target class.
-       - protocols: List of protocols to which the class conforms.
-       - classProperties: List of class properties held by the category.
-       - properties: List of instance properties held by the category.
-       - classMethods: List of class methods held by the category.
-       - methods: List of instance methods held by the category.
+        - name: The name of the category.
+        - className: The name of the target class.
+        - imagePath: The path of the dynamic library the category originated from.
+        - protocols: The protocols to which the category conforms.
+        - classProperties: The class properties held by the category.
+        - properties: The instance properties held by the category.
+        - classMethods: The class methods held by the category.
+        - methods: The instance methods held by the category.
      */
     public init(
         name: String,
         className: String,
+        imagePath: String?,
         protocols: [ObjCProtocolInfo],
         classProperties: [ObjCPropertyInfo],
         properties: [ObjCPropertyInfo],
@@ -52,6 +57,7 @@ public struct ObjCCategoryInfo: Sendable, Equatable, Codable {
     ) {
         self.name = name
         self.className = className
+        self.imagePath = imagePath
         self.protocols = protocols
         self.classProperties = classProperties
         self.properties = properties

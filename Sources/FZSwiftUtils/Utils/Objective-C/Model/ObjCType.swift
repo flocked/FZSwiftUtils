@@ -56,15 +56,15 @@ public indirect enum ObjCType: Sendable, Hashable, Codable {
     case bool
     /// Void.
     case void
-    /// Const void.
-    case voidConst
-    /// Void parameter marked as `in`.
-    case voidIn
     /// Unknown type.
     case unknown
 
     /// Pointer to char (`char *`).
     case charPtr
+    /// Pointer to another type.
+    case pointer(type: ObjCType)
+    /// Function pointer.
+    case functionPointer
 
     /// Atomic type.
     case atom
@@ -73,13 +73,9 @@ public indirect enum ObjCType: Sendable, Hashable, Codable {
     case object(name: String?)
     /// Block.
     case block(return: ObjCType?, args: [ObjCType]?)
-    /// Function pointer.
-    case functionPointer
 
     /// Array.
     case array(type: ObjCType, size: Int?)
-    /// Pointer to another type.
-    case pointer(type: ObjCType)
 
     /// Bitfield with specified width.
     case bitField(width: Int)
@@ -90,23 +86,23 @@ public indirect enum ObjCType: Sendable, Hashable, Codable {
     case `struct`(name: String?, fields: [ObjCField]?)
 
     /// A modified Objective-C type.
-    case modified(_ modifiers: Modifier, type: ObjCType)
+    case modified(_ modifiers: [Modifier], type: ObjCType)
 
     /// Any other type.
     case other(String)
     
     /// Creates a new instance from the specified type encoding.
     public init?(_ typeEncoding: String) {
-        guard let type = Self._decode(typeEncoding)?.decoded else { return nil }
+        guard let type = Self.decode(typeEncoding)?.decoded else { return nil }
         self = type
     }
 }
 
 public extension ObjCType {
-    /// A Boolean value indicating whether the type is `Void`.
+    /// A Boolean value indicating whether the type is ``void``.
     var isVoid: Bool {
         switch resolved {
-        case .void, .voidIn, .voidConst: return true
+        case .void: return true
         default: return false
         }
     }
@@ -167,16 +163,17 @@ public extension ObjCType {
         }
     }
     
-    
+    /// The modifiers of the type.
     var modifiers: [Modifier] {
         switch self {
-        case .modified(let modifier, type: let type):
-            return type.modifiers + modifier
+        case .modified(let modifiers, type: let type):
+            return modifiers + type.modifiers
         default:
             return []
         }
     }
     
+    /// The resolved type.
     var resolved: ObjCType {
         switch self {
         case .modified(_, type: let type): return type.resolved
@@ -206,7 +203,7 @@ extension ObjCType: CustomStringConvertible {
         case .double: return "double"
         case .longDouble: return "long double"
         case .bool: return "BOOL"
-        case .void, .voidIn, .voidConst: return "void"
+        case .void: return "void"
         case .unknown: return "unknown"
         case .charPtr: return "char *"
         case .atom: return "atom"
@@ -238,8 +235,8 @@ extension ObjCType: CustomStringConvertible {
             \(fields.decoded(tab: tab))
             }
             """
-        case .modified(let modifier, let type):
-            return "\(modifier.decoded(tab: tab)) \(type.decoded(tab: tab))"
+        case .modified(let modifiers, let type):
+            return "\(modifiers.map({ $0.decoded(tab: tab) }).joined(separator: " ")) \(type.decoded(tab: tab))"
         case .other(let string):
             return string
         }
@@ -267,8 +264,6 @@ extension ObjCType: CustomStringConvertible {
         case .longDouble: return "D"
         case .bool: return "B"
         case .void: return "v"
-        case .voidConst: return "1"
-        case .voidIn: return "2"
         case .unknown: return "?"
         case .charPtr: return "*"
         case .atom: return "%"
@@ -291,8 +286,12 @@ extension ObjCType: CustomStringConvertible {
         case .struct(let name, let fields):
             guard let fields else { return "{\(name ?? "")}" }
             return "{\(name ?? "?")=\(fields.map({ $0.encoded() }).joined())}"
-        case .modified(let modifier, let type):
-            return "\(modifier.encoded())\(type.encoded())"
+        case .modified(let modifiers, let type) where type == .void && modifiers == [.const]:
+            return "1"
+        case .modified(let modifiers, let type) where type == .void && modifiers == [.in]:
+            return "2"
+        case .modified(let modifiers, let type):
+            return "\(modifiers.map({ $0.encoded() }).joined())\(type.encoded())"
         case .other(let string):
             return string
         }
@@ -318,7 +317,7 @@ extension ObjCType: CustomStringConvertible {
         case .double: return "Double"
         case .longDouble: return "Float80"  // note: Intel macOS only, ARM uses Double
         case .bool: return "Bool"
-        case .void, .voidConst, .voidIn: return "Void"
+        case .void: return "Void"
         case .unknown: return "unknown"
         case .charPtr: return "UnsafePointer<CChar>"
         case .atom: return "Int" // assuming atomic integer type
@@ -369,75 +368,70 @@ extension ObjCType: CustomStringConvertible {
 }
 
 extension ObjCType {
-    static func _decode(_ type: String) -> (decoded: ObjCType?, trailing: String?)? {
+    private static func decode(_ type: String) -> (decoded: ObjCType?, trailing: String?)? {
         guard let first = type.first else { return nil }
         switch first {
             // decode `id` ref: https://github.com/gnustep/libobjc2/blob/2855d1771478e1e368fcfeb4d56aecbb4d9429ca/encoding2.c#L159
         case _ where type.starts(with: "@?"):
-           return _decodeBlock(type)
+           return decodeBlock(type)
         case _ where type.starts(with: #"@""#):
-           return _decodeObject(type)
+           return decodeObject(type)
         case _ where type.starts(with: "^?"):
             return (.functionPointer, type.removingFirst(2))
         case _ where simpleTypes.keys.contains(first):
             return (simpleTypes[first], type.removingFirst())
         case "A", "j", "r", "n", "N", "o", "O", "R", "V", "+":
-            return _decodeModified(first, type)
+            return decodeModified(first, type)
         case "b":
-            return _decodeBitField(type)
+            return decodeBitField(type)
         case "[":
-            return _decodeArray(type)
+            return decodeArray(type)
         case "^":
-            return _decodePointer(type)
+            return decodePointer(type)
         case "(":
-            return _decodeUnion(type)
+            return decodeUnion(type)
         case "{":
-            return _decodeStruct(type)
+            return decodeStruct(type)
         case "1":
-            return (.voidConst, type.removingFirst())
-            //  return (decoded: .modified(.const, type: .void), trailing: type.removingFirst())
+            return (.modified([.const], type: .void), type.removingFirst())
         case "2":
-            return (.voidIn, type.removingFirst())
-            /*
-            if let decoded = _decode(type.removingFirst()), let next = decoded.decoded {
-                switch next {
-                case .pointer, .charPtr, .array, .block, .functionPointer:
-                    return (.modified(.out, type: next), type.removingFirst())
-                default:
-                    return (.modified(.in, type: next), type.removingFirst())
-                }
-            }
-            return (decoded: .modified(.in, type: .void), trailing: type.removingFirst())
-             */
+            return (.modified([.in], type: .void), type.removingFirst())
         default:
             break
         }
         return nil
     }
     
-    private static func _decodeModified(_ first: Character, _ type: String) -> Node? {
-        guard let modifier = Modifier(rawValue: first), let content = _decode(type.removingFirst()), let rype = content.decoded else {
+    private static func decodeModified(_ first: Character, _ type: String) -> Node? {
+        guard let modifier = Modifier(rawValue: first),
+              let content = decode(type.removingFirst()),
+              let type = content.decoded else {
             return nil
         }
-        return (.modified(modifier, type: rype), content.trailing)
+        switch type {
+        case .modified(let modifiers, let type):
+            return (.modified([modifier] + modifiers, type: type), content.trailing)
+        default:
+            return (.modified([modifier], type: type), content.trailing)
+        }
     }
 
-    private static func _decodeBitField(_ type: String) -> Node? {
+    private static func decodeBitField(_ type: String) -> Node? {
         guard let _length = type.removingFirst().readInitialDigits(), let length = Int(_length) else { return nil }
         let trailing = type.trailing(after: type.index(type.startIndex, offsetBy: _length.count))
         return (.bitField(width: length), trailing)
     }
     
-    private static func _decodeBlock(_ type: String) -> Node? {
+    private static func decodeBlock(_ type: String) -> Node? {
         let trailing = type.removingFirst(2)
         if trailing.starts(with: "<") {
             guard let (content, trailing) = trailing.firstBracket("<", ">") else { return nil }
-            guard let ret = _decode(content), let retType = ret.decoded, var args = ret.trailing else { return nil }
+            guard let ret = decode(content), let retType = ret.decoded, var args = ret.trailing else { return nil }
             guard args.starts(with: "@?") else { return nil }
             args.removeFirst(2)
             var argTypes: [ObjCType] = []
             while !args.isEmpty {
-                guard let node = _decode(args), let argType = node.decoded else { return nil }
+                guard let node = decode(args), let argType = node.decoded else { return nil }
                 argTypes.append(argType)
                 guard let trailing = node.trailing else { break }
                 args = trailing
@@ -447,19 +441,19 @@ extension ObjCType {
         return (.block(return: nil, args: nil), trailing)
     }
     
-    private static func _decodeObject(_ type: String) -> Node? {
+    private static func decodeObject(_ type: String) -> Node? {
         guard let (name, trailing) = type.extractString(between: "\"", startingAt: type.index(after: type.startIndex)) else { return nil }
         return (.object(name: name), trailing)
     }
 
     // MARK: - Pointer ^
-    private static func _decodePointer(_ type: String) -> Node? {
-        guard let node = _decode(type.removingFirst()), let contentType = node.decoded else { return nil }
+    private static func decodePointer(_ type: String) -> Node? {
+        guard let node = decode(type.removingFirst()), let contentType = node.decoded else { return nil }
         return (.pointer(type: contentType), node.trailing)
     }
 
     // MARK: - Bit Field b
-    private static func _decodeBitField(_ type: String, name: String?) -> (field: ObjCField, trailing: String?)? {
+    private static func decodeBitField(_ type: String, name: String?) -> (field: ObjCField, trailing: String?)? {
         let content = type.removingFirst()
         guard let _length = content.readInitialDigits(), let length = Int(_length) else { return nil }
         let endInex = content.index(content.startIndex, offsetBy: _length.count)
@@ -468,32 +462,32 @@ extension ObjCType {
     }
     
     // MARK: - Array []
-    private static func _decodeArray(_ type: String) -> Node? {
+    private static func decodeArray(_ type: String) -> Node? {
         guard var bracket = type.firstBracket("[", "]") else { return nil }
         let length = bracket.content.readInitialDigits()
         if let _length = length, let length = Int(_length) {
             bracket.content.removeFirst(_length.count)
-            guard let node = _decode(bracket.content), let contentType = node.decoded else { return nil }
+            guard let node = decode(bracket.content), let contentType = node.decoded else { return nil }
             // TODO: `node.trailing` must be empty
             return (.array(type: contentType, size: length), bracket.trailing)
         }
-        guard let node = _decode(bracket.content), let contentType = node.decoded else { return nil }
+        guard let node = decode(bracket.content), let contentType = node.decoded else { return nil }
         // TODO: `node.trailing` must be empty
         return (.array(type: contentType, size: nil), bracket.trailing)
     }
 
     // MARK: - Union ()
-    private static func _decodeUnion(_ type: String) -> Node? {
-        _decodeFields(type, for: .union)
+    private static func decodeUnion(_ type: String) -> Node? {
+        decodeFields(type, for: .union)
     }
 
     // MARK: - Struct {}
-    private static func _decodeStruct(_ type: String) -> Node? {
-        _decodeFields(type, for: .struct)
+    private static func decodeStruct(_ type: String) -> Node? {
+        decodeFields(type, for: .struct)
     }
 
     // MARK: - Union or Struct
-    enum _TypeKind: String {
+    private enum TypeKind: String {
         case `struct`
         case union
         
@@ -504,28 +498,8 @@ extension ObjCType {
             self == .union ? .union(name: name, fields: fields) :  .struct(name: name, fields: fields)
         }
     }
-    
-    private static func _decodeFields(_ type: String, isUnion: Bool) -> Node? {
-        guard var (content, trailing) = isUnion ? type.firstBracket("(", ")") : type.firstBracket("{", "}") else { return nil }
-        guard !content.isEmpty else { return nil }
-        var fields: [ObjCField]?
-        var typeName: String? = content
-        if let equalIndex = content.firstIndex(of: "=") {
-            fields = []
-            typeName = String(content[content.startIndex ..< equalIndex])
-            if typeName == "?" { typeName = nil }
-            var _fields = String(content[content.index(equalIndex, offsetBy: 1) ..< content.endIndex])
-            while !_fields.isEmpty {
-                guard let (field, trailing) = _decodeField(_fields) else { break }
-                fields?.append(field)
-                guard let trailing else { break }
-                _fields = trailing
-            }
-        }
-        return (isUnion ? .union(name: typeName, fields: fields) : .struct(name: typeName, fields: fields), trailing)
-    }
 
-    private static func _decodeFields(_ type: String, for kind: _TypeKind) -> Node? {
+    private static func decodeFields(_ type: String, for kind: TypeKind) -> Node? {
         guard let (content, trailing) = type.firstBracket(kind.open, kind.close) else { return nil }
         guard !content.isEmpty else { return nil }
 
@@ -539,7 +513,7 @@ extension ObjCType {
         var _fields = String(content[content.index(equalIndex, offsetBy: 1) ..< content.endIndex])
         var fields: [ObjCField] = []
         while !_fields.isEmpty {
-            guard let (field, trailing) = _decodeField(_fields) else { break }
+            guard let (field, trailing) = decodeField(_fields) else { break }
             fields.append(field)
             guard let trailing else { break }
             _fields = trailing
@@ -547,20 +521,20 @@ extension ObjCType {
         return (kind.type(name: typeName, fields: fields), trailing)
     }
 
-    private static func _decodeField(_ type: String) -> (field: ObjCField, trailing: String?)? {
+    private static func decodeField(_ type: String) -> (field: ObjCField, trailing: String?)? {
         guard let first = type.first else { return nil }
         switch first {
         case "b":
-            return _decodeBitField(type, name: nil)
+            return decodeBitField(type, name: nil)
         case "\"":
             guard let (name, contentType) = type.extractString(between: #"""#) else { return nil }
-            if contentType.starts(with: "b"), let (field, trailing) = _decodeBitField(contentType, name: name) {
+            if contentType.starts(with: "b"), let (field, trailing) = decodeBitField(contentType, name: name) {
                 return (field, trailing)
-            } else if let node = _decode(contentType), let contentType = node.decoded {
+            } else if let node = decode(contentType), let contentType = node.decoded {
                 return (.init(type: contentType, name: name), node.trailing)
             } else { return nil }
         default:
-            guard let node = _decode(type), let decoded = node.decoded else { return nil }
+            guard let node = decode(type), let decoded = node.decoded else { return nil }
             return (.init(type: decoded),  node.trailing)
         }
     }
@@ -581,10 +555,10 @@ extension ObjCType {
         return decoded(tab: "").components(separatedBy: .newlines).joined(separator: " ")
     }
     
-    private var typeKind: _TypeKind {
+    private var typeKind: TypeKind {
         switch self {
-        case .union: return .union
-        default: return .struct
+        case .union: .union
+        default: .struct
         }
     }
     
@@ -639,7 +613,7 @@ extension ObjCType {
         case .double: return swiftType == Double.self || swiftType == CGFloat.self
         case .longDouble: return swiftType == Double.self
         case .bool: return swiftType == Bool.self || swiftType == ObjCBool.self
-        case .void, .voidConst, .voidIn: return swiftType == Void.self
+        case .void: return swiftType == Void.self
         case .charPtr:
             return swiftType == UnsafePointer<CChar>.self || swiftType == UnsafeMutablePointer<CChar>.self || swiftType == UnsafePointer<Int8>.self || swiftType == UnsafeMutablePointer<Int8>.self
         case .pointer(let type):

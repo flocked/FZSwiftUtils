@@ -164,7 +164,7 @@ extension NSMutableAttributedString {
         setAttributes(attributes, range: range)
     }
     
-    func addObjCDeclarationAttributes(_ declarations: [(line: String, key: NSAttributedString.Key, value: String)]) {
+    func addObjCDeclarationAttributes(_ declarations: [(line: String, key: NSAttributedString.Key, value: Any)]) {
         let text = string as NSString
         var searchLocation = 0
         for declaration in declarations where !declaration.line.isEmpty {

@@ -87,7 +87,7 @@ public struct _AnyObject: Identifiable, CustomStringConvertible {
 }
 
 /// A type that provides methods and properties for `AnyClass`.
-public struct _AnyClass: Identifiable, CustomStringConvertible {
+public struct _AnyClass: Identifiable, CustomStringConvertible, Equatable, Codable, Hashable {
     public let cls: AnyClass
     public init(_ cls: AnyClass) {
         self.cls = cls
@@ -95,6 +95,26 @@ public struct _AnyClass: Identifiable, CustomStringConvertible {
     
     public var id: ObjectIdentifier {
         ObjectIdentifier(cls)
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    public func encode(to encoder: any Encoder) throws {
+       try encoder.encodeSingle(NSStringFromClass(cls))
+    }
+    
+    public init(from decoder: any Decoder) throws {
+        let name = try decoder.decodeSingle(String.self)
+        guard let cls = NSClassFromString(name) else {
+            throw NSError("No class with the name: \(name)")
+        }
+        self.init(cls)
+    }
+    
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.id == rhs.id
     }
     
     public var description: String {
@@ -118,8 +138,8 @@ public struct _AnyClass: Identifiable, CustomStringConvertible {
         return rootSuperclass
     }
     
-    public func info(includeSuperclass: Bool = false) -> ObjCClassInfo {
-        ObjCClassInfo(cls, includeSuperclasses: includeSuperclass)
+    public func info() -> ObjCClassInfo {
+        ObjCClassInfo(cls)
     }
     
     public func getAssociatedValue<V>(_ key: String) -> V? {

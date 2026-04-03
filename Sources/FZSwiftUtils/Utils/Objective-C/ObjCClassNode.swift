@@ -62,7 +62,7 @@ public final class ObjCClassNode {
         roots.reserveCapacity(classes.count)
         for cls in classes {
             guard let node = nodesByClass[cls.id] else { continue }
-            if let superClass = cls.info.superClass, let parent = nodesByClass[superClass] {
+            if let superClass = cls.info._superclass, let parent = nodesByClass[superClass] {
                 parent.subclasses.append(node)
             } else {
                 roots.append(node)

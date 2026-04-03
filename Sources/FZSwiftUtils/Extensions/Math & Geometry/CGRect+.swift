@@ -461,6 +461,10 @@ public extension CGRect {
         offsetBy(dx: dXY, dy: dXY)
     }
     
+    func offsetBy(_ offset: CGPoint) -> CGRect {
+        offsetBy(offset.x, offset.y)
+    }
+    
     /**
      Returns a rectangle that is expanded on the specified edges by the given amount.
 

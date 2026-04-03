@@ -8,6 +8,10 @@
 import Foundation
 import _FZSwiftUtilsObjC
 
+struct AAAA: Hashable {
+    let pointer: Method
+    
+}
 
 /// Objective-C utilities.
 public enum ObjCRuntime {
@@ -242,56 +246,36 @@ public enum ObjCRuntime {
      Returns runtime origin information for the specified method.
      
      - Parameter method: The method to retrive runtime origin information.
-
-     The returned `imagePath` is the path of the Mach-O image that contains the method.
-     The returned `symbolName` is the symbol name associated with the method.
-     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
+     - Returns:
+        - `imagePath`: The path of the Mach-O image that contains the method.
+        - `categoryName`: The Objective-C category name when the symbol represents a category method.
+        - `symbolName`: The symbol name associated with the method.
      */
-    public static func origin(of method: Method) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        let key = ObjCMethodKey(method)
-        if let origin = Cache.methodOrigins[key] {
-            return origin
-        }
-        let origin = origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))
-        Cache.methodOrigins[key] = origin
-        return origin
+    public static func origin(of method: Method) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
+        Cache.methodOrigins[ObjCMethodKey(method), initial: origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))]
     }
     
     /**
      Returns runtime origin information for the specified class.
      
      - Parameter class: The class to retrive runtime origin information.
-
-     The returned `imagePath` is the path of the Mach-O image that contains the class.
-     The returned `symbolName` is the symbol name associated with the class.
-     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
+     - Returns:
+        - `imagePath`: The path of the Mach-O image that contains the class.
+        - `categoryName`: The Objective-C category name when the symbol represents a category method.
+        - `symbolName`: The symbol name associated with the class.
      */
-    public static func origin(of class: AnyClass) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
-        if let origin = Cache.classOrigins[`class`] {
-            return origin
-        }
-        let origin = origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))
-        Cache.classOrigins[`class`] = origin
-        return origin
+    public static func origin(of class: AnyClass) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
+        Cache.classOrigins[ObjectIdentifier(`class`), initial: origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))]
     }
     
-    /**
-     Returns runtime origin information for the specified address.
-     
-     - Parameter pointer: The address of a class object or method implementation.
-     
-     The returned `imagePath` is the path of the Mach-O image that contains the address.
-     The returned `symbolName` is the symbol name associated with the address.
-     The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
-     */
-    public static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, symbolName: String?, categoryName: String?) {
+    private static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
         var info = Dl_info()
         let result = dladdr(pointer, &info)
         guard result != 0 else {
             return (nil, nil, nil)
         }
-        let imagePath = info.dli_fname.map { String(cString: $0) }
-        let symbolName = info.dli_sname.map { String(cString: $0) }
+        let imagePath = info.dli_fname.map { $0.string }
+        let symbolName = info.dli_sname.map { $0.string }
         let categoryName: String?
         if let symbolName, let start = symbolName.firstIndex(of: "("), let end = symbolName.firstIndex(of: ")"), start < end {
             categoryName = String(symbolName[symbolName.index(after: start)..<end])
@@ -470,10 +454,8 @@ fileprivate extension ObjCRuntime {
             return _classNodes
         }
         static var _classNodes: [ObjCClassNode] = []
-        
-        static var methodOrigins: [ObjCMethodKey: (imagePath: String?, symbolName: String?, categoryName: String?)] = [:]
-        
-        static var classOrigins: [ObjectIdentifier: (imagePath: String?, symbolName: String?, categoryName: String?)] = [:]
+        static var methodOrigins: [ObjCMethodKey: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
+        static var classOrigins: [ObjectIdentifier: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
 
                 
         static func reset() {

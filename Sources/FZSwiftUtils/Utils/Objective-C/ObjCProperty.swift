@@ -33,6 +33,17 @@ public struct ObjCProperty {
     public func attributeValue(for name: String) -> String? {
         property_copyAttributeValue(property, name)?.stringAndFree()
     }
+    
+    /// The name of the getter method.
+    public var getterName: String {
+        attributeValue(for: "G") ?? name
+    }
+    
+    /// The name of the setter method.
+    public var setterName: String? {
+        guard attributeValue(for: "R") == nil else { return nil }
+        return attributeValue(for: "S") ?? "set\(name.uppercasedFirst()):"
+    }
         
     /// An attribute of a property.
     public struct Attribute {

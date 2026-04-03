@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents information about an Objective-C instance variable.
-public struct ObjCIvarInfo: Sendable, Equatable, Codable {
+public struct ObjCIvarInfo: Sendable, Equatable, Codable, Hashable {
     /// The name of the instance variable.
     public let name: String
     /// The encoded type of the instance variable.

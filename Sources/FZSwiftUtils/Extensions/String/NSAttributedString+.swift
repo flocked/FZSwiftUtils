@@ -732,7 +732,7 @@ extension NSAttributedString {
      */
     @_disfavoredOverload
     public func rtf(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
-        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.rtf], strategy: .overwrite))
+        try data(from: range, documentAttributes: documentAttributes.merging([.documentType: DocumentType.rtf], strategy: .overwrite))
     }
     
     /**
@@ -757,7 +757,7 @@ extension NSAttributedString {
      */
     @_disfavoredOverload
     public func rtfd(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
-        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.rtfd], strategy: .overwrite))
+        try data(from: range, documentAttributes: documentAttributes.merging([.documentType: DocumentType.rtfd], strategy: .overwrite))
     }
     
     /**
@@ -781,7 +781,7 @@ extension NSAttributedString {
      - Returns: A data object containing the html containing the characters and attributes.
      */
     public func html(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
-        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.html], strategy: .overwrite))
+        try data(from: range, documentAttributes: documentAttributes.merging([.documentType: DocumentType.html], strategy: .overwrite))
     }
     
     /**
@@ -806,7 +806,7 @@ extension NSAttributedString {
      */
     @_disfavoredOverload
     public func docFormat(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
-        try data(from: range, documentAttributes: documentAttributes.merged(with: [.documentType: DocumentType.docFormat], strategy: .overwrite))
+        try data(from: range, documentAttributes: documentAttributes.merging([.documentType: DocumentType.docFormat], strategy: .overwrite))
     }
     
     /**

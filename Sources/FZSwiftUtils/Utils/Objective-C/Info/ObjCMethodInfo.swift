@@ -8,14 +8,38 @@
 
 import Foundation
 
+extension ObjCPropertyInfo {
+    
+}
+
 /// Represents information about an Objective-C method.
-public struct ObjCMethodInfo: Sendable, Equatable, Codable {
+public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
     /// The name of the method.
     public let name: String
-    /// The type information for the return value and parameters of the method.
-    public let type: ObjCMethodSignature
+    /// The type information for the arguments and return value of the method.
+    public let signature: ObjCMethodSignature
     /// A Boolean value indicating whatever the method is a class method.
     public let isClassMethod: Bool
+    
+    /*
+    var className: String?
+    
+    static var originCache: [String: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
+    
+    var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
+        guard let clsName = className else { return (nil,nil,nil)  }
+        let key = clsName+name
+        if let cache = Self.originCache[key] {
+            return cache
+        } else if let cls = NSClassFromString(clsName), let method = (isClassMethod ? class_getClassMethod(cls, .string(name)) : class_getInstanceMethod(cls, .string(name))) {
+            let origin = ObjCRuntime.origin(of: method)
+            Self.originCache[key] = origin
+            return origin
+        }
+        Self.originCache[key] = (nil, nil, nil)
+        return (nil, nil, nil)
+    }
+     */
         
     /**
      Initializes a new instance of `ObjCMethodInfo`.
@@ -27,7 +51,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
      */
     public init(name: String, typeEncoding: String, isClassMethod: Bool) {
         self.name = name
-        self.type = ObjCMethodSignature(typeEncoding)
+        self.signature = ObjCMethodSignature(typeEncoding)
         self.isClassMethod = isClassMethod
     }
 
@@ -59,12 +83,12 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable {
 extension ObjCMethodInfo {
     /// The argument types of the method.
     public var argumentTypes: [ObjCType] {
-        type.arguments.dropFirst(2).map({ $0.type })
+        signature.arguments.dropFirst(2).map({ $0.type })
     }
     
     /// The return type of the object.
     public var returnType: ObjCType {
-        type.returnValue.type
+        signature.returnValue.type
     }
 }
 
@@ -91,7 +115,7 @@ extension ObjCMethodInfo: CustomStringConvertible {
         }
         result += ";"
         if includeTypeEncoding {
-            result += " // \(type.encoded)"
+            result += " // \(signature.encoded)"
         }
         return result
     }

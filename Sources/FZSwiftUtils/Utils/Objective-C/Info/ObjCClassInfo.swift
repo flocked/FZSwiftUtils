@@ -14,23 +14,28 @@ import UIKit
 #endif
 
 /// Represents information about an Objective-C class.
-public struct ObjCClassInfo: Sendable {
+public struct ObjCClassInfo: Sendable, Equatable {
     /// The name of the class.
     public let name: String
+    
     /// The version of the class.
     public let version: Int32
-    /// The path of the dynamic library / framework the class originated from.
+    
+    /// The path of the dynamic library the class originated from.
     public let imagePath: String?
 
     /// The size of instances of the class.
     public let instanceSize: Int
-
-    /// The super class of the class.
-    public let superClass: AnyClass?
     
-    /// The class information of the super class.
-    public var superClassInfo: ObjCClassInfo? {
-        superClass.map({ ObjCClassInfo($0) })
+    /// The superclass of the class.
+    public var superclass: ObjCClassInfo? {
+        _superclass.map({ ObjCClassInfo($0) })
+    }
+    let _superclass: AnyClass?
+    
+    /// The superclasses of the class.
+    public var superclasses: [ObjCClassInfo] {
+        Array(first: superclass, next: { $0.superclass })
     }
 
     /// The protocols to which the class conforms.
@@ -41,6 +46,7 @@ public struct ObjCClassInfo: Sendable {
 
     /// The class properties held by the class.
     public let classProperties: [ObjCPropertyInfo]
+    
     /// The instance properties held by the class.
     public let properties: [ObjCPropertyInfo]
 
@@ -49,6 +55,22 @@ public struct ObjCClassInfo: Sendable {
     /// The instance methods held by the class.
     public let methods: [ObjCMethodInfo]
     
+    /*
+    static var originCache: [String: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
+    
+    public lazy var origin: (imagePath: String?, categoryName: String?, symbolName: String?) = {
+        if let cache = Self.originCache[name] {
+            return cache
+        } else if let cls = NSClassFromString(name) {
+            let origin = ObjCRuntime.origin(of: cls)
+            Self.originCache[name] = origin
+            return origin
+        }
+        Self.originCache[name] = (nil,nil,nil)
+        return (nil,nil,nil)
+    }()
+     */
+
     /**
      Initializes a new instance of `ObjCClassInfo`.
 
@@ -57,7 +79,7 @@ public struct ObjCClassInfo: Sendable {
        - version: Version of the class.
        - imagePath: Path to the dynamic library the class originated from.
        - instanceSize: Size of instances of the class.
-       - superClassName: Superclass name of the class.
+       - superclass: The superclass of the class.
        - protocols: List of protocols to which the class conforms.
        - ivars: List of instance variables held by the class.
        - classProperties: List of class properties held by the class.
@@ -70,7 +92,7 @@ public struct ObjCClassInfo: Sendable {
         version: Int32,
         imagePath: String?,
         instanceSize: Int,
-        superClass: AnyClass?,
+        superclass: AnyClass?,
         protocols: [ObjCProtocolInfo],
         ivars: [ObjCIvarInfo],
         classProperties: [ObjCPropertyInfo],
@@ -82,7 +104,7 @@ public struct ObjCClassInfo: Sendable {
         self.version = version
         self.imagePath = imagePath
         self.instanceSize = instanceSize
-        self.superClass = superClass
+        self._superclass = superclass
         self.protocols = protocols
         self.ivars = ivars
         self.classProperties = classProperties
@@ -99,25 +121,44 @@ public struct ObjCClassInfo: Sendable {
         - includeSuperclasses: A Boolean value indicating whether to include properties, methods, protocols and ivars for the superclasses of `cls`.
         - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
      */
-    public init(_ class: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) {
-        let key = Key(`class`, includeSuperclasses, includeInheritedProtocols)
-        if let info = Self.cache[key] {
+    public init(_ class: AnyClass) {
+        if let info = Self.cache[`class`] {
             self = info
         } else {
+           /*
+            
+            let objcClass = ObjCClass(`class`)
+            let methods = objcClass.methods()
+            let objcMethods = methods.compactMap({ ObjCMethodInfo($0)})
+            let methodsByName = Dictionary(methods.map({ (key: method_getName($0).string, value: $0)}), retainLastOccurences: false)
+            let classMethods = objcClass.methods()
+            let classMethodsByName = Dictionary(classMethods.map({ (key: method_getName($0).string, value: $0)}), retainLastOccurences: false)
+            let objcClassMethods = classMethods.compactMap({ ObjCMethodInfo($0) })
+            
+            
+            let objcProperties = Self.properties(of: `class`)
+            for property in objcProperties {
+                let getterMethod = methodsByName[property.getterName ?? property.name]
+                var setterMethod: Method?
+                if let setterName = property.setter?.string {
+                    setterMethod = methodsByName[setterName]
+                }
+            }
+            */
             self.init(
-                name: NSStringFromClass(`class`),
+                name: class_getName(`class`).string,
                 version: class_getVersion(`class`),
-                imagePath: class_getImageName(`class`).flatMap({ String(cString: $0) }),
+                imagePath: class_getImageName(`class`).map({ $0.string }),
                 instanceSize: class_getInstanceSize(`class`),
-                superClass: class_getSuperclass(`class`),
-                protocols: Self.protocols(of: `class`, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols),
-                ivars: Self.ivars(of: `class`, includeSuperclasses: includeSuperclasses),
-                classProperties: Self.properties(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
-                properties: Self.properties(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses),
-                classMethods: Self.methods(of: `class`, isInstance: false, includeSuperclasses: includeSuperclasses),
-                methods: Self.methods(of: `class`, isInstance: true, includeSuperclasses: includeSuperclasses)
+                superclass: class_getSuperclass(`class`),
+                protocols: Self.protocols(of: `class`),
+                ivars: Self.ivars(of: `class`),
+                classProperties: Self.classProperties(of: `class`),
+                properties: Self.properties(of: `class`),
+                classMethods: Self.classMethods(of: `class`),
+                methods: Self.methods(of: `class`)
             )
-            Self.cache[key] = self
+            Self.cache[`class`] = self
         }
     }
     
@@ -130,237 +171,18 @@ public struct ObjCClassInfo: Sendable {
         - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of the class.
      - Returns: The class info, or `nil` if there isn't a class with the specified name.
      */
-    public init?(_ className: String, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) {
+    public init?(_ className: String) {
         guard let cls = NSClassFromString(className) else { return nil }
-        self.init(cls, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
+        self.init(cls)
     }
     
-    private struct Key: Hashable {
-        let id: ObjectIdentifier
-        let includeSuperclasses: Bool
-        let includeInheritedProtocols: Bool
-        init(_ cls: AnyClass, _ includeSuperclasses: Bool, _ includeInheritedProtocols: Bool) {
-            self.id = ObjectIdentifier(cls)
-            self.includeSuperclasses = includeSuperclasses
-            self.includeInheritedProtocols = includeInheritedProtocols
-        }
-    }
     
-    private static var cache: SynchronizedDictionary<Key, Self> = [:]
+    private static var methods: SynchronizedDictionary<String, [String: Method]> = [:]
+    private static var classMethods: SynchronizedDictionary<String, [String: Method]> = [:]
+    private static var cache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
 }
 
-extension ObjCClassInfo: CustomStringConvertible, Equatable {
-    /// Options for the header string.
-    public struct HeaderStringOptions: OptionSet {
-        /**
-         Properties include attributes that are normally implicit.
-                  
-         This adds attributes that Objective-C omits by default:
-         - `readwrite` for writable properties
-         - `atomic` for properties that are not `nonatomic`
-         
-         For example:
-         
-         ```objc
-         @property(readWrite, atomic) CGSize itemSize;
-         ```
-         */
-        public static let addImplicitPropertyAttributes = Self(rawValue: 1 << 0)
-        
-        /**
-         Include inline comments for properties implemented using `@dynamic` and/or `@synthesize`.
-                  
-         For example:
-
-         ```objc
-         @property BOOL usesAutomaticRowHeights; // @dynamic usesAutomaticRowHeights
-         ```
-         */
-        public static let addPropertyAttributesComments = Self(rawValue: 1 << 1)
-        
-        /// Adds type encoding comments to methods.
-        public static let addMethodTypeEncodingComments = Self(rawValue: 1 << 5)
-        
-        /// Groups methods by library and category and add comments for each.
-        public static let groupMethodsByOrigin = Self(rawValue: 1 << 2)
-        
-        /**
-         Includes methods defined in images other than the class's primary image.
-         
-         This exposes methods implemented in linked frameworks or libraries.
-         */
-        public static let includeMethodsFromOtherImages = Self(rawValue: 1 << 3)
-        
-        /// Includes methods declared in Objective-C categories.
-        public static let includeCategoryMethods = Self(rawValue: 1 << 4)
-        
-        /// Strips methods from the header that are synthesized from properties.
-        public static let stripSynthesizedMethods = Self(rawValue: 1 << 6)
-        
-        /// Strips Ivars from the header that are synthesized from properties.
-        public static let stripSynthesizedIvars = Self(rawValue: 1 << 10)
-        
-        /// Strips methods and properties from the header that are overrides from the superclass.
-        public static let stripOverrides = Self(rawValue: 1 << 11)
-        
-        /// Strips methods and properties from the header that correspond to conforming protocols.
-        public static let stripProtocolConformance = Self(rawValue: 1 << 9)
-        
-        /// Strips methods and properties from the are public.
-        public static let stripPublic = Self(rawValue: 1 << 7)
-        
-        /// Strips Dtor method from the header string.
-        public static let stripDtorMethod = Self(rawValue: 1 << 12)
-        
-        /// Strips CTor method from the header string.
-        public static let stripCtorMethod = Self(rawValue: 1 << 13)
-
-                
-
-        /*
-        /// Include instance variables of the class.
-        public static let includeIvars = Self(rawValue: 1 << 6)
-        /// Include protocols to which the class conforms.
-        public static let includeProtocols = Self(rawValue: 1 << 7)
-       /// Include class properties of the class.
-        public static let includeClassProperties = Self(rawValue: 1 << 8)
-        /// Include instance properties of the class.
-        public static let includeInstanceProperties = Self(rawValue: 1 << 9)
-        /// Include class and instance properties of the class.
-        public static let includeProperties: Self = [.includeClassProperties, .includeInstanceProperties]
-        /// Include class methods of the class.
-        public static let includeClassMethods = Self(rawValue: 1 << 10)
-        /// Include instance methods of the class.
-        public static let includeInstanceMethods = Self(rawValue: 1 << 11)
-        /// Include class and instance methods of the class.
-        public static let includeMethods: Self = [.includeClassMethods, .includeInstanceMethods]
-        */
-        
-        public let rawValue: UInt32
-        
-        public init(rawValue: UInt32) {
-            self.rawValue = rawValue
-        }
-    }
-    
-    /// Returns a string representing the class in a Objective-C header.
-    public var headerString: String {
-        headerString()
-    }
-    
-    /// Returns a string representing the class in a Objective-C header.
-    public func headerString(options: HeaderStringOptions = [.groupMethodsByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .addPropertyAttributesComments]) -> String {
-        var stripProperties: Set<String> = []
-        var stripClassProperties: Set<String> = []
-        var stripMethods: Set<String> = []
-        var stripClassMethods: Set<String> = []
-        var stripIvars: Set<String> = []
-        if options.contains(.stripCtorMethod) {
-            stripMethods.insert(".cxx_construct")
-        }
-        if options.contains(.stripDtorMethod){
-            stripMethods.insert(".cxx_destruct")
-        }
-        if options.contains(.stripPublic), let info = ObjCHeader.getClass(named: name) {
-            stripMethods += info.methods.map({$0.name})
-            stripClassMethods += info.classMethods.map({$0.name})
-            stripProperties += info.properties.map({$0.name})
-            stripClassProperties += info.classProperties.map({$0.name})
-        }
-        if options.contains(.stripOverrides) {
-            var superclass = superClassInfo
-            while let info = superclass {
-                stripMethods += info.methods.map({$0.name})
-                stripClassMethods += info.classMethods.map({$0.name})
-                stripProperties += info.properties.map({$0.name})
-                stripClassProperties += info.classProperties.map({$0.name})
-                superclass = info.superClassInfo
-            }
-        }
-        if options.contains(.stripSynthesizedMethods) {
-            stripMethods += properties.flatMap({ [$0.getter.string] + $0.setter?.string})
-            stripClassMethods += classProperties.flatMap({ [$0.getter.string] + $0.setter?.string})
-        }
-        if options.contains(.stripSynthesizedIvars) {
-            stripIvars += properties.compactMap({$0.ivarName})
-        }
-        if options.contains(.stripProtocolConformance) {
-            var protocols = allProtocols
-            protocols = (protocols + protocols.flatMap({$0.allProtocols})).uniqued(by: \.name)
-            for info in protocols {
-                stripMethods += info.methods.map({$0.name})
-                stripClassMethods += info.classMethods.map({$0.name})
-                stripProperties += info.properties.map({$0.name})
-                stripClassProperties += info.classProperties.map({$0.name})
-            }
-        }
-        let properties = properties.filter({ !stripProperties.contains($0.name)})
-        let classProperties = classProperties.filter({ !stripClassProperties.contains($0.name)})
-        let methods = methods.filter({ !stripMethods.contains($0.name)})
-        let classMethods = classMethods.filter({ !stripClassMethods.contains($0.name)})
-        
-        var decl = "@interface \(name)"
-        if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
-            decl = "// Image: \(imagePath)\n\n" + decl
-        }
-        
-        if let superClass {
-            decl += " : \(NSStringFromClass(superClass))"
-        }
-        if !protocols.isEmpty {
-            decl += " <\(protocols.map(\.name).joined(separator: ", "))>"
-        }
-
-        var lines = [decl]
-        if !ivars.isEmpty {
-            lines[0] += " {"
-            lines += ivars.map { $0.headerString.components(separatedBy: .newlines).map { "    \($0)" }.joined(separator: "\n") }
-            lines += "}"
-        }
-        if !classProperties.isEmpty {
-            lines += "" + classProperties.map({$0.headerString(includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes), includeComments: options.contains(.addPropertyAttributesComments))})
-        }
-        if !properties.isEmpty {
-            lines += "" + properties.map({$0.headerString(includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes), includeComments: options.contains(.addPropertyAttributesComments))})
-        }
-        lines += methodHeaderLines(for: methods, classMethods: classMethods, options: options)
-        lines += ["", "@end"]
-        return lines.joined(separator: "\n")
-    }
-    
-    /**
-    Returns an attributed string representing the class in a Objective-C header.
-          
-     - Parameters:
-        - options: The header string options.
-        - font: The font of the attributed string, or `nil` to use the default font.
-     */
-    public func attributedHeaderString(options: HeaderStringOptions = [], font: NSUIFont? = nil) -> NSAttributedString {
-        let headerString = headerString(options: options)
-        let attributed = NSMutableAttributedString(
-            attributedString: .objCHeader(for: headerString, protocols: protocols.map(\.name), font: font)
-        )
-        let propertyOptions = options.contains(.addImplicitPropertyAttributes)
-        let propertyComments = options.contains(.addPropertyAttributesComments)
-        let methodTypeEncodings = options.contains(.addMethodTypeEncodingComments)
-        var declarations: [(line: String, key: NSAttributedString.Key, value: String)] = []
-        declarations += ivars.map({ ($0.headerString, .objcIvar, $0.name) })
-        declarations += classProperties.map({
-            ($0.headerString(includeDefaultAttributes: propertyOptions, includeComments: propertyComments), .objcClassProperty, $0.name)
-        })
-        declarations += properties.map({
-            ($0.headerString(includeDefaultAttributes: propertyOptions, includeComments: propertyComments), .objcProperty, $0.name)
-        })
-        declarations += classMethods.map({
-            ($0.headerString(includeTypeEncoding: methodTypeEncodings), .objcClassMethod, $0.name)
-        })
-        declarations += methods.map({
-            ($0.headerString(includeTypeEncoding: methodTypeEncodings), .objcMethod, $0.name)
-        })
-        attributed.addObjCDeclarationAttributes(declarations)
-        return attributed
-    }
-    
+extension ObjCClassInfo: CustomStringConvertible {
     public var description: String {
         headerString
     }
@@ -392,37 +214,37 @@ extension ObjCClassInfo: CustomStringConvertible, Equatable {
 extension ObjCClassInfo {
     /// Returns the instance property with the specified name.
     public func property(named name: String) -> ObjCPropertyInfo? {
-        properties.first(where: { $0.name == name }) ?? superClassInfo?.property(named: name)
+        properties.first(where: { $0.name == name }) ?? superclass?.property(named: name)
     }
     
     /// Returns the class property with the specified name.
     public func classProperty(named name: String) -> ObjCPropertyInfo? {
-        classProperties.first(where: { $0.name == name }) ?? superClassInfo?.classProperty(named: name)
+        classProperties.first(where: { $0.name == name }) ?? superclass?.classProperty(named: name)
     }
     
     /// Returns the instance property for the specified getter or setter selector.
     public func property(for selector: Selector) -> ObjCPropertyInfo?  {
-        properties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superClassInfo?.property(for: selector)
+        properties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superclass?.property(for: selector)
     }
     
     /// Returns the class property for the specified getter or setter selector.
     public func classProperty(for selector: Selector) -> ObjCPropertyInfo?  {
-        classProperties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superClassInfo?.classProperty(for: selector)
+        classProperties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superclass?.classProperty(for: selector)
     }
     
     /// Returns the instance method with the specified name.
     public func method(named name: String) -> ObjCMethodInfo? {
-        methods.first(where: { $0.name == name }) ?? superClassInfo?.method(named: name)
+        methods.first(where: { $0.name == name }) ?? superclass?.method(named: name)
     }
     
     /// Returns the class method with the specified name.
     public func classMethod(named name: String) -> ObjCMethodInfo? {
-        classMethods.first(where: { $0.name == name }) ?? superClassInfo?.classMethod(named: name)
+        classMethods.first(where: { $0.name == name }) ?? superclass?.classMethod(named: name)
     }
     
     /// Returns the instance variable with the specified name.
     public func ivar(named name: String) -> ObjCIvarInfo? {
-        ivars.first(where: { $0.name == name }) ?? superClassInfo?.ivar(named: name)
+        ivars.first(where: { $0.name == name }) ?? superclass?.ivar(named: name)
     }
     
     /// Returns all instance properties held by the class and it's superclasses.
@@ -447,7 +269,7 @@ extension ObjCClassInfo {
     
     /// Returns all protocols to which the class and it's superclasses conform to.
     public var allProtocols: [ObjCProtocolInfo] {
-        allClasses.flatMap({$0.protocols}).uniqued(by: \.name)
+        return allClasses.flatMap({$0.allProtocols}).uniqued(by: \.name)
     }
     
     /// Returns the Objective-C type of the instance prperty at the specified key path.
@@ -491,13 +313,13 @@ extension ObjCClassInfo {
     }
     
     private var allClasses: [ObjCClassInfo] {
-        Array(first: self, next: { $0.superClass.flatMap({ $0 != NSObject.self ? ObjCClassInfo($0) : nil }) })
+        Array(first: self, next: { $0._superclass.flatMap({ $0 != NSObject.self ? ObjCClassInfo($0) : nil }) })
     }
 }
 
 extension ObjCClassInfo {
     /**
-     Returns tthe protocols adopted by the specified class.
+     Returns information about tthe protocols adopted by the specified class.
 
      - Parameters:
        - cls: The class for which the protocols are to be obtained.
@@ -510,24 +332,22 @@ extension ObjCClassInfo {
         do {
             return try ObjCRuntime.catchException {
                 var visited = Set<ObjectIdentifier>()
+                var count: UInt32 = 0
                 func check(_ proto: Protocol) {
                     guard visited.insert(ObjectIdentifier(proto)).inserted else { return }
                     protocols += ObjCProtocolInfo(proto)
                     guard includeInheritedProtocols else { return }
-                    var count: UInt32 = 0
                     guard let list = protocol_copyProtocolList(proto, &count) else { return }
                     defer { free(UnsafeMutableRawPointer(list)) }
-                    for i in 0..<Int(count) {
-                        check(list[i])
+                    for prot in list.buffer(count: count) {
+                        check(prot)
                     }
                 }
-                
                 for cls in classes(for: cls, isInstance: true, includeSuperclasses: includeSuperclasses) {
-                    var count: UInt32 = 0
                     guard let list = class_copyProtocolList(cls, &count) else { continue }
                     defer { free(UnsafeMutableRawPointer(list)) }
-                    for i in 0..<Int(count) {
-                        check(list[i])
+                    for proto in list.buffer(count: count) {
+                        check(proto)
                     }
                 }
                 return protocols.sorted(by: \.name)
@@ -538,26 +358,25 @@ extension ObjCClassInfo {
     }
 
     /**
-     Returns the instance or class variables of the specified class.
+     Returns information about the instance variables of the specified class.
 
      - Parameters:
         - cls: The class for which instance variables are to be obtained.
-        - isInstance: A Boolean value indicating whether to return instance variables (`true`) or class variables (`false`).
         - includeSuperclasses: A Boolean value indicating whether to include variables for the superclasses of `cls`.
      - Returns: An array of `ObjCIvarInfo` objects representing the instance variables of the class.
      */
-    public static func ivars(of cls: AnyClass, isInstance: Bool = true, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
+    public static func ivars(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
         do {
             return try ObjCRuntime.catchException {
                 var ivars: [ObjCIvarInfo] = []
                 var seen: Set<String> = ["_?"]
-                for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
+                for cls in classes(for: cls, isInstance: true, includeSuperclasses: includeSuperclasses) {
                     var count: UInt32 = 0
                     guard let list = class_copyIvarList(cls, &count) else { continue }
                     defer { free(list) }
-                    ivars += list.buffer(count: count).compactMap {
-                        guard let name = ivar_getName($0)?.string, seen.insert(name).inserted else { return nil }
-                        return ObjCIvarInfo($0)
+                    for ivar in list.buffer(count: count) {
+                        guard let name = ivar_getName(ivar)?.string, seen.insert(name).inserted else { continue }
+                        ivars += ObjCIvarInfo(ivar)
                     }
                 }
                 return ivars.sorted(by: \.name)
@@ -568,15 +387,30 @@ extension ObjCClassInfo {
     }
     
     /**
-     Returns the instance or class properties of the specified class.
+     Returns information about the instance properties of the specified class.
 
      - Parameters:
         - cls: The class for which properties are to be obtained.
-        - isInstance: A Boolean value indicating whether to return instance properties (`true`) or class properties (`false`).
         - includeSuperclasses: A Boolean value indicating whether to include properties for the superclasses of `cls`.
-     - Returns: An array of `ObjCPropertyInfo` objects representing the properties of the class.
+     - Returns: An array of `ObjCPropertyInfo` objects representing the instance properties of the class.
      */
-    public static func properties(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
+    public static func properties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
+        properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+    }
+    
+    /**
+     Returns information about the class properties of the specified class.
+
+     - Parameters:
+        - cls: The class for which properties are to be obtained.
+        - includeSuperclasses: A Boolean value indicating whether to include properties for the superclasses of `cls`.
+     - Returns: An array of `ObjCPropertyInfo` objects representing the class properties of the class.
+     */
+    public static func classProperties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
+        properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+    }
+    
+    private static func properties(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
         do {
             return try ObjCRuntime.catchException {
                 var properties: [ObjCPropertyInfo] = []
@@ -585,7 +419,9 @@ extension ObjCClassInfo {
                     var count: UInt32 = 0
                     guard let list = class_copyPropertyList(cls, &count) else { continue }
                     defer { free(list) }
-                    properties += list.buffer(count: count).compactMap { seen.insert(property_getName($0).string).inserted ? ObjCPropertyInfo($0, isClassProperty: !isInstance) : nil
+                    for property in list.buffer(count: count) {
+                        guard seen.insert(property_getName(property).string).inserted else { continue }
+                        properties += ObjCPropertyInfo(property, isClassProperty: !isInstance)
                     }
                 }
                 return properties.sorted(by: \.name)
@@ -596,15 +432,30 @@ extension ObjCClassInfo {
     }
     
     /**
-     Returns the instance or class methods of the specified class.
+     Returns information about the instance methods of the specified class.
 
      - Parameters:
         - cls: The class for which methods are to be obtained.
-        - isInstance: A Boolean value indicating whether to return instance methods (`true`) or class methods (`false`).
         - includeSuperclasses: A Boolean value indicating whether to include methods for the superclasses of `cls`.
-     - Returns: An array of `ObjCMethodInfo` objects representing the methods of the class.
+     - Returns: An array of `ObjCMethodInfo` objects representing the instance methods of the class.
      */
-    public static func methods(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
+    public static func methods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
+        methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+    }
+    
+    /**
+     Returns information about the class methods of the specified class.
+
+     - Parameters:
+        - cls: The class for which methods are to be obtained.
+        - includeSuperclasses: A Boolean value indicating whether to include methods for the superclasses of `cls`.
+     - Returns: An array of `ObjCMethodInfo` objects representing the class methods of the class.
+     */
+    public static func classMethods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
+        methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+    }
+    
+    private static func methods(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
         do {
             return try ObjCRuntime.catchException {
                 var methods: [ObjCMethodInfo] = []
@@ -613,8 +464,10 @@ extension ObjCClassInfo {
                     var count: UInt32 = 0
                     guard let list = class_copyMethodList(cls, &count) else { continue }
                     defer { free(list) }
-                    methods += list.buffer(count: count).compactMap({
-                        seen.insert(method_getName($0)).inserted ? ObjCMethodInfo($0, isClassMethod: !isInstance) : nil })
+                    for method in list.buffer(count: count) {
+                        guard seen.insert(method_getName(method)).inserted else { continue }
+                        methods += ObjCMethodInfo(method, isClassMethod: !isInstance)
+                    }
                 }
                 return methods.sorted(by: \.name)
             }
@@ -664,456 +517,8 @@ extension ObjCClassInfo {
 }
 
 extension NSObjectProtocol where Self: NSObject {
-    /**
-     Returns information of the class.
-     
-     - Parameters:
-        - includeSuperclasses: A Boolean value indicating whether to include properties, methods, protocols and ivars for the superclasses of the class.
-        - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of the class.
-     */
-    public static func classInfo(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> ObjCClassInfo {
-        ObjCClassInfo(self, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
-    }
-    
-    /**
-     Returns tthe protocols adopted by the the class.
-
-     - Parameters:
-       - includeSuperclasses: A Boolean value indicating whether to include protocols adopted by the superclasses of the class.
-       - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of the class.
-     - Returns: An array of `ObjCProtocolInfo` objects representing the protocols adopted by the class.
-     */
-    public static func protocolInfo(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [ObjCProtocolInfo] {
-        ObjCClassInfo.protocols(of: self, includeSuperclasses: includeSuperclasses, includeInheritedProtocols: includeInheritedProtocols)
-    }
-
-    /**
-     Returns the instance or class variables of the the class.
-
-     - Parameters:
-        - isInstance: A Boolean value indicating whether to return instance variables (`true`) or class variables (`false`).
-        - includeSuperclasses: A Boolean value indicating whether to include variables for the superclasses of the class.
-     - Returns: An array of `ObjCIvarInfo` objects representing the instance variables of the class.
-     */
-    public static func ivarInfo(isInstance: Bool = true, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
-        ObjCClassInfo.ivars(of: self, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
-    }
-    
-    /**
-     Returns the instance or class properties of the the class.
-
-     - Parameters:
-        - isInstance: A Boolean value indicating whether to return instance properties (`true`) or class properties (`false`).
-        - includeSuperclasses: A Boolean value indicating whether to include properties for the superclasses of the class.
-     - Returns: An array of `ObjCPropertyInfo` objects representing the properties of the class.
-     */
-    public static func propertyInfo(isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
-        ObjCClassInfo.properties(of: self, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
-    }
-    
-    /**
-     Returns the instance or class methods of the the class.
-
-     - Parameters:
-        - isInstance: A Boolean value indicating whether to return instance methods (`true`) or class methods (`false`).
-        - includeSuperclasses: A Boolean value indicating whether to include methods for the superclasses of the class.
-     - Returns: An array of `ObjCMethodInfo` objects representing the methods of the class.
-     */
-    public static func methodInfo(isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
-        ObjCClassInfo.methods(of: self, isInstance: isInstance, includeSuperclasses: includeSuperclasses)
-    }
-}
-
-fileprivate extension ObjCClassInfo {
-    func methodHeaderLines(for methods: [ObjCMethodInfo], classMethods: [ObjCMethodInfo], options: HeaderStringOptions) -> [String] {
-        var lines: [String] = []
-        let addMethodTypeEncodingComments = options.contains(.addMethodTypeEncodingComments)
-        guard options.contains(.groupMethodsByOrigin) || !options.contains(.includeCategoryMethods) || !options.contains(.includeMethodsFromOtherImages), var sections = methodHeaderSections(for: methods, classMethods) else {
-            if !classMethods.isEmpty {
-                lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
-            }
-            if !methods.isEmpty {
-                lines += "" + methods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
-            }
-            return lines
-        }
-        
-        sections = options.contains(.includeMethodsFromOtherImages) ? sections : sections.filter({ $0.imagePath == self.imagePath ?? "" })
-        sections = options.contains(.includeCategoryMethods) ? sections : sections.filter({ $0.categoryName.isEmpty })
-        
-        if !options.contains(.groupMethodsByOrigin) {
-            let classMethods = sections.flatMap({$0.classMethods}).sorted(by: \.name)
-            if !classMethods.isEmpty {
-                lines += "" + classMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
-            }
-            let instanceMethods = sections.flatMap({$0.instanceMethods}).sorted(by: \.name)
-            if !instanceMethods.isEmpty {
-                lines += "" + instanceMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
-            }
-            return lines
-        }
-        
-        let hasMethodsFromMoreThanOneImage: Bool = {
-            guard let firstImagePath = sections.first?.imagePath else { return false }
-            return sections.contains { $0.imagePath != firstImagePath }
-        }()
-        var imagePath: String?
-        for (index, section) in sections.enumerated() {
-            if index > 0 {
-                lines += ""
-            }
-            if hasMethodsFromMoreThanOneImage, imagePath != section.imagePath {
-                imagePath = section.imagePath
-                lines += "// Image: \(section.imagePath)"
-                lines += ""
-            }
-            if !section.categoryName.isEmpty {
-                lines += "// \(name) (\(section.categoryName))"
-                lines += ""
-            }
-            lines += section.classMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
-            if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
-                lines += ""
-            }
-            lines += section.instanceMethods.map({$0.headerString(includeTypeEncoding: addMethodTypeEncodingComments)})
-        }
-        return !lines.isEmpty ? "" + lines : lines
-    }
-    
-    func methodHeaderSections(for methods: [ObjCMethodInfo], _ classMethods: [ObjCMethodInfo]) -> [HeaderSection]? {
-        guard let objcClass = ObjCClass(name) else { return nil }
-        
-        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
-            minimumCapacity: classMethods.count + methods.count)
-        
-        func append(_ method: Method, isClassMethod: Bool) {
-            guard let info = ObjCMethodInfo(method, isClassMethod: isClassMethod) else { return }
-            let origin = ObjCRuntime.origin(of: method)
-            let keyPath: WritableKeyPath<CategoryBucket, [ObjCMethodInfo]> = isClassMethod ? \.classMethods : \.instanceMethods
-            bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath] += info
-        }
-        for method in objcClass.classMethods() {
-            append(method, isClassMethod: true)
-        }
-        for method in objcClass.methods() {
-            append(method, isClassMethod: false)
-        }
-        
-        var sortedImagePaths = bucketsByImage.sorted(by: \.key)
-        let imagePath = imagePath ?? ""
-        if let index = sortedImagePaths.firstIndex(where: { $0.key == imagePath }) {
-            sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
-        }
-        let headerSections = sortedImagePaths.flatMap({ element in
-            element.value.sorted(by: \.key).map({ $0.value.headerSeaction(imagePath: element.key, categoryName: $0.key) })
-        })
-        return headerSections
-    }
-    var methodHeaderSections: [HeaderSection]? {
-        if let cached = Self.cachedHeaderSections[name] {
-            return cached
-        }
-        guard let objcClass = ObjCClass(name) else { return nil }
-        
-        var bucketsByImage: [String: [String: CategoryBucket]] = .init(
-            minimumCapacity: classMethods.count + methods.count)
-        
-        func append(_ method: Method, isClassMethod: Bool) {
-            guard let info = ObjCMethodInfo(method, isClassMethod: isClassMethod) else { return }
-            let origin = ObjCRuntime.origin(of: method)
-            let keyPath: WritableKeyPath<CategoryBucket, [ObjCMethodInfo]> = isClassMethod ? \.classMethods : \.instanceMethods
-            bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath] += info
-        }
-        for method in objcClass.classMethods() {
-            append(method, isClassMethod: true)
-        }
-        for method in objcClass.methods() {
-            append(method, isClassMethod: false)
-        }
-        
-        var sortedImagePaths = bucketsByImage.sorted(by: \.key)
-        let imagePath = imagePath ?? ""
-        if let index = sortedImagePaths.firstIndex(where: { $0.key == imagePath }) {
-            sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
-        }
-        let headerSections = sortedImagePaths.flatMap({ element in
-            element.value.sorted(by: \.key).map({ $0.value.headerSeaction(imagePath: element.key, categoryName: $0.key) })
-        })
-        Self.cachedHeaderSections[name] = headerSections
-        return headerSections
-    }
-    
-    static var cachedHeaderSections: [String: [HeaderSection]] = [:]
-    
-    struct CategoryBucket {
-        var classMethods: [ObjCMethodInfo] = []
-        var instanceMethods: [ObjCMethodInfo] = []
-        
-        func headerSeaction(imagePath: String, categoryName: String) -> HeaderSection {
-            .init(imagePath: imagePath, categoryName: categoryName, classMethods: classMethods, instanceMethods: instanceMethods)
-        }
-    }
-    
-    struct HeaderSection {
-        let imagePath: String
-        let categoryName: String
-        var classMethods: [ObjCMethodInfo]
-        var instanceMethods: [ObjCMethodInfo]
-        
-        func filter(_ names: [String]) -> HeaderSection? {
-            var section = self
-            section.classMethods = section.classMethods.filter({ !names.contains($0.name) })
-            section.instanceMethods = section.instanceMethods.filter({ !names.contains($0.name) })
-            return !section.classMethods.isEmpty && !section.instanceMethods.isEmpty ? section : nil
-        }
-        
-        struct HeaderMethod: Comparable {
-            let name: String
-            let headerString: String
-            
-            static func == (lhs: Self, rhs: Self) -> Bool {
-                lhs.name == rhs.name
-            }
-            static func < (lhs: Self, rhs: Self) -> Bool {
-                lhs.name < rhs.name
-            }
-        }
-    }
-}
-
-extension ObjCClassInfo {
-    public func attributedHeaderStringAlt(
-        options: HeaderStringOptions = [
-            .groupMethodsByOrigin,
-            .includeMethodsFromOtherImages,
-            .includeCategoryMethods,
-            .addPropertyAttributesComments
-        ], font: NSUIFont? = nil
-    ) -> NSAttributedString {
-        let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
-        let attributes: [NSAttributedString.Key : Any] = [.font: font]
-        let result = NSMutableAttributedString()
-        
-        func append(_ string: String) {
-            result.append(NSAttributedString(string: string, attributes: attributes))
-        }
-
-        func appendLine(_ string: String = "") {
-            result.append(NSAttributedString(string: string + "\n", attributes: attributes))
-        }
-
-        func appendAttributedLine(
-            _ string: String,
-            key: NSAttributedString.Key,
-            value: Any
-        ) {
-            let start = result.length
-            result.append(NSAttributedString(string: string, attributes: attributes))
-            let range = NSRange(location: start, length: (string as NSString).length)
-            result.addAttribute(key, value: value, range: range)
-            result.append(NSAttributedString(string: "\n", attributes: attributes))
-        }
-
-        if options.contains(.groupMethodsByOrigin), let imagePath = imagePath {
-            appendLine("// Image: \(imagePath)")
-            appendLine()
-        }
-
-        var decl = "@interface \(name)"
-        if let superClass {
-            decl += " : \(NSStringFromClass(superClass))"
-        }
-        if !protocols.isEmpty {
-            decl += " <\(protocols.map(\.name).joined(separator: ", "))>"
-        }
-
-        if !ivars.isEmpty {
-            appendLine(decl + " {")
-            for ivar in ivars {
-                let indented = ivar.headerString
-                    .components(separatedBy: .newlines)
-                    .map { "    \($0)" }
-                    .joined(separator: "\n")
-                appendAttributedLine(indented, key: .objcIvar, value: ivar.name)
-            }
-            appendLine("}")
-        } else {
-            appendLine(decl)
-        }
-
-        if !classProperties.isEmpty {
-            appendLine()
-            for property in classProperties {
-                appendAttributedLine(
-                    property.headerString(
-                        includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes),
-                        includeComments: options.contains(.addPropertyAttributesComments)
-                    ),
-                    key: .objcClassProperty,
-                    value: property.name
-                )
-            }
-        }
-
-        if !properties.isEmpty {
-            appendLine()
-            for property in properties {
-                appendAttributedLine(
-                    property.headerString(
-                        includeDefaultAttributes: options.contains(.addImplicitPropertyAttributes),
-                        includeComments: options.contains(.addPropertyAttributesComments)
-                    ),
-                    key: .objcProperty,
-                    value: property.name
-                )
-            }
-        }
-        
-        result.append(methodHeaderAttributedString(options: options, attributes: attributes))
-
-        appendLine()
-        append("@end")
-        NSAttributedString.updateObjCHeader(result, protocols: protocols.map(\.name), font: font)
-
-        return result
-    }
-
-    func methodHeaderAttributedString(options: HeaderStringOptions, attributes: [NSAttributedString.Key : Any]) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-
-        func append(_ string: String) {
-            result.append(NSAttributedString(string: string, attributes: attributes))
-        }
-
-        func appendLine(_ string: String = "") {
-            result.append(NSAttributedString(string: string + "\n", attributes: attributes))
-        }
-
-        func appendMethodLine(
-            _ string: String,
-            key: NSAttributedString.Key,
-            value: Any
-        ) {
-            let start = result.length
-            result.append(NSAttributedString(string: string, attributes: attributes))
-            let range = NSRange(location: start, length: (string as NSString).length)
-            result.addAttribute(key, value: value, range: range)
-            result.append(NSAttributedString(string: "\n", attributes: attributes))
-        }
-
-        let addMethodTypeEncodingComments = options.contains(.addMethodTypeEncodingComments)
-
-        guard options.contains(.groupMethodsByOrigin)
-                || !options.contains(.includeCategoryMethods)
-                || !options.contains(.includeMethodsFromOtherImages),
-              var sections = methodHeaderSections else {
-            if !classMethods.isEmpty {
-                appendLine()
-                for method in classMethods {
-                    appendMethodLine(
-                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
-                        key: .objcClassMethod,
-                        value: method.name
-                    )
-                }
-            }
-            if !methods.isEmpty {
-                appendLine()
-                for method in methods {
-                    appendMethodLine(
-                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
-                        key: .objcMethod,
-                        value: method.name
-                    )
-                }
-            }
-            return result
-        }
-
-        sections = options.contains(.includeMethodsFromOtherImages)
-            ? sections
-            : sections.filter { $0.imagePath == self.imagePath ?? "" }
-
-        sections = options.contains(.includeCategoryMethods)
-            ? sections
-            : sections.filter { $0.categoryName.isEmpty }
-
-        if !options.contains(.groupMethodsByOrigin) {
-            let classMethods = sections.flatMap(\.classMethods).sorted(by: \.name)
-            if !classMethods.isEmpty {
-                appendLine()
-                for method in classMethods {
-                    appendMethodLine(
-                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
-                        key: .objcClassMethod,
-                        value: method.name
-                    )
-                }
-            }
-
-            let instanceMethods = sections.flatMap(\.instanceMethods).sorted(by: \.name)
-            if !instanceMethods.isEmpty {
-                appendLine()
-                for method in instanceMethods {
-                    appendMethodLine(
-                        method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
-                        key: .objcMethod,
-                        value: method.name
-                    )
-                }
-            }
-
-            return result
-        }
-
-        let hasMethodsFromMoreThanOneImage: Bool = {
-            guard let firstImagePath = sections.first?.imagePath else { return false }
-            return sections.contains { $0.imagePath != firstImagePath }
-        }()
-
-        var currentImagePath: String?
-
-        if !sections.isEmpty {
-            appendLine()
-        }
-
-        for (index, section) in sections.enumerated() {
-            if index > 0 {
-                appendLine()
-            }
-
-            if hasMethodsFromMoreThanOneImage, currentImagePath != section.imagePath {
-                currentImagePath = section.imagePath
-                appendLine("// Image: \(section.imagePath)")
-                appendLine()
-            }
-
-            if !section.categoryName.isEmpty {
-                appendLine("// \(name) (\(section.categoryName))")
-                appendLine()
-            }
-
-            for method in section.classMethods {
-                appendMethodLine(
-                    method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
-                    key: .objcClassMethod,
-                    value: method.name
-                )
-            }
-
-            if !section.classMethods.isEmpty && !section.instanceMethods.isEmpty {
-                appendLine()
-            }
-
-            for method in section.instanceMethods {
-                appendMethodLine(
-                    method.headerString(includeTypeEncoding: addMethodTypeEncodingComments),
-                    key: .objcMethod,
-                    value: method.name
-                )
-            }
-        }
-
-        return result
+    /// Returns information about the class.
+    public static func classInfo() -> ObjCClassInfo {
+        ObjCClassInfo(self)
     }
 }

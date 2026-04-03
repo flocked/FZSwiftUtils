@@ -10,7 +10,7 @@ import Foundation
 
 extension ObjCPropertyInfo {
     /// Represents an attribute of an Objective-C property.
-    public enum Attribute: Sendable, Equatable, Codable {
+    public enum Attribute: Sendable, Equatable, Codable, Hashable {
         /// The type of the property (encoded).
         case type(ObjCType?)
         /// The property is read-only.

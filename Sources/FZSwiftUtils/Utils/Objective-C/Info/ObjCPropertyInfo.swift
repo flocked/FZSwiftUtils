@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents information about an Objective-C property.
-public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
+public struct ObjCPropertyInfo: Sendable, Equatable, Codable, Hashable {
     /// The name of the property.
     public let name: String
     
@@ -18,6 +18,17 @@ public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
     
     /// A Boolean value indicating whatever the property is a class property.
     public let isClassProperty: Bool
+    
+    /*
+    var className: String?
+    
+    var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
+        guard let clsName = className, let objcClass = ObjCClass(clsName), let property = objcClass.property(named: name, isClass: isClassProperty) else { return (nil, nil, nil ) }
+        return objcClass.origin(for: property, isClassProperty: isClassProperty)
+    }
+     */
+    
+   // public var getterMethod: ObjCMethodInfo
         
     /**
      Initializes a new instance of `ObjCPropertyInfo`.
@@ -41,13 +52,20 @@ public struct ObjCPropertyInfo: Sendable, Equatable, Codable {
        - isClassProperty: A Boolean value that indicates whether the property is a class property.
      */
     public init?(_ property: objc_property_t, isClassProperty: Bool = false) {
-        guard let attributes = Self.attributes(for: property) else { return nil }
-        self.init(
-            name: String(cString: property_getName(property)),
-            attributes: attributes,
-            isClassProperty: isClassProperty
-        )
+        if let cache = Self.cache[property] {
+            self.init(name: cache.name, attributes: cache.attributes, isClassProperty: isClassProperty)
+        } else {
+            guard let attributes = Self.attributes(for: property) else { return nil }
+            self.init(
+                name: property_getName(property).string,
+                attributes: attributes,
+                isClassProperty: isClassProperty
+            )
+            Self.cache[property] = (name, attributes)
+        }
     }
+    
+    private static var cache: [objc_property_t: (name: String, attributes: [Attribute])] = [:]
 }
 
 public extension ObjCPropertyInfo {
@@ -66,25 +84,33 @@ public extension ObjCPropertyInfo {
         attributes.lazy.compactMap(\.ivarName).first
     }
 
-    /// The custom getter name of the property.
-    var getterName: String? {
-        attributes.lazy.compactMap(\.getterName).first
+    /// The getter name of the property.
+    var getterName: String {
+        customGetterName ?? name
     }
-
-    /// The custom setter name of the property.
-    var setterName: String? {
-        attributes.lazy.compactMap(\.setterName).first
-    }
-
+    
     /// The getter selector for the property.
     var getter: Selector {
-        .string(getterName ?? name)
+        .string(getterName)
     }
-
+    
+    /// The setter name of the property.
+    var setterName: String? {
+        guard !isReadOnly else { return nil }
+        return customSetterName ?? "set\(name.uppercasedFirst()):"
+    }
+    
     /// The setter selector for the property.
     var setter: Selector? {
-        guard !isReadOnly else { return nil }
-        return .string(setterName ?? "set\(name.uppercasedFirst()):")
+        setterName.map({ .string($0) })
+    }
+    
+    private var customGetterName: String? {
+        attributes.lazy.compactMap(\.getterName).first
+    }
+    
+    private var customSetterName: String? {
+        attributes.lazy.compactMap(\.setterName).first
     }
 
     // MARK: - Access Semantics
@@ -140,10 +166,10 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         if isClassProperty {
             _attributes.append("class")
         }
-        if let getterName = getterName {
+        if let getterName = customGetterName {
             _attributes.append("getter=\(getterName)")
         }
-        if let setterName = setterName {
+        if let setterName = customSetterName {
             _attributes.append("setter=\(setterName)")
         }
         if isReadOnly {
@@ -193,6 +219,11 @@ extension ObjCPropertyInfo: CustomStringConvertible {
             }
         }
         return result
+    }
+    
+    var methodNames: [String] {
+        guard let setterName = setterName else { return [getterName] }
+        return [getterName, setterName]
     }
     
     public var description: String { headerString }

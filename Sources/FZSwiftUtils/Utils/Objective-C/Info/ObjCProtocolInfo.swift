@@ -94,14 +94,14 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
             self.init(
                 name: String(cString: protocol_getName(`protocol`)),
                 protocols: Self.protocols(of: `protocol`),
-                classProperties: Self.properties(of: `protocol`, isRequired: true, isInstance: false),
-                properties:  Self.properties(of: `protocol`, isRequired: true, isInstance: true),
-                classMethods: Self.methods(of: `protocol`, isRequired: true, isInstance: false),
-                methods: Self.methods(of: `protocol`, isRequired: true, isInstance: true),
-                optionalClassProperties: Self.properties(of: `protocol`, isRequired: false, isInstance: false),
-                optionalProperties:  Self.properties(of: `protocol`, isRequired: false, isInstance: true),
-                optionalClassMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: false),
-                optionalMethods: Self.methods(of: `protocol`, isRequired: false, isInstance: true)
+                classProperties: Self.classProperties(of: `protocol`),
+                properties: Self.properties(of: `protocol`),
+                classMethods: Self.classMethods(of: `protocol`),
+                methods: Self.methods(of: `protocol`),
+                optionalClassProperties: Self.optionalClassProperties(of: `protocol`),
+                optionalProperties: Self.optionalProperties(of: `protocol`),
+                optionalClassMethods: Self.optionalClassMethods(of: `protocol`),
+                optionalMethods: Self.optionalMethods(of: `protocol`)
             )
             Self.cache[`protocol`] = self
         }
@@ -214,39 +214,61 @@ extension ObjCProtocolInfo {
      - Parameter protocol: The protocol for which the adopted protocols are to be obtained.
      - Returns: An array of `ObjCProtocolInfo` objects representing the adopted protocols.
      */
-    public static func protocols(of `protocol`: Protocol) -> [ObjCProtocolInfo] {
+    public static func protocols(of protocol: Protocol) -> [ObjCProtocolInfo] {
         var count: UInt32 = 0
         guard let list = protocol_copyProtocolList(`protocol`, &count) else { return [] }
         defer { free(.init(list)) }
         return list.buffer(count: count).map({ ObjCProtocolInfo($0) })
     }
+    
+    /// Returns the required instance properties of the specified protocol.
+    public static func properties(of protocol: Protocol) -> [ObjCPropertyInfo] {
+        properties(of: `protocol`, isRequired: true, isInstance: true)
+    }
+    
+    /// Returns the optional instance properties of the specified protocol.
+    public static func optionalProperties(of protocol: Protocol) -> [ObjCPropertyInfo] {
+        properties(of: `protocol`, isRequired: false, isInstance: true)
+    }
+    
+    /// Returns the required class properties of the specified protocol.
+    public static func classProperties(of protocol: Protocol) -> [ObjCPropertyInfo] {
+        properties(of: `protocol`, isRequired: true, isInstance: false)
+    }
+    
+    /// Returns the optional class properties of the specified protocol.
+    public static func optionalClassProperties(of protocol: Protocol) -> [ObjCPropertyInfo] {
+        properties(of: `protocol`, isRequired: false, isInstance: false)
+    }
+    
+    /// Returns the required instance methods of the specified protocol.
+    public static func methods(of protocol: Protocol) -> [ObjCMethodInfo] {
+        methods(of: `protocol`, isRequired: true, isInstance: true)
+    }
+    
+    /// Returns the optional instance methods of the specified protocol.
+    public static func optionalMethods(of protocol: Protocol) -> [ObjCMethodInfo] {
+        methods(of: `protocol`, isRequired: false, isInstance: true)
+    }
+    
+    /// Returns the required class methods of the specified protocol.
+    public static func classMethods(of protocol: Protocol) -> [ObjCMethodInfo] {
+        methods(of: `protocol`, isRequired: true, isInstance: false)
+    }
+    
+    /// Returns the optional class methods of the specified protocol.
+    public static func optionalClassMethods(of protocol: Protocol) -> [ObjCMethodInfo] {
+        methods(of: `protocol`, isRequired: false, isInstance: false)
+    }
 
-    /**
-     Returns the properties declared by the specified protocol.
-
-     - Parameters:
-       - protocol: The protocol for which the properties are to be obtained.
-       - isRequired: A Boolean value indicating whether to include only required properties (`true`) or optional properties (`false`).
-       - isInstance: A Boolean value indicating whether to include instance properties (`true`) or class properties (`false`).
-     - Returns: An array of `ObjCPropertyInfo` objects representing the properties of the protocol.
-     */
-    public static func properties(of `protocol`: Protocol, isRequired: Bool, isInstance: Bool) -> [ObjCPropertyInfo] {
+    private static func properties(of `protocol`: Protocol, isRequired: Bool, isInstance: Bool) -> [ObjCPropertyInfo] {
         var count: UInt32 = 0
         guard let list = protocol_copyPropertyList2(`protocol`, &count, isRequired, isInstance) else { return [] }
         defer { free(list) }
         return list.buffer(count: count).compactMap { ObjCPropertyInfo($0, isClassProperty: !isInstance) }
     }
 
-    /**
-     Returns the methods declared by the specified protocol.
-
-     - Parameters:
-       - protocol: The protocol for which the methods are to be obtained.
-       - isRequired: A Boolean value indicating whether to include only required methods (`true`) or optional methods (`false`).
-       - isInstance: A Boolean value indicating whether to include instance methods (`true`) or class methods (`false`).
-     - Returns: An array of `ObjCMethodInfo` objects representing the methods of the protocol.
-     */
-    public static func methods(of `protocol`: Protocol, isRequired: Bool, isInstance: Bool) -> [ObjCMethodInfo] {
+    private static func methods(of `protocol`: Protocol, isRequired: Bool, isInstance: Bool) -> [ObjCMethodInfo] {
         var count: UInt32 = 0
         guard let list = protocol_copyMethodDescriptionList(`protocol`, isRequired, isInstance, &count) else { return [] }
         defer { free(list) }

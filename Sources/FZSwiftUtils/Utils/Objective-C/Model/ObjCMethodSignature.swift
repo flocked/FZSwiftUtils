@@ -9,7 +9,7 @@
 import Foundation
 
 /// Represents the type information for the return value and parameters of an Objective-C  method.
-public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible, Codable {
+public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible, Codable, Hashable {
     /// The arguments of the method.
     public let arguments: [MethodValue]
         
@@ -27,7 +27,7 @@ public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible,
     }
     
     /// Represents a value of an Objective-C method.
-    public struct MethodValue: Sendable, Equatable, CustomStringConvertible, Codable {
+    public struct MethodValue: Sendable, Equatable, CustomStringConvertible, Codable, Hashable {
         /// The type encoding of the value.
         public let typeEncoding: String
         

@@ -308,7 +308,7 @@ public extension FileManager {
             try setAttributes(sourceAttr, ofItemAt: destionationURL)
         } else {
             var destAttr = try attributesOfItem(at: destionationURL)
-            destAttr.merge(with: sourceAttr, strategy: strategy == .keepOriginal ? .keepOriginal : .overwrite)
+            destAttr.merge(sourceAttr, strategy: strategy == .keepOriginal ? .keepOriginal : .overwrite)
             try setAttributes(destAttr, ofItemAt: destionationURL)
         }
     }
