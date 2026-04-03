@@ -694,15 +694,15 @@ fileprivate extension ObjCClassInfo {
             let classProperties = sections.flatMap(\.classProperties).sorted(by: \.name)
             let properties = sections.flatMap(\.instanceProperties).sorted(by: \.name)
             let classMethods = sections.flatMap(\.classMethods).sorted(by: \.name)
-            let instanceMethods = sections.flatMap(\.instanceMethods).sorted(by: \.name)
+            let methods = sections.flatMap(\.instanceMethods).sorted(by: \.name)
             return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
         }
 
         let hasMembersFromMoreThanOneImage = Set(sections.map(\.imagePath)).count > 1
         var currentImagePath = imagePath ?? ""
         var lines: [String] = []
-        for section in sections {
-            if !lines.isEmpty {
+        for (index, section) in sections.enumerated() {
+            if index > 0 {
                 lines += ""
             }
             if hasMembersFromMoreThanOneImage, currentImagePath != section.imagePath {
@@ -714,7 +714,7 @@ fileprivate extension ObjCClassInfo {
                 lines += "// \(name) (\(section.categoryName))"
                 lines += ""
             }
-            lines += self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.classMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
+            lines += self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
             /*
             lines += section.headerLines(
                 propertyOptions: propertyOptions,
@@ -726,7 +726,7 @@ fileprivate extension ObjCClassInfo {
         return !lines.isEmpty ? "" + lines : lines
     }
     
-    func lines(for classProperties: [ObjCPropertyInfo], _ properties: [ObjCPropertyInfo], _ methods: [ObjCMethodInfo], _ classMethods: [ObjCMethodInfo], propertyOptions: Bool, propertyComments: Bool, methodTypeEncodings: Bool, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)]) -> [String] {
+    func lines(for classProperties: [ObjCPropertyInfo], _ properties: [ObjCPropertyInfo], _ classMethods: [ObjCMethodInfo], _ methods: [ObjCMethodInfo], propertyOptions: Bool, propertyComments: Bool, methodTypeEncodings: Bool, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)]) -> [String] {
         var lines: [String] = []
         if !classProperties.isEmpty {
             lines += "" + classProperties.map({
