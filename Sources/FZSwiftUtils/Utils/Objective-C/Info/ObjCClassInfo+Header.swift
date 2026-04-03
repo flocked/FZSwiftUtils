@@ -678,12 +678,13 @@ fileprivate extension ObjCClassInfo {
         let propertyOptions = options.contains(.addImplicitPropertyAttributes)
         let propertyComments = options.contains(.addPropertyAttributesComments)
         let methodTypeEncodings = options.contains(.addMethodTypeEncodingComments)
+        let renameArguments = options.contains(.renameMethodArguments)
         guard options.contains(.groupByOrigin) || !options.contains(.includeCategoryMethods) || !options.contains(.includeMethodsFromOtherImages), var sections = allHeaderSections() else {
             let classProperties = classProperties.filter({ !stripClassProperties.contains($0.name)})
             let properties = properties.filter({ !stripProperties.contains($0.name)})
             let classMethods = classMethods.filter({ !stripClassMethods.contains($0.name)})
             let methods = methods.filter({ !stripMethods.contains($0.name)})
-            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
+            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, declarations: &declarations)
         }
         
         let includeCategories = options.contains(.includeCategoryMethods)
@@ -695,7 +696,7 @@ fileprivate extension ObjCClassInfo {
             let properties = sections.flatMap(\.instanceProperties).sorted(by: \.name)
             let classMethods = sections.flatMap(\.classMethods).sorted(by: \.name)
             let methods = sections.flatMap(\.instanceMethods).sorted(by: \.name)
-            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
+            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, declarations: &declarations)
         }
 
         let hasMembersFromMoreThanOneImage = Set(sections.map(\.imagePath)).count > 1
@@ -716,7 +717,7 @@ fileprivate extension ObjCClassInfo {
                 lines += "// \(name) (\(section.categoryName))"
                 lines += ""
             }
-            let newLines = self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, declarations: &declarations)
+            let newLines = self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, declarations: &declarations)
             if !newLines.isEmpty {
                 lines += newLines.dropFirst()
             }
@@ -731,7 +732,7 @@ fileprivate extension ObjCClassInfo {
         return !lines.isEmpty ? "" + lines : lines
     }
     
-    func lines(for classProperties: [ObjCPropertyInfo], _ properties: [ObjCPropertyInfo], _ classMethods: [ObjCMethodInfo], _ methods: [ObjCMethodInfo], propertyOptions: Bool, propertyComments: Bool, methodTypeEncodings: Bool, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)]) -> [String] {
+    func lines(for classProperties: [ObjCPropertyInfo], _ properties: [ObjCPropertyInfo], _ classMethods: [ObjCMethodInfo], _ methods: [ObjCMethodInfo], propertyOptions: Bool, propertyComments: Bool, methodTypeEncodings: Bool, renameArguments: Bool, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)]) -> [String] {
         var lines: [String] = []
         if !classProperties.isEmpty {
             lines += "" + classProperties.map({
@@ -749,14 +750,14 @@ fileprivate extension ObjCClassInfo {
         }
         if !classMethods.isEmpty {
             lines += "" + classMethods.map({
-                let line = $0.headerString(includeTypeEncoding: methodTypeEncodings)
+                let line = $0.headerString(includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
                 declarations += (line, .objcClassMethod, $0.name)
                 return line
             })
         }
         if !methods.isEmpty {
             lines += "" + methods.map({
-                let line = $0.headerString(includeTypeEncoding: methodTypeEncodings)
+                let line = $0.headerString(includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
                 declarations += (line, .objcMethod, $0.name)
                 return line
             })
@@ -881,6 +882,7 @@ fileprivate extension ObjCClassInfo {
             !classProperties.isEmpty || !instanceProperties.isEmpty || !classMethods.isEmpty || !instanceMethods.isEmpty
         }
 
+        /*
         func headerLines(
             propertyOptions: Bool,
             propertyComments: Bool,
@@ -914,5 +916,6 @@ fileprivate extension ObjCClassInfo {
             }
             return lines
         }
+        */
     }
 }

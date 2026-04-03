@@ -95,11 +95,11 @@ extension ObjCMethodInfo {
 extension ObjCMethodInfo: CustomStringConvertible {
     /// Returns a string representing the method in a Objective-C header.
     public var headerString: String {
-        headerString(includeTypeEncoding: false)
+        headerString(includeTypeEncoding: false, renameArguments: false)
     }
     
     /// Returns a string representing the method in a Objective-C header.
-    public func headerString(includeTypeEncoding: Bool) -> String {
+    public func headerString(includeTypeEncoding: Bool, renameArguments: Bool) -> String {
         let prefix = isClassMethod ? "+" : "-"
         let returnType = returnType.decodedStringForArgument
         let nameAndLabels = name.split(separator: ":")
@@ -109,7 +109,8 @@ extension ObjCMethodInfo: CustomStringConvertible {
             result += name
         } else {
             result += zip(nameAndLabels, argumentTypes.map(\.decodedStringForArgument))
-                .map { "\($0):(\($1))\(NamingIntelligent.parameterName(from: String($0)))" }
+                .enumerated()
+                .map { "\($1.0):(\($1.1))\(renameArguments ? NamingIntelligent.parameterName(from: String($1.0)) : "arg\($0)")" }
                 .joined(separator: " ")
         }
         result += ";"
@@ -258,7 +259,7 @@ private enum NamingIntelligent {
                     hasValidEnd = nextChar.isUppercase
                 }
 
-                if startsWithUppercase && hasValidEnd {
+                if startsWithUppercase && hasValidEnd || (startsWithUppercase && originalStart == workingLabel.startIndex) {
                     // Use the last (rightmost) preposition match
                     if lastMatchEnd == nil || originalEnd > lastMatchEnd! {
                         lastMatchEnd = originalEnd

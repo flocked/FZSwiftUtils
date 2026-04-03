@@ -73,6 +73,9 @@ extension ObjCClassInfo {
         /// Strips CTor method from the header string.
         public static let stripCtorMethod = Self(rawValue: 1 << 13)
 
+        /// Renames method arguments based on the method name.
+        public static let renameMethodArguments = Self(rawValue: 1 << 14)
+
                 
 
         /*
