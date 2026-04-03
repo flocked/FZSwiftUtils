@@ -215,13 +215,13 @@ extension ObjCType: CustomStringConvertible {
             return "\(name) *"
         case .block(let ret, let args):
             guard let ret, let args else { return "id /* block */" }
-            return "\(ret.decoded(tab: tab)) (^)(\(args.map({ $0.decoded(tab: tab) }).joined(separator: ", ")))"
+            return "\(ret.decoded(tab: tab, includeFields: includeFields)) (^)(\(args.map({ $0.decoded(tab: tab, includeFields: includeFields) }).joined(separator: ", ")))"
         case .functionPointer:
             return "IMP"
         case .array(let type, let size):
-            return "\(type.decoded(tab: tab))[\(size?.string ?? "")]"
+            return "\(type.decoded(tab: tab, includeFields: includeFields))[\(size?.string ?? "")]"
         case .pointer(let type):
-            return "\(type.decoded(tab: tab)) *"
+            return "\(type.decoded(tab: tab, includeFields: includeFields)) *"
         case .bitField(let width):
             return "int x : \(width)"
         case .union(let name, let fields), .struct(let name, let fields):
@@ -236,7 +236,7 @@ extension ObjCType: CustomStringConvertible {
             }
             """
         case .modified(let modifiers, let type):
-            return "\(modifiers.map({ $0.decoded(tab: tab) }).joined(separator: " ")) \(type.decoded(tab: tab))"
+            return "\(modifiers.map({ $0.decoded(tab: tab) }).joined(separator: " ")) \(type.decoded(tab: tab, includeFields: includeFields))"
         case .other(let string):
             return string
         }
