@@ -775,19 +775,31 @@ fileprivate extension ObjCClassInfo {
         
         var methodsByName: [String: Method] = [:]
         var classMethodsByName: [String: Method] = [:]
-        for method in objcClass.methods() {
-            methodsByName[method_getName(method).string] = method
+        var count: UInt32 = 0
+        let cls: AnyClass = NSClassFromString(name)!
+        if let list = class_copyMethodList(cls, &count) {
+            defer { free(list) }
+            for method in list.buffer(count: count) {
+                methodsByName[method_getName(method).string] = method
+            }
         }
-        for method in objcClass.classMethods() {
-            classMethodsByName[method_getName(method).string] = method
+        if let list = class_copyMethodList(object_getClass(cls), &count) {
+            defer { free(list) }
+            for method in list.buffer(count: count) {
+                classMethodsByName[method_getName(method).string] = method
+            }
         }
 
         func append(_ methodInfo: ObjCMethodInfo, isClassMethod: Bool) {
-            let method = isClassMethod ? classMethodsByName[methodInfo.name] : methodsByName[methodInfo.name]
-            let origin: (imagePath: String?, categoryName: String?, symbolName: String?) =
-                method.map(ObjCRuntime.origin(of:)) ?? (imagePath: primaryImagePath, categoryName: nil, symbolName: nil)
             let keyPath: WritableKeyPath<CategoryBucket, [ObjCMethodInfo]> = isClassMethod ? \.classMethods : \.instanceMethods
-            bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath].append(methodInfo)
+            let method = isClassMethod ? classMethodsByName[methodInfo.name] : methodsByName[methodInfo.name]
+            if let method = isClassMethod ? classMethodsByName[methodInfo.name] : methodsByName[methodInfo.name] {
+                let origin = ObjCRuntime.origin(of: method)
+                bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath].append(methodInfo)
+            } else {
+                let origin: (imagePath: String?, categoryName: String?, symbolName: String?) = (imagePath: primaryImagePath, categoryName: nil, symbolName: nil)
+                bucketsByImage[origin.imagePath ?? "", default: [:]][origin.categoryName ?? "", default: CategoryBucket()][keyPath: keyPath].append(methodInfo)
+            }
         }
 
         func append(_ propertyInfo: ObjCPropertyInfo, isClassProperty: Bool) {
