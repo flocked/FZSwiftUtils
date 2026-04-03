@@ -565,12 +565,13 @@ extension ObjCClassInfo {
         - options: The header string options.
         - font: The font of the attributed string, or `nil` to use the default font.
      */
-    public func attributedString(options: HeaderStringOptions = [.groupByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .addPropertyAttributesComments], font: NSUIFont? = nil) {
+    public func attributedHeaderString(options: HeaderStringOptions = [.groupByOrigin, .includeMethodsFromOtherImages, .includeCategoryMethods, .addPropertyAttributesComments], font: NSUIFont? = nil) -> NSAttributedString {
         let val = _headerString(options: options)
         let attributed = NSMutableAttributedString(
             attributedString: .objCHeader(for: val.string, protocols: protocols.map(\.name), font: font)
         )
         attributed.addObjCDeclarationAttributes(val.declarations)
+        return attributed
     }
     
     /// Returns a string representing the class in a Objective-C header.
