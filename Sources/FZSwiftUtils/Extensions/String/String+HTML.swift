@@ -7,9 +7,20 @@
 
 import Foundation
 
-extension String {
+public extension String {
+    /// Encodes every scalar as an HTML numeric entity.
+    var htmlEntityEncoded: String {
+        var result = ""
+        result.reserveCapacity(count * 5)
+        for scalar in unicodeScalars {
+            result.append("&#\(scalar.value);")
+        }
+        return result
+
+    }
+    
     /// Returns a new string made by replacing all HTML character entity references with the corresponding character.
-    public var decodedHTML: String {
+    var htmlEntityDecoded: String {
         #if os(macOS)
         return CFXMLCreateStringByUnescapingEntities(nil, self as CFString, nil) as String
         #else
@@ -57,6 +68,17 @@ extension String {
         result.append(contentsOf: self[position...])
         return result
         #endif
+    }
+    
+    /// Parses the string as HTML and returns rendered plain text.
+    var htmlPlainText: String? {
+        htmlToAttributedString?.string
+    }
+    
+    /// Parses the string as HTML and returns an attributed string representing the rendered contentt.
+    var htmlToAttributedString: NSAttributedString? {
+        guard let data = data(using: .utf8) else { return nil }
+        return try? NSAttributedString(data: data, options: .init(characterEncoding: .utf8, documentType: .html))
     }
 }
 

@@ -901,19 +901,6 @@ extension String.CompareOptions: Swift.Hashable {
 }
 
 extension String {
-    public var htmlToString: String? {
-        htmlToAttributedString?.string
-    }
-    
-    public var htmlToAttributedString: NSAttributedString? {
-        if let data = data(using: .utf8) {
-            return try? NSAttributedString(data: data, options: .init(characterEncoding: .utf8, documentType: .html))            
-        }
-        return nil
-    }
-}
-
-extension String {
     /// Returns a sequence of substrings from the string separated by the specified seperator.
     public func lazyComponents<T: StringProtocol>(separatedBy separator: T) -> ComponentSequence {
         ComponentSequence(self, separatedBy: String(separator))
