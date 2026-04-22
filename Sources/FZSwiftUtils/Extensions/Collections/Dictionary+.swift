@@ -26,7 +26,7 @@ public extension Dictionary {
     /// Accesses the value associated with the key containing the
     @_disfavoredOverload
     subscript(key: Key.ID) -> Value? where Key: Identifiable {
-        first(where: { $0.key.id == key })?.value
+        get { first(where: { $0.key.id == key })?.value }
     }
     
     /// Accesses the value associated with the key for the given raw value.
@@ -55,7 +55,7 @@ public extension Dictionary {
     }
     
     /// Accesses the value with the given key, falling back to an empty dictionary if the key isn’t found.
-    subscript(default key: Key) -> Value where Value: ExpressibleByDictionaryLiteral  {
+    subscript(default key: Key) -> Value where Value: ExpressibleByDictionaryLiteral {
         get { self[key, default: [:]] }
         set { self[key] = newValue }
     }
@@ -77,7 +77,7 @@ public extension Dictionary {
     }
     
     /**
-     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue()`.
+     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue`.
 
      - Parameters:
         - key: The key to find in the dictionary.
@@ -96,11 +96,11 @@ public extension Dictionary {
     }
     
     /**
-     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue()`.
+     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue`.
 
      - Parameters:
         - key: The key to find in the dictionary.
-     - initialValue: The initial value that is evaluated if `key` is not already present.
+        - initialValue: The initial value that is evaluated if `key` is not already present.
      */
     subscript(key: Key, initial initialValue: () -> Value) -> Value {
         mutating get {
@@ -249,9 +249,19 @@ public extension Dictionary {
         keys.forEach({ self[$0] = value })
     }
     
-    /// Removes the values of the specified keys.
-    mutating func remove<S>(_ keys: S) where S: Sequence<Key>  {
-        setValue(nil, for: keys)
+    /**
+     Removes the values of the specified keys and returns a dictionary with the removed values.
+     
+     - Parameter keys: The keys to remove along with their associated values.
+     - Returns: The keys and values that were removed.
+     */
+    @discardableResult
+    mutating func remove<S>(_ keys: S) -> Self where S: Sequence<Key> {
+        var removed = Self()
+        for key in Set(keys) {
+            removed[key] = removeValue(forKey: key)
+        }
+        return removed
     }
     
     /**
@@ -343,7 +353,7 @@ public extension Dictionary where Value: Equatable {
 }
 
 public extension Dictionary where Value == Any {
-    /// Returns the value casted to the requested type, or `nil` if the value is missing or of a different type.
+    /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
     subscript<T>(typed key: Key) -> T? {
         self[key] as? T
     }
@@ -365,13 +375,14 @@ public extension Dictionary where Value == Any {
      - Returns: Returns `true` if the dictionary is equal to the other dictionary; or `false` if it isn't equal.
      */
     func isEqual(to other: Self) -> Bool {
-        guard self.count == other.count else { return false }
+        guard count == other.count, Set(keys) == Set(other.keys) else { return false }
         for (key, val1) in self {
             guard let val2 = other[key] else { return false }
-            if let val1 = val1 as? (any Equatable), let val2 = val2 as? (any Equatable), !val1.isEqual(val2) {
+            if let val1 = val1 as? (any Equatable) {
+                guard let val2 = val2 as? (any Equatable), val1.isEqual(val2) else { return false }
+            } else if val1 as AnyObject !== val2 as AnyObject {
                 return false
             }
-            return val1 as AnyObject !== val2 as AnyObject
         }
         return true
     }
