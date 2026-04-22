@@ -276,6 +276,14 @@ extension ObjCProtocolInfo {
     }
     
     var allProtocols: [ObjCProtocolInfo] {
-        protocols + protocols.flatMap({$0.allProtocols})
+        var seen: Set<String> = [name]
+        var result = [self]
+        func visit(_ proto: ObjCProtocolInfo) {
+            guard seen.insert(proto.name).inserted else { return }
+            result += proto
+            proto.protocols.forEach({ visit($0 )})
+        }
+        protocols.forEach({ visit($0 )})
+        return result
     }
 }

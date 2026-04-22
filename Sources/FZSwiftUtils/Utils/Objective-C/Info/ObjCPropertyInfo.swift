@@ -205,7 +205,7 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         }
         var result = "@property"
         if !_attributes.isEmpty {
-            result += "(" + _attributes.joined(separator: ", ") + ")"
+            result += " (" + _attributes.joined(separator: ", ") + ")"
         }
         result += " \(typeString)"
         if typeString.last == "*" {
@@ -227,4 +227,10 @@ extension ObjCPropertyInfo: CustomStringConvertible {
     }
     
     public var description: String { headerString }
+}
+
+enum HeaderLine {
+    case property(info: ObjCPropertyInfo, line: String, name: String)
+    case method(info: ObjCMethodInfo, line: String, arguments: [String])
+
 }

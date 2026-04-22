@@ -37,45 +37,40 @@ extension ObjCClassInfo {
         public static let addPropertyAttributesComments = Self(rawValue: 1 << 1)
         
         /// Adds type encoding comments to methods.
-        public static let addMethodTypeEncodingComments = Self(rawValue: 1 << 5)
+        public static let addMethodTypeEncodingComments = Self(rawValue: 1 << 2)
         
         /// Groups methods by library and category and add comments for each.
-        public static let groupByOrigin = Self(rawValue: 1 << 2)
-        
-        /**
-         Includes methods and properties defined in images other than the class's primary image.
-         
-         This exposes methods and properties implemented in linked frameworks or libraries.
-         */
-        public static let includeMethodsFromOtherImages = Self(rawValue: 1 << 3)
+        public static let groupByOrigin = Self(rawValue: 1 << 3)
         
         /// Includes methods declared in Objective-C categories.
         public static let includeCategoryMethods = Self(rawValue: 1 << 4)
         
         /// Strips methods from the header that are synthesized from properties.
-        public static let stripSynthesizedMethods = Self(rawValue: 1 << 6)
+        public static let stripSynthesizedMethods = Self(rawValue: 1 << 5)
         
         /// Strips Ivars from the header that are synthesized from properties.
-        public static let stripSynthesizedIvars = Self(rawValue: 1 << 10)
+        public static let stripSynthesizedIvars = Self(rawValue: 1 << 6)
         
         /// Strips methods and properties from the header that are overrides from the superclass.
-        public static let stripOverrides = Self(rawValue: 1 << 11)
+        public static let stripOverrides = Self(rawValue: 1 << 7)
         
         /// Strips methods and properties from the header that correspond to conforming protocols.
-        public static let stripProtocolConformance = Self(rawValue: 1 << 9)
+        public static let stripProtocolConformance = Self(rawValue: 1 << 8)
         
         /// Strips methods and properties from the are public.
-        public static let stripPublic = Self(rawValue: 1 << 7)
+        public static let stripPublic = Self(rawValue: 1 << 9)
         
         /// Strips Dtor method from the header string.
-        public static let stripDtorMethod = Self(rawValue: 1 << 12)
+        public static let stripDtorMethod = Self(rawValue: 1 << 10)
         
         /// Strips CTor method from the header string.
-        public static let stripCtorMethod = Self(rawValue: 1 << 13)
+        public static let stripCtorMethod = Self(rawValue: 1 << 11)
 
         /// Renames method arguments based on the method name.
-        public static let renameMethodArguments = Self(rawValue: 1 << 14)
+        public static let renameMethodArguments = Self(rawValue: 1 << 12)
 
+        /// Include the fields of structures and union.
+        public static let includeStructAndUnionFields = Self(rawValue: 1 << 13)
                 
 
         /*

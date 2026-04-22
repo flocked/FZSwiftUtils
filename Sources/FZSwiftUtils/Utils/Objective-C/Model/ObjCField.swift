@@ -37,19 +37,19 @@ public struct ObjCField: Sendable, Codable, Hashable {
         }
     }
 
-   public func decoded(fallbackName: String = "x", tab: String = "    ") -> String {
+   public func decoded(fallbackName: String = "x", tab: String = "    ", includeFields: Bool = false) -> String {
         if let bitWidth {
-            "\(type.decoded(tab: tab)) \(name ?? fallbackName) : \(bitWidth);"
+            "\(type.decoded(tab: tab, includeFields: includeFields)) \(name ?? fallbackName) : \(bitWidth);"
         } else {
-            "\(type.decoded(tab: tab)) \(name ?? fallbackName);"
+            "\(type.decoded(tab: tab, includeFields: includeFields)) \(name ?? fallbackName);"
         }
     }
     
-    func decodedForHeader(fallbackName: String, tab: String = "    ") -> String  {
+    func decodedForHeader(fallbackName: String, tab: String = "    ", includeFields: Bool = true) -> String  {
         if [.char, .uchar].contains(type) {
             return "BOOL \(name ?? fallbackName);"
         }
-        return decoded(fallbackName: fallbackName, tab: tab)
+        return decoded(fallbackName: fallbackName, tab: tab, includeFields: includeFields)
     }
 }
 

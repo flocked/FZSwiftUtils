@@ -18,6 +18,11 @@ enum ObjCHeader {
     static var didCollect = false
     
     static func getClass(named name: String) -> Class? {
+        if didCollect {
+            return classesByName[name]
+        } else if let file = publicHeaderURLs.removeFirst(where: { $0.nameExludingExtension == name }) {
+                return parse(file)?.classes.first(where: { $0.name == name })
+        }
         collectAll()
         return classesByName[name]
     }
@@ -26,17 +31,23 @@ enum ObjCHeader {
         guard !didCollect else { return }
         didCollect = true
         for file in publicHeaderURLs {
-            guard let header = try? String(contentsOf: file, encoding: .utf8) else { continue }
-            let info = parse(header)
-            info.classes.forEach({
-                classesByName[$0.name] = $0
-            })
-            info.protocols.forEach({ protocolsByName[$0.name] = $0 })
-            info.categories.forEach({
-                categoriesByName[$0.name] = $0
-                categoriesByClass[$0.className, default: []] += $0
-            })
+           parse(file)
         }
+    }
+    
+    @discardableResult
+    static func parse(_ file: URL) -> HeaderInfo? {
+        guard let header = try? String(contentsOf: file, encoding: .utf8) else { return nil }
+        let info = parse(header)
+        info.classes.forEach({
+            classesByName[$0.name] = $0
+        })
+        info.protocols.forEach({ protocolsByName[$0.name] = $0 })
+        info.categories.forEach({
+            categoriesByName[$0.name] = $0
+            categoriesByClass[$0.className, default: []] += $0
+        })
+        return info
     }
     
     static func parseClassNames(_ header: String) -> [String] {

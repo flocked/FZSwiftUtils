@@ -14,21 +14,16 @@ public class ImageSource {
     let cgImageSource: CGImageSource
 
     /// The uniform type identifier of the image.
-    public var typeIdentifier: String? {
-        CGImageSourceGetType(cgImageSource) as String?
-    }
+    public lazy var typeIdentifier = CGImageSourceGetType(cgImageSource) as String?
 
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     /// The content type of the image.
-    public var contentType: UTType? {
+    public lazy var contentType: UTType? = {
         guard let typeIdentifier = typeIdentifier else { return nil }
         return UTType(typeIdentifier)
-    }
+    }()
 
     /// The number of images (not including thumbnails) in the image source.
-    public var count: Int {
-        CGImageSourceGetCount(cgImageSource)
-    }
+    public lazy var count = CGImageSourceGetCount(cgImageSource)
 
     /// The current status of the image source.
     public var status: CGImageSourceStatus {
@@ -41,9 +36,7 @@ public class ImageSource {
     }
 
     /// Returns the index of the primary image for an HEIF image, or `0` for any other image format.
-    public var primaryImageIndex: Int {
-        CGImageSourceGetPrimaryImageIndex(cgImageSource)
-    }
+    public lazy var primaryImageIndex = CGImageSourceGetPrimaryImageIndex(cgImageSource)
 
     /**
      Returns the properties of the image source.
@@ -78,7 +71,7 @@ public class ImageSource {
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
     public func image(at index: Int? = nil, options: ImageOptions? = .init()) -> CGImage? {
-        CGImageSourceCreateImageAtIndex(cgImageSource, index ?? primaryImageIndex, options?.dic)
+        try? ObjCRuntime.catchException { CGImageSourceCreateImageAtIndex(cgImageSource, index ?? primaryImageIndex, options?.dic) }
     }
 
     /**
@@ -122,7 +115,7 @@ public class ImageSource {
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init()) -> CGImage? {
-        CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options?.toDictionary().cfDictionary)
+        try? ObjCRuntime.catchException { CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options?.toDictionary().cfDictionary) }
     }
 
     /**
@@ -256,7 +249,6 @@ public class ImageSource {
         - url: The URL of the image.
         - contentTypeHint: The content type representing the most likely image type.
      */
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public convenience init?(url: URL, contentTypeHint: UTType) {
         self.init(url: url, typeIdentifierHint: contentTypeHint.identifier)
     }
@@ -284,7 +276,6 @@ public class ImageSource {
         - data: The data of the image.
         - contentTypeHint: The content type representing the most likely image type.
      */
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public convenience init?(data: Data, contentTypeHint: UTType) {
         self.init(data: data, typeIdentifierHint: contentTypeHint.identifier)
     }
@@ -298,45 +289,35 @@ public class ImageSource {
         self.cgImageSource = CGImageSourceCreateIncremental(nil)
     }
     
-    /// The uniform type identifiers that are supported for image sources.
-    public static func supportedTypeIdentifiers() -> Set<String> {
-        (CGImageSourceCopyTypeIdentifiers() as? [String] ?? []).asSet
-    }
-    
     /// The content types that are supported for image sources.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public static func supportedContentTypes() -> Set<UTType> {
-        supportedTypeIdentifiers().compactMap({ UTType($0) }).asSet
+    public static var supportedContentTypes: Set<UTType> {
+        (CGImageSourceCopyTypeIdentifiers() as? [String] ?? []).compactMap({ UTType($0) }).asSet
     }
-    
-    /// The content types that image source should be able to process.
-    @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, *)
-    public static var allowedTypeIdentifiers: Set<String>{
-        get { getAssociatedValue("allowedTypeIdentifiers", object: self) ?? supportedTypeIdentifiers() }
-        set {
-            let supported = supportedTypeIdentifiers()
-            let newValue = newValue.filter({ supported.contains($0) })
-            guard newValue != allowedTypeIdentifiers else { return }
-            setAssociatedValue(newValue, key: "allowedTypeIdentifiers", object: self)
-            CGImageSourceSetAllowableTypes(Array(newValue) as CFArray)
-        }
-    }
-    
+
+    /**
+     The content types that image source should be able to process.
+     
+     The default value is ``supportedContentTypes``.
+     */
     @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, *)
     public static var allowedContentTypes: Set<UTType> {
-        get { allowedTypeIdentifiers.compactMap({ UTType($0) }).asSet }
-        set { allowedTypeIdentifiers = newValue.map({ $0.identifier }).asSet }
+        get { getAssociatedValue("allowedTypeIdentifiers", object: self) ?? supportedContentTypes }
+        set {
+            let supported = supportedContentTypes
+            let newValue = newValue.filter({ supported.contains($0) })
+            guard newValue != allowedContentTypes else { return }
+            setAssociatedValue(newValue, key: "allowedTypeIdentifiers", object: self)
+            CGImageSourceSetAllowableTypes(newValue.map({$0.identifier}) as CFArray)
+        }
     }
 }
 
-extension ImageSource: CustomStringConvertible {
+extension ImageSource: CustomStringConvertible, Equatable {
     /// A string representation of the image source.
     public var description: String {
-        "ImageSource[\(ObjectIdentifier(self))]"
+        return "ImageSource[\(cgImageSource.hashValue)]"
     }
-}
-
-extension ImageSource: Equatable {
+    
     public static func == (lhs: ImageSource, rhs: ImageSource) -> Bool {
         CFEqual(lhs.cgImageSource, rhs.cgImageSource)
     }

@@ -71,19 +71,22 @@ public struct ObjCIvarInfo: Sendable, Equatable, Codable, Hashable {
 extension ObjCIvarInfo: CustomStringConvertible {
     /// Returns a string representing the ivar in a Objective-C header.
     public var headerString: String {
+        headerString(includeFields: false)
+    }
+    
+    public func headerString(includeFields: Bool = false) -> String {
         if let type, case let .bitField(width) = type {
             let field = ObjCField(type: .int, name: name, bitWidth: width)
             return field.decodedForHeader(fallbackName: name)
-        } else {
-            if [.char, .uchar].contains(type) {
-                return "BOOL \(name)"
-            }
-            let type = type?.decoded()
-            if let type, type.last == "*" {
-                return "\(type)\(name);"
-            }
-            return "\(type ?? "unknown") \(name);"
         }
+        if [.char, .uchar].contains(type) {
+            return "BOOL \(name)"
+        }
+        let type = type?.decodedForIvar(includeFields: includeFields)
+        if let type, type.last == "*" {
+            return "\(type)\(name);"
+        }
+        return "\(type ?? "unknown") \(name);"
     }
     
     public var description: String { headerString }

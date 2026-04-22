@@ -17,7 +17,8 @@ extension NSAttributedString {
         let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
         let headerString = attributed.string
         let fullRange = attributed.string.nsRange
-        let classes = ObjCRuntime.classNames()
+        let classes = ObjCRuntime.classNames() + ObjCType.structNames.synchronized
+        let structs = ObjCType.structNames.synchronized
 
         let commentRanges = commentRegex.matches(in: attributed.string, options: [], range: fullRange).map(\.range)
         apply(ranges: commentRanges, to: attributed, color: objcHeaderColors.comments, font: font)
@@ -34,13 +35,13 @@ extension NSAttributedString {
         for commentRange in commentRanges {
             if searchLocation < commentRange.location {
                 let range = NSRange(location: searchLocation, length: commentRange.location - searchLocation)
-                colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywordSet: objcHeaderKeywordSet, classSet: classes, protocolsSet: protocols, font: font)
+                colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywords: objcHeaderkeywords, classes: classes, structs: structs, protocols: protocols, font: font)
             }
             searchLocation = commentRange.location + commentRange.length
         }
         if searchLocation < fullRange.length {
             let range = NSRange(location: searchLocation, length: fullRange.length - searchLocation)
-            colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywordSet: objcHeaderKeywordSet, classSet: classes, protocolsSet: protocols, font: font)
+            colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywords: objcHeaderkeywords, classes: classes, structs: structs, protocols: protocols, font: font)
         }
     }
 }
@@ -49,14 +50,15 @@ extension NSAttributedString {
     static let imageNames = Set(ObjCRuntime.imageNames())
     
     static func objCHeader(for headerString: String, font: NSUIFont? = nil) -> NSAttributedString {
-        let font = font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
+        let font = XcodePresentationTheme.shared.font(for: .argument) ?? font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
         let attributed = NSMutableAttributedString(string: headerString, attributes: [.font: font])
         let fullRange = headerString.nsRange
         let classes = ObjCRuntime.classNames()
         let protocols = ObjCRuntime.protocolNames()
+        let structs = ObjCType.structNames.synchronized
 
         let commentRanges = commentRegex.matches(in: headerString, options: [], range: fullRange).map(\.range)
-        apply(ranges: commentRanges, to: attributed, color: objcHeaderColors.comments, font: font)
+        apply(ranges: commentRanges, to: attributed, color: XcodePresentationTheme.shared.color(for: .comment), font: font)
         
         for commentRange in commentRanges {
             guard let imageMatch = imageRegex.firstMatch(in: headerString, range: commentRange), let pathRange = Range(imageMatch.range(at: 1), in: headerString) else { continue }
@@ -68,35 +70,34 @@ extension NSAttributedString {
         for commentRange in commentRanges {
             if searchLocation < commentRange.location {
                 let range = NSRange(location: searchLocation, length: commentRange.location - searchLocation)
-                colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywordSet: objcHeaderKeywordSet, classSet: classes, protocolsSet: protocols, font: font)
+                colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywords: objcHeaderkeywords, classes: classes, structs: structs, protocols: protocols, font: font)
             }
             searchLocation = commentRange.location + commentRange.length
         }
         if searchLocation < fullRange.length {
             let range = NSRange(location: searchLocation, length: fullRange.length - searchLocation)
-            colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywordSet: objcHeaderKeywordSet, classSet: classes, protocolsSet: protocols, font: font)
+            colorIdentifiersAndDirectives(in: headerString, range: range, attributed: attributed, keywords: objcHeaderkeywords, classes: classes, structs: structs, protocols: protocols, font: font)
         }
         return attributed
     }
 
-    private static func colorIdentifiersAndDirectives(in text: String, range: NSRange, attributed: NSMutableAttributedString, keywordSet: Set<String>, classSet: Set<String>, protocolsSet: Set<String>, font: NSUIFont?) {
+    private static func colorIdentifiersAndDirectives(in text: String, range: NSRange, attributed: NSMutableAttributedString, keywords: Set<String>, classes: Set<String>, structs: Set<String>, protocols: Set<String>, font: NSUIFont?) {
         tokenRegex.enumerateMatches(in: text, options: [], range: range) { match, _, _ in
             guard let match else { return }
             let nsString = text as NSString
             let tokenRange = match.range
             let token = nsString.substring(with: tokenRange)
-
             if token.utf8.first == UInt8(ascii: "@") {
-                attributed.setTextColor(objcHeaderColors.keywords, font: font, range: tokenRange)
-                return
-            }
-
-            if keywordSet.contains(token) {
-                attributed.setTextColor(objcHeaderColors.keywords, font: font, range: tokenRange)
-            } else if classSet.contains(token) {
-                attributed.setTextColor(objcHeaderColors.classes, font: font, range: tokenRange)
+                attributed.setTextColor(XcodePresentationTheme.shared.color(for: .keyword), font: XcodePresentationTheme.shared.font(for: .keyword), range: tokenRange)
+            } else if structs.contains(token) {
+                attributed.setTextColor(XcodePresentationTheme.shared.color(for: .type(.struct, .name)), font: XcodePresentationTheme.shared.font(for: .argument), range: tokenRange)
+            } else if keywords.contains(token) {
+                attributed.setTextColor(XcodePresentationTheme.shared.color(for: .keyword), font: XcodePresentationTheme.shared.font(for: .keyword), range: tokenRange)
+            } else if classes.contains(token) {
+                attributed.setTextColor(XcodePresentationTheme.shared.color(for: .type(.class, .name)), font: XcodePresentationTheme.shared.font(for: .argument), range: tokenRange)
                 attributed.addAttribute(.objcClassName, value: token, range: tokenRange)
-            } else if protocolsSet.contains(token) {
+            } else if protocols.contains(token) {
+                attributed.setTextColor(XcodePresentationTheme.shared.color(for: .type(.protocol, .name)), font: XcodePresentationTheme.shared.font(for: .argument), range: tokenRange)
                 attributed.addAttribute(.objcProtocolName, value: token, range: tokenRange)
             }
         }
@@ -134,7 +135,7 @@ extension NSAttributedString {
         )
     }()
 
-    private static let objcHeaderKeywordSet: Set<String> = [
+    private static let objcHeaderkeywords: Set<String> = [
         "class",
         "NSUInteger", "nonatomic", "readwrite", "NSInteger", "readonly", "register", "uint16_t", "uint32_t",
         "uint64_t", "continue", "unsigned", "volatile", "IBAction", "IBOutlet", "typedef", "uint8_t",
@@ -195,4 +196,106 @@ public extension NSAttributedString.Key {
     /// The Objective-C ivar of the text.
     static let objcIvar = NSAttributedString.Key("objcIvar")
 }
+
+extension NSColor {
+    convenience init(light: NSColor, dark: NSColor) {
+        self.init(name: nil) { appeareance in
+            appeareance.bestMatch(from: [.aqua, .darkAqua]) == .aqua ? light : dark
+        }
+    }
+}
+struct XcodePresentationTheme {
+    public static var shared = XcodePresentationTheme()
+    
+    public var selectionBackgroundColor: NSColor = #colorLiteral(red: 0.3904261589, green: 0.4343567491, blue: 0.5144847631, alpha: 1)
+
+    public var backgroundColor: NSColor = .init(light: #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1), dark: #colorLiteral(red: 0.1251632571, green: 0.1258862913, blue: 0.1465735137, alpha: 1))
+
+    public var fontSize: CGFloat = 13
+
+    public func font(for type: SemanticType) -> NSFont {
+        switch type {
+        case .keyword:
+            return .monospacedSystemFont(ofSize: fontSize, weight: .semibold)
+        default:
+            return .monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        }
+    }
+
+    private static var colorCache: [SemanticType: NSColor] = [:]
+
+    public func color(for type: SemanticType) -> NSColor {
+        if let existColor = Self.colorCache[type] {
+            return existColor
+        }
+        let light: NSColor
+        let dark: NSColor
+        switch type {
+        case .comment:
+            light = #colorLiteral(red: 0.4095562398, green: 0.4524990916, blue: 0.4956067801, alpha: 1)
+            dark = #colorLiteral(red: 0.4976348877, green: 0.5490466952, blue: 0.6000126004, alpha: 1)
+        case .keyword:
+            light = #colorLiteral(red: 0.7660875916, green: 0.1342913806, blue: 0.4595085979, alpha: 0.8)
+            dark = #colorLiteral(red: 0.9686241746, green: 0.2627249062, blue: 0.6156817079, alpha: 1)
+        case .variable,
+             .function(.declaration),
+             .member(.declaration),
+             .type(_, .declaration):
+            light = #colorLiteral(red: 0.01979870349, green: 0.4877431393, blue: 0.6895453334, alpha: 1)
+            dark = #colorLiteral(red: 0.2426597476, green: 0.7430019975, blue: 0.8773110509, alpha: 1)
+        case .type(_, .name),
+             .function(.name),
+             .member(.name):
+            light = #colorLiteral(red: 0.2404940426, green: 0.115125142, blue: 0.5072092414, alpha: 1)
+            dark = #colorLiteral(red: 0.853918612, green: 0.730949223, blue: 1, alpha: 1)
+        case .numeric:
+            light = #colorLiteral(red: 0.01564520039, green: 0.2087542713, blue: 1, alpha: 1)
+            dark = #colorLiteral(red: 1, green: 0.9160019755, blue: 0.5006220341, alpha: 1)
+        case .error:
+            light = #colorLiteral(red: 0.831372549, green: 0.1019607843, blue: 0.1019607843, alpha: 1)
+            dark = #colorLiteral(red: 0.831372549, green: 0.1019607843, blue: 0.1019607843, alpha: 1)
+        default:
+            return .labelColor
+        }
+        let color = NSColor(light: light, dark: dark)
+        Self.colorCache[type] = color
+        return color
+    }
+
+    public mutating func fontSizeSmaller() {
+        fontSize -= 1
+    }
+
+    public mutating func fontSizeLarger() {
+        fontSize += 1
+    }
+}
+
+public enum SemanticType: Hashable, Codable, Sendable {
+    public enum TypeKind: CaseIterable, Hashable, Codable, Sendable {
+        case `enum`
+        case `struct`
+        case `class`
+        case `protocol`
+        case other
+    }
+
+    public enum Context: CaseIterable, Hashable, Codable, Sendable {
+        case declaration
+        case name
+    }
+
+    case standard
+    case comment
+    case keyword
+    case variable
+    case numeric
+    case argument
+    case error
+    case type(TypeKind, Context)
+    case member(Context)
+    case function(Context)
+    case other
+}
+
 #endif

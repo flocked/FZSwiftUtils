@@ -29,7 +29,8 @@ public struct ObjCClassInfo: Sendable, Equatable {
     
     /// The superclass of the class.
     public var superclass: ObjCClassInfo? {
-        _superclass.map({ ObjCClassInfo($0) })
+        guard let superclass = _superclass else { return nil }
+        return ObjCClassInfo(superclass)
     }
     let _superclass: AnyClass?
     
@@ -125,26 +126,6 @@ public struct ObjCClassInfo: Sendable, Equatable {
         if let info = Self.cache[`class`] {
             self = info
         } else {
-           /*
-            
-            let objcClass = ObjCClass(`class`)
-            let methods = objcClass.methods()
-            let objcMethods = methods.compactMap({ ObjCMethodInfo($0)})
-            let methodsByName = Dictionary(methods.map({ (key: method_getName($0).string, value: $0)}), retainLastOccurences: false)
-            let classMethods = objcClass.methods()
-            let classMethodsByName = Dictionary(classMethods.map({ (key: method_getName($0).string, value: $0)}), retainLastOccurences: false)
-            let objcClassMethods = classMethods.compactMap({ ObjCMethodInfo($0) })
-            
-            
-            let objcProperties = Self.properties(of: `class`)
-            for property in objcProperties {
-                let getterMethod = methodsByName[property.getterName ?? property.name]
-                var setterMethod: Method?
-                if let setterName = property.setter?.string {
-                    setterMethod = methodsByName[setterName]
-                }
-            }
-            */
             self.init(
                 name: class_getName(`class`).string,
                 version: class_getVersion(`class`),
@@ -179,7 +160,7 @@ public struct ObjCClassInfo: Sendable, Equatable {
     
     private static var methods: SynchronizedDictionary<String, [String: Method]> = [:]
     private static var classMethods: SynchronizedDictionary<String, [String: Method]> = [:]
-    private static var cache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
+    private static var cache: Dictionary<ObjectIdentifier, Self> = [:]
 }
 
 extension ObjCClassInfo: CustomStringConvertible {
@@ -269,7 +250,15 @@ extension ObjCClassInfo {
     
     /// Returns all protocols to which the class and it's superclasses conform to.
     public var allProtocols: [ObjCProtocolInfo] {
-        return allClasses.flatMap({$0.allProtocols}).uniqued(by: \.name)
+        var seen: Set<String> = []
+        var result: [ObjCProtocolInfo] = []
+        func visit(_ proto: ObjCProtocolInfo) {
+            guard seen.insert(proto.name).inserted else { return }
+            result += proto
+            proto.protocols.forEach({ visit($0 )})
+        }
+        protocols.forEach({ visit($0 )})
+        return result
     }
     
     /// Returns the Objective-C type of the instance prperty at the specified key path.
@@ -313,7 +302,14 @@ extension ObjCClassInfo {
     }
     
     private var allClasses: [ObjCClassInfo] {
-        Array(first: self, next: { $0._superclass.flatMap({ $0 != NSObject.self ? ObjCClassInfo($0) : nil }) })
+        var result: [ObjCClassInfo] = []
+        var current: ObjCClassInfo? = self
+        var seen = Set<String>()
+        while let info = current, seen.insert(info.name).inserted {
+            result.append(info)
+            current = info.superclass
+        }
+        return result
     }
 }
 
@@ -350,7 +346,7 @@ extension ObjCClassInfo {
                         check(proto)
                     }
                 }
-                return protocols.sorted(by: \.name)
+                return protocols.sorted(by: \.name, options: .caseInsensitive)
             }
         } catch {
             return protocols
@@ -379,7 +375,7 @@ extension ObjCClassInfo {
                         ivars += ObjCIvarInfo(ivar)
                     }
                 }
-                return ivars.sorted(by: \.name)
+                return ivars.sorted(by: \.name, options: .caseInsensitive)
             }
         } catch {
             return []
@@ -407,7 +403,7 @@ extension ObjCClassInfo {
      - Returns: An array of `ObjCPropertyInfo` objects representing the class properties of the class.
      */
     public static func classProperties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
-        properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+        properties(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses)
     }
     
     private static func properties(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
@@ -424,7 +420,7 @@ extension ObjCClassInfo {
                         properties += ObjCPropertyInfo(property, isClassProperty: !isInstance)
                     }
                 }
-                return properties.sorted(by: \.name)
+                return properties.sorted(by: \.name, options: .caseInsensitive)
             }
         } catch {
             return []
@@ -452,7 +448,7 @@ extension ObjCClassInfo {
      - Returns: An array of `ObjCMethodInfo` objects representing the class methods of the class.
      */
     public static func classMethods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
-        methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
+        methods(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses)
     }
     
     private static func methods(of cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
@@ -469,7 +465,7 @@ extension ObjCClassInfo {
                         methods += ObjCMethodInfo(method, isClassMethod: !isInstance)
                     }
                 }
-                return methods.sorted(by: \.name)
+                return methods.sorted(by: \.name, options: .caseInsensitive)
             }
         } catch {
             return []
@@ -485,6 +481,24 @@ extension ObjCClassInfo {
         }
         guard includeSuperclasses else { return [cls] }
         return Array(first: cls, next: { $0.superclass().flatMap({ $0 != NSObject.self ? $0 : nil }) })
+    }
+    
+    private static func classess(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
+        var start = cls
+        if !isInstance {
+            if ObjCRuntime.classNamesToSkip.contains(NSStringFromClass(cls)) { return [] }
+            guard let metaclass = object_getClass(cls) else { return [] }
+            start = metaclass
+        }
+        guard includeSuperclasses else { return [start] }
+        var result: [AnyClass] = []
+        var current: AnyClass? = start
+        var seen: Set<ObjectIdentifier> = [ObjectIdentifier(NSObject.self)]
+        while let cls = current, seen.insert(ObjectIdentifier(cls)).inserted {
+            result.append(cls)
+            current = class_getSuperclass(cls)
+        }
+        return result
     }
 }
 

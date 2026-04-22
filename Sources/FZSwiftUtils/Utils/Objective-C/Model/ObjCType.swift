@@ -154,7 +154,7 @@ public extension ObjCType {
         default: return false
         }
     }
-    
+            
     /// A Boolean value indicating whether the type is a bit field.
     var isBitField: Bool {
         switch resolved {
@@ -225,8 +225,12 @@ extension ObjCType: CustomStringConvertible {
         case .bitField(let width):
             return "int x : \(width)"
         case .union(let name, let fields), .struct(let name, let fields):
+            if isStruct, let name = name {
+                Self.structNames.insert(name)
+            }
             let type = typeKind.rawValue
             guard includeFields, let fields, !fields.isEmpty else {
+                if let name = name { return "\(type) \(name)" }
                 return "\(type) \(name ?? "{}")"
             }
             let name = name != nil ? " \(name!) " : " "
@@ -240,6 +244,24 @@ extension ObjCType: CustomStringConvertible {
         case .other(let string):
             return string
         }
+    }
+    
+    func decodedForIvar(tab: String = "    ", includeFields: Bool) -> String {
+        switch self {
+        case .struct(name: let name, fields: let fields):
+            guard let fields = fields, fields.contains(where: {$0.bitWidth != nil }) else { break }
+            if let name = name {
+                Self.structNames.insert(name)
+            }
+            let name = name != nil ? " \(name!) " : " "
+            return """
+            \(typeKind.rawValue)\(name){
+            \(fields.decoded(tab: tab))
+            }
+            """
+        default: break
+        }
+        return decoded(tab: tab, includeFields: includeFields)
     }
 
     /// The type encodibg of the Objective-C type.
@@ -545,7 +567,10 @@ extension ObjCType {
         }
         switch self {
         case .struct(let name, let fields), .union(let name, let fields):
-            if let name { return name }
+            if isStruct, let name = name {
+                Self.structNames.insert(name)
+            }
+            if let name { return "\(typeKind.rawValue) \(name)" }
             return typeKind.type(name: nil, fields: fields).decoded(tab: "").components(separatedBy: .newlines).joined(separator: " ")
         // Objective-C BOOL types may be represented by signed char or by C/C++ bool types.
         // This means that the type encoding may be represented as `c` or as `B`.
@@ -555,7 +580,7 @@ extension ObjCType {
         default:
             break
         }
-        return decoded(tab: "").components(separatedBy: .newlines).joined(separator: " ")
+        return decoded(tab: "", includeFields: includeFields).components(separatedBy: .newlines).joined(separator: " ")
     }
     
     private var typeKind: TypeKind {
@@ -641,6 +666,8 @@ extension ObjCType {
         case .other, .unknown, .atom: return nil
         }
     }
+    
+    static var structNames: SynchronizedSet<String> = []
 }
 
 fileprivate protocol PointerType {

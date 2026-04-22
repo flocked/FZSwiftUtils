@@ -20,38 +20,22 @@ public class ImageDestination {
     
     private var steps: [Step] = []
     
-    /// The type identifier of the image destionation.
-    public let typeIdentifier: String
-    
-    /// The content type of the image destionation.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public var contentType: UTType {
-        UTType(typeIdentifier)!
-    }
+    /// The content type of the image destination.
+    public let contentType: UTType
     
     /// The number of images currently added to the destination.
     public internal(set) var imageCount = 0
-    
-    /**
-     A Boolean value indicating whether the destination has been finalized.
-
-     After finalization, no further images, metadata, or auxiliary data may be added.
-     */
-    public internal(set) var isFinalized = false
 
     private var _imageProperties: [CFString: Any] = [:]
 
     /// The image properties to add the image.
     public var imageProperties: [CFString: Any] {
         get { _imageProperties }
-        set {
-            guard !isFinalized else { return }
-            _imageProperties = newValue
-        }
+        set { _imageProperties = newValue }
     }
     
     /**
-     Adds the specified image to the image destionation.
+     Adds the specified image to the image destination.
      
      - Parameters:
         - image: The image to add.
@@ -59,13 +43,12 @@ public class ImageDestination {
         - properties: An optional dictionary that specifies the properties of the added image.
      */
     public func addImage(_ image: CGImage, options: ImageOptions = .init(), properties: [CFString: Any]? = nil) {
-        guard !isFinalized else { return }
         steps += .image(image, metadata: nil, properties: options.dictionary(with: properties))
         imageCount += 1
     }
     
     /**
-     Adds the specified image and it's metadata to the image destionation.
+     Adds the specified image and it's metadata to the image destination.
      
      - Parameters:
         - image: The image to add.
@@ -74,7 +57,6 @@ public class ImageDestination {
         - properties: An optional dictionary that specifies the properties of the added image.
      */
     public func addImage(_ image: CGImage, metadata: CGImageMetadata, options: ImageOptions = .init(), properties: [CFString: Any]? = nil) {
-        guard !isFinalized else { return }
         steps += .image(image, metadata: metadata, properties: options.dictionary(with: properties))
         imageCount += 1
     }
@@ -88,45 +70,29 @@ public class ImageDestination {
         - options: Options how to add the image.
         - properties: An optional dictionary that specifies additional image property information. The added image automatically inherits the properties found in the image source. Use this dictionary to add properties to the image, or to modify one of the inherited properties. To remove an inherited property altogether, specify NULL for the property’s value.
      */
-    public func addImage(from source: CGImageSource, at index: Int, options: ImageOptions = .init()) {
-        guard !isFinalized else { return }
-        steps += .sourceImage(imageSource: source, index: index, properties: options.dictionary)
+    public func addImage(from source: ImageSource, at index: Int = 0, options: ImageOptions = .init()) {
+        steps += .sourceImage(imageSource: source.cgImageSource, index: index, properties: options.dictionary)
         imageCount += 1
     }
     
     public func addAuxiliaryDataInfo(_ auxiliaryDataInfo: [CGImage.AuxiliaryDataInfoKey: Any], type: CGImage.AuxiliaryDataType) {
-        guard !isFinalized else { return }
         steps += .auxiliary(info: auxiliaryDataInfo, type: type)
     }
     
-    /**
-     Finalize creating the image by writing and returning the finale image as `Data`.
-     
-     Call this method as the final step in saving your images. If the finalization succeeds, you can’t add any more data to the image destination. Otherwise the methd throws.
-     */
-    public func finalize() throws -> Data {
-        guard !isFinalized else { throw Errors.alreadyFinalized }
+    /// Saves the image by writing and returning the finale image as `Data`.
+    public func save() throws -> Data {
         let mutableData = NSMutableData()
-        guard let destination = CGImageDestinationCreateWithData(mutableData as CFMutableData, typeIdentifier as CFString, imageCount, nil) else { throw Errors.finalizationFailed }
+        guard let destination = CGImageDestinationCreateWithData(mutableData as CFMutableData, contentType.identifier as CFString, imageCount, nil) else { throw Errors.saveFailed }
         addImagesAndProperties(to: destination)
-        guard CGImageDestinationFinalize(destination) else { throw Errors.finalizationFailed }
-        steps = []
-        isFinalized = true
+        guard CGImageDestinationFinalize(destination) else { throw Errors.saveFailed }
         return mutableData as Data
     }
     
-    /**
-     Finalize creating the image by writing the image to the specified url.
-     
-     Call this method as the final step in saving your images. If the finalization succeeds, you can’t add any more data to the image destination. Otherwise the methd throws.
-     */
-    public func finalize(to url: URL) throws {
-        guard !isFinalized else { throw Errors.alreadyFinalized }
-        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, typeIdentifier as CFString, imageCount, nil) else { throw Errors.finalizationFailed }
+    /// Saves the final image by writing the image to the specified url.
+    public func save(to url: URL) throws {
+        guard let destination = CGImageDestinationCreateWithURL(url as CFURL, contentType.identifier as CFString, imageCount, nil) else { throw Errors.saveFailedToURL(url) }
         addImagesAndProperties(to: destination)
-        guard CGImageDestinationFinalize(destination) else { throw Errors.finalizationFailed }
-        isFinalized = true
-        steps = []
+        guard CGImageDestinationFinalize(destination) else { throw Errors.saveFailedToURL(url) }
     }
     
     private func addImagesAndProperties(to destination: CGImageDestination) {
@@ -148,43 +114,24 @@ public class ImageDestination {
             }
         }
     }
-    
-    /**
-     Creates an image destination for a specified type identifier.
-     
-     Supported type identifiers can be retrieved via ``supportedTypeIdentifiers``.
-
-     - Parameter typeIdentifier: The uniform type identifier of the image type (e.g., "public.png").
-     - Returns: An instance if the type is supported; otherwise, `nil`.
-     */
-    public init?(typeIdentifier: String) {
-        guard Self.supportedTypeIdentifers.contains(typeIdentifier) else { return nil }
-        self.typeIdentifier = typeIdentifier
-    }
 
     /**
      Creates an image destination for the specified content type.
      
      Supported content types can be retrieved via ``supportedContentTypes``.
 
-
      - Parameter contentType: The `UTType` representing the image type (e.g. `.png`).
      - Returns: An instance if the type is supported; otherwise, `nil`.     
      */
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
     public init?(contentType: UTType) {
         guard Self.supportedContentTypes.contains(contentType) else { return nil }
-        self.typeIdentifier = contentType.identifier
+        self.contentType = contentType
     }
-    
-    /// The image type identifiers that are supported by image destionation.
-    public static let supportedTypeIdentifers = (CGImageDestinationCopyTypeIdentifiers() as NSArray).compactMap({ $0 as? String })
-    
-    /// The content types that are supported by image destionation.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-    public static var supportedContentTypes: [UTType] {
-        supportedTypeIdentifers.compactMap({  UTType($0) })
-    }
+        
+    /// The content types that are supported by image destination.
+    static let supportedContentTypes: Set<UTType> = {
+        Set((CGImageDestinationCopyTypeIdentifiers() as? [String] ?? []).compactMap { UTType($0) })
+      }()
 }
 
 extension ImageDestination {
@@ -229,7 +176,6 @@ extension ImageDestination {
          
          If you scale the destination image using the ``maxSize`` property, the destination also scales the gain map.
          */
-        @available(macOS 11.0, iOS 14.1, tvOS 14.1, watchOS 7.0, *)
         public var preserveGainMap: Bool {
             get { _preserveGainMap }
             set { _preserveGainMap = newValue }
@@ -267,24 +213,24 @@ extension ImageDestination {
 
 extension ImageDestination {
     private enum Errors: LocalizedError {
-        case finalizationFailed
-        case alreadyFinalized
+        case saveFailed
+        case saveFailedToURL(URL)
         
         public var errorDescription: String? {
             switch self {
-            case .finalizationFailed:
-                return "The image destination could not be finalized."
-            case .alreadyFinalized:
-                return "The image destination has already been finalized and cannot be modified further."
+            case .saveFailed:
+                return "The image destination could not be saved to Data."
+            case .saveFailedToURL:
+                return "The image destination could not be saved to the specified URL."
             }
         }
         
         public var failureReason: String? {
             switch self {
-            case .finalizationFailed:
-                return "The finalization process failed, possibly due to invalid image data or unsupported destination type."
-            case .alreadyFinalized:
-                return "Once finalized, an image destination cannot be reused or modified."
+            case .saveFailed:
+                return "The save failed, possibly due to invalid image data or unsupported destination type."
+            case .saveFailedToURL(let url):
+                return "The save failed to \"\(url.path)\", possibly due to invalid image data or unsupported destination type."
             }
         }
     }
