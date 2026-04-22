@@ -313,6 +313,20 @@ public extension String {
     }
     
     /**
+     Returns a new string in which all occurrences of the specified regular expression are replaced by another given string.
+
+     - Parameters:
+        - pattern: The regular expression to be removed.
+        - replacement: The replacement string.
+        - options: Options for replacing the string.
+
+     - Returns: A new string with occurrences of the regular expression replaced by the replacement string.
+     */
+    func replacingOccurrences<Pattern, Replacement>(ofPattern pattern: Pattern, with replacement: Replacement, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol, Replacement: StringProtocol {
+        replacingOccurrences(of: pattern, with: replacement, options: .regularExpression, range: range)
+    }
+    
+    /**
      Returns a new string in which all occurrences of the target strings are replaced by another given string.
 
      - Parameters:
@@ -349,8 +363,22 @@ public extension String {
 
      - Returns: A new string with occurrences of target are removed.
      */
-    func removingOccurrences<Target>(of target: Target, options: CompareOptions = [], range searchRange: Range<Self.Index>? = nil) -> String where Target: StringProtocol {
+    func removingOccurrences<Target>(of target: Target, options: CompareOptions = [], range searchRange: Range<Index>? = nil) -> String where Target: StringProtocol {
         replacingOccurrences(of: target, with: "", range: searchRange)
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target regular expression are removed.
+
+     - Parameters:
+        - pattern: The regular expression to be removed.
+        - options: Options for replacing the string.
+        - searchRange: The range of strings to be removed.
+
+     - Returns: A new string with occurrences of pattern are removed.
+     */
+    func removingOccurrences<Pattern>(ofPattern pattern: Pattern, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol {
+        removingOccurrences(of: pattern, options: .regularExpression, range: range)
     }
     
     /**
