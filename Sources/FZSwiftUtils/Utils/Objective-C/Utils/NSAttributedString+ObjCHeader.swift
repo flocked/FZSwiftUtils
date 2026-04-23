@@ -213,7 +213,7 @@ struct XcodePresentationTheme {
 
     public var fontSize: CGFloat = 13
 
-    public func font(for type: SemanticType) -> NSFont {
+    public func font(for type: SemanticType) -> NSUIFont {
         switch type {
         case .keyword:
             return .monospacedSystemFont(ofSize: fontSize, weight: .semibold)
