@@ -13,17 +13,16 @@ public class ImageSource {
     /// The `CGImageSource`.
     let cgImageSource: CGImageSource
 
-    /// The uniform type identifier of the image.
-    public lazy var typeIdentifier = CGImageSourceGetType(cgImageSource) as String?
-
     /// The content type of the image.
-    public lazy var contentType: UTType? = {
-        guard let typeIdentifier = typeIdentifier else { return nil }
+    public var contentType: UTType? {
+        guard let typeIdentifier = CGImageSourceGetType(cgImageSource) as String? else { return nil }
         return UTType(typeIdentifier)
-    }()
+    }
 
     /// The number of images (not including thumbnails) in the image source.
-    public lazy var count = CGImageSourceGetCount(cgImageSource)
+    public var count: Int {
+        CGImageSourceGetCount(cgImageSource)
+    }
 
     /// The current status of the image source.
     public var status: CGImageSourceStatus {
@@ -36,7 +35,9 @@ public class ImageSource {
     }
 
     /// Returns the index of the primary image for an HEIF image, or `0` for any other image format.
-    public lazy var primaryImageIndex = CGImageSourceGetPrimaryImageIndex(cgImageSource)
+    public var primaryImageIndex: Int {
+        CGImageSourceGetPrimaryImageIndex(cgImageSource)
+    }
 
     /**
      Returns the properties of the image source.
@@ -65,25 +66,25 @@ public class ImageSource {
      Returns the image at the specified index in the image source.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil.
-        - options: Additional image creation options
+        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil`.
+        - options: Additional image creation options.
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
-    public func image(at index: Int? = nil, options: ImageOptions? = .init()) -> CGImage? {
-        try? ObjCRuntime.catchException { CGImageSourceCreateImageAtIndex(cgImageSource, index ?? primaryImageIndex, options?.dic) }
+    public func image(at index: Int? = nil, options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> CGImage? {
+        try? ObjCRuntime.catchException { CGImageSourceCreateImageAtIndex(cgImageSource, index ?? primaryImageIndex, options.dictionary) }
     }
 
     /**
      Returns the image at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil.
-        - options: Additional image creation options
+        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil`.
+        - options: Additional image creation options.
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
-    public func image(at index: Int? = nil, options: ImageOptions? = .init()) async -> CGImage? {
+    public func image(at index: Int? = nil, options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) async -> CGImage? {
         await withCheckedContinuation { continuation in
             image(at: index ?? primaryImageIndex, options: options) { image in
                 continuation.resume(returning: image)
@@ -95,11 +96,11 @@ public class ImageSource {
      Returns the image at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil.
-        - options: Additional image creation options
+        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil`.
+        - options: Additional image creation options.
         - completionHandler: A closure the method calls on completion which returns the image at the specified index, or `nil` if an error occurs.
      */
-    public func image(at index: Int? = nil, options: ImageOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
+    public func image(at index: Int? = nil, options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.background.async {
             completionHandler(self.image(at: index ?? self.primaryImageIndex, options: options))
         }
@@ -110,12 +111,12 @@ public class ImageSource {
 
      - Parameters:
         - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil`.
-        - options: Additional thumbnail creation options
+        - options: Additional thumbnail creation options.
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init()) -> CGImage? {
-        try? ObjCRuntime.catchException { CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options?.toDictionary().cfDictionary) }
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> CGImage? {
+        try? ObjCRuntime.catchException { CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options.dictionary) }
     }
 
     /**
@@ -123,11 +124,11 @@ public class ImageSource {
 
      - Parameters:
         - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil`.
-        - options: Additional thumbnail creation options
+        - options: Additional thumbnail creation options.
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init()) async -> CGImage? {
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) async -> CGImage? {
         await withCheckedContinuation { continuation in
             thumbnail(at: index ?? primaryImageIndex, options: options) { image in
                 continuation.resume(returning: image)
@@ -139,57 +140,57 @@ public class ImageSource {
      Returns the thumbnail at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil.
-        - options: Additional thumbnail creation options
+        - index: The zero-based index of the thumbnail you want. If the index is invalid, this method returns `nil`.
+        - options: Additional thumbnail creation options.
         - completionHandler: A closure the method calls on completion which returns the thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions? = .init(), completionHandler: @escaping (CGImage?) -> Void) {
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.background.async {
             completionHandler(self.thumbnail(at: index ?? self.primaryImageIndex, options: options))
         }
     }
     
     /// The images of the image source asynchronously.
-    public func images(options: ImageOptions? = .init()) -> ImageSequence {
+    public func images(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> ImageSequence {
         ImageSequence(source: self, type: .image, imageOptions: options)
     }
     
     /// The images of the image source.
     @_disfavoredOverload
-    public func images(options: ImageOptions? = .init()) -> [CGImage] {
+    public func images(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> [CGImage] {
         (try? images(options: options).collect()) ?? []
     }
 
     /// The thumbnails of the image source asynchronously.
-    public func thumbnails(options: ThumbnailOptions? = .init()) -> ImageSequence {
+    public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> ImageSequence {
         ImageSequence(source: self, type: .thumbnail, thumbnailOptions: options)
     }
     
     /// The thumbnails of the image source.
     @_disfavoredOverload
-    public func thumbnails(options: ThumbnailOptions? = .init()) -> [CGImage] {
+    public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> [CGImage] {
         (try? thumbnails(options: options).collect()) ?? []
     }
 
     /// The image frames of the image source asynchronously.
-    public func imageFrames(options: ImageOptions? = .init()) -> ImageFrameSequence {
+    public func imageFrames(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> ImageFrameSequence {
         ImageFrameSequence(source: self, type: .image, imageOptions: options)
     }
     
     /// The image frames of the image source.
     @_disfavoredOverload
-    public func imageFrames(options: ImageOptions? = .init()) -> [CGImageFrame] {
+    public func imageFrames(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> [CGImageFrame] {
         (try? imageFrames(options: options).collect()) ?? []
     }
 
     /// The thumbnail frames of the image source asynchronously.
-    public func thumbnailFrames(options: ThumbnailOptions? = .init()) -> ImageFrameSequence {
+    public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> ImageFrameSequence {
         ImageFrameSequence(source: self, type: .thumbnail, thumbnailOptions: options)
     }
     
     /// The thumbnail frames of the image source.
     @_disfavoredOverload
-    public func thumbnailFrames(options: ThumbnailOptions? = .init()) -> [CGImageFrame] {
+    public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> [CGImageFrame] {
         (try? thumbnailFrames(options: options).collect()) ?? []
     }
     
@@ -347,85 +348,10 @@ public extension ImageSource {
     }
 }
 
-#if os(macOS)
-import AppKit
-public extension ImageSource {
-    /**
-     Creates an image source that reads from a `NSImage`.
-         
-     - Note: Loading an animated image takes time as each image frame is loaded initially. It's recommended to either use the url to the image if available, or parse the animation properties and frames via the image's `NSBitmapImageRep` representation.
-
-     - Parameters:
-        - image: The `NSImage` object.
-     */
-    convenience init?(image: NSImage) {
-        let images = image.representations.compactMap({$0 as? NSBitmapImageRep}).flatMap({$0.getImages()})
-        guard !images.isEmpty else { return nil }
-        let types = Set(images.compactMap { $0.utType })
-        let outputType = types.count == 1 ? (types.first ?? UTType.tiff.identifier as CFString) : UTType.tiff.identifier as CFString
-        guard let mutableData = CFDataCreateMutable(nil, 0), let destination = CGImageDestinationCreateWithData(mutableData, outputType, images.count, nil) else { return nil }
-        images.forEach { CGImageDestinationAddImage(destination, $0, nil) }
-        guard CGImageDestinationFinalize(destination) else { return nil }
-        guard let cgImageSource = CGImageSourceCreateWithData(mutableData, nil) else { return nil }
-        self.init(cgImageSource)
-    }
-}
-
-#endif
-
-#if canImport(UIKit)
-import UIKit
-public extension ImageSource {
-    /**
-     Creates an image source that reads from a `UIImage`.
-
-     - Parameters:
-        - image: The `UIImage` object.
-     */
-    convenience init?(image: UIImage) {
-        guard let data = image.pngData() else { return nil }
-        self.init(data: data)
-    }
-}
-#endif
-
-public extension ImageSource {
-    // The set of status values for images and image sources.
-    enum Status: Int, CustomStringConvertible {
-        /// The end of the file occurred unexpectedly.
-        case unexpectedEOF = -5
-        /// The data is not valid.
-        case invalidData = -4
-        /// The image is an unknown type.
-        case unknownType = -3
-        ///  The image source is reading the header.
-        case readingHeader = -2
-        /// The operation is not complete
-        case incomplete = -1
-        /// The operation is complete.
-        case complete = 0
-        
-        init(_ status: CGImageSourceStatus) {
-            self = .init(rawValue: Int(status.rawValue)) ?? .unknownType
-        }
-
-        public var description: String {
-            switch self {
-            case .unexpectedEOF: return "Unexpected EOF"
-            case .invalidData: return "Invalid Data"
-            case .unknownType: return "Unknown Type"
-            case .readingHeader: return "Reading Header"
-            case .incomplete: return "Incomplete"
-            case .complete: return "Complete"
-            }
-        }
-    }
-}
-
 extension ImageSource {
     /// Returns a losslessly copied image as Data, applying the given options.
     func copyData(applying options: CopyOptions = CopyOptions()) throws -> Data {
-        guard let typeIdentifier = typeIdentifier else {
+        guard let typeIdentifier = contentType?.identifier else {
             throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
         }
         let mutableData = NSMutableData()
@@ -443,7 +369,7 @@ extension ImageSource {
 
     /// Writes a losslessly copied image to the specified URL, applying the given options.
     func write(to url: URL, applying options: CopyOptions = CopyOptions()) throws {
-        guard let typeIdentifier = typeIdentifier else {
+        guard let typeIdentifier = contentType?.identifier else {
             throw NSError(domain: "CGImageSource", code: 1, userInfo: [NSLocalizedDescriptionKey: "Could not get image type"])
         }
         guard let dest = CGImageDestinationCreateWithURL(url as CFURL, typeIdentifier as CFString, count, nil) else {

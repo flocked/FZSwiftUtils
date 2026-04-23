@@ -70,9 +70,9 @@ public struct ImageSequence: AsyncSequence {
             if let source = sequence.source {
                 switch sequence.type {
                 case .image:
-                    return await source.image(at: index, options:  sequence.imageOptions)
+                    return await source.image(at: index, options:  sequence.imageOptions!)
                 case .thumbnail:
-                    return await source.thumbnail(at: index, options:  sequence.thumbnailOptions)
+                    return await source.thumbnail(at: index, options:  sequence.thumbnailOptions!)
                 }
             }
             #if os(macOS)

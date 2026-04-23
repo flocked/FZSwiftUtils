@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 #if os(macOS)
-    import AppKit
+import AppKit
 #endif
 
 public struct ImageFrameSequence: AsyncSequence {
@@ -35,19 +35,19 @@ public struct ImageFrameSequence: AsyncSequence {
         self.type = type
         self.count = source.count
         #if os(macOS)
-            representation = nil
+        representation = nil
         #endif
     }
 
     #if os(macOS)
-        init(_ representation: NSBitmapImageRep) {
-            self.representation = representation
-            type = .image
-            imageOptions = nil
-            thumbnailOptions = nil
-            count = representation.frameCount
-            source = nil
-        }
+    init(_ representation: NSBitmapImageRep) {
+        self.representation = representation
+        type = .image
+        imageOptions = nil
+        thumbnailOptions = nil
+        count = representation.frameCount
+        source = nil
+    }
     #endif
 
     public func makeAsyncIterator() -> Iterator {
@@ -68,10 +68,10 @@ public struct ImageFrameSequence: AsyncSequence {
             if let source = sequence.source {
                 switch sequence.type {
                 case .image:
-                    guard let image = await source.image(at: index, options: sequence.imageOptions) else { return nil }
+                    guard let image = await source.image(at: index, options: sequence.imageOptions!) else { return nil }
                     return CGImageFrame(image, source.properties(at: index)?.delayTime)
                 case .thumbnail:
-                    guard let image = await source.thumbnail(at: index, options: sequence.thumbnailOptions) else { return nil }
+                    guard let image = await source.thumbnail(at: index, options: sequence.thumbnailOptions!) else { return nil }
                     return CGImageFrame(image, source.properties(at: index)?.delayTime)
                 }
             }
@@ -88,44 +88,46 @@ public struct ImageFrameSequence: AsyncSequence {
 }
 
 #if os(macOS)
-    extension NSBitmapImageRep {
-        /// The frames of an animated (e.g. GIF) image asynchronously.
-        public var frames: ImageFrameSequence {
-            ImageFrameSequence(self)
-        }
-        
-        /// The frames of an animated (e.g. GIF) image.
-        public func getFrames() -> [CGImageFrame] {
-            (try? frames.collect()) ?? []
-        }
-        
-        /// The images of an animated (e.g. GIF) image asynchronously.
-        public var images: ImageSequence {
-            ImageSequence(self)
-        }
-        
-        /// The images of an animated (e.g. GIF) image.
-        public func getImages() -> [CGImage] {
-            (try? images.collect()) ?? []
-        }
-        
-        /// The number of frames in an animated GIF image, or `1` if the image isn't a GIF.
-        var frameCount: Int {
-            (value(forProperty: .frameCount) as? Int) ?? 1
-        }
-
-        /// The the current frame for an animated GIF image, or `0` if the image isn't a GIF.
-        var currentFrame: Int {
-            get { (value(forProperty: .currentFrame) as? Int) ?? 0 }
-            set { setProperty(.currentFrame, withValue: newValue) }
-        }
-
-        /// The duration (in seconds) of the current frame for an animated GIF image, or `0` if the image isn't a GIF.
-        var currentFrameDuration: TimeInterval { (value(forProperty: .currentFrameDuration) as? TimeInterval) ?? 0.0 }
-
-        /// The number of loops to make when animating a GIF image, or `0` if the image isn't a GIF.
-        var loopCount: Int {
-            (value(forProperty: .loopCount) as? Int) ?? 0
-        }
+extension NSBitmapImageRep {
+    /// The frames of an animated (e.g. GIF) image asynchronously.
+    public var frames: ImageFrameSequence {
+        ImageFrameSequence(self)
     }
+        
+    /// The frames of an animated (e.g. GIF) image.
+    public func getFrames() -> [CGImageFrame] {
+        (try? frames.collect()) ?? []
+    }
+        
+    /// The images of an animated (e.g. GIF) image asynchronously.
+    public var images: ImageSequence {
+        ImageSequence(self)
+    }
+        
+    /// The images of an animated (e.g. GIF) image.
+    public func getImages() -> [CGImage] {
+        (try? images.collect()) ?? []
+    }
+        
+    /// The number of frames in an animated GIF image, or `1` if the image isn't a GIF.
+    var frameCount: Int {
+        (value(forProperty: .frameCount) as? Int) ?? 1
+    }
+
+    /// The the current frame for an animated GIF image, or `0` if the image isn't a GIF.
+    var currentFrame: Int {
+        get { (value(forProperty: .currentFrame) as? Int) ?? 0 }
+        set { setProperty(.currentFrame, withValue: newValue) }
+    }
+
+    /// The duration (in seconds) of the current frame for an animated GIF image, or `0` if the image isn't a GIF.
+    var currentFrameDuration: TimeInterval {
+        (value(forProperty: .currentFrameDuration) as? TimeInterval) ?? 0.0
+    }
+
+    /// The number of loops to make when animating a GIF image, or `0` if the image isn't a GIF.
+    var loopCount: Int {
+        (value(forProperty: .loopCount) as? Int) ?? 0
+    }
+}
 #endif
