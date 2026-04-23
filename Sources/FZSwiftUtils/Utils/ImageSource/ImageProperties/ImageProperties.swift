@@ -192,15 +192,7 @@ extension ImageSource.ImageProperties {
         }
     }
     
-    private static let decoder = DictionaryDecoder(dateDecodingStrategy: .custom({ decoder in
-        let container = try decoder.singleValueContainer()
-        let string = try decoder.singleValueContainer().decode(String.self)
-        if let date = dateFormatter.date(from: string) {
-            return date
-        }
-        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Failed to decode date from: \(string)")
-    }))
-    private static let dateFormatter = MultiDateFormatter(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])
+    private static let decoder = DictionaryDecoder(dateDecodingStrategy: .formatted(.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])))
 }
 
 extension ImageSource.ImageProperties {
