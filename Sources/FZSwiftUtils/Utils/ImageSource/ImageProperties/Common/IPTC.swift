@@ -10,480 +10,480 @@ import ImageIO
 
 public extension ImageSource.ImageProperties {
     struct IPTC: Codable {
-        /// The About CV term metadata of the IPTC record.
+        /// The About CV term metadata.
         public var aboutCvTerm: JSONObject?
-        /// The About CV term CV identifier of the IPTC record.
+        /// The About CV term CV identifier.
         public var aboutCvTermCvId: JSONObject?
-        /// The About CV term identifier of the IPTC record.
+        /// The About CV term identifier.
         public var aboutCvTermId: JSONObject?
-        /// The About CV term name of the IPTC record.
+        /// The About CV term name.
         public var aboutCvTermName: JSONObject?
-        /// The refined About CV term metadata of the IPTC record.
+        /// The refined About CV term metadata.
         public var aboutCvTermRefinedAbout: JSONObject?
-        /// The action advised metadata of the IPTC record.
+        /// The action advised metadata.
         public var actionAdvised: JSONObject?
-        /// The additional model information of the IPTC record.
+        /// The additional model information.
         public var addlModelInfo: JSONObject?
-        /// The artwork circa date created metadata of the IPTC record.
+        /// The artwork circa date created metadata.
         public var artworkCircaDateCreated: JSONObject?
-        /// The artwork content description of the IPTC record.
+        /// The artwork content description.
         public var artworkContentDescription: JSONObject?
-        /// The artwork contribution description of the IPTC record.
+        /// The artwork contribution description.
         public var artworkContributionDescription: JSONObject?
-        /// The artwork copyright notice of the IPTC record.
+        /// The artwork copyright notice.
         public var artworkCopyrightNotice: JSONObject?
-        /// The artwork copyright owner identifier of the IPTC record.
+        /// The artwork copyright owner identifier.
         public var artworkCopyrightOwnerID: JSONObject?
-        /// The artwork copyright owner name of the IPTC record.
+        /// The artwork copyright owner name.
         public var artworkCopyrightOwnerName: JSONObject?
-        /// The artwork creator metadata of the IPTC record.
+        /// The artwork creator metadata.
         public var artworkCreator: JSONObject?
-        /// The artwork creator identifier of the IPTC record.
+        /// The artwork creator identifier.
         public var artworkCreatorID: JSONObject?
-        /// The artwork creation date metadata of the IPTC record.
+        /// The artwork creation date metadata.
         public var artworkDateCreated: JSONObject?
-        /// The artwork licensor identifier of the IPTC record.
+        /// The artwork licensor identifier.
         public var artworkLicensorID: JSONObject?
-        /// The artwork licensor name of the IPTC record.
+        /// The artwork licensor name.
         public var artworkLicensorName: JSONObject?
-        /// The artwork or object metadata of the IPTC record.
+        /// The artwork or object metadata.
         public var artworkOrObject: JSONObject?
-        /// The artwork physical description of the IPTC record.
+        /// The artwork physical description.
         public var artworkPhysicalDescription: JSONObject?
-        /// The artwork source metadata of the IPTC record.
+        /// The artwork source metadata.
         public var artworkSource: JSONObject?
-        /// The artwork source inventory URL of the IPTC record.
+        /// The artwork source inventory URL.
         public var artworkSourceInvURL: JSONObject?
-        /// The artwork source inventory number of the IPTC record.
+        /// The artwork source inventory number.
         public var artworkSourceInventoryNo: JSONObject?
-        /// The artwork style period of the IPTC record.
+        /// The artwork style period.
         public var artworkStylePeriod: JSONObject?
-        /// The artwork title of the IPTC record.
+        /// The artwork title.
         public var artworkTitle: JSONObject?
-        /// The audio bitrate metadata of the IPTC record.
+        /// The audio bitrate metadata.
         public var audioBitrate: JSONObject?
-        /// The audio bitrate mode of the IPTC record.
+        /// The audio bitrate mode.
         public var audioBitrateMode: JSONObject?
-        /// The audio channel count of the IPTC record.
+        /// The audio channel count.
         public var audioChannelCount: JSONObject?
-        /// The byline metadata of the IPTC record.
-        public var byline: JSONObject?
-        /// The byline title metadata of the IPTC record.
-        public var bylineTitle: JSONObject?
-        /// The caption or abstract metadata of the IPTC record.
-        public var captionAbstract: JSONObject?
-        /// The category metadata of the IPTC record.
+        /// The byline metadata.
+        public var byline: [String]?
+        /// The byline title metadata.
+        public var bylineTitle: [String]?
+        /// The caption or abstract metadata.
+        public var captionAbstract: String?
+        /// The category metadata.
         public var category: JSONObject?
-        /// The contact city address of the IPTC record.
+        /// The contact city address.
         public var ciAdrCity: JSONObject?
-        /// The contact country address of the IPTC record.
+        /// The contact country address.
         public var ciAdrCtry: JSONObject?
-        /// The contact extended address of the IPTC record.
+        /// The contact extended address.
         public var ciAdrExtadr: JSONObject?
-        /// The contact postal code address of the IPTC record.
+        /// The contact postal code address.
         public var ciAdrPcode: JSONObject?
-        /// The contact region address of the IPTC record.
+        /// The contact region address.
         public var ciAdrRegion: JSONObject?
-        /// The contact work email of the IPTC record.
+        /// The contact work email.
         public var ciEmailWork: JSONObject?
-        /// The contact work telephone of the IPTC record.
+        /// The contact work telephone.
         public var ciTelWork: JSONObject?
-        /// The contact work URL of the IPTC record.
+        /// The contact work URL.
         public var ciUrlWork: JSONObject?
-        /// The circa date created metadata of the IPTC record.
+        /// The circa date created metadata.
         public var circaDateCreated: JSONObject?
-        /// The city metadata of the IPTC record.
-        public var city: JSONObject?
-        /// The contact metadata of the IPTC record.
+        /// The city metadata.
+        public var city: String?
+        /// The contact metadata.
         public var contact: JSONObject?
-        /// The container format metadata of the IPTC record.
+        /// The container format metadata.
         public var containerFormat: JSONObject?
-        /// The container format identifier of the IPTC record.
+        /// The container format identifier.
         public var containerFormatIdentifier: JSONObject?
-        /// The container format name of the IPTC record.
+        /// The container format name.
         public var containerFormatName: JSONObject?
-        /// The content location code of the IPTC record.
+        /// The content location code.
         public var contentLocationCode: JSONObject?
-        /// The content location name of the IPTC record.
+        /// The content location name.
         public var contentLocationName: JSONObject?
-        /// The contributor metadata of the IPTC record.
+        /// The contributor metadata.
         public var contributor: JSONObject?
-        /// The contributor identifier of the IPTC record.
+        /// The contributor identifier.
         public var contributorIdentifier: JSONObject?
-        /// The contributor name of the IPTC record.
+        /// The contributor name.
         public var contributorName: JSONObject?
-        /// The contributor role of the IPTC record.
+        /// The contributor role.
         public var contributorRole: JSONObject?
-        /// The controlled vocabulary term of the IPTC record.
+        /// The controlled vocabulary term.
         public var controlledVocabularyTerm: JSONObject?
-        /// The copyright notice of the IPTC record.
-        public var copyrightNotice: JSONObject?
-        /// The copyright year of the IPTC record.
+        /// The copyright notice.
+        public var copyrightNotice: String?
+        /// The copyright year.
         public var copyrightYear: JSONObject?
-        /// The primary location code of the IPTC record.
+        /// The primary location code.
         public var countryPrimaryLocationCode: JSONObject?
-        /// The primary location name of the IPTC record.
-        public var countryPrimaryLocationName: JSONObject?
-        /// The country code of the IPTC record.
+        /// The primary location name.
+        public var countryPrimaryLocationName: String?
+        /// The country code.
         public var countryCode: JSONObject?
-        /// The country name of the IPTC record.
+        /// The country name.
         public var countryName: JSONObject?
-        /// The creator metadata of the IPTC record.
+        /// The creator metadata.
         public var creator: JSONObject?
-        /// The creator contact information of the IPTC record.
-        public var creatorContactInfo: JSONObject?
-        /// The creator identifier of the IPTC record.
+        /// The creator contact information.
+        public var creatorContactInfo: [String: String]?
+        /// The creator identifier.
         public var creatorIdentifier: JSONObject?
-        /// The creator name of the IPTC record.
+        /// The creator name.
         public var creatorName: JSONObject?
-        /// The creator role of the IPTC record.
+        /// The creator role.
         public var creatorRole: JSONObject?
-        /// The credit metadata of the IPTC record.
-        public var credit: JSONObject?
-        /// The data-on-screen metadata of the IPTC record.
+        /// The credit metadata.
+        public var credit: String?
+        /// The data-on-screen metadata.
         public var dataOnScreen: JSONObject?
-        /// The data-on-screen region metadata of the IPTC record.
+        /// The data-on-screen region metadata.
         public var dataOnScreenRegion: JSONObject?
-        /// The data-on-screen region depth of the IPTC record.
+        /// The data-on-screen region depth.
         public var dataOnScreenRegionD: JSONObject?
-        /// The data-on-screen region height of the IPTC record.
+        /// The data-on-screen region height.
         public var dataOnScreenRegionH: JSONObject?
-        /// The data-on-screen region text of the IPTC record.
+        /// The data-on-screen region text.
         public var dataOnScreenRegionText: JSONObject?
-        /// The data-on-screen region unit of the IPTC record.
+        /// The data-on-screen region unit.
         public var dataOnScreenRegionUnit: JSONObject?
-        /// The data-on-screen region width of the IPTC record.
+        /// The data-on-screen region width.
         public var dataOnScreenRegionW: JSONObject?
-        /// The data-on-screen region x position of the IPTC record.
+        /// The data-on-screen region x position.
         public var dataOnScreenRegionX: JSONObject?
-        /// The data-on-screen region y position of the IPTC record.
+        /// The data-on-screen region y position.
         public var dataOnScreenRegionY: JSONObject?
-        /// The creation date of the IPTC record.
+        /// The creation date.
         public var dateCreated: JSONObject?
-        /// The digital creation date of the IPTC record.
+        /// The digital creation date.
         public var digitalCreationDate: JSONObject?
-        /// The digital creation time of the IPTC record.
+        /// The digital creation time.
         public var digitalCreationTime: JSONObject?
-        /// The digital image GUID of the IPTC record.
+        /// The digital image GUID.
         public var digitalImageGUID: JSONObject?
-        /// The digital source file type of the IPTC record.
+        /// The digital source file type.
         public var digitalSourceFileType: JSONObject?
-        /// The digital source type of the IPTC record.
+        /// The digital source type.
         public var digitalSourceType: JSONObject?
-        /// The dopesheet metadata of the IPTC record.
+        /// The dopesheet metadata.
         public var dopesheet: JSONObject?
-        /// The dopesheet link metadata of the IPTC record.
+        /// The dopesheet link metadata.
         public var dopesheetLink: JSONObject?
-        /// The dopesheet link target of the IPTC record.
+        /// The dopesheet link target.
         public var dopesheetLinkLink: JSONObject?
-        /// The dopesheet link qualifier of the IPTC record.
+        /// The dopesheet link qualifier.
         public var dopesheetLinkLinkQualifier: JSONObject?
-        /// The edit status of the IPTC record.
+        /// The edit status.
         public var editStatus: JSONObject?
-        /// The editorial update metadata of the IPTC record.
+        /// The editorial update metadata.
         public var editorialUpdate: JSONObject?
-        /// The embedded encoded rights expression of the IPTC record.
+        /// The embedded encoded rights expression.
         public var embdEncRightsExpr: JSONObject?
-        /// The embedded encoded rights expression metadata of the IPTC record.
+        /// The embedded encoded rights expression metadata.
         public var embeddedEncodedRightsExpr: JSONObject?
-        /// The embedded encoded rights expression language identifier of the IPTC record.
+        /// The embedded encoded rights expression language identifier.
         public var embeddedEncodedRightsExprLangID: JSONObject?
-        /// The embedded encoded rights expression type of the IPTC record.
+        /// The embedded encoded rights expression type.
         public var embeddedEncodedRightsExprType: JSONObject?
-        /// The episode metadata of the IPTC record.
+        /// The episode metadata.
         public var episode: JSONObject?
-        /// The episode identifier of the IPTC record.
+        /// The episode identifier.
         public var episodeIdentifier: JSONObject?
-        /// The episode name of the IPTC record.
+        /// The episode name.
         public var episodeName: JSONObject?
-        /// The episode number of the IPTC record.
+        /// The episode number.
         public var episodeNumber: JSONObject?
-        /// The event metadata of the IPTC record.
+        /// The event metadata.
         public var event: JSONObject?
-        /// The expiration date of the IPTC record.
+        /// The expiration date.
         public var expirationDate: JSONObject?
-        /// The expiration time of the IPTC record.
+        /// The expiration time.
         public var expirationTime: JSONObject?
-        /// The external metadata link of the IPTC record.
+        /// The external metadata link.
         public var externalMetadataLink: JSONObject?
-        /// The feed identifier of the IPTC record.
+        /// The feed identifier.
         public var feedIdentifier: JSONObject?
-        /// The fixture identifier of the IPTC record.
+        /// The fixture identifier.
         public var fixtureIdentifier: JSONObject?
-        /// The GPS altitude metadata of the IPTC record.
+        /// The GPS altitude metadata.
         public var gPSAltitude: JSONObject?
-        /// The GPS latitude metadata of the IPTC record.
+        /// The GPS latitude metadata.
         public var gPSLatitude: JSONObject?
-        /// The GPS longitude metadata of the IPTC record.
+        /// The GPS longitude metadata.
         public var gPSLongitude: JSONObject?
-        /// The genre metadata of the IPTC record.
+        /// The genre metadata.
         public var genre: JSONObject?
-        /// The genre CV identifier of the IPTC record.
+        /// The genre CV identifier.
         public var genreCvId: JSONObject?
-        /// The genre CV term identifier of the IPTC record.
+        /// The genre CV term identifier.
         public var genreCvTermId: JSONObject?
-        /// The genre CV term name of the IPTC record.
+        /// The genre CV term name.
         public var genreCvTermName: JSONObject?
-        /// The refined genre CV term metadata of the IPTC record.
+        /// The refined genre CV term metadata.
         public var genreCvTermRefinedAbout: JSONObject?
-        /// The headline metadata of the IPTC record.
-        public var headline: JSONObject?
-        /// The IPTC last edited metadata of the IPTC record.
+        /// The headline metadata.
+        public var headline: String?
+        /// The IPTC last edited metadata.
         public var iPTCLastEdited: JSONObject?
-        /// The identifier metadata of the IPTC record.
+        /// The identifier metadata.
         public var identifier: JSONObject?
         /// The orientation of the IPTC image.
         public var orientation: CGImagePropertyOrientation?
-        /// The image type metadata of the IPTC record.
+        /// The image type metadata.
         public var imageType: JSONObject?
-        /// The keywords metadata of the IPTC record.
-        public var keywords: JSONObject?
-        /// The language identifier of the IPTC record.
+        /// The keywords metadata.
+        public var keywords: [String]?
+        /// The language identifier.
         public var languageIdentifier: JSONObject?
-        /// The linked encoded rights expression of the IPTC record.
+        /// The linked encoded rights expression.
         public var linkedEncRightsExpr: JSONObject?
-        /// The linked encoded rights expression metadata of the IPTC record.
+        /// The linked encoded rights expression metadata.
         public var linkedEncodedRightsExpr: JSONObject?
-        /// The linked encoded rights expression language identifier of the IPTC record.
+        /// The linked encoded rights expression language identifier.
         public var linkedEncodedRightsExprLangID: JSONObject?
-        /// The linked encoded rights expression type of the IPTC record.
+        /// The linked encoded rights expression type.
         public var linkedEncodedRightsExprType: JSONObject?
-        /// The created location metadata of the IPTC record.
+        /// The created location metadata.
         public var locationCreated: JSONObject?
-        /// The location identifier of the IPTC record.
+        /// The location identifier.
         public var locationId: JSONObject?
-        /// The location name of the IPTC record.
+        /// The location name.
         public var locationName: JSONObject?
-        /// The shown location metadata of the IPTC record.
+        /// The shown location metadata.
         public var locationShown: JSONObject?
-        /// The maximum available height of the IPTC record.
+        /// The maximum available height.
         public var maxAvailHeight: JSONObject?
-        /// The maximum available width of the IPTC record.
+        /// The maximum available width.
         public var maxAvailWidth: JSONObject?
-        /// The model age metadata of the IPTC record.
+        /// The model age metadata.
         public var modelAge: JSONObject?
-        /// The object attribute reference of the IPTC record.
+        /// The object attribute reference.
         public var objectAttributeReference: JSONObject?
-        /// The object cycle metadata of the IPTC record.
+        /// The object cycle metadata.
         public var objectCycle: JSONObject?
-        /// The object name of the IPTC record.
-        public var objectName: JSONObject?
-        /// The object type reference of the IPTC record.
+        /// The object name.
+        public var objectName: String?
+        /// The object type reference.
         public var objectTypeReference: JSONObject?
-        /// The organisation-in-image code of the IPTC record.
+        /// The organisation-in-image code.
         public var organisationInImageCode: JSONObject?
-        /// The organisation-in-image name of the IPTC record.
+        /// The organisation-in-image name.
         public var organisationInImageName: JSONObject?
-        /// The original transmission reference of the IPTC record.
-        public var originalTransmissionReference: JSONObject?
-        /// The originating program of the IPTC record.
+        /// The original transmission reference.
+        public var originalTransmissionReference: String?
+        /// The originating program.
         public var originatingProgram: JSONObject?
-        /// The person-heard metadata of the IPTC record.
+        /// The person-heard metadata.
         public var personHeard: JSONObject?
-        /// The person-heard identifier of the IPTC record.
+        /// The person-heard identifier.
         public var personHeardIdentifier: JSONObject?
-        /// The person-heard name of the IPTC record.
+        /// The person-heard name.
         public var personHeardName: JSONObject?
-        /// The person-in-image metadata of the IPTC record.
+        /// The person-in-image metadata.
         public var personInImage: JSONObject?
-        /// The person-in-image characteristic metadata of the IPTC record.
+        /// The person-in-image characteristic metadata.
         public var personInImageCharacteristic: JSONObject?
-        /// The person-in-image CV term CV identifier of the IPTC record.
+        /// The person-in-image CV term CV identifier.
         public var personInImageCvTermCvId: JSONObject?
-        /// The person-in-image CV term identifier of the IPTC record.
+        /// The person-in-image CV term identifier.
         public var personInImageCvTermId: JSONObject?
-        /// The person-in-image CV term name of the IPTC record.
+        /// The person-in-image CV term name.
         public var personInImageCvTermName: JSONObject?
-        /// The refined person-in-image CV term metadata of the IPTC record.
+        /// The refined person-in-image CV term metadata.
         public var personInImageCvTermRefinedAbout: JSONObject?
-        /// The person-in-image description of the IPTC record.
+        /// The person-in-image description.
         public var personInImageDescription: JSONObject?
-        /// The person-in-image identifier of the IPTC record.
+        /// The person-in-image identifier.
         public var personInImageId: JSONObject?
-        /// The person-in-image name of the IPTC record.
+        /// The person-in-image name.
         public var personInImageName: JSONObject?
-        /// The person-in-image details metadata of the IPTC record.
+        /// The person-in-image details metadata.
         public var personInImageWDetails: JSONObject?
-        /// The product-in-image metadata of the IPTC record.
+        /// The product-in-image metadata.
         public var productInImage: JSONObject?
-        /// The product-in-image description of the IPTC record.
+        /// The product-in-image description.
         public var productInImageDescription: JSONObject?
-        /// The product-in-image GTIN of the IPTC record.
+        /// The product-in-image GTIN.
         public var productInImageGTIN: JSONObject?
-        /// The product-in-image name of the IPTC record.
+        /// The product-in-image name.
         public var productInImageName: JSONObject?
-        /// The program version of the IPTC record.
+        /// The program version.
         public var programVersion: JSONObject?
-        /// The province or state metadata of the IPTC record.
+        /// The province or state metadata.
         public var provinceOrState: JSONObject?
-        /// The province state metadata of the IPTC record.
-        public var provinceState: JSONObject?
-        /// The publication event metadata of the IPTC record.
+        /// The province state metadata.
+        public var provinceState: String?
+        /// The publication event metadata.
         public var publicationEvent: JSONObject?
-        /// The publication event date of the IPTC record.
+        /// The publication event date.
         public var publicationEventDate: JSONObject?
-        /// The publication event identifier of the IPTC record.
+        /// The publication event identifier.
         public var publicationEventIdentifier: JSONObject?
-        /// The publication event name of the IPTC record.
+        /// The publication event name.
         public var publicationEventName: JSONObject?
-        /// The rating metadata of the IPTC record.
+        /// The rating metadata.
         public var rating: JSONObject?
-        /// The rating region metadata of the IPTC record.
+        /// The rating region metadata.
         public var ratingRatingRegion: JSONObject?
-        /// The rating region city of the IPTC record.
+        /// The rating region city.
         public var ratingRegionCity: JSONObject?
-        /// The rating region country code of the IPTC record.
+        /// The rating region country code.
         public var ratingRegionCountryCode: JSONObject?
-        /// The rating region country name of the IPTC record.
+        /// The rating region country name.
         public var ratingRegionCountryName: JSONObject?
-        /// The rating region GPS altitude of the IPTC record.
+        /// The rating region GPS altitude.
         public var ratingRegionGPSAltitude: JSONObject?
-        /// The rating region GPS latitude of the IPTC record.
+        /// The rating region GPS latitude.
         public var ratingRegionGPSLatitude: JSONObject?
-        /// The rating region GPS longitude of the IPTC record.
+        /// The rating region GPS longitude.
         public var ratingRegionGPSLongitude: JSONObject?
-        /// The rating region identifier of the IPTC record.
+        /// The rating region identifier.
         public var ratingRegionIdentifier: JSONObject?
-        /// The rating region location identifier of the IPTC record.
+        /// The rating region location identifier.
         public var ratingRegionLocationId: JSONObject?
-        /// The rating region location name of the IPTC record.
+        /// The rating region location name.
         public var ratingRegionLocationName: JSONObject?
-        /// The rating region province state of the IPTC record.
+        /// The rating region province state.
         public var ratingRegionProvinceState: JSONObject?
-        /// The rating region sublocation of the IPTC record.
+        /// The rating region sublocation.
         public var ratingRegionSublocation: JSONObject?
-        /// The rating region world region of the IPTC record.
+        /// The rating region world region.
         public var ratingRegionWorldRegion: JSONObject?
-        /// The maximum rating scale value of the IPTC record.
+        /// The maximum rating scale value.
         public var ratingScaleMaxValue: JSONObject?
-        /// The minimum rating scale value of the IPTC record.
+        /// The minimum rating scale value.
         public var ratingScaleMinValue: JSONObject?
-        /// The rating source link of the IPTC record.
+        /// The rating source link.
         public var ratingSourceLink: JSONObject?
-        /// The rating value of the IPTC record.
+        /// The rating value.
         public var ratingValue: JSONObject?
-        /// The rating value logo link of the IPTC record.
+        /// The rating value logo link.
         public var ratingValueLogoLink: JSONObject?
-        /// The reference date of the IPTC record.
+        /// The reference date.
         public var referenceDate: JSONObject?
-        /// The reference number of the IPTC record.
+        /// The reference number.
         public var referenceNumber: JSONObject?
-        /// The reference service of the IPTC record.
+        /// The reference service.
         public var referenceService: JSONObject?
-        /// The registry entry role of the IPTC record.
+        /// The registry entry role.
         public var registryEntryRole: JSONObject?
-        /// The registry identifier of the IPTC record.
+        /// The registry identifier.
         public var registryID: JSONObject?
-        /// The registry item identifier of the IPTC record.
+        /// The registry item identifier.
         public var registryItemID: JSONObject?
-        /// The registry organisation identifier of the IPTC record.
+        /// The registry organisation identifier.
         public var registryOrganisationID: JSONObject?
-        /// The release date of the IPTC record.
+        /// The release date.
         public var releaseDate: JSONObject?
-        /// The release-ready metadata of the IPTC record.
+        /// The release-ready metadata.
         public var releaseReady: JSONObject?
-        /// The release time of the IPTC record.
+        /// The release time.
         public var releaseTime: JSONObject?
-        /// The scene metadata of the IPTC record.
+        /// The scene metadata.
         public var scene: JSONObject?
-        /// The season metadata of the IPTC record.
+        /// The season metadata.
         public var season: JSONObject?
-        /// The season identifier of the IPTC record.
+        /// The season identifier.
         public var seasonIdentifier: JSONObject?
-        /// The season name of the IPTC record.
+        /// The season name.
         public var seasonName: JSONObject?
-        /// The season number of the IPTC record.
+        /// The season number.
         public var seasonNumber: JSONObject?
-        /// The series metadata of the IPTC record.
+        /// The series metadata.
         public var series: JSONObject?
-        /// The series identifier of the IPTC record.
+        /// The series identifier.
         public var seriesIdentifier: JSONObject?
-        /// The series name of the IPTC record.
+        /// The series name.
         public var seriesName: JSONObject?
-        /// The shown event metadata of the IPTC record.
+        /// The shown event metadata.
         public var shownEvent: JSONObject?
-        /// The shown event identifier of the IPTC record.
+        /// The shown event identifier.
         public var shownEventIdentifier: JSONObject?
-        /// The shown event name of the IPTC record.
+        /// The shown event name.
         public var shownEventName: JSONObject?
-        /// The source metadata of the IPTC record.
-        public var source: JSONObject?
-        /// The special instructions of the IPTC record.
-        public var specialInstructions: JSONObject?
-        /// The star rating metadata of the IPTC record.
-        public var starRating: JSONObject?
-        /// The storyline identifier of the IPTC record.
+        /// The source metadata.
+        public var source: String?
+        /// The special instructions.
+        public var specialInstructions: String?
+        /// The star rating metadata.
+        public var starRating: Double?
+        /// The storyline identifier.
         public var storylineIdentifier: JSONObject?
-        /// The stream-ready metadata of the IPTC record.
+        /// The stream-ready metadata.
         public var streamReady: JSONObject?
-        /// The style period metadata of the IPTC record.
+        /// The style period metadata.
         public var stylePeriod: JSONObject?
-        /// The sublocation metadata of the IPTC record.
+        /// The sublocation metadata.
         public var subLocation: JSONObject?
-        /// The subject reference metadata of the IPTC record.
+        /// The subject reference metadata.
         public var subjectReference: JSONObject?
-        /// The alternate sublocation metadata of the IPTC record.
+        /// The alternate sublocation metadata.
         public var sublocation: JSONObject?
-        /// The supplemental category metadata of the IPTC record.
+        /// The supplemental category metadata.
         public var supplementalCategory: JSONObject?
-        /// The supply chain source metadata of the IPTC record.
+        /// The supply chain source metadata.
         public var supplyChainSource: JSONObject?
-        /// The supply chain source identifier of the IPTC record.
+        /// The supply chain source identifier.
         public var supplyChainSourceIdentifier: JSONObject?
-        /// The supply chain source name of the IPTC record.
+        /// The supply chain source name.
         public var supplyChainSourceName: JSONObject?
-        /// The temporal coverage metadata of the IPTC record.
+        /// The temporal coverage metadata.
         public var temporalCoverage: JSONObject?
-        /// The temporal coverage start of the IPTC record.
+        /// The temporal coverage start.
         public var temporalCoverageFrom: JSONObject?
-        /// The temporal coverage end of the IPTC record.
+        /// The temporal coverage end.
         public var temporalCoverageTo: JSONObject?
-        /// The creation time of the IPTC record.
+        /// The creation time.
         public var timeCreated: JSONObject?
-        /// The transcript metadata of the IPTC record.
+        /// The transcript metadata.
         public var transcript: JSONObject?
-        /// The transcript link metadata of the IPTC record.
+        /// The transcript link metadata.
         public var transcriptLink: JSONObject?
-        /// The transcript link target of the IPTC record.
+        /// The transcript link target.
         public var transcriptLinkLink: JSONObject?
-        /// The transcript link qualifier of the IPTC record.
+        /// The transcript link qualifier.
         public var transcriptLinkLinkQualifier: JSONObject?
-        /// The urgency metadata of the IPTC record.
+        /// The urgency metadata.
         public var urgency: JSONObject?
-        /// The usage terms metadata of the IPTC record.
-        public var usageTerms: JSONObject?
-        /// The video bitrate metadata of the IPTC record.
+        /// The usage terms metadata.
+        public var usageTerms: String?
+        /// The video bitrate metadata.
         public var videoBitrate: JSONObject?
-        /// The video bitrate mode of the IPTC record.
+        /// The video bitrate mode.
         public var videoBitrateMode: JSONObject?
-        /// The video display aspect ratio of the IPTC record.
+        /// The video display aspect ratio.
         public var videoDisplayAspectRatio: JSONObject?
-        /// The video encoding profile of the IPTC record.
+        /// The video encoding profile.
         public var videoEncodingProfile: JSONObject?
-        /// The video shot type metadata of the IPTC record.
+        /// The video shot type metadata.
         public var videoShotType: JSONObject?
-        /// The video shot type identifier of the IPTC record.
+        /// The video shot type identifier.
         public var videoShotTypeIdentifier: JSONObject?
-        /// The video shot type name of the IPTC record.
+        /// The video shot type name.
         public var videoShotTypeName: JSONObject?
-        /// The video streams count of the IPTC record.
+        /// The video streams count.
         public var videoStreamsCount: JSONObject?
-        /// The visual color metadata of the IPTC record.
+        /// The visual color metadata.
         public var visualColor: JSONObject?
-        /// The workflow tag metadata of the IPTC record.
+        /// The workflow tag metadata.
         public var workflowTag: JSONObject?
-        /// The workflow tag CV identifier of the IPTC record.
+        /// The workflow tag CV identifier.
         public var workflowTagCvId: JSONObject?
-        /// The workflow tag CV term identifier of the IPTC record.
+        /// The workflow tag CV term identifier.
         public var workflowTagCvTermId: JSONObject?
-        /// The workflow tag CV term name of the IPTC record.
+        /// The workflow tag CV term name.
         public var workflowTagCvTermName: JSONObject?
-        /// The refined workflow tag CV term metadata of the IPTC record.
+        /// The refined workflow tag CV term metadata.
         public var workflowTagCvTermRefinedAbout: JSONObject?
-        /// The world region metadata of the IPTC record.
+        /// The world region metadata.
         public var worldRegion: JSONObject?
-        /// The writer or editor metadata of the IPTC record.
-        public var writerEditor: JSONObject?
+        /// The writer or editor metadata.
+        public var writerEditor: [String]?
 
         enum CodingKeys: String, CodingKey {
             case aboutCvTerm = "AboutCvTerm"
