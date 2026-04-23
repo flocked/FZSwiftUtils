@@ -57,7 +57,7 @@ public extension Dictionary {
      - Returns: An instance of `T`.
      */
     func decode<T: Decodable>(as type: T.Type = T.self, decoder: JSONDecoder) throws -> T {
-        let data = try JSONSerialization.data(withJSONObject: self, options: [])
-        return try decoder.decode(type, from: data)
+        return try PropertyListDecoder().decode(T.self, from: PropertyListSerialization.data(fromPropertyList: self, format: .binary, options: 0))
+        return try decoder.decode(type, from: JSONSerialization.data(withJSONObject: self, options: []))
     }
 }

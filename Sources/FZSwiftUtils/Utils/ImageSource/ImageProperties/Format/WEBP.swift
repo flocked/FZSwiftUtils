@@ -46,8 +46,8 @@ public extension ImageSource.ImageProperties {
             return CGSize(width: width, height: height)
         }
         
-        /// The frame information of the WEBP image.
-        public var frameInfo: FrameInfo?
+        /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
+        public var framesInfo: [FrameInfo]?
         
         enum CodingKeys: String, CodingKey {
             case canvasPixelWidth = "CanvasPixelWidth"
@@ -55,7 +55,7 @@ public extension ImageSource.ImageProperties {
             case loopCount = "LoopCount"
             case clampedDelayTime = "DelayTime"
             case unclampedDelayTime = "UnclampedDelayTime"
-            case frameInfo = "FrameInfo"
+            case framesInfo = "FrameInfo"
         }
     }
 }

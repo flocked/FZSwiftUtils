@@ -30,7 +30,7 @@ public extension ImageSource.ImageProperties {
         /// The image adjustment mode selected on the Nikon camera.
         public var imageAdjustment: String?
         /// The lens adapter value recorded by the Nikon camera.
-        public var lensAdapter: Double?
+        public var lensAdapter: String?
         /// The type flags of the mounted Nikon lens.
         public var lensType: LensType?
         /// The lens information string recorded by the Nikon camera.

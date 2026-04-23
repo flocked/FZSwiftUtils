@@ -29,7 +29,7 @@ public extension ImageSource.ImageProperties {
         /// The color space of the image data.
         public var photometricInterpretation: Double?
         /// The chromaticities of the primaries of the image.
-        public var primaryChromaticities: Double?
+        public var primaryChromaticities: [Double]?
         /// The name and version of the software used for image creation.
         public var software: String?
         /// The tile length.
@@ -39,7 +39,7 @@ public extension ImageSource.ImageProperties {
         /// The transfer function, in tabular format, used to map pixel components from a nonlinear form into a linear form.
         public var transferFunction: Double?
         /// The white point of the image.
-        public var whitePoint: Double?
+        public var whitePoint: [Double]?
         /// The horizontal position of the TIFF image.
         public var xPosition: Double?
         /// The number of pixels per resolution unit in the image height direction.
@@ -47,9 +47,9 @@ public extension ImageSource.ImageProperties {
         /// The units of resolution.
         public var resolutionUnit: Double?
         /// The number of pixels per resolution unit in the image width direction.
-        public var xResolution: Int?
+        public var xResolution: Double?
         /// The number of pixels per resolution unit in the image height direction.
-        public var yResolution: Int?
+        public var yResolution: Double?
         /// The image orientation.
         public var orientation: CGImagePropertyOrientation?
         /// The date and time that the image was created.

@@ -366,7 +366,7 @@ public extension ImageSource.ImageProperties.EXIF {
     }
 
     /// The flash mode recorded for the image.
-    enum FlashMode: Int, Codable, Hashable, Sendable {
+    enum FlashMode: Int, Codable, Hashable, Sendable, CaseIterable {
         /// No flash was used.
         case noFlash = 0x0
         /// The flash fired.
@@ -421,6 +421,11 @@ public extension ImageSource.ImageProperties.EXIF {
         case autoFiredRedEyeReductionReturnNotDetected = 0x5d
         /// Flash was in auto mode with red-eye reduction, fired, and return light was detected.
         case autoFiredRedEyeReductionReturnDetected = 0x5f
+        case unknown = 2
+        
+        public init?(rawValue: Int) {
+            self = Self.allCases.first(where: {$0.rawValue == rawValue}) ?? .unknown
+        }
     }
 
     /// The gain adjustment applied during image capture.

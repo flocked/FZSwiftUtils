@@ -80,6 +80,8 @@ extension ImageSource.ImageProperties.EXIF {
 extension ImageSource.ImageProperties.EXIF.FlashMode {
     var humanReadable: String {
         switch self {
+        case .unknown:
+            return "unknown"
         case .noFlash:
             return "No flash"
         case .fired:

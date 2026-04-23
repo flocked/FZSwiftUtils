@@ -27,7 +27,7 @@ public extension ImageSource.ImageProperties {
         /// The UTC time associated with the GPS measurement.
         public var timeStamp: Date?
         /// The satellites used for the GPS measurement.
-        public var satellites: Double?
+        public var satellites: String?
         /// The status of the GPS receiver.
         public var status: Status?
         /// The dimensionality of the GPS measurement.
@@ -49,7 +49,7 @@ public extension ImageSource.ImageProperties {
         /// The geodetic survey data used by the GPS receiver.
         public var mapDatum: String?
         /// The reference for the destination latitude value.
-        public var destLatitudeRef: Double?
+        public var destLatitudeRef: String?
         /// The destination latitude in degrees.
         public var destLatitude: Double?
         /// The reference for the destination longitude value.
@@ -57,7 +57,7 @@ public extension ImageSource.ImageProperties {
         /// The destination longitude in degrees.
         public var destLongitude: Double?
         /// The reference for the destination bearing value.
-        public var destBearingRef: Double?
+        public var destBearingRef: String?
         /// The bearing to the destination point.
         public var destBearing: Double?
         /// The unit used for the destination distance value.

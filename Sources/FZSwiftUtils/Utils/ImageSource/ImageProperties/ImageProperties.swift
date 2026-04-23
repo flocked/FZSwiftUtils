@@ -103,7 +103,7 @@ public extension ImageSource {
          A value of `0` means the animated image repeats forever.
          */
         public var loopCount: Int? {
-            heic?.loopCount ?? gif?.loopCount ?? png?.loopCount
+            heic?.loopCount ?? gif?.loopCount ?? png?.loopCount ?? webp?.loopCount
         }
 
         /**
@@ -112,7 +112,7 @@ public extension ImageSource {
          The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
         public var clampedDelayTime: Double? {
-            gif?.clampedDelayTime ?? heic?.clampedDelayTime ?? png?.clampedDelayTime
+            gif?.clampedDelayTime ?? heic?.clampedDelayTime ?? png?.clampedDelayTime ?? webp?.clampedDelayTime
         }
 
         /**
@@ -121,12 +121,12 @@ public extension ImageSource {
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double? {
-            gif?.unclampedDelayTime ?? heic?.unclampedDelayTime ?? png?.unclampedDelayTime
+            gif?.unclampedDelayTime ?? heic?.unclampedDelayTime ?? png?.unclampedDelayTime ?? webp?.unclampedDelayTime
         }
         
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
         public var framesInfo: [FrameInfo]? {
-            gif?.framesInfo ?? heic?.framesInfo ?? png?.framesInfo
+            gif?.framesInfo ?? heic?.framesInfo ?? png?.framesInfo ?? webp?.framesInfo
         }
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
@@ -148,14 +148,16 @@ public extension ImageSource {
             case tiff = "{TIFF}"
             case iptc = "{IPTC}"
             case heic = "{HEICS}"
-            case exif = "{Exif}"
-            case gps = "{GPS}"
             case tga = "{TGA}"
             case webp = "{WebP}"
             case a8bim = "{8BIM}"
+            
+            case exif = "{Exif}"
+            case gps = "{GPS}"
             case ciff = "{CIFF}"
             case canon = "{MakerCanon}"
             case nikon = "{MakerNikon}"
+            
             /*
             case minolta = "{MakerMinolta}"
             case fuji = "{MakerFuji}"
@@ -174,8 +176,18 @@ public extension ImageSource {
 }
 
 extension ImageSource.ImageProperties {
-    static let decoder = JSONDecoder(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
+    static let decoder = JSONDecoder(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"), dataDecodingStrategy: .base64)
     static let encoder = JSONEncoder(dateEncodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
+    static let dictionaryDecoder = DictionaryDecoder(dateDecodingStrategy: .custom({ decoder in
+        let container = try decoder.singleValueContainer()
+        let string = try decoder.singleValueContainer().decode(String.self)
+        if let date = dateFormatter.date(from: string) {
+            return date
+        }
+        throw DecodingError.dataCorruptedError(in: container, debugDescription: "Failed to decode date from: \(string)")
+        
+    }))
+    static let dateFormatter = MultiDateFormatter(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])
 }
 
 extension ImageSource.ImageProperties {

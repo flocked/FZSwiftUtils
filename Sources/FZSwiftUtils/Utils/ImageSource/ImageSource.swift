@@ -54,6 +54,12 @@ public class ImageSource {
      */
     public func properties(at index: Int) -> ImageProperties? {
         let rawValue = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [String: Any] ?? [:]
+        do {
+            return try ImageProperties.dictionaryDecoder.decode(from: rawValue)
+        } catch {
+            Swift.print(error)
+            return nil
+        }
         return try? rawValue.decode(as: ImageProperties.self, decoder: ImageProperties.decoder)
     }
     
