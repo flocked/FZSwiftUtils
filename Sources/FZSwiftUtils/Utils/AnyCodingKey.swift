@@ -50,6 +50,15 @@ public enum AnyCodingKey: CodingKey, ExpressibleByIntegerLiteral, ExpressibleByS
         self = .key(stringValue)
     }
     
+    
+    public init(_ key: String) {
+        self = .key(key)
+    }
+    
+    public init(_ index: Int) {
+        self = .index(index)
+    }
+    
    public var description: String {
         stringValue
     }

@@ -1,5 +1,5 @@
 //
-//  MultiDateFormatter.swift
+//  DateFormatter+Multiple.swift
 //  
 //
 //  Created by Florian Zand on 23.04.26.
