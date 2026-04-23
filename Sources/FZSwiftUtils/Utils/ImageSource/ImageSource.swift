@@ -212,15 +212,23 @@ public class ImageSource {
         - data: The updated data for the image source. Each time you call this function, specify all of the accumulated image data so far.
         - isFinal: A Boolean value that indicates whether the data parameter represents the complete data set. Specify `true` if the data is complete or `false` if it isn’t.
      */
-    public func updateDate(_ data: Data, isFinal: Bool) {
+    public func updateData(_ data: Data, isFinal: Bool) {
         CGImageSourceUpdateData(cgImageSource, data as CFData, isFinal)
+    }
+    
+    /**
+     Creates an empty image source that you can use to accumulate incremental image data.
+     
+     This function creates an empty image source, which you use to accumulate data downloaded in chunks from the network. To add new chunks of data to the image source, call  ``updateData(_:isFinal:)``.
+     */
+    public init() {
+        self.cgImageSource = CGImageSourceCreateIncremental(nil)
     }
 
     /**
-     Creates an image source that reads from a CGImageSource.
+     Creates an image source that reads from a `CGImageSource`.
 
-     - Parameters:
-        - cgImageSource: The CGImageSource of the image.
+     - Parameters cgImageSource: The `CGImageSource` of the image.
      */
     public init(_ cgImageSource: CGImageSource) {
         self.cgImageSource = cgImageSource
@@ -234,11 +242,7 @@ public class ImageSource {
         - typeIdentifierHint: The uniform type identifier representing the most likely image type.
      */
     public init?(url: URL, typeIdentifierHint: String? = nil) {
-        var options: [CFString:Any]?
-        if let typeIdentifier = typeIdentifierHint {
-            options = [kCGImageSourceTypeIdentifierHint: typeIdentifier as CFString]
-        }
-        guard let cgImageSource = CGImageSourceCreateWithURL(url as CFURL, options as CFDictionary?) else { return nil }
+        guard let cgImageSource = CGImageSourceCreateWithURL(url as CFURL, typeIdentifierHint.map({ [kCGImageSourceTypeIdentifierHint: $0 as CFString] }) as CFDictionary?) else { return nil }
         self.cgImageSource = cgImageSource
     }
     
@@ -261,11 +265,7 @@ public class ImageSource {
         - typeIdentifierHint: The uniform type identifier representing the most likely image type.
      */
     public init?(data: Data, typeIdentifierHint: String? = nil) {
-        var options: [CFString:Any]?
-        if let typeIdentifier = typeIdentifierHint {
-            options = [kCGImageSourceTypeIdentifierHint: typeIdentifier as CFString]
-        }
-        guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, options as CFDictionary?) else { return nil }
+        guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, typeIdentifierHint.map({ [kCGImageSourceTypeIdentifierHint: $0 as CFString] }) as CFDictionary?) else { return nil }
         self.cgImageSource = cgImageSource
     }
     
@@ -278,15 +278,6 @@ public class ImageSource {
      */
     public convenience init?(data: Data, contentTypeHint: UTType) {
         self.init(data: data, typeIdentifierHint: contentTypeHint.identifier)
-    }
-    
-    /**
-     Creates an empty image source that you can use to accumulate incremental image data.
-     
-     This function creates an empty image source, which you use to accumulate data downloaded in chunks from the network. To add new chunks of data to the image source, call  ``updateDate(_:isFinal:)``.
-     */
-    public init() {
-        self.cgImageSource = CGImageSourceCreateIncremental(nil)
     }
     
     /// The content types that are supported for image sources.

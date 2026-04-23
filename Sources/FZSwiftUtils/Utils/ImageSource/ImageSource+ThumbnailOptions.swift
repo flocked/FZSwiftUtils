@@ -1,81 +1,14 @@
 //
-//  ImageOptions.swift
+//  ImageSource+ThumbnailOptions.swift
+//  
 //
-//
-//  Created by Florian Zand on 03.06.22.
+//  Created by Florian Zand on 23.04.26.
 //
 
 import Foundation
 import ImageIO
 
 public extension ImageSource {
-    /// Options for creating images.
-    struct ImageOptions: Codable, Hashable {
-        /// A Boolean value indicating whether to cache the decoded image.
-        public var caches: Bool = true
-        /// A Boolean value indicating whether image decoding and caching happens at image creation time.
-        public var decodesImmediately: Bool = false
-        /// The factor by which to scale down any returned images.
-        public var subsampleFactor: SubsampleFactor?
-        /// A Boolean indicating whether to use floating-point values in returned images.
-        public var allowsFloat: Bool = false
-        
-        /// The color range the image should be decoded (`SDR` or `HDR`).
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
-        var decodingRequest: DecodingRequest? {
-            get { DecodingRequest(rawValue: _decodingRequest ?? -1) }
-            set { _decodingRequest = newValue?.rawValue }
-        }
-        private var _decodingRequest: Int?
-
-        /// The factor by which to scale down returned images.
-        public enum SubsampleFactor: Int, Codable, Hashable {
-            /// Factor 2
-            case factor2 = 2
-            /// Factor 4
-            case factor4 = 4
-            /// Factor 8
-            case factor8 = 8
-        }
-        
-        /// The color range the image should be decoded (`SDR` or `HDR`).
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
-        enum DecodingRequest: Int, Codable {
-            /// SDR.
-            case toSDR
-            /// HDR.
-            case toHDR
-        }
-
-        /**
-         Returns the options for generating images.
-
-         - Parameters:
-            - caches: A Boolean value indicating whether to cache the decoded image.
-            - decodesImmediately: A Boolean value indicating whether image decoding and caching happens at image creation time.
-            - allowsFloat: A Boolean indicating whether to use floating-point values in returned images.
-            - subsampleFactor: The factor by which to scale down any returned images.
-         */
-        public init(caches: Bool = true, decodesImmediately: Bool = false, allowsFloat: Bool = false, subsampleFactor: SubsampleFactor? = nil) {
-            self.caches = caches
-            self.decodesImmediately = decodesImmediately
-            self.allowsFloat = allowsFloat
-            self.subsampleFactor = subsampleFactor
-        }
-        
-        var dic: CFDictionary {
-            var options: [CFString: Any] = [:]
-            options[kCGImageSourceShouldAllowFloat] = allowsFloat
-            options[kCGImageSourceShouldCache] = caches
-            options[kCGImageSourceShouldCacheImmediately] = decodesImmediately
-            options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *), decodingRequest != nil {
-                options[kCGImageSourceDecodeRequest] = decodingRequest == .toSDR ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
-            }
-            return options as CFDictionary
-        }
-    }
-
     /// Options for creating thumbnails.
     struct ThumbnailOptions: Codable, Hashable {
         /// A Boolean value indicating whether to cache the decoded image.
@@ -98,13 +31,13 @@ public extension ImageSource {
          */
         public var creationPolicy: CreationPolicy = .always
         
-        /// The color range the image should be decoded (`SDR` or `HDR`).
+        /// The preferred dynamic range to use when decoding the thumbnail.
         @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
-        var decodingRequest: DecodingRequest? {
-            get { DecodingRequest(rawValue: _decodingRequest ?? -1) }
-            set { _decodingRequest = newValue?.rawValue }
+        var preferredDynamicRange: DynamicRange? {
+            get { DynamicRange(rawValue: _preferredDynamicRange ?? -1) }
+            set { _preferredDynamicRange = newValue?.rawValue }
         }
-        private var _decodingRequest: Int?
+        private var _preferredDynamicRange: Int?
 
         /// The factor by which to scale down returned images.
         public enum SubsampleFactor: Int, Codable, Hashable {
@@ -130,17 +63,17 @@ public extension ImageSource {
             case never
         }
         
-        /// The color range the image should be decoded (`SDR` or `HDR`).
+        /// The dynamic range to prefer when decoding a thumbnail.
         @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
-        enum DecodingRequest: Int, Codable {
-            /// SDR.
-            case toSDR
-            /// HDR.
-            case toHDR
+        enum DynamicRange: Int, Codable {
+            /// Standard dynamic range (SDR)
+            case standard
+            /// High dynamic range (HDR)
+            case high
         }
 
         /**
-         Returns the options for generating thumbnails.
+         Creates the options for generating thumbnails.
 
          - Parameters:
             - create: Option when a thumbnail should be created.
@@ -191,8 +124,8 @@ public extension ImageSource {
             options[kCGImageSourceCreateThumbnailWithTransform] = transformsIfNeeded
             options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
             options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *), decodingRequest != nil {
-                options[kCGImageSourceDecodeRequest] = decodingRequest == .toSDR ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *), preferredDynamicRange != nil {
+                options[kCGImageSourceDecodeRequest] = preferredDynamicRange == .standard ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
             }
             switch self.creationPolicy {
             case .ifAbsent: options[kCGImageSourceCreateThumbnailFromImageIfAbsent] = true
