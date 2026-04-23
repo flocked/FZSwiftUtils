@@ -8,6 +8,7 @@
 import Foundation
 
 public extension ImageSource.ImageProperties {
+    /// Canon camera specific image properties.
     struct Canon: Codable {
         /// The owner name recorded by the Canon camera.
         public var ownerName: String?

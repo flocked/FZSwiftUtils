@@ -8,6 +8,7 @@
 import Foundation
 
 public extension ImageSource.ImageProperties {
+    /// Nikon camera specific image properties.
     struct Nikon: Codable {
         /// The ISO setting values recorded by the Nikon camera.
         public var iSOSetting: [Int]?

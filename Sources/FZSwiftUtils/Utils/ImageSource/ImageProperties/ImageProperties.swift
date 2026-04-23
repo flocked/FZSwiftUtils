@@ -17,9 +17,7 @@ public extension ImageSource {
         public var pixelWidth: CGFloat?
         /// The pixel height of the image.
         public var pixelHeight: CGFloat?
-        
-        
-        
+                
         /// A Boolean value that indicates whether the image has an alpha channel.
         public var hasAlpha: Bool?
         /// The color model of the image.
@@ -148,6 +146,13 @@ public extension ImageSource {
             case pixelHeight = "PixelHeight"
             case _orientation = "Orientation"
             
+            case dpiWidth = "DPIWidth"
+            case dpiHeight = "DPIHeight"
+            case hasAlpha = "HasAlpha"
+            case colorProfile = "ProfileName"
+            case colorModel = "ColorModel"
+            case depth = "Depth"
+            
             case gif = "{GIF}"
             case png = "{PNG}"
             case jpeg = "{JFIF}"
@@ -171,13 +176,6 @@ public extension ImageSource {
             case olympus = "{MakerOlympus}"
             case pentax = "{MakerPentax}"
              */
-            
-            case dpiWidth = "DPIWidth"
-            case dpiHeight = "DPIHeight"
-            case hasAlpha = "HasAlpha"
-            case colorProfile = "ProfileName"
-            case colorModel = "ColorModel"
-            case depth = "Depth"
         }
     }
 }
