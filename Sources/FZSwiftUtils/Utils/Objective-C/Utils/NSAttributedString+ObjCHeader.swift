@@ -199,9 +199,11 @@ public extension NSAttributedString.Key {
 
 extension NSUIColor {
     convenience init(light: NSUIColor, dark: NSUIColor) {
-        self.init(name: nil) { appeareance in
-            appeareance.bestMatch(from: [.aqua, .darkAqua]) == .aqua ? light : dark
-        }
+        #if os(macOS)
+        self.init(name: nil) { $0.bestMatch(from: [.aqua, .darkAqua]) == .aqua ? light : dark }
+        #else
+        self.init { $0.userInterfaceStyle == .dark ? dark : light }
+        #endif
     }
 }
 struct XcodePresentationTheme {
@@ -255,7 +257,11 @@ struct XcodePresentationTheme {
             light = #colorLiteral(red: 0.831372549, green: 0.1019607843, blue: 0.1019607843, alpha: 1)
             dark = #colorLiteral(red: 0.831372549, green: 0.1019607843, blue: 0.1019607843, alpha: 1)
         default:
+            #if os(macOS)
             return .labelColor
+            #else
+            return .label
+            #endif
         }
         let color = NSUIColor(light: light, dark: dark)
         Self.colorCache[type] = color
