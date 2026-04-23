@@ -155,7 +155,7 @@ public extension NSImage {
                 dicc[kCGImageDestinationEmbedThumbnail] = true
                 CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, dicc.cfDictionary)
                  */
-                if let image = image(at: index) {
+                if let image = image(at: index) {                    
                     CGImageDestinationAddImage(destination, image, CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil))
                 }
             }

@@ -197,8 +197,8 @@ public extension NSAttributedString.Key {
     static let objcIvar = NSAttributedString.Key("objcIvar")
 }
 
-extension NSColor {
-    convenience init(light: NSColor, dark: NSColor) {
+extension NSUIColor {
+    convenience init(light: NSUIColor, dark: NSUIColor) {
         self.init(name: nil) { appeareance in
             appeareance.bestMatch(from: [.aqua, .darkAqua]) == .aqua ? light : dark
         }
@@ -207,9 +207,9 @@ extension NSColor {
 struct XcodePresentationTheme {
     public static var shared = XcodePresentationTheme()
     
-    public var selectionBackgroundColor: NSColor = #colorLiteral(red: 0.3904261589, green: 0.4343567491, blue: 0.5144847631, alpha: 1)
+    public var selectionBackgroundColor: NSUIColor = #colorLiteral(red: 0.3904261589, green: 0.4343567491, blue: 0.5144847631, alpha: 1)
 
-    public var backgroundColor: NSColor = .init(light: #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1), dark: #colorLiteral(red: 0.1251632571, green: 0.1258862913, blue: 0.1465735137, alpha: 1))
+    public var backgroundColor: NSUIColor = .init(light: #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1), dark: #colorLiteral(red: 0.1251632571, green: 0.1258862913, blue: 0.1465735137, alpha: 1))
 
     public var fontSize: CGFloat = 13
 
@@ -222,14 +222,14 @@ struct XcodePresentationTheme {
         }
     }
 
-    private static var colorCache: [SemanticType: NSColor] = [:]
+    private static var colorCache: [SemanticType: NSUIColor] = [:]
 
-    public func color(for type: SemanticType) -> NSColor {
+    public func color(for type: SemanticType) -> NSUIColor {
         if let existColor = Self.colorCache[type] {
             return existColor
         }
-        let light: NSColor
-        let dark: NSColor
+        let light: NSUIColor
+        let dark: NSUIColor
         switch type {
         case .comment:
             light = #colorLiteral(red: 0.4095562398, green: 0.4524990916, blue: 0.4956067801, alpha: 1)
@@ -257,7 +257,7 @@ struct XcodePresentationTheme {
         default:
             return .labelColor
         }
-        let color = NSColor(light: light, dark: dark)
+        let color = NSUIColor(light: light, dark: dark)
         Self.colorCache[type] = color
         return color
     }
