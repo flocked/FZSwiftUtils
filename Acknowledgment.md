@@ -1,10 +1,10 @@
 ApproximateEquatable
 - Copyright (c) 2020, Adam Bell
-- https://github.com/b3ll/Motion
+- https://github.com/b3ll/Motion/
 
 AssociatedValues
 - Copyright (c) 2014 Skyvive <brad.hilton.nw@gmail.com>
-- http://github.com/bradhilton/AssociatedValues
+- http://github.com/bradhilton/AssociatedValues/
 
 CollectionDifference+Steps
 - Copyright (c) 2022 Giles Hammond
@@ -20,35 +20,39 @@ Collection+ResultsBuilder
 
 DateFormatComponents
 - Copyright (c) 2021 Yurii Lysytsia.
-- https://github.com/yurii-lysytsia/AirKit
+- https://github.com/yurii-lysytsia/AirKit/
 
 Defaults
 - Copyright (c) 2017 Nuno Manuel Dias
-- https://github.com/nmdias/DefaultsKit
+- https://github.com/nmdias/DefaultsKit/
+
+DictionaryCoder
+- Copyright (c) 2022 Almaz Ibragimov
+- https://github.com/almazrafi/DictionaryCoder/
 
 DisplayableEnum/NSObject+onChanged
 - Copyright (c) 2018-2022 Boinx Software Ltd. & Imagine GbR
-- https://github.com/boinx/BXSwiftUtils
+- https://github.com/boinx/BXSwiftUtils/
 
 ExtendedAttributes
 - Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
-- https://github.com/sindresorhus/ExtendedAttributes/tree/main
+- https://github.com/sindresorhus/ExtendedAttributes/
 
 Libffi
 - Copyright (c) 1996-2025  Anthony Green, Red Hat, Inc and others.
-https://github.com/libffi/libffi
+- https://github.com/libffi/libffi/
 
 LoremSwiftum
 - Copyright (c) 2014-2021 Lukas Kubanek
-- https://github.com/lukaskubanek/LoremSwiftum
+- https://github.com/lukaskubanek/LoremSwiftum/
 
 NSObject+Reflection
 - Copyright (c) 2016 Cyon Alexander, com.cyon
-- https://github.com/Sajjon
+- https://github.com/Sajjon/
 
 NSObject+Swizzle
 - Copyright (c) 2020 Peter Steinberger
-- https://github.com/steipete/InterposeKit
+- https://github.com/steipete/InterposeKit/
 
 OrderedDictionary
 - Copyright © 2015-2021 Lukas Kubanek
@@ -60,20 +64,20 @@ OrderedSet
 
 Sequence+Concurrency
 - Copyright (c) 2021 John Sundell
-- https://github.com/JohnSundell/CollectionConcurrencyKit
+- https://github.com/JohnSundell/CollectionConcurrencyKit/
 
 SwiftHook
 - Copyright (c) 2019 Yanni Wang 王氩
-- https://github.com/623637646/SwiftHook
+- https://github.com/623637646/SwiftHook/
 
 Swizzle
 - Copyright (c) 2019 Mario Iannotta <info@marioiannotta.com>
-- https://github.com/MarioIannotta/SwizzleSwift
+- https://github.com/MarioIannotta/SwizzleSwift/
 
 Synchronized
 - Copyright (c) 2016-2018 Peter Baumgartner
-- https://github.com/boinx/BXSwiftUtils
+- https://github.com/boinx/BXSwiftUtils/
 
 swift-objc-dump
 - Copyright (c) 2024 p-x9
-- https://github.com/p-x9/swift-objc-dump
+- https://github.com/p-x9/swift-objc-dump/
