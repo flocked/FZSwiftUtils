@@ -2,7 +2,7 @@ import Foundation
 
 internal protocol DictionaryComponentDecoder {
 
-    var options: DictionaryDecodingOptions { get }
+    var options: DictionaryDecoder.Options { get }
     var userInfo: [CodingUserInfoKey: Any] { get }
 }
 

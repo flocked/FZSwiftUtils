@@ -25,18 +25,13 @@ public extension ImageSource.ImageProperties {
         public var isProgressive: Bool?
         
         /// The unit of the x and y density.
-        public struct DensityUnit: RawRepresentable, Codable {
+        public enum DensityUnit: Int, Codable {
             /// No units; the aspect ratio is given by the relative values of X and Y density.
-            public static let none = Self.init(rawValue: 0)
+            case none
             /// Dots per inch (DPI).
-            public static let dotsPerInch = Self.init(rawValue: 0)
+            case dotsPerInch
             /// Dots per centimeter.
-            public static let dotsPerCentimeter = Self.init(rawValue: 0)
-            
-            public let rawValue: Int
-            public init(rawValue: Int) {
-                self.rawValue = rawValue
-            }
+            case dotsPerCentimeter
         }
 
         enum CodingKeys: String, CodingKey {

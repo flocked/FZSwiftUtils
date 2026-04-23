@@ -25,7 +25,7 @@ public extension Optional {
     }
 
     /// Unwraps and casts the optional value by throwing.
-    func unwrapCast<T>(as: T.Type, message: String? = nil, line: Int = #line, file: String = #file) throws -> T {
+    func unwrapCast<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) throws -> T {
         let unwrapped = try self.unwrap(message, line: line, file: file)
         guard let unwrapped = (unwrapped as? T) else {
             throw OptionalError.castFailed(type: Wrapped.self, message: message, line: line, file: file)
@@ -34,17 +34,15 @@ public extension Optional {
     }
 
     /// Unwraps and casts the optional value by throwing a fatal error.
-    func unwrapCastOrFatalError<T>(as: T.Type, message: String, line: Int = #line, file: String = #file) -> T {
+    func unwrapCastOrFatalError<T>(as: T.Type = T.self, message: String, line: Int = #line, file: String = #file) -> T {
         let unwrapped = self.unwrapOrFatalError(message: message, line: line, file: file)
         return (unwrapped as? T).unwrapOrFatalError(message: message, line: line, file: file)
     }
     
     /// Error for unwrapping an optional.
-    enum OptionalError: Error, CustomDebugStringConvertible {
-        
+    private enum OptionalError: Error, CustomDebugStringConvertible {
         /// The optional value is `nil`.
         case nilValue(ofType: Wrapped.Type, message: String?, line: Int, file: String)
-        
         /// Casting the optional value failed.
         case castFailed(type: Wrapped.Type, message: String?, line: Int, file: String)
         
@@ -84,6 +82,13 @@ extension Optional: OptionalProtocol {
     /// A Boolean value indicating whether the optional value is `nil`.
     var isNil: Bool {
         optional == nil
+    }
+}
+
+extension Optional where Wrapped: Collection {
+    /// A Boolean value indicating whether the optional collection is either empty or `nil`.
+    var isEmptyOrNil: Bool {
+        self?.isEmpty ?? true
     }
 }
 

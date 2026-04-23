@@ -45,22 +45,14 @@ public class ImageSource {
      These properties apply to the container in general but not necessarily to any individual image contained in the image source.
      */
     public func properties() -> ImageProperties? {
-        let rawValue = CGImageSourceCopyProperties(cgImageSource, nil) as? [String: Any] ?? [:]        
-        return try? rawValue.decode(as: ImageProperties.self, decoder: ImageProperties.decoder)
+        ImageProperties(CGImageSourceCopyProperties(cgImageSource, nil))
     }
 
     /**
      Returns the properties of an image at the specified index in the image source.
      */
     public func properties(at index: Int) -> ImageProperties? {
-        let rawValue = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [String: Any] ?? [:]
-        do {
-            return try ImageProperties.dictionaryDecoder.decode(from: rawValue)
-        } catch {
-            Swift.print(error)
-            return nil
-        }
-        return try? rawValue.decode(as: ImageProperties.self, decoder: ImageProperties.decoder)
+        ImageProperties(CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil))
     }
     
     /// Returns the metadata of the image at the specified index.

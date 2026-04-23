@@ -8,7 +8,7 @@ internal final class DictionarySingleValueDecodingContainer:
     // MARK: - Instance Properties
 
     internal let component: Any?
-    internal let options: DictionaryDecodingOptions
+    internal let options: DictionaryDecoder.Options
     internal let userInfo: [CodingUserInfoKey: Any]
     internal let codingPath: [CodingKey]
 
@@ -16,7 +16,7 @@ internal final class DictionarySingleValueDecodingContainer:
 
     internal init(
         component: Any?,
-        options: DictionaryDecodingOptions,
+        options: DictionaryDecoder.Options,
         userInfo: [CodingUserInfoKey: Any],
         codingPath: [CodingKey]
     ) {

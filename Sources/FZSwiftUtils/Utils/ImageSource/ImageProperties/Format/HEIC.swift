@@ -54,11 +54,6 @@ public extension ImageSource.ImageProperties {
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
         public var framesInfo: [FrameInfo]?
         
-        /*
-        /// The image color map.
-        public var colorMap: Any?
-         */
-
         enum CodingKeys: String, CodingKey {
             case loopCount = "LoopCount"
             case clampedDelayTime = "DelayTime"
@@ -67,9 +62,6 @@ public extension ImageSource.ImageProperties {
             case canvasPixelWidth = "CanvasPixelWidth"
             case colorSpaceName = "NamedColorSpace"
             case framesInfo = "FrameInfoArray"
-            /*
-            case colorMap = "ImageColorMap"
-             */
         }
     }
 }

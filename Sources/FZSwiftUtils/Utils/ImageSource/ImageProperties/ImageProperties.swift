@@ -17,6 +17,9 @@ public extension ImageSource {
         public var pixelWidth: CGFloat?
         /// The pixel height of the image.
         public var pixelHeight: CGFloat?
+        
+        
+        
         /// A Boolean value that indicates whether the image has an alpha channel.
         public var hasAlpha: Bool?
         /// The color model of the image.
@@ -51,6 +54,8 @@ public extension ImageSource {
         public var a8bim: A8BIM?
         /// Additional Truevision Graphics Adapter (TGA) format properties of the image.
         public var tga: TGA?
+        /// Additional Digital Negative (DNG) archival format image properties of the image.
+        public var dng: DNG?
 
         /// Additional EXIF properties of the image.
         public var exif: EXIF?
@@ -89,7 +94,7 @@ public extension ImageSource {
 
         /// The orientation of the image.
         public var orientation: CGImagePropertyOrientation {
-            _orientation ?? tiff?.orientation ?? iptc?.orientation ?? .up
+            _orientation ?? tiff?.orientation ?? iptc?.orientation ?? jpeg?.orientation ?? .up
         }
 
         /// A Boolean value indicating whether the image is a screenshot.
@@ -123,16 +128,16 @@ public extension ImageSource {
         public var unclampedDelayTime: Double? {
             gif?.unclampedDelayTime ?? heic?.unclampedDelayTime ?? png?.unclampedDelayTime ?? webp?.unclampedDelayTime
         }
-        
-        /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
-        public var framesInfo: [FrameInfo]? {
-            gif?.framesInfo ?? heic?.framesInfo ?? png?.framesInfo ?? webp?.framesInfo
-        }
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
             guard let delayTime = clampedDelayTime ?? unclampedDelayTime else { return nil }
             return delayTime < ImageProperties.frameDurationCap ? 0.1 : delayTime
+        }
+        
+        /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
+        public var framesInfo: [FrameInfo]? {
+            gif?.framesInfo ?? heic?.framesInfo ?? png?.framesInfo ?? webp?.framesInfo
         }
         
         private static let frameDurationCap: Double = 0.02 - Double.ulpOfOne
@@ -142,6 +147,7 @@ public extension ImageSource {
             case pixelWidth = "PixelWidth"
             case pixelHeight = "PixelHeight"
             case _orientation = "Orientation"
+            
             case gif = "{GIF}"
             case png = "{PNG}"
             case jpeg = "{JFIF}"
@@ -151,13 +157,14 @@ public extension ImageSource {
             case tga = "{TGA}"
             case webp = "{WebP}"
             case a8bim = "{8BIM}"
+            case dng = "{DNG}"
             
             case exif = "{Exif}"
             case gps = "{GPS}"
             case ciff = "{CIFF}"
+            
             case canon = "{MakerCanon}"
             case nikon = "{MakerNikon}"
-            
             /*
             case minolta = "{MakerMinolta}"
             case fuji = "{MakerFuji}"
@@ -176,18 +183,24 @@ public extension ImageSource {
 }
 
 extension ImageSource.ImageProperties {
-    static let decoder = JSONDecoder(dateDecodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"), dataDecodingStrategy: .base64)
-    static let encoder = JSONEncoder(dateEncodingStrategy: .formatted("yyyy:MM:dd HH:mm:ss"))
-    static let dictionaryDecoder = DictionaryDecoder(dateDecodingStrategy: .custom({ decoder in
+    init?(_ dictionary: CFDictionary?) {
+        do {
+            self = try Self.decoder.decode(from: dictionary as? [String: Any] ?? [:])
+        } catch {
+            Swift.print(error)
+            return nil
+        }
+    }
+    
+    private static let decoder = DictionaryDecoder(dateDecodingStrategy: .custom({ decoder in
         let container = try decoder.singleValueContainer()
         let string = try decoder.singleValueContainer().decode(String.self)
         if let date = dateFormatter.date(from: string) {
             return date
         }
         throw DecodingError.dataCorruptedError(in: container, debugDescription: "Failed to decode date from: \(string)")
-        
     }))
-    static let dateFormatter = MultiDateFormatter(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])
+    private static let dateFormatter = MultiDateFormatter(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])
 }
 
 extension ImageSource.ImageProperties {

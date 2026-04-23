@@ -11,61 +11,61 @@ import ImageIO
 public extension ImageSource.ImageProperties {
     struct IPTC: Codable {
         /// The About CV term metadata.
-        public var aboutCvTerm: JSONObject?
+        public var aboutCvTerm: AnyCodable?
         /// The About CV term CV identifier.
-        public var aboutCvTermCvId: JSONObject?
+        public var aboutCvTermCvId: AnyCodable?
         /// The About CV term identifier.
-        public var aboutCvTermId: JSONObject?
+        public var aboutCvTermId: AnyCodable?
         /// The About CV term name.
-        public var aboutCvTermName: JSONObject?
+        public var aboutCvTermName: AnyCodable?
         /// The refined About CV term metadata.
-        public var aboutCvTermRefinedAbout: JSONObject?
+        public var aboutCvTermRefinedAbout: AnyCodable?
         /// The action advised metadata.
-        public var actionAdvised: JSONObject?
+        public var actionAdvised: AnyCodable?
         /// The additional model information.
-        public var addlModelInfo: JSONObject?
+        public var addlModelInfo: AnyCodable?
         /// The artwork circa date created metadata.
-        public var artworkCircaDateCreated: JSONObject?
+        public var artworkCircaDateCreated: AnyCodable?
         /// The artwork content description.
-        public var artworkContentDescription: JSONObject?
+        public var artworkContentDescription: AnyCodable?
         /// The artwork contribution description.
-        public var artworkContributionDescription: JSONObject?
+        public var artworkContributionDescription: AnyCodable?
         /// The artwork copyright notice.
-        public var artworkCopyrightNotice: JSONObject?
+        public var artworkCopyrightNotice: AnyCodable?
         /// The artwork copyright owner identifier.
-        public var artworkCopyrightOwnerID: JSONObject?
+        public var artworkCopyrightOwnerID: AnyCodable?
         /// The artwork copyright owner name.
-        public var artworkCopyrightOwnerName: JSONObject?
+        public var artworkCopyrightOwnerName: AnyCodable?
         /// The artwork creator metadata.
-        public var artworkCreator: JSONObject?
+        public var artworkCreator: AnyCodable?
         /// The artwork creator identifier.
-        public var artworkCreatorID: JSONObject?
+        public var artworkCreatorID: AnyCodable?
         /// The artwork creation date metadata.
-        public var artworkDateCreated: JSONObject?
+        public var artworkDateCreated: AnyCodable?
         /// The artwork licensor identifier.
-        public var artworkLicensorID: JSONObject?
+        public var artworkLicensorID: AnyCodable?
         /// The artwork licensor name.
-        public var artworkLicensorName: JSONObject?
+        public var artworkLicensorName: AnyCodable?
         /// The artwork or object metadata.
-        public var artworkOrObject: JSONObject?
+        public var artworkOrObject: AnyCodable?
         /// The artwork physical description.
-        public var artworkPhysicalDescription: JSONObject?
+        public var artworkPhysicalDescription: AnyCodable?
         /// The artwork source metadata.
-        public var artworkSource: JSONObject?
+        public var artworkSource: AnyCodable?
         /// The artwork source inventory URL.
-        public var artworkSourceInvURL: JSONObject?
+        public var artworkSourceInvURL: AnyCodable?
         /// The artwork source inventory number.
-        public var artworkSourceInventoryNo: JSONObject?
+        public var artworkSourceInventoryNo: AnyCodable?
         /// The artwork style period.
-        public var artworkStylePeriod: JSONObject?
+        public var artworkStylePeriod: AnyCodable?
         /// The artwork title.
-        public var artworkTitle: JSONObject?
+        public var artworkTitle: AnyCodable?
         /// The audio bitrate metadata.
-        public var audioBitrate: JSONObject?
+        public var audioBitrate: AnyCodable?
         /// The audio bitrate mode.
-        public var audioBitrateMode: JSONObject?
+        public var audioBitrateMode: AnyCodable?
         /// The audio channel count.
-        public var audioChannelCount: JSONObject?
+        public var audioChannelCount: AnyCodable?
         /// The byline metadata.
         public var byline: [String]?
         /// The byline title metadata.
@@ -73,339 +73,339 @@ public extension ImageSource.ImageProperties {
         /// The caption or abstract metadata.
         public var captionAbstract: String?
         /// The category metadata.
-        public var category: JSONObject?
+        public var category: AnyCodable?
         /// The contact city address.
-        public var ciAdrCity: JSONObject?
+        public var ciAdrCity: AnyCodable?
         /// The contact country address.
-        public var ciAdrCtry: JSONObject?
+        public var ciAdrCtry: AnyCodable?
         /// The contact extended address.
-        public var ciAdrExtadr: JSONObject?
+        public var ciAdrExtadr: AnyCodable?
         /// The contact postal code address.
-        public var ciAdrPcode: JSONObject?
+        public var ciAdrPcode: AnyCodable?
         /// The contact region address.
-        public var ciAdrRegion: JSONObject?
+        public var ciAdrRegion: AnyCodable?
         /// The contact work email.
-        public var ciEmailWork: JSONObject?
+        public var ciEmailWork: AnyCodable?
         /// The contact work telephone.
-        public var ciTelWork: JSONObject?
+        public var ciTelWork: AnyCodable?
         /// The contact work URL.
-        public var ciUrlWork: JSONObject?
+        public var ciUrlWork: AnyCodable?
         /// The circa date created metadata.
-        public var circaDateCreated: JSONObject?
+        public var circaDateCreated: AnyCodable?
         /// The city metadata.
         public var city: String?
         /// The contact metadata.
-        public var contact: JSONObject?
+        public var contact: AnyCodable?
         /// The container format metadata.
-        public var containerFormat: JSONObject?
+        public var containerFormat: AnyCodable?
         /// The container format identifier.
-        public var containerFormatIdentifier: JSONObject?
+        public var containerFormatIdentifier: AnyCodable?
         /// The container format name.
-        public var containerFormatName: JSONObject?
+        public var containerFormatName: AnyCodable?
         /// The content location code.
-        public var contentLocationCode: JSONObject?
+        public var contentLocationCode: AnyCodable?
         /// The content location name.
-        public var contentLocationName: JSONObject?
+        public var contentLocationName: AnyCodable?
         /// The contributor metadata.
-        public var contributor: JSONObject?
+        public var contributor: AnyCodable?
         /// The contributor identifier.
-        public var contributorIdentifier: JSONObject?
+        public var contributorIdentifier: AnyCodable?
         /// The contributor name.
-        public var contributorName: JSONObject?
+        public var contributorName: AnyCodable?
         /// The contributor role.
-        public var contributorRole: JSONObject?
+        public var contributorRole: AnyCodable?
         /// The controlled vocabulary term.
-        public var controlledVocabularyTerm: JSONObject?
+        public var controlledVocabularyTerm: AnyCodable?
         /// The copyright notice.
         public var copyrightNotice: String?
         /// The copyright year.
-        public var copyrightYear: JSONObject?
+        public var copyrightYear: AnyCodable?
         /// The primary location code.
-        public var countryPrimaryLocationCode: JSONObject?
+        public var countryPrimaryLocationCode: AnyCodable?
         /// The primary location name.
         public var countryPrimaryLocationName: String?
         /// The country code.
-        public var countryCode: JSONObject?
+        public var countryCode: AnyCodable?
         /// The country name.
-        public var countryName: JSONObject?
+        public var countryName: AnyCodable?
         /// The creator metadata.
-        public var creator: JSONObject?
+        public var creator: AnyCodable?
         /// The creator contact information.
         public var creatorContactInfo: [String: String]?
         /// The creator identifier.
-        public var creatorIdentifier: JSONObject?
+        public var creatorIdentifier: AnyCodable?
         /// The creator name.
-        public var creatorName: JSONObject?
+        public var creatorName: AnyCodable?
         /// The creator role.
-        public var creatorRole: JSONObject?
+        public var creatorRole: AnyCodable?
         /// The credit metadata.
         public var credit: String?
         /// The data-on-screen metadata.
-        public var dataOnScreen: JSONObject?
+        public var dataOnScreen: AnyCodable?
         /// The data-on-screen region metadata.
-        public var dataOnScreenRegion: JSONObject?
+        public var dataOnScreenRegion: AnyCodable?
         /// The data-on-screen region depth.
-        public var dataOnScreenRegionD: JSONObject?
+        public var dataOnScreenRegionD: AnyCodable?
         /// The data-on-screen region height.
-        public var dataOnScreenRegionH: JSONObject?
+        public var dataOnScreenRegionH: AnyCodable?
         /// The data-on-screen region text.
-        public var dataOnScreenRegionText: JSONObject?
+        public var dataOnScreenRegionText: AnyCodable?
         /// The data-on-screen region unit.
-        public var dataOnScreenRegionUnit: JSONObject?
+        public var dataOnScreenRegionUnit: AnyCodable?
         /// The data-on-screen region width.
-        public var dataOnScreenRegionW: JSONObject?
+        public var dataOnScreenRegionW: AnyCodable?
         /// The data-on-screen region x position.
-        public var dataOnScreenRegionX: JSONObject?
+        public var dataOnScreenRegionX: AnyCodable?
         /// The data-on-screen region y position.
-        public var dataOnScreenRegionY: JSONObject?
+        public var dataOnScreenRegionY: AnyCodable?
         /// The creation date.
-        public var dateCreated: JSONObject?
+        public var dateCreated: AnyCodable?
         /// The digital creation date.
-        public var digitalCreationDate: JSONObject?
+        public var digitalCreationDate: AnyCodable?
         /// The digital creation time.
-        public var digitalCreationTime: JSONObject?
+        public var digitalCreationTime: AnyCodable?
         /// The digital image GUID.
-        public var digitalImageGUID: JSONObject?
+        public var digitalImageGUID: AnyCodable?
         /// The digital source file type.
-        public var digitalSourceFileType: JSONObject?
+        public var digitalSourceFileType: AnyCodable?
         /// The digital source type.
-        public var digitalSourceType: JSONObject?
+        public var digitalSourceType: AnyCodable?
         /// The dopesheet metadata.
-        public var dopesheet: JSONObject?
+        public var dopesheet: AnyCodable?
         /// The dopesheet link metadata.
-        public var dopesheetLink: JSONObject?
+        public var dopesheetLink: AnyCodable?
         /// The dopesheet link target.
-        public var dopesheetLinkLink: JSONObject?
+        public var dopesheetLinkLink: AnyCodable?
         /// The dopesheet link qualifier.
-        public var dopesheetLinkLinkQualifier: JSONObject?
+        public var dopesheetLinkLinkQualifier: AnyCodable?
         /// The edit status.
-        public var editStatus: JSONObject?
+        public var editStatus: AnyCodable?
         /// The editorial update metadata.
-        public var editorialUpdate: JSONObject?
+        public var editorialUpdate: AnyCodable?
         /// The embedded encoded rights expression.
-        public var embdEncRightsExpr: JSONObject?
+        public var embdEncRightsExpr: AnyCodable?
         /// The embedded encoded rights expression metadata.
-        public var embeddedEncodedRightsExpr: JSONObject?
+        public var embeddedEncodedRightsExpr: AnyCodable?
         /// The embedded encoded rights expression language identifier.
-        public var embeddedEncodedRightsExprLangID: JSONObject?
+        public var embeddedEncodedRightsExprLangID: AnyCodable?
         /// The embedded encoded rights expression type.
-        public var embeddedEncodedRightsExprType: JSONObject?
+        public var embeddedEncodedRightsExprType: AnyCodable?
         /// The episode metadata.
-        public var episode: JSONObject?
+        public var episode: AnyCodable?
         /// The episode identifier.
-        public var episodeIdentifier: JSONObject?
+        public var episodeIdentifier: AnyCodable?
         /// The episode name.
-        public var episodeName: JSONObject?
+        public var episodeName: AnyCodable?
         /// The episode number.
-        public var episodeNumber: JSONObject?
+        public var episodeNumber: AnyCodable?
         /// The event metadata.
-        public var event: JSONObject?
+        public var event: AnyCodable?
         /// The expiration date.
-        public var expirationDate: JSONObject?
+        public var expirationDate: AnyCodable?
         /// The expiration time.
-        public var expirationTime: JSONObject?
+        public var expirationTime: AnyCodable?
         /// The external metadata link.
-        public var externalMetadataLink: JSONObject?
+        public var externalMetadataLink: AnyCodable?
         /// The feed identifier.
-        public var feedIdentifier: JSONObject?
+        public var feedIdentifier: AnyCodable?
         /// The fixture identifier.
-        public var fixtureIdentifier: JSONObject?
+        public var fixtureIdentifier: AnyCodable?
         /// The GPS altitude metadata.
-        public var gPSAltitude: JSONObject?
+        public var gPSAltitude: AnyCodable?
         /// The GPS latitude metadata.
-        public var gPSLatitude: JSONObject?
+        public var gPSLatitude: AnyCodable?
         /// The GPS longitude metadata.
-        public var gPSLongitude: JSONObject?
+        public var gPSLongitude: AnyCodable?
         /// The genre metadata.
-        public var genre: JSONObject?
+        public var genre: AnyCodable?
         /// The genre CV identifier.
-        public var genreCvId: JSONObject?
+        public var genreCvId: AnyCodable?
         /// The genre CV term identifier.
-        public var genreCvTermId: JSONObject?
+        public var genreCvTermId: AnyCodable?
         /// The genre CV term name.
-        public var genreCvTermName: JSONObject?
+        public var genreCvTermName: AnyCodable?
         /// The refined genre CV term metadata.
-        public var genreCvTermRefinedAbout: JSONObject?
+        public var genreCvTermRefinedAbout: AnyCodable?
         /// The headline metadata.
         public var headline: String?
         /// The IPTC last edited metadata.
-        public var iPTCLastEdited: JSONObject?
+        public var iPTCLastEdited: AnyCodable?
         /// The identifier metadata.
-        public var identifier: JSONObject?
+        public var identifier: AnyCodable?
         /// The orientation of the IPTC image.
         public var orientation: CGImagePropertyOrientation?
         /// The image type metadata.
-        public var imageType: JSONObject?
+        public var imageType: AnyCodable?
         /// The keywords metadata.
         public var keywords: [String]?
         /// The language identifier.
-        public var languageIdentifier: JSONObject?
+        public var languageIdentifier: AnyCodable?
         /// The linked encoded rights expression.
-        public var linkedEncRightsExpr: JSONObject?
+        public var linkedEncRightsExpr: AnyCodable?
         /// The linked encoded rights expression metadata.
-        public var linkedEncodedRightsExpr: JSONObject?
+        public var linkedEncodedRightsExpr: AnyCodable?
         /// The linked encoded rights expression language identifier.
-        public var linkedEncodedRightsExprLangID: JSONObject?
+        public var linkedEncodedRightsExprLangID: AnyCodable?
         /// The linked encoded rights expression type.
-        public var linkedEncodedRightsExprType: JSONObject?
+        public var linkedEncodedRightsExprType: AnyCodable?
         /// The created location metadata.
-        public var locationCreated: JSONObject?
+        public var locationCreated: AnyCodable?
         /// The location identifier.
-        public var locationId: JSONObject?
+        public var locationId: AnyCodable?
         /// The location name.
-        public var locationName: JSONObject?
+        public var locationName: AnyCodable?
         /// The shown location metadata.
-        public var locationShown: JSONObject?
+        public var locationShown: AnyCodable?
         /// The maximum available height.
-        public var maxAvailHeight: JSONObject?
+        public var maxAvailHeight: AnyCodable?
         /// The maximum available width.
-        public var maxAvailWidth: JSONObject?
+        public var maxAvailWidth: AnyCodable?
         /// The model age metadata.
-        public var modelAge: JSONObject?
+        public var modelAge: AnyCodable?
         /// The object attribute reference.
-        public var objectAttributeReference: JSONObject?
+        public var objectAttributeReference: AnyCodable?
         /// The object cycle metadata.
-        public var objectCycle: JSONObject?
+        public var objectCycle: AnyCodable?
         /// The object name.
         public var objectName: String?
         /// The object type reference.
-        public var objectTypeReference: JSONObject?
+        public var objectTypeReference: AnyCodable?
         /// The organisation-in-image code.
-        public var organisationInImageCode: JSONObject?
+        public var organisationInImageCode: AnyCodable?
         /// The organisation-in-image name.
-        public var organisationInImageName: JSONObject?
+        public var organisationInImageName: AnyCodable?
         /// The original transmission reference.
         public var originalTransmissionReference: String?
         /// The originating program.
-        public var originatingProgram: JSONObject?
+        public var originatingProgram: AnyCodable?
         /// The person-heard metadata.
-        public var personHeard: JSONObject?
+        public var personHeard: AnyCodable?
         /// The person-heard identifier.
-        public var personHeardIdentifier: JSONObject?
+        public var personHeardIdentifier: AnyCodable?
         /// The person-heard name.
-        public var personHeardName: JSONObject?
+        public var personHeardName: AnyCodable?
         /// The person-in-image metadata.
-        public var personInImage: JSONObject?
+        public var personInImage: AnyCodable?
         /// The person-in-image characteristic metadata.
-        public var personInImageCharacteristic: JSONObject?
+        public var personInImageCharacteristic: AnyCodable?
         /// The person-in-image CV term CV identifier.
-        public var personInImageCvTermCvId: JSONObject?
+        public var personInImageCvTermCvId: AnyCodable?
         /// The person-in-image CV term identifier.
-        public var personInImageCvTermId: JSONObject?
+        public var personInImageCvTermId: AnyCodable?
         /// The person-in-image CV term name.
-        public var personInImageCvTermName: JSONObject?
+        public var personInImageCvTermName: AnyCodable?
         /// The refined person-in-image CV term metadata.
-        public var personInImageCvTermRefinedAbout: JSONObject?
+        public var personInImageCvTermRefinedAbout: AnyCodable?
         /// The person-in-image description.
-        public var personInImageDescription: JSONObject?
+        public var personInImageDescription: AnyCodable?
         /// The person-in-image identifier.
-        public var personInImageId: JSONObject?
+        public var personInImageId: AnyCodable?
         /// The person-in-image name.
-        public var personInImageName: JSONObject?
+        public var personInImageName: AnyCodable?
         /// The person-in-image details metadata.
-        public var personInImageWDetails: JSONObject?
+        public var personInImageWDetails: AnyCodable?
         /// The product-in-image metadata.
-        public var productInImage: JSONObject?
+        public var productInImage: AnyCodable?
         /// The product-in-image description.
-        public var productInImageDescription: JSONObject?
+        public var productInImageDescription: AnyCodable?
         /// The product-in-image GTIN.
-        public var productInImageGTIN: JSONObject?
+        public var productInImageGTIN: AnyCodable?
         /// The product-in-image name.
-        public var productInImageName: JSONObject?
+        public var productInImageName: AnyCodable?
         /// The program version.
-        public var programVersion: JSONObject?
+        public var programVersion: AnyCodable?
         /// The province or state metadata.
-        public var provinceOrState: JSONObject?
+        public var provinceOrState: AnyCodable?
         /// The province state metadata.
         public var provinceState: String?
         /// The publication event metadata.
-        public var publicationEvent: JSONObject?
+        public var publicationEvent: AnyCodable?
         /// The publication event date.
-        public var publicationEventDate: JSONObject?
+        public var publicationEventDate: AnyCodable?
         /// The publication event identifier.
-        public var publicationEventIdentifier: JSONObject?
+        public var publicationEventIdentifier: AnyCodable?
         /// The publication event name.
-        public var publicationEventName: JSONObject?
+        public var publicationEventName: AnyCodable?
         /// The rating metadata.
-        public var rating: JSONObject?
+        public var rating: AnyCodable?
         /// The rating region metadata.
-        public var ratingRatingRegion: JSONObject?
+        public var ratingRatingRegion: AnyCodable?
         /// The rating region city.
-        public var ratingRegionCity: JSONObject?
+        public var ratingRegionCity: AnyCodable?
         /// The rating region country code.
-        public var ratingRegionCountryCode: JSONObject?
+        public var ratingRegionCountryCode: AnyCodable?
         /// The rating region country name.
-        public var ratingRegionCountryName: JSONObject?
+        public var ratingRegionCountryName: AnyCodable?
         /// The rating region GPS altitude.
-        public var ratingRegionGPSAltitude: JSONObject?
+        public var ratingRegionGPSAltitude: AnyCodable?
         /// The rating region GPS latitude.
-        public var ratingRegionGPSLatitude: JSONObject?
+        public var ratingRegionGPSLatitude: AnyCodable?
         /// The rating region GPS longitude.
-        public var ratingRegionGPSLongitude: JSONObject?
+        public var ratingRegionGPSLongitude: AnyCodable?
         /// The rating region identifier.
-        public var ratingRegionIdentifier: JSONObject?
+        public var ratingRegionIdentifier: AnyCodable?
         /// The rating region location identifier.
-        public var ratingRegionLocationId: JSONObject?
+        public var ratingRegionLocationId: AnyCodable?
         /// The rating region location name.
-        public var ratingRegionLocationName: JSONObject?
+        public var ratingRegionLocationName: AnyCodable?
         /// The rating region province state.
-        public var ratingRegionProvinceState: JSONObject?
+        public var ratingRegionProvinceState: AnyCodable?
         /// The rating region sublocation.
-        public var ratingRegionSublocation: JSONObject?
+        public var ratingRegionSublocation: AnyCodable?
         /// The rating region world region.
-        public var ratingRegionWorldRegion: JSONObject?
+        public var ratingRegionWorldRegion: AnyCodable?
         /// The maximum rating scale value.
-        public var ratingScaleMaxValue: JSONObject?
+        public var ratingScaleMaxValue: AnyCodable?
         /// The minimum rating scale value.
-        public var ratingScaleMinValue: JSONObject?
+        public var ratingScaleMinValue: AnyCodable?
         /// The rating source link.
-        public var ratingSourceLink: JSONObject?
+        public var ratingSourceLink: AnyCodable?
         /// The rating value.
-        public var ratingValue: JSONObject?
+        public var ratingValue: AnyCodable?
         /// The rating value logo link.
-        public var ratingValueLogoLink: JSONObject?
+        public var ratingValueLogoLink: AnyCodable?
         /// The reference date.
-        public var referenceDate: JSONObject?
+        public var referenceDate: AnyCodable?
         /// The reference number.
-        public var referenceNumber: JSONObject?
+        public var referenceNumber: AnyCodable?
         /// The reference service.
-        public var referenceService: JSONObject?
+        public var referenceService: AnyCodable?
         /// The registry entry role.
-        public var registryEntryRole: JSONObject?
+        public var registryEntryRole: AnyCodable?
         /// The registry identifier.
-        public var registryID: JSONObject?
+        public var registryID: AnyCodable?
         /// The registry item identifier.
-        public var registryItemID: JSONObject?
+        public var registryItemID: AnyCodable?
         /// The registry organisation identifier.
-        public var registryOrganisationID: JSONObject?
+        public var registryOrganisationID: AnyCodable?
         /// The release date.
-        public var releaseDate: JSONObject?
+        public var releaseDate: AnyCodable?
         /// The release-ready metadata.
-        public var releaseReady: JSONObject?
+        public var releaseReady: AnyCodable?
         /// The release time.
-        public var releaseTime: JSONObject?
+        public var releaseTime: AnyCodable?
         /// The scene metadata.
-        public var scene: JSONObject?
+        public var scene: AnyCodable?
         /// The season metadata.
-        public var season: JSONObject?
+        public var season: AnyCodable?
         /// The season identifier.
-        public var seasonIdentifier: JSONObject?
+        public var seasonIdentifier: AnyCodable?
         /// The season name.
-        public var seasonName: JSONObject?
+        public var seasonName: AnyCodable?
         /// The season number.
-        public var seasonNumber: JSONObject?
+        public var seasonNumber: AnyCodable?
         /// The series metadata.
-        public var series: JSONObject?
+        public var series: AnyCodable?
         /// The series identifier.
-        public var seriesIdentifier: JSONObject?
+        public var seriesIdentifier: AnyCodable?
         /// The series name.
-        public var seriesName: JSONObject?
+        public var seriesName: AnyCodable?
         /// The shown event metadata.
-        public var shownEvent: JSONObject?
+        public var shownEvent: AnyCodable?
         /// The shown event identifier.
-        public var shownEventIdentifier: JSONObject?
+        public var shownEventIdentifier: AnyCodable?
         /// The shown event name.
-        public var shownEventName: JSONObject?
+        public var shownEventName: AnyCodable?
         /// The source metadata.
         public var source: String?
         /// The special instructions.
@@ -413,75 +413,75 @@ public extension ImageSource.ImageProperties {
         /// The star rating metadata.
         public var starRating: Double?
         /// The storyline identifier.
-        public var storylineIdentifier: JSONObject?
+        public var storylineIdentifier: AnyCodable?
         /// The stream-ready metadata.
-        public var streamReady: JSONObject?
+        public var streamReady: AnyCodable?
         /// The style period metadata.
-        public var stylePeriod: JSONObject?
+        public var stylePeriod: AnyCodable?
         /// The sublocation metadata.
-        public var subLocation: JSONObject?
+        public var subLocation: AnyCodable?
         /// The subject reference metadata.
-        public var subjectReference: JSONObject?
+        public var subjectReference: AnyCodable?
         /// The alternate sublocation metadata.
-        public var sublocation: JSONObject?
+        public var sublocation: AnyCodable?
         /// The supplemental category metadata.
-        public var supplementalCategory: JSONObject?
+        public var supplementalCategory: AnyCodable?
         /// The supply chain source metadata.
-        public var supplyChainSource: JSONObject?
+        public var supplyChainSource: AnyCodable?
         /// The supply chain source identifier.
-        public var supplyChainSourceIdentifier: JSONObject?
+        public var supplyChainSourceIdentifier: AnyCodable?
         /// The supply chain source name.
-        public var supplyChainSourceName: JSONObject?
+        public var supplyChainSourceName: AnyCodable?
         /// The temporal coverage metadata.
-        public var temporalCoverage: JSONObject?
+        public var temporalCoverage: AnyCodable?
         /// The temporal coverage start.
-        public var temporalCoverageFrom: JSONObject?
+        public var temporalCoverageFrom: AnyCodable?
         /// The temporal coverage end.
-        public var temporalCoverageTo: JSONObject?
+        public var temporalCoverageTo: AnyCodable?
         /// The creation time.
-        public var timeCreated: JSONObject?
+        public var timeCreated: AnyCodable?
         /// The transcript metadata.
-        public var transcript: JSONObject?
+        public var transcript: AnyCodable?
         /// The transcript link metadata.
-        public var transcriptLink: JSONObject?
+        public var transcriptLink: AnyCodable?
         /// The transcript link target.
-        public var transcriptLinkLink: JSONObject?
+        public var transcriptLinkLink: AnyCodable?
         /// The transcript link qualifier.
-        public var transcriptLinkLinkQualifier: JSONObject?
+        public var transcriptLinkLinkQualifier: AnyCodable?
         /// The urgency metadata.
-        public var urgency: JSONObject?
+        public var urgency: AnyCodable?
         /// The usage terms metadata.
         public var usageTerms: String?
         /// The video bitrate metadata.
-        public var videoBitrate: JSONObject?
+        public var videoBitrate: AnyCodable?
         /// The video bitrate mode.
-        public var videoBitrateMode: JSONObject?
+        public var videoBitrateMode: AnyCodable?
         /// The video display aspect ratio.
-        public var videoDisplayAspectRatio: JSONObject?
+        public var videoDisplayAspectRatio: AnyCodable?
         /// The video encoding profile.
-        public var videoEncodingProfile: JSONObject?
+        public var videoEncodingProfile: AnyCodable?
         /// The video shot type metadata.
-        public var videoShotType: JSONObject?
+        public var videoShotType: AnyCodable?
         /// The video shot type identifier.
-        public var videoShotTypeIdentifier: JSONObject?
+        public var videoShotTypeIdentifier: AnyCodable?
         /// The video shot type name.
-        public var videoShotTypeName: JSONObject?
+        public var videoShotTypeName: AnyCodable?
         /// The video streams count.
-        public var videoStreamsCount: JSONObject?
+        public var videoStreamsCount: AnyCodable?
         /// The visual color metadata.
-        public var visualColor: JSONObject?
+        public var visualColor: AnyCodable?
         /// The workflow tag metadata.
-        public var workflowTag: JSONObject?
+        public var workflowTag: AnyCodable?
         /// The workflow tag CV identifier.
-        public var workflowTagCvId: JSONObject?
+        public var workflowTagCvId: AnyCodable?
         /// The workflow tag CV term identifier.
-        public var workflowTagCvTermId: JSONObject?
+        public var workflowTagCvTermId: AnyCodable?
         /// The workflow tag CV term name.
-        public var workflowTagCvTermName: JSONObject?
+        public var workflowTagCvTermName: AnyCodable?
         /// The refined workflow tag CV term metadata.
-        public var workflowTagCvTermRefinedAbout: JSONObject?
+        public var workflowTagCvTermRefinedAbout: AnyCodable?
         /// The world region metadata.
-        public var worldRegion: JSONObject?
+        public var worldRegion: AnyCodable?
         /// The writer or editor metadata.
         public var writerEditor: [String]?
 

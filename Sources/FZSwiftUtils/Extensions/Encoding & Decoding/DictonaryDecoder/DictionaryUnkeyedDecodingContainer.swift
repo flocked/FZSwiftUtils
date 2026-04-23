@@ -7,14 +7,14 @@ internal final class DictionaryUnkeyedDecodingContainer:
     // MARK: - Instance Properties
 
     internal let components: [Any?]
-    internal let options: DictionaryDecodingOptions
+    internal let options: DictionaryDecoder.Options
     internal let userInfo: [CodingUserInfoKey: Any]
     internal let codingPath: [CodingKey]
 
     internal private(set) var currentIndex = 0
 
     internal var currentCodingPath: [CodingKey] {
-        codingPath.appending(AnyCodingKey.index(currentIndex))
+        codingPath + AnyCodingKey.index(currentIndex)
     }
 
     internal var count: Int? {
@@ -29,7 +29,7 @@ internal final class DictionaryUnkeyedDecodingContainer:
 
     internal init(
         components: [Any?],
-        options: DictionaryDecodingOptions,
+        options: DictionaryDecoder.Options,
         userInfo: [CodingUserInfoKey: Any],
         codingPath: [CodingKey]
     ) {
