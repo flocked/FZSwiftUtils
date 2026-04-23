@@ -148,9 +148,13 @@ public extension NSImage {
                 CGImageDestinationSetProperties(destination, properties)
             }
             for index in 0..<imageCount {
+                var dicc = ImageSource.ImageOptions(caches: true, decodesImmediately: true).dictionary
+                CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, dicc)
+                /*
                 if let image = image(at: index) {
                     CGImageDestinationAddImage(destination, image, (CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil) as? [CFString: Any] ?? [:]).frameProperties()?.cfDictionary)
                 }
+                 */
             }
             CGImageDestinationFinalize(destination)
             return NSImage(data: data as Data)
