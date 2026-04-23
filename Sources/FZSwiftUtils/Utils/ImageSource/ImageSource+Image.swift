@@ -139,7 +139,8 @@ public extension NSImage {
             if let maxSize = maxSize {
                 return imageSource.thumbnail(at: index, options: .init(maxSize: maxSize, transformsIfNeeded: true))
             }
-            return imageSource.image(at: index, options: .init(caches: true, decodesImmediately: true))
+            return imageSource.thumbnail(at: index, options: .init(transformsIfNeeded: true))
+            // return imageSource.image(at: index, options: .init(caches: true, decodesImmediately: true))
         }
         let data = NSMutableData()
         let imageCount = imageSource.count
@@ -148,14 +149,15 @@ public extension NSImage {
                 CGImageDestinationSetProperties(destination, properties)
             }
             for index in 0..<imageCount {
+                /*
                 var dicc = ImageSource.ImageOptions(caches: true, decodesImmediately: true).dictionary as! [CFString: Any]
                 dicc[kCGImageDestinationImageMaxPixelSize] = maxSize
+                dicc[kCGImageDestinationEmbedThumbnail] = true
                 CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, dicc.cfDictionary)
-                /*
-                if let image = image(at: index) {
-                    CGImageDestinationAddImage(destination, image, (CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil) as? [CFString: Any] ?? [:]).frameProperties()?.cfDictionary)
-                }
                  */
+                if let image = image(at: index) {
+                    CGImageDestinationAddImage(destination, image, CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil))
+                }
             }
             CGImageDestinationFinalize(destination)
             return NSImage(data: data as Data)
