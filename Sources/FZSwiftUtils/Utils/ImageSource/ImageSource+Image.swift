@@ -148,8 +148,9 @@ public extension NSImage {
                 CGImageDestinationSetProperties(destination, properties)
             }
             for index in 0..<imageCount {
-                var dicc = ImageSource.ImageOptions(caches: true, decodesImmediately: true).dictionary
-                CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, dicc)
+                var dicc = ImageSource.ImageOptions(caches: true, decodesImmediately: true).dictionary as! [CFString: Any]
+                dicc[kCGImageDestinationImageMaxPixelSize] = maxSize
+                CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, dicc.cfDictionary)
                 /*
                 if let image = image(at: index) {
                     CGImageDestinationAddImage(destination, image, (CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil) as? [CFString: Any] ?? [:]).frameProperties()?.cfDictionary)
