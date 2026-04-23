@@ -75,12 +75,27 @@ public class ImageDestination {
         imageCount += 1
     }
     
-    public func addAuxiliaryDataInfo(_ auxiliaryDataInfo: [CGImage.AuxiliaryDataInfoKey: Any], type: CGImage.AuxiliaryDataType) {
-        steps += .auxiliary(info: auxiliaryDataInfo, type: type)
+    /**
+     Sets the auxiliary data, such as mattes and depth information, that accompany the image.
+     
+     Call this method after you add an image to the image destination. This method adds the specified depth or matte information to the most recently added image.
+
+     - Parameters:
+        - auxiliaryData: The auxiliary information to add.
+        -  type: The type of the auxiliary information.
+     */
+    public func addAuxiliaryData(_ auxiliaryData: [CGImage.AuxiliaryDataInfoKey: Any], type: CGImage.AuxiliaryDataType) {
+        steps += .auxiliary(info: auxiliaryData, type: type)
+    }
+    
+    /// Creates the finale image.
+    public func create() throws -> NSUIImage {
+        guard let image = NSUIImage(data: try createData()) else { throw Errors.saveFailed }
+        return image
     }
     
     /// Saves the image by writing and returning the finale image as `Data`.
-    public func save() throws -> Data {
+    public func createData() throws -> Data {
         let mutableData = NSMutableData()
         guard let destination = CGImageDestinationCreateWithData(mutableData as CFMutableData, contentType.identifier as CFString, imageCount, nil) else { throw Errors.saveFailed }
         addImagesAndProperties(to: destination)
@@ -89,7 +104,7 @@ public class ImageDestination {
     }
     
     /// Saves the final image by writing the image to the specified url.
-    public func save(to url: URL) throws {
+    public func createFile(at url: URL) throws {
         guard let destination = CGImageDestinationCreateWithURL(url as CFURL, contentType.identifier as CFString, imageCount, nil) else { throw Errors.saveFailedToURL(url) }
         addImagesAndProperties(to: destination)
         guard CGImageDestinationFinalize(destination) else { throw Errors.saveFailedToURL(url) }

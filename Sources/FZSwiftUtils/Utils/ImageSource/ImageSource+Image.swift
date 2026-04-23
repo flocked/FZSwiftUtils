@@ -133,39 +133,6 @@ public extension NSImage {
         prepare()
     }
     
-    private func prepare(maxSize: Int? = nil) -> NSImage? {
-        guard let imageSource = ImageSource(image: self) else { return nil }
-        func image(at index: Int? = nil) -> CGImage? {
-            if let maxSize = maxSize {
-                return imageSource.thumbnail(at: index, options: .init(maxSize: maxSize, transformsIfNeeded: true))
-            }
-            return imageSource.thumbnail(at: index, options: .init(transformsIfNeeded: true))
-            // return imageSource.image(at: index, options: .init(caches: true, decodesImmediately: true))
-        }
-        let data = NSMutableData()
-        let imageCount = imageSource.count
-        if imageCount > 1, let identifer = imageSource.contentType?.identifier.cfString, let destination = CGImageDestinationCreateWithData(data as CFMutableData, identifer, imageCount, nil) {
-            if let properties = (CGImageSourceCopyProperties(imageSource.cgImageSource, nil) as? [CFString: Any] ?? [:]).loopProperties()?.cfDictionary {
-                CGImageDestinationSetProperties(destination, properties)
-            }
-            for index in 0..<imageCount {
-                /*
-                var dicc = ImageSource.ImageOptions(caches: true, decodesImmediately: true).dictionary as! [CFString: Any]
-                dicc[kCGImageDestinationImageMaxPixelSize] = maxSize
-                dicc[kCGImageDestinationEmbedThumbnail] = true
-                CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, dicc.cfDictionary)
-                 */
-                if let image = image(at: index) {                    
-                    CGImageDestinationAddImage(destination, image, CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil))
-                }
-            }
-            CGImageDestinationFinalize(destination)
-            return NSImage(data: data as Data)
-        }
-        guard let image = image() else { return nil }
-        return NSImage(cgImage: image, size: .init(image.width, image.height))
-    }
-    
     /**
      Decodes an image asynchronously and provides a new one for display in views and animations.
      
@@ -213,6 +180,33 @@ public extension NSImage {
         await withCheckedContinuation { continuation in
             preparingForDisplay { continuation.resume(returning: $0) }
         }
+    }
+    
+    private func prepare(maxSize: Int? = nil) -> NSImage? {
+        guard let imageSource = ImageSource(image: self) else { return nil }
+        func image(at index: Int? = nil) -> CGImage? {
+            if let maxSize = maxSize {
+                return imageSource.thumbnail(at: index, options: .init(maxSize: maxSize, transformsIfNeeded: true))
+            }
+            return imageSource.image(at: index, options: .init(caches: true, decodesImmediately: true))
+            // return imageSource.thumbnail(at: index, options: .init(transformsIfNeeded: true))
+        }
+        let data = NSMutableData()
+        let imageCount = imageSource.count
+        if imageCount > 1, let identifer = imageSource.contentType?.identifier.cfString, let destination = CGImageDestinationCreateWithData(data as CFMutableData, identifer, imageCount, nil) {
+            if let properties = (CGImageSourceCopyProperties(imageSource.cgImageSource, nil) as? [CFString: Any] ?? [:]).loopProperties()?.cfDictionary {
+                CGImageDestinationSetProperties(destination, properties)
+            }
+            for index in 0..<imageCount {
+                guard let image = image(at: index) else { continue }
+                CGImageDestinationAddImage(destination, image, CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil))
+                // CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, [kCGImageDestinationImageMaxPixelSize: maxSize as Any?].nonNil.cfDictionary)
+            }
+            CGImageDestinationFinalize(destination)
+            return NSImage(data: data as Data)
+        }
+        guard let image = image() else { return nil }
+        return NSImage(cgImage: image, size: .init(image.width, image.height))
     }
 }
 #elseif canImport(UIKit)
