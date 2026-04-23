@@ -44,8 +44,36 @@ public extension ImageSource {
         public var iptc: IPTC?
         /// Additional HEIC properties of the image.
         public var heic: HEIC?
+        
+        /// Additional WEBP properties of the image.
+        public var webp: WEBP?
+        /// Additional Adobe Photoshop image properties of the image.
+        public var a8bim: A8BIM?
+        /// Additional Truevision Graphics Adapter (TGA) format properties of the image.
+        public var tga: TGA?
+
         /// Additional EXIF properties of the image.
         public var exif: EXIF?
+        /// Additional GPS properties of the image.
+        public var gps: GPS?
+        /// Additional camera image file format (CIFF) properties of the image.
+        public var ciff: CIFF?
+        
+        /// Additional Canon camera properties of the image.
+        public var canon: Canon?
+        /// Additional Nikon camera properties of the image.
+        public var nikon: Nikon?
+        
+        /*
+        /// Additional Minolta camera properties of the image.
+        public var minolta: [String: String]?
+        /// Additional Fuji camera properties of the image.
+        public var fuji: [String: String]?
+        /// Additional Olympus camera properties of the image.
+        public var olympus: [String: String]?
+        /// Additional Pentax camera properties of the image.
+        public var pentax: [String: String]?
+         */
 
         /// The pixel size of the image.
         public var pixelSize: CGSize? {
@@ -121,6 +149,20 @@ public extension ImageSource {
             case iptc = "{IPTC}"
             case heic = "{HEICS}"
             case exif = "{Exif}"
+            case gps = "{GPS}"
+            case tga = "{TGA}"
+            case webp = "{WebP}"
+            case a8bim = "{8BIM}"
+            case ciff = "{CIFF}"
+            case canon = "{MakerCanon}"
+            case nikon = "{MakerNikon}"
+            /*
+            case minolta = "{MakerMinolta}"
+            case fuji = "{MakerFuji}"
+            case olympus = "{MakerOlympus}"
+            case pentax = "{MakerPentax}"
+             */
+            
             case dpiWidth = "DPIWidth"
             case dpiHeight = "DPIHeight"
             case hasAlpha = "HasAlpha"
@@ -216,3 +258,5 @@ extension CGImagePropertyOrientation: Swift.Encodable, Swift.Decodable {
         }
     }
 }
+
+/// let kSYImagePropertyPictureStyle = "{PictureStyle}" as CFString

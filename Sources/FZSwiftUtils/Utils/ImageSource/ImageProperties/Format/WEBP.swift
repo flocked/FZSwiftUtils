@@ -1,14 +1,15 @@
 //
-//  GIFImageProperties.swift
+//  WEBP.swift
+//  
 //
-//
-//  Created by Florian Zand on 02.06.22.
+//  Created by Florian Zand on 23.04.26.
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct GIF: Codable {
+    struct WEBP: Codable {
         /**
          The number of times that an animated image should play through its frames before stopping.
 
@@ -27,9 +28,7 @@ public extension ImageSource.ImageProperties {
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
         public var unclampedDelayTime: Double?
-        /// A Boolean value indicating whether the GIF has a global color map.
-        public var hasGlobalColorMap: Bool?
-
+        
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
             unclampedDelayTime ?? clampedDelayTime
@@ -47,25 +46,16 @@ public extension ImageSource.ImageProperties {
             return CGSize(width: width, height: height)
         }
         
-        /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
-        public var framesInfo: [FrameInfo]?
+        /// The frame information of the WEBP image.
+        public var frameInfo: FrameInfo?
         
-        /*
-        /// The image color map.
-        public var colorMap: Any?
-         */
-
         enum CodingKeys: String, CodingKey {
             case canvasPixelWidth = "CanvasPixelWidth"
             case canvasPixelHeight = "CanvasPixelHeight"
             case loopCount = "LoopCount"
             case clampedDelayTime = "DelayTime"
             case unclampedDelayTime = "UnclampedDelayTime"
-            case hasGlobalColorMap = "HasGlobalColorMap"
-            case framesInfo = "FrameInfoArray"
-            /*
-            case colorMap = "ImageColorMap"
-             */
+            case frameInfo = "FrameInfo"
         }
     }
 }

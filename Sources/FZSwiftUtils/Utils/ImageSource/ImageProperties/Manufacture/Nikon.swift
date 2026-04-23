@@ -9,25 +9,44 @@ import Foundation
 
 public extension ImageSource.ImageProperties {
     struct Nikon: Codable {
+        /// The ISO setting values recorded by the Nikon camera.
         public var iSOSetting: [Int]?
+        /// The color mode selected on the Nikon camera.
         public var colorMode: String?
+        /// The image quality mode selected on the Nikon camera.
         public var quality: String?
+        /// The white balance mode selected on the Nikon camera.
         public var whiteBalanceMode: String?
+        /// The sharpening mode selected on the Nikon camera.
         public var sharpenMode: String?
+        /// The focus mode selected on the Nikon camera.
         public var focusMode: String?
+        /// The flash setting selected on the Nikon camera.
         public var flashSetting: String?
+        /// The ISO selection mode selected on the Nikon camera.
         public var iSOSelection: String?
+        /// The flash exposure compensation applied by the Nikon camera.
         public var flashExposureComp: Double?
+        /// The image adjustment mode selected on the Nikon camera.
         public var imageAdjustment: String?
+        /// The lens adapter value recorded by the Nikon camera.
         public var lensAdapter: Double?
+        /// The type flags of the mounted Nikon lens.
         public var lensType: LensType?
+        /// The lens information string recorded by the Nikon camera.
         public var lensInfo: String?
+        /// The focus distance recorded by the Nikon camera.
         public var focusDistance: Double?
+        /// The digital zoom factor used by the Nikon camera.
         public var digitalZoom: Double?
+        /// The shooting mode flags recorded by the Nikon camera.
         public var shootingMode: ShootingMode?
+        /// The serial number of the Nikon camera.
         public var cameraSerialNumber: String?
+        /// The shutter count of the Nikon camera.
         public var shutterCount: Int?
 
+        /// The Nikon shooting mode flags.
         public struct ShootingMode: OptionSet, Codable {
             public let rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }
@@ -42,6 +61,7 @@ public extension ImageSource.ImageProperties {
             public static let dLightingBracketing = ShootingMode(rawValue: 1 << 8)
         }
 
+        /// The Nikon lens type flags.
         public struct LensType: OptionSet, Codable {
             public let rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }

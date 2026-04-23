@@ -39,7 +39,7 @@ extension ImageSource.ImageProperties.EXIF {
         }
 
         public var focalLength35mm: String? {
-            guard let f = exif.focalLength35mm, f > 0.0 else {
+            guard let f = exif.focalLengthIn35mmFilm, f > 0.0 else {
                 return nil
             }
 
@@ -48,8 +48,8 @@ extension ImageSource.ImageProperties.EXIF {
         }
 
         public var iso: String? {
-            guard let iso = exif.isoSpeed, iso > 0.0 else {
-                return nil
+            guard let iso = exif.isoSpeed?.value as? Double, iso > 0.0 else {
+                return exif.isoSpeed?.value as? String
             }
 
             let integerISO = Int(round(iso))
@@ -57,7 +57,7 @@ extension ImageSource.ImageProperties.EXIF {
         }
 
         public var shutterSpeed: String? {
-            guard let s = exif.shutterSpeed, s > 0.0 else {
+            guard let s = exif.shutterSpeedValue, s > 0.0 else {
                 return nil
             }
 
@@ -80,61 +80,59 @@ extension ImageSource.ImageProperties.EXIF {
 extension ImageSource.ImageProperties.EXIF.FlashMode {
     var humanReadable: String {
         switch self {
-        case .unknown:
-            return "unknown"
         case .noFlash:
             return "No flash"
         case .fired:
             return "Fired"
-        case .firedNotReturned:
+        case .firedReturnNotDetected:
             return "Fired, return not detected"
-        case .firedReturned:
+        case .firedReturnDetected:
             return "Fired, return detected"
-        case .onNotFired:
+        case .onDidNotFire:
             return "On, did not fire"
         case .onFired:
             return "On, fired"
-        case .onNotReturned:
+        case .onReturnNotDetected:
             return "On, return not detected"
-        case .onReturned:
+        case .onReturnDetected:
             return "On, return detected"
-        case .offNotFired:
+        case .offDidNotFire:
             return "Off, did not fire"
-        case .offNotFiredNotReturned:
+        case .offDidNotFireReturnNotDetected:
             return "Off, did not fire, return not detected"
-        case .autoNotFired:
+        case .autoDidNotFire:
             return "Auto, did not fire"
         case .autoFired:
             return "Auto, fired"
-        case .autoFiredNotReturned:
+        case .autoFiredReturnNotDetected:
             return "Auto, fired, return not detected"
-        case .autoFiredReturned:
+        case .autoFiredReturnDetected:
             return "Auto, fired, return detected"
         case .noFlashFunction:
             return "No flash function"
         case .offNoFlashFunction:
             return "Off, no flash function"
-        case .firedRedEye:
+        case .firedRedEyeReduction:
             return "Fired, red-eye reduction"
-        case .firedRedEyeNotReturned:
+        case .firedRedEyeReductionReturnNotDetected:
             return "Fired, red-eye reduction, return not detected"
-        case .firedRedEyeReturned:
+        case .firedRedEyeReductionReturnDetected:
             return "Fired, red-eye reduction, return detected"
-        case .onRedEye:
+        case .onRedEyeReduction:
             return "On, red-eye reduction"
-        case .onRedEyeNotReturned:
+        case .onRedEyeReductionReturnNotDetected:
             return "On, red-eye reduction, return not detected"
-        case .onRedEyeReturned:
+        case .onRedEyeReductionReturnDetected:
             return "On, red-eye reduction, return detected"
-        case .offRedEye:
+        case .offRedEyeReduction:
             return "Off, red-eye reduction"
-        case .autoNotFiredRedEye:
+        case .autoDidNotFireRedEyeReduction:
             return "Auto, did not fire, red-eye reduction"
-        case .autoFiredRedEye:
+        case .autoFiredRedEyeReduction:
             return "Auto, fired, red-eye reduction"
-        case .autoFiredRedEyeNotReturned:
+        case .autoFiredRedEyeReductionReturnNotDetected:
             return "Auto, fired, red-eye reduction, return not detected"
-        case .autoFiredRedEyeReturned:
+        case .autoFiredRedEyeReductionReturnDetected:
             return "Auto, fired, red-eye reduction, return detected"
         }
     }

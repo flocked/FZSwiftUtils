@@ -404,6 +404,7 @@ extension Decodable where Self: NSNull {
  }
   */
 
+/*
 fileprivate struct AnyEncodable: Encodable {
     let value: Any
     
@@ -461,6 +462,7 @@ fileprivate struct AnyDecodable: Decodable {
         }
     }
 }
+*/
 
 /*
  protocol JSONCollection {
