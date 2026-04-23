@@ -104,7 +104,7 @@ public extension NSImage {
      
      The Animation Hitches instrument measures system performance for multiple stages of preparing views for display. It can show you the exact cause of an animation hitch, which appears to the user as an interruption or jump in an animation that should be smooth. If Animation Hitches indicates that decoding an image takes too long and causes hitches, use this method to move the decoding work to the background. For more information on using Instruments, see Instruments Help.
      
-     Avoid using this method on the main thread unless you previously started preparing an image with prepareForDisplay(completionHandler:). If you’re decoding many images, such as with a collection view, calling this method from a concurrent queue can degrade performance by demanding too many system threads. Use a serial queue instead.
+     Avoid using this method on the main thread unless you previously started preparing an image with ``AppKit/NSImage/prepareForDisplay(completionHandler:)``. If you’re decoding many images, such as with a collection view, calling this method from a concurrent queue can degrade performance by demanding too many system threads. Use a serial queue instead.
      
      This method returns a new image object for efficient display by an image view. Assign the image object created by this method to the image property of the image view. If [NSImageView](https://developer.apple.com/documentation/AppKit/NSImageView) can render the image without decoding, this method returns a valid image without further processing. If the system can’t decode the image, such as an image created from a CIImage, the method returns `nil`.
           
@@ -159,7 +159,7 @@ public extension NSImage {
      }
      ```
      */
-    func preparingForDisplay(completionHandler: @escaping (_ image: NSImage?) -> Void) {
+    func prepareForDisplay(completionHandler: @escaping (_ image: NSImage?) -> Void) {
         DispatchQueue.background.async {
             completionHandler(self.preparingForDisplay())
         }
@@ -178,7 +178,7 @@ public extension NSImage {
      */
     func byPreparingForDisplay() async -> NSImage? {
         await withCheckedContinuation { continuation in
-            preparingForDisplay { continuation.resume(returning: $0) }
+            prepareForDisplay { continuation.resume(returning: $0) }
         }
     }
     

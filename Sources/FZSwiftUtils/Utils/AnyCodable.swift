@@ -424,29 +424,21 @@ extension _AnyEncodable {
     }
 
     private func encode(nsnumber: NSNumber, into container: inout SingleValueEncodingContainer) throws {
-        switch Character(Unicode.Scalar(UInt8(nsnumber.objCType.pointee)))  {
-        case "B":
-            try container.encode(nsnumber.boolValue)
-        case "c":
-            try container.encode(nsnumber.int8Value)
-        case "s":
-            try container.encode(nsnumber.int16Value)
-        case "i", "l":
-            try container.encode(nsnumber.int32Value)
-        case "q":
-            try container.encode(nsnumber.int64Value)
-        case "C":
-            try container.encode(nsnumber.uint8Value)
-        case "S":
-            try container.encode(nsnumber.uint16Value)
-        case "I", "L":
-            try container.encode(nsnumber.uint32Value)
-        case "Q":
-            try container.encode(nsnumber.uint64Value)
-        case "f":
-            try container.encode(nsnumber.floatValue)
-        case "d":
-            try container.encode(nsnumber.doubleValue)
+        if let value = nsnumber.safeBoolValue { try container.encode(value); return }
+        switch String(cString: nsnumber.objCType) {
+        case "B":  try container.encode(nsnumber.boolValue)
+        case "c":  try container.encode(nsnumber.int8Value)
+        case "C":  try container.encode(nsnumber.uint8Value)
+        case "s":  try container.encode(nsnumber.int16Value)
+        case "S":  try container.encode(nsnumber.uint16Value)
+        case "i":  try container.encode(nsnumber.int32Value)
+        case "I":  try container.encode(nsnumber.uint32Value)
+        case "l":  try container.encode(nsnumber.intValue)
+        case "L":  try container.encode(nsnumber.uintValue)
+        case "q":  try container.encode(nsnumber.int64Value)
+        case "Q":  try container.encode(nsnumber.uint64Value)
+        case "f":  try container.encode(nsnumber.floatValue)
+        case "d":  try container.encode(nsnumber.doubleValue)
         default:
             let context = EncodingError.Context(codingPath: container.codingPath, debugDescription: "NSNumber cannot be encoded because its type is not handled")
             throw EncodingError.invalidValue(nsnumber, context)

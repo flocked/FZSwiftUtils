@@ -162,8 +162,9 @@ public extension NSNumber {
     /// The value of the `NSNumber`.
     var value: Any {
         if let bool = safeBoolValue { return bool }
+        if let decimal = self as? NSDecimalNumber { return decimal.decimalValue }
         switch String(cString: objCType) {
-        case "c":  return boolValue
+        case "c":  return int8Value
         case "C":  return uint8Value
         case "s":  return int16Value
         case "S":  return uint16Value
@@ -177,11 +178,10 @@ public extension NSNumber {
         case "d":  return doubleValue
         case "B":  return boolValue
         default:
-            Swift.print("HERE",  String(cString: objCType) )
             return self
         }
     }
-
+    
     /**
      Returns an `NSNumber` object initialized to contain the specified value of the string.
 
@@ -206,22 +206,22 @@ extension NSNumber: Swift.Encodable, Swift.Decodable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.singleValueContainer()
         if let value = safeBoolValue { try container.encode(value); return }
-        switch Character(Unicode.Scalar(UInt8(objCType.pointee))) {
-        case "B": try container.encode(boolValue)
-        case "c": try container.encode(int8Value)
-        case "C": try container.encode(uint8Value)
-        case "s": try container.encode(int16Value)
-        case "S": try container.encode(uint16Value)
-        case "i": try container.encode(int32Value)
-        case "I": try container.encode(uint32Value)
-        case "l": try container.encode(Int(intValue))
-        case "L": try container.encode(UInt(uintValue))
-        case "q": try container.encode(int64Value)
-        case "Q": try container.encode(uint64Value)
-        case "f": try container.encode(floatValue)
-        case "d": try container.encode(doubleValue)
+        switch String(cString: objCType) {
+        case "B":  try container.encode(boolValue)
+        case "c":  try container.encode(int8Value)
+        case "C":  try container.encode(uint8Value)
+        case "s":  try container.encode(int16Value)
+        case "S":  try container.encode(uint16Value)
+        case "i":  try container.encode(int32Value)
+        case "I":  try container.encode(uint32Value)
+        case "l":  try container.encode(intValue)
+        case "L":  try container.encode(uintValue)
+        case "q":  try container.encode(int64Value)
+        case "Q":  try container.encode(uint64Value)
+        case "f":  try container.encode(floatValue)
+        case "d":  try container.encode(doubleValue)
         default:
-            throw EncodingError.invalidValue(self, EncodingError.Context(codingPath: container.codingPath, debugDescription: "NSNumber uses an unsupported ObjC type: \(String(cString: objCType))"))
+            throw EncodingError.invalidValue(self, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "NSNumber uses an unsupported ObjC type: \(String(cString: objCType))"))
         }
     }
 }

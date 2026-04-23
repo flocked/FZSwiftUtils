@@ -85,7 +85,7 @@ public final class DictionaryDecoder: Sendable {
      */
     public func decode<T: Decodable>(_ type: T.Type = T.self, from dictionary: [String: Any]) throws -> T {
         let options = optionsMutex.withLock { $0 }
-        let decoder = DictionarySingleValueDecodingContainer(
+        let decoder = SingleValueDecoder(
             component: dictionary,
             options: options,
             userInfo: userInfo,
@@ -113,7 +113,7 @@ public final class DictionaryDecoder: Sendable {
     ) throws -> T {
         let options = optionsMutex.withLock { $0 }
 
-        let decoder = DictionarySingleValueDecodingContainer(
+        let decoder = SingleValueDecoder(
             component: dictionary,
             options: options,
             userInfo: userInfo,

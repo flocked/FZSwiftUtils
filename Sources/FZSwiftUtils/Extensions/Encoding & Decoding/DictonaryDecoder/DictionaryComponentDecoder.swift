@@ -1,22 +1,18 @@
 import Foundation
 
 internal protocol DictionaryComponentDecoder {
-
     var options: DictionaryDecoder.Options { get }
     var userInfo: [CodingUserInfoKey: Any] { get }
 }
 
 extension DictionaryComponentDecoder {
-
-    // MARK: - Instance Methods
-
     private func decodePrimitiveValue<T: Decodable>(
         of type: T.Type = T.self,
         from component: Any?,
         at codingPath: [CodingKey]
     ) throws -> T {
         guard let value = component as? T else {
-            throw DecodingError.invalidComponent(component, of: T.self, at: codingPath)
+            throw DecodingError.invalidComponent(component, at: codingPath, expectation: T.self)
         }
 
         return value
@@ -27,7 +23,7 @@ extension DictionaryComponentDecoder {
         from component: Any?,
         at codingPath: [CodingKey]
     ) throws -> T {
-        let decoder = DictionarySingleValueDecodingContainer(
+        let decoder = DictionaryDecoder.SingleValueDecoder(
             component: component,
             options: options,
             userInfo: userInfo,
@@ -43,7 +39,7 @@ extension DictionaryComponentDecoder {
         at codingPath: [CodingKey],
         closure: (_ decoder: Decoder) throws -> T
     ) throws -> T {
-        let decoder = DictionarySingleValueDecodingContainer(
+        let decoder = DictionaryDecoder.SingleValueDecoder(
             component: component,
             options: options,
             userInfo: userInfo,
@@ -88,7 +84,7 @@ extension DictionaryComponentDecoder {
             break
         }
 
-        throw DecodingError.invalidComponent(component, of: T.self, at: codingPath)
+        throw DecodingError.invalidComponent(component, at: codingPath, expectation: T.self)
     }
 
     private func decodeDate(from component: Any?, at codingPath: [CodingKey]) throws -> Date {
@@ -103,12 +99,7 @@ extension DictionaryComponentDecoder {
             return Date(timeIntervalSince1970: try decodePrimitiveValue(from: component, at: codingPath) / 1000.0)
 
         case .iso8601:
-            guard #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
-            }
-
             let formattedDate = try decodePrimitiveValue(of: String.self, from: component, at: codingPath)
-
             guard let date = ISO8601DateFormatter().date(from: formattedDate) else {
                 let errorContext = DecodingError.Context(
                     codingPath: codingPath,
@@ -260,25 +251,5 @@ extension DictionaryComponentDecoder {
         default:
             return try decodeNonPrimitiveValue(from: component, at: codingPath)
         }
-    }
-}
-
-extension DecodingError {
-
-    // MARK: - Type Methods
-
-    fileprivate static func invalidComponent(
-        _ component: Any?,
-        of expectedType: Any.Type,
-        at codingPath: [CodingKey]
-    ) -> DecodingError {
-        let componentDescription = component.map { "\(type(of: $0))" } ?? "nil"
-
-        let context = Context(
-            codingPath: codingPath,
-            debugDescription: "Expected to decode \(expectedType) but found \(componentDescription) instead."
-        )
-
-        return .typeMismatch(expectedType, context)
     }
 }
