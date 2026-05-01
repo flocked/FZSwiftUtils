@@ -11,7 +11,7 @@ import ImageIO
 extension ImageProperties {
     public struct AuxiliaryData {
         /// The type of the auxiliary data.
-        public let type: AuxiliaryDataType?
+        public let type: AuxiliaryDataType
         /// The auxiliary data for the image.
         public let data: Data?
         /// A dictionary of keys that describe the auxiliary data.
@@ -21,9 +21,18 @@ extension ImageProperties {
         /// The raw values.
         public let rawValue: [CFString: Any]
         
-        init(rawValue: [CFString: Any]) {
+        public init(type: AuxiliaryDataType, data: Data?, dataDescription: [CFString: Any]? = nil, metadata: CGImageMetadata? = nil) {
+            var rawValue: [CFString: Any] = [kCGImagePropertyAuxiliaryDataType: type.rawValue]
+            rawValue[kCGImageAuxiliaryDataInfoData] = data
+            rawValue[kCGImageAuxiliaryDataInfoDataDescription] = dataDescription
+            rawValue[kCGImageAuxiliaryDataInfoMetadata] = metadata
+            self.init(rawValue: rawValue)!
+        }
+        
+        init?(rawValue: [CFString: Any]) {
+            guard let type: AuxiliaryDataType = rawValue[typed: kCGImagePropertyAuxiliaryDataType] else { return nil }
             self.rawValue = rawValue
-            self.type = rawValue[typed: kCGImagePropertyAuxiliaryDataType]
+            self.type = type
             self.data = rawValue[typed: kCGImageAuxiliaryDataInfoData]
             self.dataDescription = rawValue[typed: kCGImageAuxiliaryDataInfoDataDescription]
             self.metadata = rawValue[typed: kCGImageAuxiliaryDataInfoMetadata]

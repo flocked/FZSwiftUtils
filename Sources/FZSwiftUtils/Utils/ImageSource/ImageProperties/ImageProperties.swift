@@ -186,7 +186,7 @@ public struct ImageProperties {
         raw = imageData[typed: kCGImagePropertyRawDictionary]
         FileContents = imageData[typed: kCGImagePropertyFileContentsDictionary]
         openEXRA = imageData[typed: kCGImagePropertyOpenEXRDictionary]
-        auxiliaryData = (imageData[typed: kCGImagePropertyAuxiliaryData] as [[CFString: Any]]?)?.map(AuxiliaryData.init)
+        auxiliaryData = (imageData[typed: kCGImagePropertyAuxiliaryData] as [[CFString: Any]]?)?.compactMap(AuxiliaryData.init)
         
         canon = imageData[typed: kCGImagePropertyMakerCanonDictionary].map(Canon.init(canonData:))
         nikon = imageData[typed: kCGImagePropertyMakerNikonDictionary].map(Nikon.init(nikonData:))

@@ -15,7 +15,7 @@ public class ImageDestination {
     private enum Step {
         case image(_ image: CGImage, metadata: CGImageMetadata?, properties: [CFString: Any]?)
         case sourceImage(imageSource: CGImageSource, index: Int, properties: [CFString: Any]?)
-        case auxiliary(info: [CGImage.AuxiliaryDataInfoKey: Any], type: CGImage.AuxiliaryDataType)
+        case auxiliary(auxiliaryData: ImageProperties.AuxiliaryData)
     }
     
     private var steps: [Step] = []
@@ -84,8 +84,8 @@ public class ImageDestination {
         - auxiliaryData: The auxiliary information to add.
         -  type: The type of the auxiliary information.
      */
-    public func addAuxiliaryData(_ auxiliaryData: [CGImage.AuxiliaryDataInfoKey: Any], type: CGImage.AuxiliaryDataType) {
-        steps += .auxiliary(info: auxiliaryData, type: type)
+    public func addAuxiliaryData(_ auxiliaryData: ImageProperties.AuxiliaryData) {
+        steps += .auxiliary(auxiliaryData: auxiliaryData)
     }
     
     /// Creates the finale image.
@@ -124,8 +124,8 @@ public class ImageDestination {
                 }
             case .sourceImage(let source, let index, let properties):
                 CGImageDestinationAddImageFromSource(destination, source, index, properties as CFDictionary?)
-            case .auxiliary(let info, let type):
-                CGImageDestinationAddAuxiliaryDataInfo(destination, type.rawValue, info as CFDictionary)
+            case .auxiliary(auxiliaryData: let auxiliaryData):
+                CGImageDestinationAddAuxiliaryDataInfo(destination, auxiliaryData.type.rawValue, auxiliaryData.rawValue as CFDictionary)
             }
         }
     }
