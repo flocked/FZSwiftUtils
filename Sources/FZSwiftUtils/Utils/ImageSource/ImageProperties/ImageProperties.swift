@@ -194,7 +194,7 @@ public struct ImageProperties {
 }
 
 extension ImageProperties {
-    public static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssXXXXX"])
+    public static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssXXXXX", "yyyyMMdd"]).includeISO8601(true)
 }
 
 extension ImageProperties {

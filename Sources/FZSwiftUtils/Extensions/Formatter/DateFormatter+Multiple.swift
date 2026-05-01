@@ -24,8 +24,29 @@ public class MultiDateFormatter: DateFormatter {
         }
     }
     
+    private var iso8601Formatter: ISO8601DateFormatter?
+    
+    /// A Boolean value indicating whether to also format strings using `ISO860`.
+    public var includeISO8601: Bool {
+        get { iso8601Formatter != nil }
+        set {
+            guard newValue != includeISO8601 else { return }
+            iso8601Formatter = newValue ? .init() : nil
+        }
+    }
+    
+    /// Sets the Boolean value indicating whether to also format strings using `ISO860`.
+    @discardableResult
+    public func includeISO8601(_ include: Bool) -> Self {
+        includeISO8601 = include
+        return self
+    }
+    
     public override func date(from string: String) -> Date? {
         defer { dateFormat = dateFormats.first ?? "" }
+        if let date = iso8601Formatter?.date(from: string) {
+            return date
+        }
         for dateFormat in dateFormats {
             self.dateFormat = dateFormat
             if let date = super.date(from: string) {
