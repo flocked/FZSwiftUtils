@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct DNG {
         /// The raw values.
         public let rawValues: [CFString: Any]
@@ -150,7 +150,7 @@ public extension ImageSource.ImageProperties {
         /// The number of interleaved fields for the rows of the image.
         public let rowInterleaveFactor: Int?
         /// The oldest version for which a file is compatible.
-        public let dngBackwardVersion: String?
+        public let dngBackwardVersion: [Int]?
         /// An encoding of the four-tier version number.
         public let dngVersion: [Double]?
         /// A list of file offsets to extra camera profiles.
@@ -186,7 +186,7 @@ public extension ImageSource.ImageProperties {
         /// The name of the conversion settings for the preview.
         public let previewSettingsName: String?
         /// A unique ID of the conversion settings used to render the preview.
-        public let previewSettingsDigest: String?
+        public let previewSettingsDigest: [Int]?
         /// The color space associated with the rendered preview.
         public let previewColorSpace: Int?
         /// The date and time for the render of the preview.
@@ -302,7 +302,7 @@ public extension ImageSource.ImageProperties {
             previewSettingsName = dngData[typed: kCGImagePropertyDNGPreviewSettingsName]
             previewSettingsDigest = dngData[typed: kCGImagePropertyDNGPreviewSettingsDigest]
             previewColorSpace = dngData[typed: kCGImagePropertyDNGPreviewColorSpace]
-            previewDateTime = (dngData[typed: kCGImagePropertyDNGPreviewDateTime] as Date?) ?? dngData[typed: kCGImagePropertyDNGPreviewDateTime, using: ImageSource.ImageProperties.dateFormatter]
+            previewDateTime = dngData[typed: kCGImagePropertyDNGPreviewDateTime, using: ImageProperties.dateFormatter]
             lensInfo = dngData[typed: kCGImagePropertyDNGLensInfo]
             uniqueCameraModel = dngData[typed: kCGImagePropertyDNGUniqueCameraModel]
             localizedCameraModel = dngData[typed: kCGImagePropertyDNGLocalizedCameraModel]

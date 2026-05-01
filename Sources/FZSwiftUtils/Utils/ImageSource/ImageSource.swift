@@ -45,14 +45,16 @@ public class ImageSource {
      These properties apply to the container in general but not necessarily to any individual image contained in the image source.
      */
     public func properties() -> ImageProperties? {
-        ImageProperties(CGImageSourceCopyProperties(cgImageSource, nil))
+        guard let properties = CGImageSourceCopyProperties(cgImageSource, nil) as? [CFString: Any] else { return nil }
+        return ImageProperties(imageData: properties)
     }
 
     /**
      Returns the properties of an image at the specified index in the image source.
      */
     public func properties(at index: Int) -> ImageProperties? {
-        ImageProperties(CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil))
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [CFString: Any] else { return nil }
+        return ImageProperties(imageData: properties)
     }
     
     /// Returns the metadata of the image at the specified index.

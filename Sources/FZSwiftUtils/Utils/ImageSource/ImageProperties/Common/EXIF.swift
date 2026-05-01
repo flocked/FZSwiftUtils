@@ -9,7 +9,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     /// Exchangeable Image File Format (EXIF) data.
     struct EXIF {
         /// The raw values.
@@ -39,7 +39,7 @@ public extension ImageSource.ImageProperties {
         public let spectralSensitivity: Double?
         
         /// The ISO speed ratings.
-        public let isoSpeedRatings: [Any]?
+        public let isoSpeedRatings: [Double]?
         
         /// The distance to the subject, in meters.
         public let subjectDistance: Double?
@@ -48,10 +48,10 @@ public extension ImageSource.ImageProperties {
         public let meteringMode: MeteringMode?
         
         /// The subject area.
-        public let subjectArea: Any?
+        public let subjectArea: SubjectArea?
         
         /// The location of the image’s primary subject.
-        public let subjectLocation: Any?
+        public let subjectLocation: CGPoint?
         
         /// The sensor type of the camera or input device.
         public let sensingMethod: SensingMethod?
@@ -86,13 +86,13 @@ public extension ImageSource.ImageProperties {
         public let exposureMode: ExposureMode?
         
         /// The ISO speed setting used to capture the image.
-        public let isoSpeed: Any?
+        public let isoSpeed: Double?
         
         /// The ISO speed latitude yyy value.
-        public let isoSpeedLatitudeYYY: Any?
+        public let isoSpeedLatitudeYYY: Double?
         
         /// The ISO speed latitude zzz value.
-        public let isoSpeedLatitudeZZZ: Any?
+        public let isoSpeedLatitudeZZZ: Double?
         
         /// The recommended exposure index.
         public let recommendedExposureIndex: Int?
@@ -121,7 +121,7 @@ public extension ImageSource.ImageProperties {
         public let lightSource: LightSourceType?
         
         /// The flash status when the image was shot.
-        public let flash: FlashMode?
+        public let flash: Flash?
         
         /// The spatial frequency table and spatial frequency response values in the width, height, and diagonal directions.
         public let spatialFrequencyResponse: String?
@@ -179,7 +179,7 @@ public extension ImageSource.ImageProperties {
         public let compositeImage: CompositeImageType?
         
         /// The opto-electric conversion function (OECF) that defines the relationship between the optical input of the camera and the resulting image.
-        public let oecf: Any?
+        public let oecf: Double?
         
         /// The components configuration for compressed data.
         public let componentsConfiguration: [Int]?
@@ -233,7 +233,7 @@ public extension ImageSource.ImageProperties {
         //  MARK: - Camera Information
         
         /// Information specified by the camera manufacturer.
-        public let makerNote: Any?
+        public let makerNote: String?
         
         /// A user comment.
         public let userComment: String?
@@ -261,6 +261,30 @@ public extension ImageSource.ImageProperties {
         public var isScreenshot: Bool {
             userComment == "Screenshot"
         }
+        
+        /// Represents the EXIF subject area describing the location and optionally the size of the main subject within the image.
+        public enum SubjectArea {
+            /// A single point indicating the subject location in pixel coordinates.
+            case point(x: Int, y: Int)
+            /// A circular region centered at the given coordinates with the specified diameter in pixels.
+            case circle(x: Int, y: Int, diameter: Int)
+            /// A rectangular region defined by its top-left corner and size in pixels.
+            case rectangle(x: Int, y: Int, width: Int, height: Int)
+            
+            init?(_ values: [Int]?) {
+                guard let values else { return nil }
+                    switch values.count {
+                    case 2:
+                        self = .point(x: values[0], y: values[1])
+                    case 3:
+                        self = .circle(x: values[0], y: values[1], diameter: values[2])
+                    case 4:
+                        self = .rectangle(x: values[0], y: values[1], width: values[2], height: values[3])
+                    default:
+                        return nil
+                    }
+                }
+        }
 
         init(exifData: [CFString: Any]) {
             rawValues = exifData
@@ -275,8 +299,12 @@ public extension ImageSource.ImageProperties {
             isoSpeedRatings = exifData[typed: kCGImagePropertyExifISOSpeedRatings]
             subjectDistance = exifData[typed: kCGImagePropertyExifSubjectDistance]
             meteringMode = exifData[typed: kCGImagePropertyExifMeteringMode]
-            subjectArea = exifData[kCGImagePropertyExifSubjectArea]
-            subjectLocation = exifData[kCGImagePropertyExifSubjectLocation]
+            subjectArea = SubjectArea(exifData[typed: kCGImagePropertyExifSubjectArea])
+            if let location: [CGFloat] = exifData[typed: kCGImagePropertyExifSubjectLocation], let x = location[safe: 0], let y = location[safe: 1] {
+                subjectLocation = CGPoint(x: x, y: y)
+            } else {
+                subjectLocation = nil
+            }
             sensingMethod = exifData[typed: kCGImagePropertyExifSensingMethod]
             sceneType = exifData[typed: kCGImagePropertyExifSceneType]
             digitalZoomRatio = exifData[typed: kCGImagePropertyExifDigitalZoomRatio]
@@ -288,9 +316,9 @@ public extension ImageSource.ImageProperties {
             exposureProgram = exifData[typed: kCGImagePropertyExifExposureProgram]
             exposureIndex = exifData[typed: kCGImagePropertyExifExposureIndex]
             exposureMode = exifData[typed: kCGImagePropertyExifExposureMode]
-            isoSpeed = exifData[kCGImagePropertyExifISOSpeed]
-            isoSpeedLatitudeYYY = exifData[kCGImagePropertyExifISOSpeedLatitudeyyy]
-            isoSpeedLatitudeZZZ = exifData[kCGImagePropertyExifISOSpeedLatitudezzz]
+            isoSpeed = exifData[typed: kCGImagePropertyExifISOSpeed]
+            isoSpeedLatitudeYYY = exifData[typed: kCGImagePropertyExifISOSpeedLatitudeyyy]
+            isoSpeedLatitudeZZZ = exifData[typed: kCGImagePropertyExifISOSpeedLatitudezzz]
             recommendedExposureIndex = exifData[typed: kCGImagePropertyExifRecommendedExposureIndex]
             exposureBiasValue = exifData[typed: kCGImagePropertyExifExposureBiasValue]
             sensitivityType = exifData[typed: kCGImagePropertyExifSensitivityType]
@@ -320,13 +348,13 @@ public extension ImageSource.ImageProperties {
             focalPlaneResolutionUnit = exifData[typed: kCGImagePropertyExifFocalPlaneResolutionUnit]
             customRendered = exifData[typed: kCGImagePropertyExifCustomRendered]
             compositeImage = exifData[typed: kCGImagePropertyExifCompositeImage]
-            oecf = exifData[kCGImagePropertyExifOECF]
+            oecf = exifData[typed: kCGImagePropertyExifOECF]
             componentsConfiguration = exifData[typed: kCGImagePropertyExifComponentsConfiguration]
             sourceImageNumberOfCompositeImage = exifData[typed: kCGImagePropertyExifSourceImageNumberOfCompositeImage]
             fileSource = exifData[typed: kCGImagePropertyExifFileSource]
             
-            dateTimeOriginal = (exifData[typed: kCGImagePropertyExifDateTimeOriginal] as Date?) ?? exifData[typed: kCGImagePropertyExifDateTimeOriginal, using: ImageSource.ImageProperties.dateFormatter]
-            dateTimeDigitized = (exifData[typed: kCGImagePropertyExifDateTimeDigitized] as Date?) ?? exifData[typed: kCGImagePropertyExifDateTimeDigitized, using: ImageSource.ImageProperties.dateFormatter]
+            dateTimeOriginal = exifData[typed: kCGImagePropertyExifDateTimeOriginal, using: ImageProperties.dateFormatter]
+            dateTimeDigitized = exifData[typed: kCGImagePropertyExifDateTimeDigitized, using: ImageProperties.dateFormatter]
             subsecTime = exifData[typed: kCGImagePropertyExifSubsecTime]
             subsecTimeOriginal = exifData[typed: kCGImagePropertyExifSubsecTimeOriginal]
             subsecTimeDigitized = exifData[typed: kCGImagePropertyExifSubsecTimeDigitized]
@@ -339,7 +367,7 @@ public extension ImageSource.ImageProperties {
             lensModel = exifData[typed: kCGImagePropertyExifLensModel]
             lensSerialNumber = exifData[typed: kCGImagePropertyExifLensSerialNumber]
             
-            makerNote = exifData[kCGImagePropertyExifMakerNote]
+            makerNote = exifData[typed: kCGImagePropertyExifMakerNote]
             userComment = exifData[typed: kCGImagePropertyExifUserComment]
             cameraOwnerName = exifData[typed: kCGImagePropertyExifCameraOwnerName]
             bodySerialNumber = exifData[typed: kCGImagePropertyExifBodySerialNumber]
@@ -351,7 +379,7 @@ public extension ImageSource.ImageProperties {
     }
 }
 
-public extension ImageSource.ImageProperties.EXIF {
+public extension ImageProperties.EXIF {
     /// The color space used to encode the image.
     enum ColorSpace: Int, Codable, Hashable, Sendable {
         /// The image uses the sRGB color space.
@@ -454,69 +482,120 @@ public extension ImageSource.ImageProperties.EXIF {
         /// The image data originated from an unknown source.
         case unknown = 0
     }
-
-    /// The flash mode recorded for the image.
-    enum FlashMode: Int, Codable, Hashable, Sendable, CaseIterable {
-        /// No flash was used.
-        case noFlash = 0x0
-        /// The flash fired.
-        case fired = 0x1
-        /// The flash fired but no return light was detected.
-        case firedReturnNotDetected = 0x5
-        /// The flash fired and return light was detected.
-        case firedReturnDetected = 0x7
-        /// Flash was on but did not fire.
-        case onDidNotFire = 0x8
-        /// Flash was on and fired.
-        case onFired = 0x9
-        /// Flash was on, fired, and no return light was detected.
-        case onReturnNotDetected = 0xd
-        /// Flash was on, fired, and return light was detected.
-        case onReturnDetected = 0xf
-        /// Flash was off and did not fire.
-        case offDidNotFire = 0x10
-        /// Flash was off, did not fire, and no return light was detected.
-        case offDidNotFireReturnNotDetected = 0x14
-        /// Flash was in auto mode and did not fire.
-        case autoDidNotFire = 0x18
-        /// Flash was in auto mode and fired.
-        case autoFired = 0x19
-        /// Flash was in auto mode, fired, and no return light was detected.
-        case autoFiredReturnNotDetected = 0x1d
-        /// Flash was in auto mode, fired, and return light was detected.
-        case autoFiredReturnDetected = 0x1f
-        /// The device has no flash function.
-        case noFlashFunction = 0x20
-        /// Flash was off on a device with no flash function.
-        case offNoFlashFunction = 0x30
-        /// The flash fired with red-eye reduction.
-        case firedRedEyeReduction = 0x41
-        /// The flash fired with red-eye reduction and no return light was detected.
-        case firedRedEyeReductionReturnNotDetected = 0x45
-        /// The flash fired with red-eye reduction and return light was detected.
-        case firedRedEyeReductionReturnDetected = 0x47
-        /// Flash was on with red-eye reduction.
-        case onRedEyeReduction = 0x49
-        /// Flash was on with red-eye reduction and no return light was detected.
-        case onRedEyeReductionReturnNotDetected = 0x4d
-        /// Flash was on with red-eye reduction and return light was detected.
-        case onRedEyeReductionReturnDetected = 0x4f
-        /// Flash was off with red-eye reduction.
-        case offRedEyeReduction = 0x50
-        /// Flash was in auto mode with red-eye reduction and did not fire.
-        case autoDidNotFireRedEyeReduction = 0x58
-        /// Flash was in auto mode with red-eye reduction and fired.
-        case autoFiredRedEyeReduction = 0x59
-        /// Flash was in auto mode with red-eye reduction, fired, and no return light was detected.
-        case autoFiredRedEyeReductionReturnNotDetected = 0x5d
-        /// Flash was in auto mode with red-eye reduction, fired, and return light was detected.
-        case autoFiredRedEyeReductionReturnDetected = 0x5f
-        case unknown = 2
+    
+    /// Represents EXIF flash metadata.
+    public struct Flash: RawRepresentable, CustomStringConvertible {
+        public let rawValue: Int
         
-        public init?(rawValue: Int) {
-            self = Self.allCases.first(where: {$0.rawValue == rawValue}) ?? .unknown
+        /// The flash flags stored in the EXIF value.
+        public let options: Options
+        
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+            self.options = Options(rawValue: rawValue)
+        }
+
+        /// A Boolean value indicating whether the flash fired.
+        public var didFire: Bool {
+            options.contains(.fired)
+        }
+        
+        /// A Boolean value indicating whether the camera reported no flash function.
+        public var hasNoFlashFunction: Bool {
+            options.contains(.noFlashFunction)
+        }
+
+        /// A Boolean value indicating whether red-eye reduction mode was used.
+        public var usedRedEyeReduction: Bool {
+            options.contains(.redEyeReduction)
+        }
+
+        /// The strobe return detection status.
+        public var returnStatus: ReturnStatus {
+            switch (rawValue >> 1) & 0b11 {
+            case 0: return .notAvailable
+            case 2: return .notDetected
+            case 3: return .detected
+            default: return .reserved
+            }
+        }
+
+        /// The flash firing mode.
+        public var mode: FlashMode {
+            switch (rawValue >> 3) & 0b11 {
+            case 0: return .unknown
+            case 1: return .compulsoryFiring
+            case 2: return .compulsorySuppression
+            case 3: return .auto
+            default: return .unknown
+            }
+        }
+        
+        /// Represents EXIF flash bit flags.
+        public struct Options: OptionSet {
+
+            public let rawValue: Int
+
+            public init(rawValue: Int) {
+                self.rawValue = rawValue
+            }
+
+            /// The flash fired.
+            public static let fired = Self(rawValue: 1 << 0)
+            /// The camera has no flash function.
+            public static let noFlashFunction = Self(rawValue: 1 << 5)
+            /// Red-eye reduction mode was used.
+            public static let redEyeReduction = Self(rawValue: 1 << 6)
+        }
+        
+        /// Represents the EXIF strobe return detection status.
+        public enum ReturnStatus {
+            /// No strobe return detection function was available.
+            case notAvailable
+            /// Strobe return light was not detected.
+            case notDetected
+            /// Strobe return light was detected.
+            case detected
+            /// The return detection bits contain a reserved value.
+            case reserved
+        }
+        
+        /// Represents the EXIF flash firing mode.
+        public enum FlashMode {
+            /// The flash mode is unknown.
+            case unknown
+            /// Flash firing was compulsory.
+            case compulsoryFiring
+            /// Flash suppression was compulsory.
+            case compulsorySuppression
+            /// Flash was in automatic mode.
+            case auto
+        }
+        
+        public var description: String {
+            var parts = [didFire ? "fired" : "not fired"]
+            switch mode {
+            case .compulsoryFiring: parts += "forced on"
+            case .compulsorySuppression: parts += "forced off"
+            case .auto: parts += "auto"
+            case .unknown: break
+
+            }
+            switch returnStatus {
+            case .detected: parts += "return detected"
+            case .notDetected: parts += "return not detected"
+            case .notAvailable, .reserved: break
+            }
+            if usedRedEyeReduction {
+                parts += "red-eye reduction"
+            }
+            if hasNoFlashFunction {
+                parts += "no flash function"
+            }
+            return parts.joined(separator: ", ")
         }
     }
+
 
     /// The gain adjustment applied during image capture.
     enum GainControl: Int, Codable, Hashable, Sendable {

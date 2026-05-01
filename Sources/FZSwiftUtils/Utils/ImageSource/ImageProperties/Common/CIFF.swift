@@ -9,7 +9,7 @@ import Foundation
 
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct CIFF {
         /// The raw values.
         public let rawValues: [CFString: Any]

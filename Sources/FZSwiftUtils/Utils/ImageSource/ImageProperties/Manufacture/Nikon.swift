@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     /// Nikon camera specific image properties.
     struct Nikon {
         /// The raw values.

@@ -9,7 +9,7 @@ import CoreGraphics
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct JPEG {
         /// The raw values.
         public let rawValues: [CFString: Any]

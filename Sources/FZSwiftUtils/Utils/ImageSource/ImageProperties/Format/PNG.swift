@@ -8,14 +8,14 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct PNG {
         /// The raw values.
         public let rawValues: [CFString: Any]
         /// The author of the image.
         public let author: String?
         /// The chromaticities.
-        public let chromaticities: Double?
+        public let chromaticities: [Double]?
         /// The comment about the image.
         public let comment: String?
         /// The PNG filter to apply prior to compression.
@@ -136,7 +136,7 @@ public extension ImageSource.ImageProperties {
             comment = pngData[typed: kCGImagePropertyPNGComment]
             compressionFilter = pngData[typed: kCGImagePropertyPNGCompressionFilter]
             copyright = pngData[typed: kCGImagePropertyPNGCopyright]
-            creationTime = pngData[typed: kCGImagePropertyPNGCreationTime, using: ImageSource.ImageProperties.dateFormatter]
+            creationTime = pngData[typed: kCGImagePropertyPNGCreationTime, using: ImageProperties.dateFormatter]
             loopCount = pngData[typed: kCGImagePropertyAPNGLoopCount]
             clampedDelayTime = pngData[typed: kCGImagePropertyAPNGDelayTime]
             unclampedDelayTime = pngData[typed: kCGImagePropertyAPNGUnclampedDelayTime]
@@ -144,7 +144,7 @@ public extension ImageSource.ImageProperties {
             disclaimer = pngData[typed: kCGImagePropertyPNGDisclaimer]
             gamma = pngData[typed: kCGImagePropertyPNGGamma]
             interlaceType = pngData[typed: kCGImagePropertyPNGInterlaceType]
-            modificationTime = pngData[typed: kCGImagePropertyPNGModificationTime, using: ImageSource.ImageProperties.dateFormatter]
+            modificationTime = pngData[typed: kCGImagePropertyPNGModificationTime, using: ImageProperties.dateFormatter]
             pixelAspectRatio = pngData[typed: kCGImagePropertyPNGPixelsAspectRatio]
             software = pngData[typed: kCGImagePropertyPNGSoftware]
             source = pngData[typed: kCGImagePropertyPNGSource]

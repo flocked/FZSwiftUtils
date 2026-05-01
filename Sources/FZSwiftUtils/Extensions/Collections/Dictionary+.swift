@@ -355,7 +355,12 @@ public extension Dictionary where Value: Equatable {
 public extension Dictionary where Value == Any {
     /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
     subscript<T>(typed key: Key) -> T? {
-        self[key] as? T
+        guard let value = self[key] else { return nil }
+        guard let value = value as? T else {
+            Swift.print("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
+            return nil
+        }
+        return value
     }
 
     /// Returns the value casted to the requested type, or the specified default value if missing or of a different type.
@@ -369,16 +374,28 @@ public extension Dictionary where Value == Any {
     }
     
     /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
-    subscript<V>(typed key: Key) -> V? where V: RawRepresentable {
-        guard let rawValue = self[key] as? V.RawValue else { return nil }
-        return V(rawValue: rawValue)
+    subscript<T>(typed key: Key) -> T? where T: RawRepresentable {
+        guard let value = self[key] else { return nil }
+        guard let rawValue = value as? T.RawValue, let value = T(rawValue: rawValue) else {
+            Swift.print("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
+            return nil
+        }
+        return value
     }
     
     /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
     subscript(typed key: Key, using dateFormatter: DateFormatter) -> Date? {
-        if let date: Date = self[typed: key] { return date }
-        guard let dateString: String = self[typed: key] else { return nil }
-        return dateFormatter.date(from: dateString)
+        guard let value = self[key] else { return nil }
+        if let date = value as? Date { return date }
+        guard let dateString = value as? String else {
+            Swift.print("Wrong type for key: \(key). Expected: \(Date.self), got: \(type(of: value)).", value as? NSString != nil, value as? String != nil)
+            return nil
+        }
+        guard let date = dateFormatter.date(from: dateString) else {
+            Swift.print("Wrong date string for key: \(key). Got: \(dateString).")
+            return nil
+        }
+        return date
     }
     
     /**

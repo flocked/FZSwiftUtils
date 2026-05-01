@@ -9,7 +9,7 @@ import CoreLocation
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct GPS {
         /// The raw values.
         public let rawValues: [CFString: Any]
@@ -167,8 +167,8 @@ public extension ImageSource.ImageProperties {
                 altitude = nil
             }
 
-            timeStamp = gpsData[typed: kCGImagePropertyGPSTimeStamp]
-            dateStamp = gpsData[typed: kCGImagePropertyGPSDateStamp]
+            timeStamp = gpsData[typed: kCGImagePropertyGPSTimeStamp, using: ImageProperties.dateFormatter]
+            dateStamp = gpsData[typed: kCGImagePropertyGPSDateStamp, using: ImageProperties.dateFormatter]
 
             satellites = gpsData[typed: kCGImagePropertyGPSSatellites]
             

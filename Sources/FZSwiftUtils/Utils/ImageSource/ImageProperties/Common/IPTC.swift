@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct IPTC {
         /// The raw values.
         public let rawValues: [CFString: Any]
@@ -16,23 +16,13 @@ public extension ImageSource.ImageProperties {
         /// The artworks of the image.
         public let artworks: [Artwork]
         
-        /// The About CV term metadata.
-        public let aboutCvTerm: Any?
-        /// The About CV term CV identifier.
-        public let aboutCvTermCvId: String?
-        /// The About CV term identifier.
-        public let aboutCvTermId: String?
-        /// The About CV term name.
-        public let aboutCvTermName: String?
-        /// The refined About CV term metadata.
-        public let aboutCvTermRefinedAbout: String?
         /// The action advised metadata.
-        public let actionAdvised: Any?
+        public let actionAdvised: [String]?
         /// The additional model information.
         public let addlModelInfo: String?
         
         /// The audio bitrate metadata.
-        public let audioBitrate: Any?
+        public let audioBitrate: Int?
         /// The audio bitrate mode.
         public let audioBitrateMode: String?
         /// The audio channel count.
@@ -52,23 +42,13 @@ public extension ImageSource.ImageProperties {
         /// The contact metadata.
         public let contact: [String]?
         /// The container format metadata.
-        public let containerFormat: String?
-        /// The container format identifier.
-        public let containerFormatIdentifier: String?
-        /// The container format name.
-        public let containerFormatName: String?
+        public let containerFormats: [ContainerFormat]?
         /// The content location code.
         public let contentLocationCode: [String]?
         /// The content location name.
         public let contentLocationName: [String]?
         /// The contributor metadata.
-        public let contributor: Any?
-        /// The contributor identifier.
-        public let contributorIdentifier: Any?
-        /// The contributor name.
-        public let contributorName: Any?
-        /// The contributor role.
-        public let contributorRole: Any?
+        public let contributors: [Contributor]?
         /// The controlled vocabulary term.
         public let controlledVocabularyTerm: Any?
         /// The copyright notice.
@@ -92,23 +72,7 @@ public extension ImageSource.ImageProperties {
         /// The credit metadata.
         public let credit: String?
         /// The data-on-screen metadata.
-        public let dataOnScreen: String?
-        /// The data-on-screen region metadata.
-        public let dataOnScreenRegion: Any?
-        /// The data-on-screen region depth.
-        public let dataOnScreenRegionD: Any?
-        /// The data-on-screen region height.
-        public let dataOnScreenRegionH: Any?
-        /// The data-on-screen region text.
-        public let dataOnScreenRegionText: Any?
-        /// The data-on-screen region unit.
-        public let dataOnScreenRegionUnit: Any?
-        /// The data-on-screen region width.
-        public let dataOnScreenRegionW: Any?
-        /// The data-on-screen region x position.
-        public let dataOnScreenRegionX: Any?
-        /// The data-on-screen region y position.
-        public let dataOnScreenRegionY: Any?
+        public let dataOnScreen: [DataOnScreen]?
         /// The creation date.
         public let dateCreated: String?
         /// The digital creation date.
@@ -133,8 +97,6 @@ public extension ImageSource.ImageProperties {
         public let editStatus: String?
         /// The editorial update metadata.
         public let editorialUpdate: String?
-        /// The embedded encoded rights expression.
-        public let embdEncRightsExpr: String?
         /// The embedded encoded rights expression metadata.
         public let embeddedEncodedRightsExpr: String?
         /// The embedded encoded rights expression language identifier.
@@ -150,7 +112,7 @@ public extension ImageSource.ImageProperties {
         /// The episode number.
         public let episodeNumber: Any?
         /// The event metadata.
-        public let event: Any?
+        public let event: String?
         /// The expiration date.
         public let expirationDate: String?
         /// The expiration time.
@@ -160,17 +122,9 @@ public extension ImageSource.ImageProperties {
         /// The feed identifier.
         public let feedIdentifier: String?
         /// The fixture identifier.
-        public let fixtureIdentifier: Any?
+        public let fixtureIdentifier: [String]?
         /// The genre metadata.
-        public let genre: Any?
-        /// The genre CV identifier.
-        public let genreCvId: String?
-        /// The genre CV term identifier.
-        public let genreCvTermId: String?
-        /// The genre CV term name.
-        public let genreCvTermName: String?
-        /// The refined genre CV term metadata.
-        public let genreCvTermRefinedAbout: String?
+        public let genres: [Genre]?
         /// The headline metadata.
         public let headline: String?
         /// The IPTC last edited metadata.
@@ -178,19 +132,11 @@ public extension ImageSource.ImageProperties {
         /// The orientation of the IPTC image.
         public let orientation: CGImagePropertyOrientation?
         /// The image type metadata.
-        public let imageType: Any?
+        public let imageType: [String]?
         /// The keywords metadata.
         public let keywords: [String]?
         /// The language identifier.
         public let languageIdentifier: String?
-        /// The linked encoded rights expression.
-        public let linkedEncRightsExpr: String?
-        /// The linked encoded rights expression metadata.
-        public let linkedEncodedRightsExpr: String?
-        /// The linked encoded rights expression language identifier.
-        public let linkedEncodedRightsExprLangID: String?
-        /// The linked encoded rights expression type.
-        public let linkedEncodedRightsExprType: String?
         /// The created location metadata.
         public let locationsCreated: [Location]?
         /// The shown location metadata.
@@ -200,7 +146,7 @@ public extension ImageSource.ImageProperties {
         /// The maximum available width.
         public let maxAvailWidth: Int?
         /// The model age metadata.
-        public let modelAge: Int?
+        public let modelAge: [Int]?
         /// The object attribute reference.
         public let objectAttributeReference: Any?
         /// The object cycle metadata.
@@ -218,89 +164,22 @@ public extension ImageSource.ImageProperties {
         /// The originating program.
         public let originatingProgram: String?
         /// The person-heard metadata.
-        public let personHeard: Any?
-        /// The person-heard identifier.
-        public let personHeardIdentifier: String?
-        /// The person-heard name.
-        public let personHeardName: String?
+        public let personHeard: [PersonHeard]?
         /// The person-in-image metadata.
-        public let personInImage: Any?
-        /// The person-in-image characteristic metadata.
-        public let personInImageCharacteristic: Any?
-        /// The person-in-image CV term CV identifier.
-        public let personInImageCvTermCvId: Any?
-        /// The person-in-image CV term identifier.
-        public let personInImageCvTermId: Any?
-        /// The person-in-image CV term name.
-        public let personInImageCvTermName: Any?
-        /// The refined person-in-image CV term metadata.
-        public let personInImageCvTermRefinedAbout: Any?
-        /// The person-in-image description.
-        public let personInImageDescription: String?
-        /// The person-in-image identifier.
-        public let personInImageId: String?
-        /// The person-in-image name.
-        public let personInImageName: String?
-        /// The person-in-image details metadata.
-        public let personInImageWDetails: Any?
+        public let personInImage: [String]?
+        /// The detailed person-in-image metadata.
+        public let personInImageDetails: [PersonInImage]?
+        
         /// The product-in-image metadata.
-        public let productInImage: Any?
-        /// The product-in-image description.
-        public let productInImageDescription: String?
-        /// The product-in-image GTIN.
-        public let productInImageGTIN: String?
-        /// The product-in-image name.
-        public let productInImageName: String?
+        public let productsInImage: [ProductInImage]?
         /// The program version.
         public let programVersion: String?
         /// The province or state metadata.
         public let provinceOrState: String?
         /// The publication event metadata.
-        public let publicationEvent: Any?
-        /// The publication event date.
-        public let publicationEventDate: String?
-        /// The publication event identifier.
-        public let publicationEventIdentifier: String?
-        /// The publication event name.
-        public let publicationEventName: String?
+        public let publicationEvents: [PublicationEvent]?
         /// The rating metadata.
-        public let rating: Any?
-        /// The rating region metadata.
-        public let ratingRatingRegion: Any?
-        /// The rating region city.
-        public let ratingRegionCity: String?
-        /// The rating region country code.
-        public let ratingRegionCountryCode: String?
-        /// The rating region country name.
-        public let ratingRegionCountryName: String?
-        /// The rating region GPS altitude.
-        public let ratingRegionGPSAltitude: Double?
-        /// The rating region GPS latitude.
-        public let ratingRegionGPSLatitude: Double?
-        /// The rating region GPS longitude.
-        public let ratingRegionGPSLongitude: Double?
-        /// The rating region identifier.
-        public let ratingRegionIdentifier: String?
-        /// The rating region location identifier.
-        public let ratingRegionLocationId: String?
-        /// The rating region location name.
-        public let ratingRegionLocationName: String?
-        /// The rating region province state.
-        public let ratingRegionProvinceState: String?
-        /// The rating region sublocation.
-        public let ratingRegionSublocation: String?
-        /// The rating region world region.
-        public let ratingRegionWorldRegion: String?
-        /// The maximum rating scale value.
-        public let ratingScaleMaxValue: Double?
-        /// The minimum rating scale value.
-        public let ratingScaleMinValue: Double?
-        /// The rating source link.
-        public let ratingSourceLink: String?
-        /// The rating value.
-        public let ratingValue: Double?
-        /// The rating value logo link.
-        public let ratingValueLogoLink: String?
+        public let ratings: [Rating]?
         /// The reference date.
         public let referenceDate: String?
         /// The reference number.
@@ -309,12 +188,6 @@ public extension ImageSource.ImageProperties {
         public let referenceService: Any?
         /// The registry entry role.
         public let registryEntryRole: String?
-        /// The registry identifier.
-        public let registryID: String?
-        /// The registry item identifier.
-        public let registryItemID: String?
-        /// The registry organisation identifier.
-        public let registryOrganisationID: String?
         /// The release date.
         public let releaseDate: String?
         /// The release-ready metadata.
@@ -324,25 +197,11 @@ public extension ImageSource.ImageProperties {
         /// The scene metadata.
         public let scene: [String]?
         /// The season metadata.
-        public let season: Any?
-        /// The season identifier.
-        public let seasonIdentifier: String?
-        /// The season name.
-        public let seasonName: String?
-        /// The season number.
-        public let seasonNumber: Int?
+        public let seasons: [Season]?
         /// The series metadata.
-        public let series: Any?
-        /// The series identifier.
-        public let seriesIdentifier: String?
-        /// The series name.
-        public let seriesName: String?
+        public let series: [Series]?
         /// The shown event metadata.
-        public let shownEvent: Any?
-        /// The shown event identifier.
-        public let shownEventIdentifier: String?
-        /// The shown event name.
-        public let shownEventName: String?
+        public let shownEvents: [ShownEvent]?
         /// The source metadata.
         public let source: String?
         /// The special instructions.
@@ -362,11 +221,7 @@ public extension ImageSource.ImageProperties {
         /// The supplemental category metadata.
         public let supplementalCategory: [String]?
         /// The supply chain source metadata.
-        public let supplyChainSource: Any?
-        /// The supply chain source identifier.
-        public let supplyChainSourceIdentifier: String?
-        /// The supply chain source name.
-        public let supplyChainSourceName: String?
+        public let supplyChainSources: [SupplyChainSource]?
         /// The temporal coverage metadata.
         public let temporalCoverage: String?
         /// The temporal coverage start.
@@ -378,13 +233,9 @@ public extension ImageSource.ImageProperties {
         /// The transcript metadata.
         public let transcript: String?
         /// The transcript link metadata.
-        public let transcriptLink: String?
-        /// The transcript link target.
-        public let transcriptLinkLink: String?
-        /// The transcript link qualifier.
-        public let transcriptLinkLinkQualifier: String?
+        public let transcriptLinks: [TranscriptLink]?
         /// The urgency metadata.
-        public let urgency: Any?
+        public let urgency: String?
         /// The usage terms metadata.
         public let usageTerms: String?
         /// The video bitrate metadata.
@@ -406,17 +257,17 @@ public extension ImageSource.ImageProperties {
         /// The visual color metadata.
         public let visualColor: Any?
         /// The workflow tag metadata.
-        public let workflowTag: Any?
-        /// The workflow tag CV identifier.
-        public let workflowTagCvId: String?
-        /// The workflow tag CV term identifier.
-        public let workflowTagCvTermId: String?
-        /// The workflow tag CV term name.
-        public let workflowTagCvTermName: String?
-        /// The refined workflow tag CV term metadata.
-        public let workflowTagCvTermRefinedAbout: String?
+        public let workflowTags: [WorkflowTag]?
         /// The writer or editor metadata.
         public let writerEditor: [String]?
+        /// The registry entries describing controlled vocabulary items and their defining organizations associated with the image metadata.
+        public let registryEntries: [RegistryEntry]?
+        /// The encoded rights expressions embedded directly within the image metadata.
+        public let embeddedExpressions: [EncodedRightsExpression]?
+        /// The encoded rights expressions referenced externally by the image metadata.
+        public let linkedExpressions: [EncodedRightsExpression]?
+        /// The controlled vocabulary terms describing what the image is about.
+        public let aboutTerms: [AboutCVTerm]?
         
         /// The creators contact info.
         public struct CreatorContactInfo {
@@ -455,7 +306,7 @@ public extension ImageSource.ImageProperties {
         /// Information about a location.
         public struct Location: Hashable, Sendable {
             /// A human-readable name for the location.
-            public let name: String?
+            public let name: [String]?
             /// The sublocation of the location.
             public let sublocation: String?
             /// The province or state of the location.
@@ -469,16 +320,16 @@ public extension ImageSource.ImageProperties {
             /// The broader world region (e.g. "Europe", "Asia").
             public let worldRegion: String?
             /// The GPS latitude in decimal degrees.
-            public let gpsLatitude: Double?
+            public let gpsLatitude: String?
             /// The GPS longitude in decimal degrees.
-            public let gpsLongitude: Double?
+            public let gpsLongitude: String?
             /// The GPS altitude in decimal degrees.
-            public let gpsAltitude: Double?
+            public let gpsAltitude: String?
             /// The identifier of the location.
             public let identifier: String?
             
             /// The alternative identifier of the location.
-            public let identifierAlt: String?
+            public let identifierAlt: [String]?
             
             public let countryPrimaryLocationCode: String?
 
@@ -568,16 +419,390 @@ public extension ImageSource.ImageProperties {
             }
         }
         
+        /// Represents a single IPTC Extension registry reference describing a controlled vocabulary entry and its defining authority.
+        public struct RegistryEntry {
+            /// The identifier of the registry item that defines the referenced concept or controlled vocabulary entry.
+            public let itemID: String?
+            /// The identifier of the organization or authority that maintains the registry referenced by the item ID.
+            public let organisationID: String?
+            
+            init(rawValues: [CFString: Any]) {
+                itemID = rawValues[typed: kCGImagePropertyIPTCExtRegistryItemID]
+                organisationID = rawValues[typed: kCGImagePropertyIPTCExtRegistryOrganisationID]
+            }
+        }
+        
+        /// Represents a machine-readable rights expression, either embedded in metadata or linked externally.
+        public struct EncodedRightsExpression {
+            /// The encoded rights expression or a reference to it depending on context.
+            public let value: String?
+            /// The language identifier describing the human-readable components of the expression.
+            public let languageID: String?
+            /// The type or format of the encoded rights expression defining how it should be interpreted.
+            public let type: String?
+            
+            init(rawValue: [CFString: Any]) {
+                value = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExpr]
+                languageID = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExprLangID]
+                type = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExprType]
+            }
+        }
+        
+        /// Represents a controlled vocabulary term describing what the image is about.
+        public struct AboutCVTerm {
+            /// The identifier of the controlled vocabulary defining the term.
+            public let cvID: String?
+            /// The identifier of the term within the controlled vocabulary.
+            public let id: String?
+            /// The human-readable name of the term.
+            public let name: String?
+            /// A refinement providing a more specific semantic description of the term.
+            public let refinedAbout: String?
+            
+            init(personValues: [CFString: Any]) {
+                cvID = personValues[typed: kCGImagePropertyIPTCExtPersonInImageCvTermCvId]
+                id = personValues[typed: kCGImagePropertyIPTCExtPersonInImageCvTermId]
+                name = personValues[typed: kCGImagePropertyIPTCExtPersonInImageCvTermName]
+                refinedAbout = personValues[typed: kCGImagePropertyIPTCExtPersonInImageCvTermRefinedAbout]
+            }
+            
+            init(values: [CFString: Any]) {
+                cvID = values[typed: kCGImagePropertyIPTCExtAboutCvTermCvId]
+                id = values[typed: kCGImagePropertyIPTCExtAboutCvTermId]
+                name = values[typed: kCGImagePropertyIPTCExtAboutCvTermName]
+                refinedAbout = values[typed: kCGImagePropertyIPTCExtAboutCvTermRefinedAbout]
+            }
+        }
+        
+        /// Represents a person depicted in the image with structured IPTC Extension details.
+        public struct PersonInImage {
+            /// The names of the person shown in the image.
+            public let names: [String]?
+            /// Descriptions providing additional information about the person.
+            public let descriptions: [String]?
+            /// Identifiers referencing the person in external or internal systems.
+            public let identifiers: [String]?
+            /// Controlled vocabulary terms describing characteristics of the person.
+            public let characteristics: [AboutCVTerm]?
+            
+            init(rawValue: [CFString: Any]) {
+                names = rawValue[typed: kCGImagePropertyIPTCExtPersonInImageName]
+                descriptions = rawValue[typed: kCGImagePropertyIPTCExtPersonInImageDescription]
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtPersonInImageId]
+                if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtPersonInImageCharacteristic] {
+                    characteristics = values.map(AboutCVTerm.init(personValues:))
+                } else {
+                    characteristics = nil
+                }
+            }
+        }
+        
+        /// Represents a person or organization that contributed to the image.
+        public struct Contributor {
+            /// The identifiers referencing the contributor in external or internal systems.
+            public let identifiers: [String]?
+            /// The names of the contributor.
+            public let names: [String]?
+            /// The roles describing how the contributor participated in creating or producing the image.
+            public let roles: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtContributorIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtContributorName]
+                roles = rawValue[typed: kCGImagePropertyIPTCExtContributorRole]
+            }
+        }
+        
+        /// Represents a controlled vocabulary term describing the genre of the image.
+        public struct Genre {
+            /// The identifier of the controlled vocabulary defining the genre.
+            public let cvID: String?
+            /// The identifier of the genre term within the controlled vocabulary.
+            public let termID: String?
+            /// The human-readable names of the genre.
+            public let names: [String]?
+            /// An optional refinement providing a more specific classification.
+            public let refinedAbout: String?
+
+            init(rawValue: [CFString: Any]) {
+                cvID = rawValue[typed: kCGImagePropertyIPTCExtGenreCvId]
+                termID = rawValue[typed: kCGImagePropertyIPTCExtGenreCvTermId]
+                names = rawValue[typed: kCGImagePropertyIPTCExtGenreCvTermName]
+                refinedAbout = rawValue[typed: kCGImagePropertyIPTCExtGenreCvTermRefinedAbout]
+            }
+        }
+        
+        /// Represents an event depicted in the image.
+        public struct ShownEvent {
+            /// The identifiers referencing the event in external or internal systems.
+            public let identifiers: [String]?
+            /// The names of the event.
+            public let names: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtShownEventIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtShownEventName]
+            }
+        }
+        
+        /// Represents a source in the content supply chain of the image.
+        public struct SupplyChainSource {
+            /// The identifiers referencing the source in external or internal systems.
+            public let identifiers: [String]?
+            /// The names of the source.
+            public let names: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtSupplyChainSourceIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtSupplyChainSourceName]
+            }
+        }
+        
+        /// Represents a rating applied to the image.
+        public struct Rating {
+            /// The rated regions where this rating applies.
+            public let regions: [Region]?
+            /// The maximum value of the rating scale.
+            public let scaleMaximumValue: String?
+            /// The minimum value of the rating scale.
+            public let scaleMinimumValue: String?
+            /// The link identifying the source of the rating.
+            public let sourceLink: String?
+            /// The rating value assigned to the image.
+            public let value: String?
+            /// The link to a logo representing the rating value or rating system.
+            public let valueLogoLink: String?
+            
+            init(rawValue: [CFString: Any]) {
+                scaleMaximumValue = rawValue[typed: kCGImagePropertyIPTCExtRatingScaleMaxValue]
+                scaleMinimumValue = rawValue[typed: kCGImagePropertyIPTCExtRatingScaleMinValue]
+                sourceLink = rawValue[typed: kCGImagePropertyIPTCExtRatingSourceLink]
+                value = rawValue[typed: kCGImagePropertyIPTCExtRatingValue]
+                valueLogoLink = rawValue[typed: kCGImagePropertyIPTCExtRatingValueLogoLink]
+                if let regions: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtRatingRatingRegion] {
+                    self.regions = regions.map(Region.init)
+                } else {
+                    regions = nil
+                }
+            }
+            
+            /// Represents the geographic region where an image rating applies.
+            public struct Region {
+                /// The city of the rating region.
+                public let city: String?
+                /// The ISO country code of the rating region.
+                public let countryCode: String?
+                /// The country name of the rating region.
+                public let countryName: String?
+                /// The GPS altitude of the rating region.
+                public let gpsAltitude: Double?
+                /// The GPS latitude of the rating region.
+                public let gpsLatitude: Double?
+                /// The GPS longitude of the rating region.
+                public let gpsLongitude: Double?
+                /// The identifiers referencing the rating region in external or internal systems.
+                public let identifiers: [String]?
+                /// The location identifiers referencing the rating region.
+                public let locationIDs: [String]?
+                /// The location name of the rating region.
+                public let locationName: String?
+                /// The province or state of the rating region.
+                public let provinceState: String?
+                /// The sublocation of the rating region.
+                public let sublocation: String?
+                /// The world region of the rating region.
+                public let worldRegion: String?
+                
+                init(rawValue: [CFString: Any]) {
+                    city = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionCity]
+                    countryCode = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionCountryCode]
+                    countryName = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionCountryName]
+                    gpsAltitude = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionGPSAltitude]
+                    gpsLatitude = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionGPSLatitude]
+                    gpsLongitude = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionGPSLongitude]
+                    identifiers = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionIdentifier]
+                    locationIDs = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionLocationId]
+                    locationName = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionLocationName]
+                    provinceState = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionProvinceState]
+                    sublocation = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionSublocation]
+                    worldRegion = rawValue[typed: kCGImagePropertyIPTCExtRatingRegionWorldRegion]
+                }
+            }
+        }
+        
+        /// Represents a controlled vocabulary tag used for image workflow or production state.
+        public struct WorkflowTag {
+            /// The identifier of the controlled vocabulary defining the workflow tag.
+            public let cvID: String?
+            /// The identifier of the workflow tag term within the controlled vocabulary.
+            public let termID: String?
+            /// The human-readable names of the workflow tag.
+            public let names: [String]?
+            /// An optional refinement providing a more specific workflow classification.
+            public let refinedAbout: String?
+            
+            init(rawValue: [CFString: Any]) {
+                cvID = rawValue[typed: kCGImagePropertyIPTCExtWorkflowTagCvId]
+                termID = rawValue[typed: kCGImagePropertyIPTCExtWorkflowTagCvTermId]
+                names = rawValue[typed: kCGImagePropertyIPTCExtWorkflowTagCvTermName]
+                refinedAbout = rawValue[typed: kCGImagePropertyIPTCExtWorkflowTagCvTermRefinedAbout]
+            }
+        }
+        
+        /// Represents a season associated with the image.
+        public struct Season {
+            /// The identifiers referencing the season in external or internal systems.
+            public let identifiers: [String]?
+            /// The names of the season.
+            public let names: [String]?
+            /// The numbers identifying the season.
+            public let numbers: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtSeasonIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtSeasonName]
+                numbers = rawValue[typed: kCGImagePropertyIPTCExtSeasonNumber]
+            }
+        }
+        
+        /// Represents a series associated with the image.
+        public struct Series {
+            /// The identifiers referencing the series in external or internal systems.
+            public let identifiers: [String]?
+            /// The names of the series.
+            public let names: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtSeriesIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtSeriesName]
+            }
+        }
+        
+        /// Represents a container format of the image or associated media.
+        public struct ContainerFormat {
+            /// The identifiers referencing the container format.
+            public let identifiers: [String]?
+            /// The names of the container format.
+            public let names: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtContainerFormatIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtContainerFormatName]
+            }
+        }
+        
+        /// Represents data or text displayed on screen within the image.
+        public struct DataOnScreen {
+            /// The regions where the data is displayed.
+            public let regions: [Region]?
+            
+            init(rawValue: [CFString: Any]) {
+                if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegion] {
+                    regions = values.map(Region.init)
+                } else {
+                    regions = nil
+                }
+            }
+            
+            /// Represents a region on screen where data or text is displayed.
+            public struct Region {
+                /// The horizontal position of the region.
+                public let x: Double?
+                /// The vertical position of the region.
+                public let y: Double?
+                /// The width of the region.
+                public let width: Double?
+                /// The height of the region.
+                public let height: Double?
+                /// The optional depth or z-order of the region.
+                public let depth: Double?
+                /// The coordinate unit used for the region.
+                public let unit: String?
+                /// The text displayed in the region.
+                public let text: [String]?
+                
+                init(rawValue: [CFString: Any]) {
+                    depth = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionD]
+                    text = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionText]
+                    unit = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionUnit]
+                    width = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionW]
+                    height = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionH]
+                    x = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionX]
+                    y = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionY]
+                }
+            }
+        }
+        
+        /// Represents a person who is heard in the image or associated media.
+        public struct PersonHeard {
+            /// The identifiers referencing the person in external or internal systems.
+            public let identifiers: [String]?
+            /// The names of the person.
+            public let names: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtPersonHeardIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtPersonHeardName]
+            }
+        }
+        
+        /// Represents a product depicted in the image.
+        public struct ProductInImage {
+            /// The names of the product.
+            public let names: [String]?
+            /// Descriptions providing additional information about the product.
+            public let descriptions: [String]?
+            /// The global trade item numbers identifying the product.
+            public let gtins: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                descriptions = rawValue[typed: kCGImagePropertyIPTCExtProductInImageDescription]
+                gtins = rawValue[typed: kCGImagePropertyIPTCExtProductInImageGTIN]
+                names = rawValue[typed: kCGImagePropertyIPTCExtProductInImageName]
+            }
+        }
+        
+        /// Represents a publication event associated with the image.
+        public struct PublicationEvent {
+            /// The identifiers referencing the publication event.
+            public let identifiers: [String]?
+            /// The names of the publication event.
+            public let names: [String]?
+            /// The dates of the publication event.
+            public let dates: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                dates = rawValue[typed: kCGImagePropertyIPTCExtPublicationEventDate]
+                identifiers = rawValue[typed: kCGImagePropertyIPTCExtPublicationEventIdentifier]
+                names = rawValue[typed: kCGImagePropertyIPTCExtPublicationEventName]
+            }
+        }
+        
+        /// Represents a link to an external transcript.
+        public struct TranscriptLink {
+            /// The links referencing the transcript.
+            public let links: [String]?
+            /// Qualifiers describing the type of transcript.
+            public let qualifiers: [String]?
+            
+            init(rawValue: [CFString: Any]) {
+                links = rawValue[typed: kCGImagePropertyIPTCExtTranscriptLinkLink]
+                qualifiers = rawValue[typed: kCGImagePropertyIPTCExtTranscriptLinkLinkQualifier]
+            }
+        }
+        
         init(iptcData: [CFString: Any]) {
             rawValues = iptcData
             
             creatorContactInfo = iptcData[typed: kCGImagePropertyIPTCCreatorContactInfo].map(CreatorContactInfo.init)
-            aboutCvTerm = iptcData[kCGImagePropertyIPTCExtAboutCvTerm]
-            aboutCvTermCvId = iptcData[typed: kCGImagePropertyIPTCExtAboutCvTermCvId]
-            aboutCvTermId = iptcData[typed: kCGImagePropertyIPTCExtAboutCvTermId]
-            aboutCvTermName = iptcData[typed: kCGImagePropertyIPTCExtAboutCvTermName]
-            aboutCvTermRefinedAbout = iptcData[typed: kCGImagePropertyIPTCExtAboutCvTermRefinedAbout]
-            actionAdvised = iptcData[kCGImagePropertyIPTCActionAdvised]
+                        
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtAboutCvTerm] {
+                aboutTerms = values.map(AboutCVTerm.init(values:))
+            } else {
+                aboutTerms = nil
+            }
+            
+            actionAdvised = iptcData[typed: kCGImagePropertyIPTCActionAdvised]
             addlModelInfo = iptcData[typed: kCGImagePropertyIPTCExtAddlModelInfo]
             
             if let _artworks: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtArtworkOrObject] {
@@ -586,7 +811,7 @@ public extension ImageSource.ImageProperties {
                 artworks = []
             }
           
-            audioBitrate = iptcData[kCGImagePropertyIPTCExtAudioBitrate]
+            audioBitrate = iptcData[typed: kCGImagePropertyIPTCExtAudioBitrate]
             audioBitrateMode = iptcData[typed: kCGImagePropertyIPTCExtAudioBitrateMode]
             audioChannelCount = iptcData[typed: kCGImagePropertyIPTCExtAudioChannelCount]
             byline = iptcData[typed: kCGImagePropertyIPTCByline]
@@ -596,15 +821,18 @@ public extension ImageSource.ImageProperties {
             circaDateCreated = iptcData[typed: kCGImagePropertyIPTCExtCircaDateCreated]
             city = iptcData[typed: kCGImagePropertyIPTCCity]
             contact = iptcData[typed: kCGImagePropertyIPTCContact]
-            containerFormat = iptcData[typed: kCGImagePropertyIPTCExtContainerFormat]
-            containerFormatIdentifier = iptcData[typed: kCGImagePropertyIPTCExtContainerFormatIdentifier]
-            containerFormatName = iptcData[typed: kCGImagePropertyIPTCExtContainerFormatName]
+            if let formats: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtContainerFormat] {
+               containerFormats = formats.map(ContainerFormat.init)
+            } else {
+                containerFormats = nil
+            }
             contentLocationCode = iptcData[typed: kCGImagePropertyIPTCContentLocationCode]
             contentLocationName = iptcData[typed: kCGImagePropertyIPTCContentLocationName]
-            contributor = iptcData[kCGImagePropertyIPTCExtContributor]
-            contributorIdentifier = iptcData[kCGImagePropertyIPTCExtContributorIdentifier]
-            contributorName = iptcData[kCGImagePropertyIPTCExtContributorName]
-            contributorRole = iptcData[kCGImagePropertyIPTCExtContributorRole]
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtContributor] {
+                contributors = values.map(Contributor.init)
+            } else {
+                contributors = nil
+            }
             controlledVocabularyTerm = iptcData[kCGImagePropertyIPTCExtControlledVocabularyTerm]
             copyrightNotice = iptcData[typed: kCGImagePropertyIPTCCopyrightNotice]
             copyrightYear = iptcData[typed: kCGImagePropertyIPTCExtCopyrightYear]
@@ -615,15 +843,11 @@ public extension ImageSource.ImageProperties {
             creatorName = iptcData[typed: kCGImagePropertyIPTCExtCreatorName]
             creatorRole = iptcData[typed: kCGImagePropertyIPTCExtCreatorRole]
             credit = iptcData[typed: kCGImagePropertyIPTCCredit]
-            dataOnScreen = iptcData[typed: kCGImagePropertyIPTCExtDataOnScreen]
-            dataOnScreenRegion = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegion]
-            dataOnScreenRegionD = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionD]
-            dataOnScreenRegionH = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionH]
-            dataOnScreenRegionText = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionText]
-            dataOnScreenRegionUnit = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionUnit]
-            dataOnScreenRegionW = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionW]
-            dataOnScreenRegionX = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionX]
-            dataOnScreenRegionY = iptcData[kCGImagePropertyIPTCExtDataOnScreenRegionY]
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtDataOnScreen] {
+               dataOnScreen = values.map(DataOnScreen.init)
+            } else {
+                dataOnScreen = nil
+            }
             dateCreated = iptcData[typed: kCGImagePropertyIPTCDateCreated]
             digitalCreationDate = iptcData[typed: kCGImagePropertyIPTCDigitalCreationDate]
             digitalCreationTime = iptcData[typed: kCGImagePropertyIPTCDigitalCreationTime]
@@ -636,7 +860,6 @@ public extension ImageSource.ImageProperties {
             dopesheetLinkLinkQualifier = iptcData[typed: kCGImagePropertyIPTCExtDopesheetLinkLinkQualifier]
             editStatus = iptcData[typed: kCGImagePropertyIPTCEditStatus]
             editorialUpdate = iptcData[typed: kCGImagePropertyIPTCEditorialUpdate]
-            embdEncRightsExpr = iptcData[typed: kCGImagePropertyIPTCExtEmbdEncRightsExpr]
             embeddedEncodedRightsExpr = iptcData[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExpr]
             embeddedEncodedRightsExprLangID = iptcData[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExprLangID]
             embeddedEncodedRightsExprType = iptcData[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExprType]
@@ -644,30 +867,36 @@ public extension ImageSource.ImageProperties {
             episodeIdentifier = iptcData[typed: kCGImagePropertyIPTCExtEpisodeIdentifier]
             episodeName = iptcData[typed: kCGImagePropertyIPTCExtEpisodeName]
             episodeNumber = iptcData[kCGImagePropertyIPTCExtEpisodeNumber]
-            event = iptcData[kCGImagePropertyIPTCExtEvent]
+            event = iptcData[typed: kCGImagePropertyIPTCExtEvent]
             expirationDate = iptcData[typed: kCGImagePropertyIPTCExpirationDate]
             expirationTime = iptcData[typed: kCGImagePropertyIPTCExpirationTime]
             externalMetadataLink = iptcData[typed: kCGImagePropertyIPTCExtExternalMetadataLink]
             feedIdentifier = iptcData[typed: kCGImagePropertyIPTCExtFeedIdentifier]
-            fixtureIdentifier = iptcData[kCGImagePropertyIPTCFixtureIdentifier]
+            fixtureIdentifier = iptcData[typed: kCGImagePropertyIPTCFixtureIdentifier]
 
-            genre = iptcData[kCGImagePropertyIPTCExtGenre]
-            genreCvId = iptcData[typed: kCGImagePropertyIPTCExtGenreCvId]
-            genreCvTermId = iptcData[typed: kCGImagePropertyIPTCExtGenreCvTermId]
-            genreCvTermName = iptcData[typed: kCGImagePropertyIPTCExtGenreCvTermName]
-            genreCvTermRefinedAbout = iptcData[typed: kCGImagePropertyIPTCExtGenreCvTermRefinedAbout]
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtGenre] {
+                genres = values.map(Genre.init)
+            } else {
+                genres = nil
+            }
             headline = iptcData[typed: kCGImagePropertyIPTCHeadline]
             iPTCLastEdited = iptcData[typed: kCGImagePropertyIPTCExtIPTCLastEdited]
             
             orientation = iptcData[typed: kCGImagePropertyIPTCImageOrientation]
-            imageType = iptcData[kCGImagePropertyIPTCImageType]
+            imageType = iptcData[typed: kCGImagePropertyIPTCImageType]
             keywords = iptcData[typed: kCGImagePropertyIPTCKeywords]
             languageIdentifier = iptcData[typed: kCGImagePropertyIPTCLanguageIdentifier]
-            linkedEncRightsExpr = iptcData[typed: kCGImagePropertyIPTCExtLinkedEncRightsExpr]
-            linkedEncodedRightsExpr = iptcData[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExpr]
-            linkedEncodedRightsExprLangID = iptcData[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExprLangID]
-            linkedEncodedRightsExprType = iptcData[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExprType]
-            
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtLinkedEncRightsExpr] {
+               linkedExpressions = values.map(EncodedRightsExpression.init(rawValue:))
+            } else {
+                linkedExpressions = nil
+            }
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtEmbdEncRightsExpr] {
+                embeddedExpressions = values.map(EncodedRightsExpression.init(rawValue:))
+            } else {
+                embeddedExpressions = nil
+            }
+                        
             if let locations: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtLocationCreated] {
                 locationsCreated = locations.map(Location.init(rawValues:))
             } else {
@@ -693,69 +922,66 @@ public extension ImageSource.ImageProperties {
             
             originalTransmissionReference = iptcData[typed: kCGImagePropertyIPTCOriginalTransmissionReference]
             originatingProgram = iptcData[typed: kCGImagePropertyIPTCOriginatingProgram]
-            personHeard = iptcData[kCGImagePropertyIPTCExtPersonHeard]
-            personHeardIdentifier = iptcData[typed: kCGImagePropertyIPTCExtPersonHeardIdentifier]
-            personHeardName = iptcData[typed: kCGImagePropertyIPTCExtPersonHeardName]
-            personInImage = iptcData[kCGImagePropertyIPTCExtPersonInImage]
-            personInImageCharacteristic = iptcData[kCGImagePropertyIPTCExtPersonInImageCharacteristic]
-            personInImageCvTermCvId = iptcData[kCGImagePropertyIPTCExtPersonInImageCvTermCvId]
-            personInImageCvTermId = iptcData[kCGImagePropertyIPTCExtPersonInImageCvTermId]
-            personInImageCvTermName = iptcData[kCGImagePropertyIPTCExtPersonInImageCvTermName]
-            personInImageCvTermRefinedAbout = iptcData[kCGImagePropertyIPTCExtPersonInImageCvTermRefinedAbout]
-            personInImageDescription = iptcData[typed: kCGImagePropertyIPTCExtPersonInImageDescription]
-            personInImageId = iptcData[typed: kCGImagePropertyIPTCExtPersonInImageId]
-            personInImageName = iptcData[typed: kCGImagePropertyIPTCExtPersonInImageName]
-            personInImageWDetails = iptcData[kCGImagePropertyIPTCExtPersonInImageWDetails]
-            productInImage = iptcData[kCGImagePropertyIPTCExtProductInImage]
-            productInImageDescription = iptcData[typed: kCGImagePropertyIPTCExtProductInImageDescription]
-            productInImageGTIN = iptcData[typed: kCGImagePropertyIPTCExtProductInImageGTIN]
-            productInImageName = iptcData[typed: kCGImagePropertyIPTCExtProductInImageName]
+            
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtPersonHeard] {
+               personHeard = values.map(PersonHeard.init)
+            } else {
+                personHeard = nil
+            }
+            
+            personInImage = iptcData[typed: kCGImagePropertyIPTCExtPersonInImage]
+            if let personDetails: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtPersonInImageWDetails] {
+              personInImageDetails = personDetails.map(PersonInImage.init)
+            } else {
+                personInImageDetails = nil
+            }
+           
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtProductInImage] {
+               productsInImage = values.map(ProductInImage.init)
+            } else {
+                productsInImage = nil
+            }
+
             programVersion = iptcData[typed: kCGImagePropertyIPTCProgramVersion]
             provinceOrState = iptcData[typed: kCGImagePropertyIPTCProvinceState]
-            publicationEvent = iptcData[kCGImagePropertyIPTCExtPublicationEvent]
-            publicationEventDate = iptcData[typed: kCGImagePropertyIPTCExtPublicationEventDate]
-            publicationEventIdentifier = iptcData[typed: kCGImagePropertyIPTCExtPublicationEventIdentifier]
-            publicationEventName = iptcData[typed: kCGImagePropertyIPTCExtPublicationEventName]
-            rating = iptcData[kCGImagePropertyIPTCExtRating]
-            ratingRatingRegion = iptcData[kCGImagePropertyIPTCExtRatingRatingRegion]
-            ratingRegionCity = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionCity]
-            ratingRegionCountryCode = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionCountryCode]
-            ratingRegionCountryName = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionCountryName]
-            ratingRegionGPSAltitude = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionGPSAltitude]
-            ratingRegionGPSLatitude = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionGPSLatitude]
-            ratingRegionGPSLongitude = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionGPSLongitude]
-            ratingRegionIdentifier = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionIdentifier]
-            ratingRegionLocationId = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionLocationId]
-            ratingRegionLocationName = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionLocationName]
-            ratingRegionProvinceState = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionProvinceState]
-            ratingRegionSublocation = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionSublocation]
-            ratingRegionWorldRegion = iptcData[typed: kCGImagePropertyIPTCExtRatingRegionWorldRegion]
-            ratingScaleMaxValue = iptcData[typed: kCGImagePropertyIPTCExtRatingScaleMaxValue]
-            ratingScaleMinValue = iptcData[typed: kCGImagePropertyIPTCExtRatingScaleMinValue]
-            ratingSourceLink = iptcData[typed: kCGImagePropertyIPTCExtRatingSourceLink]
-            ratingValue = iptcData[typed: kCGImagePropertyIPTCExtRatingValue]
-            ratingValueLogoLink = iptcData[typed: kCGImagePropertyIPTCExtRatingValueLogoLink]
+            if let events: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtPublicationEvent] {
+                publicationEvents = events.map(PublicationEvent.init)
+            } else {
+                publicationEvents = nil
+            }
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtRating] {
+                ratings = values.map(Rating.init)
+            } else {
+                ratings = nil
+            }
             referenceDate = iptcData[typed: kCGImagePropertyIPTCReferenceDate]
             referenceNumber = iptcData[kCGImagePropertyIPTCReferenceNumber]
             referenceService = iptcData[kCGImagePropertyIPTCReferenceService]
             registryEntryRole = iptcData[typed: kCGImagePropertyIPTCExtRegistryEntryRole]
-            registryID = iptcData[typed: kCGImagePropertyIPTCExtRegistryID]
-            registryItemID = iptcData[typed: kCGImagePropertyIPTCExtRegistryItemID]
-            registryOrganisationID = iptcData[typed: kCGImagePropertyIPTCExtRegistryOrganisationID]
+            if let entries: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtRegistryID] {
+                 registryEntries = entries.map(RegistryEntry.init)
+            } else {
+                registryEntries = nil
+            }
             releaseDate = iptcData[typed: kCGImagePropertyIPTCReleaseDate]
             releaseReady = iptcData[kCGImagePropertyIPTCExtReleaseReady]
             releaseTime = iptcData[typed: kCGImagePropertyIPTCReleaseTime]
             scene = iptcData[typed: kCGImagePropertyIPTCScene]
-            season = iptcData[kCGImagePropertyIPTCExtSeason]
-            seasonIdentifier = iptcData[typed: kCGImagePropertyIPTCExtSeasonIdentifier]
-            seasonName = iptcData[typed: kCGImagePropertyIPTCExtSeasonName]
-            seasonNumber = iptcData[typed: kCGImagePropertyIPTCExtSeasonNumber]
-            series = iptcData[kCGImagePropertyIPTCExtSeries]
-            seriesIdentifier = iptcData[typed: kCGImagePropertyIPTCExtSeriesIdentifier]
-            seriesName = iptcData[typed: kCGImagePropertyIPTCExtSeriesName]
-            shownEvent = iptcData[kCGImagePropertyIPTCExtShownEvent]
-            shownEventIdentifier = iptcData[typed: kCGImagePropertyIPTCExtShownEventIdentifier]
-            shownEventName = iptcData[typed: kCGImagePropertyIPTCExtShownEventName]
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtSeason] {
+                seasons = values.map(Season.init)
+            } else {
+                seasons = nil
+            }
+            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtSeries] {
+                series = values.map(Series.init)
+            } else {
+                series = nil
+            }
+            if let events: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtShownEvent] {
+                shownEvents = events.map(ShownEvent.init)
+            } else {
+                shownEvents = nil
+            }
             source = iptcData[typed: kCGImagePropertyIPTCSource]
             specialInstructions = iptcData[typed: kCGImagePropertyIPTCSpecialInstructions]
             starRating = iptcData[typed: kCGImagePropertyIPTCStarRating]
@@ -766,23 +992,26 @@ public extension ImageSource.ImageProperties {
             subjectReference = iptcData[typed: kCGImagePropertyIPTCSubjectReference]
             supplementalCategory = iptcData[typed: kCGImagePropertyIPTCSupplementalCategory]
             timeCreated = iptcData[typed: kCGImagePropertyIPTCTimeCreated]
-            urgency = iptcData[kCGImagePropertyIPTCUrgency]
+            urgency = iptcData[typed: kCGImagePropertyIPTCUrgency]
             usageTerms = iptcData[typed: kCGImagePropertyIPTCRightsUsageTerms]
             writerEditor = iptcData[typed: kCGImagePropertyIPTCWriterEditor]
-            
-            supplyChainSource = iptcData[kCGImagePropertyIPTCExtSupplyChainSource]
-            supplyChainSourceIdentifier = iptcData[typed: kCGImagePropertyIPTCExtSupplyChainSourceIdentifier]
-            supplyChainSourceName = iptcData[typed: kCGImagePropertyIPTCExtSupplyChainSourceName]
+          
+            if let sources: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtSupplyChainSource] {
+               supplyChainSources = sources.map(SupplyChainSource.init)
+            } else {
+                supplyChainSources = nil
+            }
+ 
             temporalCoverage = iptcData[typed: kCGImagePropertyIPTCExtTemporalCoverage]
             temporalCoverageFrom = iptcData[typed: kCGImagePropertyIPTCExtTemporalCoverageFrom]
             temporalCoverageTo = iptcData[typed: kCGImagePropertyIPTCExtTemporalCoverageTo]
-
             
             transcript = iptcData[typed: kCGImagePropertyIPTCExtTranscript]
-            transcriptLink = iptcData[typed: kCGImagePropertyIPTCExtTranscriptLink]
-            transcriptLinkLink = iptcData[typed: kCGImagePropertyIPTCExtTranscriptLinkLink]
-            transcriptLinkLinkQualifier = iptcData[typed: kCGImagePropertyIPTCExtTranscriptLinkLinkQualifier]
-
+            if let links: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtTranscriptLink] {
+               transcriptLinks = links.map(TranscriptLink.init)
+            } else {
+                transcriptLinks = nil
+            }
             videoBitrate = iptcData[typed: kCGImagePropertyIPTCExtVideoBitrate]
             videoBitrateMode = iptcData[typed: kCGImagePropertyIPTCExtVideoBitrateMode]
             videoDisplayAspectRatio = iptcData[typed: kCGImagePropertyIPTCExtVideoDisplayAspectRatio]
@@ -792,11 +1021,11 @@ public extension ImageSource.ImageProperties {
             videoShotTypeName = iptcData[typed: kCGImagePropertyIPTCExtVideoShotTypeName]
             videoStreamsCount = iptcData[typed: kCGImagePropertyIPTCExtVideoStreamsCount]
             visualColor = iptcData[kCGImagePropertyIPTCExtVisualColor]
-            workflowTag = iptcData[kCGImagePropertyIPTCExtWorkflowTag]
-            workflowTagCvId = iptcData[typed: kCGImagePropertyIPTCExtWorkflowTagCvId]
-            workflowTagCvTermId = iptcData[typed: kCGImagePropertyIPTCExtWorkflowTagCvTermId]
-            workflowTagCvTermName = iptcData[typed: kCGImagePropertyIPTCExtWorkflowTagCvTermName]
-            workflowTagCvTermRefinedAbout = iptcData[typed: kCGImagePropertyIPTCExtWorkflowTagCvTermRefinedAbout]
+            if let tags: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtWorkflowTag] {
+               workflowTags = tags.map(WorkflowTag.init)
+            } else {
+                workflowTags = nil
+            }
         }
 
     }

@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct TIFF {
         /// The raw values.
         public let rawValues: [CFString: Any]
@@ -96,7 +96,7 @@ public extension ImageSource.ImageProperties {
             xResolution = tiffData[typed: kCGImagePropertyTIFFXResolution]
             yResolution = tiffData[typed: kCGImagePropertyTIFFYResolution]
             orientation = tiffData[typed: kCGImagePropertyTIFFOrientation]
-            timestamp = tiffData[typed: kCGImagePropertyTIFFDateTime, using: ImageSource.ImageProperties.dateFormatter]
+            timestamp = tiffData[typed: kCGImagePropertyTIFFDateTime, using: ImageProperties.dateFormatter]
         }
     }
 }

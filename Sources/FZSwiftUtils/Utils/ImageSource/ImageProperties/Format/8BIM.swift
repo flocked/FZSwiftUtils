@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     /// Properties of an Adobe Photoshop image.
     struct A8BIM {
         /// The raw values.

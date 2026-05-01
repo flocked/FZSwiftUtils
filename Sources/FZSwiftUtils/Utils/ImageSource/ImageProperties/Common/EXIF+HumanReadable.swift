@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension ImageSource.ImageProperties.EXIF {
+extension ImageProperties.EXIF {
     var humanReadable: HumanReadable {
         HumanReadable(self)
     }
@@ -70,72 +70,9 @@ extension ImageSource.ImageProperties.EXIF {
             return "\(oneTenthPrecisionSeconds)s"
         }
 
-        let exif: ImageSource.ImageProperties.EXIF
-        init(_ exif: ImageSource.ImageProperties.EXIF) {
+        let exif: ImageProperties.EXIF
+        init(_ exif: ImageProperties.EXIF) {
             self.exif = exif
-        }
-    }
-}
-
-extension ImageSource.ImageProperties.EXIF.FlashMode {
-    var humanReadable: String {
-        switch self {
-        case .unknown:
-            return "unknown"
-        case .noFlash:
-            return "No flash"
-        case .fired:
-            return "Fired"
-        case .firedReturnNotDetected:
-            return "Fired, return not detected"
-        case .firedReturnDetected:
-            return "Fired, return detected"
-        case .onDidNotFire:
-            return "On, did not fire"
-        case .onFired:
-            return "On, fired"
-        case .onReturnNotDetected:
-            return "On, return not detected"
-        case .onReturnDetected:
-            return "On, return detected"
-        case .offDidNotFire:
-            return "Off, did not fire"
-        case .offDidNotFireReturnNotDetected:
-            return "Off, did not fire, return not detected"
-        case .autoDidNotFire:
-            return "Auto, did not fire"
-        case .autoFired:
-            return "Auto, fired"
-        case .autoFiredReturnNotDetected:
-            return "Auto, fired, return not detected"
-        case .autoFiredReturnDetected:
-            return "Auto, fired, return detected"
-        case .noFlashFunction:
-            return "No flash function"
-        case .offNoFlashFunction:
-            return "Off, no flash function"
-        case .firedRedEyeReduction:
-            return "Fired, red-eye reduction"
-        case .firedRedEyeReductionReturnNotDetected:
-            return "Fired, red-eye reduction, return not detected"
-        case .firedRedEyeReductionReturnDetected:
-            return "Fired, red-eye reduction, return detected"
-        case .onRedEyeReduction:
-            return "On, red-eye reduction"
-        case .onRedEyeReductionReturnNotDetected:
-            return "On, red-eye reduction, return not detected"
-        case .onRedEyeReductionReturnDetected:
-            return "On, red-eye reduction, return detected"
-        case .offRedEyeReduction:
-            return "Off, red-eye reduction"
-        case .autoDidNotFireRedEyeReduction:
-            return "Auto, did not fire, red-eye reduction"
-        case .autoFiredRedEyeReduction:
-            return "Auto, fired, red-eye reduction"
-        case .autoFiredRedEyeReductionReturnNotDetected:
-            return "Auto, fired, red-eye reduction, return not detected"
-        case .autoFiredRedEyeReductionReturnDetected:
-            return "Auto, fired, red-eye reduction, return detected"
         }
     }
 }

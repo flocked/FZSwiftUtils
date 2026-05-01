@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     /// Canon camera specific image properties.
     struct Canon {
         /// The raw values.
@@ -38,7 +38,7 @@ public extension ImageSource.ImageProperties {
         /// The unique model identifier of the Canon camera.
         public let uniqueModelID: Int?
         /// The white balance setting recorded by the Canon camera.
-        public let whiteBalance: ImageSource.ImageProperties.EXIF.WhiteBalanceMode?
+        public let whiteBalance: ImageProperties.EXIF.WhiteBalanceMode?
 
         init(canonData: [CFString: Any]) {
             rawValues = canonData

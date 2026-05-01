@@ -8,7 +8,7 @@
 import Foundation
 import ImageIO
 
-public extension ImageSource.ImageProperties {
+public extension ImageProperties {
     struct GIF {
         /// The raw values.
         public let rawValues: [CFString: Any]
