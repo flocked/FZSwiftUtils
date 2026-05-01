@@ -33,6 +33,8 @@ public struct ImageProperties {
     public var dpiHeight: CGFloat?
     /// The number of bits in the color sample of a pixel.
     public var depth: Int?
+    /// A Boolean value that indicates whether the image contains floating-point pixel samples.
+    public var isFloat: Bool = false
         
     private var _orientation: CGImagePropertyOrientation?
 
@@ -65,7 +67,15 @@ public struct ImageProperties {
     public var ciff: CIFF?
     /// Additional picture style properties of the image.
     public var pictureStyle: [CFString: Any]?
-        
+    /// Additional properties for an image that contains minimally processed, or raw, data.
+    public var raw: [CFString: Any]?
+    /// A dictionary of properties related to the image’s on-disk file.
+    public var FileContents: [CFString: Any]?
+    /// A dictionary of properties specific to the `OpenEXR` metadata standard.
+    public var openEXRA: OpenEXRA?
+    /// The auxiliary data for the image.
+    public var auxiliaryData: [AuxiliaryData]?
+
     /// Additional Canon camera properties of the image.
     public var canon: Canon?
     /// Additional Nikon camera properties of the image.
@@ -145,18 +155,9 @@ public struct ImageProperties {
 
     init(imageData: [CFString: Any]) {
         rawValues = imageData
-        if let fileSize: UInt64 = imageData[typed: kCGImagePropertyFileSize] {
-            self.fileSize = DataSize(rawValue: fileSize)
-        } else if let fileSize: UInt = imageData[typed: kCGImagePropertyFileSize] {
-            self.fileSize = DataSize(rawValue: UInt64(fileSize))
-        } else if let fileSize: Int = imageData[typed: kCGImagePropertyFileSize], fileSize >= 0 {
-            self.fileSize = DataSize(rawValue: UInt64(fileSize))
-        } else if let fileSize: Double = imageData[typed: kCGImagePropertyFileSize], fileSize >= 0 {
-            self.fileSize = DataSize(rawValue: UInt64(fileSize))
-        } else {
-            self.fileSize = nil
-        }
-
+        
+        fileSize = (imageData[typed: kCGImagePropertyFileSize] as Int64?).map({.bytes($0)})
+        isFloat = imageData[typed: kCGImagePropertyIsFloat] ?? false
         pixelWidth = imageData[typed: kCGImagePropertyPixelWidth]
         pixelHeight = imageData[typed: kCGImagePropertyPixelHeight]
         _orientation = imageData[typed: kCGImagePropertyOrientation]
@@ -182,7 +183,11 @@ public struct ImageProperties {
         exif = imageData[typed: kCGImagePropertyExifDictionary].map(EXIF.init(exifData:))
         iptc = imageData[typed: kCGImagePropertyIPTCDictionary].map(IPTC.init(iptcData:))
         pictureStyle = imageData[typed: "{PictureStyle}" as CFString]
-            
+        raw = imageData[typed: kCGImagePropertyRawDictionary]
+        FileContents = imageData[typed: kCGImagePropertyFileContentsDictionary]
+        openEXRA = imageData[typed: kCGImagePropertyOpenEXRDictionary]
+        auxiliaryData = (imageData[typed: kCGImagePropertyAuxiliaryData] as [[CFString: Any]]?)?.map(AuxiliaryData.init)
+        
         canon = imageData[typed: kCGImagePropertyMakerCanonDictionary].map(Canon.init(canonData:))
         nikon = imageData[typed: kCGImagePropertyMakerNikonDictionary].map(Nikon.init(nikonData:))
         minolta = imageData[typed: kCGImagePropertyMakerMinoltaDictionary]
@@ -223,13 +228,13 @@ extension ImageProperties {
     /// The color model of an image, such as RGB, CMYK, grayscale, or Lab.
     public struct ColorModel: RawRepresentable, CustomStringConvertible {
         /// Red, Green, Blue (RGB) color model.
-        public static let rgb = Self(rawValue: "RGB")
+        public static let rgb = Self(rawValue: kCGImagePropertyColorModelRGB as String)
         /// Grayscale color model.
-        public static let gray = Self(rawValue: "Gray")
+        public static let gray = Self(rawValue: kCGImagePropertyColorModelGray as String)
         /// Cyan, Magenta, Yellow, Black (CMYK) color model.
-        public static let cmyk = Self(rawValue: "CMYK")
+        public static let cmyk = Self(rawValue: kCGImagePropertyColorModelCMYK as String)
         /// CIE Lab color model.
-        public static let lab = Self(rawValue: "Lab")
+        public static let lab = Self(rawValue: kCGImagePropertyColorModelLab as String)
         
         public var description: String {
             rawValue
