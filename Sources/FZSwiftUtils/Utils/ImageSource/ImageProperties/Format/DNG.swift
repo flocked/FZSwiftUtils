@@ -6,300 +6,307 @@
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct DNG: Codable {
+    struct DNG {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
         /// The amount of sharpening required for this camera model.
-        public var baselineSharpness: Double?
+        public let baselineSharpness: Double?
         /// The fraction of the encoding range, above which the response may become significantly non-linear.
-        public var linearResponseLimit: Double?
+        public let linearResponseLimit: Double?
         /// A hint to the DNG reader about how much chroma blur to apply to the image.
-        public var chromaBlurRadius: Double?
+        public let chromaBlurRadius: Double?
         /// A hint to the DNG reader about how strong the camera’s antialias filter is.
-        public var antiAliasStrength: Double?
+        public let antiAliasStrength: Double?
         /// A tag that Adobe Camera Raw uses to control the sensitivity of its Shadows slider.
-        public var shadowScale: Double?
+        public let shadowScale: Double?
         /// The scale factor to apply to the default scale to achieve the best quality image size.
-        public var bestQualityScale: Double?
+        public let bestQualityScale: Double?
         /// The default scale factors for each direction to convert the image to square pixels.
-        public var defaultScale: JSONObject?
+        public let defaultScale: Any?
         /// A lookup table that maps stored values into linear values.
-        public var linearizationTable: JSONObject?
+        public let linearizationTable: Any?
         
         /// The amount by which to adjust the zero point of the exposure, specified in EV units.
-        public var baselineExposure: Double?
+        public let baselineExposure: Double?
         /// The relative noise level of the camera model at an ISO of 100.
-        public var baselineNoise: Double?
+        public let baselineNoise: Double?
         /// The amount of EV units to add to the baseline exposure during image rendering.
-        public var baselineExposureOffset: Double?
+        public let baselineExposureOffset: Double?
         
         /// The analog or digital gain that applies to the stored raw values.
-        public var analogBalance: JSONObject?
+        public let analogBalance: Any?
         /// The selected white balance at the time of capture, encoded as the coordinates of a neutral color in linear reference space values.
-        public var asShotNeutral: JSONObject?
+        public let asShotNeutral: Any?
         /// The selected white balance at the time of capture, encoded as x-y chromaticity coordinates.
-        public var asShotWhiteXY: JSONObject?
+        public let asShotWhiteXY: Any?
         /// A value that specifies how closely green pixels in the blue/green rows track the green pixels in red/green rows.
-        public var bayerGreenSplit: Int?
+        public let bayerGreenSplit: Int?
         /// A matrix that maps white balanced camera colors to XYZ D50 colors.
-        public var forwardMatrix1: JSONObject?
+        public let forwardMatrix1: Any?
         /// A matrix that maps white balanced camera colors to XYZ D50 colors.
-        public var forwardMatrix2: JSONObject?
+        public let forwardMatrix2: Any?
         /// A hint to the raw converter about how to handle the black point during rendering.
-        public var defaultBlackRender: Int?
+        public let defaultBlackRender: Int?
         
         /// The repeat pattern size for the black level tag.
-        public var blackLevelRepeatDim: JSONObject?
+        public let blackLevelRepeatDim: Any?
         /// The zero light encoding level, specified as a repeating pattern.
-        public var blackLevel: JSONObject?
+        public let blackLevel: Any?
         /// The difference between the zero-light encoding level for each column and the baseline zero-light encoding level.
-        public var blackLevelDeltaH: JSONObject?
+        public let blackLevelDeltaH: Any?
         /// The difference between the zero-light encodoing level for each row and the baseline zero-light encoding level.
-        public var blackLevelDeltaV: JSONObject?
+        public let blackLevelDeltaV: Any?
         /// The saturated encoding level for the raw sample values.
-        public var whiteLevel: JSONObject?
+        public let whiteLevel: Any?
         /// The illuminant for the first set of color calibration tags.
-        public var calibrationIlluminant1: Int?
+        public let calibrationIlluminant1: Int?
         /// The illuminant for an optional second set of color calibration tags.
-        public var calibrationIlluminant2: Int?
+        public let calibrationIlluminant2: Int?
         /// A transformation matrix that converts XYZ values to reference camera native color spaces, under the first calibration illuminant.
-        public var colorMatrix1: [CGFloat]?
+        public let colorMatrix1: [CGFloat]?
         /// A transformation matrix that converts XYZ values to reference camera native color spaces, under the second calibration illuminant.
-        public var colorMatrix2: [CGFloat]?
+        public let colorMatrix2: [CGFloat]?
         /// A matrix that transforms reference camera native space values to camera-native space values under the first calibration illuminant.
-        public var cameraCalibration1: JSONObject?
+        public let cameraCalibration1: Any?
         /// A matrix that transforms reference camera native space values to camera-native space values under the second calibration illuminant.
-        public var cameraCalibration2: JSONObject?
+        public let cameraCalibration2: Any?
         /// A reduction matrix that converts color camera-native space values to XYZ values, under the first calibration illuminant.
-        public var reductionMatrix1: JSONObject?
+        public let reductionMatrix1: Any?
         /// A reduction matrix that converts color camera-native space values to XYZ values, under the second calibration illuminant.
-        public var reductionMatrix2: JSONObject?
+        public let reductionMatrix2: Any?
         /// A profile that specifies default color rendering from camera color-space coordinates into the ICC profile space.
-        public var asShotICCProfile: JSONObject?
+        public let asShotICCProfile: Any?
         /// A matrix to apply to the camera color-space coordinates before processing values through the ICC profile.
-        public var asShotPreProfileMatrix: JSONObject?
+        public let asShotPreProfileMatrix: Any?
         /// A profile that specifies default color rendering from camera color-space coordinates into the ICC profile space.
-        public var currentICCProfile: JSONObject?
+        public let currentICCProfile: Any?
         /// A matrix to apply to the current camera color-space coordinates before processing values through the ICC profile.
-        public var currentPreProfileMatrix: JSONObject?
+        public let currentPreProfileMatrix: Any?
         /// The colorimetric reference for the CIE XYZ values.
-        public var colorimetricReference: Int?
+        public let colorimetricReference: Int?
         /// A string to match against the profile calibration signature for the selected camera profile.
-        public var cameraCalibrationSignature: String?
+        public let cameraCalibrationSignature: String?
         /// A string that describes the calibration for the current profile.
-        public var profileCalibrationSignature: String?
+        public let profileCalibrationSignature: String?
         /// The rectangle that defines the non-masked pixels of the sensor.
-        public var activeArea: JSONObject?
+        public let activeArea: Any?
         /// A list of non-overlapping rectangles that contain fully masked pixels in the image.
-        public var maskedAreas: JSONObject?
+        public let maskedAreas: Any?
         /// The origin of the final image area, relative to the top-left corner of the active area rectangle.
-        public var defaultCropOrigin: CGPoint? {
-            guard let x = _defaultCropOrigin?[safe: 0], let y = _defaultCropOrigin?[safe: 1] else { return nil }
-            return CGPoint(x, y)
-        }
-        private var _defaultCropOrigin: [CGFloat]?
-
+        public let defaultCropOrigin: CGPoint?
         /// The size of the final image area, in raw image coordinates.
-        public var defaultCropSize: CGSize? {
-            guard let width = _defaultCropSize?[safe: 0], let height = _defaultCropSize?[safe: 1] else { return nil }
-            return CGSize(width, height)
-        }
-        private var _defaultCropSize: [CGFloat]?
-        
+        public let defaultCropSize: CGSize?
         /// A default user-crop rectangle in relative coordinates.
-        public var defaultUserCrop: JSONObject?
+        public let defaultUserCrop: Any?
         /// The file name of the original raw file.
-        public var originalRawFileName: String?
+        public let originalRawFileName: String?
         /// The compressed contents of the original raw file.
-        public var originalRawFileData: JSONObject?
+        public let originalRawFileData: Any?
         /// The amount of noise reduction applied to the raw data on a scale of 0.0 to 1.0.
-        public var noiseReductionApplied: Double?
+        public let noiseReductionApplied: Double?
         /// An MD5 digest of the raw image data.
-        public var newRawImageDigest: JSONObject?
+        public let newRawImageDigest: Any?
         /// An MD5 digest of the data stored for the original raw file data.
-        public var originalRawFileDigest: JSONObject?
+        public let originalRawFileDigest: Any?
         /// A modified MD5 digest of the raw image data.
-        public var rawImageDigest: JSONObject?
+        public let rawImageDigest: Any?
         /// THe default final size of the larger original file that was the source of this proxy.
-        public var originalDefaultFinalSize: JSONObject?
+        public let originalDefaultFinalSize: Any?
         /// The best-quality final size of the larger original file that was the source of this proxy.
-        public var originalBestQualityFinalSize: JSONObject?
+        public let originalBestQualityFinalSize: Any?
         /// The default crop size of the larger original file that was the source of this proxy.
-        public var originalDefaultCropSize: JSONObject?
+        public let originalDefaultCropSize: Any?
         /// The gain between the main raw IFD and the preview IFD that contains this tag.
-        public var rawToPreviewGain: Double?
+        public let rawToPreviewGain: Double?
         /// The amount of noise in the raw image.
-        public var noiseProfile: JSONObject?
+        public let noiseProfile: Any?
         /// The spatial layout of the CFA.
-        public var cfaLayout: Int?
+        public let cfaLayout: Int?
         /// A mapping between the values in the CFA pattern tag and the plane numbers in linear raw space.
-        public var cfaPlaneColor: JSONObject?
+        public let cfaPlaneColor: Any?
         /// The list of opcodes to apply to the raw image, as read directly from the file.
-        public var opcodeList1: JSONObject?
+        public let opcodeList1: Any?
         /// THe list of opcodes to apply to the raw image, after mapping it to linear reference values.
-        public var dngOpcodeList2: JSONObject?
+        public let dngOpcodeList2: Any?
         /// The list of opcodes to apply to the raw image, after demosaicing it.
-        public var dngOpcodeList3: JSONObject?
+        public let dngOpcodeList3: Any?
         /// An opcode to apply a warp to an image to correct for geometric distortion and lateral chromatic aberration for rectilinear lenses.
-        public var warpRectilinear: JSONObject?
+        public let warpRectilinear: Any?
         /// An opcode to unwrap an image captued with a fisheye lens and map it to a perspective projection.
-        public var warpFisheye: JSONObject?
+        public let warpFisheye: Any?
         /// An opcode to apply a gain function to an image to correct vignetting.
-        public var fixVignetteRadial: JSONObject?
+        public let fixVignetteRadial: Any?
         /// Private data that manufacturers may store with an image and use in their own converters.
-        public var dngPrivateData: JSONObject?
+        public let dngPrivateData: Any?
         /// A Boolean value that tells the DNG reader whether the EXIF MakerNote tag is safe to preserve.
-        public var makerNoteSafety: Int?
+        public let makerNoteSafety: Int?
         /// A 16-byte unique identifier for the raw image data.
-        public var dngRawDataUniqueID: String?
+        public let dngRawDataUniqueID: String?
         /// The size of rectangular blocks that tiles use to group pixels.
-        public var subTileBlockSize: JSONObject?
+        public let subTileBlockSize: Any?
         /// The number of interleaved fields for the rows of the image.
-        public var rowInterleaveFactor: Int?
+        public let rowInterleaveFactor: Int?
         /// The oldest version for which a file is compatible.
-        public var dngBackwardVersion: String?
+        public let dngBackwardVersion: String?
         /// An encoding of the four-tier version number.
-        public var dngVersion: [Double]?
+        public let dngVersion: [Double]?
         /// A list of file offsets to extra camera profiles.
-        public var extraCameraProfiles: JSONObject?
+        public let extraCameraProfiles: Any?
         /// A string containing the name of the "as shot" camera profile, if any.
-        public var asShotProfileName: String?
+        public let asShotProfileName: String?
         /// The number of input samples in each dimension of the hue/saturation/value mapping tables.
-        public var profileHueSatMapDims: JSONObject?
+        public let profileHueSatMapDims: Any?
         /// The data for the first hue/saturation/value mapping table.
-        public var profileHueSatMapData1: JSONObject?
+        public let profileHueSatMapData1: Any?
         /// The data for the second hue/saturation/value mapping table.
-        public var profileHueSatMapData2: JSONObject?
+        public let profileHueSatMapData2: Any?
         /// The encoding option to use when indexing into a 3D look table during raw conversion.
-        public var profileHueSatMapEncoding: Int?
+        public let profileHueSatMapEncoding: Int?
         /// The default tone curve to apply when processing the image as a starting point for user adjustments.
-        public var profileToneCurve: JSONObject?
+        public let profileToneCurve: Any?
         /// A string containing the name of the camera profile.
-        public var dngProfileName: String?
+        public let dngProfileName: String?
         /// The usage rules for the camera profile.
-        public var profileEmbedPolicy: Int?
+        public let profileEmbedPolicy: Int?
         /// The copyright information for the camera profile.
-        public var profileCopyright: String?
+        public let profileCopyright: String?
         /// The number of input samples in each dimentsion of a default "look" table.
-        public var profileLookTableDims: JSONObject?
+        public let profileLookTableDims: Any?
         /// The default "look" table to apply when processing the image as a starting point for user adjustment.
-        public var profileLookTableData: JSONObject?
+        public let profileLookTableData: Any?
         /// The encoding option to use when indexing into a 3D look table during raw conversion.
-        public var profileLookTableEncoding: Int?
+        public let profileLookTableEncoding: Int?
         /// The name of the app that created the preview stored in the IFD.
-        public var previewApplicationName: String?
+        public let previewApplicationName: String?
         /// The version number of the app that created the preview stored in the IFD.
-        public var previewApplicationVersion: String?
+        public let previewApplicationVersion: String?
         /// The name of the conversion settings for the preview.
-        public var previewSettingsName: String?
+        public let previewSettingsName: String?
         /// A unique ID of the conversion settings used to render the preview.
-        public var previewSettingsDigest: String?
+        public let previewSettingsDigest: String?
         /// The color space associated with the rendered preview.
-        public var previewColorSpace: Int?
+        public let previewColorSpace: Int?
         /// The date and time for the render of the preview.
-        public var previewDateTime: Date?
+        public let previewDateTime: Date?
         /// Information about the lens used for the image.
-        public var lensInfo: String?
+        public let lensInfo: String?
         /// A unique, nonlocalized name for the camera model.
-        public var uniqueCameraModel: String?
+        public let uniqueCameraModel: String?
         /// The localized camera model name.
-        public var localizedCameraModel: String?
+        public let localizedCameraModel: String?
         /// The camera serial number.
-        public var cameraSerialNumber: String?
+        public let cameraSerialNumber: String?
 
-        enum CodingKeys: String, CodingKey {
-            case baselineSharpness = "BaselineSharpness"
-            case linearResponseLimit = "LinearResponseLimit"
-            case chromaBlurRadius = "ChromaBlurRadius"
-            case antiAliasStrength = "AntiAliasStrength"
-            case shadowScale = "ShadowScale"
-            case bestQualityScale = "BestQualityScale"
-            case defaultScale = "DefaultScale"
-            case linearizationTable = "LinearizationTable"
-            case baselineExposure = "BaselineExposure"
-            case baselineNoise = "BaselineNoise"
-            case baselineExposureOffset = "BaselineExposureOffset"
-            case analogBalance = "AnalogBalance"
-            case asShotNeutral = "AsShotNeutral"
-            case asShotWhiteXY = "AsShotWhiteXY"
-            case bayerGreenSplit = "BayerGreenSplit"
-            case forwardMatrix1 = "ForwardMatrix1"
-            case forwardMatrix2 = "ForwardMatrix2"
-            case defaultBlackRender = "DefaultBlackRender"
-            case blackLevelRepeatDim = "BlackLevelRepeatDim"
-            case blackLevel = "BlackLevel"
-            case blackLevelDeltaH = "BlackLevelDeltaH"
-            case blackLevelDeltaV = "BlackLevelDeltaV"
-            case whiteLevel = "WhiteLevel"
-            case calibrationIlluminant1 = "CalibrationIlluminant1"
-            case calibrationIlluminant2 = "CalibrationIlluminant2"
-            case colorMatrix1 = "ColorMatrix1"
-            case colorMatrix2 = "ColorMatrix2"
-            case cameraCalibration1 = "CameraCalibration1"
-            case cameraCalibration2 = "CameraCalibration2"
-            case reductionMatrix1 = "ReductionMatrix1"
-            case reductionMatrix2 = "ReductionMatrix2"
-            case asShotICCProfile = "AsShotICCProfile"
-            case asShotPreProfileMatrix = "AsShotPreProfileMatrix"
-            case currentICCProfile = "CurrentICCProfile"
-            case currentPreProfileMatrix = "CurrentPreProfileMatrix"
-            case colorimetricReference = "ColorimetricReference"
-            case cameraCalibrationSignature = "CameraCalibrationSignature"
-            case profileCalibrationSignature = "ProfileCalibrationSignature"
-            case activeArea = "ActiveArea"
-            case maskedAreas = "MaskedAreas"
-            case _defaultCropOrigin = "DefaultCropOrigin"
-            case _defaultCropSize = "DefaultCropSize"
-            case defaultUserCrop = "DefaultUserCrop"
-            case originalRawFileName = "OriginalRawFileName"
-            case originalRawFileData = "OriginalRawFileData"
-            case noiseReductionApplied = "NoiseReductionApplied"
-            case newRawImageDigest = "NewRawImageDigest"
-            case originalRawFileDigest = "OriginalRawFileDigest"
-            case rawImageDigest = "RawImageDigest"
-            case originalDefaultFinalSize = "OriginalDefaultFinalSize"
-            case originalBestQualityFinalSize = "OriginalBestQualityFinalSize"
-            case originalDefaultCropSize = "OriginalDefaultCropSize"
-            case rawToPreviewGain = "RawToPreviewGain"
-            case noiseProfile = "NoiseProfile"
-            case cfaLayout = "CFALayout"
-            case cfaPlaneColor = "CFAPlaneColor"
-            case opcodeList1 = "OpcodeList1"
-            case dngOpcodeList2 = "DNGOpcodeList2"
-            case dngOpcodeList3 = "DNGOpcodeList3"
-            case warpRectilinear = "WarpRectilinear"
-            case warpFisheye = "WarpFisheye"
-            case fixVignetteRadial = "FixVignetteRadial"
-            case dngPrivateData = "DNGPrivateData"
-            case makerNoteSafety = "MakerNoteSafety"
-            case dngRawDataUniqueID = "DNGRawDataUniqueID"
-            case subTileBlockSize = "SubTileBlockSize"
-            case rowInterleaveFactor = "RowInterleaveFactor"
-            case dngBackwardVersion = "DNGBackwardVersion"
-            case dngVersion = "DNGVersion"
-            case extraCameraProfiles = "ExtraCameraProfiles"
-            case asShotProfileName = "AsShotProfileName"
-            case profileHueSatMapDims = "ProfileHueSatMapDims"
-            case profileHueSatMapData1 = "ProfileHueSatMapData1"
-            case profileHueSatMapData2 = "ProfileHueSatMapData2"
-            case profileHueSatMapEncoding = "ProfileHueSatMapEncoding"
-            case profileToneCurve = "ProfileToneCurve"
-            case dngProfileName = "DNGProfileName"
-            case profileEmbedPolicy = "ProfileEmbedPolicy"
-            case profileCopyright = "ProfileCopyright"
-            case profileLookTableDims = "ProfileLookTableDims"
-            case profileLookTableData = "ProfileLookTableData"
-            case profileLookTableEncoding = "ProfileLookTableEncoding"
-            case previewApplicationName = "PreviewApplicationName"
-            case previewApplicationVersion = "PreviewApplicationVersion"
-            case previewSettingsName = "PreviewSettingsName"
-            case previewSettingsDigest = "PreviewSettingsDigest"
-            case previewColorSpace = "PreviewColorSpace"
-            case previewDateTime = "PreviewDateTime"
-            case lensInfo = "LensInfo"
-            case uniqueCameraModel = "UniqueCameraModel"
-            case localizedCameraModel = "LocalizedCameraModel"
-            case cameraSerialNumber = "CameraSerialNumber"
+        init(dngData: [CFString: Any]) {
+            rawValues = dngData
+            
+            baselineSharpness = dngData[typed: kCGImagePropertyDNGBaselineSharpness]
+            linearResponseLimit = dngData[typed: kCGImagePropertyDNGLinearResponseLimit]
+            chromaBlurRadius = dngData[typed: kCGImagePropertyDNGChromaBlurRadius]
+            antiAliasStrength = dngData[typed: kCGImagePropertyDNGAntiAliasStrength]
+            shadowScale = dngData[typed: kCGImagePropertyDNGShadowScale]
+            bestQualityScale = dngData[typed: kCGImagePropertyDNGBestQualityScale]
+            defaultScale = dngData[kCGImagePropertyDNGDefaultScale]
+            linearizationTable = dngData[kCGImagePropertyDNGLinearizationTable]
+            
+            baselineExposure = dngData[typed: kCGImagePropertyDNGBaselineExposure]
+            baselineNoise = dngData[typed: kCGImagePropertyDNGBaselineNoise]
+            baselineExposureOffset = dngData[typed: kCGImagePropertyDNGBaselineExposureOffset]
+            
+            analogBalance = dngData[kCGImagePropertyDNGAnalogBalance]
+            asShotNeutral = dngData[kCGImagePropertyDNGAsShotNeutral]
+            asShotWhiteXY = dngData[kCGImagePropertyDNGAsShotWhiteXY]
+            bayerGreenSplit = dngData[typed: kCGImagePropertyDNGBayerGreenSplit]
+            forwardMatrix1 = dngData[kCGImagePropertyDNGForwardMatrix1]
+            forwardMatrix2 = dngData[kCGImagePropertyDNGForwardMatrix2]
+            defaultBlackRender = dngData[typed: kCGImagePropertyDNGDefaultBlackRender]
+            
+            blackLevelRepeatDim = dngData[kCGImagePropertyDNGBlackLevelRepeatDim]
+            blackLevel = dngData[kCGImagePropertyDNGBlackLevel]
+            blackLevelDeltaH = dngData[kCGImagePropertyDNGBlackLevelDeltaH]
+            blackLevelDeltaV = dngData[kCGImagePropertyDNGBlackLevelDeltaV]
+            whiteLevel = dngData[kCGImagePropertyDNGWhiteLevel]
+            calibrationIlluminant1 = dngData[typed: kCGImagePropertyDNGCalibrationIlluminant1]
+            calibrationIlluminant2 = dngData[typed: kCGImagePropertyDNGCalibrationIlluminant2]
+            colorMatrix1 = dngData[typed: kCGImagePropertyDNGColorMatrix1]
+            colorMatrix2 = dngData[typed: kCGImagePropertyDNGColorMatrix2]
+            cameraCalibration1 = dngData[kCGImagePropertyDNGCameraCalibration1]
+            cameraCalibration2 = dngData[kCGImagePropertyDNGCameraCalibration2]
+            reductionMatrix1 = dngData[kCGImagePropertyDNGReductionMatrix1]
+            reductionMatrix2 = dngData[kCGImagePropertyDNGReductionMatrix2]
+            asShotICCProfile = dngData[kCGImagePropertyDNGAsShotICCProfile]
+            asShotPreProfileMatrix = dngData[kCGImagePropertyDNGAsShotPreProfileMatrix]
+            currentICCProfile = dngData[kCGImagePropertyDNGCurrentICCProfile]
+            currentPreProfileMatrix = dngData[kCGImagePropertyDNGCurrentPreProfileMatrix]
+            colorimetricReference = dngData[typed: kCGImagePropertyDNGColorimetricReference]
+            cameraCalibrationSignature = dngData[typed: kCGImagePropertyDNGCameraCalibrationSignature]
+            profileCalibrationSignature = dngData[typed: kCGImagePropertyDNGProfileCalibrationSignature]
+            activeArea = dngData[kCGImagePropertyDNGActiveArea]
+            maskedAreas = dngData[kCGImagePropertyDNGMaskedAreas]
+            if let origin: [CGFloat] = dngData[typed: kCGImagePropertyDNGDefaultCropOrigin], let x = origin[safe: 0], let y = origin[safe: 1] {
+                defaultCropOrigin = CGPoint(x: x, y: y)
+            } else {
+                defaultCropOrigin = nil
+            }
+            if let size: [CGFloat] = dngData[typed: kCGImagePropertyDNGDefaultCropSize], let width = size[safe: 0], let height = size[safe: 1] {
+                defaultCropSize = CGSize(width: width, height: height)
+            } else {
+                defaultCropSize = nil
+            }
+            
+            defaultUserCrop = dngData[kCGImagePropertyDNGDefaultUserCrop]
+            originalRawFileName = dngData[typed: kCGImagePropertyDNGOriginalRawFileName]
+            originalRawFileData = dngData[kCGImagePropertyDNGOriginalRawFileData]
+            noiseReductionApplied = dngData[typed: kCGImagePropertyDNGNoiseReductionApplied]
+            newRawImageDigest = dngData[kCGImagePropertyDNGNewRawImageDigest]
+            originalRawFileDigest = dngData[kCGImagePropertyDNGOriginalRawFileDigest]
+            rawImageDigest = dngData[kCGImagePropertyDNGRawImageDigest]
+            originalDefaultFinalSize = dngData[kCGImagePropertyDNGOriginalDefaultFinalSize]
+            originalBestQualityFinalSize = dngData[kCGImagePropertyDNGOriginalBestQualityFinalSize]
+            originalDefaultCropSize = dngData[kCGImagePropertyDNGOriginalDefaultCropSize]
+            rawToPreviewGain = dngData[typed: kCGImagePropertyDNGRawToPreviewGain]
+            noiseProfile = dngData[kCGImagePropertyDNGNoiseProfile]
+            cfaLayout = dngData[typed: kCGImagePropertyDNGCFALayout]
+            cfaPlaneColor = dngData[kCGImagePropertyDNGCFAPlaneColor]
+            opcodeList1 = dngData[kCGImagePropertyDNGOpcodeList1]
+            dngOpcodeList2 = dngData[kCGImagePropertyDNGOpcodeList2]
+            dngOpcodeList3 = dngData[kCGImagePropertyDNGOpcodeList3]
+            warpRectilinear = dngData[kCGImagePropertyDNGWarpRectilinear]
+            warpFisheye = dngData[kCGImagePropertyDNGWarpFisheye]
+            fixVignetteRadial = dngData[kCGImagePropertyDNGFixVignetteRadial]
+            dngPrivateData = dngData[kCGImagePropertyDNGPrivateData]
+            makerNoteSafety = dngData[typed: kCGImagePropertyDNGMakerNoteSafety]
+            dngRawDataUniqueID = dngData[typed: kCGImagePropertyDNGRawDataUniqueID]
+            subTileBlockSize = dngData[kCGImagePropertyDNGSubTileBlockSize]
+            rowInterleaveFactor = dngData[typed: kCGImagePropertyDNGRowInterleaveFactor]
+            dngBackwardVersion = dngData[typed: kCGImagePropertyDNGBackwardVersion]
+            dngVersion = dngData[typed: kCGImagePropertyDNGVersion]
+            extraCameraProfiles = dngData[kCGImagePropertyDNGExtraCameraProfiles]
+            asShotProfileName = dngData[typed: kCGImagePropertyDNGAsShotProfileName]
+            profileHueSatMapDims = dngData[kCGImagePropertyDNGProfileHueSatMapDims]
+            profileHueSatMapData1 = dngData[kCGImagePropertyDNGProfileHueSatMapData1]
+            profileHueSatMapData2 = dngData[kCGImagePropertyDNGProfileHueSatMapData2]
+            profileHueSatMapEncoding = dngData[typed: kCGImagePropertyDNGProfileHueSatMapEncoding]
+            profileToneCurve = dngData[kCGImagePropertyDNGProfileToneCurve]
+            dngProfileName = dngData[typed: kCGImagePropertyDNGProfileName]
+            profileEmbedPolicy = dngData[typed: kCGImagePropertyDNGProfileEmbedPolicy]
+            profileCopyright = dngData[typed: kCGImagePropertyDNGProfileCopyright]
+            profileLookTableDims = dngData[kCGImagePropertyDNGProfileLookTableDims]
+            profileLookTableData = dngData[kCGImagePropertyDNGProfileLookTableData]
+            profileLookTableEncoding = dngData[typed: kCGImagePropertyDNGProfileLookTableEncoding]
+            previewApplicationName = dngData[typed: kCGImagePropertyDNGPreviewApplicationName]
+            previewApplicationVersion = dngData[typed: kCGImagePropertyDNGPreviewApplicationVersion]
+            previewSettingsName = dngData[typed: kCGImagePropertyDNGPreviewSettingsName]
+            previewSettingsDigest = dngData[typed: kCGImagePropertyDNGPreviewSettingsDigest]
+            previewColorSpace = dngData[typed: kCGImagePropertyDNGPreviewColorSpace]
+            previewDateTime = (dngData[typed: kCGImagePropertyDNGPreviewDateTime] as Date?) ?? dngData[typed: kCGImagePropertyDNGPreviewDateTime, using: ImageSource.ImageProperties.dateFormatter]
+            lensInfo = dngData[typed: kCGImagePropertyDNGLensInfo]
+            uniqueCameraModel = dngData[typed: kCGImagePropertyDNGUniqueCameraModel]
+            localizedCameraModel = dngData[typed: kCGImagePropertyDNGLocalizedCameraModel]
+            cameraSerialNumber = dngData[typed: kCGImagePropertyDNGCameraSerialNumber]
         }
     }
 }

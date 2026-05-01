@@ -6,91 +6,111 @@
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
     /// Nikon camera specific image properties.
-    struct Nikon: Codable {
+    struct Nikon {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
+
         /// The ISO setting values recorded by the Nikon camera.
-        public var iSOSetting: [Int]?
+        public let iSOSetting: [Int]?
         /// The color mode selected on the Nikon camera.
-        public var colorMode: String?
+        public let colorMode: String?
         /// The image quality mode selected on the Nikon camera.
-        public var quality: String?
+        public let quality: String?
         /// The white balance mode selected on the Nikon camera.
-        public var whiteBalanceMode: String?
+        public let whiteBalanceMode: String?
         /// The sharpening mode selected on the Nikon camera.
-        public var sharpenMode: String?
+        public let sharpenMode: String?
         /// The focus mode selected on the Nikon camera.
-        public var focusMode: String?
+        public let focusMode: String?
         /// The flash setting selected on the Nikon camera.
-        public var flashSetting: String?
+        public let flashSetting: String?
         /// The ISO selection mode selected on the Nikon camera.
-        public var iSOSelection: String?
+        public let iSOSelection: String?
         /// The flash exposure compensation applied by the Nikon camera.
-        public var flashExposureComp: Double?
+        public let flashExposureComp: Double?
         /// The image adjustment mode selected on the Nikon camera.
-        public var imageAdjustment: String?
+        public let imageAdjustment: String?
         /// The lens adapter value recorded by the Nikon camera.
-        public var lensAdapter: String?
+        public let lensAdapter: String?
         /// The type flags of the mounted Nikon lens.
-        public var lensType: LensType?
+        public let lensType: LensType?
         /// The lens information string recorded by the Nikon camera.
-        public var lensInfo: String?
+        public let lensInfo: String?
         /// The focus distance recorded by the Nikon camera.
-        public var focusDistance: Double?
+        public let focusDistance: Double?
         /// The digital zoom factor used by the Nikon camera.
-        public var digitalZoom: Double?
+        public let digitalZoom: Double?
         /// The shooting mode flags recorded by the Nikon camera.
-        public var shootingMode: ShootingMode?
+        public let shootingMode: ShootingMode?
         /// The serial number of the Nikon camera.
-        public var cameraSerialNumber: String?
+        public let cameraSerialNumber: String?
         /// The shutter count of the Nikon camera.
-        public var shutterCount: Int?
+        public let shutterCount: Int?
 
         /// The Nikon shooting mode flags.
         public struct ShootingMode: OptionSet, Codable {
+            /// Continuous shooting, capturing multiple frames while the shutter is held.
+            public static let continuous = ShootingMode(rawValue: 1 << 0)
+            /// Delayed shooting after a predefined interval.
+            public static let delay = ShootingMode(rawValue: 1 << 1)
+            /// Remote shooting controlled from a connected computer.
+            public static let pcControl = ShootingMode(rawValue: 1 << 2)
+            /// Self-timer shooting with a countdown.
+            public static let selfTimer = ShootingMode(rawValue: 1 << 3)
+            /// Captures multiple images with varying exposure.
+            public static let exposureBracketing = ShootingMode(rawValue: 1 << 4)
+            /// Automatically adjusts ISO sensitivity.
+            public static let autoISO = ShootingMode(rawValue: 1 << 5)
+            /// Captures images with varying white balance.
+            public static let whiteBalanceBracketing = ShootingMode(rawValue: 1 << 6)
+            /// Enables infrared remote shutter control.
+            public static let irControl = ShootingMode(rawValue: 1 << 7)
+            /// Captures images with varying D-Lighting levels.
+            public static let dLightingBracketing = ShootingMode(rawValue: 1 << 8)
+
             public let rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }
-            public static let continuous = ShootingMode(rawValue: 1 << 0)
-            public static let delay = ShootingMode(rawValue: 1 << 1)
-            public static let pcControl = ShootingMode(rawValue: 1 << 2)
-            public static let selfTimer = ShootingMode(rawValue: 1 << 3)
-            public static let exposureBracketing = ShootingMode(rawValue: 1 << 4)
-            public static let autoISO = ShootingMode(rawValue: 1 << 5)
-            public static let whiteBalanceBracketing = ShootingMode(rawValue: 1 << 6)
-            public static let irControl = ShootingMode(rawValue: 1 << 7)
-            public static let dLightingBracketing = ShootingMode(rawValue: 1 << 8)
         }
 
         /// The Nikon lens type flags.
         public struct LensType: OptionSet, Codable {
+            /// Manual focus lens.
+            public static let MF = LensType(rawValue: 1 << 0)
+            /// Lens with distance information support.
+            public static let D = LensType(rawValue: 1 << 1)
+            /// Lens without an aperture ring.
+            public static let G = LensType(rawValue: 1 << 2)
+            /// Lens with vibration reduction (image stabilization).
+            public static let VR = LensType(rawValue: 1 << 3)
+            
             public let rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }
-            public static let MF = LensType(rawValue: 1 << 0)
-            public static let D = LensType(rawValue: 1 << 1)
-            public static let G = LensType(rawValue: 1 << 2)
-            public static let VR = LensType(rawValue: 1 << 3)
         }
 
-        enum CodingKeys: String, CodingKey {
-            case iSOSetting = "ISOSetting"
-            case colorMode = "ColorMode"
-            case quality = "Quality"
-            case whiteBalanceMode = "WhiteBalanceMode"
-            case sharpenMode = "SharpenMode"
-            case focusMode = "FocusMode"
-            case flashSetting = "FlashSetting"
-            case iSOSelection = "ISOSelection"
-            case flashExposureComp = "FlashExposureComp"
-            case imageAdjustment = "ImageAdjustment"
-            case lensAdapter = "LensAdapter"
-            case lensType = "LensType"
-            case lensInfo = "LensInfo"
-            case focusDistance = "FocusDistance"
-            case digitalZoom = "DigitalZoom"
-            case shootingMode = "ShootingMode"
-            case cameraSerialNumber = "CameraSerialNumber"
-            case shutterCount = "ShutterCount"
+        init(nikonData: [CFString: Any]) {
+            rawValues = nikonData
+            iSOSetting = nikonData[typed: kCGImagePropertyMakerNikonISOSetting]
+            colorMode = nikonData[typed: kCGImagePropertyMakerNikonColorMode]
+            quality = nikonData[typed: kCGImagePropertyMakerNikonQuality]
+            whiteBalanceMode = nikonData[typed: kCGImagePropertyMakerNikonWhiteBalanceMode]
+            sharpenMode = nikonData[typed: kCGImagePropertyMakerNikonSharpenMode]
+            focusMode = nikonData[typed: kCGImagePropertyMakerNikonFocusMode]
+            flashSetting = nikonData[typed: kCGImagePropertyMakerNikonFlashSetting]
+            iSOSelection = nikonData[typed: kCGImagePropertyMakerNikonISOSelection]
+            flashExposureComp = nikonData[typed: kCGImagePropertyMakerNikonFlashExposureComp]
+            imageAdjustment = nikonData[typed: kCGImagePropertyMakerNikonImageAdjustment]
+            lensAdapter = nikonData[typed: kCGImagePropertyMakerNikonLensAdapter]
+            lensType = nikonData[typed: kCGImagePropertyMakerNikonLensType]
+            lensInfo = nikonData[typed: kCGImagePropertyMakerNikonLensInfo]
+            focusDistance = nikonData[typed: kCGImagePropertyMakerNikonFocusDistance]
+            digitalZoom = nikonData[typed: kCGImagePropertyMakerNikonDigitalZoom]
+            shootingMode = nikonData[typed: kCGImagePropertyMakerNikonShootingMode]
+            cameraSerialNumber = nikonData[typed: kCGImagePropertyMakerNikonCameraSerialNumber]
+            shutterCount = nikonData[typed: kCGImagePropertyMakerNikonShutterCount]
         }
     }
 }

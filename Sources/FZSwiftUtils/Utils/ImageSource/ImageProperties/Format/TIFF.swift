@@ -9,75 +9,94 @@ import Foundation
 import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct TIFF: Codable {
+    struct TIFF {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
         /// The artist who created the image.
-        public var artist: String?
+        public let artist: String?
         /// The compression scheme used on the image data.
-        public var compression: Double?
+        public let compression: Double?
         /// Copyright information.
-        public var copyright: String?
+        public let copyright: String?
         /// The document name.
-        public var documentName: String?
+        public let documentName: String?
         /// The computer or operating system used when the image was created.
-        public var hostComputer: String?
+        public let hostComputer: String?
         /// The image description.
-        public var imageDescription: String?
+        public let imageDescription: String?
         /// The name of the manufacturer of the camera or input device.
-        public var cameraMaker: String?
+        public let cameraMaker: String?
         /// The camera or input device model.
-        public var cameraModel: String?
+        public let cameraModel: String?
         /// The color space of the image data.
-        public var photometricInterpretation: Double?
+        public let photometricInterpretation: Double?
         /// The chromaticities of the primaries of the image.
-        public var primaryChromaticities: [Double]?
+        public let primaryChromaticities: [Double]?
         /// The name and version of the software used for image creation.
-        public var software: String?
+        public let software: String?
         /// The tile length.
-        public var tileLength: Int?
+        public let tileLength: Int?
         /// The tile width.
-        public var tileWidth: Int?
+        public let tileWidth: Int?
         /// The transfer function, in tabular format, used to map pixel components from a nonlinear form into a linear form.
-        public var transferFunction: Double?
+        public let transferFunction: Double?
         /// The white point of the image.
-        public var whitePoint: [Double]?
+        public let whitePoint: [Double]?
         /// The horizontal position of the TIFF image.
-        public var xPosition: Double?
-        /// The number of pixels per resolution unit in the image height direction.
-        public var yPosition: Double?
-        /// The units of resolution.
-        public var resolutionUnit: Double?
-        /// The number of pixels per resolution unit in the image width direction.
-        public var xResolution: Double?
-        /// The number of pixels per resolution unit in the image height direction.
-        public var yResolution: Double?
-        /// The image orientation.
-        public var orientation: CGImagePropertyOrientation?
-        /// The date and time that the image was created.
-        public var timestamp: Date?
+        @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *)
+        public var xPosition: Double? {
+            get { _xPosition }
+        }
+        
+        private var _xPosition: Double?
 
-        enum CodingKeys: String, CodingKey {
-            case artist = "Artist"
-            case compression = "Compression"
-            case copyright = "Copyright"
-            case documentName = "DocumentName"
-            case hostComputer = "HostComputer"
-            case imageDescription = "ImageDescription"
-            case cameraMaker = "Make"
-            case cameraModel = "Model"
-            case photometricInterpretation = "PhotometricInterpretation"
-            case primaryChromaticities = "PrimaryChromaticities"
-            case resolutionUnit = "ResolutionUnit"
-            case software = "Software"
-            case tileLength = "TileLength"
-            case tileWidth = "TileWidth"
-            case transferFunction = "TransferFunction"
-            case whitePoint = "WhitePoint"
-            case xPosition = "XPosition"
-            case xResolution = "XResolution"
-            case yPosition = "YPosition"
-            case yResolution = "YResolution"
-            case orientation = "Orientation"
-            case timestamp = "DateTime"
+        /// The number of pixels per resolution unit in the image height direction.
+        @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *)
+        public var yPosition: Double? {
+            get { _yPosition }
+        }
+        private var _yPosition: Double?
+
+        /// The units of resolution.
+        public let resolutionUnit: Double?
+        /// The number of pixels per resolution unit in the image width direction.
+        public let xResolution: Double?
+        /// The number of pixels per resolution unit in the image height direction.
+        public let yResolution: Double?
+        /// The image orientation.
+        public let orientation: CGImagePropertyOrientation?
+        /// The date and time that the image was created.
+        public let timestamp: Date?
+
+        init(tiffData: [CFString: Any]) {
+            rawValues = tiffData
+            artist = tiffData[typed: kCGImagePropertyTIFFArtist]
+            compression = tiffData[typed: kCGImagePropertyTIFFCompression]
+            copyright = tiffData[typed: kCGImagePropertyTIFFCopyright]
+            documentName = tiffData[typed: kCGImagePropertyTIFFDocumentName]
+            hostComputer = tiffData[typed: kCGImagePropertyTIFFHostComputer]
+            imageDescription = tiffData[typed: kCGImagePropertyTIFFImageDescription]
+            cameraMaker = tiffData[typed: kCGImagePropertyTIFFMake]
+            cameraModel = tiffData[typed: kCGImagePropertyTIFFModel]
+            photometricInterpretation = tiffData[typed: kCGImagePropertyTIFFPhotometricInterpretation]
+            primaryChromaticities = tiffData[typed: kCGImagePropertyTIFFPrimaryChromaticities]
+            resolutionUnit = tiffData[typed: kCGImagePropertyTIFFResolutionUnit]
+            software = tiffData[typed: kCGImagePropertyTIFFSoftware]
+            tileLength = tiffData[typed: kCGImagePropertyTIFFTileLength]
+            tileWidth = tiffData[typed: kCGImagePropertyTIFFTileWidth]
+            transferFunction = tiffData[typed: kCGImagePropertyTIFFTransferFunction]
+            whitePoint = tiffData[typed: kCGImagePropertyTIFFWhitePoint]
+            if #available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *) {
+                _xPosition = tiffData[typed: kCGImagePropertyTIFFXPosition]
+                _yPosition = tiffData[typed: kCGImagePropertyTIFFYPosition]
+            } else {
+                _xPosition = nil
+                _yPosition = nil
+            }
+            xResolution = tiffData[typed: kCGImagePropertyTIFFXResolution]
+            yResolution = tiffData[typed: kCGImagePropertyTIFFYResolution]
+            orientation = tiffData[typed: kCGImagePropertyTIFFOrientation]
+            timestamp = tiffData[typed: kCGImagePropertyTIFFDateTime, using: ImageSource.ImageProperties.dateFormatter]
         }
     }
 }

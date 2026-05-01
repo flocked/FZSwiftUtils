@@ -7,96 +7,104 @@
 
 import CoreLocation
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct GPS: Codable {
+    struct GPS {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
+        
         /// The GPS tag version information.
-        public var version: [Double]?
-        /// The reference direction for the latitude value.
-        public var latitudeRef: LatitudeRef?
-        /// The latitude in degrees.
-        public var latitude: Double?
-        /// The reference direction for the longitude value.
-        public var longitudeRef: LongitudeRef?
-        /// The longitude in degrees.
-        public var longitude: Double?
-        /// The reference used for the altitude value.
-        public var altitudeRef: AltitudeRef?
-        /// The altitude of the destination in meters.
-        public var altitude: Double?
+        public let version: [Double]?
+        
+        /// The latitude in signed decimal degrees.
+        public let latitude: Double?
+
+        /// The longitude in signed decimal degrees.
+        public let longitude: Double?
+
+        /// The altitude in signed meters relative to sea level.
+        public let altitude: Double?
+        
+        /// The coordinate represented by the GPS metadata.
+        public var coordinate: CLLocationCoordinate2D? {
+            guard let latitude = latitude, let longitude = longitude else { return nil }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+        
+        /// The location represented by the GPS metadata.
+        public var location: CLLocation? {
+            guard let coordinate = coordinate else { return nil }
+            if let altitude = altitude {
+                return CLLocation(coordinate: coordinate, altitude: CLLocationDistance(altitude), horizontalAccuracy: horizontalPositioningError ?? -1, verticalAccuracy: -1, timestamp: timeStamp ?? dateStamp ?? .distantPast)
+            } else {
+                return CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+            }
+        }
+        
         /// The UTC time associated with the GPS measurement.
-        public var timeStamp: Date?
+        public let timeStamp: Date?
         /// The satellites used for the GPS measurement.
-        public var satellites: String?
+        public let satellites: String?
         /// The status of the GPS receiver.
-        public var status: Status?
+        public let status: Status?
         /// The dimensionality of the GPS measurement.
-        public var measureMode: MeasureMode?
+        public let measureMode: MeasureMode?
         /// The degree of precision for the GPS measurement.
-        public var dOP: Double?
+        public let dOP: Double?
         /// The unit used for the speed value.
-        public var speedRef: SpeedRef?
+        public let speedRef: SpeedRef?
         /// The speed of the GPS receiver movement.
-        public var speed: Double?
+        public let speed: Double?
         /// The reference for the track angle.
-        public var trackRef: Double?
+        public let trackRef: DirectionRef?
         /// The direction of movement of the GPS receiver.
-        public var track: Double?
+        public let track: Double?
         /// The reference for the image direction value.
-        public var imgDirectionRef: DirectionRef?
+        public let imageDirectionRef: DirectionRef?
         /// The direction the image was taken.
-        public var imgDirection: Double?
+        public let imageDirection: Double?
         /// The geodetic survey data used by the GPS receiver.
-        public var mapDatum: String?
-        /// The reference for the destination latitude value.
-        public var destLatitudeRef: String?
+        public let mapDatum: String?
+        
         /// The destination latitude in degrees.
-        public var destLatitude: Double?
-        /// The reference for the destination longitude value.
-        public var destLongitudeRef: Double?
+        public let destinationLatitude: Double?
+        
         /// The destination longitude in degrees.
-        public var destLongitude: Double?
+        public let destinationLongitude: Double?
+        
+        /// The destination coordinate represented by the GPS metadata.
+        public var destinationCoordinate: CLLocationCoordinate2D? {
+            guard let latitude = destinationLatitude, let longitude = destinationLongitude else { return nil }
+            return CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+        
         /// The reference for the destination bearing value.
-        public var destBearingRef: String?
+        public let destinationBearingRef: BearingRef?
         /// The bearing to the destination point.
-        public var destBearing: Double?
-        /// The unit used for the destination distance value.
-        public var destDistanceRef: DistanceRef?
-        /// The distance to the destination point.
-        public var destDistance: Double?
+        public let destinationBearing: Double?
+        
+        /// The distance to the destination point in meters.
+        public let destinationDistance: Double?
+        
         /// The name of the positioning method used for the GPS data.
-        public var processingMethod: String?
+        public let processingMethod: String?
         /// The name of the GPS area associated with the measurement.
-        public var areaInformation: String?
+        public let areaInformation: String?
         /// The UTC date associated with the GPS measurement.
-        public var dateStamp: Date?
+        public let dateStamp: Date?
         /// The GPS differential correction status.
-        public var differental: Double?
+        public let differential: Double?
         /// The horizontal positioning error in meters.
-        public var hPositioningError: Double?
+        public let horizontalPositioningError: Double?
+                
+        /// The reference system used for a bearing value.
+        public enum BearingRef: String, Codable {
+            /// Bearing is relative to true north.
+            case trueNorth = "T"
 
-        /// A latitude hemisphere reference.
-        public enum LatitudeRef: String, Codable {
-            /// North.
-            case north = "N"
-            /// South.
-            case south = "S"
-        }
-
-        /// A longitude hemisphere reference.
-        public enum LongitudeRef: String, Codable {
-            /// East.
-            case east = "E"
-            /// West.
-            case west = "W"
-        }
-
-        /// A reference describing whether altitude is above or below sea level.
-        public enum AltitudeRef: Int, Codable {
-            /// Above sea level.
-            case aboveSeaLevel = 0
-            /// Below sea level.
-            case belowSeaLevel = 1
+            /// Bearing is relative to magnetic north.
+            case magneticNorth = "M"
         }
 
         /// A reference describing whether a direction is true or magnetic.
@@ -105,16 +113,6 @@ public extension ImageSource.ImageProperties {
             case trueDirection = "T"
             /// Magnetic direction.
             case magneticDirection = "M"
-        }
-
-        /// A unit reference for GPS distance values.
-        public enum DistanceRef: String, Codable {
-            /// Kilometers.
-            case kilometers = "K"
-            /// Miles.
-            case miles = "M"
-            /// Knots.
-            case knots = "N"
         }
 
         /// A unit reference for GPS speed values.
@@ -142,76 +140,91 @@ public extension ImageSource.ImageProperties {
             /// Void.
             case void = "V"
         }
+        
+        init(gpsData: [CFString: Any]) {
+            rawValues = gpsData
 
-        /// The location represented by the GPS metadata.
-        public var location: CLLocation? {
-            guard let coordinate = coordinate else { return nil }
-            if var altitude = altitude, let timestamp = timeStamp {
-                if altitudeRef == .belowSeaLevel {
-                    altitude = -altitude
-                }
-                var location = CLLocation(coordinate: coordinate, altitude: CLLocationDistance(altitude), horizontalAccuracy: .zero, verticalAccuracy: .zero, timestamp: timestamp)
-                if let destDistance = destDistance {
-                    location = location.location(byAddingAccuracy: destDistance)
-                }
-                return location
+            version = gpsData[typed: kCGImagePropertyGPSVersion]
+
+            let latitudeRef: String? = gpsData[typed: kCGImagePropertyGPSLatitudeRef]
+            if let _latitude: Double = gpsData[typed: kCGImagePropertyGPSLatitude] {
+                latitude = latitudeRef?.uppercased() == "S" ? -_latitude : _latitude
             } else {
-                return CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+                latitude = nil
             }
-        }
 
-        /// The coordinate represented by the GPS metadata.
-        public var coordinate: CLLocationCoordinate2D? {
-            guard let latitude = latitude, let longitude = longitude else { return nil }
-            var coord = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-            if latitudeRef == .south {
-                coord.latitude = -coord.latitude
+            let longitudeRef: String? = gpsData[typed: kCGImagePropertyGPSLongitudeRef]
+            if let _longitude: Double = gpsData[typed: kCGImagePropertyGPSLongitude] {
+                longitude = longitudeRef?.uppercased() == "W" ? -_longitude : _longitude
+            } else {
+                longitude = nil
             }
-            if longitudeRef == .west {
-                coord.longitude = -coord.longitude
+
+            let altitudeRef: Int? = gpsData[typed: kCGImagePropertyGPSAltitudeRef]
+            if let _altitude: Double = gpsData[typed: kCGImagePropertyGPSAltitude] {
+                altitude =  altitudeRef == 1 ? -_altitude : _altitude
+            } else {
+                altitude = nil
             }
-            return coord
-        }
 
-        enum CodingKeys: String, CodingKey {
-            case version = "GPSVersion"
-            case latitudeRef = "LatitudeRef"
-            case latitude = "Latitude"
-            case longitudeRef = "LongitudeRef"
-            case longitude = "Longitude"
-            case altitudeRef = "AltitudeRef"
-            case altitude = "Altitude"
-            case timeStamp = "TimeStamp"
-            case satellites = "Satellites"
-            case status = "Status"
-            case measureMode = "MeasureMode"
-            case dOP = "DOP"
-            case speedRef = "SpeedRef"
-            case speed = "Speed"
-            case trackRef = "TrackRef"
-            case track = "Track"
-            case imgDirectionRef = "ImgDirectionRef"
-            case imgDirection = "ImgDirection"
-            case mapDatum = "MapDatum"
-            case destLatitudeRef = "DestLatitudeRef"
-            case destLatitude = "DestLatitude"
-            case destLongitudeRef = "DestLongitudeRef"
-            case destLongitude = "DestLongitude"
-            case destBearingRef = "DestBearingRef"
-            case destBearing = "DestBearing"
-            case destDistanceRef = "DestDistanceRef"
-            case destDistance = "DestDistance"
-            case processingMethod = "ProcessingMethod"
-            case areaInformation = "AreaInformation"
-            case dateStamp = "DateStamp"
-            case differental = "Differential"
-            case hPositioningError = "HPositioningError"
-        }
-    }
-}
+            timeStamp = gpsData[typed: kCGImagePropertyGPSTimeStamp]
+            dateStamp = gpsData[typed: kCGImagePropertyGPSDateStamp]
 
-fileprivate extension CLLocation {
-    func location(byAddingAccuracy horizontalError: CLLocationDistance) -> CLLocation {
-        CLLocation(coordinate: coordinate, altitude: altitude, horizontalAccuracy: CLLocationAccuracy(horizontalError), verticalAccuracy: verticalAccuracy, course: course, speed: speed, timestamp: timestamp)
+            satellites = gpsData[typed: kCGImagePropertyGPSSatellites]
+            
+            status = gpsData[typed: kCGImagePropertyGPSStatus]
+            measureMode = gpsData[typed: kCGImagePropertyGPSMeasureMode]
+            dOP = gpsData[typed: kCGImagePropertyGPSDOP]
+
+            speedRef = gpsData[typed: kCGImagePropertyGPSSpeedRef]
+            speed = gpsData[typed: kCGImagePropertyGPSSpeed]
+
+            trackRef = gpsData[typed: kCGImagePropertyGPSTrackRef]
+            track = gpsData[typed: kCGImagePropertyGPSTrack]
+
+            imageDirectionRef = gpsData[typed: kCGImagePropertyGPSImgDirectionRef]
+            imageDirection = gpsData[typed: kCGImagePropertyGPSImgDirection]
+
+            mapDatum = gpsData[typed: kCGImagePropertyGPSMapDatum]
+
+            let destLatitudeRef: String? = gpsData[typed: kCGImagePropertyGPSDestLatitudeRef]
+            if let _destinationLatitude: Double = gpsData[typed: kCGImagePropertyGPSDestLatitude] {
+                destinationLatitude = destLatitudeRef?.uppercased() == "S" ? -_destinationLatitude : _destinationLatitude
+            } else {
+                destinationLatitude = nil
+            }
+            
+            let destLongitudeRef: String? = gpsData[typed: kCGImagePropertyGPSDestLongitudeRef]
+            if let destLongitude: Double = gpsData[typed: kCGImagePropertyGPSDestLongitude] {
+                destinationLongitude = destLongitudeRef?.uppercased() == "W" ? -destLongitude : destLongitude
+            } else {
+                destinationLongitude = nil
+            }
+
+            destinationBearingRef = gpsData[typed: kCGImagePropertyGPSDestBearingRef]
+            destinationBearing = gpsData[typed: kCGImagePropertyGPSDestBearing]
+
+            let destinationDistanceRef: String? = gpsData[typed: kCGImagePropertyGPSDestDistanceRef]
+            if let destDistance: Double = gpsData[typed: kCGImagePropertyGPSDestDistance] {
+                switch destinationDistanceRef {
+                case "K":
+                    destinationDistance = destDistance * 1000
+                case "M":
+                    destinationDistance = destDistance * 1609.344
+                case "N":
+                    destinationDistance = destDistance * 1852
+                default:
+                    destinationDistance = destDistance
+                }
+            } else {
+                destinationDistance = nil
+            }
+
+            processingMethod = gpsData[typed: kCGImagePropertyGPSProcessingMethod]
+            areaInformation = gpsData[typed: kCGImagePropertyGPSAreaInformation]
+
+            differential = gpsData[typed: kCGImagePropertyGPSDifferental]
+            horizontalPositioningError = gpsData[typed: kCGImagePropertyGPSHPositioningError]
+        }
     }
 }

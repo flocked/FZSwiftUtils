@@ -10,19 +10,21 @@ import Foundation
 import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct JPEG: Codable {
+    struct JPEG {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
         /// The x pixel density.
-        public var xDensity: CGFloat?
+        public let xDensity: CGFloat?
         /// The y pixel density.
-        public var yDensity: CGFloat?
+        public let yDensity: CGFloat?
         /// The orientation of the image.
-        public var orientation: CGImagePropertyOrientation?
+        public let orientation: CGImagePropertyOrientation?
         /// The version of the image.
-        public var version: [Int]?
+        public let version: [Int]?
         /// The unit of the x and y density.
-        public var densityUnit: DensityUnit?
+        public let densityUnit: DensityUnit?
         /// A Boolean value indicating whether there are versions of the image of increasing quality.
-        public var isProgressive: Bool?
+        public let isProgressive: Bool?
         
         /// The unit of the x and y density.
         public enum DensityUnit: Int, Codable {
@@ -34,13 +36,14 @@ public extension ImageSource.ImageProperties {
             case dotsPerCentimeter
         }
 
-        enum CodingKeys: String, CodingKey {
-            case xDensity = "XDensity"
-            case yDensity = "YDensity"
-            case orientation = "Orientation"
-            case version = "JFIFVersion"
-            case densityUnit = "DensityUnit"
-            case isProgressive = "IsProgressive"
+        init(jpegData: [CFString: Any]) {
+            rawValues = jpegData
+            xDensity = jpegData[typed: kCGImagePropertyJFIFXDensity]
+            yDensity = jpegData[typed: kCGImagePropertyJFIFYDensity]
+            orientation = jpegData[typed: kCGImagePropertyOrientation]
+            version = jpegData[typed: kCGImagePropertyJFIFVersion]
+            densityUnit = jpegData[typed: kCGImagePropertyJFIFDensityUnit]
+            isProgressive = jpegData[typed: kCGImagePropertyJFIFIsProgressive]
         }
     }
 }

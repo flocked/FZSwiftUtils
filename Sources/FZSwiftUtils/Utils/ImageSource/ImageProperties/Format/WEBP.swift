@@ -9,25 +9,27 @@ import Foundation
 import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct WEBP: Codable {
+    struct WEBP {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
         /**
          The number of times that an animated image should play through its frames before stopping.
 
          A value of `0` means the animated image repeats forever.
          */
-        public var loopCount: Int?
+        public let loopCount: Int?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
-        public var clampedDelayTime: Double?
+        public let clampedDelayTime: Double?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
-        public var unclampedDelayTime: Double?
+        public let unclampedDelayTime: Double?
         
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
@@ -35,10 +37,10 @@ public extension ImageSource.ImageProperties {
         }
         
         /// The pixel width of the main image.
-        public var canvasPixelWidth: Double?
+        public let canvasPixelWidth: Double?
         
         /// The pixel height of the main image.
-        public var canvasPixelHeight: Double?
+        public let canvasPixelHeight: Double?
         
         /// The pixel size of the main image.
         public var canvasPixelSize: CGSize? {
@@ -47,15 +49,17 @@ public extension ImageSource.ImageProperties {
         }
         
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
-        public var framesInfo: [FrameInfo]?
+        public let framesInfo: [FrameInfo]?
         
-        enum CodingKeys: String, CodingKey {
-            case canvasPixelWidth = "CanvasPixelWidth"
-            case canvasPixelHeight = "CanvasPixelHeight"
-            case loopCount = "LoopCount"
-            case clampedDelayTime = "DelayTime"
-            case unclampedDelayTime = "UnclampedDelayTime"
-            case framesInfo = "FrameInfo"
+        init(webpData: [CFString: Any]) {
+            rawValues = webpData
+            
+            canvasPixelWidth = webpData[typed: kCGImagePropertyWebPCanvasPixelWidth]
+            canvasPixelHeight = webpData[typed: kCGImagePropertyWebPCanvasPixelHeight]
+            loopCount = webpData[typed: kCGImagePropertyWebPLoopCount]
+            clampedDelayTime = webpData[typed: kCGImagePropertyWebPDelayTime]
+            unclampedDelayTime = webpData[typed: kCGImagePropertyWebPUnclampedDelayTime]
+            framesInfo = (webpData[typed: kCGImagePropertyWebPFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(frameInfoData:))
         }
     }
 }

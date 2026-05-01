@@ -556,26 +556,31 @@ public extension String {
     /**
      A cleaned-up string representation of the given value, flattening optional nesting and quoting string literals.
      
-     Example:
-     ```swift
-     let array: [String?]? = ["value", nil, "value"]
+     This initializer produces a human-readable description of the given value, normalizing optional values (e.g. `"Optional(6)"` → `"6"`) and formatting collections based on the provided options.
      
-     // -> ["value", nil, "value"]
-     String(cleanDescribing: array)
-     
-     // -> Optional([Optional("value"), nil, Optional("value"]))
-     String(describing: array)
-     ```
+     - Parameters:
+       - instance: The value to describe.
+       - indent: The indentation string used for nested collection levels.
+       - formatting: The formatting style applied to collections.
+       - maxDepth: The maximum depth for formatting nested collections. Values beyond this depth may be truncated if specified.
+       - maxValues: The maximum number of values to include per collection. Additional values may be omitted if specified.
+       - includeTypeInfo: A Boolean value indicating whether type information should be included in the output.
      */
-    init<Subject>(cleanDescribing instance: Subject) {
-        if let instance = instance as? String {
-            self = "\"\(instance)\""
-        } else {
-            self = String(describing: instance).nonNil
-        }
+    init<Subject>(cleanDescribing instance: Subject, indent: String = "  ", formatting: CollectionFormatting = .singleLine, maxDepth: Int? = nil, maxValues: Int? = nil, includeTypeInfo: Bool = false) {
+        self = format(instance, depth: 0, indent: indent, formatting: formatting, includeType: includeTypeInfo, maxDepth: maxDepth, maxValues: maxValues)
     }
     
-    private var nonNil: String {
+    /// Describes the formatting strategies available for rendering collections in string representations.
+    enum CollectionFormatting {
+        /// Formats collections across multiple lines with indentation for nested values.
+        case multiline
+        /// Formats collections on a single line regardless of nesting.
+        case singleLine
+        /// Formats collections on a single line only if they do not contain nested collections.
+        case singleLineIfNonNested
+    }
+    
+    fileprivate var nonNil: String {
         var result = self
         while true {
             let matches = result.matches(pattern: #"Optional\(([^()]*?)\)"#)
@@ -608,12 +613,17 @@ public extension String {
  ```
  
  - Parameters:
-   - items: The items to print.
+    - items: The items to print.
+    - indent: The indentation string used for nested collection levels.
+    - formatting: The formatting style applied to collections.
+    - maxDepth: The maximum depth for formatting nested collections. Values beyond this depth may be truncated if specified.
+    - maxValues: The maximum number of values to include per collection. Additional values may be omitted if specified.
+    - includeTypeInfo: A Boolean value indicating whether type information should be included in the output.
    - separator: A string to print between each item. The default is a single space (`" "`).
    - terminator: The string to print after all items have been printed. The default is a newline (`"\n"`).
 */
-public func cleanPrint(_ items: Any..., separator: String = " ", terminator: String = "\n") {
-   print(items.map({ String(cleanDescribing: $0) }), separator: separator, terminator: terminator)
+public func cleanPrint(_ items: Any..., indent: String = "  ", formatting: String.CollectionFormatting = .singleLine, maxDepth: Int? = nil, maxValues: Int? = nil, includeTypeInfo: Bool = false, separator: String = " ", terminator: String = "\n") {
+   print(items.map({ String(cleanDescribing: $0, indent: indent, formatting: formatting, maxDepth: maxDepth, maxValues: maxValues, includeTypeInfo: includeTypeInfo) }), separator: separator, terminator: terminator)
 }
 
 public extension String {
@@ -1040,5 +1050,121 @@ public extension String.StringInterpolation {
     /// Appends the wrapped value if present, or an empty string if the value is nil.
     mutating func appendInterpolation<T>(empty value: T?) {
         appendInterpolation(value, or: "")
+    }
+}
+
+fileprivate func format(_ value: Any, depth: Int, indent: String, formatting: String.CollectionFormatting, includeType: Bool, maxDepth: Int?, maxValues: Int?) -> String {
+    let value = unwrapAnyHashable(value)
+
+    if let maxDepth, depth >= maxDepth {
+        if isCollection(value) {
+            return "[...]"
+        }
+        return formatScalar(value, includeType: includeType)
+    }
+
+    let indentation = String(repeating: indent, count: depth)
+    let childIndentation = String(repeating: indent, count: depth + 1)
+
+    if let dictionary = value as? [AnyHashable: Any] {
+        guard !dictionary.isEmpty else { return "[:]" }
+
+        let entries = Array(dictionary)
+        let limited = limit(entries, max: maxValues)
+        let isTruncated = limited.count < entries.count
+
+        let shouldSingleLine: Bool = {
+            switch formatting {
+            case .singleLine:
+                return true
+            case .singleLineIfNonNested:
+                return !containsNestedCollection(dictionary.values)
+            case .multiline:
+                return false
+            }
+        }()
+
+        let lines = limited.map { key, value in
+            "\(shouldSingleLine ? "" : childIndentation)\(formatScalar(key, includeType: includeType)): \(format(value, depth: depth + 1, indent: indent, formatting: formatting, includeType: includeType, maxDepth: maxDepth, maxValues: maxValues))"
+        }
+        
+        return string(for: lines, isTruncated: isTruncated, shouldSingleLine: shouldSingleLine, childIndentation: childIndentation, indentation: indentation)
+    }
+
+    if let array = value as? [Any] ?? (value as? AnySet)?.asAnyArray() {
+        guard !array.isEmpty else { return "[]" }
+
+        let limited = limit(array, max: maxValues)
+        let isTruncated = limited.count < array.count
+
+        let shouldSingleLine: Bool = {
+            switch formatting {
+            case .singleLine:
+                return true
+            case .singleLineIfNonNested:
+                return !containsNestedCollection(array)
+            case .multiline:
+                return false
+            }
+        }()
+
+        let lines = limited.map {
+            "\(shouldSingleLine ? "" : childIndentation)\(format($0, depth: depth + 1, indent: indent, formatting: formatting, includeType: includeType, maxDepth: maxDepth, maxValues: maxValues))"
+        }
+        
+        return string(for: lines, isTruncated: isTruncated, shouldSingleLine: shouldSingleLine, childIndentation: childIndentation, indentation: indentation)
+    }
+
+    return formatScalar(value, includeType: includeType)
+}
+
+fileprivate func string(for lines: [String], isTruncated: Bool, shouldSingleLine: Bool, childIndentation: String, indentation: String) -> String {
+    var lines = lines
+    if isTruncated {
+        lines += "\(shouldSingleLine ? "" : childIndentation)..."
+    }
+    return shouldSingleLine ? "[\(lines.joined(separator: ", "))]" : """
+    [
+    \(lines.joined(separator: ",\n"))
+    \(indentation)]
+    """
+}
+
+fileprivate func limit<T>(_ array: [T], max: Int?) -> [T] {
+    guard let max else { return array }
+    return Array(array.prefix(max))
+}
+
+fileprivate func formatScalar(_ value: Any, includeType: Bool) -> String {
+    let unwrapped = unwrapAnyHashable(value)
+    let formattedValue: String
+    if let string = unwrapped as? String {
+        formattedValue = "\"\(string)\""
+    } else {
+        formattedValue = String(describing: unwrapped).nonNil
+    }
+    return !includeType ? formattedValue : "\(formattedValue) (\(type(of: unwrapped)))"
+}
+
+fileprivate func unwrapAnyHashable(_ value: Any) -> Any {
+    (value as? AnyHashable) ?? value
+}
+
+fileprivate func containsNestedCollection(_ values: some Sequence<Any>) -> Bool {
+    values.contains { isCollection(unwrapAnyHashable($0)) }
+}
+
+fileprivate func isCollection(_ value: Any) -> Bool {
+    let value = unwrapAnyHashable(value)
+    return value is [AnyHashable: Any] || value is NSDictionary || value is [Any]  || value is NSArray || value is AnySet
+}
+
+protocol AnySet {
+    func asAnyArray() -> [Any]
+}
+
+extension Set: AnySet {
+    func asAnyArray() -> [Any] {
+        map { $0 }
     }
 }

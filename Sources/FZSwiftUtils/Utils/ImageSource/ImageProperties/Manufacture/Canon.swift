@@ -6,49 +6,54 @@
 //
 
 import Foundation
+import ImageIO
 
 public extension ImageSource.ImageProperties {
     /// Canon camera specific image properties.
-    struct Canon: Codable {
+    struct Canon {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
+
         /// The owner name recorded by the Canon camera.
-        public var ownerName: String?
+        public let ownerName: String?
         /// The serial number of the Canon camera.
-        public var cameraSerialNumber: Int?
+        public let cameraSerialNumber: Int?
         /// The serial number assigned to the captured image.
-        public var imageSerialNumber: Int?
+        public let imageSerialNumber: Int?
         /// The flash exposure compensation applied by the Canon camera.
-        public var flashExposureComp: Double?
+        public let flashExposureComp: Double?
         /// The continuous drive mode recorded by the Canon camera.
-        public var continuousDrive: Double?
+        public let continuousDrive: Double?
         /// The model name of the mounted Canon lens.
-        public var lensModel: String?
+        public let lensModel: String?
         /// The firmware version of the Canon camera.
-        public var firmware: String?
+        public let firmware: String?
         /// The aspect ratio information recorded by the Canon camera.
-        public var aspectRatioInfo: Int?
+        public let aspectRatioInfo: Int?
 
         /// The minimum aperture value of the mounted lens.
-        public var minAperture: Double?
+        public let minAperture: Double?
         /// The maximum aperture value of the mounted lens.
-        public var maxAperture: Double?
+        public let maxAperture: Double?
         /// The unique model identifier of the Canon camera.
-        public var uniqueModelID: Int?
+        public let uniqueModelID: Int?
         /// The white balance setting recorded by the Canon camera.
-        public var whiteBalance: ImageSource.ImageProperties.EXIF.WhiteBalanceMode?
+        public let whiteBalance: ImageSource.ImageProperties.EXIF.WhiteBalanceMode?
 
-        enum CodingKeys: String, CodingKey {
-            case ownerName = "OwnerName"
-            case cameraSerialNumber = "CameraSerialNumber"
-            case imageSerialNumber = "ImageSerialNumber"
-            case flashExposureComp = "FlashExposureComp"
-            case continuousDrive = "ContinuousDrive"
-            case lensModel = "LensModel"
-            case firmware = "Firmware"
-            case aspectRatioInfo = "AspectRatioInfo"
-            case minAperture = "MinAperture"
-            case maxAperture = "MaxAperture"
-            case uniqueModelID = "UniqueModelID"
-            case whiteBalance = "WhiteBalanceIndex"
+        init(canonData: [CFString: Any]) {
+            rawValues = canonData
+            ownerName = canonData[typed: kCGImagePropertyMakerCanonOwnerName]
+            cameraSerialNumber = canonData[typed: kCGImagePropertyMakerCanonCameraSerialNumber]
+            imageSerialNumber = canonData[typed: kCGImagePropertyMakerCanonImageSerialNumber]
+            flashExposureComp = canonData[typed: kCGImagePropertyMakerCanonFlashExposureComp]
+            continuousDrive = canonData[typed: kCGImagePropertyMakerCanonContinuousDrive]
+            lensModel = canonData[typed: kCGImagePropertyMakerCanonLensModel]
+            firmware = canonData[typed: kCGImagePropertyMakerCanonFirmware]
+            aspectRatioInfo = canonData[typed: kCGImagePropertyMakerCanonAspectRatioInfo]
+            minAperture = canonData[typed: "MinAperture" as CFString]
+            maxAperture = canonData[typed: "MaxAperture" as CFString]
+            uniqueModelID = canonData[typed: "UniqueModelID" as CFString]
+            whiteBalance = canonData[typed: "WhiteBalanceIndex" as CFString]
         }
     }
 }

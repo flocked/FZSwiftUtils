@@ -368,6 +368,19 @@ public extension Dictionary where Value == Any {
         (self[key] as? T) ?? defaultValue()
     }
     
+    /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
+    subscript<V>(typed key: Key) -> V? where V: RawRepresentable {
+        guard let rawValue = self[key] as? V.RawValue else { return nil }
+        return V(rawValue: rawValue)
+    }
+    
+    /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
+    subscript(typed key: Key, using dateFormatter: DateFormatter) -> Date? {
+        if let date: Date = self[typed: key] { return date }
+        guard let dateString: String = self[typed: key] else { return nil }
+        return dateFormatter.date(from: dateString)
+    }
+    
     /**
      A Boolean value indicating whether the dictionary is equatable to another dictionary.
      

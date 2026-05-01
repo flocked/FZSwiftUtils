@@ -10,7 +10,10 @@ import Foundation
 import ImageIO
 
 public extension ImageSource {
-    struct ImageProperties: Codable {
+    struct ImageProperties {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
+
         /// The file size of the image.
         public var fileSize: DataSize?
         /// The pixel width of the image.
@@ -41,11 +44,8 @@ public extension ImageSource {
         public var jpeg: JPEG?
         /// Additional TIFF properties of the image.
         public var tiff: TIFF?
-        /// Additional IPTC properties of the image.
-        public var iptc: IPTC?
         /// Additional HEIC properties of the image.
         public var heic: HEIC?
-        
         /// Additional WEBP properties of the image.
         public var webp: WEBP?
         /// Additional Adobe Photoshop image properties of the image.
@@ -54,20 +54,22 @@ public extension ImageSource {
         public var tga: TGA?
         /// Additional Digital Negative (DNG) archival format image properties of the image.
         public var dng: DNG?
-
+        
+        /// Additional IPTC properties of the image.
+        public var iptc: IPTC?
         /// Additional EXIF properties of the image.
         public var exif: EXIF?
         /// Additional GPS properties of the image.
         public var gps: GPS?
         /// Additional camera image file format (CIFF) properties of the image.
         public var ciff: CIFF?
+        /// Additional picture style properties of the image.
+        public var pictureStyle: [String: String]?
         
         /// Additional Canon camera properties of the image.
         public var canon: Canon?
         /// Additional Nikon camera properties of the image.
         public var nikon: Nikon?
-        
-        /*
         /// Additional Minolta camera properties of the image.
         public var minolta: [String: String]?
         /// Additional Fuji camera properties of the image.
@@ -76,7 +78,8 @@ public extension ImageSource {
         public var olympus: [String: String]?
         /// Additional Pentax camera properties of the image.
         public var pentax: [String: String]?
-         */
+        /// Additional Apple camera properties of the image.
+        public var apple: [String: String]?
 
         /// The pixel size of the image.
         public var pixelSize: CGSize? {
@@ -140,62 +143,64 @@ public extension ImageSource {
         
         private static let frameDurationCap: Double = 0.02 - Double.ulpOfOne
 
-        enum CodingKeys: String, CodingKey, CaseIterable {
-            case fileSize = "FileSize"
-            case pixelWidth = "PixelWidth"
-            case pixelHeight = "PixelHeight"
-            case _orientation = "Orientation"
+        init(imageData: [CFString: Any]) {
+            rawValues = imageData
+            if let fileSize: UInt64 = imageData[typed: kCGImagePropertyFileSize] {
+                self.fileSize = DataSize(rawValue: fileSize)
+            } else if let fileSize: UInt = imageData[typed: kCGImagePropertyFileSize] {
+                self.fileSize = DataSize(rawValue: UInt64(fileSize))
+            } else if let fileSize: Int = imageData[typed: kCGImagePropertyFileSize], fileSize >= 0 {
+                self.fileSize = DataSize(rawValue: UInt64(fileSize))
+            } else if let fileSize: Double = imageData[typed: kCGImagePropertyFileSize], fileSize >= 0 {
+                self.fileSize = DataSize(rawValue: UInt64(fileSize))
+            } else {
+                self.fileSize = nil
+            }
+
+            pixelWidth = imageData[typed: kCGImagePropertyPixelWidth]
+            pixelHeight = imageData[typed: kCGImagePropertyPixelHeight]
+            _orientation = imageData[typed: kCGImagePropertyOrientation]
+            dpiWidth = imageData[typed: kCGImagePropertyDPIWidth]
+            dpiHeight = imageData[typed: kCGImagePropertyDPIHeight]
+            hasAlpha = imageData[typed: kCGImagePropertyHasAlpha]
+            colorProfile = imageData[typed: kCGImagePropertyProfileName]
+            colorModel = imageData[typed: kCGImagePropertyColorModel]
+            depth = imageData[typed: kCGImagePropertyDepth]
             
-            case dpiWidth = "DPIWidth"
-            case dpiHeight = "DPIHeight"
-            case hasAlpha = "HasAlpha"
-            case colorProfile = "ProfileName"
-            case colorModel = "ColorModel"
-            case depth = "Depth"
+            gif = imageData[typed: kCGImagePropertyGIFDictionary].map(GIF.init(gifData:))
+            png = imageData[typed: kCGImagePropertyPNGDictionary].map(PNG.init(pngData:))
+            jpeg = imageData[typed: kCGImagePropertyJFIFDictionary].map(JPEG.init(jpegData:))
+            tiff = imageData[typed: kCGImagePropertyTIFFDictionary].map(TIFF.init(tiffData:))
+            heic = imageData[typed: kCGImagePropertyHEICSDictionary].map(HEIC.init(heicData:))
+            tga = imageData[typed: kCGImagePropertyTGADictionary].map(TGA.init(tgaData:))
+            webp = imageData[typed: kCGImagePropertyWebPDictionary].map(WEBP.init(webpData:))
+            a8bim = imageData[typed: kCGImageProperty8BIMDictionary].map(A8BIM.init(a8bimData:))
+            dng = imageData[typed: kCGImagePropertyDNGDictionary].map(DNG.init(dngData:))
             
-            case gif = "{GIF}"
-            case png = "{PNG}"
-            case jpeg = "{JFIF}"
-            case tiff = "{TIFF}"
-            case iptc = "{IPTC}"
-            case heic = "{HEICS}"
-            case tga = "{TGA}"
-            case webp = "{WebP}"
-            case a8bim = "{8BIM}"
-            case dng = "{DNG}"
+            ciff = imageData[typed: kCGImagePropertyCIFFDictionary].map(CIFF.init(ciffData:))
+            gps = imageData[typed: kCGImagePropertyGPSDictionary].map(GPS.init(gpsData:))
+            exif = imageData[typed: kCGImagePropertyExifDictionary].map(EXIF.init(exifData:))
+            iptc = imageData[typed: kCGImagePropertyIPTCDictionary].map(IPTC.init(iptcData:))
+            pictureStyle = imageData[typed: "{PictureStyle}" as CFString]
             
-            case exif = "{Exif}"
-            case gps = "{GPS}"
-            case ciff = "{CIFF}"
-            
-            case canon = "{MakerCanon}"
-            case nikon = "{MakerNikon}"
-            /*
-            case minolta = "{MakerMinolta}"
-            case fuji = "{MakerFuji}"
-            case olympus = "{MakerOlympus}"
-            case pentax = "{MakerPentax}"
-             */
+            canon = imageData[typed: kCGImagePropertyMakerCanonDictionary].map(Canon.init(canonData:))
+            nikon = imageData[typed: kCGImagePropertyMakerNikonDictionary].map(Nikon.init(nikonData:))
+            minolta = imageData[typed: kCGImagePropertyMakerMinoltaDictionary]
+            fuji = imageData[typed: kCGImagePropertyMakerFujiDictionary]
+            olympus = imageData[typed: kCGImagePropertyMakerOlympusDictionary]
+            pentax = imageData[typed: kCGImagePropertyMakerPentaxDictionary]
+            apple = imageData[typed: kCGImagePropertyMakerAppleDictionary]
         }
     }
 }
 
 extension ImageSource.ImageProperties {
-    init?(_ dictionary: CFDictionary?) {
-        do {
-            self = try Self.decoder.decode(from: dictionary as? [String: Any] ?? [:])
-        } catch {
-            Swift.print(error)
-            return nil
-        }
-    }
-    
-    private static let decoder = DictionaryDecoder(dateDecodingStrategy: .formatted(.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])))
+    static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss"])
 }
 
 extension ImageSource.ImageProperties {
     /// Infromation about a single image frame.
-    public struct FrameInfo: Codable {
+    public struct FrameInfo {
         /**
          The number of seconds to wait before displaying the next image in the sequence, clamped to a minimum of 0.1 seconds.
          
@@ -210,23 +215,21 @@ extension ImageSource.ImageProperties {
          */
         public var unclampedDelayTime: Double?
         
-        enum CodingKeys: String, CodingKey {
-            case delayTime = "DelayTime"
-            case unclampedDelayTime = "UnclampedDelayTime"
+        init(frameInfoData: [CFString: Any]) {
+            delayTime = frameInfoData[typed: "DelayTime" as CFString]
+            unclampedDelayTime = frameInfoData[typed: "UnclampedDelayTime" as CFString]
         }
     }
-}
 
-extension ImageSource.ImageProperties {
     /// The color model of an image, such as RGB, CMYK, grayscale, or Lab.
-    public struct ColorModel: RawRepresentable, Codable, CustomStringConvertible {
-        /// RGB.
+    public struct ColorModel: RawRepresentable, CustomStringConvertible {
+        /// Red, Green, Blue (RGB) color model.
         public static let rgb = Self(rawValue: "RGB")
-        /// Gray.
+        /// Grayscale color model.
         public static let gray = Self(rawValue: "Gray")
-        /// CMYK.
+        /// Cyan, Magenta, Yellow, Black (CMYK) color model.
         public static let cmyk = Self(rawValue: "CMYK")
-        /// Lab.
+        /// CIE Lab color model.
         public static let lab = Self(rawValue: "Lab")
         
         public var description: String { rawValue }
@@ -274,4 +277,9 @@ extension CGImagePropertyOrientation: Swift.Encodable, Swift.Decodable {
     }
 }
 
-/// let kSYImagePropertyPictureStyle = "{PictureStyle}" as CFString
+extension ImageSource.ImageProperties {
+    init?(_ values: CFDictionary?) {
+        guard let values = values as? [CFString: Any] else { return nil }
+        self.init(imageData: values)
+    }
+}

@@ -73,15 +73,25 @@ extension Sequence {
 
 extension Dictionary {
     /**
+     Writes the textual representations of each element of the sequence into the standard output.
+     
+     - Parameters:
+        - separator: A string to print between each item. The default is a single space (`" "`).
+        - terminator: The string to print after all items have been printed. The default is a newline (`"\n"`).
+        - includeIndex: A Boolean value indicating whether to include the index of each element.
+     */
+    public func printEach(separator: String = " ", terminator: String = "\n") {
+        map { "\(String(cleanDescribing: $0.key)): \(String(cleanDescribing: $0.value))"
+        }.forEach({ print($0, separator: separator, terminator: terminator) })
+    }
+    
+    /**
      Returns a formatted string representation of the dictionary.
 
      - Parameter newLines: A `Boolean` value indicating whether to format each key-value pair on a new line.
      */
     public func printableDescription(newLines: Bool = false) -> String {
-        map { (key, value) -> String in
-            let keyStr = String(cleanDescribing: key)
-            let valueStr = value is String ? "\"\(value)\"" : "\(value)"
-            return "\(keyStr): \(valueStr)"
+        map { "\(String(cleanDescribing: $0.key)): \(String(cleanDescribing: $0.value))"
         }.printable(newLines: newLines)
     }
 }

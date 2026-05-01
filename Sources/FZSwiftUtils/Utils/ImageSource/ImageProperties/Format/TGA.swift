@@ -9,11 +9,16 @@ import Foundation
 import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct TGA: Codable {
-        public var compression: CGImagePropertyTGACompression?
-        
-        enum CodingKeys: String, CodingKey {
-            case compression = "Compression"
+    struct TGA {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
+
+        /// The compression of the image.
+        public let compression: CGImagePropertyTGACompression?
+
+        init(tgaData: [CFString: Any]) {
+            rawValues = tgaData
+            compression = tgaData[typed: kCGImagePropertyTGACompression]
         }
     }
 }

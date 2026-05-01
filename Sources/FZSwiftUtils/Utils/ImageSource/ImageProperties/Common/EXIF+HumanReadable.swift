@@ -48,8 +48,8 @@ extension ImageSource.ImageProperties.EXIF {
         }
 
         public var iso: String? {
-            guard let iso = exif.isoSpeed?.value as? Double, iso > 0.0 else {
-                return exif.isoSpeed?.value as? String
+            guard let iso = exif.isoSpeed as? Double, iso > 0.0 else {
+                return exif.isoSpeed as? String
             }
 
             let integerISO = Int(round(iso))

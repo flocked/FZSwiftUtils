@@ -11,252 +11,342 @@ import ImageIO
 
 public extension ImageSource.ImageProperties {
     /// Exchangeable Image File Format (EXIF) data.
-    struct EXIF: Codable, Equatable, Hashable {
+    struct EXIF {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
+
         //  MARK: - Camera Settings
         
         /// For a particular camera mode, indicates the conditions for taking the picture.
-        public let deviceSettingDescription: AnyCodable?
+        public let deviceSettingDescription: Any?
         
         /// The F-number.
-        public var fNumber: Double?
+        public let fNumber: Double?
         
         /// The shutter speed value.
-        public var shutterSpeedValue: Double?
+        public let shutterSpeedValue: Double?
         
         /// The aperture value.
-        public var apertureValue: Double?
+        public let apertureValue: Double?
         
         /// The maximum aperture value.
-        public var maxApertureValue: Double?
+        public let maxApertureValue: Double?
         
         /// The focal length.
-        public var focalLength: Double?
+        public let focalLength: Double?
         
         /// The spectral sensitivity of each channel.
-        public var spectralSensitivity: Double?
+        public let spectralSensitivity: Double?
         
         /// The ISO speed ratings.
-        public var isoSpeedRatings: [AnyCodable]?
+        public let isoSpeedRatings: [Any]?
         
         /// The distance to the subject, in meters.
-        public var subjectDistance: Double?
+        public let subjectDistance: Double?
         
         /// The metering mode.
-        public var meteringMode: MeteringMode?
+        public let meteringMode: MeteringMode?
         
         /// The subject area.
-        public var subjectArea: AnyCodable?
+        public let subjectArea: Any?
         
         /// The location of the image’s primary subject.
-        public var subjectLocation: AnyCodable?
+        public let subjectLocation: Any?
         
         /// The sensor type of the camera or input device.
-        public var sensingMethod: SensingMethod?
+        public let sensingMethod: SensingMethod?
         
         /// The scene type.
-        public var sceneType: Int?
+        public let sceneType: Int?
         
         /// The digital zoom ratio.
-        public var digitalZoomRatio: Double?
+        public let digitalZoomRatio: Double?
         
         /// The equivalent focal length in 35 mm film.
-        public var focalLengthIn35mmFilm: Double?
+        public let focalLengthIn35mmFilm: Double?
         
         /// The scene capture type; for example, standard, landscape, portrait, or night.
-        public var sceneCaptureType: SceneCaptureType?
+        public let sceneCaptureType: SceneCaptureType?
         
         /// The distance to the subject.
-        public var subjectDistanceRange: SubjectDistanceRangeType?
+        public let subjectDistanceRange: SubjectDistanceRangeType?
         
         //  MARK: - Exposure
         
         /// The exposure time.
-        public var exposureTime: TimeInterval?
+        public let exposureTime: TimeInterval?
         
         /// The exposure program.
-        public var exposureProgram: ExposureProgram?
+        public let exposureProgram: ExposureProgram?
         
         /// The selected exposure index.
-        public var exposureIndex: Int?
+        public let exposureIndex: Int?
         
         /// The exposure mode setting.
-        public var exposureMode: ExposureMode?
+        public let exposureMode: ExposureMode?
         
         /// The ISO speed setting used to capture the image.
-        public var isoSpeed: AnyCodable?
+        public let isoSpeed: Any?
         
         /// The ISO speed latitude yyy value.
-        public var isoSpeedLatitudeYYY: AnyCodable?
+        public let isoSpeedLatitudeYYY: Any?
         
         /// The ISO speed latitude zzz value.
-        public var isoSpeedLatitudeZZZ: AnyCodable?
+        public let isoSpeedLatitudeZZZ: Any?
         
         /// The recommended exposure index.
-        public var recommendedExposureIndex: Int?
+        public let recommendedExposureIndex: Int?
         
         /// The exposure bias value.
-        public var exposureBiasValue: Double?
+        public let exposureBiasValue: Double?
         
         /// The type of sensitivity data stored for the image.
-        public var sensitivityType: SensitivityType?
+        public let sensitivityType: SensitivityType?
         
         /// The sensitivity data for the image.
-        public var standardOutputSensitivity: UInt?
+        public let standardOutputSensitivity: UInt?
         
         /// The exposure times for composite images.
-        public var sourceExposureTimesOfCompositeImage: AnyCodable?
+        public let sourceExposureTimesOfCompositeImage: Any?
         
         //  MARK: - Image Quality
         
         /// The color filter array (CFA) pattern, which is the geometric pattern of the image sensor for a 1-chip color sensor area.
-        public var cfaPattern: AnyCodable?
+        public let cfaPattern: Any?
         
         /// The brightness value.
-        public var brightnessValue: Double?
+        public let brightnessValue: Double?
         
         /// The light source.
-        public var lightSource: LightSourceType?
+        public let lightSource: LightSourceType?
         
         /// The flash status when the image was shot.
-        public var flash: FlashMode?
+        public let flash: FlashMode?
         
         /// The spatial frequency table and spatial frequency response values in the width, height, and diagonal directions.
-        public var spatialFrequencyResponse: String?
+        public let spatialFrequencyResponse: String?
         
         /// The contrast setting.
-        public var contrast: ContrastDirection?
+        public let contrast: ContrastDirection?
         
         /// The saturation setting.
-        public var saturation: SaturationDirection?
+        public let saturation: SaturationDirection?
         
         /// The sharpness setting.
-        public var sharpness: SharpnessDirection?
+        public let sharpness: SharpnessDirection?
         
         /// The gamma setting.
-        public var gamma: Double?
+        public let gamma: Double?
         
         /// The white balance mode.
-        public var whiteBalance: WhiteBalanceMode?
+        public let whiteBalance: WhiteBalanceMode?
         
         //  MARK: - Image Settings
         
         /// The gain adjustment setting.
-        public var gainControl: GainControl?
+        public let gainControl: GainControl?
         
         /// The unique ID of the image.
-        public var imageUniqueId: String?
+        public let imageUniqueId: String?
         
         /// The bits per pixel of the compression mode.
-        public var compressedBitsPerPixel: Double?
+        public let compressedBitsPerPixel: Double?
         
         /// The color space.
-        public var colorSpace: ColorSpace?
+        public let colorSpace: ColorSpace?
         
         /// The x dimension of a pixel.
-        public var pixelXDimension: UInt?
+        public let pixelXDimension: UInt?
         
         /// The y dimension of a pixel.
-        public var pixelYDimension: UInt?
+        public let pixelYDimension: UInt?
         
         /// A sound file related to the image.
-        public var relatedSoundFile: String?
+        public let relatedSoundFile: String?
         
         /// The number of image-width pixels (x-axis) per focal plane resolution unit.
-        public var focalPlaneXResolution: Double?
+        public let focalPlaneXResolution: Double?
         
         /// The number of image-height pixels (y-axis) per focal plane resolution unit.
-        public var focalPlaneYResolution: Double?
+        public let focalPlaneYResolution: Double?
         
         /// The unit of measurement for the focal plane x and y resolutions.
-        public var focalPlaneResolutionUnit: ResolutionUnit?
+        public let focalPlaneResolutionUnit: ResolutionUnit?
         
         /// Special rendering performed on the image data.
-        public var customRendered: CustomRenderedType?
+        public let customRendered: CustomRenderedType?
         
-        public var compositeImage: CompositeImageType?
+        public let compositeImage: CompositeImageType?
         
         /// The opto-electric conversion function (OECF) that defines the relationship between the optical input of the camera and the resulting image.
-        public var oecf: AnyCodable?
+        public let oecf: Any?
         
         /// The components configuration for compressed data.
-        public var componentsConfiguration: [Int]?
+        public let componentsConfiguration: [Int]?
         
         /// The number of images that make up a composite image.
-        public var sourceImageNumberOfCompositeImage: [Int]?
+        public let sourceImageNumberOfCompositeImage: [Int]?
         
         /// The image source.
-        public var fileSource: FileSourceType?
+        public let fileSource: FileSourceType?
         
         //  MARK: - Timestamp
         
         /// The original date and time.
-        public var dateTimeOriginal: Date?
+        public let dateTimeOriginal: Date?
         
         /// The digitized date and time.
-        public var dateTimeDigitized: Date?
+        public let dateTimeDigitized: Date?
         
         /// The fraction of seconds for the date and time tag.
-        public var subsecTime: String?
+        public let subsecTime: String?
         
         /// The fraction of seconds for the original date and time tag.
-        public var subsecTimeOriginal: String?
+        public let subsecTimeOriginal: String?
         
         /// The fraction of seconds for the digitized date and time tag.
-        public var subsecTimeDigitized: String?
+        public let subsecTimeDigitized: String?
         
         
-        public var offsetTime: String?
+        public let offsetTime: String?
         
         
-        public var offsetTimeOriginal: String?
+        public let offsetTimeOriginal: String?
         
         
-        public var offsetTimeDigitized: String?
+        public let offsetTimeDigitized: String?
         
         //  MARK: - Lens Information
         
         /// The specification information for the camera lens.
-        public var lensSpecification: [Double]?
+        public let lensSpecification: [Double]?
         
         /// A string with the name of the lens manufacturer.
-        public var lensMake: String?
+        public let lensMake: String?
         
         /// A string with the lens model information.
-        public var lensModel: String?
+        public let lensModel: String?
         
         /// A string with the lens’s serial number.
-        public var lensSerialNumber: String?
+        public let lensSerialNumber: String?
         
         //  MARK: - Camera Information
         
         /// Information specified by the camera manufacturer.
-        public var makerNote: AnyCodable?
+        public let makerNote: Any?
         
         /// A user comment.
-        public var userComment: String?
+        public let userComment: String?
         
         /// A string with the name of the camera’s owner.
-        public var cameraOwnerName: String?
+        public let cameraOwnerName: String?
         
         /// A string with the serial number of the camera.
-        public var bodySerialNumber: String?
+        public let bodySerialNumber: String?
         
         //  MARK: - Flash Information
         
         /// The FlashPix version supported by an FPXR file.
-        public var flashpixVersion: [Int]?
+        public let flashpixVersion: [Int]?
         
         /// The strobe energy when the image was captured, in beam candle power seconds.
-        public var flashEnergy: Int?
+        public let flashEnergy: Int?
         
         //  MARK: - EXIF Format
         
         /// The EXIF version.
-        public var exifVersion: [Int]?
+        public let exifVersion: [Int]?
         
         /// A Boolean value indicating whether the image is a screenshot.
         public var isScreenshot: Bool {
             userComment == "Screenshot"
+        }
+
+        init(exifData: [CFString: Any]) {
+            rawValues = exifData
+
+            deviceSettingDescription = exifData[typed: kCGImagePropertyExifDeviceSettingDescription]
+            fNumber = exifData[typed: kCGImagePropertyExifFNumber]
+            shutterSpeedValue = exifData[typed: kCGImagePropertyExifShutterSpeedValue]
+            apertureValue = exifData[typed: kCGImagePropertyExifApertureValue]
+            maxApertureValue = exifData[typed: kCGImagePropertyExifMaxApertureValue]
+            focalLength = exifData[typed: kCGImagePropertyExifFocalLength]
+            spectralSensitivity = exifData[typed: kCGImagePropertyExifSpectralSensitivity]
+            isoSpeedRatings = exifData[typed: kCGImagePropertyExifISOSpeedRatings]
+            subjectDistance = exifData[typed: kCGImagePropertyExifSubjectDistance]
+            meteringMode = exifData[typed: kCGImagePropertyExifMeteringMode]
+            subjectArea = exifData[kCGImagePropertyExifSubjectArea]
+            subjectLocation = exifData[kCGImagePropertyExifSubjectLocation]
+            sensingMethod = exifData[typed: kCGImagePropertyExifSensingMethod]
+            sceneType = exifData[typed: kCGImagePropertyExifSceneType]
+            digitalZoomRatio = exifData[typed: kCGImagePropertyExifDigitalZoomRatio]
+            focalLengthIn35mmFilm = exifData[typed: kCGImagePropertyExifFocalLenIn35mmFilm]
+            sceneCaptureType = exifData[typed: kCGImagePropertyExifSceneCaptureType]
+            subjectDistanceRange = exifData[typed: kCGImagePropertyExifSubjectDistRange]
+            
+            exposureTime = exifData[typed: kCGImagePropertyExifExposureTime]
+            exposureProgram = exifData[typed: kCGImagePropertyExifExposureProgram]
+            exposureIndex = exifData[typed: kCGImagePropertyExifExposureIndex]
+            exposureMode = exifData[typed: kCGImagePropertyExifExposureMode]
+            isoSpeed = exifData[kCGImagePropertyExifISOSpeed]
+            isoSpeedLatitudeYYY = exifData[kCGImagePropertyExifISOSpeedLatitudeyyy]
+            isoSpeedLatitudeZZZ = exifData[kCGImagePropertyExifISOSpeedLatitudezzz]
+            recommendedExposureIndex = exifData[typed: kCGImagePropertyExifRecommendedExposureIndex]
+            exposureBiasValue = exifData[typed: kCGImagePropertyExifExposureBiasValue]
+            sensitivityType = exifData[typed: kCGImagePropertyExifSensitivityType]
+            standardOutputSensitivity = exifData[typed: kCGImagePropertyExifStandardOutputSensitivity]
+            sourceExposureTimesOfCompositeImage = exifData[kCGImagePropertyExifSourceExposureTimesOfCompositeImage]
+            
+            cfaPattern = exifData[kCGImagePropertyExifCFAPattern]
+            brightnessValue = exifData[typed: kCGImagePropertyExifBrightnessValue]
+            lightSource = exifData[typed: kCGImagePropertyExifLightSource]
+            flash = exifData[typed: kCGImagePropertyExifFlash]
+            spatialFrequencyResponse = exifData[typed: kCGImagePropertyExifSpatialFrequencyResponse]
+            contrast = exifData[typed: kCGImagePropertyExifContrast]
+            saturation = exifData[typed: kCGImagePropertyExifSaturation]
+            sharpness = exifData[typed: kCGImagePropertyExifSharpness]
+            gamma = exifData[typed: kCGImagePropertyExifGamma]
+            whiteBalance = exifData[typed: kCGImagePropertyExifWhiteBalance]
+            
+            gainControl = exifData[typed: kCGImagePropertyExifGainControl]
+            imageUniqueId = exifData[typed: kCGImagePropertyExifImageUniqueID]
+            compressedBitsPerPixel = exifData[typed: kCGImagePropertyExifCompressedBitsPerPixel]
+            colorSpace = exifData[typed: kCGImagePropertyExifColorSpace]
+            pixelXDimension = exifData[typed: kCGImagePropertyExifPixelXDimension]
+            pixelYDimension = exifData[typed: kCGImagePropertyExifPixelYDimension]
+            relatedSoundFile = exifData[typed: kCGImagePropertyExifRelatedSoundFile]
+            focalPlaneXResolution = exifData[typed: kCGImagePropertyExifFocalPlaneXResolution]
+            focalPlaneYResolution = exifData[typed: kCGImagePropertyExifFocalPlaneYResolution]
+            focalPlaneResolutionUnit = exifData[typed: kCGImagePropertyExifFocalPlaneResolutionUnit]
+            customRendered = exifData[typed: kCGImagePropertyExifCustomRendered]
+            compositeImage = exifData[typed: kCGImagePropertyExifCompositeImage]
+            oecf = exifData[kCGImagePropertyExifOECF]
+            componentsConfiguration = exifData[typed: kCGImagePropertyExifComponentsConfiguration]
+            sourceImageNumberOfCompositeImage = exifData[typed: kCGImagePropertyExifSourceImageNumberOfCompositeImage]
+            fileSource = exifData[typed: kCGImagePropertyExifFileSource]
+            
+            dateTimeOriginal = (exifData[typed: kCGImagePropertyExifDateTimeOriginal] as Date?) ?? exifData[typed: kCGImagePropertyExifDateTimeOriginal, using: ImageSource.ImageProperties.dateFormatter]
+            dateTimeDigitized = (exifData[typed: kCGImagePropertyExifDateTimeDigitized] as Date?) ?? exifData[typed: kCGImagePropertyExifDateTimeDigitized, using: ImageSource.ImageProperties.dateFormatter]
+            subsecTime = exifData[typed: kCGImagePropertyExifSubsecTime]
+            subsecTimeOriginal = exifData[typed: kCGImagePropertyExifSubsecTimeOriginal]
+            subsecTimeDigitized = exifData[typed: kCGImagePropertyExifSubsecTimeDigitized]
+            offsetTime = exifData[typed: kCGImagePropertyExifOffsetTime]
+            offsetTimeOriginal = exifData[typed: kCGImagePropertyExifOffsetTimeOriginal]
+            offsetTimeDigitized = exifData[typed: kCGImagePropertyExifOffsetTimeDigitized]
+            
+            lensSpecification = exifData[typed: kCGImagePropertyExifLensSpecification]
+            lensMake = exifData[typed: kCGImagePropertyExifLensMake]
+            lensModel = exifData[typed: kCGImagePropertyExifLensModel]
+            lensSerialNumber = exifData[typed: kCGImagePropertyExifLensSerialNumber]
+            
+            makerNote = exifData[kCGImagePropertyExifMakerNote]
+            userComment = exifData[typed: kCGImagePropertyExifUserComment]
+            cameraOwnerName = exifData[typed: kCGImagePropertyExifCameraOwnerName]
+            bodySerialNumber = exifData[typed: kCGImagePropertyExifBodySerialNumber]
+            
+            flashpixVersion = exifData[typed: kCGImagePropertyExifFlashPixVersion]
+            flashEnergy = exifData[typed: kCGImagePropertyExifFlashEnergy]
+            exifVersion = exifData[typed: kCGImagePropertyExifVersion]
         }
     }
 }
@@ -720,86 +810,6 @@ public extension ImageSource.ImageProperties.EXIF {
         case auto = 0
         /// The image uses manual white balance.
         case manual = 1
-    }
-}
-
-extension ImageSource.ImageProperties.EXIF {
-    enum CodingKeys: String, CodingKey {
-        case deviceSettingDescription = "DeviceSettingDescription"
-        case fNumber = "FNumber"
-        case shutterSpeedValue = "ShutterSpeedValue"
-        case apertureValue = "ApertureValue"
-        case maxApertureValue = "MaxApertureValue"
-        case focalLength = "FocalLength"
-        case spectralSensitivity = "SpectralSensitivity"
-        case isoSpeedRatings = "ISOSpeedRatings"
-        case subjectDistance = "SubjectDistance"
-        case meteringMode = "MeteringMode"
-        case subjectArea = "SubjectArea"
-        case subjectLocation = "SubjectLocation"
-        case sensingMethod = "SensingMethod"
-        case sceneType = "SceneType"
-        case digitalZoomRatio = "DigitalZoomRatio"
-        case focalLengthIn35mmFilm = "FocalLenIn35mmFilm"
-        case sceneCaptureType = "SceneCaptureType"
-        case subjectDistanceRange = "SubjectDistRange"
-        case exposureTime = "ExposureTime"
-        case exposureProgram = "ExposureProgram"
-        case exposureIndex = "ExposureIndex"
-        case exposureMode = "ExposureMode"
-        case isoSpeed = "ISOSpeed"
-        case isoSpeedLatitudeYYY = "ISOSpeedLatitudeyyy"
-        case isoSpeedLatitudeZZZ = "ISOSpeedLatitudezzz"
-        case recommendedExposureIndex = "RecommendedExposureIndex"
-        case exposureBiasValue = "ExposureBiasValue"
-        case sensitivityType = "SensitivityType"
-        case standardOutputSensitivity = "StandardOutputSensitivity"
-        case sourceExposureTimesOfCompositeImage = "SourceExposureTimesOfCompositeImage"
-        case cfaPattern = "CFAPattern"
-        case brightnessValue = "BrightnessValue"
-        case lightSource = "LightSource"
-        case flash = "Flash"
-        case spatialFrequencyResponse = "SpatialFrequencyResponse"
-        case contrast = "Contrast"
-        case saturation = "Saturation"
-        case sharpness = "Sharpness"
-        case gamma = "Gamma"
-        case whiteBalance = "WhiteBalance"
-        case gainControl = "GainControl"
-        case imageUniqueId = "ImageUniqueID"
-        case compressedBitsPerPixel = "CompressedBitsPerPixel"
-        case colorSpace = "ColorSpace"
-        case pixelXDimension = "PixelXDimension"
-        case pixelYDimension = "PixelYDimension"
-        case relatedSoundFile = "RelatedSoundFile"
-        case focalPlaneXResolution = "FocalPlaneXResolution"
-        case focalPlaneYResolution = "FocalPlaneYResolution"
-        case focalPlaneResolutionUnit = "FocalPlaneResolutionUnit"
-        case customRendered = "CustomRendered"
-        case compositeImage = "CompositeImage"
-        case oecf = "OECF"
-        case componentsConfiguration = "ComponentsConfiguration"
-        case sourceImageNumberOfCompositeImage = "SourceImageNumberOfCompositeImage"
-        case fileSource = "FileSource"
-        case dateTimeOriginal = "DateTimeOriginal"
-        case dateTimeDigitized = "DateTimeDigitized"
-        case subsecTime = "SubsecTime"
-        case subsecTimeOriginal = "SubsecTimeOriginal"
-        case subsecTimeDigitized = "SubsecTimeDigitized"
-        case offsetTime = "OffsetTime"
-        case offsetTimeOriginal = "OffsetTimeOriginal"
-        case offsetTimeDigitized = "OffsetTimeDigitized"
-        case lensSpecification = "LensSpecification"
-        case lensMake = "LensMake"
-        case lensModel = "LensModel"
-        case lensSerialNumber = "LensSerialNumber"
-        case makerNote = "MakerNote"
-        case userComment = "UserComment"
-        case cameraOwnerName = "CameraOwnerName"
-        case bodySerialNumber = "BodySerialNumber"
-        case flashpixVersion = "FlashPixVersion"
-        case flashEnergy = "FlashEnergy"
-        case exifVersion = "ExifVersion"
     }
 }
 

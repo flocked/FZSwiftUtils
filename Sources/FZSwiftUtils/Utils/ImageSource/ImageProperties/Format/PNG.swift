@@ -9,64 +9,66 @@ import Foundation
 import ImageIO
 
 public extension ImageSource.ImageProperties {
-    struct PNG: Codable {
+    struct PNG {
+        /// The raw values.
+        public let rawValues: [CFString: Any]
         /// The author of the image.
-        public var author: String?
+        public let author: String?
         /// The chromaticities.
-        public var chromaticities: Double?
+        public let chromaticities: Double?
         /// The comment about the image.
-        public var comment: String?
+        public let comment: String?
         /// The PNG filter to apply prior to compression.
-        public var compressionFilter: CompressionFilter?
+        public let compressionFilter: CompressionFilter?
         /// The copyright of the image.
-        public var copyright: String?
+        public let copyright: String?
         /// The creation date of the image.
-        public var creationTime: Date?
+        public let creationTime: Date?
         /**
          The number of times that an animated image should play through its frames before stopping.
 
          A value of `0` means the animated image repeats forever.
          */
-        public var loopCount: Int?
+        public let loopCount: Int?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
-        public var clampedDelayTime: Double?
+        public let clampedDelayTime: Double?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
-        public var unclampedDelayTime: Double?
+        public let unclampedDelayTime: Double?
         
         /// A description of the image.
-        public var description: String?
+        public let description: String?
         /// The disclaimer for the image.
-        public var disclaimer: String?
+        public let disclaimer: String?
         /// The gamma value.
-        public var gamma: Double?
+        public let gamma: Double?
         /// The interlace type.
-        public var interlaceType: InterlaceType?
+        public let interlaceType: InterlaceType?
         /// The modification date of the image.
-        public var modificationTime: Date?
+        public let modificationTime: Date?
         /// The pixel aspect ratio of the PNG image.
-        public var pixelAspectRatio: Double?
+        public let pixelAspectRatio: Double?
         /// The software used to create the image.
-        public var software: String?
+        public let software: String?
         /// The source description for the PNG image.
-        public var source: String?
+        public let source: String?
         /// The title of the image.
-        public var title: String?
+        public let title: String?
         /// The warning for the image.
-        public var warning: String?
+        public let warning: String?
         /// The number of pixels per meter along the x-axis.
-        public var xPixelsPerMeter: Double?
+        public let xPixelsPerMeter: Double?
         /// The number of pixels per meter along the y-axis.
-        public var yPixelsPerMeter: Double?
+        public let yPixelsPerMeter: Double?
         /// The sRGB intent.
-        public var sRGBIntent: SRGBIntent?
+        public let sRGBIntent: SRGBIntent?
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
@@ -74,10 +76,10 @@ public extension ImageSource.ImageProperties {
         }
         
         /// The pixel width of the main image.
-        public var canvasPixelWidth: Double?
+        public let canvasPixelWidth: Double?
         
         /// The pixel height of the main image.
-        public var canvasPixelHeight: Double?
+        public let canvasPixelHeight: Double?
         
         /// The pixel size of the main image.
         public var canvasPixelSize: CGSize? {
@@ -86,7 +88,7 @@ public extension ImageSource.ImageProperties {
         }
         
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
-        public var framesInfo: [FrameInfo]?
+        public let framesInfo: [FrameInfo]?
         
         /// The rendering intent of a PNG image.
         public enum SRGBIntent: Int, Codable {
@@ -127,32 +129,33 @@ public extension ImageSource.ImageProperties {
             public init(rawValue: Int32) { self.rawValue = rawValue }
         }
 
-        enum CodingKeys: String, CodingKey {
-            case author = "Author"
-            case chromaticities = "Chromaticities"
-            case comment = "Comment"
-            case compressionFilter = "kCGImagePropertyPNGCompressionFilter"
-            case copyright = "Copyright"
-            case creationTime = "Creation Time"
-            case loopCount = "LoopCount"
-            case clampedDelayTime = "DelayTime"
-            case unclampedDelayTime = "UnclampedDelayTime"
-            case description = "Description"
-            case disclaimer = "Disclaimer"
-            case gamma = "Gamma"
-            case interlaceType = "InterlaceType"
-            case modificationTime = "ModificationTime"
-            case pixelAspectRatio = "PixelAspectRatio"
-            case software = "Software"
-            case source = "Source"
-            case title = "Title"
-            case warning = "Warning"
-            case xPixelsPerMeter = "XPixelsPerMeter"
-            case yPixelsPerMeter = "YPixelsPerMeter"
-            case sRGBIntent
-            case framesInfo = "FrameInfoArray"
-            case canvasPixelWidth = "CanvasPixelWidth"
-            case canvasPixelHeight = "CanvasPixelHeight"
+        init(pngData: [CFString: Any]) {
+            rawValues = pngData
+            author = pngData[typed: kCGImagePropertyPNGAuthor]
+            chromaticities = pngData[typed: kCGImagePropertyPNGChromaticities]
+            comment = pngData[typed: kCGImagePropertyPNGComment]
+            compressionFilter = pngData[typed: kCGImagePropertyPNGCompressionFilter]
+            copyright = pngData[typed: kCGImagePropertyPNGCopyright]
+            creationTime = pngData[typed: kCGImagePropertyPNGCreationTime, using: ImageSource.ImageProperties.dateFormatter]
+            loopCount = pngData[typed: kCGImagePropertyAPNGLoopCount]
+            clampedDelayTime = pngData[typed: kCGImagePropertyAPNGDelayTime]
+            unclampedDelayTime = pngData[typed: kCGImagePropertyAPNGUnclampedDelayTime]
+            description = pngData[typed: kCGImagePropertyPNGDescription]
+            disclaimer = pngData[typed: kCGImagePropertyPNGDisclaimer]
+            gamma = pngData[typed: kCGImagePropertyPNGGamma]
+            interlaceType = pngData[typed: kCGImagePropertyPNGInterlaceType]
+            modificationTime = pngData[typed: kCGImagePropertyPNGModificationTime, using: ImageSource.ImageProperties.dateFormatter]
+            pixelAspectRatio = pngData[typed: kCGImagePropertyPNGPixelsAspectRatio]
+            software = pngData[typed: kCGImagePropertyPNGSoftware]
+            source = pngData[typed: kCGImagePropertyPNGSource]
+            title = pngData[typed: kCGImagePropertyPNGTitle]
+            warning = pngData[typed: kCGImagePropertyPNGWarning]
+            xPixelsPerMeter = pngData[typed: kCGImagePropertyPNGXPixelsPerMeter]
+            yPixelsPerMeter = pngData[typed: kCGImagePropertyPNGYPixelsPerMeter]
+            sRGBIntent = pngData[typed: kCGImagePropertyPNGsRGBIntent]
+            framesInfo = (pngData[typed: kCGImagePropertyAPNGFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(frameInfoData:))
+            canvasPixelWidth = pngData[typed: kCGImagePropertyAPNGCanvasPixelWidth]
+            canvasPixelHeight = pngData[typed: kCGImagePropertyAPNGCanvasPixelHeight]
         }
     }
 }
