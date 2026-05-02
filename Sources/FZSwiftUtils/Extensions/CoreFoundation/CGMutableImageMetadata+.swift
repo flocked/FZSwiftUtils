@@ -55,7 +55,7 @@ public extension CGMutableImageMetadata {
      - Returns: `true` if the tag was successfully set; otherwise, `false`.
      */
     @discardableResult
-    func setTag(_ tag: CGImageMetadataTag, at path: String, parent: CGImageMetadataTag? = nil) -> Bool {
+    func setTag(_ tag: CGImageMetadataTag, for path: String, parent: CGImageMetadataTag? = nil) -> Bool {
         CGImageMetadataSetTagWithPath(self, parent, path as CFString, tag)
     }
     

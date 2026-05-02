@@ -31,7 +31,7 @@ extension CGImageMetadata {
      
      Use this function to create sidecar files with metadata for image formats that don’t support embedded XMP, or that you cannot edit due to other format restrictions. For example, use this function to create the data for proprietary RAW camera formats.
      */
-    public func createXMPData() -> Data? {
+    public func xmpData() -> Data? {
         CGImageMetadataCreateXMPData(self, nil) as? Data
     }
 
@@ -66,6 +66,11 @@ extension CGImageMetadata {
      */
     public func tag(forImageProperty propertyName: CFString, in dictionary: ImagePropertyDirectory) -> CGImageMetadataTag? {
         CGImageMetadataCopyTagMatchingImageProperty(self, dictionary.rawValue, propertyName)
+    }
+    
+    /// Creates a deep, mutable copy of the metadata tag.
+    public func mutableCopy() -> CGMutableImageMetadata {
+        CGImageMetadataCreateMutableCopy(self)!
     }
 
     /**
