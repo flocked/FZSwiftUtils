@@ -292,15 +292,39 @@ public class URLResources {
 
     #if os(macOS)
     /// The Finder tags of the resource.
-    public var finderTags: [String] {
+    public var finderTags: [FinderTag] {
+        get {
+            do {
+                let data = try url.extendedAttributes.getData(for: "com.apple.metadata:_kMDItemUserTags")
+                let strings = try PropertyListDecoder().decode([String].self, from: data)
+                return strings.compactMap({FinderTag(string: $0)})
+            } catch {
+                Swift.print(error)
+                return []
+            }
+        }
+        set {
+            do {
+                let data = try PropertyListSerialization.data(fromPropertyList: newValue.uniqued().map({"\($0.name)\n\($0.color.rawValue)"}), format: .binary, options: 0)
+                try url.extendedAttributes.setData(data, for: "com.apple.metadata:_kMDItemUserTags")
+            } catch {
+                Swift.print(error)
+            }
+        }
+    }
+    
+    /**
+     The Finder tags of the resource.
+     
+     To get or change the colors of the tags, use ``finderTags``.
+     */
+    public var finderTagNames: [String] {
         get { value(for: .tagNamesKey, \.tagNames) ?? [] }
         set {
             do {
                 try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
             } catch {
-                debugPrint(error)
-                let newTags = newValue.compactMap({ (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }).uniqued()
-                url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newTags.uniqued()
+                Swift.print(error)
             }
         }
     }
