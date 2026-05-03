@@ -10,7 +10,7 @@ import AppKit
 import FZSwiftUtils
 
 /// A representation of a Finder tag.
-public struct FinderTag: Hashable, CustomStringConvertible, Codable {
+public struct FinderTag: Hashable, CustomStringConvertible {
     /// The name of the Finder Tag.
     public var name: String
     /// he color of the Finder tag.

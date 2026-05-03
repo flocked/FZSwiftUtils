@@ -94,4 +94,11 @@ public extension CGMutableImageMetadata {
     }
 }
 
+extension CFType where Self == CGMutableImageMetadata {
+    /// Creates an empty, mutable image metdata opaque type.
+    public init() {
+        self = CGImageMetadataCreateMutable()
+    }
+}
+
 #endif

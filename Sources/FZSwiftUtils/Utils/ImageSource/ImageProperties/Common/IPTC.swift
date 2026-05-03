@@ -87,12 +87,6 @@ public extension ImageProperties {
         public let editStatus: String?
         /// The editorial update metadata.
         public let editorialUpdate: String?
-        /// The embedded encoded rights expression metadata.
-        public let embeddedEncodedRightsExpr: String?
-        /// The embedded encoded rights expression language identifier.
-        public let embeddedEncodedRightsExprLangID: String?
-        /// The embedded encoded rights expression type.
-        public let embeddedEncodedRightsExprType: String?
         /// The episode metadata.
         public let episodes: [Episode]?
         /// The event metadata.
@@ -112,7 +106,7 @@ public extension ImageProperties {
         /// The headline metadata.
         public let headline: String?
         /// The IPTC last edited metadata.
-        public let iPTCLastEdited: String?
+        public let iPTCLastEdited: Date?
         /// The orientation of the IPTC image.
         public let orientation: CGImagePropertyOrientation?
         /// The image type metadata.
@@ -320,9 +314,6 @@ public extension ImageProperties {
             }
             editStatus = iptcData[typed: kCGImagePropertyIPTCEditStatus]
             editorialUpdate = iptcData[typed: kCGImagePropertyIPTCEditorialUpdate]
-            embeddedEncodedRightsExpr = iptcData[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExpr]
-            embeddedEncodedRightsExprLangID = iptcData[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExprLangID]
-            embeddedEncodedRightsExprType = iptcData[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExprType]
             if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtEpisode] {
                episodes = values.map(Episode.init)
             } else {
@@ -341,7 +332,7 @@ public extension ImageProperties {
                 genres = nil
             }
             headline = iptcData[typed: kCGImagePropertyIPTCHeadline]
-            iPTCLastEdited = iptcData[typed: kCGImagePropertyIPTCExtIPTCLastEdited]
+            iPTCLastEdited = iptcData[typed: kCGImagePropertyIPTCExtIPTCLastEdited, using: ImageProperties.dateFormatter]
             
             orientation = iptcData[typed: kCGImagePropertyIPTCImageOrientation]
             imageType = iptcData[typed: kCGImagePropertyIPTCImageType]
@@ -353,7 +344,7 @@ public extension ImageProperties {
                 linkedExpressions = nil
             }
             if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtEmbdEncRightsExpr] {
-                embeddedExpressions = values.map(EncodedRightsExpression.init(rawValue:))
+                embeddedExpressions = values.map(EncodedRightsExpression.init(embedded:))
             } else {
                 embeddedExpressions = nil
             }
@@ -669,6 +660,12 @@ extension ImageProperties.IPTC {
             value = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExpr]
             languageID = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExprLangID]
             type = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExprType]
+        }
+        
+        init(embedded: [CFString: Any]) {
+            value = embedded[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExpr]
+            languageID = embedded[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExprLangID]
+            type = embedded[typed: kCGImagePropertyIPTCExtEmbeddedEncodedRightsExprType]
         }
     }
     
