@@ -326,7 +326,7 @@ public struct FileType: CaseIterable, CustomStringConvertible, Hashable, Codable
     )
 
     /// GIF ("gif")
-    public static let gif = Self(UTType(importedAs: "com.compuserve.gif"), "GIF",
+    public static let gif = Self(.gif, "GIF",
                                  ["gif"]
     )
 

@@ -412,6 +412,12 @@ public enum ObjCHeader {
         public let apiAvailable: APIAvailability?
         public var cases: [EnumCase] = []
 
+        public enum DeclarationStyle {
+            case nsEnum
+            case cfEnum
+            case typedefEnum
+        }
+        
         init(name: String, rawType: String?, declarationStyle: DeclarationStyle, apiDeprecated: APIDeprecation?, apiAvailable: APIAvailability?, cases: [EnumCase]) {
             self.name = name
             self.rawType = rawType
@@ -419,12 +425,6 @@ public enum ObjCHeader {
             self.apiDeprecated = apiDeprecated
             self.apiAvailable = apiAvailable
             self.cases = cases
-        }
-
-        public enum DeclarationStyle {
-            case nsEnum
-            case cfEnum
-            case typedefEnum
         }
 
         public func headerString(includeAPIAvailable: Bool = true, includeAPIDeprecated: Bool = true) -> String {
