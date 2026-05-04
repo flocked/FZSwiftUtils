@@ -122,6 +122,22 @@ public extension SynchronizedDictionary {
             self?.dictionary.removeAll(keepingCapacity: keepingCapacity)
         }
     }
+    
+    func removeAll(keepingCapacity: Bool = false, completion: @escaping ()->()) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            self.dictionary.removeAll(keepingCapacity: keepingCapacity)
+            DispatchQueue.main.async { completion() }
+        }
+    }
+    
+    func setValue(_ value: Value?, for key: Key, completion: (()->())? = nil) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            self.dictionary[key] = value
+            DispatchQueue.main.async { completion?() }
+        }
+    }
 
     func randomElement() -> Element? {
         queue.sync { self.dictionary.randomElement() }
