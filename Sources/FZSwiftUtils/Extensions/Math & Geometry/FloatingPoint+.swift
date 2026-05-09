@@ -209,6 +209,59 @@ public extension BinaryFloatingPoint where RawSignificand : FixedWidthInteger {
     }
 }
 
+public extension BinaryFloatingPoint {
+    /**
+     Returns a value clamped to a maximum proportional change from a previous value.
+
+     - Parameters:
+       - previousValue: The previous displayed or accepted value.
+       - maxChangeRatio: The maximum proportional change allowed.
+     - Returns: A value constrained to the allowed range.
+     */
+    func clampedJitter(relativeTo previousValue: Self?, maxChangeRatio: Self) -> Self {
+        guard let previousValue else { return self }
+        guard previousValue.isFinite, isFinite, maxChangeRatio >= 0 else {
+            return self
+        }
+        let lowerBound = previousValue * (1 - maxChangeRatio)
+        let upperBound = previousValue * (1 + maxChangeRatio)
+        return min(max(self, lowerBound), upperBound)
+    }
+
+    /**
+     Returns an exponentially smoothed value relative to a previous value.
+
+     - Parameters:
+       - previousValue: The previous displayed or accepted value.
+       - alpha: The smoothing factor. Lower values produce smoother output [`0...1`].
+     - Returns: An exponentially smoothed value.
+     */
+    func exponentiallySmoothed(relativeTo previousValue: Self?, alpha: Self) -> Self {
+        guard let previousValue else { return self }
+        guard previousValue.isFinite, isFinite, alpha >= 0, alpha <= 1 else {
+            return self
+        }
+        return alpha * self + (1 - alpha) * previousValue
+    }
+
+    /**
+     Returns a value using exponential smoothing followed by jitter clamping.
+
+     Exponential smoothing is applied first, then the result is constrained to a maximum proportional change from the previous value.
+
+     - Parameters:
+        - previousValue: The previous displayed or accepted value.
+        - alpha: The smoothing factor. Lower values produce smoother output [`0...1`].
+        - maxChangeRatio: The maximum proportional change allowed.
+     - Returns: A smoothed and clamped value.
+     */
+    func hybridSmoothed(relativeTo previousValue: Self?, alpha: Self, maxChangeRatio: Self) -> Self {
+        self
+            .exponentiallySmoothed(relativeTo: previousValue, alpha: alpha)
+            .clampedJitter(relativeTo: previousValue, maxChangeRatio: maxChangeRatio)
+    }
+}
+
 extension BinaryFloatingPoint where Self: LosslessStringConvertible {
     /**
      String representation of the value.
@@ -305,6 +358,78 @@ public extension Sequence where Element: BinaryFloatingPoint {
         map({ $0.scaledIntegral(for: screen) })
     }
     #endif
+}
+
+public extension Collection where Element: BinaryFloatingPoint {
+    /**
+     Returns a new array with values considered statistical outliers removed.
+
+     Values are compared against the median of the collection using relative ratios.
+     A value is retained only if its ratio to the median falls within the specified bounds.
+
+     The ratio is calculated as `value / median`.
+
+     Values are kept when `lowerRatio <= ratio <= upperRatio`.
+
+     If the collection contains fewer than `minimumSampleCount` elements, or if the median is less than or equal to zero, the original values are returned unchanged.
+
+     - Parameters:
+       - lowerRatio: The minimum allowed ratio relative to the median.
+       - upperRatio: The maximum allowed ratio relative to the median.
+       - minimumSampleCount: The minimum number of elements required before filtering is applied.
+     - Returns: An array containing only values within the allowed ratio range relative to the median.
+     */
+    func removingOutliers(lowerRatio: Element = 0.25, upperRatio: Element = 4.0, minimumSampleCount: Int = 4) -> [Element] {
+        guard count >= minimumSampleCount else { return Array(self) }
+
+        let sorted = sorted()
+        let median = sorted[sorted.count / 2]
+
+        guard median > 0 else { return Array(self) }
+
+        return filter { value in
+            let ratio = value / median
+            return ratio >= lowerRatio && ratio <= upperRatio
+        }
+    }
+
+    /**
+     Returns a score between `0` and `1` representing how consistent the values are.
+
+     Lower variance produces scores closer to `1`, while highly variable values produce scores closer to `0`.
+
+     The score is derived from the coefficient of variation, calculated as `standardDeviation / mean`.
+
+     The final score is calculated as `1 - (coefficientOfVariation * sensitivity)` and clamped to `0 ... 1`.
+
+     - Parameters:
+       - defaultScore: The score returned when there are fewer than two samples.
+       - sensitivity: A multiplier controlling how aggressively variance reduces the score.
+     - Returns: A value clamped to the range `0 ... 1`.
+     */
+    func stabilityScore(defaultScore: Element = 0.2, sensitivity: Element = 1) -> Element {
+        guard count >= 2 else {
+            return Swift.max(.zero, Swift.min(1, defaultScore))
+        }
+
+        let sampleCount = Element(count)
+
+        let mean = reduce(.zero, +) / sampleCount
+
+        guard mean > .zero else {
+            return .zero
+        }
+
+        let variance = reduce(.zero) { partialResult, value in
+            let difference = value - mean
+            return partialResult + difference * difference
+        } / sampleCount
+
+        let standardDeviation = variance.squareRoot()
+        let coefficientOfVariation = standardDeviation / mean
+        let score = 1 - (coefficientOfVariation * sensitivity)
+        return Swift.max(.zero, Swift.min(1, score))
+    }
 }
 
 #if os(macOS)

@@ -10,9 +10,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct HEIC {
+    struct HEIC: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
         /**
          The number of times that an animated image should play through its frames before stopping.
 
@@ -57,15 +57,15 @@ public extension ImageProperties {
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
         public let framesInfo: [FrameInfo]?
         
-        init(heicData: [CFString: Any]) {
-            rawValues = heicData
-            loopCount = heicData[typed: kCGImagePropertyHEICSLoopCount]
-            clampedDelayTime = heicData[typed: kCGImagePropertyHEICSDelayTime]
-            unclampedDelayTime = heicData[typed: kCGImagePropertyHEICSUnclampedDelayTime]
-            canvasPixelHeight = heicData[typed: kCGImagePropertyHEICSCanvasPixelHeight]
-            canvasPixelWidth = heicData[typed: kCGImagePropertyHEICSCanvasPixelWidth]
-            colorSpaceName = heicData[typed: kCGImagePropertyNamedColorSpace]
-            framesInfo = (heicData[typed: kCGImagePropertyHEICSFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(frameInfoData:))
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            loopCount = rawValue[typed: kCGImagePropertyHEICSLoopCount]
+            clampedDelayTime = rawValue[typed: kCGImagePropertyHEICSDelayTime]
+            unclampedDelayTime = rawValue[typed: kCGImagePropertyHEICSUnclampedDelayTime]
+            canvasPixelHeight = rawValue[typed: kCGImagePropertyHEICSCanvasPixelHeight]
+            canvasPixelWidth = rawValue[typed: kCGImagePropertyHEICSCanvasPixelWidth]
+            colorSpaceName = rawValue[typed: kCGImagePropertyNamedColorSpace]
+            framesInfo = (rawValue[typed: kCGImagePropertyHEICSFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(rawValue:))
         }
     }
 }

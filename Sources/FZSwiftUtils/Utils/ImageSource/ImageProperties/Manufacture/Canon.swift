@@ -10,9 +10,9 @@ import ImageIO
 
 public extension ImageProperties {
     /// Canon camera specific image properties.
-    struct Canon {
+    struct Canon: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
 
         /// The owner name recorded by the Canon camera.
         public let ownerName: String?
@@ -40,20 +40,20 @@ public extension ImageProperties {
         /// The white balance setting recorded by the Canon camera.
         public let whiteBalance: ImageProperties.EXIF.WhiteBalanceMode?
 
-        init(canonData: [CFString: Any]) {
-            rawValues = canonData
-            ownerName = canonData[typed: kCGImagePropertyMakerCanonOwnerName]
-            cameraSerialNumber = canonData[typed: kCGImagePropertyMakerCanonCameraSerialNumber]
-            imageSerialNumber = canonData[typed: kCGImagePropertyMakerCanonImageSerialNumber]
-            flashExposureComp = canonData[typed: kCGImagePropertyMakerCanonFlashExposureComp]
-            continuousDrive = canonData[typed: kCGImagePropertyMakerCanonContinuousDrive]
-            lensModel = canonData[typed: kCGImagePropertyMakerCanonLensModel]
-            firmware = canonData[typed: kCGImagePropertyMakerCanonFirmware]
-            aspectRatioInfo = canonData[typed: kCGImagePropertyMakerCanonAspectRatioInfo]
-            minAperture = canonData[typed: "MinAperture" as CFString]
-            maxAperture = canonData[typed: "MaxAperture" as CFString]
-            uniqueModelID = canonData[typed: "UniqueModelID" as CFString]
-            whiteBalance = canonData[typed: "WhiteBalanceIndex" as CFString]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            ownerName = rawValue[typed: kCGImagePropertyMakerCanonOwnerName]
+            cameraSerialNumber = rawValue[typed: kCGImagePropertyMakerCanonCameraSerialNumber]
+            imageSerialNumber = rawValue[typed: kCGImagePropertyMakerCanonImageSerialNumber]
+            flashExposureComp = rawValue[typed: kCGImagePropertyMakerCanonFlashExposureComp]
+            continuousDrive = rawValue[typed: kCGImagePropertyMakerCanonContinuousDrive]
+            lensModel = rawValue[typed: kCGImagePropertyMakerCanonLensModel]
+            firmware = rawValue[typed: kCGImagePropertyMakerCanonFirmware]
+            aspectRatioInfo = rawValue[typed: kCGImagePropertyMakerCanonAspectRatioInfo]
+            minAperture = rawValue[typed: "MinAperture" as CFString]
+            maxAperture = rawValue[typed: "MaxAperture" as CFString]
+            uniqueModelID = rawValue[typed: "UniqueModelID" as CFString]
+            whiteBalance = rawValue[typed: "WhiteBalanceIndex" as CFString]
         }
     }
 }

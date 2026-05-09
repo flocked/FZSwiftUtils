@@ -9,9 +9,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct TIFF {
+    struct TIFF: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
         /// The artist who created the image.
         public let artist: String?
         /// The compression scheme used on the image data.
@@ -68,35 +68,35 @@ public extension ImageProperties {
         /// The date and time that the image was created.
         public let timestamp: Date?
 
-        init(tiffData: [CFString: Any]) {
-            rawValues = tiffData
-            artist = tiffData[typed: kCGImagePropertyTIFFArtist]
-            compression = tiffData[typed: kCGImagePropertyTIFFCompression]
-            copyright = tiffData[typed: kCGImagePropertyTIFFCopyright]
-            documentName = tiffData[typed: kCGImagePropertyTIFFDocumentName]
-            hostComputer = tiffData[typed: kCGImagePropertyTIFFHostComputer]
-            imageDescription = tiffData[typed: kCGImagePropertyTIFFImageDescription]
-            cameraMaker = tiffData[typed: kCGImagePropertyTIFFMake]
-            cameraModel = tiffData[typed: kCGImagePropertyTIFFModel]
-            photometricInterpretation = tiffData[typed: kCGImagePropertyTIFFPhotometricInterpretation]
-            primaryChromaticities = tiffData[typed: kCGImagePropertyTIFFPrimaryChromaticities]
-            resolutionUnit = tiffData[typed: kCGImagePropertyTIFFResolutionUnit]
-            software = tiffData[typed: kCGImagePropertyTIFFSoftware]
-            tileLength = tiffData[typed: kCGImagePropertyTIFFTileLength]
-            tileWidth = tiffData[typed: kCGImagePropertyTIFFTileWidth]
-            transferFunction = tiffData[typed: kCGImagePropertyTIFFTransferFunction]
-            whitePoint = tiffData[typed: kCGImagePropertyTIFFWhitePoint]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            artist = rawValue[typed: kCGImagePropertyTIFFArtist]
+            compression = rawValue[typed: kCGImagePropertyTIFFCompression]
+            copyright = rawValue[typed: kCGImagePropertyTIFFCopyright]
+            documentName = rawValue[typed: kCGImagePropertyTIFFDocumentName]
+            hostComputer = rawValue[typed: kCGImagePropertyTIFFHostComputer]
+            imageDescription = rawValue[typed: kCGImagePropertyTIFFImageDescription]
+            cameraMaker = rawValue[typed: kCGImagePropertyTIFFMake]
+            cameraModel = rawValue[typed: kCGImagePropertyTIFFModel]
+            photometricInterpretation = rawValue[typed: kCGImagePropertyTIFFPhotometricInterpretation]
+            primaryChromaticities = rawValue[typed: kCGImagePropertyTIFFPrimaryChromaticities]
+            resolutionUnit = rawValue[typed: kCGImagePropertyTIFFResolutionUnit]
+            software = rawValue[typed: kCGImagePropertyTIFFSoftware]
+            tileLength = rawValue[typed: kCGImagePropertyTIFFTileLength]
+            tileWidth = rawValue[typed: kCGImagePropertyTIFFTileWidth]
+            transferFunction = rawValue[typed: kCGImagePropertyTIFFTransferFunction]
+            whitePoint = rawValue[typed: kCGImagePropertyTIFFWhitePoint]
             if #available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *) {
-                _xPosition = tiffData[typed: kCGImagePropertyTIFFXPosition]
-                _yPosition = tiffData[typed: kCGImagePropertyTIFFYPosition]
+                _xPosition = rawValue[typed: kCGImagePropertyTIFFXPosition]
+                _yPosition = rawValue[typed: kCGImagePropertyTIFFYPosition]
             } else {
                 _xPosition = nil
                 _yPosition = nil
             }
-            xResolution = tiffData[typed: kCGImagePropertyTIFFXResolution]
-            yResolution = tiffData[typed: kCGImagePropertyTIFFYResolution]
-            orientation = tiffData[typed: kCGImagePropertyTIFFOrientation]
-            timestamp = tiffData[typed: kCGImagePropertyTIFFDateTime, using: ImageProperties.dateFormatter]
+            xResolution = rawValue[typed: kCGImagePropertyTIFFXResolution]
+            yResolution = rawValue[typed: kCGImagePropertyTIFFYResolution]
+            orientation = rawValue[typed: kCGImagePropertyTIFFOrientation]
+            timestamp = rawValue[typed: kCGImagePropertyTIFFDateTime, using: ImageProperties.dateFormatter]
         }
     }
 }

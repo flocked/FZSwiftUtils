@@ -10,9 +10,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct JPEG {
+    struct JPEG: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
         /// The x pixel density.
         public let xDensity: CGFloat?
         /// The y pixel density.
@@ -36,14 +36,14 @@ public extension ImageProperties {
             case dotsPerCentimeter
         }
 
-        init(jpegData: [CFString: Any]) {
-            rawValues = jpegData
-            xDensity = jpegData[typed: kCGImagePropertyJFIFXDensity]
-            yDensity = jpegData[typed: kCGImagePropertyJFIFYDensity]
-            orientation = jpegData[typed: kCGImagePropertyOrientation]
-            version = jpegData[typed: kCGImagePropertyJFIFVersion]
-            densityUnit = jpegData[typed: kCGImagePropertyJFIFDensityUnit]
-            isProgressive = jpegData[typed: kCGImagePropertyJFIFIsProgressive]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            xDensity = rawValue[typed: kCGImagePropertyJFIFXDensity]
+            yDensity = rawValue[typed: kCGImagePropertyJFIFYDensity]
+            orientation = rawValue[typed: kCGImagePropertyOrientation]
+            version = rawValue[typed: kCGImagePropertyJFIFVersion]
+            densityUnit = rawValue[typed: kCGImagePropertyJFIFDensityUnit]
+            isProgressive = rawValue[typed: kCGImagePropertyJFIFIsProgressive]
         }
     }
 }

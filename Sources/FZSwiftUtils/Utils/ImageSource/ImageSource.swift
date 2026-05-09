@@ -46,7 +46,7 @@ public class ImageSource {
      */
     public func properties() -> ImageProperties? {
         guard let properties = CGImageSourceCopyProperties(cgImageSource, nil) as? [CFString: Any] else { return nil }
-        return ImageProperties(imageData: properties)
+        return ImageProperties(rawValue: properties)
     }
 
     /**
@@ -54,7 +54,7 @@ public class ImageSource {
      */
     public func properties(at index: Int) -> ImageProperties? {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [CFString: Any] else { return nil }
-        return ImageProperties(imageData: properties)
+        return ImageProperties(rawValue: properties)
     }
     
     /// Returns the metadata of the image at the specified index.

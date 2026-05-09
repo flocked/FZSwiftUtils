@@ -9,7 +9,7 @@ import Foundation
 import ImageIO
 
 extension ImageProperties {
-    public struct AuxiliaryData {
+    public struct AuxiliaryData: RawRepresentable {
         /// The type of the auxiliary data.
         public let type: AuxiliaryDataType
         /// The auxiliary data for the image.
@@ -29,7 +29,7 @@ extension ImageProperties {
             self.init(rawValue: rawValue)!
         }
         
-        init?(rawValue: [CFString: Any]) {
+        public init?(rawValue: [CFString: Any]) {
             guard let type: AuxiliaryDataType = rawValue[typed: kCGImagePropertyAuxiliaryDataType] else { return nil }
             self.rawValue = rawValue
             self.type = type

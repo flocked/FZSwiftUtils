@@ -11,9 +11,9 @@ import ImageIO
 
 public extension ImageProperties {
     /// Exchangeable Image File Format (EXIF) data.
-    struct EXIF {
+    struct EXIF: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
 
         //  MARK: - Camera Settings
         
@@ -80,7 +80,7 @@ public extension ImageProperties {
         public let exposureProgram: ExposureProgram?
         
         /// The selected exposure index.
-        public let exposureIndex: Int?
+        public let exposureIndex: Double?
         
         /// The exposure mode setting.
         public let exposureMode: ExposureMode?
@@ -286,95 +286,103 @@ public extension ImageProperties {
                 }
         }
 
-        init(exifData: [CFString: Any]) {
-            rawValues = exifData
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
 
-            deviceSettingDescription = exifData[typed: kCGImagePropertyExifDeviceSettingDescription]
-            fNumber = exifData[typed: kCGImagePropertyExifFNumber]
-            shutterSpeedValue = exifData[typed: kCGImagePropertyExifShutterSpeedValue]
-            apertureValue = exifData[typed: kCGImagePropertyExifApertureValue]
-            maxApertureValue = exifData[typed: kCGImagePropertyExifMaxApertureValue]
-            focalLength = exifData[typed: kCGImagePropertyExifFocalLength]
-            spectralSensitivity = exifData[typed: kCGImagePropertyExifSpectralSensitivity]
-            isoSpeedRatings = exifData[typed: kCGImagePropertyExifISOSpeedRatings]
-            subjectDistance = exifData[typed: kCGImagePropertyExifSubjectDistance]
-            meteringMode = exifData[typed: kCGImagePropertyExifMeteringMode]
-            subjectArea = SubjectArea(exifData[typed: kCGImagePropertyExifSubjectArea])
-            if let location: [CGFloat] = exifData[typed: kCGImagePropertyExifSubjectLocation], let x = location[safe: 0], let y = location[safe: 1] {
+            deviceSettingDescription = rawValue[typed: kCGImagePropertyExifDeviceSettingDescription]
+            fNumber = rawValue[typed: kCGImagePropertyExifFNumber]
+            shutterSpeedValue = rawValue[typed: kCGImagePropertyExifShutterSpeedValue]
+            apertureValue = rawValue[typed: kCGImagePropertyExifApertureValue]
+            maxApertureValue = rawValue[typed: kCGImagePropertyExifMaxApertureValue]
+            focalLength = rawValue[typed: kCGImagePropertyExifFocalLength]
+            spectralSensitivity = rawValue[typed: kCGImagePropertyExifSpectralSensitivity]
+            isoSpeedRatings = rawValue[typed: kCGImagePropertyExifISOSpeedRatings]
+            subjectDistance = rawValue[typed: kCGImagePropertyExifSubjectDistance]
+            meteringMode = rawValue[typed: kCGImagePropertyExifMeteringMode]
+            subjectArea = SubjectArea(rawValue[typed: kCGImagePropertyExifSubjectArea])
+            if let location: [CGFloat] = rawValue[typed: kCGImagePropertyExifSubjectLocation], let x = location[safe: 0], let y = location[safe: 1] {
                 subjectLocation = CGPoint(x: x, y: y)
             } else {
                 subjectLocation = nil
             }
-            sensingMethod = exifData[typed: kCGImagePropertyExifSensingMethod]
-            sceneType = exifData[typed: kCGImagePropertyExifSceneType]
-            digitalZoomRatio = exifData[typed: kCGImagePropertyExifDigitalZoomRatio]
-            focalLengthIn35mmFilm = exifData[typed: kCGImagePropertyExifFocalLenIn35mmFilm]
-            sceneCaptureType = exifData[typed: kCGImagePropertyExifSceneCaptureType]
-            subjectDistanceRange = exifData[typed: kCGImagePropertyExifSubjectDistRange]
+            sensingMethod = rawValue[typed: kCGImagePropertyExifSensingMethod]
+            sceneType = rawValue[typed: kCGImagePropertyExifSceneType]
+            digitalZoomRatio = rawValue[typed: kCGImagePropertyExifDigitalZoomRatio]
+            focalLengthIn35mmFilm = rawValue[typed: kCGImagePropertyExifFocalLenIn35mmFilm]
+            sceneCaptureType = rawValue[typed: kCGImagePropertyExifSceneCaptureType]
+            subjectDistanceRange = rawValue[typed: kCGImagePropertyExifSubjectDistRange]
             
-            exposureTime = exifData[typed: kCGImagePropertyExifExposureTime]
-            exposureProgram = exifData[typed: kCGImagePropertyExifExposureProgram]
-            exposureIndex = exifData[typed: kCGImagePropertyExifExposureIndex]
-            exposureMode = exifData[typed: kCGImagePropertyExifExposureMode]
-            isoSpeed = exifData[typed: kCGImagePropertyExifISOSpeed]
-            isoSpeedLatitudeYYY = exifData[typed: kCGImagePropertyExifISOSpeedLatitudeyyy]
-            isoSpeedLatitudeZZZ = exifData[typed: kCGImagePropertyExifISOSpeedLatitudezzz]
-            recommendedExposureIndex = exifData[typed: kCGImagePropertyExifRecommendedExposureIndex]
-            exposureBiasValue = exifData[typed: kCGImagePropertyExifExposureBiasValue]
-            sensitivityType = exifData[typed: kCGImagePropertyExifSensitivityType]
-            standardOutputSensitivity = exifData[typed: kCGImagePropertyExifStandardOutputSensitivity]
-            sourceExposureTimesOfCompositeImage = exifData[kCGImagePropertyExifSourceExposureTimesOfCompositeImage]
+            exposureTime = rawValue[typed: kCGImagePropertyExifExposureTime]
+            exposureProgram = rawValue[typed: kCGImagePropertyExifExposureProgram]
+            if let index: NSNumber = rawValue[typed: kCGImagePropertyExifExposureIndex] {
+                exposureIndex = index.doubleValue
+            } else {
+                exposureIndex = nil
+            }
+            exposureMode = rawValue[typed: kCGImagePropertyExifExposureMode]
+            isoSpeed = rawValue[typed: kCGImagePropertyExifISOSpeed]
+            isoSpeedLatitudeYYY = rawValue[typed: kCGImagePropertyExifISOSpeedLatitudeyyy]
+            isoSpeedLatitudeZZZ = rawValue[typed: kCGImagePropertyExifISOSpeedLatitudezzz]
+            recommendedExposureIndex = rawValue[typed: kCGImagePropertyExifRecommendedExposureIndex]
+            exposureBiasValue = rawValue[typed: kCGImagePropertyExifExposureBiasValue]
+            sensitivityType = rawValue[typed: kCGImagePropertyExifSensitivityType]
+            standardOutputSensitivity = rawValue[typed: kCGImagePropertyExifStandardOutputSensitivity]
+            sourceExposureTimesOfCompositeImage = rawValue[kCGImagePropertyExifSourceExposureTimesOfCompositeImage]
             
-            cfaPattern = exifData[kCGImagePropertyExifCFAPattern]
-            brightnessValue = exifData[typed: kCGImagePropertyExifBrightnessValue]
-            lightSource = exifData[typed: kCGImagePropertyExifLightSource]
-            flash = exifData[typed: kCGImagePropertyExifFlash]
-            spatialFrequencyResponse = exifData[typed: kCGImagePropertyExifSpatialFrequencyResponse]
-            contrast = exifData[typed: kCGImagePropertyExifContrast]
-            saturation = exifData[typed: kCGImagePropertyExifSaturation]
-            sharpness = exifData[typed: kCGImagePropertyExifSharpness]
-            gamma = exifData[typed: kCGImagePropertyExifGamma]
-            whiteBalance = exifData[typed: kCGImagePropertyExifWhiteBalance]
+            cfaPattern = rawValue[kCGImagePropertyExifCFAPattern]
+            brightnessValue = rawValue[typed: kCGImagePropertyExifBrightnessValue]
+            lightSource = rawValue[typed: kCGImagePropertyExifLightSource]
+            flash = rawValue[typed: kCGImagePropertyExifFlash]
+            spatialFrequencyResponse = rawValue[typed: kCGImagePropertyExifSpatialFrequencyResponse]
+            contrast = rawValue[typed: kCGImagePropertyExifContrast]
+            saturation = rawValue[typed: kCGImagePropertyExifSaturation]
+            sharpness = rawValue[typed: kCGImagePropertyExifSharpness]
+            gamma = rawValue[typed: kCGImagePropertyExifGamma]
+            whiteBalance = rawValue[typed: kCGImagePropertyExifWhiteBalance]
             
-            gainControl = exifData[typed: kCGImagePropertyExifGainControl]
-            imageUniqueId = exifData[typed: kCGImagePropertyExifImageUniqueID]
-            compressedBitsPerPixel = exifData[typed: kCGImagePropertyExifCompressedBitsPerPixel]
-            colorSpace = exifData[typed: kCGImagePropertyExifColorSpace]
-            pixelXDimension = exifData[typed: kCGImagePropertyExifPixelXDimension]
-            pixelYDimension = exifData[typed: kCGImagePropertyExifPixelYDimension]
-            relatedSoundFile = exifData[typed: kCGImagePropertyExifRelatedSoundFile]
-            focalPlaneXResolution = exifData[typed: kCGImagePropertyExifFocalPlaneXResolution]
-            focalPlaneYResolution = exifData[typed: kCGImagePropertyExifFocalPlaneYResolution]
-            focalPlaneResolutionUnit = exifData[typed: kCGImagePropertyExifFocalPlaneResolutionUnit]
-            customRendered = exifData[typed: kCGImagePropertyExifCustomRendered]
-            compositeImage = exifData[typed: kCGImagePropertyExifCompositeImage]
-            oecf = exifData[typed: kCGImagePropertyExifOECF]
-            componentsConfiguration = exifData[typed: kCGImagePropertyExifComponentsConfiguration]
-            sourceImageNumberOfCompositeImage = exifData[typed: kCGImagePropertyExifSourceImageNumberOfCompositeImage]
-            fileSource = exifData[typed: kCGImagePropertyExifFileSource]
+            gainControl = rawValue[typed: kCGImagePropertyExifGainControl]
+            imageUniqueId = rawValue[typed: kCGImagePropertyExifImageUniqueID]
+            compressedBitsPerPixel = rawValue[typed: kCGImagePropertyExifCompressedBitsPerPixel]
+            if let rawValue: NSNumber = rawValue[typed: kCGImagePropertyExifColorSpace] {
+                colorSpace = ColorSpace(rawValue: rawValue.intValue)
+            } else {
+                colorSpace = nil
+            }
+            pixelXDimension = rawValue[typed: kCGImagePropertyExifPixelXDimension]
+            pixelYDimension = rawValue[typed: kCGImagePropertyExifPixelYDimension]
+            relatedSoundFile = rawValue[typed: kCGImagePropertyExifRelatedSoundFile]
+            focalPlaneXResolution = rawValue[typed: kCGImagePropertyExifFocalPlaneXResolution]
+            focalPlaneYResolution = rawValue[typed: kCGImagePropertyExifFocalPlaneYResolution]
+            focalPlaneResolutionUnit = rawValue[typed: kCGImagePropertyExifFocalPlaneResolutionUnit]
+            customRendered = rawValue[typed: kCGImagePropertyExifCustomRendered]
+            compositeImage = rawValue[typed: kCGImagePropertyExifCompositeImage]
+            oecf = rawValue[typed: kCGImagePropertyExifOECF]
+            componentsConfiguration = rawValue[typed: kCGImagePropertyExifComponentsConfiguration]
+            sourceImageNumberOfCompositeImage = rawValue[typed: kCGImagePropertyExifSourceImageNumberOfCompositeImage]
+            fileSource = rawValue[typed: kCGImagePropertyExifFileSource]
             
-            dateTimeOriginal = exifData[typed: kCGImagePropertyExifDateTimeOriginal, using: ImageProperties.dateFormatter]
-            dateTimeDigitized = exifData[typed: kCGImagePropertyExifDateTimeDigitized, using: ImageProperties.dateFormatter]
-            subsecTime = exifData[typed: kCGImagePropertyExifSubsecTime]
-            subsecTimeOriginal = exifData[typed: kCGImagePropertyExifSubsecTimeOriginal]
-            subsecTimeDigitized = exifData[typed: kCGImagePropertyExifSubsecTimeDigitized]
-            offsetTime = exifData[typed: kCGImagePropertyExifOffsetTime]
-            offsetTimeOriginal = exifData[typed: kCGImagePropertyExifOffsetTimeOriginal]
-            offsetTimeDigitized = exifData[typed: kCGImagePropertyExifOffsetTimeDigitized]
+            dateTimeOriginal = rawValue[typed: kCGImagePropertyExifDateTimeOriginal, using: ImageProperties.dateFormatter]
+            dateTimeDigitized = rawValue[typed: kCGImagePropertyExifDateTimeDigitized, using: ImageProperties.dateFormatter]
+            subsecTime = rawValue[typed: kCGImagePropertyExifSubsecTime]
+            subsecTimeOriginal = rawValue[typed: kCGImagePropertyExifSubsecTimeOriginal]
+            subsecTimeDigitized = rawValue[typed: kCGImagePropertyExifSubsecTimeDigitized]
+            offsetTime = rawValue[typed: kCGImagePropertyExifOffsetTime]
+            offsetTimeOriginal = rawValue[typed: kCGImagePropertyExifOffsetTimeOriginal]
+            offsetTimeDigitized = rawValue[typed: kCGImagePropertyExifOffsetTimeDigitized]
             
-            lensSpecification = exifData[typed: kCGImagePropertyExifLensSpecification]
-            lensMake = exifData[typed: kCGImagePropertyExifLensMake]
-            lensModel = exifData[typed: kCGImagePropertyExifLensModel]
-            lensSerialNumber = exifData[typed: kCGImagePropertyExifLensSerialNumber]
+            lensSpecification = rawValue[typed: kCGImagePropertyExifLensSpecification]
+            lensMake = rawValue[typed: kCGImagePropertyExifLensMake]
+            lensModel = rawValue[typed: kCGImagePropertyExifLensModel]
+            lensSerialNumber = rawValue[typed: kCGImagePropertyExifLensSerialNumber]
             
-            makerNote = exifData[typed: kCGImagePropertyExifMakerNote]
-            userComment = exifData[typed: kCGImagePropertyExifUserComment]
-            cameraOwnerName = exifData[typed: kCGImagePropertyExifCameraOwnerName]
-            bodySerialNumber = exifData[typed: kCGImagePropertyExifBodySerialNumber]
+            makerNote = rawValue[typed: kCGImagePropertyExifMakerNote]
+            userComment = rawValue[typed: kCGImagePropertyExifUserComment]
+            cameraOwnerName = rawValue[typed: kCGImagePropertyExifCameraOwnerName]
+            bodySerialNumber = rawValue[typed: kCGImagePropertyExifBodySerialNumber]
             
-            flashpixVersion = exifData[typed: kCGImagePropertyExifFlashPixVersion]
-            flashEnergy = exifData[typed: kCGImagePropertyExifFlashEnergy]
-            exifVersion = exifData[typed: kCGImagePropertyExifVersion]
+            flashpixVersion = rawValue[typed: kCGImagePropertyExifFlashPixVersion]
+            flashEnergy = rawValue[typed: kCGImagePropertyExifFlashEnergy]
+            exifVersion = rawValue[typed: kCGImagePropertyExifVersion]
         }
     }
 }
@@ -484,7 +492,7 @@ public extension ImageProperties.EXIF {
     }
     
     /// Represents EXIF flash metadata.
-    public struct Flash: RawRepresentable, CustomStringConvertible {
+     struct Flash: RawRepresentable, CustomStringConvertible {
         public let rawValue: Int
         
         /// The flash flags stored in the EXIF value.

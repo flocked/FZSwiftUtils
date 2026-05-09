@@ -9,9 +9,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct GIF {
+    struct GIF: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
 
         /**
          The number of times that an animated image should play through its frames before stopping.
@@ -19,18 +19,21 @@ public extension ImageProperties {
          A value of `0` means the animated image repeats forever.
          */
         public let loopCount: Int?
+        
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
         public let clampedDelayTime: Double?
+        
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
         public let unclampedDelayTime: Double?
+        
         /// A Boolean value indicating whether the GIF has a global color map.
         public let hasGlobalColorMap: Bool?
 
@@ -57,16 +60,16 @@ public extension ImageProperties {
         /// The color map of the image.
         public let colorMap: Data?
 
-        init(gifData: [CFString: Any]) {
-            rawValues = gifData
-            canvasPixelWidth = gifData[typed: kCGImagePropertyGIFCanvasPixelWidth]
-            canvasPixelHeight = gifData[typed: kCGImagePropertyGIFCanvasPixelHeight]
-            loopCount = gifData[typed: kCGImagePropertyGIFLoopCount]
-            clampedDelayTime = gifData[typed: kCGImagePropertyGIFDelayTime]
-            unclampedDelayTime = gifData[typed: kCGImagePropertyGIFUnclampedDelayTime]
-            hasGlobalColorMap = gifData[typed: kCGImagePropertyGIFHasGlobalColorMap]
-            framesInfo = (gifData[typed: kCGImagePropertyGIFFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(frameInfoData:))
-            colorMap = gifData[typed: kCGImagePropertyGIFImageColorMap]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            canvasPixelWidth = rawValue[typed: kCGImagePropertyGIFCanvasPixelWidth]
+            canvasPixelHeight = rawValue[typed: kCGImagePropertyGIFCanvasPixelHeight]
+            loopCount = rawValue[typed: kCGImagePropertyGIFLoopCount]
+            clampedDelayTime = rawValue[typed: kCGImagePropertyGIFDelayTime]
+            unclampedDelayTime = rawValue[typed: kCGImagePropertyGIFUnclampedDelayTime]
+            hasGlobalColorMap = rawValue[typed: kCGImagePropertyGIFHasGlobalColorMap]
+            framesInfo = (rawValue[typed: kCGImagePropertyGIFFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(rawValue:))
+            colorMap = rawValue[typed: kCGImagePropertyGIFImageColorMap]
         }
     }
 }

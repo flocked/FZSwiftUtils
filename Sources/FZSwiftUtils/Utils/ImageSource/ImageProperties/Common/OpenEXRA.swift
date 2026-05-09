@@ -9,14 +9,14 @@ import Foundation
 import ImageIO
 
 extension ImageProperties {
-    public struct OpenEXRA {
+    public struct OpenEXRA: RawRepresentable {
         /// The raw values.
         public let rawValue: [CFString: Any]
         
         /// The aspect ratio of the image.
         public let aspectRatio: Double?
         
-        init(rawValue: [CFString: Any]) {
+        public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue
             self.aspectRatio = rawValue[typed: kCGImagePropertyOpenEXRAspectRatio]
         }

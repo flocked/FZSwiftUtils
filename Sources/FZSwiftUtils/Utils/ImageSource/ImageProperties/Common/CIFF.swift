@@ -10,9 +10,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct CIFF {
+    struct CIFF: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
 
         /// The camera serial number.
         public let cameraSerialNumber: String?
@@ -57,29 +57,29 @@ public extension ImageProperties {
         /// The white balance index.
         public let whiteBalanceIndex: Double?
 
-        init(ciffData: [CFString: Any]) {
-            rawValues = ciffData
-            cameraSerialNumber = ciffData[typed: kCGImagePropertyCIFFCameraSerialNumber]
-            continuousDrive = ciffData[typed: kCGImagePropertyCIFFContinuousDrive]
-            description = ciffData[typed: kCGImagePropertyCIFFDescription]
-            firmware = ciffData[typed: kCGImagePropertyCIFFFirmware]
-            flashExposureComp = ciffData[typed: kCGImagePropertyCIFFFlashExposureComp]
-            focusMode = ciffData[typed: kCGImagePropertyCIFFFocusMode]
-            imageFileName = ciffData[typed: kCGImagePropertyCIFFImageFileName]
-            imageName = ciffData[typed: kCGImagePropertyCIFFImageName]
-            imageSerialNumber = ciffData[typed: kCGImagePropertyCIFFImageSerialNumber]
-            lensMaxMM = ciffData[typed: kCGImagePropertyCIFFLensMaxMM]
-            lensMinMM = ciffData[typed: kCGImagePropertyCIFFLensMinMM]
-            lensModel = ciffData[typed: kCGImagePropertyCIFFLensModel]
-            measuredEV = ciffData[typed: kCGImagePropertyCIFFMeasuredEV]
-            meteringMode = ciffData[typed: kCGImagePropertyCIFFMeteringMode]
-            ownerName = ciffData[typed: kCGImagePropertyCIFFOwnerName]
-            recordID = ciffData[typed: kCGImagePropertyCIFFRecordID]
-            releaseMethod = ciffData[typed: kCGImagePropertyCIFFReleaseMethod]
-            releaseTiming = ciffData[typed: kCGImagePropertyCIFFReleaseTiming]
-            selfTimingTime = ciffData[typed: kCGImagePropertyCIFFSelfTimingTime]
-            shootingMode = ciffData[typed: kCGImagePropertyCIFFShootingMode]
-            whiteBalanceIndex = ciffData[typed: kCGImagePropertyCIFFWhiteBalanceIndex]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            cameraSerialNumber = rawValue[typed: kCGImagePropertyCIFFCameraSerialNumber]
+            continuousDrive = rawValue[typed: kCGImagePropertyCIFFContinuousDrive]
+            description = rawValue[typed: kCGImagePropertyCIFFDescription]
+            firmware = rawValue[typed: kCGImagePropertyCIFFFirmware]
+            flashExposureComp = rawValue[typed: kCGImagePropertyCIFFFlashExposureComp]
+            focusMode = rawValue[typed: kCGImagePropertyCIFFFocusMode]
+            imageFileName = rawValue[typed: kCGImagePropertyCIFFImageFileName]
+            imageName = rawValue[typed: kCGImagePropertyCIFFImageName]
+            imageSerialNumber = rawValue[typed: kCGImagePropertyCIFFImageSerialNumber]
+            lensMaxMM = rawValue[typed: kCGImagePropertyCIFFLensMaxMM]
+            lensMinMM = rawValue[typed: kCGImagePropertyCIFFLensMinMM]
+            lensModel = rawValue[typed: kCGImagePropertyCIFFLensModel]
+            measuredEV = rawValue[typed: kCGImagePropertyCIFFMeasuredEV]
+            meteringMode = rawValue[typed: kCGImagePropertyCIFFMeteringMode]
+            ownerName = rawValue[typed: kCGImagePropertyCIFFOwnerName]
+            recordID = rawValue[typed: kCGImagePropertyCIFFRecordID]
+            releaseMethod = rawValue[typed: kCGImagePropertyCIFFReleaseMethod]
+            releaseTiming = rawValue[typed: kCGImagePropertyCIFFReleaseTiming]
+            selfTimingTime = rawValue[typed: kCGImagePropertyCIFFSelfTimingTime]
+            shootingMode = rawValue[typed: kCGImagePropertyCIFFShootingMode]
+            whiteBalanceIndex = rawValue[typed: kCGImagePropertyCIFFWhiteBalanceIndex]
         }
     }
 }

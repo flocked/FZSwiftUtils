@@ -10,9 +10,9 @@ import ImageIO
 
 public extension ImageProperties {
     /// Nikon camera specific image properties.
-    struct Nikon {
+    struct Nikon: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
 
         /// The ISO setting values recorded by the Nikon camera.
         public let iSOSetting: [Int]?
@@ -91,26 +91,26 @@ public extension ImageProperties {
             public init(rawValue: Int32) { self.rawValue = rawValue }
         }
 
-        init(nikonData: [CFString: Any]) {
-            rawValues = nikonData
-            iSOSetting = nikonData[typed: kCGImagePropertyMakerNikonISOSetting]
-            colorMode = nikonData[typed: kCGImagePropertyMakerNikonColorMode]
-            quality = nikonData[typed: kCGImagePropertyMakerNikonQuality]
-            whiteBalanceMode = nikonData[typed: kCGImagePropertyMakerNikonWhiteBalanceMode]
-            sharpenMode = nikonData[typed: kCGImagePropertyMakerNikonSharpenMode]
-            focusMode = nikonData[typed: kCGImagePropertyMakerNikonFocusMode]
-            flashSetting = nikonData[typed: kCGImagePropertyMakerNikonFlashSetting]
-            iSOSelection = nikonData[typed: kCGImagePropertyMakerNikonISOSelection]
-            flashExposureComp = nikonData[typed: kCGImagePropertyMakerNikonFlashExposureComp]
-            imageAdjustment = nikonData[typed: kCGImagePropertyMakerNikonImageAdjustment]
-            lensAdapter = nikonData[typed: kCGImagePropertyMakerNikonLensAdapter]
-            lensType = nikonData[typed: kCGImagePropertyMakerNikonLensType]
-            lensInfo = nikonData[typed: kCGImagePropertyMakerNikonLensInfo]
-            focusDistance = nikonData[typed: kCGImagePropertyMakerNikonFocusDistance]
-            digitalZoom = nikonData[typed: kCGImagePropertyMakerNikonDigitalZoom]
-            shootingMode = nikonData[typed: kCGImagePropertyMakerNikonShootingMode]
-            cameraSerialNumber = nikonData[typed: kCGImagePropertyMakerNikonCameraSerialNumber]
-            shutterCount = nikonData[typed: kCGImagePropertyMakerNikonShutterCount]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            iSOSetting = rawValue[typed: kCGImagePropertyMakerNikonISOSetting]
+            colorMode = rawValue[typed: kCGImagePropertyMakerNikonColorMode]
+            quality = rawValue[typed: kCGImagePropertyMakerNikonQuality]
+            whiteBalanceMode = rawValue[typed: kCGImagePropertyMakerNikonWhiteBalanceMode]
+            sharpenMode = rawValue[typed: kCGImagePropertyMakerNikonSharpenMode]
+            focusMode = rawValue[typed: kCGImagePropertyMakerNikonFocusMode]
+            flashSetting = rawValue[typed: kCGImagePropertyMakerNikonFlashSetting]
+            iSOSelection = rawValue[typed: kCGImagePropertyMakerNikonISOSelection]
+            flashExposureComp = rawValue[typed: kCGImagePropertyMakerNikonFlashExposureComp]
+            imageAdjustment = rawValue[typed: kCGImagePropertyMakerNikonImageAdjustment]
+            lensAdapter = rawValue[typed: kCGImagePropertyMakerNikonLensAdapter]
+            lensType = rawValue[typed: kCGImagePropertyMakerNikonLensType]
+            lensInfo = rawValue[typed: kCGImagePropertyMakerNikonLensInfo]
+            focusDistance = rawValue[typed: kCGImagePropertyMakerNikonFocusDistance]
+            digitalZoom = rawValue[typed: kCGImagePropertyMakerNikonDigitalZoom]
+            shootingMode = rawValue[typed: kCGImagePropertyMakerNikonShootingMode]
+            cameraSerialNumber = rawValue[typed: kCGImagePropertyMakerNikonCameraSerialNumber]
+            shutterCount = rawValue[typed: kCGImagePropertyMakerNikonShutterCount]
         }
     }
 }

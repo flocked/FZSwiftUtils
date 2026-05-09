@@ -9,7 +9,7 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct IPTC {
+    struct IPTC: RawRepresentable {
         /// The raw values.
         public let rawValue: [CFString: Any]
 
@@ -243,238 +243,240 @@ public extension ImageProperties {
         /// The controlled vocabulary terms describing what the image is about.
         public let aboutTerms: [CVTermDetails]?
         
-        init(iptcData: [CFString: Any]) {
-            rawValue = iptcData
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
             
-            creatorContactInfo = iptcData[typed: kCGImagePropertyIPTCCreatorContactInfo].map(CreatorContactInfo.init)
+            creatorContactInfo = rawValue[typed: kCGImagePropertyIPTCCreatorContactInfo].map(CreatorContactInfo.init)
                         
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtAboutCvTerm] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtAboutCvTerm] {
                 aboutTerms = values.map({CVTermDetails(rawValue: $0, type: "About")})
             } else {
                 aboutTerms = nil
             }
             
-            actionAdvised = iptcData[typed: kCGImagePropertyIPTCActionAdvised]
-            additionalModelInfo = iptcData[typed: kCGImagePropertyIPTCExtAddlModelInfo]
-            if let _artworks: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtArtworkOrObject] {
+            actionAdvised = rawValue[typed: kCGImagePropertyIPTCActionAdvised]
+            additionalModelInfo = rawValue[typed: kCGImagePropertyIPTCExtAddlModelInfo]
+            if let _artworks: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtArtworkOrObject] {
                 artworks = _artworks.map(Artwork.init)
             } else {
                 artworks = []
             }
           
-            audioBitrate = iptcData[typed: kCGImagePropertyIPTCExtAudioBitrate]
-            audioBitrateMode = iptcData[typed: kCGImagePropertyIPTCExtAudioBitrateMode]
-            audioChannelCount = iptcData[typed: kCGImagePropertyIPTCExtAudioChannelCount]
-            byline = iptcData[typed: kCGImagePropertyIPTCByline]
-            bylineTitle = iptcData[typed: kCGImagePropertyIPTCBylineTitle]
-            captionAbstract = iptcData[typed: kCGImagePropertyIPTCCaptionAbstract]
-            category = iptcData[typed: kCGImagePropertyIPTCCategory]
-            circaDateCreated = iptcData[typed: kCGImagePropertyIPTCExtCircaDateCreated]
-            city = iptcData[typed: kCGImagePropertyIPTCCity]
-            contact = iptcData[typed: kCGImagePropertyIPTCContact]
-            if let formats: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtContainerFormat] {
+            audioBitrate = rawValue[typed: kCGImagePropertyIPTCExtAudioBitrate]
+            audioBitrateMode = rawValue[typed: kCGImagePropertyIPTCExtAudioBitrateMode]
+            audioChannelCount = rawValue[typed: kCGImagePropertyIPTCExtAudioChannelCount]
+            byline = rawValue[typed: kCGImagePropertyIPTCByline]
+            bylineTitle = rawValue[typed: kCGImagePropertyIPTCBylineTitle]
+            captionAbstract = rawValue[typed: kCGImagePropertyIPTCCaptionAbstract]
+            category = rawValue[typed: kCGImagePropertyIPTCCategory]
+            circaDateCreated = rawValue[typed: kCGImagePropertyIPTCExtCircaDateCreated]
+            city = rawValue[typed: kCGImagePropertyIPTCCity]
+            contact = rawValue[typed: kCGImagePropertyIPTCContact]
+            if let formats: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtContainerFormat] {
                containerFormats = formats.map(ContainerFormat.init)
             } else {
                 containerFormats = nil
             }
-            contentLocationCode = iptcData[typed: kCGImagePropertyIPTCContentLocationCode]
-            contentLocationName = iptcData[typed: kCGImagePropertyIPTCContentLocationName]
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtContributor] {
+            contentLocationCode = rawValue[typed: kCGImagePropertyIPTCContentLocationCode]
+            contentLocationName = rawValue[typed: kCGImagePropertyIPTCContentLocationName]
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtContributor] {
                 contributors = values.map(Contributor.init)
             } else {
                 contributors = nil
             }
-            controlledVocabularyTerm = iptcData[kCGImagePropertyIPTCExtControlledVocabularyTerm]
-            copyrightNotice = iptcData[typed: kCGImagePropertyIPTCCopyrightNotice]
-            copyrightYear = iptcData[typed: kCGImagePropertyIPTCExtCopyrightYear]
-            countryPrimaryLocationCode = iptcData[typed: kCGImagePropertyIPTCCountryPrimaryLocationCode]
-            countryPrimaryLocationName = iptcData[typed: kCGImagePropertyIPTCCountryPrimaryLocationName]
-            if let value: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtCreator] {
+            controlledVocabularyTerm = rawValue[kCGImagePropertyIPTCExtControlledVocabularyTerm]
+            copyrightNotice = rawValue[typed: kCGImagePropertyIPTCCopyrightNotice]
+            copyrightYear = rawValue[typed: kCGImagePropertyIPTCExtCopyrightYear]
+            countryPrimaryLocationCode = rawValue[typed: kCGImagePropertyIPTCCountryPrimaryLocationCode]
+            countryPrimaryLocationName = rawValue[typed: kCGImagePropertyIPTCCountryPrimaryLocationName]
+            if let value: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtCreator] {
                creators = value.map(Creator.init)
             } else {
                 creators = nil
             }
-            credit = iptcData[typed: kCGImagePropertyIPTCCredit]
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtDataOnScreen] {
+            credit = rawValue[typed: kCGImagePropertyIPTCCredit]
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreen] {
                dataOnScreen = values.map(TextRegion.init)
             } else {
                 dataOnScreen = nil
             }
-            dateCreated = iptcData[typed: kCGImagePropertyIPTCDateCreated, using: ImageProperties.dateFormatter]
-            digitalCreationDate = iptcData[typed: kCGImagePropertyIPTCDigitalCreationDate, using: ImageProperties.dateFormatter]
-            digitalCreationTime = iptcData[typed: kCGImagePropertyIPTCDigitalCreationTime]
-            digitalImageGUID = iptcData[typed: kCGImagePropertyIPTCExtDigitalImageGUID]
-            digitalSourceFileType = iptcData[typed: kCGImagePropertyIPTCExtDigitalSourceFileType]
-            digitalSourceType = iptcData[typed: kCGImagePropertyIPTCExtDigitalSourceType]
-            dopesheet = iptcData[typed: kCGImagePropertyIPTCExtDopesheet]
-            if let links: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtDopesheetLink] {
+            dateCreated = rawValue[typed: kCGImagePropertyIPTCDateCreated, using: ImageProperties.dateFormatter]
+            digitalCreationDate = rawValue[typed: kCGImagePropertyIPTCDigitalCreationDate, using: ImageProperties.dateFormatter]
+            digitalCreationTime = rawValue[typed: kCGImagePropertyIPTCDigitalCreationTime]
+            digitalImageGUID = rawValue[typed: kCGImagePropertyIPTCExtDigitalImageGUID]
+            digitalSourceFileType = rawValue[typed: kCGImagePropertyIPTCExtDigitalSourceFileType]
+            digitalSourceType = rawValue[typed: kCGImagePropertyIPTCExtDigitalSourceType]
+            dopesheet = rawValue[typed: kCGImagePropertyIPTCExtDopesheet]
+            if let links: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtDopesheetLink] {
                dopesheetLinks = links.map(DopesheetLink.init)
             } else {
                 dopesheetLinks = nil
             }
-            editStatus = iptcData[typed: kCGImagePropertyIPTCEditStatus]
-            editorialUpdate = iptcData[typed: kCGImagePropertyIPTCEditorialUpdate]
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtEpisode] {
+            editStatus = rawValue[typed: kCGImagePropertyIPTCEditStatus]
+            editorialUpdate = rawValue[typed: kCGImagePropertyIPTCEditorialUpdate]
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtEpisode] {
                episodes = values.map(Episode.init)
             } else {
                 episodes = nil
             }
-            event = iptcData[typed: kCGImagePropertyIPTCExtEvent]
-            expirationDate = iptcData[typed: kCGImagePropertyIPTCExpirationDate, using: ImageProperties.dateFormatter]
-            expirationTime = iptcData[typed: kCGImagePropertyIPTCExpirationTime]
-            externalMetadataLink = iptcData[typed: kCGImagePropertyIPTCExtExternalMetadataLink]
-            feedIdentifier = iptcData[typed: kCGImagePropertyIPTCExtFeedIdentifier]
-            fixtureIdentifier = iptcData[typed: kCGImagePropertyIPTCFixtureIdentifier]
+            event = rawValue[typed: kCGImagePropertyIPTCExtEvent]
+            expirationDate = rawValue[typed: kCGImagePropertyIPTCExpirationDate, using: ImageProperties.dateFormatter]
+            expirationTime = rawValue[typed: kCGImagePropertyIPTCExpirationTime]
+            externalMetadataLink = rawValue[typed: kCGImagePropertyIPTCExtExternalMetadataLink]
+            feedIdentifier = rawValue[typed: kCGImagePropertyIPTCExtFeedIdentifier]
+            fixtureIdentifier = rawValue[typed: kCGImagePropertyIPTCFixtureIdentifier]
 
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtGenre] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtGenre] {
                 genres = values.map({CVTermDetails(rawValue: $0, type: "Genre")})
             } else {
                 genres = nil
             }
-            headline = iptcData[typed: kCGImagePropertyIPTCHeadline]
-            iPTCLastEdited = iptcData[typed: kCGImagePropertyIPTCExtIPTCLastEdited, using: ImageProperties.dateFormatter]
+            headline = rawValue[typed: kCGImagePropertyIPTCHeadline]
+            iPTCLastEdited = rawValue[typed: kCGImagePropertyIPTCExtIPTCLastEdited, using: ImageProperties.dateFormatter]
             
-            orientation = iptcData[typed: kCGImagePropertyIPTCImageOrientation]
-            imageType = iptcData[typed: kCGImagePropertyIPTCImageType]
-            keywords = iptcData[typed: kCGImagePropertyIPTCKeywords]
-            languageIdentifier = iptcData[typed: kCGImagePropertyIPTCLanguageIdentifier]
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtLinkedEncRightsExpr] {
+            orientation = rawValue[typed: kCGImagePropertyIPTCImageOrientation]
+            imageType = rawValue[typed: kCGImagePropertyIPTCImageType]
+            keywords = rawValue[typed: kCGImagePropertyIPTCKeywords]
+            languageIdentifier = rawValue[typed: kCGImagePropertyIPTCLanguageIdentifier]
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncRightsExpr] {
                linkedExpressions = values.map(EncodedRightsExpression.init(rawValue:))
             } else {
                 linkedExpressions = nil
             }
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtEmbdEncRightsExpr] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtEmbdEncRightsExpr] {
                 embeddedExpressions = values.map(EncodedRightsExpression.init(embedded:))
             } else {
                 embeddedExpressions = nil
             }
                         
-            if let locations: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtLocationCreated] {
+            if let locations: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtLocationCreated] {
                 locationsCreated = locations.map({Location(rawValue: $0)})
             } else {
                 locationsCreated = nil
             }
-            if let locations: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtLocationShown] {
+            if let locations: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtLocationShown] {
                locationsShown = locations.map({Location(rawValue: $0)})
             } else {
                 locationsShown = nil
             }
 
-            maxAvailHeight = iptcData[typed: kCGImagePropertyIPTCExtMaxAvailHeight]
-            maxAvailWidth = iptcData[typed: kCGImagePropertyIPTCExtMaxAvailWidth]
-            modelAge = iptcData[typed: kCGImagePropertyIPTCExtModelAge]
-            objectAttributeReference = iptcData[typed: kCGImagePropertyIPTCObjectAttributeReference]
-            objectCycle = iptcData[typed: kCGImagePropertyIPTCObjectCycle]
-            objectName = iptcData[typed: kCGImagePropertyIPTCObjectName]
-            objectTypeReference = iptcData[typed: kCGImagePropertyIPTCObjectTypeReference]
+            maxAvailHeight = rawValue[typed: kCGImagePropertyIPTCExtMaxAvailHeight]
+            maxAvailWidth = rawValue[typed: kCGImagePropertyIPTCExtMaxAvailWidth]
+            modelAge = rawValue[typed: kCGImagePropertyIPTCExtModelAge]
+            objectAttributeReference = rawValue[typed: kCGImagePropertyIPTCObjectAttributeReference]
+            objectCycle = rawValue[typed: kCGImagePropertyIPTCObjectCycle]
+            objectName = rawValue[typed: kCGImagePropertyIPTCObjectName]
+            objectTypeReference = rawValue[typed: kCGImagePropertyIPTCObjectTypeReference]
             
-            organisationInImageCode = iptcData[typed: kCGImagePropertyIPTCExtOrganisationInImageCode]
-            organisationInImageName = iptcData[typed: kCGImagePropertyIPTCExtOrganisationInImageName]
+            organisationInImageCode = rawValue[typed: kCGImagePropertyIPTCExtOrganisationInImageCode]
+            organisationInImageName = rawValue[typed: kCGImagePropertyIPTCExtOrganisationInImageName]
             
-            originalTransmissionReference = iptcData[typed: kCGImagePropertyIPTCOriginalTransmissionReference]
-            originatingProgram = iptcData[typed: kCGImagePropertyIPTCOriginatingProgram]
+            originalTransmissionReference = rawValue[typed: kCGImagePropertyIPTCOriginalTransmissionReference]
+            originatingProgram = rawValue[typed: kCGImagePropertyIPTCOriginatingProgram]
             
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtPersonHeard] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtPersonHeard] {
                personHeard = values.map(PersonHeard.init)
             } else {
                 personHeard = nil
             }
             
-            personsInImage = iptcData[typed: kCGImagePropertyIPTCExtPersonInImage]
-            if let personDetails: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtPersonInImageWDetails] {
+            personsInImage = rawValue[typed: kCGImagePropertyIPTCExtPersonInImage]
+            if let personDetails: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtPersonInImageWDetails] {
               personsInImageDetails = personDetails.map(PersonInImage.init)
             } else {
                 personsInImageDetails = nil
             }
            
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtProductInImage] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtProductInImage] {
                productsInImage = values.map(ProductInImage.init)
             } else {
                 productsInImage = nil
             }
 
-            programVersion = iptcData[typed: kCGImagePropertyIPTCProgramVersion]
-            provinceOrState = iptcData[typed: kCGImagePropertyIPTCProvinceState]
-            if let events: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtPublicationEvent] {
+            programVersion = rawValue[typed: kCGImagePropertyIPTCProgramVersion]
+            provinceOrState = rawValue[typed: kCGImagePropertyIPTCProvinceState]
+            if let events: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtPublicationEvent] {
                 publicationEvents = events.map(PublicationEvent.init)
             } else {
                 publicationEvents = nil
             }
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtRating] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtRating] {
                 ratings = values.map(Rating.init)
             } else {
                 ratings = nil
             }
-            referenceDate = iptcData[typed: kCGImagePropertyIPTCReferenceDate, using: ImageProperties.dateFormatter]
-            referenceNumber = iptcData[kCGImagePropertyIPTCReferenceNumber]
-            referenceService = iptcData[kCGImagePropertyIPTCReferenceService]
-            registryEntryRole = iptcData[typed: kCGImagePropertyIPTCExtRegistryEntryRole]
-            if let entries: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtRegistryID] {
+            referenceDate = rawValue[typed: kCGImagePropertyIPTCReferenceDate, using: ImageProperties.dateFormatter]
+            referenceNumber = rawValue[kCGImagePropertyIPTCReferenceNumber]
+            referenceService = rawValue[kCGImagePropertyIPTCReferenceService]
+            registryEntryRole = rawValue[typed: kCGImagePropertyIPTCExtRegistryEntryRole]
+            if let entries: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtRegistryID] {
                  registryEntries = entries.map(RegistryEntry.init)
             } else {
                 registryEntries = nil
             }
-            releaseDate = iptcData[typed: kCGImagePropertyIPTCReleaseDate, using: ImageProperties.dateFormatter]
-            isReleaseReady = iptcData[typed: kCGImagePropertyIPTCExtReleaseReady]
-            releaseTime = iptcData[typed: kCGImagePropertyIPTCReleaseTime]
-            scene = iptcData[typed: kCGImagePropertyIPTCScene]
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtSeason] {
+            releaseDate = rawValue[typed: kCGImagePropertyIPTCReleaseDate, using: ImageProperties.dateFormatter]
+            isReleaseReady = rawValue[typed: kCGImagePropertyIPTCExtReleaseReady]
+            releaseTime = rawValue[typed: kCGImagePropertyIPTCReleaseTime]
+            scene = rawValue[typed: kCGImagePropertyIPTCScene]
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtSeason] {
                 seasons = values.map(Season.init)
             } else {
                 seasons = nil
             }
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtSeries] {
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtSeries] {
                 series = values.map(Series.init)
             } else {
                 series = nil
             }
-            if let events: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtShownEvent] {
+            if let events: [String] = rawValue[typed: kCGImagePropertyIPTCExtShownEvent] {
+                shownEvents = events.map(ShownEvent.init)
+            } else if let events: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtShownEvent] {
                 shownEvents = events.map(ShownEvent.init)
             } else {
                 shownEvents = nil
             }
-            source = iptcData[typed: kCGImagePropertyIPTCSource]
-            specialInstructions = iptcData[typed: kCGImagePropertyIPTCSpecialInstructions]
-            starRating = iptcData[typed: kCGImagePropertyIPTCStarRating]
-            storylineIdentifier = iptcData[typed: kCGImagePropertyIPTCExtStorylineIdentifier]
-            isStreamReady = iptcData[typed: kCGImagePropertyIPTCExtStreamReady]
-            stylePeriod = iptcData[typed: kCGImagePropertyIPTCExtStylePeriod]
-            subLocation = iptcData[typed: kCGImagePropertyIPTCSubLocation]
-            subjectReference = iptcData[typed: kCGImagePropertyIPTCSubjectReference]
-            supplementalCategory = iptcData[typed: kCGImagePropertyIPTCSupplementalCategory]
-            timeCreated = iptcData[typed: kCGImagePropertyIPTCTimeCreated]
-            urgency = iptcData[typed: kCGImagePropertyIPTCUrgency]
-            usageTerms = iptcData[typed: kCGImagePropertyIPTCRightsUsageTerms]
-            writerEditor = iptcData[typed: kCGImagePropertyIPTCWriterEditor]
+            source = rawValue[typed: kCGImagePropertyIPTCSource]
+            specialInstructions = rawValue[typed: kCGImagePropertyIPTCSpecialInstructions]
+            starRating = rawValue[typed: kCGImagePropertyIPTCStarRating]
+            storylineIdentifier = rawValue[typed: kCGImagePropertyIPTCExtStorylineIdentifier]
+            isStreamReady = rawValue[typed: kCGImagePropertyIPTCExtStreamReady]
+            stylePeriod = rawValue[typed: kCGImagePropertyIPTCExtStylePeriod]
+            subLocation = rawValue[typed: kCGImagePropertyIPTCSubLocation]
+            subjectReference = rawValue[typed: kCGImagePropertyIPTCSubjectReference]
+            supplementalCategory = rawValue[typed: kCGImagePropertyIPTCSupplementalCategory]
+            timeCreated = rawValue[typed: kCGImagePropertyIPTCTimeCreated]
+            urgency = rawValue[typed: kCGImagePropertyIPTCUrgency]
+            usageTerms = rawValue[typed: kCGImagePropertyIPTCRightsUsageTerms]
+            writerEditor = rawValue[typed: kCGImagePropertyIPTCWriterEditor]
           
-            if let sources: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtSupplyChainSource] {
+            if let sources: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtSupplyChainSource] {
                supplyChainSources = sources.map(SupplyChainSource.init)
             } else {
                 supplyChainSources = nil
             }
  
-            temporalCoverage = iptcData[typed: kCGImagePropertyIPTCExtTemporalCoverage]
-            temporalCoverageFrom = iptcData[typed: kCGImagePropertyIPTCExtTemporalCoverageFrom]
-            temporalCoverageTo = iptcData[typed: kCGImagePropertyIPTCExtTemporalCoverageTo]
+            temporalCoverage = rawValue[typed: kCGImagePropertyIPTCExtTemporalCoverage]
+            temporalCoverageFrom = rawValue[typed: kCGImagePropertyIPTCExtTemporalCoverageFrom]
+            temporalCoverageTo = rawValue[typed: kCGImagePropertyIPTCExtTemporalCoverageTo]
             
-            transcript = iptcData[typed: kCGImagePropertyIPTCExtTranscript]
-            if let links: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtTranscriptLink] {
+            transcript = rawValue[typed: kCGImagePropertyIPTCExtTranscript]
+            if let links: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtTranscriptLink] {
                transcriptLinks = links.map(TranscriptLink.init)
             } else {
                 transcriptLinks = nil
             }
-            videoBitrate = iptcData[typed: kCGImagePropertyIPTCExtVideoBitrate]
-            videoBitrateMode = iptcData[typed: kCGImagePropertyIPTCExtVideoBitrateMode]
-            videoDisplayAspectRatio = iptcData[typed: kCGImagePropertyIPTCExtVideoDisplayAspectRatio]
-            videoEncodingProfile = iptcData[typed: kCGImagePropertyIPTCExtVideoEncodingProfile]
-            if let values: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtVideoShotType] {
+            videoBitrate = rawValue[typed: kCGImagePropertyIPTCExtVideoBitrate]
+            videoBitrateMode = rawValue[typed: kCGImagePropertyIPTCExtVideoBitrateMode]
+            videoDisplayAspectRatio = rawValue[typed: kCGImagePropertyIPTCExtVideoDisplayAspectRatio]
+            videoEncodingProfile = rawValue[typed: kCGImagePropertyIPTCExtVideoEncodingProfile]
+            if let values: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtVideoShotType] {
                videoShotTypes = values.map(VideoShotType.init)
             } else {
                 videoShotTypes = nil
             }
-            videoStreamsCount = iptcData[typed: kCGImagePropertyIPTCExtVideoStreamsCount]
-            visualColor = iptcData[typed: kCGImagePropertyIPTCExtVisualColor]
-            if let tags: [[CFString: Any]] = iptcData[typed: kCGImagePropertyIPTCExtWorkflowTag] {
+            videoStreamsCount = rawValue[typed: kCGImagePropertyIPTCExtVideoStreamsCount]
+            visualColor = rawValue[typed: kCGImagePropertyIPTCExtVisualColor]
+            if let tags: [[CFString: Any]] = rawValue[typed: kCGImagePropertyIPTCExtWorkflowTag] {
                 workflowTags = tags.map({CVTermDetails(rawValue: $0, type: "WorkflowTag")})
             } else {
                 workflowTags = nil
@@ -825,6 +827,11 @@ extension ImageProperties.IPTC {
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtShownEventIdentifier]
             names = rawValue[typed: kCGImagePropertyIPTCExtShownEventName]
+        }
+        
+        init(rawValue: String) {
+            names = [rawValue]
+            identifiers = nil
         }
     }
     

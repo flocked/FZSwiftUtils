@@ -9,16 +9,16 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct TGA {
+    struct TGA: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
 
         /// The compression of the image.
         public let compression: CGImagePropertyTGACompression?
 
-        init(tgaData: [CFString: Any]) {
-            rawValues = tgaData
-            compression = tgaData[typed: kCGImagePropertyTGACompression]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            compression = rawValue[typed: kCGImagePropertyTGACompression]
         }
     }
 }

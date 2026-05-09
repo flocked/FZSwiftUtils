@@ -9,9 +9,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct PNG {
+    struct PNG: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
         /// The author of the image.
         public let author: String?
         /// The chromaticities.
@@ -129,33 +129,33 @@ public extension ImageProperties {
             public init(rawValue: Int32) { self.rawValue = rawValue }
         }
 
-        init(pngData: [CFString: Any]) {
-            rawValues = pngData
-            author = pngData[typed: kCGImagePropertyPNGAuthor]
-            chromaticities = pngData[typed: kCGImagePropertyPNGChromaticities]
-            comment = pngData[typed: kCGImagePropertyPNGComment]
-            compressionFilter = pngData[typed: kCGImagePropertyPNGCompressionFilter]
-            copyright = pngData[typed: kCGImagePropertyPNGCopyright]
-            creationTime = pngData[typed: kCGImagePropertyPNGCreationTime, using: ImageProperties.dateFormatter]
-            loopCount = pngData[typed: kCGImagePropertyAPNGLoopCount]
-            clampedDelayTime = pngData[typed: kCGImagePropertyAPNGDelayTime]
-            unclampedDelayTime = pngData[typed: kCGImagePropertyAPNGUnclampedDelayTime]
-            description = pngData[typed: kCGImagePropertyPNGDescription]
-            disclaimer = pngData[typed: kCGImagePropertyPNGDisclaimer]
-            gamma = pngData[typed: kCGImagePropertyPNGGamma]
-            interlaceType = pngData[typed: kCGImagePropertyPNGInterlaceType]
-            modificationTime = pngData[typed: kCGImagePropertyPNGModificationTime, using: ImageProperties.dateFormatter]
-            pixelAspectRatio = pngData[typed: kCGImagePropertyPNGPixelsAspectRatio]
-            software = pngData[typed: kCGImagePropertyPNGSoftware]
-            source = pngData[typed: kCGImagePropertyPNGSource]
-            title = pngData[typed: kCGImagePropertyPNGTitle]
-            warning = pngData[typed: kCGImagePropertyPNGWarning]
-            xPixelsPerMeter = pngData[typed: kCGImagePropertyPNGXPixelsPerMeter]
-            yPixelsPerMeter = pngData[typed: kCGImagePropertyPNGYPixelsPerMeter]
-            sRGBIntent = pngData[typed: kCGImagePropertyPNGsRGBIntent]
-            framesInfo = (pngData[typed: kCGImagePropertyAPNGFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(frameInfoData:))
-            canvasPixelWidth = pngData[typed: kCGImagePropertyAPNGCanvasPixelWidth]
-            canvasPixelHeight = pngData[typed: kCGImagePropertyAPNGCanvasPixelHeight]
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
+            author = rawValue[typed: kCGImagePropertyPNGAuthor]
+            chromaticities = rawValue[typed: kCGImagePropertyPNGChromaticities]
+            comment = rawValue[typed: kCGImagePropertyPNGComment]
+            compressionFilter = rawValue[typed: kCGImagePropertyPNGCompressionFilter]
+            copyright = rawValue[typed: kCGImagePropertyPNGCopyright]
+            creationTime = rawValue[typed: kCGImagePropertyPNGCreationTime, using: ImageProperties.dateFormatter]
+            loopCount = rawValue[typed: kCGImagePropertyAPNGLoopCount]
+            clampedDelayTime = rawValue[typed: kCGImagePropertyAPNGDelayTime]
+            unclampedDelayTime = rawValue[typed: kCGImagePropertyAPNGUnclampedDelayTime]
+            description = rawValue[typed: kCGImagePropertyPNGDescription]
+            disclaimer = rawValue[typed: kCGImagePropertyPNGDisclaimer]
+            gamma = rawValue[typed: kCGImagePropertyPNGGamma]
+            interlaceType = rawValue[typed: kCGImagePropertyPNGInterlaceType]
+            modificationTime = rawValue[typed: kCGImagePropertyPNGModificationTime, using: ImageProperties.dateFormatter]
+            pixelAspectRatio = rawValue[typed: kCGImagePropertyPNGPixelsAspectRatio]
+            software = rawValue[typed: kCGImagePropertyPNGSoftware]
+            source = rawValue[typed: kCGImagePropertyPNGSource]
+            title = rawValue[typed: kCGImagePropertyPNGTitle]
+            warning = rawValue[typed: kCGImagePropertyPNGWarning]
+            xPixelsPerMeter = rawValue[typed: kCGImagePropertyPNGXPixelsPerMeter]
+            yPixelsPerMeter = rawValue[typed: kCGImagePropertyPNGYPixelsPerMeter]
+            sRGBIntent = rawValue[typed: kCGImagePropertyPNGsRGBIntent]
+            framesInfo = (rawValue[typed: kCGImagePropertyAPNGFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(rawValue:))
+            canvasPixelWidth = rawValue[typed: kCGImagePropertyAPNGCanvasPixelWidth]
+            canvasPixelHeight = rawValue[typed: kCGImagePropertyAPNGCanvasPixelHeight]
         }
     }
 }

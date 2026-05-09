@@ -105,12 +105,12 @@ public extension Sequence {
      
      The closure returns a sequence of keys for each element. Each element is inserted into every group corresponding to the produced keys.
      
-     - Parameter keyForValue: A closure that returns a sequence of grouping keys for an element.
+     - Parameter keysForValue: A closure that returns a sequence of grouping keys for an element.
      - Returns: A dictionary mapping each key to the elements that produced that key.
      */
-    func groupedByEach<S: Sequence>(by keyForValue: (Element) throws -> S) rethrows -> [S.Element: [Element]] {
+    func groupedByEach<S: Sequence>(by keysForValue: (Element) throws -> S) rethrows -> [S.Element: [Element]] {
         try reduce(into: [:]) { result, element in
-            for key in try keyForValue(element) {
+            for key in try keysForValue(element) {
                 result[key, default: []].append(element)
             }
         }
@@ -130,29 +130,150 @@ public extension Sequence {
      
      The closure returns a sequence of keys for each element. Each element is inserted into every group corresponding to the produced keys.
      
-     - Parameter keyForValue: A closure that returns a sequence of grouping keys for an element.
+     - Parameter keysForValue: A closure that returns a sequence of grouping keys for an element.
      - Returns: A dictionary mapping each key to the elements that produced that key.
      */
-    func groupedByEach<S: Sequence>(nonNil keyForValue: (Element) throws -> S) rethrows -> [S.Element.Wrapped: [Element]] where S.Element: OptionalProtocol {
+    func groupedByEach<S: Sequence>(nonNil keysForValue: (Element) throws -> S) rethrows -> [S.Element.Wrapped: [Element]] where S.Element: OptionalProtocol {
         try reduce(into: [:]) { result, element in
-            for key in try keyForValue(element) {
+            for key in try keysForValue(element) {
                 if let key = key.optional {
                     result[key, default: []].append(element)
                 }
             }
         }
     }
+    
+    /**
+     Groups the elements of this sequence by a computed key while preserving the order of the first occurrence of each key.
 
-    /// Splits the elements of sequence by the key returned from the specified closure and values that are returned for each key.
-    func split<Key: Equatable>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] {
-        try reduce(into: []) { values, value in
-            let key = try keyForValue(value)
-            if let index = values.firstIndex(where: { $0.key == key }) {
-                values[index].values.append(value)
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyForValue: A closure that returns a key for each element in the sequence.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Equatable>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] {
+        var groups: [(key: Key, values: [Element])] = []
+        for element in self {
+            let key = try keyForValue(element)
+            if let index = groups.firstIndex(where: { $0.key == key }) {
+                groups[index].values.append(element)
             } else {
-                values.append((key, [value]))
+                groups.append((key: key, values: [element]))
             }
         }
+        return groups
+    }
+    
+    /**
+     Groups the elements of this sequence by multiple computed keys while preserving the order of the first occurrence of each key.
+
+     Each element may appear in multiple groups depending on the keys returned by `keysForValue`.
+
+     The order of groups matches the order in which each distinct key first appeared in the sequence. The relative order of elements within each group is also preserved.
+
+     - Parameter keysForValue: A closure that returns a sequence of grouping keys for each element.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGroupedEach<S: Sequence>(by keysForValue: (Element) throws -> S) rethrows -> [(key: S.Element, values: [Element])] where S.Element: Equatable {
+        var groups: [(key: S.Element, values: [Element])] = []
+        for element in self {
+            for key in try keysForValue(element) {
+                if let index = groups.firstIndex(where: { $0.key == key }) {
+                    groups[index].values.append(element)
+                } else {
+                    groups.append((key: key, values: [element]))
+                }
+            }
+        }
+        return groups
+    }
+    
+    /**
+     Groups the elements of this sequence by a computed key while preserving the order of the first occurrence of each key.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyForValue: A closure that returns a key for each element in the sequence.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Hashable>(by keyForValue: (Element) throws -> Key) rethrows -> [(key: Key, values: [Element])] {
+        var keys: [Key] = []
+        var groups: [Key: [Element]] = [:]
+        for element in self {
+            let key = try keyForValue(element)
+            groups[key, initial: []] += element
+            guard groups[key] == nil else { continue }
+            keys += key
+        }
+        return keys.map { (key: $0, values: groups[$0]!) }
+    }
+    
+    /**
+     Groups the elements of this sequence by multiple computed keys while preserving the order of the first occurrence of each key.
+
+     Each element may appear in multiple groups depending on the keys returned by `keysForValue`.
+
+     The order of groups matches the order in which each distinct key first appeared in the sequence. The relative order of elements within each group is also preserved.
+
+     - Parameter keysForValue: A closure that returns a sequence of grouping keys for each element.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGroupedEach<S: Sequence>(by keysForValue: (Element) throws -> S) rethrows -> [(key: S.Element, values: [Element])] where S.Element: Hashable {
+        var keys: [S.Element] = []
+        var groups: [S.Element: [Element]] = [:]
+        for element in self {
+            for key in try keysForValue(element) {
+                groups[key, initial: []] += element
+                guard groups[key] == nil else { continue }
+                keys += key
+            }
+        }
+        return keys.map { (key: $0, values: groups[$0]!) }
+    }
+    
+    /**
+     Groups the elements of this sequence by a computed non-`nil` key while preserving the order of the first occurrence of each key.
+
+     Elements for which `keyForValue` returns `nil` are excluded from the result.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyForValue: A closure that computes an optional grouping key for each element.
+     - Returns: An array of grouped elements for all non-`nil` keys, in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Equatable>(byNonNil keyForValue: (Element) throws -> Key?) rethrows -> [(key: Key, values: [Element])] {
+        var groups: [(key: Key, values: [Element])] = []
+        for element in self {
+            guard let key = try keyForValue(element) else { continue }
+            if let index = groups.firstIndex(where: { $0.key == key }) {
+                groups[index].values.append(element)
+            } else {
+                groups.append((key: key, values: [element]))
+            }
+        }
+        return groups
+    }
+    
+    /**
+     Groups the elements of this sequence by a computed non-`nil` key while preserving the order of the first occurrence of each key.
+
+     Elements for which `keyForValue` returns `nil` are excluded from the result.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyForValue: A closure that computes an optional grouping key for each element.
+     - Returns: An array of grouped elements for all non-`nil` keys, in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Hashable>(byNonNil keyForValue: (Element) throws -> Key?) rethrows -> [(key: Key, values: [Element])] {
+        var keys: [Key] = []
+        var groups: [Key: [Element]] = [:]
+        for element in self {
+            guard let key = try keyForValue(element) else { continue }
+            groups[key, initial: []] += element
+            guard groups[key] == nil else { continue }
+            keys += key
+        }
+        return keys.map { (key: $0, values: groups[$0]!) }
     }
     
     /**
@@ -187,6 +308,158 @@ public extension Sequence {
                 result[key] = element
             }
         }
+    }
+}
+
+public extension Sequence {
+    /**
+     Returns a dictionary whose keys are the values at the given key path and whose values are arrays of the elements that produced each key.
+     
+     - Parameter keyPath: A key path that produces a grouping key for each element in the sequence.
+     */
+    func grouped<Key>(by keyPath: KeyPath<Element, Key>) -> [Key: [Element]] {
+        grouped { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Returns a dictionary whose keys are the non-`nil` values at the given key path and whose values are arrays of the elements that produced each key.
+     
+     Elements whose key-path value is `nil` are excluded from the result.
+     
+     - Parameter keyPath: A key path that produces a potential grouping key for each element in the sequence.
+     */
+    func grouped<Key>(byNonNil keyPath: KeyPath<Element, Key?>) -> [Key: [Element]] {
+        grouped { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of the sequence into a dictionary using keys produced by the values at the given key path.
+     
+     The key path returns a sequence of keys for each element. Each element is inserted into every group corresponding to the produced keys.
+     
+     - Parameter keyPath: A key path that produces a sequence of grouping keys for each element.
+     - Returns: A dictionary mapping each key to the elements that produced that key.
+     */
+    func groupedByEach<S: Sequence>(by keyPath: KeyPath<Element, S>) -> [S.Element: [Element]] {
+        groupedByEach { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of the sequence into a dictionary using non-`nil` keys produced by the values at the given key path.
+     
+     The key path returns a sequence of optional keys for each element. Each element is inserted into every group corresponding to the non-`nil` keys it produces.
+     
+     - Parameter keyPath: A key path that produces a sequence of optional grouping keys for each element.
+     - Returns: A dictionary mapping each non-`nil` key to the elements that produced that key.
+     */
+    func groupedByEach<S: Sequence>(nonNil keyPath: KeyPath<Element, S>) -> [S.Element.Wrapped: [Element]] where S.Element: OptionalProtocol {
+        groupedByEach { $0[keyPath: keyPath] }
+    }
+
+    /**
+     Groups the elements of this sequence by the values at the given key path while preserving the order of the first occurrence of each key.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyPath: A key path that produces a grouping key for each element in the sequence.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Equatable>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] {
+        orderedGrouped { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of this sequence by the values at the given key path while preserving the order of the first occurrence of each key.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyPath: A key path that produces a grouping key for each element in the sequence.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Hashable>(by keyPath: KeyPath<Element, Key>) -> [(key: Key, values: [Element])] {
+        orderedGrouped { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of this sequence by the non-`nil` values at the given key path while preserving the order of the first occurrence of each key.
+
+     Elements whose key-path value is `nil` are excluded from the result.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyPath: A key path that produces an optional grouping key for each element in the sequence.
+     - Returns: An array of grouped elements for all non-`nil` keys, in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Equatable>(byNonNil keyPath: KeyPath<Element, Key?>) -> [(key: Key, values: [Element])] {
+        orderedGrouped { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of this sequence by the non-`nil` values at the given key path while preserving the order of the first occurrence of each key.
+
+     Elements whose key-path value is `nil` are excluded from the result.
+
+     The relative order of elements within each group is also preserved.
+
+     - Parameter keyPath: A key path that produces an optional grouping key for each element in the sequence.
+     - Returns: An array of grouped elements for all non-`nil` keys, in the order their keys first appeared in the sequence.
+     */
+    func orderedGrouped<Key: Hashable>(byNonNil keyPath: KeyPath<Element, Key?>) -> [(key: Key, values: [Element])] {
+        orderedGrouped { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of this sequence by multiple keys produced by the values at the given key path while preserving the order of the first occurrence of each key.
+
+     Each element may appear in multiple groups depending on the keys returned by the sequence at the key path.
+
+     The order of groups matches the order in which each distinct key first appeared in the sequence. The relative order of elements within each group is also preserved.
+
+     - Parameter keyPath: A key path that produces a sequence of grouping keys for each element.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGroupedEach<S: Sequence>(by keyPath: KeyPath<Element, S>) -> [(key: S.Element, values: [Element])] where S.Element: Equatable {
+        orderedGroupedEach { $0[keyPath: keyPath] }
+    }
+    
+    /**
+     Groups the elements of this sequence by multiple keys produced by the values at the given key path while preserving the order of the first occurrence of each key.
+
+     Each element may appear in multiple groups depending on the keys returned by the sequence at the key path.
+
+     The order of groups matches the order in which each distinct key first appeared in the sequence. The relative order of elements within each group is also preserved.
+
+     - Parameter keyPath: A key path that produces a sequence of grouping keys for each element.
+     - Returns: An array of grouped elements in the order their keys first appeared in the sequence.
+     */
+    func orderedGroupedEach<S: Sequence>(by keyPath: KeyPath<Element, S>) -> [(key: S.Element, values: [Element])] where S.Element: Hashable {
+        orderedGroupedEach { $0[keyPath: keyPath] }
+    }
+
+    /**
+     Returns a dictionary from the elements of the sequence, keyed by the values at the given key path.
+
+     If the key derived for a new element collides with an existing key from a previous element, the latest value will be kept.
+
+     - Parameters:
+       - keyPath: A key path that produces a key for each element in the sequence.
+       - keepLastMatching: A Boolean value indicating whether later elements with the same key replace earlier ones.
+     */
+    func keyed<Key>(by keyPath: KeyPath<Element, Key>, keepLastMatching: Bool = true) -> [Key: Element] {
+        keyed(by: { $0[keyPath: keyPath]}, keepLastMatching: keepLastMatching )
+    }
+    
+    /**
+     Returns a dictionary from the elements of the sequence, keyed by the values at the given key path.
+
+     As the dictionary is built, the initializer calls the `resolve` closure with the current and new values for any duplicate keys. Pass a closure as `resolve` that returns the value to use in the resulting dictionary: The closure can choose between the two values, combine them to produce a new value, or even throw an error.
+
+     - Parameters:
+       - keyPath: A key path that produces a key for each element in the sequence.
+       - resolve: A closure that is called with the values for any duplicate keys that are encountered. The closure returns the desired value for the final dictionary.
+     */
+    func keyed<Key>(by keyPath: KeyPath<Element, Key>, resolvingConflictsWith resolve: (Key, Element, Element) throws -> Element) rethrows -> [Key: Element] {
+        try keyed(by: { $0[keyPath: keyPath]}, resolvingConflictsWith: resolve)
     }
 }
 

@@ -9,9 +9,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct WEBP {
+    struct WEBP: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
         /**
          The number of times that an animated image should play through its frames before stopping.
 
@@ -51,15 +51,15 @@ public extension ImageProperties {
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
         public let framesInfo: [FrameInfo]?
         
-        init(webpData: [CFString: Any]) {
-            rawValues = webpData
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
             
-            canvasPixelWidth = webpData[typed: kCGImagePropertyWebPCanvasPixelWidth]
-            canvasPixelHeight = webpData[typed: kCGImagePropertyWebPCanvasPixelHeight]
-            loopCount = webpData[typed: kCGImagePropertyWebPLoopCount]
-            clampedDelayTime = webpData[typed: kCGImagePropertyWebPDelayTime]
-            unclampedDelayTime = webpData[typed: kCGImagePropertyWebPUnclampedDelayTime]
-            framesInfo = (webpData[typed: kCGImagePropertyWebPFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(frameInfoData:))
+            canvasPixelWidth = rawValue[typed: kCGImagePropertyWebPCanvasPixelWidth]
+            canvasPixelHeight = rawValue[typed: kCGImagePropertyWebPCanvasPixelHeight]
+            loopCount = rawValue[typed: kCGImagePropertyWebPLoopCount]
+            clampedDelayTime = rawValue[typed: kCGImagePropertyWebPDelayTime]
+            unclampedDelayTime = rawValue[typed: kCGImagePropertyWebPUnclampedDelayTime]
+            framesInfo = (rawValue[typed: kCGImagePropertyWebPFrameInfoArray] as [[CFString: Any]]?)?.map(FrameInfo.init(rawValue:))
         }
     }
 }

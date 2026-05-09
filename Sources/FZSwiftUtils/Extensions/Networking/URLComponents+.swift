@@ -209,5 +209,19 @@ extension URLComponents {
         public static func buildEither(second: [URLQueryItem]?) -> [URLQueryItem] {
             second ?? []
         }
+        
+        public static func buildExpression(_ expression: (name: String, value: String)?) -> [URLQueryItem] {
+            expression.map({ [URLQueryItem(name: $0.name, value: $0.value)] }) ?? []
+        }
+        
+        public static func buildExpression(_ expression: [(name: String, value: String)]?) -> [URLQueryItem] {
+            guard let expression = expression else { return [] }
+            return expression.map({ URLQueryItem(name: $0.name, value: $0.value) })
+        }
+        
+        public static func buildExpression(_ expression: [String:String]?) -> [URLQueryItem] {
+            guard let expression = expression else { return [] }
+            return expression.map({ URLQueryItem(name: $0.key, value: $0.value) })
+        }
     }
 }

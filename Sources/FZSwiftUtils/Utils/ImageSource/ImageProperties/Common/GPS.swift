@@ -10,9 +10,9 @@ import Foundation
 import ImageIO
 
 public extension ImageProperties {
-    struct GPS {
+    struct GPS: RawRepresentable {
         /// The raw values.
-        public let rawValues: [CFString: Any]
+        public let rawValue: [CFString: Any]
         
         /// The GPS tag version information.
         public let version: [Double]?
@@ -141,71 +141,71 @@ public extension ImageProperties {
             case void = "V"
         }
         
-        init(gpsData: [CFString: Any]) {
-            rawValues = gpsData
+        public init(rawValue: [CFString: Any]) {
+            self.rawValue = rawValue
 
-            version = gpsData[typed: kCGImagePropertyGPSVersion]
+            version = rawValue[typed: kCGImagePropertyGPSVersion]
 
-            let latitudeRef: String? = gpsData[typed: kCGImagePropertyGPSLatitudeRef]
-            if let _latitude: Double = gpsData[typed: kCGImagePropertyGPSLatitude] {
+            let latitudeRef: String? = rawValue[typed: kCGImagePropertyGPSLatitudeRef]
+            if let _latitude: Double = rawValue[typed: kCGImagePropertyGPSLatitude] {
                 latitude = latitudeRef?.uppercased() == "S" ? -_latitude : _latitude
             } else {
                 latitude = nil
             }
 
-            let longitudeRef: String? = gpsData[typed: kCGImagePropertyGPSLongitudeRef]
-            if let _longitude: Double = gpsData[typed: kCGImagePropertyGPSLongitude] {
+            let longitudeRef: String? = rawValue[typed: kCGImagePropertyGPSLongitudeRef]
+            if let _longitude: Double = rawValue[typed: kCGImagePropertyGPSLongitude] {
                 longitude = longitudeRef?.uppercased() == "W" ? -_longitude : _longitude
             } else {
                 longitude = nil
             }
 
-            let altitudeRef: Int? = gpsData[typed: kCGImagePropertyGPSAltitudeRef]
-            if let _altitude: Double = gpsData[typed: kCGImagePropertyGPSAltitude] {
+            let altitudeRef: Int? = rawValue[typed: kCGImagePropertyGPSAltitudeRef]
+            if let _altitude: Double = rawValue[typed: kCGImagePropertyGPSAltitude] {
                 altitude =  altitudeRef == 1 ? -_altitude : _altitude
             } else {
                 altitude = nil
             }
 
-            timeStamp = gpsData[typed: kCGImagePropertyGPSTimeStamp, using: ImageProperties.dateFormatter]
-            dateStamp = gpsData[typed: kCGImagePropertyGPSDateStamp, using: ImageProperties.dateFormatter]
+            timeStamp = rawValue[typed: kCGImagePropertyGPSTimeStamp, using: ImageProperties.dateFormatter]
+            dateStamp = rawValue[typed: kCGImagePropertyGPSDateStamp, using: ImageProperties.dateFormatter]
 
-            satellites = gpsData[typed: kCGImagePropertyGPSSatellites]
+            satellites = rawValue[typed: kCGImagePropertyGPSSatellites]
             
-            status = gpsData[typed: kCGImagePropertyGPSStatus]
-            measureMode = gpsData[typed: kCGImagePropertyGPSMeasureMode]
-            dOP = gpsData[typed: kCGImagePropertyGPSDOP]
+            status = rawValue[typed: kCGImagePropertyGPSStatus]
+            measureMode = rawValue[typed: kCGImagePropertyGPSMeasureMode]
+            dOP = rawValue[typed: kCGImagePropertyGPSDOP]
 
-            speedRef = gpsData[typed: kCGImagePropertyGPSSpeedRef]
-            speed = gpsData[typed: kCGImagePropertyGPSSpeed]
+            speedRef = rawValue[typed: kCGImagePropertyGPSSpeedRef]
+            speed = rawValue[typed: kCGImagePropertyGPSSpeed]
 
-            trackRef = gpsData[typed: kCGImagePropertyGPSTrackRef]
-            track = gpsData[typed: kCGImagePropertyGPSTrack]
+            trackRef = rawValue[typed: kCGImagePropertyGPSTrackRef]
+            track = rawValue[typed: kCGImagePropertyGPSTrack]
 
-            imageDirectionRef = gpsData[typed: kCGImagePropertyGPSImgDirectionRef]
-            imageDirection = gpsData[typed: kCGImagePropertyGPSImgDirection]
+            imageDirectionRef = rawValue[typed: kCGImagePropertyGPSImgDirectionRef]
+            imageDirection = rawValue[typed: kCGImagePropertyGPSImgDirection]
 
-            mapDatum = gpsData[typed: kCGImagePropertyGPSMapDatum]
+            mapDatum = rawValue[typed: kCGImagePropertyGPSMapDatum]
 
-            let destLatitudeRef: String? = gpsData[typed: kCGImagePropertyGPSDestLatitudeRef]
-            if let _destinationLatitude: Double = gpsData[typed: kCGImagePropertyGPSDestLatitude] {
+            let destLatitudeRef: String? = rawValue[typed: kCGImagePropertyGPSDestLatitudeRef]
+            if let _destinationLatitude: Double = rawValue[typed: kCGImagePropertyGPSDestLatitude] {
                 destinationLatitude = destLatitudeRef?.uppercased() == "S" ? -_destinationLatitude : _destinationLatitude
             } else {
                 destinationLatitude = nil
             }
             
-            let destLongitudeRef: String? = gpsData[typed: kCGImagePropertyGPSDestLongitudeRef]
-            if let destLongitude: Double = gpsData[typed: kCGImagePropertyGPSDestLongitude] {
+            let destLongitudeRef: String? = rawValue[typed: kCGImagePropertyGPSDestLongitudeRef]
+            if let destLongitude: Double = rawValue[typed: kCGImagePropertyGPSDestLongitude] {
                 destinationLongitude = destLongitudeRef?.uppercased() == "W" ? -destLongitude : destLongitude
             } else {
                 destinationLongitude = nil
             }
 
-            destinationBearingRef = gpsData[typed: kCGImagePropertyGPSDestBearingRef]
-            destinationBearing = gpsData[typed: kCGImagePropertyGPSDestBearing]
+            destinationBearingRef = rawValue[typed: kCGImagePropertyGPSDestBearingRef]
+            destinationBearing = rawValue[typed: kCGImagePropertyGPSDestBearing]
 
-            let destinationDistanceRef: String? = gpsData[typed: kCGImagePropertyGPSDestDistanceRef]
-            if let destDistance: Double = gpsData[typed: kCGImagePropertyGPSDestDistance] {
+            let destinationDistanceRef: String? = rawValue[typed: kCGImagePropertyGPSDestDistanceRef]
+            if let destDistance: Double = rawValue[typed: kCGImagePropertyGPSDestDistance] {
                 switch destinationDistanceRef {
                 case "K":
                     destinationDistance = destDistance * 1000
@@ -220,11 +220,11 @@ public extension ImageProperties {
                 destinationDistance = nil
             }
 
-            processingMethod = gpsData[typed: kCGImagePropertyGPSProcessingMethod]
-            areaInformation = gpsData[typed: kCGImagePropertyGPSAreaInformation]
+            processingMethod = rawValue[typed: kCGImagePropertyGPSProcessingMethod]
+            areaInformation = rawValue[typed: kCGImagePropertyGPSAreaInformation]
 
-            differential = gpsData[typed: kCGImagePropertyGPSDifferental]
-            horizontalPositioningError = gpsData[typed: kCGImagePropertyGPSHPositioningError]
+            differential = rawValue[typed: kCGImagePropertyGPSDifferental]
+            horizontalPositioningError = rawValue[typed: kCGImagePropertyGPSHPositioningError]
         }
     }
 }
