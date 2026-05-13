@@ -137,6 +137,8 @@ extension UInt64: PropertyListSerializable { }
 extension Double: PropertyListSerializable { }
 extension Float: PropertyListSerializable { }
 extension Bool: PropertyListSerializable { }
+extension NSDate: PropertyListSerializable { }
+extension NSData: PropertyListSerializable { }
 extension NSNumber: PropertyListSerializable { }
 extension String: PropertyListSerializable { }
 extension Data: PropertyListSerializable { }

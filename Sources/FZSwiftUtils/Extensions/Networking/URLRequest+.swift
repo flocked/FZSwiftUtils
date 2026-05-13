@@ -206,7 +206,7 @@ public extension URLRequest {
     }
 }
 
-extension URLRequest: Codable {
+extension URLRequest: Swift.Encodable, Swift.Decodable {
     public init(from decoder: any Decoder) throws {
         self = try NSURLRequest.unarchive(decoder.decodeSingle()) as URLRequest
     }

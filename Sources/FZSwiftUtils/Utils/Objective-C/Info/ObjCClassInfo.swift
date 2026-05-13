@@ -484,7 +484,7 @@ extension ObjCClassInfo {
     }
     
     private static func classess(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
-        var start = cls
+        var start: AnyClass = cls
         if !isInstance {
             if ObjCRuntime.classNamesToSkip.contains(NSStringFromClass(cls)) { return [] }
             guard let metaclass = object_getClass(cls) else { return [] }

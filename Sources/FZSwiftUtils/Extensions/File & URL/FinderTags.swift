@@ -7,7 +7,6 @@
 
 #if os(macOS)
 import AppKit
-import FZSwiftUtils
 
 /// A representation of a Finder tag.
 public struct FinderTag: Hashable, CustomStringConvertible {

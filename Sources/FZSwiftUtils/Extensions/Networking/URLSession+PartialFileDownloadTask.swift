@@ -124,7 +124,6 @@ final class URLSessionPartialDownloadTask: URLSessionTask, @unchecked Sendable {
         self.completion = completion
         self.initialPartDirectoryURL = initialPartDirectoryURL
         self.operationQueue.maxConcurrentOperationCount = maxConcurrentChunkCount
-        super.init()
     }
     
     public override func resume() {
@@ -234,10 +233,10 @@ final class URLSessionPartialDownloadTask: URLSessionTask, @unchecked Sendable {
                         if FileManager.default.fileExists(at: fileURL) {
                             if let bytes = fileURL.resources.fileSize?.bytes {
                                 guard bytes != chunkSize else { continue }
-                               try try FileManager.default.removeItem(at: fileURL)
+                                try FileManager.default.removeItem(at: fileURL)
                                 downloadChunk(chunk, request: _originalRequest!, partDirectoryURL: partFile)
                             } else {
-                                try try FileManager.default.removeItem(at: fileURL)
+                                try FileManager.default.removeItem(at: fileURL)
                                 downloadChunk(chunk, request: _originalRequest!, partDirectoryURL: partFile)
                             }
                         } else {
@@ -245,7 +244,7 @@ final class URLSessionPartialDownloadTask: URLSessionTask, @unchecked Sendable {
                         }
                     }
                 } catch {
-                    
+                    Swift.print(error)
                 }
             }
             

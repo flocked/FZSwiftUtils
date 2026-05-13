@@ -48,10 +48,7 @@ extension ImageProperties.EXIF {
         }
 
         public var iso: String? {
-            guard let iso = exif.isoSpeed as? Double, iso > 0.0 else {
-                return exif.isoSpeed as? String
-            }
-
+            guard let iso = exif.isoSpeed, iso > 0.0 else { return nil  }
             let integerISO = Int(round(iso))
             return "ISO \(integerISO)"
         }
