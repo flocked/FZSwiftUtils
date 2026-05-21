@@ -707,18 +707,28 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
     }
 
     /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
-    public static func / (lhs: TimeDuration, rhs: Int) -> TimeDuration {
+    public static func / <V: BinaryInteger>(lhs: TimeDuration, rhs: V) -> TimeDuration {
         TimeDuration(lhs.seconds / Double(rhs))
     }
 
     /// Multiplies the time duration and produces their product, rounding to a representable value.
-    public static func * (lhs: TimeDuration, rhs: Int) -> TimeDuration {
+    public static func * <V: BinaryInteger>(lhs: TimeDuration, rhs: V) -> TimeDuration {
         TimeDuration(lhs.seconds * Double(rhs))
+    }
+    
+    /// Multiplies the time duration and produces their product, rounding to a representable value.
+    public static func *= <V: BinaryInteger>(lhs: inout TimeDuration, rhs: V) {
+        lhs.seconds = lhs.seconds * Double(rhs)
     }
 
     /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
     public static func / (lhs: TimeDuration, rhs: TimeDuration) -> Double {
         lhs.seconds / rhs.seconds
+    }
+    
+    /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
+    public static func /= (lhs: inout TimeDuration, rhs: TimeDuration) {
+        lhs.seconds = lhs.seconds / rhs.seconds
     }
 }
 

@@ -569,6 +569,26 @@ extension DataSize: Comparable, AdditiveArithmetic {
     public static func > (lhs: Self, rhs: Self) -> Bool {
         lhs.bytes > rhs.bytes
     }
+    
+    /// Multiplies the data size by the specified amount.
+    public static func * <V: BinaryInteger>(lhs: Self, rhs: V) -> Self {
+        Self(lhs.bytes * UInt64(rhs), countStyle: lhs.countStyle)
+    }
+    
+    /// Multiplies the data size by the specified amount.
+    public static func *= <V: BinaryInteger>(lhs: inout Self, rhs: V) {
+        lhs.bytes = lhs.bytes * UInt64(rhs)
+    }
+    
+    /// Divides the data size with the specified amount.
+    public static func / <V: BinaryInteger>(lhs: Self, rhs: V) -> Self {
+        Self(lhs.bytes / UInt64(rhs), countStyle: lhs.countStyle)
+    }
+    
+    /// Divides the data size with the specified amount.
+    public static func /= <V: BinaryInteger>(lhs: inout Self, rhs: V) {
+        lhs.bytes = lhs.bytes / UInt64(rhs)
+    }
 }
 
 extension Data {
