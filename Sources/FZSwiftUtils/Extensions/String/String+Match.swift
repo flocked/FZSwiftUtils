@@ -266,6 +266,16 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     /// The pattern of a regular expression match.
     public let regularExpression: String?
     
+    /// Returns the matched group at the specified index of a regular expression string match.
+    public subscript(groupIndex: Int) -> StringMatch? {
+        groups[safe: groupIndex] ?? nil
+    }
+    
+    /// Returns the matched group with the specified name of a regular expression string match.
+    public subscript(groupName: String) -> StringMatch? {
+        group(named: groupName)
+    }
+    
     /// The matched group with the specified name of a regular expression string match.
     public func group(named name: String) -> StringMatch? {
         guard let nsRange = textCheckingResult?.range(withName: name), let range = Range(nsRange, in: string) else { return nil }
@@ -273,11 +283,6 @@ public struct StringMatch: Hashable, CustomStringConvertible {
             return self
         }
         return groups.nonNil.first(where: { $0.range == range })
-    }
-    
-    /// The matched group with the specified name of a regular expression string match.
-    public subscript(_ name: String) -> StringMatch? {
-        return group(named: name)
     }
     
     var textCheckingResult: NSTextCheckingResult?
