@@ -103,9 +103,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
     }
 
     /// The duration in seconds.
-    public var seconds: Double {
-        didSet { seconds = seconds.clamped(min: 0.0) }
-    }
+    public var seconds: Double
 
     /// The duration in minutes.
     public var minutes: Double {
@@ -374,7 +372,7 @@ public extension TimeDuration {
         /// All used units compact.
         public static let allCompact = Self(rawValue: 1 << 11)
         /// All used units detailed.
-        public static let allDetailed: Self = [.second, .minute, .hour, .hour, .day, .week, .month, .year]
+        public static let allDetailed: Self = [.second, .minute, .hour, .day, .week, .month, .year]
 
         public let rawValue: Int
         
