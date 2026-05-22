@@ -8,15 +8,17 @@
 import Foundation
 
 /// A weak reference to an object.
-public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
+public class Weak<Object: AnyObject>: Hashable, WeakReference {
     /// The weakly stored object.
-    public var object: Object? { _object }
-    private weak var _object: Object?
-    private let id = UUID()
+    public var object: Object? { weakObject }
+    private weak var weakObject: Object?
+    /// The identifier of the object.
+    public let id: ObjectIdentifier
     
     /// Creates a weak reference to the specified object.
     required public init(_ object: Object) {
-        self._object = object
+        self.weakObject = object
+        self.id = ObjectIdentifier(object)
     }
 
     public static func == (lhs: Weak, rhs: Weak) -> Bool {
@@ -24,18 +26,19 @@ public class Weak<Object: AnyObject>: Equatable, Hashable, WeakReference {
     }
 
     public func hash(into hasher: inout Hasher) {
-        if let object = object {
-            hasher.combine(ObjectIdentifier(object))
-        } else {
-            hasher.combine(id)
-        }
+        hasher.combine(id)
     }
 }
 
 /// A weak reference to an object.
-public protocol WeakReference {
+public protocol WeakReference: Hashable {
+    /// The object type of the weak reference.
     associatedtype Object: AnyObject
+    /// The weakly stored object.
     var object: Object? { get }
+    /// The identifier of the object.
+    var id: ObjectIdentifier { get }
+    /// Creates a weak reference to the specified object.
     init(_ object: Object)
 }
 
@@ -46,7 +49,7 @@ public extension Sequence where Element: WeakReference {
     }
 }
 
-public extension Array where Element: WeakReference {
+public extension RangeReplaceableCollection where Element: WeakReference {
     /// Removes all weak objects that are `nil`.
     mutating func reap() {
         self = filter { $0.object != nil }
@@ -94,7 +97,8 @@ public extension Set where Element: WeakReference {
      */
     @discardableResult
     mutating func insert(_ newMember: Element.Object) -> (inserted: Bool, memberAfterInsert: Element.Object) {
-        if let oldMember = first(where: {$0.object === newMember})?.object {
+        let id = ObjectIdentifier(newMember)
+        if let oldMember = first(where: {$0.id == id})?.object {
             return (false, oldMember)
         }
         insert(Element(newMember))
@@ -118,7 +122,8 @@ public extension Set where Element: WeakReference {
      */
     @discardableResult
     mutating func remove(_ member: Element.Object) -> Element.Object? {
-        removeAll(where: { $0.object === member }).first?.object
+        let id = ObjectIdentifier(member)
+        return removeAll(where: { $0.id == id }).first?.object
     }
     
     /**
@@ -230,9 +235,13 @@ public extension Dictionary where Key: WeakReference, Key.Object: Hashable {
     }
     
     subscript(key: Key.Object) -> Value? {
-        get { first(where: {$0.key.object == key })?.value }
+        get {
+            let id = ObjectIdentifier(key)
+            return first(where: {$0.key.id == id })?.value
+        }
         set {
-            if let key = first(where: {$0.key.object == key })?.key {
+            let id = ObjectIdentifier(key)
+            if let key = first(where: {$0.key.id == id })?.key {
                 self[key] = newValue
             } else {
                 self[Key(key)] = newValue
