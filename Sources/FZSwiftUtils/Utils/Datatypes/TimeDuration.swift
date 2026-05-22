@@ -504,17 +504,56 @@ extension TimeDuration: CustomStringConvertible {
      - Parameters:
         - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
         - style: The formatting style. The default value is `full`.
+        - maximumUnitCount: The maximum number of time units to include in the output string.
+        - zeroFormattingBehavior: The formatting style for units whose value is 0.
         - locale: The language of the string.
 
      - Returns: A string representation of the time duration.
      */
-    public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, locale: Locale = .current) -> String {
-        let allowedUnits = allowedUnits.units(for: self)
+    public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, locale: Locale = .current) -> String {
+        let allowedUnits = allowedUnits.units(for: self).compactMap(\.calendarComponent).uniqued()
         let formatter = DateComponentsFormatter()
-        formatter.allowedComponents = allowedUnits.compactMap(\.calendarComponent).uniqued()
+        formatter.allowedComponents = allowedUnits
         formatter.unitsStyle = style
         formatter.locale = locale
-        return formatter.string(from: seconds)!
+        formatter.maximumUnitCount = maximumUnitCount
+        formatter.zeroFormattingBehavior = zeroFormattingBehavior
+        return formatter.string(from: seconds) ?? "\(seconds)"
+    }
+    
+    /**
+     Returns an  amount of time remaining string representation of the time duration using the specified allowed time units and style.
+
+     Example usage:
+
+     ```swift
+     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+
+     // "182min 1sec"
+     duration.timeRemainingString(allowedUnits: [.minute, .second], style: .brief)
+
+     // "3 hours, 2 minutes, 1 second"
+     duration.timeRemainingString(allowedUnits: .all, style: .full)
+     ```
+
+     - Parameters:
+        - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
+        - style: The formatting style. The default value is `full`.
+        - maximumUnitCount: The maximum number of time units to include in the output string.
+        - zeroFormattingBehavior: The formatting style for units whose value is 0.
+        - locale: The language of the string.
+
+     - Returns: A string representation of the time duration.
+     */
+    public func timeRemainingString(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, includesApproximationPhrase: Bool = false, locale: Locale = .current) -> String {
+        let allowedUnits = allowedUnits.units(for: self).compactMap(\.calendarComponent).uniqued()
+        let formatter = DateComponentsFormatter()
+        formatter.allowedComponents = allowedUnits
+        formatter.unitsStyle = style
+        formatter.locale = locale
+        formatter.zeroFormattingBehavior = zeroFormattingBehavior
+        formatter.includesTimeRemainingPhrase = true
+        return formatter.string(from: seconds) ?? "\(seconds)"
     }
 
     /**
@@ -540,7 +579,7 @@ extension TimeDuration: CustomStringConvertible {
 
      - Returns: A string representation of the time duration.
      */
-    public func relativeString(inPast: Bool = false, dateTimeStyle: RelativeDateTimeFormatter.DateTimeStyle = .numeric, unitsStyle: RelativeDateTimeFormatter.UnitsStyle  = .full, locale: Locale = .current) -> String {
+    public func relativeString(dateTimeStyle: RelativeDateTimeFormatter.DateTimeStyle = .numeric, unitsStyle: RelativeDateTimeFormatter.UnitsStyle  = .full, locale: Locale = .current) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.dateTimeStyle = dateTimeStyle
         formatter.unitsStyle = unitsStyle
