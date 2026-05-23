@@ -529,10 +529,10 @@ extension TimeDuration: CustomStringConvertible {
      ```swift
      let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
 
-     // "182min 1sec"
-     duration.timeRemainingString(allowedUnits: [.minute, .second], style: .brief)
+     // "3hrs 2min remaining"
+     duration.timeRemainingString(allowedUnits: [.minute, .hour], style: .brief)
 
-     // "3 hours, 2 minutes, 1 second"
+     // "3 hours, 2 minutes, 1 second remaining"
      duration.timeRemainingString(allowedUnits: .all, style: .full)
      ```
 
@@ -541,6 +541,7 @@ extension TimeDuration: CustomStringConvertible {
         - style: The formatting style. The default value is `full`.
         - maximumUnitCount: The maximum number of time units to include in the output string.
         - zeroFormattingBehavior: The formatting style for units whose value is 0.
+        - includesApproximationPhrase: A Boolean value indicating whether output strings reflect the amount of time remaining.
         - locale: The language of the string.
 
      - Returns: A string representation of the time duration.
@@ -562,17 +563,16 @@ extension TimeDuration: CustomStringConvertible {
      Example usage:
 
      ```swift
-     let duration = TimeDuration(seconds: 1, minutes: 2, hours: 3)
+     let duration = TimeDuration.days(-1)
+     
+     // "1 day ago"
+     duration.relativeString()
 
-     // "182min 1sec"
-     duration.relativeString(allowedUnits: [.minute, .second], style: .brief)
-
-     // "3 hours, 2 minutes, 1 second"
-     duration.string(allowedUnits: .all, style: .full)
+     // "yesterday"
+     duration.relativeString(dateTimeStyle: .named)
      ```
 
      - Parameters:
-        - inPast: A Boolean value indicating whether the duration should be interpreted as occurring in the past (e.g. "2 hours ago") or in the future (e.g "in 2 hours").
         - dateTimeStyle: The style to use when describing a relative date, for example “yesterday” or “1 day ago”.
         - unitsStyle: The unit style (e.g. “1 day ago” or “one day ago”).
         - locale: The language of the string.
@@ -586,111 +586,109 @@ extension TimeDuration: CustomStringConvertible {
         formatter.locale = locale
         return formatter.localizedString(fromTimeInterval: seconds)
     }
-
+    
+    /// A formatting style describing which time components should be included in a timecode string.
     public enum TimeCodeFormat: Int, Hashable {
-        /// Hours, minutes, and seconds (`3:23:45`).
+        /// Displays hours, minutes, and seconds (e.g. `3:23:45`).
         case hoursMinutesSeconds
-        /// Minutes, and seconds (`23:45` or `235:45`).
+        /// Displays minutes and seconds, allowing minutes to exceed `59` (e.g. `23:45` or `235:45`).
         case minutesSeconds
-        /// Seconds (`31` or `23545`).
+        /// Displays only the total seconds (e.g. `31` or `23545`).
         case seconds
-        /// Always displays hours with at least two digits, minutes and seconds (`01:23:45` or `04:33:10`).
+        /// Always displays hours, minutes, and seconds using at least two digits for the hours component (e.g. `01:23:45`).
         case full
-        /// Always displays hours (with one or more digits), minutes and seconds (`2:23:45` or `1:33:10`).
+        /// Always displays hours, minutes, and seconds while omitting leading zeros from the hours component (e.g. `1:23:45`).
         case fullCompact
-        /// Always displays minutes and seconds and if needed hours (`23:45` or `4:33:10`).
+        /// Displays minutes and seconds, automatically including hours when needed (e.g. `23:45` or `4:33:10`).
         case compact
-        /// Displays only the necessary units (`44`, `23:45` or `4:33:10`).
+        /// Displays only the necessary units (e.g. `44`, `23:45`, or `4:33:10`).
         case short
     }
 
-    /**
-     A timecode string representation of the duration (e.g. "03:50:32").
-
-     - Parameters:
-       - format: The time code format determinating which units are used.
-       - omitLeadingZeroInFirstUnit: A Boolean value indicating whether to omit the leading zero of the first unit if possible. e.g. "4:55:20" instead of "04:55:20".
-       - subsecondsPrecision: Number of digits to include after the separator for fractional seconds. Set to `0` to hide fractional seconds.
-       - separator: The string used to separate hours, minutes, and seconds.
-       - subsecondSeparator: The string used to separate the seconds and fractional seconds.
-
-     - Returns: A formatted string representing the timecode.
-     */
-    public func timecodeString(format: TimeCodeFormat = .compact, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
-        let totalSeconds = Int(seconds)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-
-        let showHours = format == .hoursMinutesSeconds || (format == .short && hours > 0) || (format == .compact && hours > 0)
-        let showMinutes = format == .hoursMinutesSeconds || format == .compact || format == .minutesSeconds || (format == .short && (showHours || minutes > 0))
-        let showSeconds = format == .seconds || format == .compact || showMinutes || showHours || format == .short
-
-        return timecodeString(showHours: showHours, showMinutes: showMinutes, showSeconds: showSeconds, omitLeadingZeroInFirstUnit: omitLeadingZeroInFirstUnit, subsecondsPrecision: subsecondsPrecision, separator: separator, subsecondSeparator: subsecondSeparator)
+    /// A formatting style describing how the sign of a timecode should be displayed.
+    public enum TimeCodeSignDisplay: Hashable {
+        /// Displays the sign only for negative durations.
+        case automatic
+        /// Always displays either a positive (`+`) or negative (`-`) sign.
+        case always
+        /// Never displays a sign.
+        case never
     }
-    
+
     /**
-     A timecode string representation of the duration (e.g. "03:50:32").
+     Returns a formatted timecode string representation of the duration.
 
      - Parameters:
-        - showHours: Whether to include the hours component in the output.
-        - showMinutes: Whether to include the minutes component in the output.
-        - showSeconds: Whether to include the seconds component in the output.
-        - omitLeadingZeroInFirstUnit: A Boolean value indicating whether to omit the leading zero of the first unit if possible. e.g. "4:55:20" instead of "04:55:20".
-        - subsecondsPrecision: Number of digits to include after the separator for fractional seconds. Set to `0` to hide fractional seconds.
-        - separator: The string used to separate hours, minutes, and seconds.
-        - subsecondSeparator: The string used to separate the seconds and fractional seconds.
+       - format: The formatting style describing which units should be included in the resulting timecode.
+       - signDisplay: The formatting style controlling whether a sign should be displayed.
+       - subsecondsPrecision: The number of digits to display after the fractional separator. Specify `0` to omit fractional seconds.
+       - separator: The string used to separate hours, minutes, and seconds.
+       - subsecondSeparator: The string used to separate seconds and fractional seconds.
 
-     - Returns: A formatted string representing the timecode.
-
-     ```swift
-     let duration = .seconds(13832.44)
-
-     // "03:50:32"
-     duration.timecodeString()
-     // "03:50:32,44"
-     duration.timecodeString(subsecondsPrecision: 2)
-     // "230:32"
-     duration.timecodeString(showHours: false)
-     // "13832"
-     duration.timecodeString(showHours: false, showMinutes: false)
-     ```
+     - Returns: A formatted timecode string representation of the duration.
      */
-    public func timecodeString(showHours: Bool, showMinutes: Bool, showSeconds: Bool, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
-        let totalSeconds = Int(seconds)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        let secs = totalSeconds % 60
-        let subseconds = seconds - Double(totalSeconds)
+    public func timecodeString(
+        format: TimeCodeFormat = .compact,
+        signDisplay: TimeCodeSignDisplay = .automatic,
+        subsecondsPrecision: Int = 0,
+        separator: String = ":",
+        subsecondSeparator: String = "."
+    ) -> String {
+        let precision = max(0, subsecondsPrecision)
+        let scale = Int(pow(10.0, Double(precision)))
 
-        func convert(_ value: Int, omitLeadingZero: Bool) -> String {
-            omitLeadingZero && value < 10 ? "\(value)" : String(format: "%02d", value)
+        let isNegative = seconds < 0
+        let roundedUnits = Int((abs(seconds) * Double(scale)).rounded())
+
+        let wholeSeconds = roundedUnits / scale
+        let fractionalUnits = roundedUnits % scale
+
+        let hours = wholeSeconds / 3600
+        let minutes = (wholeSeconds / 60) % 60
+        let secs = wholeSeconds % 60
+
+        let sign: String = switch signDisplay {
+        case .automatic: isNegative ? "-" : ""
+        case .always: isNegative ? "-" : "+"
+        case .never: ""
         }
 
-        var components: [String] = []
-
-        if showHours {
-            components += convert(hours, omitLeadingZero: omitLeadingZeroInFirstUnit)
+        func padded(_ value: Int, width: Int = 2) -> String {
+            String(format: "%0\(width)d", value)
         }
 
-        if showMinutes {
-            let minutesValue = showHours ? minutes : (minutes + hours * 60)
-            components += convert(minutesValue, omitLeadingZero: !showHours && omitLeadingZeroInFirstUnit)
+        let body: String
+
+        switch format {
+        case .hoursMinutesSeconds:
+            body = "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+        case .minutesSeconds:
+            body = "\(wholeSeconds / 60)\(separator)\(padded(secs))"
+        case .seconds:
+            body = "\(wholeSeconds)"
+        case .full:
+            body = "\(padded(hours))\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+        case .fullCompact:
+            body = "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+        case .compact:
+            body = hours > 0
+                ? "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+                : "\(wholeSeconds / 60)\(separator)\(padded(secs))"
+        case .short:
+            if hours > 0 {
+                body = "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+            } else if wholeSeconds >= 60 {
+                body = "\(wholeSeconds / 60)\(separator)\(padded(secs))"
+            } else {
+                body = "\(wholeSeconds)"
+            }
         }
 
-        if showSeconds {
-            let secondsValue = (!showHours && !showMinutes) ? (secs + minutes * 60 + hours * 3600) : secs
-            components += convert(secondsValue, omitLeadingZero: !showHours && !showMinutes && omitLeadingZeroInFirstUnit)
+        if precision > 0 {
+            return sign + body + subsecondSeparator + padded(fractionalUnits, width: precision)
         }
 
-        var timecode = components.joined(separator: separator)
-
-        if subsecondsPrecision > 0 {
-            let factor = pow(10.0, Double(subsecondsPrecision))
-            let fractional = Int((subseconds * factor).rounded())
-            let formatted = String(format: "%0*d", subsecondsPrecision, fractional)
-            timecode += subsecondSeparator + formatted
-        }
-        return timecode
+        return sign + body
     }
 
     func allCurrentUnits() -> [Unit] {
