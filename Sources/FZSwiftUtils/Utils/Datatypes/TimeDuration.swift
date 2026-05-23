@@ -624,8 +624,35 @@ extension TimeDuration: CustomStringConvertible {
        - subsecondsPrecision: The number of digits to display after the fractional separator. Specify `0` to omit fractional seconds.
        - separator: The string used to separate hours, minutes, and seconds.
        - subsecondSeparator: The string used to separate seconds and fractional seconds.
-
      - Returns: A formatted timecode string representation of the duration.
+     
+     Example usage:
+     
+     ```
+     var duration = TimeDuration.seconds(13832)
+     duration.formattedTimecode()
+     // "3:50:32"
+     duration.formattedTimecode(format: .full)
+     // "03:50:32"
+     duration.formattedTimecode(format: .minutesSeconds)
+     // "230:32"
+     duration.formattedTimecode(subsecondsPrecision: 2)
+     // "3:50:32.44"
+     
+     duration = TimeDuration.seconds(-90)
+     duration.formattedTimecode()
+     // "-1:30"
+     
+     duration = TimeDuration.seconds(90)
+     duration.formattedTimecode(signDisplay: .always)
+     // "+1:30"
+     duration.formattedTimecode(signDisplay: .always)
+     // "+1:30"
+     
+     duration = TimeDuration.seconds(59.125)
+     duration.formattedTimecode(subsecondsPrecision: 3, separator: ":", subsecondSeparator: ",")
+     // "59,125"
+     ```
      */
     public func timecodeString(
         format: TimeCodeFormat = .compact,
