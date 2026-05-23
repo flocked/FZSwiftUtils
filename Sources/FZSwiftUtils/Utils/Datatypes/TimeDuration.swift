@@ -243,6 +243,21 @@ public extension Date {
     func timeDurationSince(_ another: Date) -> TimeDuration {
         TimeDuration(timeIntervalSince(another))
     }
+    
+    /// The time interval between the date value and the current date and time.
+    var timeDurationSincceNow: TimeDuration {
+        .seconds(timeIntervalSinceNow)
+    }
+    
+    /// The interval between the date value and 00:00:00 UTC on 1 January 2001.
+    var timeDurationSinceReferenceDate: TimeDuration {
+        .seconds(timeIntervalSinceReferenceDate)
+    }
+    
+    /// The interval between the date value and 00:00:00 UTC on 1 January 1970.
+    var timeDurationSincce1970: TimeDuration {
+        .seconds(timeIntervalSince1970)
+    }
 
     /// Creates a new date value by adding a time duration to this date.
     static func + (lhs: Date, rhs: TimeDuration) -> Date {
