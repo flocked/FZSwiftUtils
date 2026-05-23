@@ -258,6 +258,11 @@ public extension Date {
     var timeDurationSincce1970: TimeDuration {
         .seconds(timeIntervalSince1970)
     }
+    
+    /// Creates a new date value by adding the specified time duration to this date.
+    func addingTimeDuration(_ duration: TimeDuration) -> Date {
+        addingTimeInterval(duration.seconds)
+    }
 
     /// Creates a new date value by adding a time duration to this date.
     static func + (lhs: Date, rhs: TimeDuration) -> Date {
