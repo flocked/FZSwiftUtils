@@ -263,6 +263,11 @@ public extension Date {
     func addingTimeDuration(_ duration: TimeDuration) -> Date {
         addingTimeInterval(duration.seconds)
     }
+    
+    /// Adds the specified time interval to this date.
+    mutating func addTimeDuration(_ duration: TimeDuration) {
+        addTimeInterval(duration.seconds)
+    }
 
     /// Creates a new date value by adding a time duration to this date.
     static func + (lhs: Date, rhs: TimeDuration) -> Date {
