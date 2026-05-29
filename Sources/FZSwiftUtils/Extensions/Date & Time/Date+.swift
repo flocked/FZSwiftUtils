@@ -506,26 +506,26 @@ public extension Date {
 }
 
 public func > (lhs: Date?, rhs: Date) -> Bool {
-    guard let lhs = lhs else { return false }
-    return lhs > rhs
+    guard let date = lhs else { return false }
+    return date > rhs
 }
 
 public func >= (lhs: Date?, rhs: Date) -> Bool {
-    guard let lhs = lhs else { return false }
-    return lhs >= rhs
+    guard let date = lhs else { return false }
+    return date >= rhs
 }
 
 public func <= (lhs: Date?, rhs: Date) -> Bool {
-    guard let lhs = lhs else { return false }
-    return lhs <= rhs
+    guard let date = lhs else { return false }
+    return date <= rhs
 }
 
 public func < (lhs: Date?, rhs: Date) -> Bool {
-    guard let lhs = lhs else { return false }
-    return lhs < rhs
+    guard let date = lhs else { return false }
+    return date < rhs
 }
 
 public func == (lhs: Date?, rhs: Date) -> Bool {
-    guard let lhs = lhs else { return false }
-    return lhs == rhs
+    guard let date = lhs else { return false }
+    return date == rhs
 }
