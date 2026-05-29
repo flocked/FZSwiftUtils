@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UniformTypeIdentifiers
 
 public extension URLSession {
     /**
@@ -49,32 +48,17 @@ public extension URLSession {
         task.resume()
         return task
     }
-    
-    /**
-     Returns the response for the specified URL
-     
-     A HEAD request retrieves the same response headers that would be returned by a GET request, but does not include the response body. This allows callers to inspect metadata such as the content type, expected content length, and other headers without downloading the resource.
 
-     - Parameter url: The URL of the remote resource whose response headers should be retrieved.
-     */
-    func headResponse(for request: URLRequest) async throws -> URLResponse {
-        try await withCheckedThrowingContinuation { continuation in
-            headResponse(for: request) { continuation.resume(with: $0) }
-        }
-    }
-}
-
-extension URLSession {
     /**
-     Creates a task that retrieves the html string of a URL based on the specified URL request, and calls a handler upon completion.
+     Creates a task that retrieves the string of a URL based on the specified URL request, and calls a handler upon completion.
      
      - Parameters:
         - request: An URL request that provides the URL, cache policy, request type, body data or body stream, and so on.
-        - completion: The completion handler that is called with the html string, or an error if the html string couldn't be retrieved.
-     - Returns: The data task that retrieves the html string.
+        - completion: The completion handler that is called with the html string, or an error if the string couldn't be retrieved.
+     - Returns: The data task that retrieves the string.
      */
     @discardableResult
-    func htmlString(for request: URLRequest, completion: @escaping (Result<String, Error>)->()) -> URLSessionDataTask {
+    func string(for request: URLRequest, completion: @escaping (Result<String, Error>)->()) -> URLSessionDataTask {
         let task = dataTask(with: request) { data, response, error in
             guard let response = response else {
                 completion(.failure(NetworkError(.invalidResponse)))
@@ -108,7 +92,7 @@ extension URLSession {
      - Returns: The data task that retrieves the decodable type.
      */
     @discardableResult
-    func decodeJSON<D: Decodable>(for request: URLRequest, type: D.Type, decoder: JSONDecoder, completion: @escaping (Result<D, Error>)->()) -> URLSessionDataTask {
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (Result<Value, Error>)->()) -> URLSessionDataTask {
         let task = dataTask(with: request) { data, response, error in
             guard let response = response else {
                 completion(.failure(NetworkError(.invalidResponse)))
@@ -127,7 +111,7 @@ extension URLSession {
                 return
             }
             do {
-                completion(.success(try decoder.decode(D.self, from: data)))
+                completion(.success(try decoder.decode(Value.self, from: data)))
             } catch {
                 completion(.failure(error))
             }
@@ -148,7 +132,7 @@ extension URLSession {
      - Returns: The data task that retrieves the decodable type.
      */
     @discardableResult
-    func decodeJSON<D: Decodable>(for request: URLRequest, type: D.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, completion: @escaping (Result<D, Error>)->()) -> URLSessionDataTask {
-        decodeJSON(for: request, type: type, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy), completion: completion)
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, completion: @escaping (Result<Value, Error>)->()) -> URLSessionDataTask {
+        decodedObject(for: request, as: type, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy), completion: completion)
     }
 }
