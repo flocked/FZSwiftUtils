@@ -35,7 +35,7 @@ public extension URLSession {
      - Returns: The data task that retrieves the response.
      */
     @discardableResult
-    func headResponse(for request: URLRequest, completion: @escaping (Result<URLResponse, Error>) -> Void) -> URLSessionDataTask {
+    func headResponse(for request: URLRequest, completion: @escaping (_ result: Result<URLResponse, Error>) -> Void) -> URLSessionDataTask {
         let task = dataTask(with: request.copy(as: .head)) { _, response, error in
             if let error {
                 completion(.failure(error))
@@ -58,7 +58,7 @@ public extension URLSession {
      - Returns: The data task that retrieves the string.
      */
     @discardableResult
-    func string(for request: URLRequest, completion: @escaping (Result<String, Error>)->()) -> URLSessionDataTask {
+    func string(for request: URLRequest, completion: @escaping (_ result: Result<String, Error>)->()) -> URLSessionDataTask {
         let task = dataTask(with: request) { data, response, error in
             guard let response = response else {
                 completion(.failure(NetworkError(.invalidResponse)))
@@ -92,7 +92,7 @@ public extension URLSession {
      - Returns: The data task that retrieves the decodable type.
      */
     @discardableResult
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (Result<Value, Error>)->()) -> URLSessionDataTask {
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (_ result: Result<Value, Error>)->()) -> URLSessionDataTask {
         let task = dataTask(with: request) { data, response, error in
             guard let response = response else {
                 completion(.failure(NetworkError(.invalidResponse)))
@@ -132,7 +132,7 @@ public extension URLSession {
      - Returns: The data task that retrieves the decodable type.
      */
     @discardableResult
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, completion: @escaping (Result<Value, Error>)->()) -> URLSessionDataTask {
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, completion: @escaping (_ result: Result<Value, Error>)->()) -> URLSessionDataTask {
         decodedObject(for: request, as: type, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy), completion: completion)
     }
 }
