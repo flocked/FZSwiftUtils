@@ -143,8 +143,10 @@ extension simd_quatd: Interpolatable {
     }
 }
 
+#if os(macOS)
 extension simd_quath: Interpolatable {
     public func interpolated(to: Self, fraction: Float16) -> simd_quath {
         return simd_slerp(self, to, fraction)
     }
 }
+#endif
