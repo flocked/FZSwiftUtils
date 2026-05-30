@@ -7,7 +7,9 @@
     #include "vendor/darwin_watchos/src/aarch64/ffi_arm64.c"
   #elif defined(__x86_64__)
     #include "vendor/darwin_watchos/src/x86/ffi64_x86_64.c"
+    #define ffi_call_int ffi_call_win64_int
     #include "vendor/darwin_watchos/src/x86/ffiw64_x86_64.c"
+    #undef ffi_call_int
   #elif defined(__arm__) && defined(__ARM_ARCH_7K__)
     #include "vendor/darwin_watchos/src/arm/ffi_armv7k.c"
   #endif
@@ -16,14 +18,18 @@
     #include "vendor/darwin_tvos/src/aarch64/ffi_arm64.c"
   #elif defined(__x86_64__)
     #include "vendor/darwin_tvos/src/x86/ffi64_x86_64.c"
+    #define ffi_call_int ffi_call_win64_int
     #include "vendor/darwin_tvos/src/x86/ffiw64_x86_64.c"
+    #undef ffi_call_int
   #endif
 #elif TARGET_OS_IPHONE
   #if defined(__arm64__)
     #include "vendor/darwin_ios/src/aarch64/ffi_arm64.c"
   #elif defined(__x86_64__)
     #include "vendor/darwin_ios/src/x86/ffi64_x86_64.c"
+    #define ffi_call_int ffi_call_win64_int
     #include "vendor/darwin_ios/src/x86/ffiw64_x86_64.c"
+    #undef ffi_call_int
   #elif defined(__arm__)
     #include "vendor/darwin_ios/src/arm/ffi_armv7.c"
   #endif
@@ -32,6 +38,8 @@
     #include "vendor/darwin_osx/src/aarch64/ffi_arm64.c"
   #elif defined(__x86_64__)
     #include "vendor/darwin_osx/src/x86/ffi64_x86_64.c"
+    #define ffi_call_int ffi_call_win64_int
     #include "vendor/darwin_osx/src/x86/ffiw64_x86_64.c"
+    #undef ffi_call_int
   #endif
 #endif
