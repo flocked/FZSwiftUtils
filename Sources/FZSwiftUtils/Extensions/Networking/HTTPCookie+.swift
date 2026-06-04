@@ -26,7 +26,6 @@ extension HTTPCookie: Swift.Decodable, Swift.Encodable {
 extension HTTPCookie {
     /// A Boolean value indicating whether the cookie is expired.
     public var isExpired: Bool {
-        guard let expiresDate = self.expiresDate else { return false }
         return expiresDate < Date()
     }
     
@@ -100,11 +99,11 @@ extension HTTPCookie {
                 options: prettyPrinted ? .prettyPrinted : []
             )
             guard let string = String(data: data, encoding: .utf8) else {
-                fatalError("Failed to convert JSON data to UTF-8 string")
+                throw NetworkError(.missingData)
             }
             return string
         } catch {
-            fatalError("Failed to serialize cookies to JSON: \(error)")
+            throw error
         }
     }
     
