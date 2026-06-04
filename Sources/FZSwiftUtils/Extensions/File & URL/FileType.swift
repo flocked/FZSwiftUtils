@@ -304,11 +304,6 @@ public struct FileType: CaseIterable, CustomStringConvertible, Hashable, Codable
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.contentType == rhs.contentType
     }
-    
-    /// A Boolean value indicating whether a file type conforms to a `UTType`.
-    public static func == (lhs: Self, rhs: UTType) -> Bool {
-        lhs.contentType == rhs || lhs.contentType.conforms(to: rhs)
-    }
 
     /// Audio ("mp3", "m4a", "aac"…)
     public static let audio = Self(.audio, "Audio",
