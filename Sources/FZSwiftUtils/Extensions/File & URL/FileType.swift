@@ -20,26 +20,6 @@ public extension URL {
     var fileType: FileType? {
         FileType(url: self)
     }
-
-    /// A Boolean value indicating whether the file is a video.
-    var isVideo: Bool {
-        fileType == .video
-    }
-
-    /// A Boolean value indicating whether the file is an image.
-    var isImage: Bool {
-        fileType == .image
-    }
-
-    /// A Boolean value indicating whether the file is a GIF.
-    var isGIF: Bool {
-        fileType == .gif
-    }
-
-    /// A Boolean value indicating whether the file is a multimedia file (audio, image, GIF or video).
-    var isMultimedia: Bool {
-        fileType?.isMultimedia ?? false
-    }
 }
 
 /// The type of a file.
@@ -173,12 +153,12 @@ public struct FileType: CaseIterable, CustomStringConvertible, Hashable, Codable
     static let imageTypes: [Self] = [.gif, .image]
     
     /// A Boolean value indicating whether the file type is a multimedia type (either `audio`, `video`, `image` or `gif`).
-    var isMultimedia: Bool {
+    public var isMultimedia: Bool {
         Self.multimediaTypes.contains(self)
     }
 
     /// A Boolean value indicating whether the file type is an image type (either `image` or `gif`).
-    var isImageType: Bool {
+    public var isImageType: Bool {
         Self.imageTypes.contains(self)
     }
     
