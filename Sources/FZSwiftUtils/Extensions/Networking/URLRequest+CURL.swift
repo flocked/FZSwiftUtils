@@ -8,10 +8,13 @@
 import Foundation
 
 public extension URLRequest {
-    /// Creates and initializes a URL request with the given curl command.
-    init(curlString: String) throws {
+    /**
+     Creates and initializes a URL request with the given curl command.
+     
+     */
+    init(curlString: String, igonoreMissingOptions: Bool = true) throws {
         do {
-            self = try CURL(curlString).request()
+            self = try CURL(curlString, igonoreMissingOptions: igonoreMissingOptions).request()
         } catch {
             throw error
         }
@@ -77,10 +80,10 @@ public extension URLRequest {
 fileprivate struct CURL: Sendable {
     private var result: ParseResult
 
-    init(_ str: String) throws {
+    init(_ str: String, igonoreMissingOptions: Bool) throws {
         let str = str.replacingOccurrences(of: "--cookie '", with: "-H 'Cookie: ")
         let paser = Parser(command: str)
-        self.result = try paser.parse()
+        self.result = try paser.parse(igonoreMissingOptions: igonoreMissingOptions)
     }
 
     func request() -> URLRequest {
@@ -316,7 +319,7 @@ fileprivate struct CURL: Sendable {
             return slices
         }
         
-        fileprivate static func handleShortCommands(_ tokens: [String], _ index: Int, _ token: String, _ options: inout [Option]) throws {
+        fileprivate static func handleShortCommands(_ tokens: [String], _ index: Int, _ token: String, _ options: inout [Option], igonoreMissingOptions: Bool) throws {
             let nextToken = tokens[index]
             switch token {
             case "-d":
@@ -347,11 +350,12 @@ fileprivate struct CURL: Sendable {
                     options.append(.user(components[0], nil))
                 }
             default:
+                guard !igonoreMissingOptions else { return }
                 throw ParserError.noSuchOption(token)
             }
         }
         
-        fileprivate static func handleLongCommands(_ token: String, _ options: inout [Option]) throws {
+        fileprivate static func handleLongCommands(_ token: String, _ options: inout [Option], igonoreMissingOptions: Bool) throws {
             let components = token.components(separatedBy: "=")
             switch components[0] {
             case "--data":
@@ -399,11 +403,12 @@ fileprivate struct CURL: Sendable {
                     options.append(.user(userPassword[0], nil))
                 }
             default:
+                guard !igonoreMissingOptions else { return }
                 throw ParserError.noSuchOption(components[0])
             }
         }
         
-        static func convertTokensToOptions(_ tokens: [String]) throws -> [Option] {
+        static func convertTokensToOptions(_ tokens: [String], igonoreMissingOptions: Bool) throws -> [Option] {
             switch tokens.first {
             case "curl": break
             default: throw ParserError.invalidBegin
@@ -416,14 +421,14 @@ fileprivate struct CURL: Sendable {
             while index < tokens.count {
                 let token = tokens[index]
                 if token.hasPrefix("--") {
-                    try handleLongCommands(token, &options)
+                    try handleLongCommands(token, &options, igonoreMissingOptions: igonoreMissingOptions)
                 }
                 else if token.hasPrefix("-") {
                     index += 1
                     if index >= tokens.count {
                         throw ParserError.inValidParameter(token)
                     }
-                    try handleShortCommands(tokens, index, token, &options)
+                    try handleShortCommands(tokens, index, token, &options, igonoreMissingOptions: igonoreMissingOptions)
                 }  else {
                     options.append(.url(token))
                 }
@@ -536,12 +541,12 @@ fileprivate struct CURL: Sendable {
             return ParseResult(url: finalUrl, user: user, password: password, postData: postData, headers: headers, postFields: postFields, files: files, httpMethod: finalHTTPMethod)
         }
         
-        func parse() throws -> ParseResult {
+        func parse(igonoreMissingOptions: Bool) throws -> ParseResult {
             let command = self.command.trimmingCharacters(in: CharacterSet.whitespaces)
             // Handle line continuation characters (\) followed by whitespace or newlines.
             let processedCommand = command.replace(pattern: "\\\\\\s*\\n", with: " ")?.replacingOccurrences(of: "  +", with: " ", options: .regularExpression) ?? command
             let slices = Lexer.tokenize(processedCommand)
-            let options = try Lexer.convertTokensToOptions(slices)
+            let options = try Lexer.convertTokensToOptions(slices, igonoreMissingOptions: igonoreMissingOptions)
             let result = try Parser.compile(options)
             return result
         }
