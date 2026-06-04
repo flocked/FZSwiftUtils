@@ -176,12 +176,12 @@ public extension StringProtocol {
     
     /// A Swift string literal representation of the string suitable for inclusion in generated source code
     var swiftStringLiteral: String {
-        "#\"" + self
+        "\"" + self
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
             .replacingOccurrences(of: "\n", with: "\\n")
             .replacingOccurrences(of: "\r", with: "\\r")
-            .replacingOccurrences(of: "\t", with: "\\t") + "\"#"
+            .replacingOccurrences(of: "\t", with: "\\t") + "\""
     }
 }
 
