@@ -8,13 +8,10 @@
 import Foundation
 
 public extension URLRequest {
-    /**
-     Creates and initializes a URL request with the given curl command.
-     
-     */
-    init(curlString: String, igonoreMissingOptions: Bool = true) throws {
+    /// Creates and initializes a URL request with the given curl command.
+    init(curlString: String) throws {
         do {
-            self = try CURL(curlString, igonoreMissingOptions: igonoreMissingOptions).request()
+            self = try CURL(curlString, igonoreMissingOptions: true).request()
         } catch {
             throw error
         }
