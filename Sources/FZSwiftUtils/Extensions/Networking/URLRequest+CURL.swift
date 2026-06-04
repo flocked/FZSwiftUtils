@@ -78,6 +78,7 @@ fileprivate struct CURL: Sendable {
     private var result: ParseResult
 
     init(_ str: String) throws {
+        let str = str.replacingOccurrences(of: "--cookie '", with: "-H 'Cookie: ")
         let paser = Parser(command: str)
         self.result = try paser.parse()
     }
