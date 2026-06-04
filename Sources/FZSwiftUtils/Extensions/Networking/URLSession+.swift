@@ -60,16 +60,16 @@ public extension URLSession {
     @discardableResult
     func string(for request: URLRequest, completion: @escaping (_ result: Result<String, Error>)->()) -> URLSessionDataTask {
         let task = dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
             guard let response = response else {
                 completion(.failure(NetworkError(.invalidResponse)))
                 return
             }
             guard response.http?.isSuccessful == true else {
                 completion(.failure(NetworkError(.badStatusCode)))
-                return
-            }
-            guard response.contentType == .html else {
-                completion(.failure(NetworkError(.invalidContentType)))
                 return
             }
             guard let data = data, let string = String(data: data, encoding: .utf8) else {
@@ -94,6 +94,10 @@ public extension URLSession {
     @discardableResult
     func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (_ result: Result<Value, Error>)->()) -> URLSessionDataTask {
         let task = dataTask(with: request) { data, response, error in
+            if let error = error {
+                completion(.failure(error))
+                return
+            }
             guard let response = response else {
                 completion(.failure(NetworkError(.invalidResponse)))
                 return
@@ -102,7 +106,7 @@ public extension URLSession {
                 completion(.failure(NetworkError(.badStatusCode)))
                 return
             }
-            guard response.contentType == .json else {
+            guard response.contentType?.conforms(to: .json) == true else {
                 completion(.failure(NetworkError(.invalidContentType)))
                 return
             }

@@ -26,7 +26,7 @@ extension HTTPCookie: Swift.Decodable, Swift.Encodable {
 extension HTTPCookie {
     /// A Boolean value indicating whether the cookie is expired.
     public var isExpired: Bool {
-        return expiresDate < Date()
+        expiresDate ?? .distantFuture < Date()
     }
     
     /**
@@ -92,12 +92,9 @@ extension HTTPCookie {
        - cookies: The cookies to convert.
        - prettyPrinted: A Boolean value indicating whether the resulting JSON string should be pretty-printed. Defaults to `true`.
      */
-    public static func jsonString(for cookies: [HTTPCookie], prettyPrinted: Bool = true) -> String {
+    public static func jsonString(for cookies: [HTTPCookie], prettyPrinted: Bool = true) throws -> String {
         do {
-            let data = try JSONSerialization.data(
-                withJSONObject: jsonObject(for: cookies),
-                options: prettyPrinted ? .prettyPrinted : []
-            )
+            let data = try JSONSerialization.data(withJSONObject: jsonObject(for: cookies), options: prettyPrinted ? .prettyPrinted : [])
             guard let string = String(data: data, encoding: .utf8) else {
                 throw NetworkError(.missingData)
             }

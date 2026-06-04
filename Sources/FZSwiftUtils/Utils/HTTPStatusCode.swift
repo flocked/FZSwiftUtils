@@ -17,15 +17,15 @@ public struct HTTPStatusCode: RawRepresentable, Sendable, Hashable, CustomString
     }
     
     /// A Boolean value indicating whether the status code is in the informational (`1xx`) range.
-    public var isInformational: Bool { (100..<200).contains(rawValue) }
+    public var isInformational: Bool { rawValue / 100 == 1 }
     /// A Boolean value indicating whether the status code is in the successful (`2xx`) range.
-    public var isSuccessful: Bool { (200..<300).contains(rawValue) }
+    public var isSuccessful: Bool { rawValue / 200 == 1 }
     /// A Boolean value indicating whether the status code is in the redirection (`3xx`) range.
-    public var isRedirection: Bool { (300..<400).contains(rawValue) }
+    public var isRedirection: Bool { rawValue / 300 == 1 }
     /// A Boolean value indicating whether the status code is in the client error (`4xx`) range.
-    public var isClientError: Bool { (400..<500).contains(rawValue) }
+    public var isClientError: Bool { rawValue / 400 == 1 }
     /// A Boolean value indicating whether the status code is in the server error (`5xx`) range.
-    public var isServerError: Bool { (500..<600).contains(rawValue) }
+    public var isServerError: Bool { rawValue / 500 == 1 }
     
     /// A localized string of the status code.
     public var localizedString: String {

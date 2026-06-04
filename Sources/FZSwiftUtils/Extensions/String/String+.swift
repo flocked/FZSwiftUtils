@@ -173,6 +173,16 @@ public extension StringProtocol {
     func isComposed(of set: CharacterSet) -> Bool {
         unicodeScalars.allSatisfy { set.contains($0) }
     }
+    
+    /// A Swift string literal representation of the string suitable for inclusion in generated source code
+    var swiftStringLiteral: String {
+        "#\"" + self
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+            .replacingOccurrences(of: "\n", with: "\\n")
+            .replacingOccurrences(of: "\r", with: "\\r")
+            .replacingOccurrences(of: "\t", with: "\\t") + "\"#"
+    }
 }
 
 public extension String {

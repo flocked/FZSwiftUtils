@@ -17,5 +17,5 @@ public extension URLSessionConfiguration {
             }) ?? [:]
         }
         set { httpAdditionalHeaders = newValue.mapKeys({ $0.rawValue as AnyHashable }) }
-    }
+    }    
 }
