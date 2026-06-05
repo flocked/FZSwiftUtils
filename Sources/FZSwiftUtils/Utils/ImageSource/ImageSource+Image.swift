@@ -7,6 +7,7 @@
 
 import Foundation
 
+#if !os(watchOS)
 public extension ImageSource {
     /// Creates an image source for the specified image.
     convenience init?(image: CGImage) {
@@ -14,6 +15,7 @@ public extension ImageSource {
         self.init(cgImageSource)
     }
 }
+#endif
 
 #if os(macOS)
 import AppKit
@@ -209,7 +211,7 @@ public extension NSImage {
         return NSImage(cgImage: image, size: .init(image.width, image.height))
     }
 }
-#elseif canImport(UIKit)
+#elseif canImport(UIKit) && !os(watchOS)
 import UIKit
 public extension ImageSource {
     /// Creates an image source for the specified image.
@@ -220,6 +222,7 @@ public extension ImageSource {
 }
 #endif
 
+#if !os(watchOS)
 fileprivate extension CGImage {
     var cgImageSource: CGImageSource? {
         Self.imageSourceFunction?(self)?.takeUnretainedValue()
@@ -296,3 +299,4 @@ fileprivate extension Dictionary where Key == CFString, Value == Any {
         return nil
     }
 }
+#endif

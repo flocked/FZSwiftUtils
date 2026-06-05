@@ -197,6 +197,7 @@ public extension NSAttributedString.Key {
     static let objcIvar = NSAttributedString.Key("objcIvar")
 }
 
+#if os(macOS) || os(iOS) || os(tvOS)
 extension NSUIColor {
     convenience init(light: NSUIColor, dark: NSUIColor) {
         #if os(macOS)
@@ -206,13 +207,18 @@ extension NSUIColor {
         #endif
     }
 }
+#endif
+
 struct XcodePresentationTheme {
     public static var shared = XcodePresentationTheme()
     
     public var selectionBackgroundColor: NSUIColor = #colorLiteral(red: 0.3904261589, green: 0.4343567491, blue: 0.5144847631, alpha: 1)
 
+    #if os(macOS) || os(iOS) || os(tvOS)
     public var backgroundColor: NSUIColor = .init(light: #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1), dark: #colorLiteral(red: 0.1251632571, green: 0.1258862913, blue: 0.1465735137, alpha: 1))
-
+    #else
+    public var backgroundColor: NSUIColor = #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1)
+    #endif
     public var fontSize: CGFloat = 13
 
     public func font(for type: SemanticType) -> NSUIFont {
@@ -259,11 +265,17 @@ struct XcodePresentationTheme {
         default:
             #if os(macOS)
             return .labelColor
-            #else
+            #elseif os(iOS) || os(tvOS)
             return .label
+            #else
+            return .black
             #endif
         }
+        #if os(macOS) || os(iOS) || os(tvOS)
         let color = NSUIColor(light: light, dark: dark)
+        #else
+        let color = dark
+        #endif
         Self.colorCache[type] = color
         return color
     }
