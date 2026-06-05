@@ -44,49 +44,6 @@ public extension Collection where Element: Equatable, Index == Int {
         return nil
     }
 
-    /*
-    /**
-     Returns the advanced index for the specified current element and advance type.
-
-     - Parameters:
-        - type: The advance type.
-        - current: The current element used to advance the index.
-        - excluding: Elements to exclude from advancing.
-
-     - Returns: The advanced index for the current element.
-     */
-    func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {
-        if let current = current, let index = firstIndex(of: current) {
-            let excluding = (excluding.compactMap({ firstIndex(of: $0) }) + index).sorted()
-            switch type {
-            case .next:
-                return indices[0..<count-1-index].first(where: { !excluding.contains(index+$0+1) })
-            case .previous:
-                return indices[0..<index].first(where: { !excluding.contains(index-$0-1) })
-            case .nextLooping:
-                return indices.first(where: { !excluding.contains(index+1+$0 >= count ? -count+$0+index+1 : index+1+$0) })
-            case .previousLooping:
-                return indices.first(where: { !excluding.contains(index-1-$0 < 0 ? count-$0+index-1 : index-1-$0) })
-            case .first:
-                return indices.first(where: { !excluding.contains($0) })
-            case .last:
-                return indices.reversed().first(where: { !excluding.contains($0) })
-            case .random:
-                return indices.shuffled().first(where: { !excluding.contains($0) })
-            }
-        } else {
-            switch type {
-            case .first, .next, .previous, .nextLooping, .previousLooping:
-                return !isEmpty ? 0 : nil
-            case .last:
-                return !isEmpty ? count-1 : nil
-            case .random:
-                return indices.randomElement()
-            }
-        }
-    }
-     */
-
     /**
      Returns the advanced index for the specified current element and advance type.
 
