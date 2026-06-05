@@ -439,7 +439,7 @@ public extension SynchronizedArray {
     }
     
     /// Removes and returns the first element of the collection safetly.
-    func removeFirstSafelyy(completion: ((_ element: Element?)->())? = nil) {
+    func removeFirstSafely(completion: ((_ element: Element?)->())? = nil) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
             let element = array.removeFirstSafetly()
@@ -448,7 +448,7 @@ public extension SynchronizedArray {
     }
     
     /// Removes and returns the last element of the collection safetly.
-    func removeLastSafelyy(completion: ((_ element: Element?)->())? = nil) {
+    func removeLastSafely(completion: ((_ element: Element?)->())? = nil) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
             let element = array.removeLastSafetly()
