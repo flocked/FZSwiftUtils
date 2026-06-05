@@ -437,6 +437,24 @@ public extension SynchronizedArray {
             DispatchQueue.main.async { completion?(element) }
         }
     }
+    
+    /// Removes and returns the first element of the collection safetly.
+    func removeFirstSafelyy(completion: ((_ element: Element?)->())? = nil) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            let element = array.removeFirstSafetly()
+            DispatchQueue.main.async { completion?(element) }
+        }
+    }
+    
+    /// Removes and returns the last element of the collection safetly.
+    func removeLastSafelyy(completion: ((_ element: Element?)->())? = nil) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            let element = array.removeLastSafetly()
+            DispatchQueue.main.async { completion?(element) }
+        }
+    }
 
     /**
      Removes the last `k` elements from the array.
