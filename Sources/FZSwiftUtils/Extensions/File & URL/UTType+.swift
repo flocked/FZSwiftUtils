@@ -97,6 +97,11 @@ public extension UTType {
         NSWorkspace.shared.icons(for: self)
     }
 }
+
+extension UTTagClass {
+    /// A tag class representing an NSPasteboard type.
+    public static let pasteboardType = Self(rawValue: "com.apple.nspboard-type")
+}
 #endif
 
 #endif
