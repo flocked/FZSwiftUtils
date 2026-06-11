@@ -28,9 +28,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(_ seconds: Double) {
         self.seconds = seconds
-        
-        RelativeDateTimeFormatter.swizzleStringFor()
-        DateComponentsFormatter.swizzleStringFor()
+        Self.swizzleFormatters()
     }
 
     #if os(macOS) || os(iOS) || os(tvOS)
@@ -41,9 +39,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(_ time: CMTime) {
         seconds = time.seconds
-        
-        RelativeDateTimeFormatter.swizzleStringFor()
-        DateComponentsFormatter.swizzleStringFor()
+        Self.swizzleFormatters()
     }
     #endif
 
@@ -62,9 +58,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
             let interval = another.timeIntervalSince(date)
             seconds = (interval >= 0.0) ? interval : 0
         }
-        
-        RelativeDateTimeFormatter.swizzleStringFor()
-        DateComponentsFormatter.swizzleStringFor()
+        Self.swizzleFormatters()
     }
 
     /**
@@ -93,9 +87,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
         self.seconds += self.seconds(for: weeks, .week)
         self.seconds += self.seconds(for: months, .month)
         self.seconds += self.seconds(for: years, .year)
-        
-        RelativeDateTimeFormatter.swizzleStringFor()
-        DateComponentsFormatter.swizzleStringFor()
+        Self.swizzleFormatters()
     }
 
     /**
@@ -105,9 +97,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(dateInterval: DateInterval) {
         seconds = dateInterval.start.timeIntervalSince(dateInterval.end)
-        
-        RelativeDateTimeFormatter.swizzleStringFor()
-        DateComponentsFormatter.swizzleStringFor()
+        Self.swizzleFormatters()
     }
     
     /// The duration in nanoseconds.
@@ -1051,30 +1041,15 @@ extension TimeDuration {
 }
 */
 
-fileprivate extension DateComponentsFormatter {
-    static func swizzleStringFor() {
-        guard stringForHook == nil else { return }
+fileprivate extension TimeDuration {
+    static func swizzleFormatters() {
+        guard formatterHooks.isEmpty else { return }
         do {
-            stringForHook = try hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
+            formatterHooks += try DateComponentsFormatter.hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
                 original, formatter, selector, object in
                 (object as? TimeDuration).map({ formatter.string(from: $0.seconds) }) ?? original(formatter, selector, object)
             } as @convention(block) ((DateComponentsFormatter, Selector, Any) -> String?, DateComponentsFormatter, Selector, Any) -> String?)
-        } catch {
-            Swift.print(error)
-        }
-    }
-    
-    static var stringForHook: Hook? {
-        get { getAssociatedValue("stringForHook") }
-        set { setAssociatedValue(newValue, key: "stringForHook") }
-    }
-}
-
-fileprivate extension RelativeDateTimeFormatter {
-    static func swizzleStringFor() {
-        guard stringForHook == nil else { return }
-        do {
-            stringForHook = try hook(all: #selector(RelativeDateTimeFormatter.string(for:)), closure: {
+            formatterHooks += try RelativeDateTimeFormatter.hook(all: #selector(RelativeDateTimeFormatter.string(for:)), closure: {
                 original, formatter, selector, object in
                 (object as? TimeDuration).map({ formatter.localizedString(fromTimeInterval: $0.seconds) }) ?? original(formatter, selector, object)
             } as @convention(block) ((RelativeDateTimeFormatter, Selector, Any) -> String?, RelativeDateTimeFormatter, Selector, Any) -> String?)
@@ -1083,8 +1058,5 @@ fileprivate extension RelativeDateTimeFormatter {
         }
     }
     
-    static var stringForHook: Hook? {
-        get { getAssociatedValue("stringForHook") }
-        set { setAssociatedValue(newValue, key: "stringForHook") }
-    }
+    static var formatterHooks: [Hook] = []
 }
