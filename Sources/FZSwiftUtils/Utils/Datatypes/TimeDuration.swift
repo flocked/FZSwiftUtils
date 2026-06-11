@@ -8,7 +8,18 @@
 import AVKit
 import Foundation
 
-/// A structure representing a time duration.
+/**
+
+ A structure representing a time duration.
+
+ To generate a localized string representation of a `TimeDuration`, use one of the following methods:
+
+ - ``string(for:style:locale:)``
+ - ``string(allowedUnits:style:maximumUnitCount:zeroFormattingBehavior:locale:)``
+ - ``relativeString(dateTimeStyle:unitsStyle:locale:)``
+
+ Alternatively, you can use `TimeDuration` with ``Foundation/DateComponentsFormatter`` or ``Foundation/RelativeDateTimeFormatter`` and their [string(for:)](https://developer.apple.com/documentation/foundation/datecomponentsformatter/string(for:)).
+ */
 public struct TimeDuration: Hashable, Sendable, Codable {
     /**
      Initializes a new `TimeDuration` instance with the specified duration in seconds.
@@ -17,6 +28,9 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(_ seconds: Double) {
         self.seconds = seconds
+        
+        RelativeDateTimeFormatter.swizzleStringFor()
+        DateComponentsFormatter.swizzleStringFor()
     }
 
     #if os(macOS) || os(iOS) || os(tvOS)
@@ -27,6 +41,9 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(_ time: CMTime) {
         seconds = time.seconds
+        
+        RelativeDateTimeFormatter.swizzleStringFor()
+        DateComponentsFormatter.swizzleStringFor()
     }
     #endif
 
@@ -45,6 +62,9 @@ public struct TimeDuration: Hashable, Sendable, Codable {
             let interval = another.timeIntervalSince(date)
             seconds = (interval >= 0.0) ? interval : 0
         }
+        
+        RelativeDateTimeFormatter.swizzleStringFor()
+        DateComponentsFormatter.swizzleStringFor()
     }
 
     /**
@@ -73,6 +93,9 @@ public struct TimeDuration: Hashable, Sendable, Codable {
         self.seconds += self.seconds(for: weeks, .week)
         self.seconds += self.seconds(for: months, .month)
         self.seconds += self.seconds(for: years, .year)
+        
+        RelativeDateTimeFormatter.swizzleStringFor()
+        DateComponentsFormatter.swizzleStringFor()
     }
 
     /**
@@ -82,6 +105,9 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(dateInterval: DateInterval) {
         seconds = dateInterval.start.timeIntervalSince(dateInterval.end)
+        
+        RelativeDateTimeFormatter.swizzleStringFor()
+        DateComponentsFormatter.swizzleStringFor()
     }
     
     /// The duration in nanoseconds.
@@ -1024,3 +1050,41 @@ extension TimeDuration {
     }
 }
 */
+
+fileprivate extension DateComponentsFormatter {
+    static func swizzleStringFor() {
+        guard stringForHook == nil else { return }
+        do {
+            stringForHook = try hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
+                original, formatter, selector, object in
+                (object as? TimeDuration).map({ formatter.string(from: $0.seconds) }) ?? original(formatter, selector, object)
+            } as @convention(block) ((DateComponentsFormatter, Selector, Any) -> String?, DateComponentsFormatter, Selector, Any) -> String?)
+        } catch {
+            Swift.print(error)
+        }
+    }
+    
+    static var stringForHook: Hook? {
+        get { getAssociatedValue("stringForHook") }
+        set { setAssociatedValue(newValue, key: "stringForHook") }
+    }
+}
+
+fileprivate extension RelativeDateTimeFormatter {
+    static func swizzleStringFor() {
+        guard stringForHook == nil else { return }
+        do {
+            stringForHook = try hook(all: #selector(RelativeDateTimeFormatter.string(for:)), closure: {
+                original, formatter, selector, object in
+                (object as? TimeDuration).map({ formatter.localizedString(fromTimeInterval: $0.seconds) }) ?? original(formatter, selector, object)
+            } as @convention(block) ((RelativeDateTimeFormatter, Selector, Any) -> String?, RelativeDateTimeFormatter, Selector, Any) -> String?)
+        } catch {
+            Swift.print(error)
+        }
+    }
+    
+    static var stringForHook: Hook? {
+        get { getAssociatedValue("stringForHook") }
+        set { setAssociatedValue(newValue, key: "stringForHook") }
+    }
+}

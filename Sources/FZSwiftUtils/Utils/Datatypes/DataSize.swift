@@ -7,7 +7,17 @@
 
 import Foundation
 
-/// A struct representing a data size.
+/**
+ A structure representing a data size.
+
+ Use the provided formatting methods to generate localized string representations:
+
+ - ``string(for:unitStyle:zeroPadsFractionDigits:includesActualByteCount:locale:)``
+ - ``string(allowedUnits:unitStyle:zeroPadsFractionDigits:includesActualByteCount:locale:)``
+ - ``stringDetailed(unitStyle:zeroPadsFractionDigits:locale:)``
+
+ You can also format a `DataSize` using ``Foundation/ByteCountFormatter`` and it's [string(for:)](https://developer.apple.com/documentation/foundation/bytecountformatter/string(for:)).
+ */
 public struct DataSize: Hashable, Sendable {
     /**
      Initializes a `DataSize` instance with the given number of bytes and count style.
@@ -17,6 +27,7 @@ public struct DataSize: Hashable, Sendable {
        - countStyle: Specify the number of bytes to be used for ``kilobytes``. 
      */
     public init<V: BinaryInteger>(_ bytes: V, countStyle: CountStyle = .file) {
+        ByteCountFormatter.swizzleStringFor()
         self.bytes = UInt64(bytes)
         self.countStyle = countStyle
     }
@@ -37,6 +48,7 @@ public struct DataSize: Hashable, Sendable {
         - countStyle: The number of bytes to be used for ``kilobytes``.
      */
     public init(bytes: UInt64 = 0, kilobytes: Double = 0, megabytes: Double = 0, gigabytes: Double = 0, terabytes: Double = 0, petabytes: Double = 0, exabytes: Double = 0, zettabytes: Double = 0, yottabytes: Double = 0, countStyle: CountStyle = .file) {
+        ByteCountFormatter.swizzleStringFor()
         self.bytes = bytes
         self.countStyle = countStyle
         self.bytes += self.bytes(for: kilobytes, .kilobyte)
@@ -656,5 +668,24 @@ public class __DataSize: NSObject, NSCopying {
 fileprivate extension DataSize.CountStyle {
     var byte: ByteCountFormatter.CountStyle {
         .init(rawValue: rawValue) ?? .binary
+    }
+}
+
+fileprivate extension ByteCountFormatter {
+    static func swizzleStringFor() {
+        guard stringForHook == nil else { return }
+        do {
+            stringForHook = try hook(all: #selector(ByteCountFormatter.string(for:)), closure: {
+                original, formatter, selector, object in
+                (object as? DataSize).map({ formatter.string(fromByteCount: Int64($0.bytes)) }) ?? original(formatter, selector, object)
+            } as @convention(block) ((ByteCountFormatter, Selector, Any) -> String?, ByteCountFormatter, Selector, Any) -> String?)
+        } catch {
+            Swift.print(error)
+        }
+    }
+    
+    static var stringForHook: Hook? {
+        get { getAssociatedValue("stringForHook") }
+        set { setAssociatedValue(newValue, key: "stringForHook") }
     }
 }
