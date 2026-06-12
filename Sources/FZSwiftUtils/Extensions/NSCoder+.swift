@@ -621,12 +621,12 @@ public extension NSCoder {
 public extension NSCoder {
     /// Encodes an object and associates it with the string key.
     func encode<T: _ObjectiveCBridgeable>(_ value: T, forKey key: String) where T._ObjectiveCType: NSObject, T._ObjectiveCType: NSCoding {
-        encode(T._bridgeToObjectiveC(value), forKey: key)
+        encode(value._bridgeToObjectiveC(), forKey: key)
     }
     
     /// Encodes an object and associates it with the string key.
     func encode<T: _ObjectiveCBridgeable>(_ values: [T], forKey key: String) where T._ObjectiveCType: NSObject, T._ObjectiveCType: NSCoding {
-        encode(values.map({T._bridgeToObjectiveC($0)}) as NSArray, forKey: key)
+        encode(values.map({$0._bridgeToObjectiveC()}) as NSArray, forKey: key)
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
@@ -643,6 +643,28 @@ public extension NSCoder {
     func encode<V: RawRepresentable>(_ values: [V], forKey key: String) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(values.map(\.rawValue) as NSArray, forKey: key)
     }
+    
+    /*
+    /// Encodes a Swift dictionary as an `NSDictionary` for the given key.
+    func encode<Key, Value>(_ dictionary: [Key: Value], forKey key: String) where Key: _ObjectiveCBridgeable, Key._ObjectiveCType: NSObject & NSCoding, Value: _ObjectiveCBridgeable, Value._ObjectiveCType: NSObject & NSCoding {
+        encode(dictionary as NSDictionary, forKey: key)
+    }
+
+    /// Encodes a Swift dictionary with already Objective-C-compatible keys and values as an `NSDictionary`.
+    func encode<Key, Value>(_ dictionary: [Key: Value], forKey key: String) where Key: NSObject & NSCoding, Value: NSObject & NSCoding {
+        encode(dictionary as NSDictionary, forKey: key)
+    }
+
+    /// Encodes a Swift dictionary whose values are `RawRepresentable` as an `NSDictionary`.
+    func encode<Key, Value>(_ dictionary: [Key: Value], forKey key: String) where Key: _ObjectiveCBridgeable, Key._ObjectiveCType: NSObject & NSCoding, Value: RawRepresentable, Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encode(dictionary as NSDictionary, forKey: key)
+    }
+
+    /// Encodes a Swift dictionary whose values are `RawRepresentable` with Objective-C-compatible raw values as an `NSDictionary`.
+    func encode<Key, Value>(_ dictionary: [Key: Value], forKey key: String) where Key: _ObjectiveCBridgeable, Key._ObjectiveCType: NSObject & NSCoding, Value: RawRepresentable, Value.RawValue: NSObject & NSCoding {
+        encode(dictionary as NSDictionary, forKey: key)
+    }
+     */
     
     /// Encodes the specified `NSDirectionalEdgeInsets`.
     func encode(_ directionalEdgeInsets: NSDirectionalEdgeInsets, forKey key: String) {
