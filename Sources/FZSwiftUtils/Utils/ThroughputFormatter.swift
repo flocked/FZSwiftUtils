@@ -140,28 +140,22 @@ open class ThroughputFormatter: Formatter {
     }
     
     public required init?(coder: NSCoder) {
-        if let rawValue: Int = coder.decode(forKey: "units") {
-            units = .init(rawValue: rawValue)
-        }
-        if let rawValue: Int = coder.decode(forKey: "unitStyle") {
-            unitStyle = .init(rawValue: rawValue) ?? unitStyle
-        }
-        if let rawValue: Int = coder.decode(forKey: "countStyle") {
-            countStyle = .init(rawValue: rawValue) ?? countStyle
-        }
-        locale = coder.decode(forKey: "locale") ?? locale
-        includesCount = coder.decode(forKey: "includesCount") ?? includesCount
-        includesUnit = coder.decode(forKey: "includesUnit") ?? includesUnit
+        units = coder.decodeIfPresent("units") ?? units
+        unitStyle = coder.decodeIfPresent("unitStyle") ?? unitStyle
+        countStyle = coder.decodeIfPresent("countStyle") ?? countStyle
+        locale = coder.decodeIfPresent("locale") ?? locale
+        includesCount = coder.decodeIfPresent("includesCount") ?? includesCount
+        includesUnit = coder.decodeIfPresent("includesUnit") ?? includesUnit
         super.init(coder: coder)
         fractionLength = NumberFormatter.DigitLength(coder: coder) ?? fractionLength
     }
     
     public override func encode(with coder: NSCoder) {
         fractionLength.encode(with: coder)
-        coder.encode(units.rawValue, forKey: "units")
+        coder.encode(units, forKey: "units")
         coder.encode(locale, forKey: "locale")
-        coder.encode(unitStyle.rawValue, forKey: "unitStyle")
-        coder.encode(countStyle.rawValue, forKey: "countStyle")
+        coder.encode(unitStyle, forKey: "unitStyle")
+        coder.encode(countStyle, forKey: "countStyle")
         coder.encode(includesCount, forKey: "includesCount")
         coder.encode(includesUnit, forKey: "includesUnit")
     }
