@@ -323,10 +323,17 @@ public extension NSCoder {
         containsValue(forKey: key) ? decodeIfPresent(key) : nil
     }
     
+    #if os(macOS)
     /// Decodes and returns a `CGRect` for the specified key.
     func decode(_ key: String) -> CGRect {
         decodeRect(forKey: key)
     }
+    #else
+    /// Decodes and returns a `CGRect` for the specified key.
+    func decode(_ key: String) -> CGRect {
+        decodeCGRect(forKey: key)
+    }
+    #endif
     
     /// Decodes and returns a `CGRect` for the specified key, if present.
     func decodeIfPresent(_ key: String) -> CGRect? {
@@ -343,10 +350,17 @@ public extension NSCoder {
         containsValue(forKey: key) ? decode(key) : nil
     }
     
+    #if os(macOS)
     /// Decodes and returns a `CGPoint` for the specified key.
     func decode(_ key: String) -> CGPoint {
         decodePoint(forKey: key)
     }
+    #else
+    /// Decodes and returns a `CGPoint` for the specified key.
+    func decode(_ key: String) -> CGPoint {
+        decodeCGPoint(forKey: key)
+    }
+    #endif
     
     /// Decodes and returns a `CGPoint` for the specified key, if present.
     func decodeIfPresent(_ key: String) -> CGPoint? {
@@ -363,10 +377,17 @@ public extension NSCoder {
         containsValue(forKey: key) ? decode(key) : nil
     }
     
+    #if os(macOS)
     /// Decodes and returns a `CGSize` for the specified key.
     func decode(_ key: String) -> CGSize {
         decodeSize(forKey: key)
     }
+    #else
+    /// Decodes and returns a `CGSize` for the specified key.
+    func decode(_ key: String) -> CGSize {
+        decodeCGSize(forKey: key)
+    }
+    #endif
     
     /// Decodes and returns a `CGSize` for the specified key, if present.
     func decodeIfPresent(_ key: String) -> CGSize? {
@@ -517,7 +538,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `UIEdgeInsets` values for the specified key.
     func decode(_ key: String) -> [UIEdgeInsets] {
-        decodeEdgeInsets(forKey: key)
+        decodeEdgeInsetsArray(forKey: key)
     }
     
     /// Decodes and returns an array of `UIEdgeInsets` values for the specified key, if present.
