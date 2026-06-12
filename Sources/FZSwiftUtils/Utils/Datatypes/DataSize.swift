@@ -282,7 +282,7 @@ extension DataSize: Codable {
         } else {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             self.bytes = try container.decode(UInt64.self, forKey: .bytes)
-            self.countStyle = try container.decodeIfPresent(CountStyle.self, forKey: .countStyle) ?? .file
+            self.countStyle = try container.decode(CountStyle.self, forKey: .countStyle) ?? .file
         }
     }
 }

@@ -69,6 +69,6 @@ public class MultiDateFormatter: DateFormatter {
     
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
-        dateFormats = coder.decodeIfPresent("dateFormats") ?? []
+        dateFormats = coder.decode("dateFormats") ?? []
     }
 }

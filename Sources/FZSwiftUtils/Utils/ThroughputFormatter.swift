@@ -140,12 +140,12 @@ open class ThroughputFormatter: Formatter {
     }
     
     public required init?(coder: NSCoder) {
-        units = coder.decodeIfPresent("units") ?? units
-        unitStyle = coder.decodeIfPresent("unitStyle") ?? unitStyle
-        countStyle = coder.decodeIfPresent("countStyle") ?? countStyle
-        locale = coder.decodeIfPresent("locale") ?? locale
-        includesCount = coder.decodeIfPresent("includesCount") ?? includesCount
-        includesUnit = coder.decodeIfPresent("includesUnit") ?? includesUnit
+        units = coder.decode("units") ?? units
+        unitStyle = coder.decode("unitStyle") ?? unitStyle
+        countStyle = coder.decode("countStyle") ?? countStyle
+        locale = coder.decode("locale") ?? locale
+        includesCount = coder.decode("includesCount") ?? includesCount
+        includesUnit = coder.decode("includesUnit") ?? includesUnit
         super.init(coder: coder)
         fractionLength = NumberFormatter.DigitLength(coder: coder) ?? fractionLength
     }

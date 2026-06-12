@@ -62,16 +62,16 @@ extension Bundle {
         
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
-            bundleName = try container.decodeIfPresent(String.self, forKey: .bundleName)
-            displayName = try container.decodeIfPresent(String.self, forKey: .displayName)
+            bundleName = try container.decode(String.self, forKey: .bundleName)
+            displayName = try container.decode(String.self, forKey: .displayName)
             bundleIdentifier = try container.decode(String.self, forKey: .bundleIdentifier)
-            iconFile = try container.decodeIfPresent(String.self, forKey: .iconFile)
-            iconName = try container.decodeIfPresent(String.self, forKey: .iconName)
+            iconFile = try container.decode(String.self, forKey: .iconFile)
+            iconName = try container.decode(String.self, forKey: .iconName)
             executable = try container.decode(String.self, forKey: .executable)
-            shortVersion = try container.decodeIfPresent(String.self, forKey: .shortVersion)
-            version = try container.decodeIfPresent(String.self, forKey: .version)
-            minimumSystemVersion = try container.decodeIfPresent(String.self, forKey: .minimumSystemVersion)
-            supportedFileTypes = try container.decodeIfPresent([FileTypeDefinition].self, forKey: .supportedFileTypes) ?? []
+            shortVersion = try container.decode(String.self, forKey: .shortVersion)
+            version = try container.decode(String.self, forKey: .version)
+            minimumSystemVersion = try container.decode(String.self, forKey: .minimumSystemVersion)
+            supportedFileTypes = try container.decode([FileTypeDefinition].self, forKey: .supportedFileTypes) ?? []
             supportedFileTypes.editEach({$0.appBundleURL = bundle.bundleURL })
         }
         
