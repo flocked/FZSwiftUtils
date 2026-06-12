@@ -578,7 +578,7 @@ public class __NSDirectionalEdgeInsets: NSObject, NSCopying, NSCoding {
     }
     
     public required init?(coder: NSCoder) {
-        self.insets = .init(top: coder.decode("top"), leading: coder.decode("leading"), bottom: coder.decode("bottom"), trailing: coder.decode("trailing"))
+        self.insets = .init(top: coder.decode("top") ?? 0.0, leading: coder.decode("leading") ?? 0.0, bottom: coder.decode("bottom") ?? 0.0, trailing: coder.decode("trailing") ?? 0.0)
     }
     
     public func encode(with coder: NSCoder) {
@@ -646,7 +646,7 @@ public class __NSEdgeInsets: NSObject, NSCopying, NSCoding {
     }
     
     public required init?(coder: NSCoder) {
-        self.insets = .init(top: coder.decode("top"), left: coder.decode("left"), bottom: coder.decode("bottom"), right: coder.decode("right"))
+        self.insets = .init(top: coder.decode("top") ?? 0.0, left: coder.decode("left") ?? 0.0, bottom: coder.decode("bottom") ?? 0.0, right: coder.decode("right") ?? 0.0)
     }
     
     public func encode(with coder: NSCoder) {
