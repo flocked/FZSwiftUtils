@@ -531,3 +531,142 @@ extension Edge.Set {
     /// Top and bottom edge.
     public static let height: Self = [.top, .bottom]
 }
+
+
+#if os(macOS)
+extension NSDirectionalEdgeInsets: Foundation.ReferenceConvertible, Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible {
+    /// The Objective-C type for the insets.
+    public typealias ReferenceType = __NSDirectionalEdgeInsets
+    
+    public func _bridgeToObjectiveC() -> ReferenceType {
+        return __NSDirectionalEdgeInsets(insets: self)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) {
+        result = source.insets
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: ReferenceType?) -> Self {
+        if let source = source {
+            var result: NSDirectionalEdgeInsets?
+            _forceBridgeFromObjectiveC(source, result: &result)
+            return result!
+        }
+        return .zero
+    }
+    
+    public var description: String {
+        "NSDirectionalEdgeInsets(top: \(top), leading: \(leading), bottom: \(bottom), trailing: \(trailing))"
+    }
+    
+    public var debugDescription: String {
+        description
+    }
+}
+
+/// The Objective-C class for [NSDirectionalEdgeInsets](https://developer.apple.com/documentation/uikit/nsdirectionaledgeinsets).
+public class __NSDirectionalEdgeInsets: NSObject, NSCopying, NSCoding {
+    let insets: NSDirectionalEdgeInsets
+    
+    public init(insets: NSDirectionalEdgeInsets) {
+        self.insets = insets
+    }
+    
+    public required init?(coder: NSCoder) {
+        self.insets = .init(top: coder.decode("top"), leading: coder.decode("leading"), bottom: coder.decode("bottom"), trailing: coder.decode("trailing"))
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(insets.top, forKey: "top")
+        coder.encode(insets.leading, forKey: "leading")
+        coder.encode(insets.bottom, forKey: "bottom")
+        coder.encode(insets.trailing, forKey: "trailing")
+    }
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        self
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else { return false }
+        return self === other || insets == other.insets
+    }
+    
+    public override var hash: Int {
+        Hasher.hash([insets])
+    }
+}
+
+extension NSEdgeInsets: Foundation.ReferenceConvertible, Swift.CustomStringConvertible, Swift.CustomDebugStringConvertible {
+    /// The Objective-C type for the insets.
+    public typealias ReferenceType = __NSEdgeInsets
+    
+    public func _bridgeToObjectiveC() -> ReferenceType {
+        return __NSEdgeInsets(insets: self)
+    }
+    
+    public static func _forceBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) {
+        result = source.insets
+    }
+    
+    public static func _conditionallyBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+    
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: ReferenceType?) -> Self {
+        if let source = source {
+            var result: NSEdgeInsets?
+            _forceBridgeFromObjectiveC(source, result: &result)
+            return result!
+        }
+        return .zero
+    }
+    
+    public var description: String {
+        "NSEdgeInsets(top: \(top), left: \(left), bottom: \(bottom), right: \(right))"
+    }
+    
+    public var debugDescription: String {
+        description
+    }
+}
+
+/// The Objective-C class for [NSEdgeInsets](https://developer.apple.com/documentation/foundation/nsedgeinsets).
+public class __NSEdgeInsets: NSObject, NSCopying, NSCoding {
+    let insets: NSEdgeInsets
+    
+    public init(insets: NSEdgeInsets) {
+        self.insets = insets
+    }
+    
+    public required init?(coder: NSCoder) {
+        self.insets = .init(top: coder.decode("top"), left: coder.decode("left"), bottom: coder.decode("bottom"), right: coder.decode("right"))
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(insets.top, forKey: "top")
+        coder.encode(insets.left, forKey: "left")
+        coder.encode(insets.bottom, forKey: "bottom")
+        coder.encode(insets.right, forKey: "right")
+    }
+    
+    public func copy(with zone: NSZone? = nil) -> Any {
+        self
+    }
+    
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else { return false }
+        return self === other || insets == other.insets
+    }
+    
+    public override var hash: Int {
+        Hasher.hash([insets])
+    }
+}
+#endif
