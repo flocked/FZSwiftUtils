@@ -34,18 +34,8 @@ public extension NSCoding {
      
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
-    func archiveBasedCopy<Subclass: NSCoding>(as subclass: Subclass.Type) throws -> Subclass {
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: archivedData())
-        unarchiver.requiresSecureCoding = false
-        defer { unarchiver.finishDecoding() }
-        unarchiver.setClass(subclass, forClassName: NSStringFromClass(type(of: self)))
-        guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
-            throw NSCodingArchiveError.missingRootObject
-        }
-        guard let object = value as? Subclass else {
-            throw NSCodingArchiveError.typeMismatch(expected: Subclass.self, actual: type(of: value))
-        }
-        return object
+    func archiveBasedCopy<Subclass: NSCoding>(as subclass: Subclass.Type = Subclass.self) throws -> Subclass {
+        return try Self.unarchive(archivedData(), as: subclass, replacingClassName: NSStringFromClass(type(of: self)))
     }
     
     /**
@@ -54,14 +44,21 @@ public extension NSCoding {
      - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
      */
     static func unarchive(_ data: Data) throws -> Self {
+        try unarchive(data, as: Self.self)
+    }
+    
+    static func unarchive<Decoded: NSCoding>(_ data: Data, as decodedType: Decoded.Type, replacingClassName className: String? = nil) throws -> Decoded {
         let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
         unarchiver.requiresSecureCoding = false
         defer { unarchiver.finishDecoding() }
-        guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
+        if let className = className {
+            unarchiver.setClass(decodedType, forClassName: className)
+        }
+        guard let value = unarchiver.decodeRootObject() else {
             throw NSCodingArchiveError.missingRootObject
         }
-        guard let object = value as? Self else {
-            throw NSCodingArchiveError.typeMismatch(expected: Self.self, actual: type(of: value))
+        guard let object = value as? Decoded else {
+            throw NSCodingArchiveError.typeMismatch(expected: Decoded.self, actual: type(of: value))
         }
         return object
     }
@@ -70,22 +67,12 @@ public extension NSCoding {
 public extension NSSecureCoding {
     /**
      Archives the object into `Data`.
-          
-     - Throws: An error if the encoding process fails.
-     - Returns: A `Data` representation of the object.
-     */
-    func archivedData() throws -> Data {
-        try archivedData(requiresSecureCoding: Self.supportsSecureCoding)
-    }
-    
-    /**
-     Archives the object into `Data`.
      
      - Parameter requiresSecureCoding: A Boolean value indicating whether the unarchived object requires to conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
      - Throws: An error if the encoding process fails.
      - Returns: A `Data` representation of the object.
      */
-    func archivedData(requiresSecureCoding: Bool) throws -> Data {
+    func archivedData(requiresSecureCoding: Bool = Self.supportsSecureCoding) throws -> Data {
         try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: requiresSecureCoding)
     }
     
@@ -95,7 +82,18 @@ public extension NSSecureCoding {
      - Throws: An error if copying fails.
      */
     func archiveBasedCopy() throws -> Self {
-        try Self.unarchive(archivedData())
+        return try Self.unarchive(archivedData())
+    }
+    
+    /**
+     Creates an archived-based copy of the object as the specified subclass.
+     
+     - Parameter subclass: The type of the subclass for the copy.
+     
+     - Throws: An error if copying fails or the specified class isn't a subclass.
+     */
+    func archiveBasedCopy<Subclass: NSCoding>(as subclass: Subclass.Type = Subclass.self) throws -> Subclass {
+        try Self.unarchive(archivedData(requiresSecureCoding: false), as: subclass, replacingClassName: NSStringFromClass(type(of: self)))
     }
     
     /**
@@ -106,21 +104,6 @@ public extension NSSecureCoding {
     static func unarchive(_ data: Data) throws -> Self {
         try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data)
     }
-    
-    /*
-    /**
-     Decodes a previously-archived object graph, and returns the root object as the type.
-     
-     - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
-     */
-    static func unarchive(_ data: Data) throws -> Self {
-        try NSKeyedUnarchiver.unarchivedObject(from: data)
-    }
-    
-    static func unarchive(_ data: Data, requiresSecureCoding: Bool) throws -> Self {
-        try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data, requiresSecureCoding: requiresSecureCoding)
-    }
-    */
 }
 
 public extension NSCopying where Self: NSObject {
