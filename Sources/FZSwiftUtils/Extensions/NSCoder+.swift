@@ -20,7 +20,7 @@ public extension NSCoder {
     }
     
     func encode<T: _ObjectiveCBridgeable>(_ values: [T], forKey key: String) where T._ObjectiveCType: NSObject, T._ObjectiveCType: NSCoding {
-        encode(values.map({ T._bridgeToObjectiveC($0) }), forKey: key)
+        encode(values.map { T._bridgeToObjectiveC($0) }, forKey: key)
     }
     
     /**
@@ -36,8 +36,7 @@ public extension NSCoder {
      
      - Returns: The decoded object, or `nil` if decoding fails.
      */
-    func decode<DecodedObjectType>(forKey key: String
-    ) -> DecodedObjectType? where DecodedObjectType : NSObject, DecodedObjectType : NSCoding {
+    func decode<DecodedObjectType: NSObject & NSCoding>(forKey key: String) -> DecodedObjectType? {
         decodeObject(of: DecodedObjectType.self, forKey: key)
     }
     
@@ -55,7 +54,7 @@ public extension NSCoder {
      - Returns: The decoded object, or `nil` if decoding fails.
      */
     func decode<DecodedObjectType: _ObjectiveCBridgeable>(forKey key: String) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject, DecodedObjectType._ObjectiveCType: NSCoding {
-        guard let obj = decodeObject(forKey: key) as? DecodedObjectType._ObjectiveCType else {  return nil }
+        guard let obj: DecodedObjectType._ObjectiveCType = decode(forKey: key) else { return nil }
         var result: DecodedObjectType?
         DecodedObjectType._forceBridgeFromObjectiveC(obj, result: &result)
         return result
@@ -85,9 +84,29 @@ public extension NSCoder {
         decodeObject(of: NSValue.self, forKey: key)?.directionalEdgeInsetsValue ?? .init()
     }
     
+    /// Decodes and returns an array of `NSDirectionalEdgeInsets` values that was previously encoded with `encode(_:)`.
+    func decodeDirectionalEdgeInsetsArray(forKey key: String) -> [NSDirectionalEdgeInsets] {
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.directionalEdgeInsetsValue } ?? []
+    }
+    
     /// Decodes and returns a `CGAffineTransform` value that was previously encoded with `encode(_:)`.
     func decodeCGAffineTransform(forKey key: String) -> CGAffineTransform {
         decodeObject(of: NSValue.self, forKey: key)?.cgAffineTransformValue ?? .identity
+    }
+    
+    /// Decodes and returns an array of `CGAffineTransform` values that was previously encoded with `encode(_:)`.
+    func decodeCGAffineTransforms(forKey key: String) -> [CGAffineTransform] {
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.cgAffineTransformValue } ?? []
+    }
+    
+    /// Decodes and returns a `NSRange` value that was previously encoded with `encode(_:)`.
+    func decodeRange(forKey key: String) -> NSRange {
+        decodeObject(of: NSValue.self, forKey: key)?.rangeValue ?? .notFound
+    }
+    
+    /// Decodes and returns an array of `NSRange` values that was previously encoded with `encode(_:)`.
+    func decodeNSRanges(forKey key: String) -> [NSRange] {
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.rangeValue } ?? []
     }
     
     #if os(macOS) || os(iOS) || os(tvOS)
@@ -96,43 +115,22 @@ public extension NSCoder {
         decodeObject(of: NSValue.self, forKey: key)?.caTransform3DValue ?? .init()
     }
     
+    /// Decodes and returns an array of `CATransform3D` values that was previously encoded with `encode(_:)`.
+    func decodeCATransform3Ds(forKey key: String) -> [CATransform3D] {
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.caTransform3DValue } ?? []
+    }
+    
     /// Decodes and returns a `CMTime` value that was previously encoded with `encode(_:)`.
     func decodeTime(forKey key: String) -> CMTime {
         decodeObject(of: NSValue.self, forKey: key)?.timeValue ?? .zero
     }
-    #endif
     
-    /// Decodes and returns a `NSRange` value that was previously encoded with `encode(_:)`.
-    func decodeRange(forKey key: String) -> NSRange {
-        decodeObject(of: NSValue.self, forKey: key)?.rangeValue ?? .notFound
-    }
-    
-    /// Decodes and returns an array of `NSDirectionalEdgeInsets` values that was previously encoded with `encode(_:)`.
-    func decodeDirectionalEdgeInsetsArray(forKey key: String) -> [NSDirectionalEdgeInsets] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.directionalEdgeInsetsValue }) ?? []
-    }
-    
-    /// Decodes and returns an array of `NSRange` values that was previously encoded with `encode(_:)`.
-    func decodeNSRanges(forKey key: String) -> [NSRange] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.rangeValue }) ?? []
-    }
-    
-    #if os(macOS) || os(iOS) || os(tvOS)
     /// Decodes and returns an array of `CMTime` values that was previously encoded with `encode(_:)`.
     func decodeTimes(forKey key: String) -> [CMTime] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.timeValue }) ?? []
-    }
-    
-    /// Decodes and returns an array of `CATransform3D` values that was previously encoded with `encode(_:)`.
-    func decodeCATransform3Ds(forKey key: String) -> [CATransform3D] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.caTransform3DValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.timeValue } ?? []
     }
     #endif
-    
-    /// Decodes and returns an array of `CGAffineTransform` values that was previously encoded with `encode(_:)`.
-    func decodeCGAffineTransforms(forKey key: String) -> [CGAffineTransform] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgAffineTransformValue }) ?? []
-    }
+
     #if os(macOS)
     /// Decodes and returns a `NSEdgeInsets` value that was previously encoded with `encode(_:)`.
     func decodeEdgeInsets(forKey key: String) -> NSEdgeInsets {
@@ -141,7 +139,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `NSEdgeInsets` values that was previously encoded with `encode(_:)`.
     func decodeEdgeInsets(forKey key: String) -> [NSEdgeInsets] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.edgeInsetsValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.edgeInsetsValue } ?? []
     }
     
     /// Decodes and returns a range value that was previously encoded with `encode(_:)`.
@@ -149,39 +147,45 @@ public extension NSCoder {
         (decodeObject(forKey: key) as? RangeObjC<Bound>)?.range ?? .init(uncheckedBounds: (.zero, .zero))
     }
     
+    /// Decodes and returns an array of `Range` values that was previously encoded with `encode(_:)`.
+    func decodeRanges<Bound: NSNumberConvertable>(forKey key: String) -> [Range<Bound>] {
+        (decodeObject(forKey: key) as? [RangeObjC<Bound>])?.compactMap { $0.range } ?? []
+    }
+    
     /// Decodes and returns a closed range value that was previously encoded with `encode(_:)`.
     func decodeClosedRange<Bound: NSNumberConvertable>(forKey key: String) -> ClosedRange<Bound> {
         (decodeObject(forKey: key) as? RangeObjC<Bound>)?.closedRange ?? .init(uncheckedBounds: (.zero, .zero))
     }
     
-    /// Decodes and returns an array of `Range` values that was previously encoded with `encode(_:)`.
-    func decodeRanges<Bound: NSNumberConvertable>(forKey key: String) -> [Range<Bound>] {
-        (decodeObject(forKey: key) as? [RangeObjC<Bound>])?.compactMap({ $0.range }) ?? []
-    }
-    
     /// Decodes and returns an array of `ClosedRange` values that was previously encoded with `encode(_:)`.
     func decodeClosedRanges<Bound: NSNumberConvertable>(forKey key: String) -> [ClosedRange<Bound>] {
-        (decodeObject(forKey: key) as? [RangeObjC<Bound>])?.compactMap({ $0.closedRange }) ?? []
+        (decodeObject(forKey: key) as? [RangeObjC<Bound>])?.compactMap { $0.closedRange } ?? []
     }
     
     /// Decodes and returns an array of `CGPoint` values that was previously encoded with `encode(_:)`.
     func decodePoints(forKey key: String) -> [CGPoint] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.pointValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.pointValue } ?? []
     }
     
     /// Decodes and returns an array of `CGSize` values that was previously encoded with `encode(_:)`.
     func decodeSizes(forKey key: String) -> [CGSize] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.sizeValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.sizeValue } ?? []
     }
     
     /// Decodes and returns an array of `CGRect` values that was previously encoded with `encode(_:)`.
     func decodeRects(forKey key: String) -> [CGRect] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.rectValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.rectValue } ?? []
     }
+
     #elseif canImport(UIKit)
     /// Decodes and returns a `UIEdgeInsets` value that was previously encoded with `encode(_:)`.
     func decodeEdgeInsets(forKey key: String) -> UIEdgeInsets {
         (decodeObject(forKey: key) as? NSValue)?.uiEdgeInsetsValue ?? .init()
+    }
+    
+    /// Decodes and returns an array of `UIEdgeInsets` values that was previously encoded with `encode(_:)`.
+    func decodeEdgeInsetsArray(forKey key: String) -> [UIEdgeInsets] {
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.uiEdgeInsetsValue } ?? []
     }
     
     /// Decodes and returns a `CGVector` value that was previously encoded with `encode(_:)`.
@@ -189,32 +193,29 @@ public extension NSCoder {
         decodeObject(of: NSValue.self, forKey: key)?.cgVectorValue ?? .zero
     }
     
-    /// Decodes and returns an array of `UIEdgeInsets` values that was previously encoded with `encode(_:)`.
-    func decodeEdgeInsetsArray(forKey key: String) -> [UIEdgeInsets] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.uiEdgeInsetsValue }) ?? []
-    }
-    
     /// Decodes and returns an array of `CGVector` values that was previously encoded with `encode(_:)`.
     func decodeCGVectors(forKey key: String) -> [CGVector] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgVectorValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.cgVectorValue } ?? []
     }
     
     /// Decodes and returns an array of `CGPoint` values that was previously encoded with `encode(_:)`.
     func decodePoints(forKey key: String) -> [CGPoint] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgPointValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.cgPointValue } ?? []
     }
     
     /// Decodes and returns an array of `CGSize` values that was previously encoded with `encode(_:)`.
     func decodeSizes(forKey key: String) -> [CGSize] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgSizeValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.cgSizeValue } ?? []
     }
     
     /// Decodes and returns an array of `CGRect` values that was previously encoded with `encode(_:)`.
     func decodeRects(forKey key: String) -> [CGRect] {
-        (decodeObject(forKey: key) as? [NSValue])?.map({ $0.cgRectValue }) ?? []
+        (decodeObject(forKey: key) as? [NSValue])?.map { $0.cgRectValue } ?? []
     }
     #endif
-    
+}
+
+public extension NSCoder {
     /// Encodes the specified `NSDirectionalEdgeInsets`.
     func encode(_ directionalEdgeInsets: NSDirectionalEdgeInsets, forKey key: String) {
         encode(NSValue(directionalEdgeInsets: directionalEdgeInsets), forKey: key)
@@ -224,18 +225,6 @@ public extension NSCoder {
     func encode(_ cgAffineTransform: CGAffineTransform, forKey key: String) {
         encode(NSValue(cgAffineTransform: cgAffineTransform), forKey: key)
     }
-    
-    #if os(macOS) || os(iOS) || os(tvOS)
-    /// Encodes the specified `CATransform3D`.
-    func encode(_ caTransform3D: CATransform3D, forKey key: String) {
-        encode(NSValue(caTransform3D: caTransform3D), forKey: key)
-    }
-    
-    /// Encodes the specified `CMTime`.
-    func encode(_ time: CMTime, forKey key: String) {
-        encode(NSValue(time: time), forKey: key)
-    }
-    #endif
     
     /// Encodes the specified `NSRange`.
     func encode(_ range: NSRange, forKey key: String) {
@@ -257,18 +246,6 @@ public extension NSCoder {
         encode(transforms.map { NSValue(cgAffineTransform: $0) }, forKey: key)
     }
     
-    #if os(macOS) || os(iOS) || os(tvOS)
-    /// Encodes the specified array of `CMTime` values.
-    func encode(_ times: [CMTime], forKey key: String) {
-    encode(times.map { NSValue(time: $0) }, forKey: key)
-    }
-    
-    /// Encodes the specified array of `CATransform3D` values.
-    func encode(_ transforms: [CATransform3D], forKey key: String) {
-        encode(transforms.map { NSValue(caTransform3D: $0) }, forKey: key)
-    }
-    #endif
-    
     /// Encodes the specified range.
     func encode<Bound: NSNumberConvertable>(_ range: Range<Bound>, forKey key: String) {
         encode(RangeObjC(range), forKey: key)
@@ -281,13 +258,35 @@ public extension NSCoder {
     
     /// Encodes the specified array of `Range` values.
     func encode<Bound: NSNumberConvertable>(_ ranges: [Range<Bound>], forKey key: String) {
-        encode(ranges.map({RangeObjC($0)}), forKey: key)
+        encode(ranges.map { RangeObjC($0) }, forKey: key)
     }
     
     /// Encodes the specified array of `ClosedRange` values.
     func encode<Bound: NSNumberConvertable>(_ ranges: [ClosedRange<Bound>], forKey key: String) {
-        encode(ranges.map({RangeObjC($0)}), forKey: key)
+        encode(ranges.map { RangeObjC($0) }, forKey: key)
     }
+    
+    #if os(macOS) || os(iOS) || os(tvOS)
+    /// Encodes the specified `CATransform3D`.
+    func encode(_ caTransform3D: CATransform3D, forKey key: String) {
+        encode(NSValue(caTransform3D: caTransform3D), forKey: key)
+    }
+
+    /// Encodes the specified `CMTime`.
+    func encode(_ time: CMTime, forKey key: String) {
+        encode(NSValue(time: time), forKey: key)
+    }
+    
+    /// Encodes the specified array of `CMTime` values.
+    func encode(_ times: [CMTime], forKey key: String) {
+        encode(times.map { NSValue(time: $0) }, forKey: key)
+    }
+
+    /// Encodes the specified array of `CATransform3D` values.
+    func encode(_ transforms: [CATransform3D], forKey key: String) {
+        encode(transforms.map { NSValue(caTransform3D: $0) }, forKey: key)
+    }
+    #endif
     
     #if os(macOS)
     /// Encodes the specified `NSEdgeInsets`.
@@ -349,41 +348,453 @@ public extension NSCoder {
     func encode(_ rects: [CGRect], forKey key: String) {
         encode(rects.map { NSValue(cgRect: $0) }, forKey: key)
     }
+    #endif
+}
+
+public extension NSCoder {
+    /// Decodes and returns a `NSObject` conforming to `NSCoding` for the specified key, if present.
+    @_disfavoredOverload
+    func decode<DecodedObjectType: NSObject & NSCoding>(_ key: String) -> DecodedObjectType? {
+        _decode(key)
+    }
     
+    fileprivate func _decode<DecodedObjectType: NSObject & NSCoding>(_ key: String) -> DecodedObjectType? {
+        decodeObject(of: DecodedObjectType.self, forKey: key)
+    }
+    
+    /// Decodes and returns an object of type `DecodedObjectType` for the specified key.
+    @_disfavoredOverload
+    func decode<DecodedObjectType: _ObjectiveCBridgeable>(_ key: String) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject & NSCoding {
+        _decode(key)
+    }
+    
+    fileprivate func _decode<DecodedObjectType: _ObjectiveCBridgeable>(_ key: String) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject & NSCoding {
+        guard let object: DecodedObjectType._ObjectiveCType = decode(key) else { return nil }
+        var result: DecodedObjectType?
+        DecodedObjectType._forceBridgeFromObjectiveC(object, result: &result)
+        return result
+    }
+    
+    /// Decodes and returns an `Int` for the specified key.
+    func decode(_ key: String) -> Int {
+        decodeInteger(forKey: key)
+    }
+    
+    /// Decodes and returns an `Int` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> Int? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Int` values for the specified key.
+    func decode(_ key: String) -> [Int] {
+        decode(key)!
+    }
+    
+    /// Decodes and returns an array of `Int` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [Int]? {
+        containsValue(forKey: key) ? _decode(key) : nil
+    }
+    
+    /// Decodes and returns an `Int32` for the specified key.
+    func decode(_ key: String) -> Int32 {
+        decodeInt32(forKey: key)
+    }
+    
+    /// Decodes and returns an `Int32` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> Int32? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Int32` values for the specified key.
+    func decode(_ key: String) -> [Int32] {
+        decode(key)!
+    }
+    
+    /// Decodes and returns an array of `Int32` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [Int32]? {
+        containsValue(forKey: key) ? _decode(key) : nil
+    }
+    
+    /// Decodes and returns an `Int64` for the specified key.
+    func decode(_ key: String) -> Int64 {
+        decodeInt64(forKey: key)
+    }
+    
+    /// Decodes and returns an `Int64` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> Int64? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Int64` values for the specified key.
+    func decode(_ key: String) -> [Int64] {
+        decode(key)!
+    }
+    
+    /// Decodes and returns an array of `Int64` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [Int64]? {
+        containsValue(forKey: key) ? _decode(key) : nil
+    }
+    
+    /// Decodes and returns a `Double` for the specified key.
+    func decode(_ key: String) -> Double {
+        decodeDouble(forKey: key)
+    }
+    
+    /// Decodes and returns a `Double` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> Double? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Double` values for the specified key.
+    func decode(_ key: String) -> [Double] {
+        decode(key)!
+    }
+    
+    /// Decodes and returns an array of `Double` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [Double]? {
+        containsValue(forKey: key) ? _decode(key) : nil
+    }
+    
+    /// Decodes and returns a `Float` for the specified key.
+    func decode(_ key: String) -> Float {
+        decodeFloat(forKey: key)
+    }
+    
+    /// Decodes and returns a `Float` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> Float? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Float` values for the specified key.
+    func decode(_ key: String) -> [Float] {
+        decode(key)!
+    }
+    
+    /// Decodes and returns an array of `Float` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [Float]? {
+        containsValue(forKey: key) ? _decode(key) : nil
+    }
+    
+    /// Decodes and returns a `Bool` for the specified key.
+    func decode(_ key: String) -> Bool {
+        decodeBool(forKey: key)
+    }
+    
+    /// Decodes and returns a `Bool` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> Bool? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Bool` values for the specified key.
+    func decode(_ key: String) -> [Bool] {
+        decode(key)!
+    }
+    
+    /// Decodes and returns an array of `Bool` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [Bool]? {
+        containsValue(forKey: key) ? _decode(key) : nil
+    }
+    
+    /// Decodes and returns a `CGRect` for the specified key.
+    func decode(_ key: String) -> CGRect {
+        decodeRect(forKey: key)
+    }
+    
+    /// Decodes and returns a `CGRect` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CGRect? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CGRect` values for the specified key.
+    func decode(_ key: String) -> [CGRect] {
+        decodeRects(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CGRect` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CGRect]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `CGPoint` for the specified key.
+    func decode(_ key: String) -> CGPoint {
+        decodePoint(forKey: key)
+    }
+    
+    /// Decodes and returns a `CGPoint` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CGPoint? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CGPoint` values for the specified key.
+    func decode(_ key: String) -> [CGPoint] {
+        decodePoints(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CGPoint` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CGPoint]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `CGSize` for the specified key.
+    func decode(_ key: String) -> CGSize {
+        decodeSize(forKey: key)
+    }
+    
+    /// Decodes and returns a `CGSize` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CGSize? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CGSize` values for the specified key.
+    func decode(_ key: String) -> [CGSize] {
+        decodeSizes(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CGSize` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CGSize]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an `NSRange` for the specified key.
+    func decode(_ key: String) -> NSRange {
+        decodeRange(forKey: key)
+    }
+    
+    /// Decodes and returns an `NSRange` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> NSRange? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `NSRange` values for the specified key.
+    func decode(_ key: String) -> [NSRange] {
+        decodeNSRanges(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `NSRange` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [NSRange]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `CGAffineTransform` for the specified key.
+    func decode(_ key: String) -> CGAffineTransform {
+        decodeCGAffineTransform(forKey: key)
+    }
+    
+    /// Decodes and returns a `CGAffineTransform` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CGAffineTransform? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CGAffineTransform` values for the specified key.
+    func decode(_ key: String) -> [CGAffineTransform] {
+        decodeCGAffineTransforms(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CGAffineTransform` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CGAffineTransform]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an `NSDirectionalEdgeInsets` for the specified key.
+    func decode(_ key: String) -> NSDirectionalEdgeInsets {
+        decodeDirectionalEdgeInsets(forKey: key)
+    }
+    
+    /// Decodes and returns an `NSDirectionalEdgeInsets` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> NSDirectionalEdgeInsets? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `NSDirectionalEdgeInsets` values for the specified key.
+    func decode(_ key: String) -> [NSDirectionalEdgeInsets] {
+        decodeDirectionalEdgeInsetsArray(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `NSDirectionalEdgeInsets` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [NSDirectionalEdgeInsets]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    #if os(macOS)
+    /// Decodes and returns an `NSEdgeInsets` for the specified key.
+    func decode(_ key: String) -> NSEdgeInsets {
+        decodeEdgeInsets(forKey: key)
+    }
+    
+    /// Decodes and returns an `NSEdgeInsets` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> NSEdgeInsets? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `NSEdgeInsets` values for the specified key.
+    func decode(_ key: String) -> [NSEdgeInsets] {
+        decodeEdgeInsets(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `NSEdgeInsets` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [NSEdgeInsets]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `Range<Bound>` for the specified key.
+    func decode<Bound: NSNumberConvertable>(_ key: String) -> Range<Bound> {
+        decodeRange(forKey: key)
+    }
+    
+    /// Decodes and returns a `Range<Bound>` for the specified key, if present.
+    func decodeIfPresent<Bound: NSNumberConvertable>(_ key: String) -> Range<Bound>? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `Range<Bound>` values for the specified key.
+    func decode<Bound: NSNumberConvertable>(_ key: String) -> [Range<Bound>] {
+        decodeRanges(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `Range<Bound>` values for the specified key, if present.
+    func decodeIfPresent<Bound: NSNumberConvertable>(_ key: String) -> [Range<Bound>]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `ClosedRange<Bound>` for the specified key.
+    func decode<Bound: NSNumberConvertable>(_ key: String) -> ClosedRange<Bound> {
+        decodeClosedRange(forKey: key)
+    }
+    
+    /// Decodes and returns a `ClosedRange<Bound>` for the specified key, if present.
+    func decodeIfPresent<Bound: NSNumberConvertable>(_ key: String) -> ClosedRange<Bound>? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `ClosedRange<Bound>` values for the specified key.
+    func decode<Bound: NSNumberConvertable>(_ key: String) -> [ClosedRange<Bound>] {
+        decodeClosedRanges(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `ClosedRange<Bound>` values for the specified key, if present.
+    func decodeIfPresent<Bound: NSNumberConvertable>(_ key: String) -> [ClosedRange<Bound>]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+
+    #elseif canImport(UIKit)
+    /// Decodes and returns a `UIEdgeInsets` for the specified key.
+    func decode(_ key: String) -> UIEdgeInsets {
+        decodeEdgeInsets(forKey: key)
+    }
+    
+    /// Decodes and returns a `UIEdgeInsets` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> UIEdgeInsets? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `UIEdgeInsets` values for the specified key.
+    func decode(_ key: String) -> [UIEdgeInsets] {
+        decodeEdgeInsets(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `UIEdgeInsets` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [UIEdgeInsets]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `CGVector` for the specified key.
+    func decode(_ key: String) -> CGVector {
+        decodeCGVector(forKey: key)
+    }
+    
+    /// Decodes and returns a `CGVector` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CGVector? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CGVector` values for the specified key.
+    func decode(_ key: String) -> [CGVector] {
+        decodeCGVectors(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CGVector` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CGVector]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
     #endif
     
-    private class RangeObjC<Bound: NSNumberConvertable>: NSObject, NSCoding {
-        var closedRange: ClosedRange<Bound>?
-        var range: Range<Bound>?
-        var isClosedRange = false
-        
-        init(_ closedRange: ClosedRange<Bound>) {
-            self.closedRange = closedRange
-            isClosedRange = true
-        }
-        
-        init(_ range: Range<Bound>) {
-            self.range = range
-        }
-        
-        required init?(coder: NSCoder) {
-            isClosedRange = coder.decodeBool(forKey: "isClosedRange")
-            if isClosedRange {
-                closedRange = .init(uncheckedBounds: ((coder.decodeObject(forKey: "lowerBound") as! NSNumber) as! Bound, (coder.decodeObject(forKey: "upperBound") as! NSNumber) as! Bound))
-            } else {
-                range = .init(uncheckedBounds: ((coder.decodeObject(forKey: "lowerBound") as! NSNumber) as! Bound, (coder.decodeObject(forKey: "upperBound") as! NSNumber) as! Bound))
-            }
-        }
-        
-        func encode(with coder: NSCoder) {
-            if let closedRange = closedRange {
-                coder.encode((closedRange.lowerBound as! (any _ObjectiveCBridgeable))._bridgeToObjectiveC(), forKey: "lowerBound")
-                coder.encode((closedRange.upperBound as! (any _ObjectiveCBridgeable))._bridgeToObjectiveC(), forKey: "upperBound")
-            } else if let range = range {
-                coder.encode((range.lowerBound as! (any _ObjectiveCBridgeable))._bridgeToObjectiveC(), forKey: "lowerBound")
-                coder.encode((range.upperBound as! (any _ObjectiveCBridgeable))._bridgeToObjectiveC(), forKey: "upperBound")
-            }
-            coder.encode(isClosedRange, forKey: "isClosedRange")
-        }
+    #if os(macOS) || os(iOS) || os(tvOS)
+    /// Decodes and returns a `CATransform3D` for the specified key.
+    func decode(_ key: String) -> CATransform3D {
+        decodeCATransform3D(forKey: key)
+    }
+    
+    /// Decodes and returns a `CATransform3D` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CATransform3D? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CATransform3D` values for the specified key.
+    func decode(_ key: String) -> [CATransform3D] {
+        decodeCATransform3Ds(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CATransform3D` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CATransform3D]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns a `CMTime` for the specified key.
+    func decode(_ key: String) -> CMTime {
+        decodeTime(forKey: key)
+    }
+    
+    /// Decodes and returns a `CMTime` for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> CMTime? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    
+    /// Decodes and returns an array of `CMTime` values for the specified key.
+    func decode(_ key: String) -> [CMTime] {
+        decodeTimes(forKey: key)
+    }
+    
+    /// Decodes and returns an array of `CMTime` values for the specified key, if present.
+    func decodeIfPresent(_ key: String) -> [CMTime]? {
+        containsValue(forKey: key) ? decode(key) : nil
+    }
+    #endif
+}
+
+private class RangeObjC<Bound: NSNumberConvertable>: NSObject, NSCoding {
+    let lowerBound: Bound
+    let upperBound: Bound
+    let isClosed: Bool
+    
+    init(_ range: Range<Bound>) {
+        self.lowerBound = range.lowerBound
+        self.upperBound = range.upperBound
+        self.isClosed = false
+    }
+    
+    init(_ range: ClosedRange<Bound>) {
+        self.lowerBound = range.lowerBound
+        self.upperBound = range.upperBound
+        self.isClosed = true
+    }
+    
+    var closedRange: ClosedRange<Bound>? {
+        isClosed ? .init(uncheckedBounds: (lowerBound, upperBound)) : nil
+    }
+    
+    var range: Range<Bound>? {
+        !isClosed ? .init(uncheckedBounds: (lowerBound, upperBound)) : nil
+    }
+    
+    required init?(coder: NSCoder) {
+        lowerBound = (coder.decodeObject(forKey: "lowerBound") as! NSNumber) as! Bound
+        upperBound = (coder.decodeObject(forKey: "upperBound") as! NSNumber) as! Bound
+        isClosed = coder.decodeBool(forKey: "isClosed")
+    }
+    
+    func encode(with coder: NSCoder) {
+        coder.encode((lowerBound as! (any _ObjectiveCBridgeable))._bridgeToObjectiveC(), forKey: "lowerBound")
+        coder.encode((upperBound as! (any _ObjectiveCBridgeable))._bridgeToObjectiveC(), forKey: "upperBound")
+        coder.encode(isClosed, forKey: "isClosed")
     }
 }
