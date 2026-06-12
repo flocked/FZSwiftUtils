@@ -46,13 +46,18 @@ public extension NSCoding {
      - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
      */
     static func unarchive(_ data: Data) throws -> Self {
-        try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data)
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
+        unarchiver.requiresSecureCoding = false
+        defer { unarchiver.finishDecoding() }
+        guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
+            throw NSCodingArchiveError.missingRootObject
+        }
+        guard let object = value as? Self else {
+            throw NSCodingArchiveError.typeMismatch(expected: Self.self, actual: type(of: value))
+        }
+        return object
     }
 }
-
-/*
- NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: NSColor.red.archivedData()))
- */
 
 public extension NSSecureCoding {
     /**
@@ -85,6 +90,15 @@ public extension NSSecureCoding {
         try Self.unarchive(archivedData())
     }
     
+    /**
+     Decodes a previously-archived object graph, and returns the root object as the type.
+     
+     - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
+     */
+    static func unarchive(_ data: Data) throws -> Self {
+        try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data)
+    }
+    
     /*
     /**
      Decodes a previously-archived object graph, and returns the root object as the type.
@@ -105,5 +119,89 @@ public extension NSCopying where Self: NSObject {
     /// Shallow copy
     func copyAsSelf() -> Self? {
         copy() as? Self
+    }
+}
+
+fileprivate enum NSCodingArchiveError: LocalizedError {
+    case missingRootObject
+    case typeMismatch(expected: Any.Type, actual: Any.Type)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .missingRootObject:
+            return NSLocalizedString(
+                "No root object was found in the archive.",
+                comment: "NSCoding archive missing root object error"
+            )
+
+        case let .typeMismatch(expected, actual):
+            return String(
+                format: NSLocalizedString(
+                    "Expected an object of type %@, but found %@.",
+                    comment: "NSCoding archive type mismatch error"
+                ),
+                String(describing: expected),
+                String(describing: actual)
+            )
+        }
+    }
+
+    public var failureReason: String? {
+        switch self {
+        case .missingRootObject:
+            return NSLocalizedString(
+                "The archive does not contain a root object.",
+                comment: "NSCoding archive missing root object failure reason"
+            )
+
+        case .typeMismatch:
+            return NSLocalizedString(
+                "The archived object's type does not match the requested type.",
+                comment: "NSCoding archive type mismatch failure reason"
+            )
+        }
+    }
+
+    public var recoverySuggestion: String? {
+        switch self {
+        case .missingRootObject:
+            return NSLocalizedString(
+                "Verify that the data was created using NSKeyedArchiver and contains a valid root object.",
+                comment: "NSCoding archive missing root object recovery suggestion"
+            )
+
+        case .typeMismatch:
+            return NSLocalizedString(
+                "Verify that the requested type matches the type originally archived.",
+                comment: "NSCoding archive type mismatch recovery suggestion"
+            )
+        }
+    }
+}
+
+extension NSCodingArchiveError: CustomNSError {
+    public static let errorDomain = "NSCodingArchiveError"
+
+    public var errorCode: Int {
+        switch self {
+        case .missingRootObject: return 1
+        case .typeMismatch: return 2
+        }
+    }
+
+    public var errorUserInfo: [String: Any] {
+        var userInfo: [String: Any] = [
+            NSLocalizedDescriptionKey: errorDescription ?? ""
+        ]
+
+        if let failureReason {
+            userInfo[NSLocalizedFailureReasonErrorKey] = failureReason
+        }
+
+        if let recoverySuggestion {
+            userInfo[NSLocalizedRecoverySuggestionErrorKey] = recoverySuggestion
+        }
+
+        return userInfo
     }
 }
