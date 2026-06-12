@@ -358,6 +358,7 @@ public extension NSCoder {
         containsValue(forKey: key) ? decode(key) : nil
     }
     
+    /*
     #if os(macOS)
     /// Decodes and returns a `CGPoint` for the specified key.
     func decode(_ key: String) -> CGPoint {
@@ -384,6 +385,7 @@ public extension NSCoder {
     func decodeIfPresent(_ key: String) -> [CGPoint]? {
         containsValue(forKey: key) ? decode(key) : nil
     }
+     */
     
     #if os(macOS)
     /// Decodes and returns a `CGSize` for the specified key.
@@ -749,10 +751,12 @@ public extension NSCoder {
         encode(edgeInsets.map { NSValue(edgeInsets: $0) }, forKey: key)
     }
     
+    /*
     /// Encodes the specified array of `CGPoint` values.
     func encode(_ points: [CGPoint], forKey key: String) {
         encode(points.map { NSValue(point: $0) }, forKey: key)
     }
+     */
     
     /// Encodes the specified array of `CGSize` values.
     func encode(_ sizes: [CGSize], forKey key: String) {
