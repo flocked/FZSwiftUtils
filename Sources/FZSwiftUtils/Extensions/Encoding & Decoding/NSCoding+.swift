@@ -35,9 +35,17 @@ public extension NSCoding {
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
     func archiveBasedCopy<Subclass: NSCoding>(as subclass: Subclass.Type) throws -> Subclass {
-        NSKeyedArchiver.setClassName(NSStringFromClass(Subclass.self), for: Self.self)
-        defer { NSKeyedArchiver.setClassName(nil, for: Self.self) }
-        return try Subclass.unarchive(archivedData())
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: archivedData())
+        unarchiver.requiresSecureCoding = false
+        defer { unarchiver.finishDecoding() }
+        unarchiver.setClass(subclass, forClassName: NSStringFromClass(type(of: self)))
+        guard let value = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
+            throw NSCodingArchiveError.missingRootObject
+        }
+        guard let object = value as? Subclass else {
+            throw NSCodingArchiveError.typeMismatch(expected: Subclass.self, actual: type(of: value))
+        }
+        return object
     }
     
     /**
