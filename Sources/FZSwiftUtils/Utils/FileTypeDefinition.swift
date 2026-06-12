@@ -78,13 +78,13 @@ public struct FileTypeDefinition: Codable, Hashable {
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        self.extensions = try container.decode([String].self, forKey: .extensions) ?? []
+        self.extensions = try container.decode([String].self, forKey: .extensions)
         self.iconName = try container.decode(String.self, forKey: .iconName)
         self.name = try container.decode(String.self, forKey: .name)
         self.appBundleURL = try container.decode(URL.self, forKey: .appBundleURL)
         self.role = try container.decode(Role.self, forKey: .role)
         self.handlerRank = try container.decode(HandlerRank.self, forKey: .handlerRank)
-        self.contentTypeIdentifiers = try container.decode([String].self, forKey: .contentTypeIdentifiers) ?? []
+        self.contentTypeIdentifiers = try container.decode([String].self, forKey: .contentTypeIdentifiers)
         // self.isPackage = try container.decode(Bool.self, forKey: .isPackage)
     }
 

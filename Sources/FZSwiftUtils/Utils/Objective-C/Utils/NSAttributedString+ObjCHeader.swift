@@ -50,7 +50,7 @@ extension NSAttributedString {
     static let imageNames = Set(ObjCRuntime.imageNames())
     
     static func objCHeader(for headerString: String, font: NSUIFont? = nil) -> NSAttributedString {
-        let font = XcodePresentationTheme.shared.font(for: .argument) ?? font ?? NSUIFont(name: "SF Mono Regular", size: 13) ?? NSUIFont(name: "Menlo Regular", size: 13) ?? .monospacedSystemFont(ofSize: 13.0, weight: .regular)
+        let font = XcodePresentationTheme.shared.font(for: .argument)
         let attributed = NSMutableAttributedString(string: headerString, attributes: [.font: font])
         let fullRange = headerString.nsRange
         let classes = ObjCRuntime.classNames()

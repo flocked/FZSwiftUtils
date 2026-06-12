@@ -463,7 +463,7 @@ private extension NSObject {
     }
     
     func setBitfieldValue(_ value: Any, for ivar: Ivar) {
-        guard value is BinaryInteger || value is Bool else { return }
+        guard value is any BinaryInteger || value is Bool else { return }
         guard let bitfieldInfo = bitfieldInfo(for: ivar), let rawValue = Self.toUInt64(value) else { return }
         let base = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
             .advanced(by: bitfieldInfo.byteOffset)

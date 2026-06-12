@@ -19,45 +19,33 @@ extension _ObjectiveCBridgeable {
         guard let value = value else { return nil }
         return value
     }
+    
+    /*
+     public init?(_ object: _ObjectiveCType) {
+         var value: Self?
+         Self._forceBridgeFromObjectiveC(object, result: &value)
+         guard let value = value else { return nil }
+         self = value
+     }
+     */
 }
 
-extension ReferenceConvertible where ReferenceType == __ObjectiveCBox<Self> {
-    public var debugDescription: String { description }
-}
-
-extension _ObjectiveCBridgeable where _ObjectiveCType ==  __ObjectiveCBox<Self> {
-    public func _bridgeToObjectiveC() -> __ObjectiveCBox<Self> {
-        __ObjectiveCBox(self)
+extension RawRepresentable where RawValue: _ObjectiveCBridgeable {
+    public static func bridge(from object: RawValue._ObjectiveCType) -> Self? {
+        var rawValue: RawValue?
+        RawValue._forceBridgeFromObjectiveC(object, result: &rawValue)
+        guard let rawValue = rawValue else { return nil }
+        return Self(rawValue: rawValue)
     }
-
-    public static func _forceBridgeFromObjectiveC(_ source: __ObjectiveCBox<Self>, result: inout Self?) {
-        result = source.value
-    }
-
-    public static func _conditionallyBridgeFromObjectiveC(_ source: __ObjectiveCBox<Self>, result: inout Self?) -> Bool {
-        _forceBridgeFromObjectiveC(source, result: &result)
-        return result != nil
-    }
-
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: __ObjectiveCBox<Self>?) -> Self {
-        guard let source = source else { fatalError("Unexpected nil while bridging from ObjectiveC to \(Self.self).") }
-        var result: Self?
-        _forceBridgeFromObjectiveC(source, result: &result)
-        guard let result = result else { fatalError("Failed to bridge \(type(of: source)) to \(Self.self).") }
-        return result
-    }
-}
-
-public class __ObjectiveCBox<Element>: NSObject, NSCopying {
-    let value: Element
-
-    init(_ value: Element) {
-        self.value = value
-    }
-
-    public func copy(with zone: NSZone? = nil) -> Any {
-        __ObjectiveCBox(value)
-    }
+    
+    /*
+     public init?(_ object: RawValue._ObjectiveCType) {
+         var rawValue: RawValue?
+         RawValue._forceBridgeFromObjectiveC(object, result: &rawValue)
+         guard let rawValue = rawValue, let value = Self(rawValue: rawValue) else { return nil }
+         self = value
+     }
+     */
 }
 
 /*

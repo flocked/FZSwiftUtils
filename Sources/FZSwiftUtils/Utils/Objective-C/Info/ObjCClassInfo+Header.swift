@@ -268,7 +268,7 @@ fileprivate extension ObjCClassInfo {
         methods.forEach { append($0) }
         
         var sortedImagePaths = bucketsByImage.sorted(by: \.key, options: .caseInsensitive)
-        let preferredImagePath = primaryImagePath ?? ""
+        let preferredImagePath = primaryImagePath
         if let index = sortedImagePaths.firstIndex(where: { $0.key == preferredImagePath }) {
             sortedImagePaths.insert(sortedImagePaths.remove(at: index), at: 0)
         }

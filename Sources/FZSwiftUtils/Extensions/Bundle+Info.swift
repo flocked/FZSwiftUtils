@@ -71,7 +71,7 @@ extension Bundle {
             shortVersion = try container.decode(String.self, forKey: .shortVersion)
             version = try container.decode(String.self, forKey: .version)
             minimumSystemVersion = try container.decode(String.self, forKey: .minimumSystemVersion)
-            supportedFileTypes = try container.decode([FileTypeDefinition].self, forKey: .supportedFileTypes) ?? []
+            supportedFileTypes = try container.decode([FileTypeDefinition].self, forKey: .supportedFileTypes)
             supportedFileTypes.editEach({$0.appBundleURL = bundle.bundleURL })
         }
         
