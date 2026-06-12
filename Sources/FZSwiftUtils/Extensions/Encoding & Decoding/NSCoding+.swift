@@ -35,7 +35,9 @@ public extension NSCoding {
      - Throws: An error if copying fails or the specified class isn't a subclass.
      */
     func archiveBasedCopy<Subclass: NSCoding>(as subclass: Subclass.Type) throws -> Subclass {
-        try NSKeyedUnarchiver.unarchivedObject(from: try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false, as: subclass))
+        NSKeyedArchiver.setClassName(NSStringFromClass(Subclass.self), for: Self.self)
+        defer { NSKeyedArchiver.setClassName(nil, for: Self.self) }
+        return try Subclass.unarchive(archivedData())
     }
     
     /**
@@ -44,9 +46,13 @@ public extension NSCoding {
      - Parameter data: The object graph previously encoded by `NSKeyedArchiver`.
      */
     static func unarchive(_ data: Data) throws -> Self {
-        try NSKeyedUnarchiver.unarchivedObject(from: data)
+        try NSKeyedUnarchiver.unarchivedObject(ofClass: Self.self, from: data)
     }
 }
+
+/*
+ NSKeyedUnarchiver.unarchivedObject(ofClass: NSColor.self, from: NSColor.red.archivedData()))
+ */
 
 public extension NSSecureCoding {
     /**
