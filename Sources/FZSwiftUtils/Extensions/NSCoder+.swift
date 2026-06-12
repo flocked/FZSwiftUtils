@@ -13,6 +13,7 @@ import UIKit
 #endif
 import CoreMedia
 
+/*
 public extension NSCoder {
     /// Decodes and returns a `NSDirectionalEdgeInsets` value that was previously encoded with `encode(_:)`.
     func decodeDirectionalEdgeInsets(forKey key: String) -> NSDirectionalEdgeInsets {
@@ -149,6 +150,7 @@ public extension NSCoder {
     }
     #endif
 }
+*/
 
 public extension NSCoder {
     /// Decodes and returns a `NSObject` conforming to `NSCoding` for the specified key, if present.
@@ -348,6 +350,7 @@ public extension NSCoder {
         containsValue(forKey: key) ? decode(key) : nil
     }
     
+    /*
     /// Decodes and returns an array of `CGRect` values for the specified key.
     func decode(_ key: String) -> [CGRect] {
         decodeRects(forKey: key)
@@ -357,6 +360,7 @@ public extension NSCoder {
     func decodeIfPresent(_ key: String) -> [CGRect]? {
         containsValue(forKey: key) ? decode(key) : nil
     }
+     */
     
     /*
     #if os(macOS)
@@ -404,6 +408,7 @@ public extension NSCoder {
         containsValue(forKey: key) ? decode(key) : nil
     }
     
+    /*
     /// Decodes and returns an array of `CGSize` values for the specified key.
     func decode(_ key: String) -> [CGSize] {
         decodeSizes(forKey: key)
@@ -618,6 +623,7 @@ public extension NSCoder {
         containsValue(forKey: key) ? decode(key) : nil
     }
     #endif
+     */
 }
 
 public extension NSCoder {
@@ -668,6 +674,7 @@ public extension NSCoder {
     }
      */
     
+    /*
     /// Encodes the specified `NSDirectionalEdgeInsets`.
     func encode(_ directionalEdgeInsets: NSDirectionalEdgeInsets, forKey key: String) {
         encode(NSValue(directionalEdgeInsets: directionalEdgeInsets), forKey: key)
@@ -697,6 +704,7 @@ public extension NSCoder {
     func encode(_ transforms: [CGAffineTransform], forKey key: String) {
         encode(transforms.map { NSValue(cgAffineTransform: $0) }, forKey: key)
     }
+    */
     
     /// Encodes the specified range.
     func encode<Bound: NSNumberConvertable>(_ range: Range<Bound>, forKey key: String) {
@@ -718,6 +726,7 @@ public extension NSCoder {
         encode(ranges.map { RangeObjC($0) }, forKey: key)
     }
     
+    /*
     #if os(macOS) || os(iOS) || os(tvOS)
     /// Encodes the specified `CATransform3D`.
     func encode(_ caTransform3D: CATransform3D, forKey key: String) {
@@ -803,6 +812,7 @@ public extension NSCoder {
         encode(rects.map { NSValue(cgRect: $0) }, forKey: key)
     }
     #endif
+    */
 }
 
 private class RangeObjC<Bound: NSNumberConvertable>: NSObject, NSCoding {
