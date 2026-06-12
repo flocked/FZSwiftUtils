@@ -197,9 +197,7 @@ public extension NSCoder {
     /// Decodes an optional bridged raw-representable value for the specified key.
     func decode<V: RawRepresentable>(_ key: String, as type: V.Type = V.self) -> V? where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
         guard let value = decodeObject(of: V.RawValue._ObjectiveCType.self, forKey: key) else { return nil }
-        var rawValue: V.RawValue?
-        V.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
-        guard let rawValue = rawValue else { return nil }
+        guard let rawValue = V.RawValue.bridge(from: value) else { return nil }
         return .init(rawValue: rawValue)
     }
     
@@ -207,9 +205,7 @@ public extension NSCoder {
     func decode<Key: RawRepresentable, Value>(_ key: String, as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
         guard let values = decodeObject(of: NSDictionary.self, forKey: key) as? [Key.RawValue._ObjectiveCType: Value] else { return nil }
         return values.compactMapKeys { value in
-            var rawValue: Key.RawValue?
-            Key.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
-            guard let rawValue = rawValue else { return nil }
+            guard let rawValue = Key.RawValue.bridge(from: value) else { return nil }
             return .init(rawValue: rawValue)
         }
     }
@@ -218,111 +214,63 @@ public extension NSCoder {
     func decode<Key, Value: RawRepresentable>(_ key: String, as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
         guard let values = decodeObject(of: NSDictionary.self, forKey: key) as? [Key: Value.RawValue._ObjectiveCType] else { return nil }
         return values.compactMapValues { value in
-            var rawValue: Value.RawValue?
-            Value.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
-            guard let rawValue = rawValue else { return nil }
+            guard let rawValue = Value.RawValue.bridge(from: value) else { return nil }
             return .init(rawValue: rawValue)
         }
     }
 }
 
 public extension NSCoder {
-    /// Decodes a required object value.
-    func decode<V>(as type: V.Type = V.self) -> V {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional object value.
-    func decodeIfPresent<V>(as type: V.Type = V.self) -> V? {
+    func decode<V>(as type: V.Type = V.self) -> V? {
         decodeObject() as? V
     }
     
-    /// Decodes a required raw-representable value.
-    func decode<V: RawRepresentable>(as type: V.Type = V.self) -> V where V.RawValue: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional raw-representable value.
-    func decodeIfPresent<V: RawRepresentable>(as type: V.Type = V.self) -> V? where V.RawValue: NSObject & NSCoding {
+    func decode<V: RawRepresentable>(as type: V.Type = V.self) -> V? where V.RawValue: NSObject & NSCoding {
         guard let rawValue = decodeObject() as? V.RawValue else { return nil }
         return .init(rawValue: rawValue)
     }
     
-    /// Decodes a required array of raw-representable values.
-    func decode<V: RawRepresentable>(as type: V.Type = V.self) -> [V] where V.RawValue: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional array of raw-representable values.
-    func decodeIfPresent<V: RawRepresentable>(as type: V.Type = V.self) -> [V]? where V.RawValue: NSObject & NSCoding {
+    func decode<V: RawRepresentable>(as type: V.Type = V.self) -> [V]? where V.RawValue: NSObject & NSCoding {
         guard let values = decodeObject() as? [V.RawValue] else { return nil }
         return values.compactMap { .init(rawValue: $0) }
     }
     
-    /// Decodes a required dictionary with raw-representable keys.
-    func decode<Key: RawRepresentable, Value>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value] where Key.RawValue: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional dictionary with raw-representable keys.
-    func decodeIfPresent<Key: RawRepresentable, Value>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Key.RawValue: NSObject & NSCoding {
+    func decode<Key: RawRepresentable, Value>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Key.RawValue: NSObject & NSCoding {
         guard let values = decodeObject() as? [Key.RawValue: Value] else { return nil }
         return values.compactMapKeys { .init(rawValue: $0) }
     }
     
-    /// Decodes a required dictionary with raw-representable values.
-    func decode<Key, Value: RawRepresentable>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value] where Value.RawValue: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional dictionary with raw-representable values.
-    func decodeIfPresent<Key, Value: RawRepresentable>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Value.RawValue: NSObject & NSCoding {
+    func decode<Key, Value: RawRepresentable>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Value.RawValue: NSObject & NSCoding {
         guard let values = decodeObject() as? [Key: Value.RawValue] else { return nil }
         return values.compactMapValues { .init(rawValue: $0) }
     }
     
-    /// Decodes a required bridged raw-representable value.
-    func decode<V: RawRepresentable>(as type: V.Type = V.self) -> V where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional bridged raw-representable value.
-    func decodeIfPresent<V: RawRepresentable>(as type: V.Type = V.self) -> V? where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
+    func decode<V: RawRepresentable>(as type: V.Type = V.self) -> V? where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
         guard let value = decodeObject() as? V.RawValue._ObjectiveCType else { return nil }
-        var rawValue: V.RawValue?
-        V.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
-        guard let rawValue = rawValue else { return nil }
+        guard let rawValue = V.RawValue.bridge(from: value) else { return nil }
         return .init(rawValue: rawValue)
     }
     
-    /// Decodes a required dictionary with bridged raw-representable keys.
-    func decode<Key: RawRepresentable, Value>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value] where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional dictionary with bridged raw-representable keys.
-    func decodeIfPresent<Key: RawRepresentable, Value>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
+    func decode<Key: RawRepresentable, Value>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
         guard let values = decodeObject() as? [Key.RawValue._ObjectiveCType: Value] else { return nil }
         return values.compactMapKeys { value in
-            var rawValue: Key.RawValue?
-            Key.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
-            guard let rawValue = rawValue else { return nil }
+            guard let rawValue = Key.RawValue.bridge(from: value) else { return nil }
             return .init(rawValue: rawValue)
         }
     }
     
-    /// Decodes a required dictionary with bridged raw-representable values.
-    func decode<Key, Value: RawRepresentable>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value] where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
-        decodeIfPresent()!
-    }
-    
     /// Decodes an optional dictionary with bridged raw-representable values.
-    func decodeIfPresent<Key, Value: RawRepresentable>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
+    func decode<Key, Value: RawRepresentable>(as type: [Key: Value].Type = [Key: Value].self) -> [Key: Value]? where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
         guard let values = decodeObject() as? [Key: Value.RawValue._ObjectiveCType] else { return nil }
         return values.compactMapValues { value in
-            var rawValue: Value.RawValue?
-            Value.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
-            guard let rawValue = rawValue else { return nil }
+            guard let rawValue = Value.RawValue.bridge(from: value) else { return nil }
             return .init(rawValue: rawValue)
         }
     }
@@ -363,19 +311,3 @@ public extension NSCoder {
     }
     #endif
 }
-
-extension _ObjectiveCBridgeable {
-    static func bridge(from object: Self._ObjectiveCType) -> Self? {
-        var value: Self?
-        Self._forceBridgeFromObjectiveC(object, result: &value)
-        guard let value = value else { return nil }
-        return value
-    }
-}
-
-/*
- _ObjectiveCBridgeable
- Key.RawValue._forceBridgeFromObjectiveC(value, result: &rawValue)
- guard let rawValue = rawValue else { return nil }
- return .init(rawValue: rawValue)
- */

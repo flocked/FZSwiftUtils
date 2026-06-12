@@ -12,6 +12,13 @@ extension _ObjectiveCBridgeable {
     public static var _ObjectiveCClass: AnyClass {
         _ObjectiveCType.self
     }
+    
+    public static func bridge(from object: _ObjectiveCType) -> Self? {
+        var value: Self?
+        Self._forceBridgeFromObjectiveC(object, result: &value)
+        guard let value = value else { return nil }
+        return value
+    }
 }
 
 extension ReferenceConvertible where ReferenceType == __ObjectiveCBox<Self> {
