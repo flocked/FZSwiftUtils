@@ -160,6 +160,10 @@ public extension NSCoder {
     /// Decodes and returns a `NSObject` conforming to `NSCoding` for the specified key, if present.
     @_disfavoredOverload
     func decodeIfPresent<DecodedObjectType: NSObject & NSCoding>(_ key: String, as type: DecodedObjectType.Type = DecodedObjectType.self) -> DecodedObjectType? {
+       _decodeIfPresent(key)
+    }
+    
+    private func _decodeIfPresent<DecodedObjectType: NSObject & NSCoding>(_ key: String, as type: DecodedObjectType.Type = DecodedObjectType.self) -> DecodedObjectType? {
         decodeObject(of: DecodedObjectType.self, forKey: key)
     }
     
@@ -172,6 +176,10 @@ public extension NSCoder {
     /// Decodes and returns an object of type `DecodedObjectType` for the specified key.
     @_disfavoredOverload
     func decodeIfPresent<DecodedObjectType: _ObjectiveCBridgeable>(_ key: String, as type: DecodedObjectType.Type = DecodedObjectType.self) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject & NSCoding {
+        _decodeIfPresent(key)
+    }
+    
+    private func _decodeIfPresent<DecodedObjectType: _ObjectiveCBridgeable>(_ key: String, as type: DecodedObjectType.Type = DecodedObjectType.self) -> DecodedObjectType? where DecodedObjectType._ObjectiveCType: NSObject & NSCoding {
         guard let object: DecodedObjectType._ObjectiveCType = decodeIfPresent(key) else { return nil }
         var result: DecodedObjectType?
         DecodedObjectType._forceBridgeFromObjectiveC(object, result: &result)
@@ -220,7 +228,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `Int` values for the specified key, if present.
     func decodeIfPresent(_ key: String) -> [Int]? {
-        containsValue(forKey: key) ? decodeIfPresent(key) : nil
+        containsValue(forKey: key) ? _decodeIfPresent(key) : nil
     }
     
     /// Decodes and returns an `Int32` for the specified key.
@@ -240,7 +248,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `Int32` values for the specified key, if present.
     func decodeIfPresent(_ key: String) -> [Int32]? {
-        containsValue(forKey: key) ? decodeIfPresent(key) : nil
+        containsValue(forKey: key) ? _decodeIfPresent(key) : nil
     }
     
     /// Decodes and returns an `Int64` for the specified key.
@@ -260,7 +268,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `Int64` values for the specified key, if present.
     func decodeIfPresent(_ key: String) -> [Int64]? {
-        containsValue(forKey: key) ? decodeIfPresent(key) : nil
+        containsValue(forKey: key) ? _decodeIfPresent(key) : nil
     }
     
     /// Decodes and returns a `Double` for the specified key.
@@ -280,7 +288,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `Double` values for the specified key, if present.
     func decodeIfPresent(_ key: String) -> [Double]? {
-        containsValue(forKey: key) ? decodeIfPresent(key) : nil
+        containsValue(forKey: key) ? _decodeIfPresent(key) : nil
     }
     
     /// Decodes and returns a `Float` for the specified key.
@@ -300,7 +308,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `Float` values for the specified key, if present.
     func decodeIfPresent(_ key: String) -> [Float]? {
-        containsValue(forKey: key) ? decodeIfPresent(key) : nil
+        containsValue(forKey: key) ? _decodeIfPresent(key) : nil
     }
     
     /// Decodes and returns a `Bool` for the specified key.
@@ -320,7 +328,7 @@ public extension NSCoder {
     
     /// Decodes and returns an array of `Bool` values for the specified key, if present.
     func decodeIfPresent(_ key: String) -> [Bool]? {
-        containsValue(forKey: key) ? decodeIfPresent(key) : nil
+        containsValue(forKey: key) ? _decodeIfPresent(key) : nil
     }
     
     #if os(macOS)
@@ -616,14 +624,24 @@ public extension NSCoder {
         encode(T._bridgeToObjectiveC(value), forKey: key)
     }
     
-    /// Encodes the specified value conforming to `RawRepresentable` for the given key.
-    func encode<V: RawRepresentable>(_ value: V, forKey key: String) where V.RawValue: NSObject & NSCoding {
-        encode(value.rawValue, forKey: key)
+    /// Encodes an object and associates it with the string key.
+    func encode<T: _ObjectiveCBridgeable>(_ values: [T], forKey key: String) where T._ObjectiveCType: NSObject, T._ObjectiveCType: NSCoding {
+        encode(values.map({T._bridgeToObjectiveC($0)}) as NSArray, forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<V: RawRepresentable>(_ values: [V], forKey key: String) where V.RawValue: NSObject & NSCoding {
+        encode(values.map(\.rawValue) as NSArray, forKey: key)
     }
     
     /// Encodes the specified value conforming to `RawRepresentable` for the given key.
     func encode<V: RawRepresentable>(_ value: V, forKey key: String) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.rawValue._bridgeToObjectiveC(), forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<V: RawRepresentable>(_ values: [V], forKey key: String) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encode(values.map(\.rawValue) as NSArray, forKey: key)
     }
     
     /// Encodes the specified `NSDirectionalEdgeInsets`.
