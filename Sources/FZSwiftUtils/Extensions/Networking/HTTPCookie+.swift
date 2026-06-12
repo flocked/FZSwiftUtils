@@ -9,9 +9,12 @@ import Foundation
 
 extension Decodable where Self: HTTPCookie {
     public init(from decoder: any Decoder) throws {
-        let rootObject = try NSKeyedUnarchiver.unarchivedObject(from: try decoder.decodeSingle())
-        guard let cookie = rootObject as? Self else {
-            throw DecodingError.typeMismatch(type(of: rootObject), .init("Expected object of type \(Self.self), but decoded object was of type \(type(of: rootObject))."))
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: decoder.decodeSingle())
+        guard let object = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
+            throw NSCodingArchiveError.missingRootObject
+        }
+        guard let cookie = object as? Self else {
+            throw NSCodingArchiveError.typeMismatch(expected: HTTPCookie.self, actual: type(of: object))
         }
         self = cookie
     }
