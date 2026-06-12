@@ -69,6 +69,46 @@ public struct ObjCCategoryInfo: Sendable, Equatable, Codable {
 extension ObjCCategoryInfo: CustomStringConvertible {
     /// Returns a string representing the category in a Objective-C header.
     public var headerString: String {
+        headerString()
+    }
+
+    /// Returns a string representing the category in an Objective-C header.
+    public func headerString(options: HeaderStringOptions = [.addPropertyAttributesComments]) -> String {
+        _headerString(options: options).string
+    }
+
+    private func _headerString(options: HeaderStringOptions) -> (string: String, declarations: [(line: String, key: NSAttributedString.Key, value: Any)]) {
+        let includeFields = options.contains(.includeStructAndUnionFields)
+        let includeDefaultAttributes = options.contains(.addImplicitPropertyAttributes)
+        let includePropertyComments = options.contains(.addPropertyAttributesComments)
+        let includeTypeEncoding = options.contains(.addMethodTypeEncodingComments)
+        let renameArguments = options.contains(.renameMethodArguments)
+        var declarations: [(line: String, key: NSAttributedString.Key, value: Any)] = []
+
+        func propertyLines(_ properties: [ObjCPropertyInfo]) -> [String] {
+            properties.map { property in
+                let line = property.headerString(
+                    includeFields: includeFields,
+                    includeDefaultAttributes: includeDefaultAttributes,
+                    includeComments: includePropertyComments
+                )
+                declarations.append((line, property.isClassProperty ? .objcClassProperty : .objcProperty, property))
+                return line
+            }
+        }
+
+        func methodLines(_ methods: [ObjCMethodInfo]) -> [String] {
+            methods.map { method in
+                let line = method.headerString(
+                    includeArgumentFields: includeFields,
+                    includeTypeEncoding: includeTypeEncoding,
+                    renameArguments: renameArguments
+                )
+                declarations.append((line, method.isClassMethod ? .objcClassMethod : .objcMethod, method))
+                return line
+            }
+        }
+
         var decl = "@interface \(className) (\(name))"
         if !protocols.isEmpty {
             decl += " <\(protocols.map(\.name).joined(separator: ", "))>"
@@ -76,28 +116,35 @@ extension ObjCCategoryInfo: CustomStringConvertible {
 
         var lines = [decl]
         if !classProperties.isEmpty {
-            lines += "" + classProperties.map(\.headerString)
+            lines += "" + propertyLines(classProperties)
         }
         if !properties.isEmpty {
-            lines += "" + properties.map(\.headerString)
+            lines += "" + propertyLines(properties)
         }
         if !classMethods.isEmpty {
-            lines += "" + classMethods.map(\.headerString)
+            lines += "" + methodLines(classMethods)
         }
         if !methods.isEmpty {
-            lines += "" + methods.map(\.headerString)
+            lines += "" + methodLines(methods)
         }
         lines += ["", "@end"]
-        return lines.joined(separator: "\n")
+        return (lines.joined(separator: "\n"), declarations)
     }
     
     /**
      Returns an attributed string representing the category in a Objective-C header.
      
-     - Parameter font: The font of the attributed string, or `nil` to use the default font.
+     - Parameters:
+       - options: The header string options.
+       - font: The font of the attributed string, or `nil` to use the default font.
      */
-    public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
-        .objCHeader(for: headerString, font: font)
+    public func attributedHeaderString(options: HeaderStringOptions = [.addPropertyAttributesComments], font: NSUIFont? = nil) -> NSAttributedString {
+        let value = _headerString(options: options)
+        let attributed = NSMutableAttributedString(
+            attributedString: .objCHeader(for: value.string, font: font)
+        )
+        attributed.addObjCDeclarationAttributes(value.declarations)
+        return attributed
     }
     
     public var description: String { headerString }

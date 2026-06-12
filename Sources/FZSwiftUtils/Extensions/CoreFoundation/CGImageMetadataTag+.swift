@@ -48,33 +48,37 @@ extension CGImageMetadataTag {
 
     
     /// A type representing a metadata namespace used to qualify image metadata tags.
-    public struct Namespace: CFStringKey, CustomStringConvertible {
+    public struct Namespace: CFStringKey, CustomStringConvertible, ExpressibleByStringLiteral {
         
         /// The Exif metadata namespace.
-        public static let exif = kCGImageMetadataNamespaceExif as CGImageMetadataTag.Namespace
+        public static let exif = Self(kCGImageMetadataNamespaceExif)
         /// The Exif Auxiliary metadata namespace.
-        public static let exifAux = kCGImageMetadataNamespaceExifAux as CGImageMetadataTag.Namespace
+        public static let exifAux = Self(kCGImageMetadataNamespaceExifAux)
         /// The ExifEX metadata namespace.
-        public static let exifEX = kCGImageMetadataNamespaceExifEX as CGImageMetadataTag.Namespace
+        public static let exifEX = Self(kCGImageMetadataNamespaceExifEX)
         /// The Dublin Core metadata namespace.
-        public static let dublinCore = kCGImageMetadataNamespaceDublinCore as CGImageMetadataTag.Namespace
+        public static let dublinCore = Self(kCGImageMetadataNamespaceDublinCore)
         /// The IPTC Core metadata namespace.
-        public static let iptcCore = kCGImageMetadataNamespaceIPTCCore as CGImageMetadataTag.Namespace
+        public static let iptcCore = Self(kCGImageMetadataNamespaceIPTCCore)
         /// The IPTC Extension metadata namespace.
-        public static let iptcExtension = kCGImageMetadataNamespaceIPTCExtension as CGImageMetadataTag.Namespace
+        public static let iptcExtension = Self(kCGImageMetadataNamespaceIPTCExtension)
         /// The Photoshop metadata namespace.
-        public static let photoshop = kCGImageMetadataNamespacePhotoshop as CGImageMetadataTag.Namespace
+        public static let photoshop = Self(kCGImageMetadataNamespacePhotoshop)
         /// The TIFF metadata namespace.
-        public static let tiff = kCGImageMetadataNamespaceTIFF as CGImageMetadataTag.Namespace
+        public static let tiff = Self(kCGImageMetadataNamespaceTIFF)
         /// The XMP Basic metadata namespace.
-        public static let xmpBasic = kCGImageMetadataNamespaceXMPBasic as CGImageMetadataTag.Namespace
+        public static let xmpBasic = Self(kCGImageMetadataNamespaceXMPBasic)
         /// The XMP Rights metadata namespace.
-        public static let xmpRights = kCGImageMetadataNamespaceXMPRights as CGImageMetadataTag.Namespace
+        public static let xmpRights = Self(kCGImageMetadataNamespaceXMPRights)
         
         public let rawValue: CFString
         
         public init(rawValue: CFString) {
             self.rawValue = rawValue
+        }
+        
+        public init(stringLiteral value: String) {
+            self.rawValue = value as CFString
         }
         
         public init(_ rawValue: CFString) {
@@ -87,32 +91,40 @@ extension CGImageMetadataTag {
     }
 
     /// A type representing a metadata prefix used to qualify image metadata tags.
-    public struct Prefix: CFStringKey, CustomStringConvertible {
+    public struct Prefix: CFStringKey, CustomStringConvertible, ExpressibleByStringLiteral {
         
         /// The Exif metadata prefix.
-        public static let exif = kCGImageMetadataPrefixExif as CGImageMetadataTag.Prefix
+        public static let exif = Self(kCGImageMetadataPrefixExif)
         /// The Exif Auxiliary metadata prefix.
-        public static let exifAux = kCGImageMetadataPrefixExifAux as CGImageMetadataTag.Prefix
+        public static let exifAux = Self(kCGImageMetadataPrefixExifAux)
         /// The ExifEX metadata prefix.
-        public static let exifEX = kCGImageMetadataPrefixExifEX as CGImageMetadataTag.Prefix
+        public static let exifEX = Self(kCGImageMetadataPrefixExifEX)
         /// The Dublin Core metadata prefix.
-        public static let dublinCore = kCGImageMetadataPrefixDublinCore as CGImageMetadataTag.Prefix
+        public static let dublinCore = Self(kCGImageMetadataPrefixDublinCore)
         /// The IPTC Core metadata prefix.
-        public static let iptcCore = kCGImageMetadataPrefixIPTCCore as CGImageMetadataTag.Prefix
+        public static let iptcCore = Self(kCGImageMetadataPrefixIPTCCore)
         /// The IPTC Extension metadata prefix.
-        public static let iptcExtension = kCGImageMetadataPrefixIPTCExtension as CGImageMetadataTag.Prefix
+        public static let iptcExtension = Self(kCGImageMetadataPrefixIPTCExtension)
         /// The Photoshop metadata prefix.
-        public static let photoshop = kCGImageMetadataPrefixPhotoshop as CGImageMetadataTag.Prefix
+        public static let photoshop = Self(kCGImageMetadataPrefixPhotoshop)
         /// The TIFF metadata prefix.
-        public static let tiff = kCGImageMetadataPrefixTIFF as CGImageMetadataTag.Prefix
+        public static let tiff = Self(kCGImageMetadataPrefixTIFF)
         /// The XMP Basic metadata prefix.
-        public static let xmpBasic = kCGImageMetadataPrefixXMPBasic as CGImageMetadataTag.Prefix
+        public static let xmpBasic = Self(kCGImageMetadataPrefixXMPBasic)
         /// The XMP Rights metadata prefix.
-        public static let xmpRights = kCGImageMetadataPrefixXMPRights as CGImageMetadataTag.Prefix
+        public static let xmpRights = Self(kCGImageMetadataPrefixXMPRights)
         
         public let rawValue: CFString
         
         public init(rawValue: CFString) {
+            self.rawValue = rawValue
+        }
+        
+        public init(stringLiteral value: String) {
+            self.rawValue = value as CFString
+        }
+        
+        public init(_ rawValue: CFString) {
             self.rawValue = rawValue
         }
         

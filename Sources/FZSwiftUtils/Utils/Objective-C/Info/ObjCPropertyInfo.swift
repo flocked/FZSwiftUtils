@@ -220,6 +220,31 @@ extension ObjCPropertyInfo: CustomStringConvertible {
         }
         return result
     }
+
+    /**
+     Returns an attributed string representing the property in an Objective-C header.
+
+     The complete declaration is associated with this property through either
+     ``NSAttributedString/Key/objcProperty`` or ``NSAttributedString/Key/objcClassProperty``.
+     */
+    public func attributedHeaderString(includeFields: Bool = false, includeDefaultAttributes: Bool = false, includeComments: Bool = true, font: NSUIFont? = nil) -> NSAttributedString {
+        let attributed = NSMutableAttributedString(
+            attributedString: .objCHeader(
+                for: headerString(
+                    includeFields: includeFields,
+                    includeDefaultAttributes: includeDefaultAttributes,
+                    includeComments: includeComments
+                ),
+                font: font
+            )
+        )
+        attributed.addAttribute(
+            isClassProperty ? .objcClassProperty : .objcProperty,
+            value: self,
+            range: NSRange(location: 0, length: attributed.length)
+        )
+        return attributed
+    }
     
     var methodNames: [String] {
         guard let setterName = setterName else { return [getterName] }

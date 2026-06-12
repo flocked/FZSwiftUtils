@@ -8,9 +8,6 @@
 
 import Foundation
 
-extension ObjCPropertyInfo {
-    
-}
 
 /// Represents information about an Objective-C method.
 public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
@@ -20,6 +17,9 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
     public let signature: ObjCMethodSignature
     /// A Boolean value indicating whatever the method is a class method.
     public let isClassMethod: Bool
+
+    /// Source-level argument names obtained from a public header, when available.
+    public let argumentNames: [String?]?
     
     /*
     var className: String?
@@ -49,10 +49,11 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
        - typeEncoding: The type information for the return value and parameters of the method.
        - isClassMethod: A Boolean value that indicates whether the method is a class method.
      */
-    public init(name: String, typeEncoding: String, isClassMethod: Bool) {
+    public init(name: String, typeEncoding: String, isClassMethod: Bool, argumentNames: [String?]? = nil) {
         self.name = name
         self.signature = ObjCMethodSignature(typeEncoding)
         self.isClassMethod = isClassMethod
+        self.argumentNames = argumentNames
     }
 
     /**
@@ -65,6 +66,16 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
     public init?(_ method: Method, isClassMethod: Bool = false) {
         guard let typeEncoding = method_getTypeEncoding(method)?.string else { return nil }
         self.init(name: NSStringFromSelector(method_getName(method)), typeEncoding: typeEncoding, isClassMethod: isClassMethod)
+    }
+
+    func addingArgumentNames(_ argumentNames: [String?]) -> Self {
+        guard argumentNames.count == argumentTypes.count else { return self }
+        return .init(
+            name: name,
+            typeEncoding: signature.encoded,
+            isClassMethod: isClassMethod,
+            argumentNames: argumentNames
+        )
     }
     
     /**
@@ -111,7 +122,14 @@ extension ObjCMethodInfo: CustomStringConvertible {
             var takenNames: Set<String> = []
             result += zip(nameAndLabels,argumentTypes.map({$0.decodedStringForArgument(includeFields: includeArgumentFields)}))
                 .enumerated()
-                .map { "\($1.0):(\($1.1))\(renameArguments ? NamingIntelligent.parameterName(from: String($1.0), takenNames: &takenNames) : "arg\($0)")" }
+                .map { index, value in
+                    let publicHeaderName = !renameArguments ? argumentNames.flatMap { names in
+                        names.indices.contains(index) ? names[index] : nil
+                    } : nil
+                    let argumentName = publicHeaderName.flatMap { $0.isEmpty ? nil : $0 }
+                        ?? (renameArguments ? NamingIntelligent.parameterName(from: String(value.0), takenNames: &takenNames) : "arg\(index)")
+                    return "\(value.0):(\(value.1))\(argumentName)"
+                }
                 .joined(separator: " ")
         }
         result += ";"
@@ -119,6 +137,31 @@ extension ObjCMethodInfo: CustomStringConvertible {
             result += " // \(signature.encoded)"
         }
         return result
+    }
+
+    /**
+     Returns an attributed string representing the method in an Objective-C header.
+
+     The complete declaration is associated with this method through either
+     ``NSAttributedString/Key/objcMethod`` or ``NSAttributedString/Key/objcClassMethod``.
+     */
+    public func attributedHeaderString(includeArgumentFields: Bool = false, includeTypeEncoding: Bool = false, renameArguments: Bool = false, font: NSUIFont? = nil) -> NSAttributedString {
+        let attributed = NSMutableAttributedString(
+            attributedString: .objCHeader(
+                for: headerString(
+                    includeArgumentFields: includeArgumentFields,
+                    includeTypeEncoding: includeTypeEncoding,
+                    renameArguments: renameArguments
+                ),
+                font: font
+            )
+        )
+        attributed.addAttribute(
+            isClassMethod ? .objcClassMethod : .objcMethod,
+            value: self,
+            range: NSRange(location: 0, length: attributed.length)
+        )
+        return attributed
     }
     
     public var description: String { headerString }

@@ -185,15 +185,15 @@ public extension NSAttributedString.Key {
     /// The Objective-C image name of the text.
     static let objcImageName = NSAttributedString.Key("objcImageName")
     
-    /// The Objective-C method of the text.
+    /// The `ObjCMethodInfo` represented by the attributed declaration.
     static let objcMethod = NSAttributedString.Key("objcMethod")
-    /// The Objective-C method of the text.
+    /// The class `ObjCMethodInfo` represented by the attributed declaration.
     static let objcClassMethod = NSAttributedString.Key("objcClassMethod")
-    /// The Objective-C property of the text.
+    /// The `ObjCPropertyInfo` represented by the attributed declaration.
     static let objcProperty = NSAttributedString.Key("objcProperty")
-    /// The Objective-C property of the text.
+    /// The class `ObjCPropertyInfo` represented by the attributed declaration.
     static let objcClassProperty = NSAttributedString.Key("objcClassProperty")
-    /// The Objective-C ivar of the text.
+    /// The `ObjCIvarInfo` represented by the attributed declaration.
     static let objcIvar = NSAttributedString.Key("objcIvar")
 }
 

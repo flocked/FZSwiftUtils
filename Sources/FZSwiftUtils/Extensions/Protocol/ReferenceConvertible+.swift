@@ -13,7 +13,7 @@ extension _ObjectiveCBridgeable {
         _ObjectiveCType.self
     }
     
-    public static func bridge(from object: _ObjectiveCType) -> Self? {
+    public static func _bridge(from object: _ObjectiveCType) -> Self? {
         var value: Self?
         Self._forceBridgeFromObjectiveC(object, result: &value)
         guard let value = value else { return nil }
@@ -31,7 +31,7 @@ extension _ObjectiveCBridgeable {
 }
 
 extension RawRepresentable where RawValue: _ObjectiveCBridgeable {
-    public static func bridge(from object: RawValue._ObjectiveCType) -> Self? {
+    public static func _bridge(from object: RawValue._ObjectiveCType) -> Self? {
         var rawValue: RawValue?
         RawValue._forceBridgeFromObjectiveC(object, result: &rawValue)
         guard let rawValue = rawValue else { return nil }

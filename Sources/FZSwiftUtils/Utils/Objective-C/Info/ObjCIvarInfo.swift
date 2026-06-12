@@ -88,6 +88,20 @@ extension ObjCIvarInfo: CustomStringConvertible {
         }
         return "\(type ?? "unknown") \(name);"
     }
+
+    /**
+     Returns an attributed string representing the instance variable in an Objective-C header.
+
+     The complete declaration is associated with this instance variable through
+     ``NSAttributedString/Key/objcIvar``.
+     */
+    public func attributedHeaderString(includeFields: Bool = false, font: NSUIFont? = nil) -> NSAttributedString {
+        let attributed = NSMutableAttributedString(
+            attributedString: .objCHeader(for: headerString(includeFields: includeFields), font: font)
+        )
+        attributed.addAttribute(.objcIvar, value: self, range: NSRange(location: 0, length: attributed.length))
+        return attributed
+    }
     
     public var description: String { headerString }
 }

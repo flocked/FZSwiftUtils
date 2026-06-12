@@ -359,7 +359,20 @@ open class ObjCHeaderTextView: NSTextView {
         func values(for key: NSAttributedString.Key) -> [String] { _values[key, default: []] }
         func collect(_ key: NSAttributedString.Key, in range: NSRange) {
             textStorage.enumerateAttribute(key, in: range) { value, _, _ in
-                guard let name = value as? String, seenValues[key, default: []].insert(name).inserted else { return }
+                let name: String?
+                switch value {
+                case let info as ObjCPropertyInfo:
+                    name = info.name
+                case let info as ObjCMethodInfo:
+                    name = info.name
+                case let info as ObjCIvarInfo:
+                    name = info.name
+                case let nameValue as String:
+                    name = nameValue
+                default:
+                    name = nil
+                }
+                guard let name, seenValues[key, default: []].insert(name).inserted else { return }
                 _values[key, default: []] += name
             }
         }

@@ -123,11 +123,20 @@ public struct ObjCClassInfo: Sendable, Equatable {
         - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
      */
     public init(_ class: AnyClass) {
-        if let info = Self.cache[`class`] {
+        let cache = Self.parsePublicHeaderForDetails ? Self.publicHeaderCache : Self.cache
+        if let info = cache[`class`] {
             self = info
         } else {
+            let name = class_getName(`class`).string
+            var classMethods = Self.classMethods(of: `class`)
+            var methods = Self.methods(of: `class`)
+            if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getClass(named: name) {
+                let categories = ObjCHeader.categoriesByClass[name, default: []]
+                classMethods = Self.enrich(classMethods, with: header.classMethods + categories.flatMap(\.classMethods))
+                methods = Self.enrich(methods, with: header.methods + categories.flatMap(\.methods))
+            }
             self.init(
-                name: class_getName(`class`).string,
+                name: name,
                 version: class_getVersion(`class`),
                 imagePath: class_getImageName(`class`).map({ $0.string }),
                 instanceSize: class_getInstanceSize(`class`),
@@ -136,10 +145,14 @@ public struct ObjCClassInfo: Sendable, Equatable {
                 ivars: Self.ivars(of: `class`),
                 classProperties: Self.classProperties(of: `class`),
                 properties: Self.properties(of: `class`),
-                classMethods: Self.classMethods(of: `class`),
-                methods: Self.methods(of: `class`)
+                classMethods: classMethods,
+                methods: methods
             )
-            Self.cache[`class`] = self
+            if Self.parsePublicHeaderForDetails {
+                Self.publicHeaderCache[`class`] = self
+            } else {
+                Self.cache[`class`] = self
+            }
         }
     }
     
@@ -157,10 +170,21 @@ public struct ObjCClassInfo: Sendable, Equatable {
         self.init(cls)
     }
     
+    /// A Boolean value indicating whether public headers should be parsed to enrich runtime information.
+    public static var parsePublicHeaderForDetails = false
     
     private static var methods: SynchronizedDictionary<String, [String: Method]> = [:]
     private static var classMethods: SynchronizedDictionary<String, [String: Method]> = [:]
     private static var cache: Dictionary<ObjectIdentifier, Self> = [:]
+    private static var publicHeaderCache: Dictionary<ObjectIdentifier, Self> = [:]
+
+    private static func enrich(_ methods: [ObjCMethodInfo], with headerMethods: [ObjCHeader.Method]) -> [ObjCMethodInfo] {
+        let details = Dictionary(headerMethods.map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
+        return methods.map { method in
+            guard let detail = details[method.name] else { return method }
+            return method.addingArgumentNames(detail.argumentTypes.map(\.name))
+        }
+    }
 }
 
 extension ObjCClassInfo: CustomStringConvertible {

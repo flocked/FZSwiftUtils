@@ -54,6 +54,21 @@ public enum ObjCHeader {
         collectAll()
         return classesByName[name]
     }
+
+    public static func getProtocol(named name: String) -> ProtocolInfo? {
+        if let info = protocolsByName[name] {
+            return info
+        }
+        for fileName in [name, "\(name)-Protocol"] {
+            guard let file = publicHeaderURLs.removeFirst(where: { $0.nameExludingExtension == fileName }) else { continue }
+            parse(file)
+            if let info = protocolsByName[name] {
+                return info
+            }
+        }
+        collectAll()
+        return protocolsByName[name]
+    }
     
     public static func collectAll(options: ParseOptions = .all) {
         if options == .all {

@@ -127,7 +127,7 @@ extension ObjCClassInfo {
             let includeFields = options.contains(.includeStructAndUnionFields)
             lines += ivars.map({ ivar in
                 let line = ivar.headerString(includeFields: includeFields).components(separatedBy: .newlines).map { "    \($0)" }.joined(separator: "\n")
-                declarations += (line, .objcIvar, value: ivar.name)
+                declarations += (line, .objcIvar, value: ivar)
                 return line
             })
             lines += "}"
@@ -209,28 +209,28 @@ fileprivate extension ObjCClassInfo {
         if !classProperties.isEmpty {
             lines += "" + classProperties.map({
                 let line = $0.headerString(includeFields: includeFields, includeDefaultAttributes: propertyOptions, includeComments: propertyComments)
-                declarations += (line, .objcClassProperty, $0.name)
+                declarations += (line, .objcClassProperty, $0)
                 return line
             })
         }
         if !properties.isEmpty {
             lines += "" + properties.map({
                 let line = $0.headerString(includeFields: includeFields, includeDefaultAttributes: propertyOptions, includeComments: propertyComments)
-                declarations += (line, .objcProperty, $0.name)
+                declarations += (line, .objcProperty, $0)
                 return line
             })
         }
         if !classMethods.isEmpty {
             lines += "" + classMethods.map({
                 let line = $0.headerString(includeArgumentFields: includeFields, includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
-                declarations += (line, .objcClassMethod, $0.name)
+                declarations += (line, .objcClassMethod, $0)
                 return line
             })
         }
         if !methods.isEmpty {
             lines += "" + methods.map({
                 let line = $0.headerString(includeArgumentFields: includeFields, includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
-                declarations += (line, .objcMethod, $0.name)
+                declarations += (line, .objcMethod, $0)
                 return line
             })
         }

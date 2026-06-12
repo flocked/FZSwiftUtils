@@ -15,6 +15,9 @@ import UIKit
 
 /// Represents information about an Objective-C protocol.
 public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
+    /// A Boolean value indicating whether public headers should be parsed to enrich runtime information.
+    public static var parsePublicHeaderForDetails = false
+
     /// The name of the protocol.
     public let name: String
 
@@ -88,22 +91,38 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
      - Parameter protocol: The protocol of the target for which information is to be obtained.
      */
     public init(_ `protocol`: Protocol) {
-        if let info = Self.cache[ObjectIdentifier(`protocol`)] {
+        let cache = Self.parsePublicHeaderForDetails ? Self.publicHeaderCache : Self.cache
+        if let info = cache[ObjectIdentifier(`protocol`)] {
             self = info
         } else {
+            let name = String(cString: protocol_getName(`protocol`))
+            var classMethods = Self.classMethods(of: `protocol`)
+            var methods = Self.methods(of: `protocol`)
+            var optionalClassMethods = Self.optionalClassMethods(of: `protocol`)
+            var optionalMethods = Self.optionalMethods(of: `protocol`)
+            if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getProtocol(named: name) {
+                classMethods = Self.enrich(classMethods, with: header.classMethods)
+                methods = Self.enrich(methods, with: header.methods)
+                optionalClassMethods = Self.enrich(optionalClassMethods, with: header.optionalClassMethods)
+                optionalMethods = Self.enrich(optionalMethods, with: header.optionalMethods)
+            }
             self.init(
-                name: String(cString: protocol_getName(`protocol`)),
+                name: name,
                 protocols: Self.protocols(of: `protocol`),
                 classProperties: Self.classProperties(of: `protocol`),
                 properties: Self.properties(of: `protocol`),
-                classMethods: Self.classMethods(of: `protocol`),
-                methods: Self.methods(of: `protocol`),
+                classMethods: classMethods,
+                methods: methods,
                 optionalClassProperties: Self.optionalClassProperties(of: `protocol`),
                 optionalProperties: Self.optionalProperties(of: `protocol`),
-                optionalClassMethods: Self.optionalClassMethods(of: `protocol`),
-                optionalMethods: Self.optionalMethods(of: `protocol`)
+                optionalClassMethods: optionalClassMethods,
+                optionalMethods: optionalMethods
             )
-            Self.cache[`protocol`] = self
+            if Self.parsePublicHeaderForDetails {
+                Self.publicHeaderCache[`protocol`] = self
+            } else {
+                Self.cache[`protocol`] = self
+            }
         }
     }
     
@@ -119,11 +138,60 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
     }
     
     private static var cache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
+    private static var publicHeaderCache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
+
+    private static func enrich(_ methods: [ObjCMethodInfo], with headerMethods: [ObjCHeader.Method]) -> [ObjCMethodInfo] {
+        let details = Dictionary(headerMethods.map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
+        return methods.map { method in
+            guard let detail = details[method.name] else { return method }
+            return method.addingArgumentNames(detail.argumentTypes.map(\.name))
+        }
+    }
 }
 
 extension ObjCProtocolInfo: CustomStringConvertible {
     /// Returns a string representing the protocol in a Objective-C header.
     public var headerString: String {
+        headerString()
+    }
+
+    /// Returns a string representing the protocol in an Objective-C header.
+    public func headerString(options: HeaderStringOptions = [.addPropertyAttributesComments]) -> String {
+        _headerString(options: options).string
+    }
+
+    private func _headerString(options: HeaderStringOptions) -> (string: String, declarations: [(line: String, key: NSAttributedString.Key, value: Any)]) {
+        let includeFields = options.contains(.includeStructAndUnionFields)
+        let includeDefaultAttributes = options.contains(.addImplicitPropertyAttributes)
+        let includePropertyComments = options.contains(.addPropertyAttributesComments)
+        let includeTypeEncoding = options.contains(.addMethodTypeEncodingComments)
+        let renameArguments = options.contains(.renameMethodArguments)
+        var declarations: [(line: String, key: NSAttributedString.Key, value: Any)] = []
+
+        func propertyLines(_ properties: [ObjCPropertyInfo]) -> [String] {
+            properties.map { property in
+                let line = property.headerString(
+                    includeFields: includeFields,
+                    includeDefaultAttributes: includeDefaultAttributes,
+                    includeComments: includePropertyComments
+                )
+                declarations.append((line, property.isClassProperty ? .objcClassProperty : .objcProperty, property))
+                return line
+            }
+        }
+
+        func methodLines(_ methods: [ObjCMethodInfo]) -> [String] {
+            methods.map { method in
+                let line = method.headerString(
+                    includeArgumentFields: includeFields,
+                    includeTypeEncoding: includeTypeEncoding,
+                    renameArguments: renameArguments
+                )
+                declarations.append((line, method.isClassMethod ? .objcClassMethod : .objcMethod, method))
+                return line
+            }
+        }
+
         var decl = "@protocol \(name)"
         if !protocols.isEmpty {
             let protocols = protocols.map(\.name)
@@ -142,20 +210,20 @@ extension ObjCProtocolInfo: CustomStringConvertible {
 
         if !classProperties.isEmpty {
             lines.append("")
-            lines += classProperties.map(\.headerString)
+            lines += propertyLines(classProperties)
         }
         if !properties.isEmpty {
             lines.append("")
-            lines += properties.map(\.headerString)
+            lines += propertyLines(properties)
         }
 
         if !classMethods.isEmpty {
             lines.append("")
-            lines += classMethods.map(\.headerString)
+            lines += methodLines(classMethods)
         }
         if !methods.isEmpty {
             lines.append("")
-            lines += methods.map(\.headerString)
+            lines += methodLines(methods)
         }
 
         if !optionalClassProperties.isEmpty ||
@@ -167,39 +235,37 @@ extension ObjCProtocolInfo: CustomStringConvertible {
 
         if !optionalClassProperties.isEmpty {
             lines.append("")
-            lines += optionalClassProperties.map(\.headerString)
+            lines += propertyLines(optionalClassProperties)
         }
         if !optionalProperties.isEmpty {
             lines.append("")
-            lines += optionalProperties.map(\.headerString)
+            lines += propertyLines(optionalProperties)
         }
         if !optionalClassMethods.isEmpty {
             lines.append("")
-            lines += optionalClassMethods.map(\.headerString)
+            lines += methodLines(optionalClassMethods)
         }
         if !optionalMethods.isEmpty {
             lines.append("")
-            lines += optionalMethods.map(\.headerString)
+            lines += methodLines(optionalMethods)
         }
         lines += ["", "@end"]
-        return lines.joined(separator: "\n")
+        return (lines.joined(separator: "\n"), declarations)
     }
     
     /**
      Returns an attributed string representing the protocol in a Objective-C header.
      
-     - Parameter font: The font of the attributed string, or `nil` to use the default font.
+     - Parameters:
+       - options: The header string options.
+       - font: The font of the attributed string, or `nil` to use the default font.
      */
-    public func attributedHeaderString(font: NSUIFont? = nil) -> NSAttributedString {
+    public func attributedHeaderString(options: HeaderStringOptions = [.addPropertyAttributesComments], font: NSUIFont? = nil) -> NSAttributedString {
+        let value = _headerString(options: options)
         let attributed = NSMutableAttributedString(
-            attributedString: .objCHeader(for: headerString, font: font)
+            attributedString: .objCHeader(for: value.string, font: font)
         )
-        var declarations: [(line: String, key: NSAttributedString.Key, value: String)] = []
-        declarations += classProperties.map({ ($0.headerString, .objcClassProperty, $0.name) })
-        declarations += properties.map({ ($0.headerString, .objcProperty, $0.name) })
-        declarations += classMethods.map({ ($0.headerString, .objcClassMethod, $0.name) })
-        declarations += methods.map({ ($0.headerString, .objcMethod, $0.name) })
-        attributed.addObjCDeclarationAttributes(declarations)
+        attributed.addObjCDeclarationAttributes(value.declarations)
         return attributed
     }
     
