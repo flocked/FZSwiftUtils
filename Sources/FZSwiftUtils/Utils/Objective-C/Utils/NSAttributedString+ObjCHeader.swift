@@ -161,7 +161,7 @@ extension NSMutableAttributedString {
         }
         var attributes: [NSAttributedString.Key : Any] = [.foregroundColor: color]
         attributes[.font] = font
-        setAttributes(attributes, range: range)
+        addAttributes(attributes, range: range)
     }
     
     func addObjCDeclarationAttributes(_ declarations: [(line: String, key: NSAttributedString.Key, value: Any)]) {

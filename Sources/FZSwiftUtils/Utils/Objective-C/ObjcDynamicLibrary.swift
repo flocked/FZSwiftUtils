@@ -8,7 +8,7 @@
 import Foundation
 
 /// A dynamic Objective-C library.
-public struct ObjcDynamicLibrary: Hashable, Comparable {
+public struct ObjcDynamicLibrary: Hashable, Comparable, Codable {
     /// The URL to the dynamic library.
     public let url: URL
     /// The name of the dynamic library.

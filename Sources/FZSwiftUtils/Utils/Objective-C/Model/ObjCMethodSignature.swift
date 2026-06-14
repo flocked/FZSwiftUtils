@@ -34,9 +34,13 @@ public struct ObjCMethodSignature: Sendable, Equatable, CustomStringConvertible,
         /// The offset of the value in the stack.
         public let offset: Int?
         
-        public init(typeEncoding: String, offset: Int? = nil) {
+        /// The source-level name of the argument, when available.
+        public let name: String?
+
+        public init(typeEncoding: String, offset: Int? = nil, name: String? = nil) {
             self.typeEncoding = typeEncoding
             self.offset = offset
+            self.name = name
         }
         
         /// The type of the value.
@@ -143,5 +147,13 @@ extension ObjCMethodSignature {
     public init?(_ method: Method) {
         guard let typeEncoding = method_getTypeEncoding(method)?.string else { return nil }
         self.init(typeEncoding)
+    }
+
+    func addingArgumentNames(_ names: [String?]) -> Self {
+        guard names.count == max(0, arguments.count - 2) else { return self }
+        let arguments = arguments.enumerated().map { index, argument in
+            MethodValue(typeEncoding: argument.typeEncoding, offset: argument.offset, name: index >= 2 ? names[index - 2] : argument.name)
+        }
+        return .init(arguments: arguments, stackSize: stackSize, returnValue: returnValue, encoded: encoded)
     }
 }

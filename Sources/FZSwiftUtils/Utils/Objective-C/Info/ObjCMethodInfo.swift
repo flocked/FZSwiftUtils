@@ -17,9 +17,6 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
     public let signature: ObjCMethodSignature
     /// A Boolean value indicating whatever the method is a class method.
     public let isClassMethod: Bool
-
-    /// Source-level argument names obtained from a public header, when available.
-    public let argumentNames: [String?]?
     
     /*
     var className: String?
@@ -49,11 +46,16 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
        - typeEncoding: The type information for the return value and parameters of the method.
        - isClassMethod: A Boolean value that indicates whether the method is a class method.
      */
-    public init(name: String, typeEncoding: String, isClassMethod: Bool, argumentNames: [String?]? = nil) {
+    public init(name: String, typeEncoding: String, isClassMethod: Bool) {
         self.name = name
         self.signature = ObjCMethodSignature(typeEncoding)
         self.isClassMethod = isClassMethod
-        self.argumentNames = argumentNames
+    }
+
+    init(name: String, signature: ObjCMethodSignature, isClassMethod: Bool) {
+        self.name = name
+        self.signature = signature
+        self.isClassMethod = isClassMethod
     }
 
     /**
@@ -70,12 +72,7 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
 
     func addingArgumentNames(_ argumentNames: [String?]) -> Self {
         guard argumentNames.count == argumentTypes.count else { return self }
-        return .init(
-            name: name,
-            typeEncoding: signature.encoded,
-            isClassMethod: isClassMethod,
-            argumentNames: argumentNames
-        )
+        return .init(name: name, signature: signature.addingArgumentNames(argumentNames), isClassMethod: isClassMethod)
     }
     
     /**
@@ -123,9 +120,7 @@ extension ObjCMethodInfo: CustomStringConvertible {
             result += zip(nameAndLabels,argumentTypes.map({$0.decodedStringForArgument(includeFields: includeArgumentFields)}))
                 .enumerated()
                 .map { index, value in
-                    let publicHeaderName = !renameArguments ? argumentNames.flatMap { names in
-                        names.indices.contains(index) ? names[index] : nil
-                    } : nil
+                    let publicHeaderName = !renameArguments ? signature.arguments[index + 2].name : nil
                     let argumentName = publicHeaderName.flatMap { $0.isEmpty ? nil : $0 }
                         ?? (renameArguments ? NamingIntelligent.parameterName(from: String(value.0), takenNames: &takenNames) : "arg\(index)")
                     return "\(value.0):(\(value.1))\(argumentName)"
@@ -181,7 +176,7 @@ extension ObjCMethodInfo: CustomStringConvertible {
     }
 }
 
-private enum NamingIntelligent {
+enum NamingIntelligent {
     /// Common prepositions used in Objective-C method names (lowercase).
     /// Ordered by length (longest first) to match longer prepositions before shorter ones.
     private static let prepositions: [String] = [

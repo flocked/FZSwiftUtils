@@ -14,7 +14,10 @@ import UIKit
 #endif
 
 /// Represents information about an Objective-C class.
-public struct ObjCClassInfo: Sendable, Equatable {
+public struct ObjCClassInfo: Sendable, Equatable, Codable {
+    /// A Boolean value indicating whether public headers should be parsed to enrich runtime information.
+    public static var parsePublicHeaderForDetails = false
+
     /// The name of the class.
     public let name: String
     
@@ -32,7 +35,10 @@ public struct ObjCClassInfo: Sendable, Equatable {
         guard let superclass = _superclass else { return nil }
         return ObjCClassInfo(superclass)
     }
-    let _superclass: AnyClass?
+    let superclassName: String?
+    var _superclass: AnyClass? {
+        superclassName.flatMap(NSClassFromString)
+    }
     
     /// The superclasses of the class.
     public var superclasses: [ObjCClassInfo] {
@@ -105,7 +111,7 @@ public struct ObjCClassInfo: Sendable, Equatable {
         self.version = version
         self.imagePath = imagePath
         self.instanceSize = instanceSize
-        self._superclass = superclass
+        self.superclassName = superclass.map(NSStringFromClass)
         self.protocols = protocols
         self.ivars = ivars
         self.classProperties = classProperties
@@ -123,6 +129,28 @@ public struct ObjCClassInfo: Sendable, Equatable {
         - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
      */
     public init(_ class: AnyClass) {
+        let name = class_getName(`class`).string
+        var classMethods = Self.classMethods(of: `class`)
+        var methods = Self.methods(of: `class`)
+        if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getClass(named: name) {
+            let categories = ObjCHeader.categoriesByClass[name, default: []]
+            classMethods = Self.enrich(classMethods, with: header.classMethods + categories.flatMap(\.classMethods))
+            methods = Self.enrich(methods, with: header.methods + categories.flatMap(\.methods))
+        }
+        self.init(
+            name: name,
+            version: class_getVersion(`class`),
+            imagePath: class_getImageName(`class`).map({ $0.string }),
+            instanceSize: class_getInstanceSize(`class`),
+            superclass: class_getSuperclass(`class`),
+            protocols: Self.protocols(of: `class`),
+            ivars: Self.ivars(of: `class`),
+            classProperties: Self.classProperties(of: `class`),
+            properties: Self.properties(of: `class`),
+            classMethods: classMethods,
+            methods: methods
+        )
+        /*
         let cache = Self.parsePublicHeaderForDetails ? Self.publicHeaderCache : Self.cache
         if let info = cache[`class`] {
             self = info
@@ -154,6 +182,7 @@ public struct ObjCClassInfo: Sendable, Equatable {
                 Self.cache[`class`] = self
             }
         }
+        */
     }
     
     /**
@@ -170,8 +199,6 @@ public struct ObjCClassInfo: Sendable, Equatable {
         self.init(cls)
     }
     
-    /// A Boolean value indicating whether public headers should be parsed to enrich runtime information.
-    public static var parsePublicHeaderForDetails = false
     
     private static var methods: SynchronizedDictionary<String, [String: Method]> = [:]
     private static var classMethods: SynchronizedDictionary<String, [String: Method]> = [:]
@@ -184,6 +211,20 @@ public struct ObjCClassInfo: Sendable, Equatable {
             guard let detail = details[method.name] else { return method }
             return method.addingArgumentNames(detail.argumentTypes.map(\.name))
         }
+    }
+}
+extension ObjCClassInfo {
+    func addPublicInfoIfNeeded() -> ObjCClassInfo {
+        ObjCHeader.classesByName[name] == nil
+        !ObjCHeader.didParseClass(name)
+        guard let header = ObjCHeader.getClass(named: name) else { return self }
+        let categories = ObjCHeader.categoriesByClass[name, default: []]
+        var classMethods = classMethods
+        var methods = methods
+        classMethods = Self.enrich(classMethods, with: header.classMethods + categories.flatMap(\.classMethods))
+        methods = Self.enrich(methods, with: header.methods + categories.flatMap(\.methods))
+
+        return self
     }
 }
 

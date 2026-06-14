@@ -7,7 +7,7 @@ import Foundation
 
 extension ObjCProtocolInfo {
     /// Options for the protocol header string.
-    public struct HeaderStringOptions: OptionSet {
+    public struct HeaderStringOptions: OptionSet, Codable {
         /**
          Properties include attributes that are normally implicit.
 

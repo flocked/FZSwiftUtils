@@ -46,7 +46,7 @@ public struct ObjCProperty {
     }
         
     /// An attribute of a property.
-    public struct Attribute {
+    public struct Attribute: Codable, Hashable {
         /// The name of the attribute.
         public let name: String
         /// The value of the attribute.

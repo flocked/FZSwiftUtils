@@ -19,35 +19,35 @@ extension ObjCMethodInfo {
        - includeUnknownArgumentTypes: A Boolean value that indicates whether unresolved argument and return types should be emitted as Xcode placeholders so the generated code can be edited manually.
      - Returns: Swift source code for extending the class with this method, or `nil` if code generation isn't possible for this method signature.
      */
-    public func classExtensionString(for class: AnyClass, includeUnknownArgumentTypes: Bool = false) -> String? {
-        guard let string = _classExtensionString(for: `class`, includeUnknownArgumentTypes: includeUnknownArgumentTypes) else { return nil }
-        return FZSwiftUtils.classExtensionString(for: NSStringFromClass(`class`), string: string)
+    public func swiftExtensionString(for class: AnyClass, includeUnknownArgumentTypes: Bool = false, isThrowing: Bool = true) -> String? {
+        guard let string = _swiftExtensionString(for: `class`, includeUnknownArgumentTypes: includeUnknownArgumentTypes, isThrowing: isThrowing) else { return nil }
+        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(`class`), string: string)
     }
     
-    fileprivate func _classExtensionString(for class: AnyClass, includeUnknownArgumentTypes: Bool = false) -> String? {
+    fileprivate func _swiftExtensionString(for class: AnyClass, includeUnknownArgumentTypes: Bool = false, isThrowing: Bool = true) -> String? {
         guard let swiftReturnType = returnType.resolvedSwiftType ?? (includeUnknownArgumentTypes ? "<#T##Any#>" : nil) else { return nil }
         let swiftArguments = argumentTypes.compactMap({ $0.resolvedSwiftType ?? (includeUnknownArgumentTypes ? "<#T##Any#>" : nil) })
         guard swiftArguments.count == argumentTypes.count else { return nil }
         let selectorParts = name.split(separator: ":").map(String.init)
         let methodBaseName = selectorParts.first.map(swiftIdentifier(for:)) ?? swiftIdentifier(for: name)
-        let parameterClauses = parameterClauses(selectorParts: selectorParts, swiftTypes: swiftArguments)
-        let parameterNames = (0..<swiftArguments.count).map({ "arg\($0)" }).joined(separator: ", ")
+        let parameterNames = parameterNames(selectorParts: selectorParts)
+        let parameterClauses = parameterClauses(selectorParts: selectorParts, parameterNames: parameterNames, swiftTypes: swiftArguments)
         let className = NSStringFromClass(`class`)
         let receiverType = isClassMethod ? "\(className).Type" : className
         let receiverValue = isClassMethod ? "self" : "self"
         let methodLookup = isClassMethod ? "class_getClassMethod(self, selector)" : "class_getInstanceMethod(type(of: self), selector)"
         let functionKeyword = isClassMethod ? "class func" : "func"
-        let signatureSuffix = swiftReturnType == "Void" ? " throws" : " throws -> \(swiftReturnType)"
-        let invocationArguments = parameterNames.isEmpty ? "" : ", \(parameterNames)"
+        let signatureSuffix = swiftReturnType == "Void" ? (isThrowing ? " throws" : "") : (isThrowing ? " throws -> \(swiftReturnType)" : " -> \(swiftReturnType)?")
+        let invocationArguments = parameterNames.isEmpty ? "" : ", \(parameterNames.joined(separator: ", "))"
         let returnStatement = swiftReturnType == "Void" ? "" : "return "
         let functionTypeArguments = ([receiverType, "Selector"] + swiftArguments).joined(separator: ", ")
-
+        let noSelectorReturn = isThrowing ? "throw RuntimeError(\"Method \\(selector) not found on \(className)\")" : "return nil"
         return """
         \(functionKeyword) \(methodBaseName)\(parameterClauses)\(signatureSuffix) {
             let selector = NSSelectorFromString("\(name)")
             typealias Function = @convention(c) (\(functionTypeArguments)) -> \(swiftReturnType)
             guard let method = \(methodLookup) else {
-                throw RuntimeError("Method \\(selector) not found on \(className)")
+                \(noSelectorReturn)
             }
             let imp = method_getImplementation(method)
             let function = unsafeBitCast(imp, to: Function.self)
@@ -99,17 +99,38 @@ extension ObjCMethodInfo {
         """
     }
 
-    private func parameterClauses(selectorParts: [String], swiftTypes: [String]) -> String {
+    private func parameterNames(selectorParts: [String]) -> [String] {
+        var takenNames: Set<String> = []
+        return argumentTypes.indices.map { index in
+            let headerName = signature.arguments[index + 2].name.flatMap { $0.isEmpty ? nil : $0 }
+            if let headerName {
+                let identifier = swiftIdentifier(for: headerName)
+                if takenNames.insert(identifier).inserted {
+                    return identifier
+                }
+            }
+            let selectorPart = selectorParts.indices.contains(index) ? selectorParts[index] : "arg"
+            return swiftIdentifier(for: NamingIntelligent.parameterName(from: selectorPart, takenNames: &takenNames))
+        }
+    }
+
+    private func parameterClauses(selectorParts: [String], parameterNames: [String], swiftTypes: [String]) -> String {
         guard !swiftTypes.isEmpty else { return "()" }
         return zip(swiftTypes.indices, swiftTypes).map { index, swiftType in
-            let parameterName = "arg\(index)"
+            let parameterName = parameterNames[index]
             let label: String
             if index == 0 {
                 label = "_"
             } else {
                 label = index < selectorParts.count ? swiftIdentifier(for: selectorParts[index]) : "_"
             }
-            return "\(index == 0 ? "(" : ", ")\(label) \(parameterName): \(swiftType)"
+            let parameter: String
+            if index > 0, label == parameterName {
+                parameter = "\(label): \(swiftType)"
+            } else {
+                parameter = "\(label) \(parameterName): \(swiftType)"
+            }
+            return "\(index == 0 ? "(" : ", ")\(parameter)"
         }.joined() + ")"
     }
 
@@ -136,12 +157,17 @@ extension ObjCPropertyInfo {
        - handleUnknownType: A Boolean value that indicates whether unresolved property types should be emitted as Xcode placeholders so the generated code can be edited manually.
      - Returns: Swift source code for the computed property, or `nil` if code generation isn't possible for this property.
      */
+    public func swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
+        guard let string = _swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
+        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(`class`), string: string)
+    }
+
+    @available(*, deprecated, renamed: "swiftExtensionString(for:handleUnknownType:)")
     public func classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
-        guard let string = _classExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
-        return FZSwiftUtils.classExtensionString(for: NSStringFromClass(`class`), string: string)
+        swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType)
     }
     
-    fileprivate func _classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
+    fileprivate func _swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let baseType = type.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
         let propertyName = swiftIdentifier(for: name)
         let isOptional = type.isObjectLike
@@ -207,12 +233,17 @@ extension ObjCIvarInfo {
        - handleUnknownType: A Boolean value that indicates whether unresolved ivar types should be emitted as Xcode placeholders so the generated code can be edited manually.
      - Returns: Swift source code for the computed property, or `nil` if code generation isn't possible for this ivar.
      */
+    public func swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
+        guard let string = _swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
+        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(`class`), string: string)
+    }
+
+    @available(*, deprecated, renamed: "swiftExtensionString(for:handleUnknownType:)")
     public func classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
-        guard let string = _classExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
-        return FZSwiftUtils.classExtensionString(for: NSStringFromClass(`class`), string: string)
+        swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType)
     }
     
-    fileprivate func _classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
+    fileprivate func _swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let baseType = type?.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
         let propertyName = swiftIdentifier(for: name)
         let isOptional = type?.isObjectLike == true
@@ -242,20 +273,188 @@ extension ObjCIvarInfo {
 }
 
 extension ObjCClassInfo {
-    public func classExtensionString(forMethods methods: Set<String> = [], classMethods: Set<String> = [], properties: Set<String> = [], classProperties: Set<String> = [], ivars: Set<String> = [], handleUnknownTypes: Bool = false) -> String? {
+    public func swiftExtensionString(forMethods methods: Set<String> = [], classMethods: Set<String> = [], properties: Set<String> = [], classProperties: Set<String> = [], ivars: Set<String> = [], handleUnknownTypes: Bool = false) -> String? {
         guard let cls: AnyClass = NSClassFromString(name) else { return nil }
         
-        var strings = self.properties.filter({properties.contains($0.name)}).compactMap({$0._classExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
-        strings += self.classProperties.filter({classProperties.contains($0.name)}).compactMap({$0._classExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
-        strings += self.methods.filter({methods.contains($0.name)}).compactMap({$0._classExtensionString(for: cls, includeUnknownArgumentTypes: handleUnknownTypes)})
-        strings += self.classMethods.filter({classMethods.contains($0.name)}).compactMap({$0._classExtensionString(for: cls, includeUnknownArgumentTypes: handleUnknownTypes)})
-        strings += self.ivars.filter({ivars.contains($0.name)}).compactMap({$0._classExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
+        var strings = self.properties.filter({properties.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
+        strings += self.classProperties.filter({classProperties.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
+        strings += self.methods.filter({methods.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, includeUnknownArgumentTypes: handleUnknownTypes)})
+        strings += self.classMethods.filter({classMethods.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, includeUnknownArgumentTypes: handleUnknownTypes)})
+        strings += self.ivars.filter({ivars.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
         guard !strings.isEmpty else { return nil }
-        return FZSwiftUtils.classExtensionString(for: NSStringFromClass(cls), string: strings.joined(separator: "\n\n"))
+        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(cls), string: strings.joined(separator: "\n\n"))
+    }
+
+    /// Returns Swift source code for an Objective-C protocol containing the selected methods and properties.
+    public func swiftProtocolString(forMethods methods: Set<String> = [], classMethods: Set<String> = [], properties: Set<String> = [], classProperties: Set<String> = [], handleUnknownTypes: Bool = false) -> String? {
+        let publicMembers = publicHeaderMemberNames
+        let selectedProperties = self.properties.filter {
+            properties.contains($0.name) && !publicMembers.properties.contains($0.name)
+        }
+        let selectedClassProperties = self.classProperties.filter {
+            classProperties.contains($0.name) && !publicMembers.classProperties.contains($0.name)
+        }
+        let propertyAccessorNames = Set((selectedProperties + selectedClassProperties).flatMap { property in
+            [property.getterName, property.setterName].compactMap { $0 }
+        })
+
+        var propertyRequirements = selectedProperties.compactMap { $0._swiftProtocolRequirement(handleUnknownType: handleUnknownTypes) }
+        propertyRequirements += selectedClassProperties.compactMap { $0._swiftProtocolRequirement(handleUnknownType: handleUnknownTypes) }
+        var methodRequirements = self.methods
+            .filter {
+                methods.contains($0.name)
+                    && !publicMembers.methods.contains($0.name)
+                    && !publicMembers.propertyAccessors.contains($0.name)
+                    && !propertyAccessorNames.contains($0.name)
+            }
+            .compactMap { $0._swiftProtocolRequirement(handleUnknownTypes: handleUnknownTypes) }
+        methodRequirements += self.classMethods
+            .filter {
+                classMethods.contains($0.name)
+                    && !publicMembers.classMethods.contains($0.name)
+                    && !publicMembers.classPropertyAccessors.contains($0.name)
+                    && !propertyAccessorNames.contains($0.name)
+            }
+            .compactMap { $0._swiftProtocolRequirement(handleUnknownTypes: handleUnknownTypes) }
+        guard !propertyRequirements.isEmpty || !methodRequirements.isEmpty else { return nil }
+
+        let protocolName = swiftIdentifier(for: "\(name)Protocol")
+        let groups = [propertyRequirements, methodRequirements]
+            .filter { !$0.isEmpty }
+            .map { $0.map { $0.indented(by: 1) }.joined(separator: "\n") }
+        let body = groups.joined(separator: "\n\n")
+        return """
+        @objc protocol \(protocolName): NSObjectProtocol {
+        \(body)
+        }
+
+        if let cls = NSClassFromString("\(name)") {
+            class_addProtocol(cls, \(protocolName).self)
+        }
+        """
+    }
+
+    private var publicHeaderMemberNames: (
+        properties: Set<String>,
+        classProperties: Set<String>,
+        methods: Set<String>,
+        classMethods: Set<String>,
+        propertyAccessors: Set<String>,
+        classPropertyAccessors: Set<String>
+    ) {
+        guard let header = ObjCHeader.getClass(named: name) else {
+            return ([], [], [], [], [], [])
+        }
+
+        func accessorNames(for properties: [ObjCHeader.Property]) -> Set<String> {
+            Set(properties.flatMap { property -> [String] in
+                let getter = property.attributes
+                    .first { $0.hasPrefix("getter=") }?
+                    .dropFirst("getter=".count)
+                    .description ?? property.name
+                guard !property.attributes.contains("readonly") else { return [getter] }
+                let setter = property.attributes
+                    .first { $0.hasPrefix("setter=") }?
+                    .dropFirst("setter=".count)
+                    .description ?? "set\(property.name.uppercasedFirst()):"
+                return [getter, setter]
+            })
+        }
+
+        return (
+            Set(header.properties.map(\.name)),
+            Set(header.classProperties.map(\.name)),
+            Set(header.methods.map(\.name)),
+            Set(header.classMethods.map(\.name)),
+            accessorNames(for: header.properties),
+            accessorNames(for: header.classProperties)
+        )
     }
 }
 
-fileprivate func classExtensionString(for className: String, string: String) -> String {
+extension ObjCProtocolInfo {
+    /// Returns Swift source code for an Objective-C protocol containing the selected requirements.
+    public func swiftProtocolString(forMethods methods: Set<String> = [], classMethods: Set<String> = [], properties: Set<String> = [], classProperties: Set<String> = [], handleUnknownTypes: Bool = false) -> String? {
+        let requiredProperties = self.properties.filter { properties.contains($0.name) }
+        let requiredClassProperties = self.classProperties.filter { classProperties.contains($0.name) }
+        let optionalProperties = self.optionalProperties.filter { properties.contains($0.name) }
+        let optionalClassProperties = self.optionalClassProperties.filter { classProperties.contains($0.name) }
+        let selectedProperties = requiredProperties + requiredClassProperties + optionalProperties + optionalClassProperties
+        let propertyAccessorNames = Set(selectedProperties.flatMap { [$0.getterName, $0.setterName].compactMap { $0 } })
+
+        var propertyRequirements = requiredProperties.compactMap { $0._swiftProtocolRequirement(handleUnknownType: handleUnknownTypes) }
+        propertyRequirements += requiredClassProperties.compactMap { $0._swiftProtocolRequirement(handleUnknownType: handleUnknownTypes) }
+        propertyRequirements += optionalProperties.compactMap { $0._swiftProtocolRequirement(handleUnknownType: handleUnknownTypes, isOptional: true) }
+        propertyRequirements += optionalClassProperties.compactMap { $0._swiftProtocolRequirement(handleUnknownType: handleUnknownTypes, isOptional: true) }
+
+        var methodRequirements = self.methods
+            .filter { methods.contains($0.name) && !propertyAccessorNames.contains($0.name) }
+            .compactMap { $0._swiftProtocolRequirement(handleUnknownTypes: handleUnknownTypes) }
+        methodRequirements += self.classMethods
+            .filter { classMethods.contains($0.name) && !propertyAccessorNames.contains($0.name) }
+            .compactMap { $0._swiftProtocolRequirement(handleUnknownTypes: handleUnknownTypes) }
+        methodRequirements += optionalMethods
+            .filter { methods.contains($0.name) && !propertyAccessorNames.contains($0.name) }
+            .compactMap { $0._swiftProtocolRequirement(handleUnknownTypes: handleUnknownTypes, isOptional: true) }
+        methodRequirements += optionalClassMethods
+            .filter { classMethods.contains($0.name) && !propertyAccessorNames.contains($0.name) }
+            .compactMap { $0._swiftProtocolRequirement(handleUnknownTypes: handleUnknownTypes, isOptional: true) }
+        guard !propertyRequirements.isEmpty || !methodRequirements.isEmpty else { return nil }
+
+        let protocolName = swiftIdentifier(for: "\(name)Protocol")
+        let groups = [propertyRequirements, methodRequirements]
+            .filter { !$0.isEmpty }
+            .map { $0.map { $0.indented(by: 1) }.joined(separator: "\n") }
+        return """
+        @objc protocol \(protocolName): NSObjectProtocol {
+        \(groups.joined(separator: "\n\n"))
+        }
+        """
+    }
+}
+
+private extension ObjCPropertyInfo {
+    func _swiftProtocolRequirement(handleUnknownType: Bool, isOptional: Bool = false) -> String? {
+        guard let baseType = type.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
+        let propertyType = type.isObjectLike ? "\(baseType)?" : baseType
+        let declaration = isClassProperty ? "static var" : "var"
+        let accessors = isReadOnly ? "get" : "get set"
+        return "\(isOptional ? "@objc optional " : "")\(declaration) \(swiftIdentifier(for: name)): \(propertyType) { \(accessors) }"
+    }
+}
+
+private extension ObjCMethodInfo {
+    func _swiftProtocolRequirement(handleUnknownTypes: Bool, isOptional: Bool = false) -> String? {
+        let fallback = handleUnknownTypes ? "<#T##Any#>" : nil
+        guard let resolvedReturnType = returnType.resolvedSwiftType ?? fallback else { return nil }
+        let swiftTypes = argumentTypes.compactMap { $0.resolvedSwiftType ?? fallback }
+        guard swiftTypes.count == argumentTypes.count else { return nil }
+
+        let selectorParts = name.split(separator: ":").map(String.init)
+        let methodName = swiftIdentifier(for: selectorParts.first ?? name)
+        var takenNames = Set<String>()
+        let parameters = swiftTypes.indices.map { index -> String in
+            let headerName = signature.arguments[index + 2].name.flatMap { $0.isEmpty ? nil : $0 }
+            let parameterName: String
+            if let headerName {
+                let identifier = swiftIdentifier(for: headerName)
+                parameterName = takenNames.insert(identifier).inserted
+                    ? identifier
+                    : swiftIdentifier(for: NamingIntelligent.parameterName(from: selectorParts.indices.contains(index) ? selectorParts[index] : "arg", takenNames: &takenNames))
+            } else {
+                parameterName = swiftIdentifier(for: NamingIntelligent.parameterName(from: selectorParts.indices.contains(index) ? selectorParts[index] : "arg", takenNames: &takenNames))
+            }
+            let label = index == 0 ? "_" : swiftIdentifier(for: selectorParts.indices.contains(index) ? selectorParts[index] : "_")
+            return label == parameterName ? "\(label): \(swiftTypes[index])" : "\(label) \(parameterName): \(swiftTypes[index])"
+        }
+        let parameterString = parameters.joined(separator: ", ")
+        let declaration = isClassMethod ? "static func" : "func"
+        let returnClause = resolvedReturnType == "Void" ? "" : " -> \(resolvedReturnType)"
+        return "@objc(\(name)) \(isOptional ? "optional " : "")\(declaration) \(methodName)(\(parameterString))\(returnClause)"
+    }
+}
+
+fileprivate func swiftExtensionString(for className: String, string: String) -> String {
     """
     extension \(className) {
     \(string.lines.map({ "\t" + $0 }).joined(separator: "\n"))
@@ -292,7 +491,7 @@ fileprivate func swiftIdentifier(for string: String) -> String {
     return identifier
 }
 
-fileprivate extension ObjCType {
+extension ObjCType {
     var isObjectLike: Bool {
         isObject || self == .class || self == .selector || isBlock
     }

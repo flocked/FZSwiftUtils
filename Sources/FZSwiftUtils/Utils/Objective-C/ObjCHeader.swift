@@ -8,7 +8,7 @@
 import Foundation
 
 public enum ObjCHeader {
-    public struct ParseOptions: OptionSet {
+    public struct ParseOptions: OptionSet, Codable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -33,7 +33,12 @@ public enum ObjCHeader {
     }
 
     static let frameworksFolder = URL.file("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks")
-    static var publicHeaderURLs = frameworksFolder.iterateFiles().includingPackageContents.extensions("h").recursive.collect()
+    static var publicHeaderURLs = frameworksFolder.iterateFiles()
+        .includingPackageContents
+        .extensions("h")
+        .recursive
+        .filter { !$0.pathComponents.contains("__impl") }
+        .collect()
 
     public static var protocolsByName: [String: ProtocolInfo] = [:]
     public static var classesByName: [String: Class] = [:]
@@ -53,6 +58,9 @@ public enum ObjCHeader {
         }
         collectAll()
         return classesByName[name]
+    }
+    public static func didParseClass(_ name: String) -> Bool {
+        classesByName[name] == nil
     }
 
     public static func getProtocol(named name: String) -> ProtocolInfo? {
@@ -352,7 +360,7 @@ public enum ObjCHeader {
         return headerInfo
     }
     
-   public struct HeaderInfo {
+   public struct HeaderInfo: Codable, Hashable {
        public var classes: [Class] = []
        public var protocols: [ProtocolInfo] = []
        public var categories: [Category] = []
@@ -366,7 +374,7 @@ public enum ObjCHeader {
        public var blockTypedefs: [BlockTypedef] = []
     }
     
-    public struct Property {
+    public struct Property: Codable, Hashable {
         public let name: String
         public let type: String
         public let attributes: [String]
@@ -386,7 +394,7 @@ public enum ObjCHeader {
         }
      }
     
-    public struct Method {
+    public struct Method: Codable, Hashable {
          public let name: String
          public let argumentTypes: [Argument]
          public let returnType: Argument
@@ -403,7 +411,7 @@ public enum ObjCHeader {
             self.isClassMethod = isClassMethod
          }
         
-        public struct Argument {
+        public struct Argument: Codable, Hashable {
             public let type: String
             public let typeModifiers: [String]
             public let name: String?
@@ -419,7 +427,7 @@ public enum ObjCHeader {
          }
      }
 
-    public struct EnumInfo {
+    public struct EnumInfo: Codable, Hashable {
         public let name: String
         public let rawType: String?
         public let declarationStyle: DeclarationStyle
@@ -427,7 +435,7 @@ public enum ObjCHeader {
         public let apiAvailable: APIAvailability?
         public var cases: [EnumCase] = []
 
-        public enum DeclarationStyle {
+        public enum DeclarationStyle: Codable, Hashable {
             case nsEnum
             case cfEnum
             case typedefEnum
@@ -459,7 +467,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct OptionSetInfo {
+    public struct OptionSetInfo: Codable, Hashable {
         public let name: String
         public let rawType: String?
         public let declarationStyle: DeclarationStyle
@@ -476,7 +484,7 @@ public enum ObjCHeader {
             self.cases = cases
         }
 
-        public enum DeclarationStyle {
+        public enum DeclarationStyle: Codable, Hashable {
             case nsOptions
             case cfOptions
         }
@@ -495,7 +503,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct EnumCase {
+    public struct EnumCase: Codable, Hashable {
         public let name: String
         public let rawValue: String?
         public let apiDeprecated: APIDeprecation?
@@ -514,7 +522,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct APIDeprecation {
+    public struct APIDeprecation: Codable, Hashable {
         public let message: String?
         public let replacement: String?
         public let platform: String?
@@ -527,7 +535,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct APIAvailability {
+    public struct APIAvailability: Codable, Hashable {
         public let platforms: [Platform]
         public let rawMacro: String
 
@@ -535,13 +543,13 @@ public enum ObjCHeader {
             rawMacro
         }
 
-        public struct Platform {
+        public struct Platform: Codable, Hashable {
             public let name: String
             public let introducedVersion: String?
         }
     }
 
-    public struct BridgedTypedef {
+    public struct BridgedTypedef: Codable, Hashable {
         public let name: String
         public let underlyingType: String
         public let kind: Kind
@@ -558,7 +566,7 @@ public enum ObjCHeader {
             self.apiAvailable = apiAvailable
         }
 
-        public enum Kind {
+        public enum Kind: Codable, Hashable {
             case typedEnum
             case extensibleTypedEnum
             case swiftBridged
@@ -585,7 +593,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct ExportedConstant {
+    public struct ExportedConstant: Codable, Hashable {
         public let name: String
         public let type: String
         public let typeModifiers: [String]
@@ -608,7 +616,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct StructTypedef {
+    public struct StructTypedef: Codable, Hashable {
         public let name: String
         public let tagName: String?
         public let apiDeprecated: APIDeprecation?
@@ -623,7 +631,7 @@ public enum ObjCHeader {
             self.fields = fields
         }
 
-        public struct Field {
+        public struct Field: Codable, Hashable {
             public let name: String
             public let type: String
             public let typeModifiers: [String]
@@ -643,7 +651,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct OpaqueStructTypedef {
+    public struct OpaqueStructTypedef: Codable, Hashable {
         public let name: String
         public let tagName: String?
         public let apiDeprecated: APIDeprecation?
@@ -662,7 +670,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct OpaqueStructPointerTypedef {
+    public struct OpaqueStructPointerTypedef: Codable, Hashable {
         public let name: String
         public let tagName: String?
         public let apiDeprecated: APIDeprecation?
@@ -681,7 +689,7 @@ public enum ObjCHeader {
         }
     }
 
-    public struct BlockTypedef {
+    public struct BlockTypedef: Codable, Hashable {
         public let name: String
         public let returnType: Method.Argument
         public let argumentTypes: [Method.Argument]
@@ -703,7 +711,7 @@ public enum ObjCHeader {
         }
     }
      
-    public struct Class {
+    public struct Class: Codable, Hashable {
         public let name: String
         public var superclass: String?
         public var apiDeprecated: APIDeprecation? = nil
@@ -715,7 +723,7 @@ public enum ObjCHeader {
         public var methods: [Method] = []
      }
      
-    public struct Category {
+    public struct Category: Codable, Hashable {
         public let name: String
         public let className: String
         public var apiDeprecated: APIDeprecation? = nil
@@ -727,7 +735,7 @@ public enum ObjCHeader {
         public var methods: [Method] = []
      }
      
-    public struct ProtocolInfo {
+    public struct ProtocolInfo: Codable, Hashable {
         public let name: String
         public var apiDeprecated: APIDeprecation? = nil
         public var apiAvailable: APIAvailability? = nil
@@ -1088,6 +1096,7 @@ fileprivate extension ObjCHeader {
             if remainder.first == "(",
                let closeParenIndex = remainder.firstIndex(of: ")") {
                 let categoryName = remainder[remainder.index(after: remainder.startIndex)..<closeParenIndex].trimmingCharacters(in: .whitespacesAndNewlines)
+                guard categoryName.isEmpty || categoryName._isObjCIdentifier else { return nil }
                 return .init(kind: .category(className: className, categoryName: categoryName), name: className, superclass: nil, apiDeprecated: apiDeprecated, apiAvailable: apiAvailable, protocols: protocols)
             }
 
@@ -1104,6 +1113,12 @@ fileprivate extension ObjCHeader {
 }
 
 fileprivate extension String {
+    var _isObjCIdentifier: Bool {
+        guard let first else { return false }
+        guard first == "_" || first.isLetter else { return false }
+        return dropFirst().allSatisfy { $0 == "_" || $0.isLetter || $0.isNumber }
+    }
+
     private static let objcTypeModifierTokens: Set<String> = [
         "nullable", "nonnull", "null_unspecified",
         "_Nullable", "_Nonnull", "_Null_unspecified",

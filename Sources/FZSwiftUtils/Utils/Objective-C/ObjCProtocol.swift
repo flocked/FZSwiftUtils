@@ -61,7 +61,7 @@ extension Protocol {
     }
     
     /// Defines an Objective-C method.
-    public struct MethodDescription: Hashable {
+    public struct MethodDescription: Hashable, Codable {
         /// The name of the method.
         public let name: Selector
         /// The types of the method arguments.
@@ -71,6 +71,23 @@ extension Protocol {
             guard let name = description?.name else { return nil }
             self.name = name
             self.types = description?.types?.string
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case name
+            case types
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            name = NSSelectorFromString(try container.decode(String.self, forKey: .name))
+            types = try container.decodeIfPresent(String.self, forKey: .types)
+        }
+
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(NSStringFromSelector(name), forKey: .name)
+            try container.encodeIfPresent(types, forKey: .types)
         }
     }
     

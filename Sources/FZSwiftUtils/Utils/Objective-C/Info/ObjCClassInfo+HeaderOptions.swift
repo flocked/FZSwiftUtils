@@ -9,7 +9,7 @@ import Foundation
 
 extension ObjCClassInfo {
     /// Options for the header string.
-    public struct HeaderStringOptions: OptionSet {
+    public struct HeaderStringOptions: OptionSet, Codable {
         /**
          Properties include attributes that are normally implicit.
                   
