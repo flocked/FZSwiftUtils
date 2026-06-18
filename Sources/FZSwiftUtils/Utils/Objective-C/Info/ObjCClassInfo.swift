@@ -32,8 +32,7 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
     
     /// The superclass of the class.
     public var superclass: ObjCClassInfo? {
-        guard let superclass = _superclass else { return nil }
-        return ObjCClassInfo(superclass)
+        _superclass.map({ObjCClassInfo($0)})
     }
     let superclassName: String?
     var _superclass: AnyClass? {
@@ -148,41 +147,7 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
             classProperties: Self.classProperties(of: `class`),
             properties: Self.properties(of: `class`),
             classMethods: classMethods,
-            methods: methods
-        )
-        /*
-        let cache = Self.parsePublicHeaderForDetails ? Self.publicHeaderCache : Self.cache
-        if let info = cache[`class`] {
-            self = info
-        } else {
-            let name = class_getName(`class`).string
-            var classMethods = Self.classMethods(of: `class`)
-            var methods = Self.methods(of: `class`)
-            if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getClass(named: name) {
-                let categories = ObjCHeader.categoriesByClass[name, default: []]
-                classMethods = Self.enrich(classMethods, with: header.classMethods + categories.flatMap(\.classMethods))
-                methods = Self.enrich(methods, with: header.methods + categories.flatMap(\.methods))
-            }
-            self.init(
-                name: name,
-                version: class_getVersion(`class`),
-                imagePath: class_getImageName(`class`).map({ $0.string }),
-                instanceSize: class_getInstanceSize(`class`),
-                superclass: class_getSuperclass(`class`),
-                protocols: Self.protocols(of: `class`),
-                ivars: Self.ivars(of: `class`),
-                classProperties: Self.classProperties(of: `class`),
-                properties: Self.properties(of: `class`),
-                classMethods: classMethods,
-                methods: methods
-            )
-            if Self.parsePublicHeaderForDetails {
-                Self.publicHeaderCache[`class`] = self
-            } else {
-                Self.cache[`class`] = self
-            }
-        }
-        */
+            methods: methods)
     }
     
     /**

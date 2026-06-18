@@ -37,20 +37,6 @@ public struct MeasureTime {
         return (TimeDuration(average), standardDeviation, measurements.sum())
     }
     
-    /*
-    // IterationResult.init(average: TimeDuration(average), standardDeviation: standardDeviation, totalDuration: measurements.sum(), iterationDurations: measurements)
-    public struct IterationResult: Hashable, Codable {
-        /// The average duration of executing the block.
-        let average: TimeDuration
-        /// The standardDeviation.
-        let standardDeviation: TimeDuration
-        /// The total duration.
-        let totalDuration: TimeDuration
-        /// The duration of each iteration.
-        let iterationDurations: [TimeDuration]
-    }
-     */
-    
     /**
      Meassures the time executing the specified block and prints the duration.
      

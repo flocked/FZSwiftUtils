@@ -52,20 +52,13 @@ public struct ObjCPropertyInfo: Sendable, Equatable, Codable, Hashable {
        - isClassProperty: A Boolean value that indicates whether the property is a class property.
      */
     public init?(_ property: objc_property_t, isClassProperty: Bool = false) {
-        if let cache = Self.cache[property] {
-            self.init(name: cache.name, attributes: cache.attributes, isClassProperty: isClassProperty)
-        } else {
-            guard let attributes = Self.attributes(for: property) else { return nil }
-            self.init(
-                name: property_getName(property).string,
-                attributes: attributes,
-                isClassProperty: isClassProperty
-            )
-            Self.cache[property] = (name, attributes)
-        }
+        guard let attributes = Self.attributes(for: property) else { return nil }
+        self.init(
+            name: property_getName(property).string,
+            attributes: attributes,
+            isClassProperty: isClassProperty
+        )
     }
-    
-    private static var cache: [objc_property_t: (name: String, attributes: [Attribute])] = [:]
 }
 
 public extension ObjCPropertyInfo {

@@ -91,39 +91,29 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
      - Parameter protocol: The protocol of the target for which information is to be obtained.
      */
     public init(_ `protocol`: Protocol) {
-        let cache = Self.parsePublicHeaderForDetails ? Self.publicHeaderCache : Self.cache
-        if let info = cache[ObjectIdentifier(`protocol`)] {
-            self = info
-        } else {
-            let name = String(cString: protocol_getName(`protocol`))
-            var classMethods = Self.classMethods(of: `protocol`)
-            var methods = Self.methods(of: `protocol`)
-            var optionalClassMethods = Self.optionalClassMethods(of: `protocol`)
-            var optionalMethods = Self.optionalMethods(of: `protocol`)
-            if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getProtocol(named: name) {
-                classMethods = Self.enrich(classMethods, with: header.classMethods)
-                methods = Self.enrich(methods, with: header.methods)
-                optionalClassMethods = Self.enrich(optionalClassMethods, with: header.optionalClassMethods)
-                optionalMethods = Self.enrich(optionalMethods, with: header.optionalMethods)
-            }
-            self.init(
-                name: name,
-                protocols: Self.protocols(of: `protocol`),
-                classProperties: Self.classProperties(of: `protocol`),
-                properties: Self.properties(of: `protocol`),
-                classMethods: classMethods,
-                methods: methods,
-                optionalClassProperties: Self.optionalClassProperties(of: `protocol`),
-                optionalProperties: Self.optionalProperties(of: `protocol`),
-                optionalClassMethods: optionalClassMethods,
-                optionalMethods: optionalMethods
-            )
-            if Self.parsePublicHeaderForDetails {
-                Self.publicHeaderCache[`protocol`] = self
-            } else {
-                Self.cache[`protocol`] = self
-            }
+        let name = String(cString: protocol_getName(`protocol`))
+        var classMethods = Self.classMethods(of: `protocol`)
+        var methods = Self.methods(of: `protocol`)
+        var optionalClassMethods = Self.optionalClassMethods(of: `protocol`)
+        var optionalMethods = Self.optionalMethods(of: `protocol`)
+        if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getProtocol(named: name) {
+            classMethods = Self.enrich(classMethods, with: header.classMethods)
+            methods = Self.enrich(methods, with: header.methods)
+            optionalClassMethods = Self.enrich(optionalClassMethods, with: header.optionalClassMethods)
+            optionalMethods = Self.enrich(optionalMethods, with: header.optionalMethods)
         }
+        self.init(
+            name: name,
+            protocols: Self.protocols(of: `protocol`),
+            classProperties: Self.classProperties(of: `protocol`),
+            properties: Self.properties(of: `protocol`),
+            classMethods: classMethods,
+            methods: methods,
+            optionalClassProperties: Self.optionalClassProperties(of: `protocol`),
+            optionalProperties: Self.optionalProperties(of: `protocol`),
+            optionalClassMethods: optionalClassMethods,
+            optionalMethods: optionalMethods
+        )
     }
     
     /**

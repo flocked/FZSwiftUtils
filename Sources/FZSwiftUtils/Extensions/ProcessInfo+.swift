@@ -5,9 +5,26 @@
 //  Created by Florian Zand on 21.03.25.
 //
 
-#if os(macOS)
 import Foundation
+import MachO
+import Darwin.Mach
 
+extension ProcessInfo {
+    /// The current resident memory usage of the running process in bytes.
+    public var physicalMemoryUsage: DataSize {
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size / MemoryLayout<natural_t>.size)
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return .zero }
+        return .bytes(UInt64(info.resident_size))
+    }
+}
+
+#if os(macOS)
 extension ProcessInfo {
     /// The hardware model identifier (e.g., "Mac14,3") for the current Mac.
     public var hardwareModel: String? {
@@ -126,7 +143,4 @@ public final class ProcessActivityToken {
         endActivity()
     }
 }
-
-
-
 #endif

@@ -93,9 +93,17 @@ public indirect enum ObjCType: Sendable, Hashable, Codable {
     
     /// Creates a new instance from the specified type encoding.
     public init?(_ typeEncoding: String) {
-        guard let type = Self.decode(typeEncoding)?.decoded else { return nil }
-        self = type
+        if let type = Self.cache[typeEncoding] {
+            self = type
+        } else if let type = Self.decode(typeEncoding)?.decoded {
+            self = type
+            Self.cache[typeEncoding] = type
+        } else {
+            return nil
+        }
     }
+    
+    static var cache: [String: Self] = [:]
 }
 
 public extension ObjCType {
