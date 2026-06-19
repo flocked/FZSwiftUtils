@@ -251,10 +251,17 @@ public extension NumberFormatter {
         return self
     }
     
-    /// Sets the string used for a grouping separator.
+    /// Sets the string the formatter uses as a grouping separator.
     @discardableResult
     func groupingSeparator(_ seperator: String) -> Self {
         groupingSeparator = seperator
+        return self
+    }
+    
+    /// Sets the character the formatter uses as a decimal separator.
+    @discardableResult
+    func decimalSeparator(_ separator: String) -> Self {
+        self.decimalSeparator = separator
         return self
     }
     
