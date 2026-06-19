@@ -47,30 +47,3 @@ extension RawRepresentable where RawValue: _ObjectiveCBridgeable {
      }
      */
 }
-
-/*
- /// A type that can be bridged to Objetive-C.
- public protocol ObjectiveCBridgeable: ReferenceConvertible { }
-
- extension ObjectiveCBridgeable {
-     public typealias ReferenceType = __ObjectiveCBox<Self>
- }
-
- */
-
-/*
-extension _ObjectiveCBridgeable {
-    public static func _conditionallyBridgeFromObjectiveC(source: _ObjectiveCType, result: inout Self?) -> Bool {
-        _forceBridgeFromObjectiveC(source, result: &result)
-        return result != nil
-    }
-    
-    public static func _unconditionallyBridgeFromObjectiveC(source: _ObjectiveCType?)-> Self {
-        guard let source = source else { fatalError("Unexpected nil while bridging from ObjectiveC to \(Self.self).") }
-        var result : Self?
-        _forceBridgeFromObjectiveC(source, result: &result)
-        guard let result = result else { fatalError("Failed to bridge \(type(of: source)) to \(Self.self).") }
-        return result
-    }
-}
- */
