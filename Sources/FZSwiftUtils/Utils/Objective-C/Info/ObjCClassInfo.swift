@@ -180,8 +180,6 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
 }
 extension ObjCClassInfo {
     func addPublicInfoIfNeeded() -> ObjCClassInfo {
-        ObjCHeader.classesByName[name] == nil
-        !ObjCHeader.didParseClass(name)
         guard let header = ObjCHeader.getClass(named: name) else { return self }
         let categories = ObjCHeader.categoriesByClass[name, default: []]
         var classMethods = classMethods

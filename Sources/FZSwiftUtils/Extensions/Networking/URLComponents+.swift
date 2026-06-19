@@ -9,6 +9,25 @@ import Foundation
 
 extension URLComponents {
     /**
+     Creates `URL` components with the specified query items.
+
+     - Parameter queryItems: The query items.
+     - Returns: The `URL` components, or `nil` if the string is not a valid a url.
+
+     - Example:
+     ```
+     let components = URLComponents() {
+         URLQueryItem(name: "q", value: "search")
+         URLQueryItem(name: "page", value: "1")
+     }
+     ```
+     */
+    public init(@Builder queryItems: () -> [URLQueryItem]) {
+        self.init()
+        self.queryItems = queryItems()
+    }
+    
+    /**
      Creates `URL` components from the provided string and query items.
 
      - Parameters:
