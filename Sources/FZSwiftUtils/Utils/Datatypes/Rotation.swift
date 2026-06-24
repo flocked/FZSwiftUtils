@@ -8,7 +8,7 @@
 import Foundation
 
 /// Rotation in a three-dimensional space.
-public struct Rotation: Hashable, Codable, ExpressibleByFloatLiteral, CustomStringConvertible {
+public struct Rotation: Hashable, Codable, ExpressibleByFloatLiteral, CustomStringConvertible, ExpressibleByIntegerLiteral {
 
     /// The rotation angle around the x-axis.
     public var x: CGFloat = .zero
@@ -66,6 +66,10 @@ public struct Rotation: Hashable, Codable, ExpressibleByFloatLiteral, CustomStri
      */
     public init(floatLiteral value: Double) {
         self.z = value
+    }
+    
+    public init(integerLiteral value: Int) {
+        self.z = CGFloat(value)
     }
     
     public var description: String {
