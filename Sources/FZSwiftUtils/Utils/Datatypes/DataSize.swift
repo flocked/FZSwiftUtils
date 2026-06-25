@@ -24,7 +24,7 @@ public struct DataSize: Hashable, Sendable {
 
      - Parameters:
        - bytes: The number of bytes.
-       - countStyle: Specify the number of bytes to be used for ``kilobytes``. 
+       - countStyle: Specify the number of bytes to be used for ``kilobytes``.
      */
     public init<V: BinaryInteger>(_ bytes: V, countStyle: CountStyle = .file) {
         self.bytes = UInt64(bytes)
@@ -63,7 +63,7 @@ public struct DataSize: Hashable, Sendable {
 
     /**
      Specify the number of bytes to be used for kilobytes.
-     
+
      The default setting is `file`, which is the system specific value for file and storage sizes.
      */
     public var countStyle: CountStyle = .file
@@ -100,19 +100,19 @@ public struct DataSize: Hashable, Sendable {
         get { value(for: .petabyte) }
         set { bytes = bytes(for: newValue, .petabyte) }
     }
-    
+
     /// The size in exabytes.
     public var exabytes: Double {
         get { value(for: .exabyte) }
         set { bytes = bytes(for: newValue, .exabyte) }
     }
-    
+
     /// The size in zettabytes.
     public var zettabytes: Double {
         get { value(for: .zettabyte) }
         set { bytes = bytes(for: newValue, .zettabyte) }
     }
-    
+
     /// The size in yottabytes.
     public var yottabytes: Double {
         get { value(for: .yottabyte) }
@@ -131,32 +131,32 @@ public struct DataSize: Hashable, Sendable {
     public static var zero: DataSize {
         DataSize()
     }
-    
+
     /// Specifies display of file or storage byte counts.
     public enum CountStyle: Int, Hashable, Codable, Sendable {
         /**
          Specifies display of file byte counts.
-         
+
          The actual behavior for this is platform-specific; in macOS, this uses the decimal style, but that may change over time.
          */
         case file = 0
         /**
          Specifies display of memory byte counts.
-         
+
          The actual behavior for this is platform-specific; in macOS, this uses the binary style, but that may change over time.
          */
         case memory = 1
 
         /**
          Causes 1000 bytes to be shown as 1 KB.
-         
+
          It is better to use ``file`` or ``memory`` in most cases.
          */
         case decimal = 2
 
         /**
          Causes 1024 bytes to be shown as 1 KB.
-         
+
          It is better to use ``file`` or ``memory`` in most cases.
          */
         case binary = 3
@@ -173,7 +173,9 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified bytes.
      */
-    static func bytes<V: BinaryInteger>(_ value: V, countStyle: CountStyle = .file) -> Self { Self(value, countStyle: countStyle) }
+    static func bytes<V: BinaryInteger>(_ value: V, countStyle: CountStyle = .file) -> Self {
+        Self(value, countStyle: countStyle)
+    }
 
     /**
      Returns a data size with the specified kilobytes.
@@ -184,7 +186,9 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified kilobytes.
      */
-    static func kilobytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(kilobytes: value, countStyle: countStyle) }
+    static func kilobytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(kilobytes: value, countStyle: countStyle)
+    }
 
     /**
      Returns a data size with the specified megabytes.
@@ -195,7 +199,9 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified megabytes.
      */
-    static func megabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(megabytes: value, countStyle: countStyle) }
+    static func megabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(megabytes: value, countStyle: countStyle)
+    }
 
     /**
      Returns a data size with the specified gigabytes.
@@ -206,7 +212,9 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified gigabytes.
      */
-    static func gigabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(gigabytes: value, countStyle: countStyle) }
+    static func gigabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(gigabytes: value, countStyle: countStyle)
+    }
 
     /**
      Returns a data size with the specified terabytes.
@@ -217,7 +225,9 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified terabytes.
      */
-    static func terabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(terabytes: value, countStyle: countStyle) }
+    static func terabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(terabytes: value, countStyle: countStyle)
+    }
 
     /**
      Returns a data size with the specified petabytes.
@@ -228,8 +238,10 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified petabytes.
      */
-    static func petabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(petabytes: value, countStyle: countStyle) }
-    
+    static func petabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(petabytes: value, countStyle: countStyle)
+    }
+
     /**
      Returns a data size with the specified exabytes.
 
@@ -239,8 +251,10 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified exabytes.
      */
-    static func exabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(exabytes: value, countStyle: countStyle) }
-    
+    static func exabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(exabytes: value, countStyle: countStyle)
+    }
+
     /**
      Returns a data size with the specified zettabytes.
 
@@ -250,8 +264,10 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified zettabytes.
      */
-    static func zettabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(zettabytes: value, countStyle: countStyle) }
-    
+    static func zettabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(zettabytes: value, countStyle: countStyle)
+    }
+
     /**
      Returns a data size with the specified yottabytes.
 
@@ -261,7 +277,9 @@ public extension DataSize {
 
      - Returns: `DataSize`with the specified yottabytes.
      */
-    static func yottabytes(_ value: Double, countStyle: CountStyle = .file) -> Self { Self(yottabytes: value, countStyle: countStyle) }
+    static func yottabytes(_ value: Double, countStyle: CountStyle = .file) -> Self {
+        Self(yottabytes: value, countStyle: countStyle)
+    }
 }
 
 extension DataSize: Codable {
@@ -296,12 +314,14 @@ extension DataSize: RawRepresentable {
     public init(rawValue: UInt64) {
         self.bytes = rawValue
     }
-    
+
     /// The size in bytes.
-    public var rawValue: UInt64 { bytes }
+    public var rawValue: UInt64 {
+        bytes
+    }
 }
 
-extension ByteCountFormatter.CountStyle: Swift.Encodable, Swift.Decodable { }
+extension ByteCountFormatter.CountStyle: Swift.Encodable, Swift.Decodable {}
 
 extension DataSize: ExpressibleByIntegerLiteral {
     public init(integerLiteral value: UInt64) {
@@ -391,23 +411,22 @@ public extension Collection where Element == DataSize {
 extension DataSize: CustomStringConvertible {
     /// A string representation of the data size.
     public var description: String {
-        
         string(includesActualByteCount: true)
     }
-        
+
     /**
      A detailed string representation of the data size that includes the units.
-     
+
      Example usage:
 
      ```swift
      let dataSize1 = DataSize(gigabytes: 1, megabytes: 15)
      dataSize1.stringDetailed() // "1.015 MB"
-     
+
      let dataSize2 = DataSize(terabytes: 2.5, gigabytes: 1)
      dataSize2.stringDetailed() // "2.501 GB"
      ```
-     
+
      - Parameters:
         - unitStyle: The unit style. Specify `none` to not include the unit.
         - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
@@ -419,7 +438,7 @@ extension DataSize: CustomStringConvertible {
     public func stringDetailed(unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, locale: Locale = .current) -> String {
         string(for: largestUnit, unitStyle: unitStyle, zeroPadsFractionDigits: zeroPadsFractionDigits, locale: locale)
     }
-    
+
     private var largestUnit: Unit {
         if yottabytes >= 1 {
             return .yottabyte
@@ -441,7 +460,7 @@ extension DataSize: CustomStringConvertible {
 
     /**
      Returns a string representation of the data size using the specified unit.
-     
+
      Example usage:
 
      ```swift
@@ -450,7 +469,7 @@ extension DataSize: CustomStringConvertible {
      dataSize.string(for: .byte, includesUnit: false) // "1.002.000.003"
      dataSize.string(for: .megabyte, includesUnit: true) // "1.002 MB"
      ```
-     
+
      - Parameters:
         - unit: The unit to use for formatting the data size.
         - unitStyle: The unit style. Specify `none` to not include the unit.
@@ -466,9 +485,9 @@ extension DataSize: CustomStringConvertible {
 
     /**
      Returns a string representation of the data size using the specified allowed units.
-     
+
      Example usage:
-     
+
      ```swift
      let dataSize = DataSize(gigabytes: 1, megabytes: 2, bytes: 3)
 
@@ -494,24 +513,24 @@ extension DataSize: CustomStringConvertible {
         formatter.unitStyle = unitStyle.formatter
         return formatter.string(fromByteCount: Int64(bytes))
     }
-    
+
     private static func ddefaultFormatter(for countStyle: CountStyle) -> ByteCountFormatter {
         switch countStyle {
         case .file: return defaultFileDescriptionFormatter
         case .memory: return defaultMemoryDescriptionFormatter
         case .decimal: return defaultDecimalDescriptionFormatter
-        case .binary:  return defaultBinaryDescriptionFormatter
+        case .binary: return defaultBinaryDescriptionFormatter
         }
     }
-    
+
     private static let defaultFileDescriptionFormatter: ByteCountFormatter = {
-         let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .file)
-         formatter.includesUnit = true
-         formatter.includesActualByteCount = true
-         formatter.zeroPadsFractionDigits = false
-         return formatter
-     }()
-    
+        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .file)
+        formatter.includesUnit = true
+        formatter.includesActualByteCount = true
+        formatter.zeroPadsFractionDigits = false
+        return formatter
+    }()
+
     private static let defaultBinaryDescriptionFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .binary)
         formatter.includesUnit = true
@@ -519,23 +538,23 @@ extension DataSize: CustomStringConvertible {
         formatter.zeroPadsFractionDigits = false
         return formatter
     }()
-    
+
     private static let defaultMemoryDescriptionFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .memory)
-         formatter.includesUnit = true
-         formatter.includesActualByteCount = true
-         formatter.zeroPadsFractionDigits = false
-         return formatter
-     }()
-    
+        formatter.includesUnit = true
+        formatter.includesActualByteCount = true
+        formatter.zeroPadsFractionDigits = false
+        return formatter
+    }()
+
     private static let defaultDecimalDescriptionFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .decimal)
-         formatter.includesUnit = true
-         formatter.includesActualByteCount = true
-         formatter.zeroPadsFractionDigits = false
-         return formatter
-     }()
-    
+        formatter.includesUnit = true
+        formatter.includesActualByteCount = true
+        formatter.zeroPadsFractionDigits = false
+        return formatter
+    }()
+
     /// The unit style for a string representation of the data size.
     public enum UnitStyle: Int {
         /// No unit.
@@ -546,7 +565,7 @@ extension DataSize: CustomStringConvertible {
         case medium
         /// Long (e.g. `kilobytes`, `terabytes`… )
         case long
-        
+
         var formatter: Formatter.UnitStyle {
             self != .none ? .init(rawValue: rawValue)! : .short
         }
@@ -569,7 +588,7 @@ extension DataSize: Comparable, AdditiveArithmetic {
 
     /// Subtracts the two data sizes.
     public static func - (lhs: Self, rhs: Self) -> Self {
-         Self(lhs.bytes - rhs.bytes, countStyle: lhs.countStyle)
+        Self(lhs.bytes - rhs.bytes, countStyle: lhs.countStyle)
     }
 
     /// A Boolean value indicating whether the first data size is smaller than the second data size.
@@ -581,37 +600,36 @@ extension DataSize: Comparable, AdditiveArithmetic {
     public static func > (lhs: Self, rhs: Self) -> Bool {
         lhs.bytes > rhs.bytes
     }
-    
+
     /// Multiplies the data size by the specified amount.
     public static func * <V: BinaryInteger>(lhs: Self, rhs: V) -> Self {
         Self(lhs.bytes * UInt64(rhs), countStyle: lhs.countStyle)
     }
-    
+
     /// Multiplies the data size by the specified amount.
     public static func *= <V: BinaryInteger>(lhs: inout Self, rhs: V) {
         lhs.bytes = lhs.bytes * UInt64(rhs)
     }
-    
+
     /// Divides the data size with the specified amount.
     public static func / <V: BinaryInteger>(lhs: Self, rhs: V) -> Self {
         Self(lhs.bytes / UInt64(rhs), countStyle: lhs.countStyle)
     }
-    
+
     /// Divides the data size with the specified amount.
     public static func /= <V: BinaryInteger>(lhs: inout Self, rhs: V) {
         lhs.bytes = lhs.bytes / UInt64(rhs)
     }
 }
 
-extension Data {
+public extension Data {
     /// The size of the data.
-    public var size: DataSize {
+    var size: DataSize {
         DataSize(count)
     }
 }
 
 extension DataSize: ReferenceConvertible {
-
     /// The Objective-C type for the data size.
     public typealias ReferenceType = __DataSize
 
@@ -643,46 +661,54 @@ extension DataSize: ReferenceConvertible {
 }
 
 /// The Objective-C type for `DataSize`.
-public class __DataSize: NSObject, NSCopying {
-    
+public class __DataSize: NSObject, NSCopying, NSCoding {
     let size: DataSize
-    
+
     init(size: DataSize) {
         self.size = size
     }
     
+    public func encode(with coder: NSCoder) {
+        coder.encode(size.bytes, forKey: "bytes")
+        coder.encode(size.countStyle, forKey: "countStyle")
+    }
+
+    public required init?(coder: NSCoder) {
+        size = .init(coder.decode("bytes") ?? 0, countStyle: coder.decode("countStyle") ?? .file)
+    }
+
     public func copy(with zone: NSZone? = nil) -> Any {
         self
     }
-    
-    public override func isEqual(_ object: Any?) -> Bool {
+
+    override public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? Self else { return false }
         return self === other || size == other.size
     }
-    
-    public override var hash: Int {
+
+    override public var hash: Int {
         Hasher.hash(size)
     }
 }
 
-fileprivate extension DataSize.CountStyle {
+private extension DataSize.CountStyle {
     var byte: ByteCountFormatter.CountStyle {
         .init(rawValue: rawValue) ?? .binary
     }
 }
 
-fileprivate extension DataSize {
+private extension DataSize {
     static func swizzleFormatter() {
         guard formatterHook == nil else { return }
         do {
             formatterHook = try ByteCountFormatter.hook(all: #selector(ByteCountFormatter.string(for:)), closure: {
                 original, formatter, selector, object in
-                (object as? DataSize).map({ formatter.string(fromByteCount: Int64($0.bytes)) }) ?? original(formatter, selector, object)
+                (object as? DataSize).map { formatter.string(fromByteCount: Int64($0.bytes)) } ?? original(formatter, selector, object)
             } as @convention(block) ((ByteCountFormatter, Selector, Any) -> String?, ByteCountFormatter, Selector, Any) -> String?)
         } catch {
             Swift.print(error)
         }
     }
-    
+
     static var formatterHook: Hook?
 }

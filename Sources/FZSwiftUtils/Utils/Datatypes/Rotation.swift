@@ -87,11 +87,21 @@ public struct Rotation: Hashable, Codable, ExpressibleByFloatLiteral, CustomStri
 }
 
 /// The Objective-C class for ``Rotation``.
-public class __Rotation: NSObject, NSCopying {
+public class __Rotation: NSObject, NSCopying, NSCoding {
     let rotation: Rotation
     
     init(rotation: Rotation) {
         self.rotation = rotation
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(rotation.x, forKey: "x")
+        coder.encode(rotation.y, forKey: "y")
+        coder.encode(rotation.z, forKey: "z")
+    }
+
+    public required init?(coder: NSCoder) {
+        rotation = .init(coder.decode("x") ?? .zero, coder.decode("y") ?? .zero, coder.decode("z") ?? .zero)
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {

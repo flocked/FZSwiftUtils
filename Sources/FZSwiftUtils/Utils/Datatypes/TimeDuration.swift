@@ -992,11 +992,19 @@ extension TimeDuration: ReferenceConvertible {
 }
 
 /// The Objective-C type for `TimeDuration`.
-public class __TimeDuration: NSObject, NSCopying {
+public class __TimeDuration: NSObject, NSCopying, NSCoding {
     let seconds: Double
 
     init(seconds: Double) {
         self.seconds = seconds
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(seconds, forKey: "seconds")
+    }
+
+    public required init?(coder: NSCoder) {
+        seconds = coder.decode("seconds") ?? .zero
     }
 
     public func copy(with zone: NSZone? = nil) -> Any {

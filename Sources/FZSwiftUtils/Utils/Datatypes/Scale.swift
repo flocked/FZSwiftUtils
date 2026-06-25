@@ -91,11 +91,21 @@ public struct Scale: Hashable, Codable, ExpressibleByFloatLiteral, CustomStringC
 }
 
 /// The Objective-C class for ``Scale``.
-public class __Scale: NSObject, NSCopying {
+public class __Scale: NSObject, NSCopying, NSCoding {
     let scale: Scale
     
     init(scale: Scale) {
         self.scale = scale
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(scale.x, forKey: "x")
+        coder.encode(scale.y, forKey: "y")
+        coder.encode(scale.z, forKey: "z")
+    }
+
+    public required init?(coder: NSCoder) {
+        scale = .init(coder.decode("x") ?? .zero, coder.decode("y") ?? .zero, coder.decode("z") ?? .zero)
     }
     
     public func copy(with zone: NSZone? = nil) -> Any {
