@@ -14,6 +14,182 @@ import UIKit
 import CoreMedia
 
 public extension NSCoder {
+    /// Encodes a 8-bit integer value and associates it with the string key.
+    func encode(_ value: Int8, forKey key: String) {
+        encode(Int32(value), forKey: key)
+    }
+
+    /// Decodes and returns a 8-bit integer value for the specified key.
+    func decodeInt8(forKey key: String) -> Int8 {
+        Int8(clamping: decodeInt32(forKey: key))
+    }
+    
+    /// Decodes an optional 8-bit integer value for the specified key.
+    func decode(_ key: String) -> Int8? {
+        containsValue(forKey: key) ? decodeInt8(forKey: key) : nil
+    }
+
+    /// Encodes an unsigned integer value and associates it with the string key.
+    func encode(_ value: UInt, forKey key: String) {
+        encode(UInt64(value), forKey: key)
+    }
+
+    /// Decodes and returns an unsigned integer value for the specified key.
+    func decodeUInt(forKey key: String) -> UInt {
+        UInt(clamping: decodeUInt64(forKey: key))
+    }
+    
+    /// Decodes an optional unsigned integer value for the specified key.
+    func decode(_ key: String) -> UInt? {
+        containsValue(forKey: key) ? decodeUInt(forKey: key) : nil
+    }
+
+    /// Encodes a 8-bit unsigned integer value and associates it with the string key.
+    func encode(_ value: UInt8, forKey key: String) {
+        encode(Int32(value), forKey: key)
+    }
+
+    /// Decodes and returns a 8-bit unsigned integer value for the specified key.
+    func decodeUInt8(forKey key: String) -> UInt8 {
+        UInt8(clamping: decodeInt32(forKey: key))
+    }
+    
+    /// Decodes an optional 8-bit unsigned integer value for the specified key.
+    func decode(_ key: String) -> UInt8? {
+        containsValue(forKey: key) ? decodeUInt8(forKey: key) : nil
+    }
+
+    /// Encodes a 16-bit unsigned integer value and associates it with the string key.
+    func encode(_ value: UInt16, forKey key: String) {
+        encode(Int32(value), forKey: key)
+    }
+
+    /// Decodes and returns a 16-bit unsigned integer value for the specified key.
+    func decodeUInt16(forKey key: String) -> UInt16 {
+        UInt16(clamping: decodeInt32(forKey: key))
+    }
+    
+    /// Decodes an optional 16-bit unsigned integer value for the specified key.
+    func decode(_ key: String) -> UInt16? {
+        containsValue(forKey: key) ? decodeUInt16(forKey: key) : nil
+    }
+
+    /// Encodes a 32-bit unsigned integer value and associates it with the string key.
+    func encode(_ value: UInt32, forKey key: String) {
+        encode(Int64(value), forKey: key)
+    }
+
+    /// Decodes and returns a 32-bit unsigned integer value for the specified key.
+    func decodeUInt32(forKey key: String) -> UInt32 {
+        UInt32(clamping: decodeInt64(forKey: key))
+    }
+    
+    /// Decodes an optional 32-bit unsigned integer value for the specified key.
+    func decode(_ key: String) -> UInt32? {
+        containsValue(forKey: key) ? decodeUInt32(forKey: key) : nil
+    }
+
+    /// Encodes a 64-bit unsigned integer value and associates it with the string key.
+    func encode(_ value: UInt64, forKey key: String) {
+        encode(Int64(bitPattern: value), forKey: key)
+    }
+
+    /// Decodes and returns a 64-bit unsigned integer value for the specified key.
+    func decodeUInt64(forKey key: String) -> UInt64 {
+        UInt64(bitPattern: decodeInt64(forKey: key))
+    }
+    
+    /// Decodes an optional 64-bit unsigned integer value for the specified key.
+    func decode(_ key: String) -> UInt64? {
+        containsValue(forKey: key) ? decodeUInt64(forKey: key) : nil
+    }
+}
+
+public extension NSCoder {
+    /// Encodes the specified Boolean value for the given key.
+    func encode(_ value: Bool?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    /// Encodes the double value for the given key.
+    func encode(_ value: CGFloat, forKey key: String) {
+        encode(Double(value), forKey: key)
+    }
+    
+    /// Encodes the double value for the given key.
+    func encode(_ value: CGFloat?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    /// Encodes the double value for the given key.
+    func encode(_ value: Double?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    /// Encodes the float value for the given key.
+    func encode(_ value: Float?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    /// Encodes the specified integer value for the given key.
+    func encode(_ value: Int?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    /// Encodes the specified 32-bit integer value for the given key.
+    func encode(_ value: Int32?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    /// Encodes the specified 64-bit integer value for the given key.
+    func encode(_ value: Int64?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    func encode(_ value: Int8?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    func encode(_ value: Int16?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    func encode(_ value: UInt?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    func encode(_ value: UInt8?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    func encode(_ value: UInt16?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    // Int16
+    func encode(_ value: UInt32?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
+    // Int16
+    func encode(_ value: UInt64?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value, forKey: key)
+    }
+    
     /// Encodes the specified value for the given key.
     func encode<V: _ObjectiveCBridgeable>(_ value: V, forKey key: String) {
         encode(value._bridgeToObjectiveC(), forKey: key)
@@ -212,6 +388,11 @@ public extension NSCoder {
     /// Decodes an optional 64-bit integer value for the specified key.
     func decode(_ key: String) -> Int64? {
         containsValue(forKey: key) ? decodeInt64(forKey: key) : nil
+    }
+    
+    /// Decodes an optional double value for the specified key.
+    func decode(_ key: String) -> CGFloat? {
+        containsValue(forKey: key) ? decodeDouble(forKey: key) : nil
     }
     
     /// Decodes an optional double value for the specified key.
