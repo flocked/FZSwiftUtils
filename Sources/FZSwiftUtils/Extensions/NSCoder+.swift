@@ -182,6 +182,12 @@ public extension NSCoder {
 }
 
 public extension NSCoder {
+    /// Decodes an object value for the specified key.
+    func decode<V: _ObjectiveCBridgeable>(_ key: String, as type: V.Type = V.self) -> V? {
+        guard let object: V._ObjectiveCType = decode(key) else { return nil}
+        return V._bridge(from: object)
+    }
+    
     /// Decodes an optional object value for the specified key.
     func decode<V>(_ key: String, as type: V.Type = V.self) -> V? {
         decodeObject(forKey: key) as? V
