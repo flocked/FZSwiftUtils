@@ -94,7 +94,7 @@ public struct Scale: Hashable, Codable, ExpressibleByFloatLiteral, CustomStringC
 public class __Scale: NSObject, NSCopying {
     let scale: Scale
     
-    public init(scale: Scale) {
+    init(scale: Scale) {
         self.scale = scale
     }
     

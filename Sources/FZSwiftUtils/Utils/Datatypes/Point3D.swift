@@ -90,7 +90,7 @@ public struct Point3D: Hashable, Codable, CustomStringConvertible {
 public class __Point3D: NSObject, NSCopying {
     let point: Point3D
     
-    public init(point: Point3D) {
+    init(point: Point3D) {
         self.point = point
     }
     

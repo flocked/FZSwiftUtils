@@ -90,7 +90,7 @@ public struct Rotation: Hashable, Codable, ExpressibleByFloatLiteral, CustomStri
 public class __Rotation: NSObject, NSCopying {
     let rotation: Rotation
     
-    public init(rotation: Rotation) {
+    init(rotation: Rotation) {
         self.rotation = rotation
     }
     
