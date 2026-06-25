@@ -7,28 +7,32 @@
 
 import Foundation
 
-// MARK: - Remove
-
 public extension RangeReplaceableCollection {
     /**
-     Removes and returns the first element of the collection safetly.
+     Removes and returns the first element of the collection.
      
-     - Returns: The removed element, or `nil` if the collection is empty.
+     - Returns: The first element of the collection if the collection is not empty; otherwise, `nil`.
      */
+    @_disfavoredOverload
     @discardableResult
-    mutating func removeFirstSafetly() -> Element? {
+    mutating func popFirst() -> Element? {
         !isEmpty ? removeFirst() : nil
     }
     
     /**
-     Removes and returns the specified number of elements from the beginning of the collection.
+     Removes and returns up to the specified number of elements from the beginning of the collection.
      
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.`
-     - Returns: The removed elements.
+     - Parameter count: The maximum number of elements to remove.
+     - Returns: An array containing the removed elements in their original order.
      */
     @discardableResult
-    mutating func removeFirstSafetly(_ k: Int) -> [Element] {
-        !isEmpty && k > 0 ? (0..<Swift.min(k, count)).map { _ in removeFirst() } : []
+    mutating func popFirst(_ count: Int) -> [Element] {
+        guard count > 0 else { return [] }
+        var result: [Element] = .init(reserveCapacity: Swift.min(count, self.count))
+        for _ in 0..<Swift.min(count, self.count) {
+            result += removeFirst()
+        }
+        return result
     }
     
     /// Returns the collection with the first element removed.
@@ -36,73 +40,51 @@ public extension RangeReplaceableCollection {
         removingFirst(1)
     }
     
-    /// Returns the collection with the specified number of elements removed.
-    func removingFirst(_ k: Int) -> Self {
-        var collection = self
-        collection.removeFirst(k)
-        return collection
+    /// Returns the collection with the specified number of elements removed from the beginning.
+    func removingFirst(_ count: Int) -> Self {
+        Self(dropFirst(count))
     }
     
-    /// Returns the collection with the first element removed.
-    func removingFirstSafely() -> Self {
-        removingFirstSafely(1)
+    /// Returns the collection with the last element removed.
+    func removingLast() -> Self {
+        removingLast(1)
     }
     
-    /// Returns the collection with the specified number of elements removed.
-    func removingFirstSafely(_ k: Int) -> Self {
-        var collection = self
-        collection.removeFirstSafetly(k)
-        return collection
+    /// Returns the collection with the specified number of elements removed from the end.
+    func removingLast(_ count: Int) -> Self {
+        Self(dropLast(count))
     }
 }
 
 public extension RangeReplaceableCollection where Self: BidirectionalCollection {
     /**
-     Removes and returns the last element of the collection safetly.
-     
-     - Returns: The last element of the collection, or `nil` if the collection is empty.
+     Removes and returns the last element of the collection.
+
+     - Returns: The last element of the collection if the collection is not empty; otherwise, `nil`.
      */
     @discardableResult
-    mutating func removeLastSafetly() -> Element? {
+    @_disfavoredOverload
+    mutating func popLast() -> Element? {
         !isEmpty ? removeLast() : nil
     }
     
     /**
-     Removes the specified number of elements from the end of the collection.
-          
-     - Parameter k: The number of elements to remove from the collection. k must be greater than or equal to `zero`.
-     - Returns: The removed elements.
+     Removes and returns up to the specified number of elements from the end of the collection.
+
+     - Parameter count: The maximum number of elements to remove.
+
+     - Returns: An array containing the removed elements in reverse order of their original positions.
      */
     @discardableResult
-    mutating func removeLastSafetly(_ k: Int) -> [Element] {
-        !isEmpty && k > 0 ? (0..<Swift.min(k, count)).map { _ in removeLast() } : []
-    }
-    
-    /// Returns the collection with the last element removed from the collection.
-    func removingLast() -> Self {
-        removingLast(1)
-    }
-    
-    /// Returns the collection with the specified number of elements removed from the end of the collection.
-    func removingLast(_ k: Int) -> Self {
-        var collection = self
-        collection.removeLast(k)
-        return collection
-    }
-    
-    /// Returns the collection with the last element removed from the collection.
-    func removingLastSafely() -> Self {
-        removingLastSafely(1)
-    }
-    
-    /// Returns the collection with the specified number of elements removed from the end of the collection.
-    func removingLastSafely(_ k: Int) -> Self {
-        var collection = self
-        collection.removeLastSafetly(k)
-        return collection
+    mutating func popLast(_ count: Int) -> [Element] {
+        guard count > 0 else { return [] }
+        var result: [Element] = .init(reserveCapacity: Swift.min(count, self.count))
+        for _ in 0..<Swift.min(count, self.count) {
+            result += removeLast()
+        }
+        return result
     }
 }
-
 
 // MARK: - Remove + Predicate
 

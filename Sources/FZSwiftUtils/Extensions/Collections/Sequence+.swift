@@ -693,3 +693,27 @@ extension BidirectionalCollection {
         last(where: { $0 is T }) as? T
     }
 }
+
+public extension Sequence {
+    /// Returns an array containing at most the first `maxLength` elements of this sequence.
+    func truncated(to maxLength: Int) -> [Element] {
+        Array(prefix(maxLength.clamped(min: 0)))
+    }
+
+    /// Returns an array containing at most the last `maxLength` elements of this sequence.
+    func truncated(toLast maxLength: Int) -> [Element] {
+        Array(suffix(maxLength.clamped(min: 0)))
+    }
+}
+
+public extension RangeReplaceableCollection {
+    /// Truncates this collection to contain at most the first `maxLength` elements.
+    mutating func truncate(to maxLength: Int) {
+        self = Self(prefix(maxLength.clamped(min: 0)))
+    }
+
+    /// Truncates this collection to contain at most the last `maxLength` elements.
+    mutating func truncate(toLast maxLength: Int) {
+        self = Self(suffix(maxLength.clamped(min: 0)))
+    }
+}

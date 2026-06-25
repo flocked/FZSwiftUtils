@@ -301,7 +301,7 @@ extension ObjCClassInfo {
 
     private func propertyType(for keys: [String], isInstance: Bool) -> ObjCType? {
         var keys = keys
-        guard let key = keys.removeFirstSafetly() else { return nil }
+        guard let key = keys.popFirst() else { return nil }
         if let property = isInstance ? property(named: key) : classProperty(named: key) {
             return resolve(type: property.type.normalized, keys: keys, isInstance: isInstance)?.normalized
         }

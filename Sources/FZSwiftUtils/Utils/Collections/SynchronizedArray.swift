@@ -390,8 +390,8 @@ public extension SynchronizedArray {
      
      - Parameter k: The number of elements to remove.
      */
-    func removeFirst(_ k: Int) {
-        queue.async(flags: .barrier) { [weak self] in self?.array.removeFirst(k) }
+    func removeFirst(_ count: Int) {
+        removeFirst(count, completion: nil)
     }
 
     /**
@@ -401,11 +401,10 @@ public extension SynchronizedArray {
        - k: The number of elements to remove.
        - completion: An optional closure executed on the main queue after removal.
      */
-    @_disfavoredOverload
-    func removeFirst(_ k: Int, completion: (() -> Void)? = nil) {
+    func removeFirst(_ count: Int, completion: (() -> Void)? = nil) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            array.removeFirst(k)
+            array.removeFirst(count)
             DispatchQueue.main.async { completion?() }
         }
     }
@@ -442,7 +441,7 @@ public extension SynchronizedArray {
     func removeFirstSafely(completion: ((_ element: Element?)->())? = nil) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            let element = array.removeFirstSafetly()
+            let element = array.removeFirst()
             DispatchQueue.main.async { completion?(element) }
         }
     }
@@ -451,7 +450,7 @@ public extension SynchronizedArray {
     func removeLastSafely(completion: ((_ element: Element?)->())? = nil) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            let element = array.removeLastSafetly()
+            let element = array.popLast()
             DispatchQueue.main.async { completion?(element) }
         }
     }
@@ -461,8 +460,8 @@ public extension SynchronizedArray {
      
      - Parameter k: The number of elements to remove.
      */
-    func removeLast(_ k: Int) {
-        queue.async(flags: .barrier) { [weak self] in self?.array.removeLast(k) }
+    func removeLast(_ count: Int) {
+        removeLast(count, completion: nil)
     }
 
     /**
