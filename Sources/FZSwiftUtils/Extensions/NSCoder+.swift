@@ -19,6 +19,12 @@ public extension NSCoder {
         encode(value._bridgeToObjectiveC(), forKey: key)
     }
     
+    /// Encodes the specified value for the given key.
+    func encode<V: _ObjectiveCBridgeable>(_ value: V?, forKey key: String) {
+        guard let value = value else { return }
+        encode(value._bridgeToObjectiveC(), forKey: key)
+    }
+    
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
     func encode<V: RawRepresentable>(_ value: V, forKey key: String) where V.RawValue: NSObject & NSCoding {
         encode(value.rawValue, forKey: key)
