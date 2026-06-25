@@ -4444,3 +4444,79 @@ public extension simd_float4x4 {
         self.init(simd_float4(matrix[0]), simd_float4(matrix[1]), simd_float4(matrix[2]), simd_float4(matrix[3]))
     }
 }
+
+public extension matrix_double2x2 {
+    /// Returns the identity matrix of a `matrix_double2x2`.
+    static let identity = matrix_identity_double2x2
+    
+    /// Returns a `matrix_double4x4` with all zeros.
+    static let zero = matrix_float4x4()
+}
+
+public extension matrix_float2x2 {
+    /// Returns the identity matrix of a `matrix_float2x2`.
+    static let identity = matrix_identity_float2x2
+    
+    /// Returns a `matrix_double4x4` with all zeros.
+    static let zero = matrix_float4x4()
+}
+
+public extension matrix_half2x2 {
+    /// Returns the identity matrix of a `matrix_half2x2`.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    static let identity = matrix_identity_half2x2
+    
+    /// Returns a `matrix_half2x2` with all zeros.
+    static let zero = matrix_half2x2()
+}
+
+public extension matrix_double3x3 {
+    /// Returns the identity matrix of a `matrix_double3x3`.
+    static let identity = matrix_identity_double3x3
+    
+    /// Returns a `matrix_double3x3` with all zeros.
+    static let zero = matrix_double3x3()
+}
+
+public extension matrix_float3x3 {
+    /// Returns the identity matrix of a `matrix_float3x3`.
+    static let identity = matrix_identity_float3x3
+    
+    /// Returns a `matrix_float3x3` with all zeros.
+    static let zero = matrix_float3x3()
+}
+
+public extension matrix_half3x3 {
+    /// Returns the identity matrix of a `matrix_half3x3`.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    static let identity = matrix_identity_half3x3
+    
+    /// Returns a `matrix_half3x3` with all zeros.
+    static let zero = matrix_half3x3()
+}
+
+public extension matrix_double4x4 {
+    /// Returns the identity matrix of a `matrix_double4x4`.
+    static let identity = matrix_identity_double4x4
+
+    /// Returns a `matrix_double4x4` with all zeros.
+    static let zero = matrix_double4x4()
+}
+
+public extension matrix_float4x4 {
+    /// Returns the identity matrix of a `matrix_double4x4`.
+    static let identity = matrix_identity_float4x4
+
+    /// Returns a `matrix_double4x4` with all zeros.
+    static let zero = matrix_float4x4()
+}
+
+
+public extension matrix_half4x4 {
+    /// Returns the identity matrix of a `matrix_half4x4`.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    static let identity = matrix_identity_half4x4
+    
+    /// Returns a `matrix_half4x4` with all zeros.
+    static let zero = matrix_half4x4()
+}
