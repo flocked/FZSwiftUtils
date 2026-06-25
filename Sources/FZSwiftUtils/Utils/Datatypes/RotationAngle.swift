@@ -39,32 +39,32 @@ public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertib
     public static let zero = RotationAngle(degree: 0.0)
     
     /// Returns the given angle unchanged.
-    public static prefix func + (angle: RotationAngle) -> RotationAngle {
+    public static prefix func + (angle: Self) -> Self {
         angle
     }
 
     /// Adds two angles and produces their sum.
-    public static func + (lhs: RotationAngle, rhs: RotationAngle) -> RotationAngle {
+    public static func + (lhs: Self, rhs: Self) -> Self {
         RotationAngle(radian: lhs.radian + rhs.radian)
     }
 
     /// Adds two angles and stores the result in the left-hand-side variable.
-    public static func += (lhs: inout RotationAngle, rhs: RotationAngle) {
+    public static func += (lhs: inout Self, rhs: Self) {
         lhs = lhs + rhs
     }
 
     /// Returns the additive inverse of the given angle.
-    public static prefix func - (angle: RotationAngle) -> RotationAngle {
-        RotationAngle(radian: -angle.radian)
+    public static prefix func - (angle: Self) -> Self {
+        Self(radian: -angle.radian)
     }
 
     /// Subtracts one angle from another and produces their difference.
-    public static func - (lhs: RotationAngle, rhs: RotationAngle) -> RotationAngle {
-        RotationAngle(radian: lhs.radian - rhs.radian)
+    public static func - (lhs: Self, rhs: Self) -> Self {
+        Self(radian: lhs.radian - rhs.radian)
     }
 
     /// Subtracts the second angle from the first and stores the difference in the left-hand-side variable.
-    public static func -= (lhs: inout RotationAngle, rhs: RotationAngle) {
+    public static func -= (lhs: inout Self, rhs: Self) {
         lhs = lhs - rhs
     }
     
@@ -105,63 +105,63 @@ public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertib
     }
     
     /// Creates an angle from a degree value.
-    public static func degree(_ degree: Double) -> RotationAngle {
-        RotationAngle(degree: degree)
+    public static func degree(_ degree: Double) -> Self {
+        Self(degree: degree)
     }
     
     /// Creates an angle from a radian value.
-    public static func radian(_ radian: Double) -> RotationAngle {
-        RotationAngle(radian: radian)
+    public static func radian(_ radian: Double) -> Self {
+        Self(radian: radian)
     }
 
     /// Returns the inverse cosine of the specified value.
-    public static func acos(_ x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.acos(x))
+    public static func acos(_ x: Double) -> Self {
+        Self(radian: Foundation.acos(x))
     }
 
     /// Returns the inverse hyperbolic cosine of the specified value.
-    public static func acosh(_ x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.acosh(x))
+    public static func acosh(_ x: Double) -> Self {
+        Self(radian: Foundation.acosh(x))
     }
 
     /// Returns the inverse sine of the specified value.
-    public static func asin(_ x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.asin(x))
+    public static func asin(_ x: Double) -> Self {
+        Self(radian: Foundation.asin(x))
     }
 
     /// Returns the inverse hyperbolic sine of the specified value.
-    public static func asinh(_ x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.asinh(x))
+    public static func asinh(_ x: Double) -> Self {
+        Self(radian: Foundation.asinh(x))
     }
 
     /// Returns the inverse hyperbolic tangent of the specified value.
-    public static func atan(_ x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.atan(x))
+    public static func atan(_ x: Double) -> Self {
+        Self(radian: Foundation.atan(x))
     }
 
     /// Returns the two-argument arctangent of the specified values.
-    public static func atan2(y: Double, x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.atan2(y, x))
+    public static func atan2(y: Double, x: Double) -> Self {
+        Self(radian: Foundation.atan2(y, x))
     }
 
     /// Returns the inverse hyperbolic tangent of the specified value.
-    public static func atanh(_ x: Double) -> RotationAngle {
-        RotationAngle(radian: Foundation.atanh(x))
+    public static func atanh(_ x: Double) -> Self {
+        Self(radian: Foundation.atanh(x))
     }
     
     /// Returns the specified angle normalized between –180° and 180.0°.
-    public var normalized: RotationAngle {
+    public var normalized: Self {
         var normalizedDegrees = degree.truncatingRemainder(dividingBy: 360)
         if normalizedDegrees > 180 {
             normalizedDegrees -= 360
         } else if normalizedDegrees <= -180 {
             normalizedDegrees += 360
         }
-        return RotationAngle(degree: normalizedDegrees)
+        return Self(degree: normalizedDegrees)
     }
 
     /// Returns a Boolean value indicating whether two angles are equal.
-    public static func == (lhs: RotationAngle, rhs: RotationAngle) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.radian == rhs.radian
     }
 }

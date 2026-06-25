@@ -123,7 +123,7 @@ public class __Scale: NSObject, NSCopying, NSCoding {
 }
 
 extension Scale: ReferenceConvertible {
-    /// The Objective-C type for the configuration.
+    /// The Objective-C type for the three-dimensional space.
     public typealias ReferenceType = __Scale
     
     public func _bridgeToObjectiveC() -> __Scale {

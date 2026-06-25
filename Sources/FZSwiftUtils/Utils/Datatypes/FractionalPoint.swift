@@ -160,7 +160,7 @@ public class __FractionalPoint: NSObject, NSCopying {
 }
 
 extension FractionalPoint: ReferenceConvertible {
-    /// The Objective-C type for the configuration.
+    /// The Objective-C type for the fractional 2D point.
     public typealias ReferenceType = NSValue
     
     public func _bridgeToObjectiveC() -> NSValue {

@@ -109,7 +109,7 @@ public class __Point3D: NSObject, NSCopying {
 }
 
 extension Point3D: ReferenceConvertible {
-    /// The Objective-C type for the configuration.
+    /// The Objective-C type for the point in a three-dimensional coordinate system.
     public typealias ReferenceType = __Point3D
     
     public func _bridgeToObjectiveC() -> __Point3D {

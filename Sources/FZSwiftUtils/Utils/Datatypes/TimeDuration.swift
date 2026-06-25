@@ -960,7 +960,6 @@ public extension Timer {
 }
 
 extension TimeDuration: ReferenceConvertible {
-
     /// The Objective-C type for the time duration.
     public typealias ReferenceType = __TimeDuration
 
