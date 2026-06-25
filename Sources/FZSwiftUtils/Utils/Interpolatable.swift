@@ -160,6 +160,12 @@ extension NSAffineTransform: Interpolatable {
         return transform as! Self
     }
 }
+
+extension AffineTransform: Interpolatable {
+    public func interpolated(to other: Self, fraction: CGFloat) -> Self {
+        AffineTransform(m11: m11 + (other.m11 - m11) * fraction, m12: m12 + (other.m12 - m12) * fraction, m21: m21 + (other.m21 - m21) * fraction, m22: m22 + (other.m22 - m22) * fraction, tX:  tX  + (other.tX  - tX)  * fraction, tY:  tY  + (other.tY  - tY)  * fraction)
+    }
+}
 #endif
 
 extension CGAffineTransform: Interpolatable {
