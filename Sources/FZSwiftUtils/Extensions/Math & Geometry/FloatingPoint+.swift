@@ -292,6 +292,56 @@ extension BinaryFloatingPoint where Self: LosslessStringConvertible {
     }    
 }
 
+public extension FloatingPoint {
+    /**
+     Returns the non-negative remainder of this value divided by the given value using truncating division.
+
+     - Parameter other: The value to use when dividing this value.
+     - Returns: The non-negative remainder of this value divided by `other` using truncating division.
+     
+     Example usage:
+
+     ```swift
+     5.0.positiveRemainder(dividingBy: 3.0) // 2.0
+     5.0.positiveRemainder(dividingBy: -3.0) // 2.0
+     -5.0.positiveRemainder(dividingBy: 3.0) // 1.0
+     -5.0.positiveRemainder(dividingBy: -3.0) // 1.0
+     ```
+     */
+    func positiveRemainder(dividingBy divisor: Self) -> Self {
+        let divisor = abs(divisor)
+        let remainder = truncatingRemainder(dividingBy: divisor)
+        return remainder >= 0 ? remainder : remainder + divisor
+    }
+    
+    /**
+     Returns the remainder of this value divided by the given value using flooring division.
+     
+     - Parameter other: The value to use when dividing this value.
+     - Returns: The remainder of this value divided by `other` using flooring division. The result takes the sign of the `other`.
+     
+     Example usage:
+     
+     ```swift
+     5.0.flooredRemainder(dividingBy: 3.0)   // 2.0
+     5.0.flooredRemainder(dividingBy: -3.0)  // -1.0
+     -5.0.flooredRemainder(dividingBy: 3.0)  // 1.0
+     -5.0.flooredRemainder(dividingBy: -3.0) // -2.0
+     ```
+     */
+    func flooredRemainder(dividingBy divisor: Self) -> Self {
+        guard divisor != 0 else { return 0 }
+        let remainder = truncatingRemainder(dividingBy: divisor)
+        if remainder == 0 {
+            return 0
+        }
+        if (remainder < 0) != (divisor < 0) {
+            return remainder + divisor
+        }
+        return remainder
+    }
+}
+
 public extension Sequence where Element: BinaryFloatingPoint {
     /**
      Returns the scaled integral value of the elements in the sequence.
