@@ -22,6 +22,7 @@ public extension NSCoder {
     /// Encodes the specified value for the given key.
     func encode<V: _ObjectiveCBridgeable>(_ value: V?, forKey key: String) {
         guard let value = value else { return }
+        
         encode(value._bridgeToObjectiveC(), forKey: key)
     }
     
