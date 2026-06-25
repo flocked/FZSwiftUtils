@@ -264,7 +264,7 @@ extension ImageProperties.TIFF: ImagePropertiesRawValueProviding {}
 extension ImageProperties.WEBP: ImagePropertiesRawValueProviding {}
 
 extension ImageProperties {
-    public static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssXXXXX", "yyyyMMdd"]).includeISO8601(true)
+    public static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssXXXXX", "yyyyMMdd", "yyyy:MM:dd HH:mm:ss"]).includeISO8601(true)
 }
 
 extension ImageProperties {
