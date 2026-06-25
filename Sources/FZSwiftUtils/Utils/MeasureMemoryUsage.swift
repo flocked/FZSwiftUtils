@@ -118,18 +118,14 @@ public struct MeasureMemoryUsage {
 
     private static func current(remove: Bool, print: Bool, details: String?) -> DataSize {
         guard !measurements.isEmpty else { return .zero }
-
         let beginning = remove ? measurements.removeLast() : measurements.last!
-        let current = ProcessInfo.processInfo.physicalMemoryUsage
         let memoryUsage = ProcessInfo.processInfo.physicalMemoryUsage - beginning.startMemoryUsage
-
         if print {
             let indent = String(repeating: "\t", count: remove ? measurements.count : measurements.count - 1)
             let title = beginning.title == nil ? "" : " for \(beginning.title!)"
             let details = details == nil ? "" : " (\(details!))"
             Swift.print("\(indent)Memory usage\(title): \(memoryUsage).\(details)")
         }
-
         return memoryUsage
     }
 }

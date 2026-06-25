@@ -42,25 +42,29 @@ public extension AsyncSequence {
     }
 
     /**
-     Returns an array of all elements to the specified completion handler
+     Returns an array of all elements to the specified completion handler.
 
-     - Parameter completion: The handler which gets called when all elements got collected.
+     - Parameter completion: The handler that is called when all elements have been collected.
      */
-    func collect(completion: @escaping ([Element]) -> Void) throws {
+    func collect(completion: @escaping (_ result: Result<[Element], Error>) -> Void) {
         Task {
-            completion(try await collect())
+            do {
+                completion(.success(try await collect()))
+            } catch {
+                completion(.failure(error))
+            }
         }
     }
 
     /// Returns an array of all elements.
     func collect() throws -> [Element] {
         let semaphore = DispatchSemaphore(value: 0)
-        var elements: [Element] = []
-        try collect(completion: { ele in
-            elements = ele
+        var result: Result<[Element], Error>?
+        collect {
+            result = $0
             semaphore.signal()
-        })
+        }
         semaphore.wait()
-        return elements
+        return try result!.get()
     }
 }

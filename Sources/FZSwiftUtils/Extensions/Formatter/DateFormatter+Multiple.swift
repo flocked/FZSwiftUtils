@@ -15,7 +15,7 @@ extension DateFormatter {
 }
 
 /// A date formatter that allows to specify several date format strings for decoding strings to date.
-public class MultiDateFormatter: DateFormatter {
+public class MultiDateFormatter: DateFormatter, @unchecked Sendable {
     /// The date format strings used by the receiver.
     public var dateFormats: [String] = [] {
         didSet {
@@ -44,6 +44,7 @@ public class MultiDateFormatter: DateFormatter {
     
     public override func date(from string: String) -> Date? {
         defer { dateFormat = dateFormats.first ?? "" }
+        if adjusted { return date(fromAdjusted: string) }
         if let date = iso8601Formatter?.date(from: string) {
             return date
         }
@@ -54,6 +55,25 @@ public class MultiDateFormatter: DateFormatter {
             }
         }
         return nil
+    }
+    
+    fileprivate func date(fromAdjusted string: String) -> Date? {
+        if let date = iso8601Formatter?.date(from: string.replacingOccurrences(ofPattern: #":60(?=(?:[.,]\d+)?(?:Z|[+-]\d{2}:?\d{2})?$)"#, with: ":59")) {
+            return date
+        }
+        for dateFormat in dateFormats {
+            self.dateFormat = dateFormat
+            if let date = super.date(from: string.adjusted(dateFormat: dateFormat)) {
+                return date
+            }
+        }
+        return nil
+    }
+    
+    fileprivate var adjusted = false
+    func adjusted(_ adjusted: Bool) -> Self {
+        self.adjusted = adjusted
+        return self
     }
     
     /// Creates a date formatter with the specified date formats.
@@ -70,5 +90,16 @@ public class MultiDateFormatter: DateFormatter {
     public required init?(coder: NSCoder) {
         super.init(coder: coder)
         dateFormats = coder.decode("dateFormats") ?? []
+    }
+}
+
+fileprivate extension String {
+    func adjusted(dateFormat: String) -> String {
+        guard let range = dateFormat.range(of: "ss") else { return self }
+        let offset = dateFormat.distance(from: dateFormat.startIndex, to: range.lowerBound)
+        guard let start = index(startIndex, offsetBy: offset, limitedBy: endIndex), let end = index(start, offsetBy: 2, limitedBy: endIndex), self[start..<end] == "60" else { return self }
+        var result = self
+        result.replaceSubrange(start..<end, with: "59")
+        return result
     }
 }
