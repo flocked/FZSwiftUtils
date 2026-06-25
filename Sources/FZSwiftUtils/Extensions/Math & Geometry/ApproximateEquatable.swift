@@ -82,12 +82,7 @@ public extension Numeric where Magnitude: FloatingPoint {
      */
     @inlinable @inline(__always)
     func isApproximatelyEqual(to other: Self, absoluteTolerance: Magnitude, relativeTolerance: Magnitude = 0) -> Bool {
-        isApproximatelyEqual(
-            to: other,
-            absoluteTolerance: absoluteTolerance,
-            relativeTolerance: relativeTolerance,
-            norm: \.magnitude
-        )
+        isApproximatelyEqual(to: other, absoluteTolerance: absoluteTolerance, relativeTolerance: relativeTolerance, norm: \.magnitude)
     }
     
     /**

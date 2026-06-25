@@ -4285,3 +4285,162 @@ extension SIMD64: SwiftUI.VectorArithmetic where Scalar == Double {
         lowHalf.magnitudeSquared + highHalf.magnitudeSquared
     }
 }
+
+public extension SIMD3 {
+    /// The first element of the vector.
+    var xy: Scalar {
+        get { self[0] }
+        set { self[0] = newValue }
+    }
+
+    /// The second element of the vector.
+    var xz: Scalar {
+        get { self[1] }
+        set { self[1] = newValue }
+    }
+
+    /// The third element of the vector.
+    var yz: Scalar {
+        get { self[2] }
+        set { self[2] = newValue }
+    }
+
+    /**
+     Creates a new vector from the given elements.
+     
+     - Parameters:
+       - xy: The first element of the vector.
+       - xz: The second element of the vector.
+       - yz: The third element of the vector.
+     */
+    init(xy: Scalar, xz: Scalar, yz: Scalar) {
+        self.init(xy, xz, yz)
+    }
+}
+
+public extension SIMD4 {
+    /// The first element of the vector.
+    var m31: Scalar {
+        get { self[0] }
+        set { self[0] = newValue }
+    }
+
+    /// The second element of the vector.
+    var m32: Scalar {
+        get { self[1] }
+        set { self[1] = newValue }
+    }
+
+    /// The third element of the vector.
+    var m33: Scalar {
+        get { self[2] }
+        set { self[2] = newValue }
+    }
+    
+    /// The fourth element of the vector.
+    var m34: Scalar {
+        get { self[3] }
+        set { self[3] = newValue }
+    }
+
+    /**
+     Creates a new vector from the given elements.
+     
+     - Parameters:
+        - m31: The first element of the vector.
+        - m32: The second element of the vector.
+        - m33: The third element of the vector.
+        - m34: The fourth element of the vector.
+     */
+    init(m31: Scalar, m32: Scalar, m33: Scalar, m34: Scalar) {
+        self.init(m31, m32, m33, m34)
+    }
+}
+
+public extension simd_double3 {
+    /// Creates a new vector from the sepcified vector.
+    init(_ vector: simd_float3) {
+        self.init(Double(vector[0]), Double(vector[1]), Double(vector[2]))
+    }
+}
+
+public extension simd_float3 {
+    /// Creates a new vector from the sepcified vector.
+    init(_ vector: simd_double3) {
+        self.init(Float(vector[0]), Float(vector[1]), Float(vector[2]))
+    }
+}
+
+public extension simd_double4 {
+    /// Creates a new vector from the sepcified vector.
+    init(_ vector: simd_float4) {
+        self.init(Double(vector[0]), Double(vector[1]), Double(vector[2]), Double(vector[3]))
+    }
+}
+
+public extension simd_float4 {
+    /// Creates a new vector from the sepcified vector.
+    init(_ vector: simd_double4) {
+        self.init(Float(vector[0]), Float(vector[1]), Float(vector[2]), Float(vector[3]))
+    }
+}
+
+public extension simd_quatf {
+    /// Creates a new vector from the sepcified vector.
+    init(_ quat: simd_quatd) {
+        self.init(vector: simd_float4(Float(quat.vector[0]), Float(quat.vector[1]), Float(quat.vector[2]), Float(quat.vector[3])))
+    }
+
+    /// Creates a new vector from the sepcified vector.
+    init(_ eulerAngles: simd_float3) {
+        let cz = cos(eulerAngles.z * 0.5)
+        let sz = sin(eulerAngles.z * 0.5)
+        let cy = cos(eulerAngles.y * 0.5)
+        let sy = sin(eulerAngles.y * 0.5)
+        let cx = cos(eulerAngles.x * 0.5)
+        let sx = sin(eulerAngles.x * 0.5)
+        self.init(vector: [
+            sx * cy * cz - cx * sy * sz, // x
+            cx * sy * cz + sx * cy * sz, // y
+            cx * cy * sz - sx * sy * cz, // z
+            cx * cy * cz + sx * sy * sz, // w
+        ])
+    }
+}
+
+public extension simd_quatd {
+    /// Creates a new vector from the sepcified vector.
+    init(_ quat: simd_quatf) {
+        self.init(vector: simd_double4(Double(quat.vector[0]), Double(quat.vector[1]), Double(quat.vector[2]), Double(quat.vector[3])))
+    }
+
+    /// Creates a new vector from the sepcified vector.
+    init(_ eulerAngles: simd_double3) {
+        let cz = cos(eulerAngles.z * 0.5)
+        let sz = sin(eulerAngles.z * 0.5)
+        let cy = cos(eulerAngles.y * 0.5)
+        let sy = sin(eulerAngles.y * 0.5)
+        let cx = cos(eulerAngles.x * 0.5)
+        let sx = sin(eulerAngles.x * 0.5)
+        self.init(vector: [
+            sx * cy * cz - cx * sy * sz, // x
+            cx * sy * cz + sx * cy * sz, // y
+            cx * cy * sz - sx * sy * cz, // z
+            cx * cy * cz + sx * sy * sz, // w
+        ])
+    }
+}
+
+public extension simd_double4x4 {
+    /// Creates a new vector from the sepcified matrix.
+    init(_ matrix: simd_float4x4) {
+        self.init(simd_double4(matrix[0]), simd_double4(matrix[1]), simd_double4(matrix[2]), simd_double4(matrix[3]))
+    }
+}
+
+public extension simd_float4x4 {
+    /// Creates a new vector from the sepcified matrix.
+    init(_ matrix: simd_double4x4) {
+        self.init(simd_float4(matrix[0]), simd_float4(matrix[1]), simd_float4(matrix[2]), simd_float4(matrix[3]))
+    }
+}
