@@ -5,6 +5,7 @@
 //  Created by Florian Zand on 13.12.25.
 //
 
+import Foundation
 import QuartzCore
 import simd
 import Accelerate
@@ -149,4 +150,20 @@ extension simd_quath: Interpolatable {
         return simd_slerp(self, to, fraction)
     }
 }
+
+extension NSAffineTransform: Interpolatable {
+    public func interpolated(to other: NSAffineTransform, fraction: Double) -> Self {
+        let lhs = transformStruct
+        let rhs = other.transformStruct
+        let transform = NSAffineTransform()
+        transform.transformStruct = NSAffineTransformStruct(m11: lhs.m11 + (rhs.m11 - lhs.m11) * fraction, m12: lhs.m12 + (rhs.m12 - lhs.m12) * fraction, m21: lhs.m21 + (rhs.m21 - lhs.m21) * fraction, m22: lhs.m22 + (rhs.m22 - lhs.m22) * fraction, tX:  lhs.tX  + (rhs.tX  - lhs.tX)  * fraction, tY:  lhs.tY  + (rhs.tY  - lhs.tY)  * fraction)
+        return transform as! Self
+    }
+}
 #endif
+
+extension CGAffineTransform: Interpolatable {
+    public func interpolated(to other: Self, fraction: CGFloat) -> Self {
+        Self(a: a + (other.a - a) * fraction, b: b + (other.b - b) * fraction, c: c + (other.c - c) * fraction, d: d + (other.d - d) * fraction, tx: tx + (other.tx - tx) * fraction, ty: ty + (other.ty - ty) * fraction)
+    }
+}
