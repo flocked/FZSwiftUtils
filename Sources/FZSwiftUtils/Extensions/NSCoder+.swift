@@ -20,8 +20,18 @@ public extension NSCoder {
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<V: RawRepresentable>(_ value: V?, forKey key: String) where V.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(value?.rawValue, forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
     func encode<V: RawRepresentable>(_ values: [V], forKey key: String) where V.RawValue: NSObject & NSCoding {
         encode(values.map(\.rawValue) as NSArray, forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<V: RawRepresentable>(_ values: [V]?, forKey key: String) where V.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(values?.map(\.rawValue) as? NSArray, forKey: key)
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
@@ -29,9 +39,19 @@ public extension NSCoder {
         encode(value.mapKeys { $0.rawValue }, forKey: key)
     }
     
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<Key: RawRepresentable & Hashable, Value>(_ value: [Key: Value]?, forKey key: String) where Key.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapKeys { $0.rawValue }, forKey: key)
+    }
+    
     /// Encodes the specified value conforming to `RawRepresentable` for the given key.
     func encode<V: RawRepresentable>(_ value: V, forKey key: String) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.rawValue._bridgeToObjectiveC(), forKey: key)
+    }
+    
+    /// Encodes the specified value conforming to `RawRepresentable` for the given key.
+    func encode<V: RawRepresentable>(_ value: V?, forKey key: String) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(value?.rawValue._bridgeToObjectiveC(), forKey: key)
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
@@ -40,8 +60,17 @@ public extension NSCoder {
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<V: RawRepresentable>(_ values: [V]?, forKey key: String) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(values?.map(\.rawValue) as? NSArray, forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
     func encode<Key: RawRepresentable & Hashable, Value>(_ value: [Key: Value], forKey key: String) where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.mapKeys { $0.rawValue._bridgeToObjectiveC() }, forKey: key)
+    }
+    
+    func encode<Key: RawRepresentable & Hashable, Value>(_ value: [Key: Value]?, forKey key: String) where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapKeys { $0.rawValue._bridgeToObjectiveC() }, forKey: key)
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
@@ -50,8 +79,18 @@ public extension NSCoder {
     }
     
     /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<Key, Value: RawRepresentable>(_ value: [Key: Value]?, forKey key: String) where Value.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapValues { $0.rawValue }, forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
     func encode<Key, Value: RawRepresentable>(_ value: [Key: Value], forKey key: String) where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.mapValues { $0.rawValue._bridgeToObjectiveC() }, forKey: key)
+    }
+    
+    /// Encodes the specified values conforming to `RawRepresentable` for the given key.
+    func encode<Key, Value: RawRepresentable>(_ value: [Key: Value]?, forKey key: String) where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapValues { $0.rawValue._bridgeToObjectiveC() }, forKey: key)
     }
 }
 
@@ -61,9 +100,19 @@ public extension NSCoder {
         encode(value.rawValue)
     }
     
+    /// Encodes a raw-representable value.
+    func encode<V: RawRepresentable>(_ value: V?) where V.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(value?.rawValue)
+    }
+    
     /// Encodes an array of raw-representable values.
     func encode<V: RawRepresentable>(_ values: [V]) where V.RawValue: NSObject & NSCoding {
         encode(values.map(\.rawValue) as NSArray)
+    }
+    
+    /// Encodes an array of raw-representable values.
+    func encode<V: RawRepresentable>(_ values: [V]?) where V.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(values?.map(\.rawValue) as? NSArray)
     }
     
     /// Encodes a dictionary with raw-representable keys.
@@ -71,9 +120,19 @@ public extension NSCoder {
         encode(value.mapKeys { $0.rawValue })
     }
     
+    /// Encodes a dictionary with raw-representable keys.
+    func encode<Key: RawRepresentable & Hashable, Value>(_ value: [Key: Value]?) where Key.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapKeys { $0.rawValue })
+    }
+    
     /// Encodes a bridged raw-representable value.
     func encode<V: RawRepresentable>(_ value: V) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.rawValue._bridgeToObjectiveC())
+    }
+    
+    /// Encodes a bridged raw-representable value.
+    func encode<V: RawRepresentable>(_ value: V?) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(value?.rawValue._bridgeToObjectiveC())
     }
     
     /// Encodes an array of bridged raw-representable values.
@@ -81,9 +140,19 @@ public extension NSCoder {
         encode(values.map(\.rawValue) as NSArray)
     }
     
+    /// Encodes an array of bridged raw-representable values.
+    func encode<V: RawRepresentable>(_ values: [V]?) where V.RawValue: _ObjectiveCBridgeable, V.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(values?.map(\.rawValue) as? NSArray)
+    }
+    
     /// Encodes a dictionary with bridged raw-representable keys.
     func encode<Key: RawRepresentable & Hashable, Value>(_ value: [Key: Value]) where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.mapKeys { $0.rawValue._bridgeToObjectiveC() })
+    }
+    
+    /// Encodes a dictionary with bridged raw-representable keys.
+    func encode<Key: RawRepresentable & Hashable, Value>(_ value: [Key: Value]?) where Key.RawValue: _ObjectiveCBridgeable, Key.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapKeys { $0.rawValue._bridgeToObjectiveC() })
     }
     
     /// Encodes a dictionary with raw-representable values.
@@ -91,9 +160,19 @@ public extension NSCoder {
         encode(value.mapValues { $0.rawValue })
     }
     
+    /// Encodes a dictionary with raw-representable values.
+    func encode<Key, Value: RawRepresentable>(_ value: [Key: Value]?) where Value.RawValue: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapValues { $0.rawValue })
+    }
+    
     /// Encodes a dictionary with bridged raw-representable values.
     func encode<Key, Value: RawRepresentable>(_ value: [Key: Value]) where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
         encode(value.mapValues { $0.rawValue._bridgeToObjectiveC() })
+    }
+    
+    /// Encodes a dictionary with bridged raw-representable values.
+    func encode<Key, Value: RawRepresentable>(_ value: [Key: Value]?) where Value.RawValue: _ObjectiveCBridgeable, Value.RawValue._ObjectiveCType: NSObject & NSCoding {
+        encodeConditionalObject(value?.mapValues { $0.rawValue._bridgeToObjectiveC() })
     }
 }
 
