@@ -655,16 +655,17 @@ extension TimeDuration: CustomStringConvertible {
         /// Never displays a sign.
         case never
     }
-
+    
     /**
      Returns a formatted timecode string representation of the duration.
 
      - Parameters:
-       - format: The formatting style describing which units should be included in the resulting timecode.
+        - format: The formatting style describing which units should be included in the resulting timecode.
        - signDisplay: The formatting style controlling whether a sign should be displayed.
        - subsecondsPrecision: The number of digits to display after the fractional separator. Specify `0` to omit fractional seconds.
        - separator: The string used to separate hours, minutes, and seconds.
        - subsecondSeparator: The string used to separate seconds and fractional seconds.
+        - padsFirstUnit: A Boolean value indicating whether the first displayed time unit is padded to at least two digits.
      - Returns: A formatted timecode string representation of the duration.
      
      Example usage:
@@ -700,7 +701,8 @@ extension TimeDuration: CustomStringConvertible {
         signDisplay: TimeCodeSignDisplay = .automatic,
         subsecondsPrecision: Int = 0,
         separator: String = ":",
-        subsecondSeparator: String = "."
+        subsecondSeparator: String = ".",
+        padsFirstUnit: Bool = false
     ) -> String {
         let precision = max(0, subsecondsPrecision)
         let scale = Int(pow(10.0, Double(precision)))
@@ -725,30 +727,40 @@ extension TimeDuration: CustomStringConvertible {
             String(format: "%0\(width)d", value)
         }
 
+        func firstUnit(_ value: Int) -> String {
+            padsFirstUnit ? padded(value) : "\(value)"
+        }
+
         let body: String
 
         switch format {
         case .hoursMinutesSeconds:
-            body = "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+            body = "\(firstUnit(hours))\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+
         case .minutesSeconds:
-            body = "\(wholeSeconds / 60)\(separator)\(padded(secs))"
+            body = "\(firstUnit(wholeSeconds / 60))\(separator)\(padded(secs))"
+
         case .seconds:
-            body = "\(wholeSeconds)"
+            body = firstUnit(wholeSeconds)
+
         case .full:
             body = "\(padded(hours))\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+
         case .fullCompact:
-            body = "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+            body = "\(firstUnit(hours))\(separator)\(padded(minutes))\(separator)\(padded(secs))"
+
         case .compact:
             body = hours > 0
                 ? "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
-                : "\(wholeSeconds / 60)\(separator)\(padded(secs))"
+                : "\(firstUnit(wholeSeconds / 60))\(separator)\(padded(secs))"
+
         case .short:
             if hours > 0 {
                 body = "\(hours)\(separator)\(padded(minutes))\(separator)\(padded(secs))"
             } else if wholeSeconds >= 60 {
-                body = "\(wholeSeconds / 60)\(separator)\(padded(secs))"
+                body = "\(firstUnit(wholeSeconds / 60))\(separator)\(padded(secs))"
             } else {
-                body = "\(wholeSeconds)"
+                body = firstUnit(wholeSeconds)
             }
         }
 
