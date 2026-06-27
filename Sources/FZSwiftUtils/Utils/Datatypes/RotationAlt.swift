@@ -53,10 +53,10 @@ public struct RotationAlt: Hashable, Codable, Sendable, CustomStringConvertible,
         /// xyz
         case xyz
         /// zyx
-        case zyx
+        case zxy
         
         public var description: String {
-            self == .xyz ? "xyz" : "zyx"
+            self == .xyz ? "xyz" : "zxy"
         }
     }
 
@@ -847,8 +847,8 @@ private extension simd_quatd {
         switch order {
         case .xyz:
             self = qz * qy * qx
-        case .zyx:
-            self = qx * qy * qz
+        case .zxy:
+            self = qy * qx * qz
         }
     }
 
@@ -873,11 +873,19 @@ private extension simd_quatd {
                 z: CGFloat(atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z)))
             )
 
-        case .zyx:
+        case .zxy:
+            let rxY = 2 * (w * x + y * z)
+            let rxX = 1 - 2 * (x * x + y * y)
+            let ryValue = max(-1, min(1, 2 * (w * y - z * x)))
+            let rzY = 2 * (w * z + x * y)
+            let rzX = 1 - 2 * (y * y + z * z)
+            let rx = Darwin.atan2(rxY, rxX)
+            let ry = Darwin.asin(ryValue)
+            let rz = Darwin.atan2(rzY, rzX)
             return .init(
-                x: CGFloat(atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y))),
-                y: CGFloat(asin((2 * (w * y - z * x)).clamped(to: -1...1))),
-                z: CGFloat(atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z)))
+                x: CGFloat(rx),
+                y: CGFloat(ry),
+                z: CGFloat(rz)
             )
         }
     }
