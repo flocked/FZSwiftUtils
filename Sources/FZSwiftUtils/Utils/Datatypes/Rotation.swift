@@ -8,9 +8,9 @@
 import Foundation
 
 /// Rotation in a three-dimensional space.
-public struct Rotation: Hashable, Codable, Sendable, CustomStringConvertible {
+public struct Rotation: Hashable, Codable, Sendable, CustomStringConvertible, AdditiveArithmetic {
     /// The rotation angles around the x-, y-, and z-axes.
-    public struct Angles: Hashable, Codable, Sendable, CustomStringConvertible, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral {
+    public struct Angles: Hashable, Codable, Sendable, CustomStringConvertible, ExpressibleByIntegerLiteral, ExpressibleByFloatLiteral, AdditiveArithmetic {
         /// The rotation angle around the x-axis.
         public var x: CGFloat = 0.0
         /// The rotation angle around the y-axis.

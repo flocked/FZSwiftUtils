@@ -8,7 +8,7 @@
 import Foundation
 
 /// A structure representing an angle in degrees and radians.
-public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertible {
+public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertible, AdditiveArithmetic {
     /// The angle in degrees.
     public var degree: Double {
         didSet { radian = degree * .pi / 180 }
@@ -37,36 +37,6 @@ public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertib
     
     /// The angle with the zero value.
     public static let zero = RotationAngle(degree: 0.0)
-    
-    /// Returns the given angle unchanged.
-    public static prefix func + (angle: Self) -> Self {
-        angle
-    }
-
-    /// Adds two angles and produces their sum.
-    public static func + (lhs: Self, rhs: Self) -> Self {
-        RotationAngle(radian: lhs.radian + rhs.radian)
-    }
-
-    /// Adds two angles and stores the result in the left-hand-side variable.
-    public static func += (lhs: inout Self, rhs: Self) {
-        lhs = lhs + rhs
-    }
-
-    /// Returns the additive inverse of the given angle.
-    public static prefix func - (angle: Self) -> Self {
-        Self(radian: -angle.radian)
-    }
-
-    /// Subtracts one angle from another and produces their difference.
-    public static func - (lhs: Self, rhs: Self) -> Self {
-        Self(radian: lhs.radian - rhs.radian)
-    }
-
-    /// Subtracts the second angle from the first and stores the difference in the left-hand-side variable.
-    public static func -= (lhs: inout Self, rhs: Self) {
-        lhs = lhs - rhs
-    }
     
     /// The cosine of the angle.
     public var cos: Double {
@@ -163,5 +133,145 @@ public struct RotationAngle: Hashable, Equatable, Codable, CustomStringConvertib
     /// Returns a Boolean value indicating whether two angles are equal.
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.radian == rhs.radian
+    }
+    
+    
+    /// Returns the given angle unchanged.
+    public static prefix func + (angle: Self) -> Self {
+        angle
+    }
+    
+    /// Returns the given angle unchanged.
+    public static prefix func - (angle: Self) -> Self {
+        .radian(-angle.radian)
+    }
+
+    /// Adds two angles and produces their sum.
+    public static func + (lhs: Self, rhs: Self) -> Self {
+        RotationAngle(radian: lhs.radian + rhs.radian)
+    }
+
+    /// Adds two angles and stores the result in the left-hand-side variable.
+    public static func += (lhs: inout Self, rhs: Self) {
+        lhs = lhs + rhs
+    }
+
+    /// Subtracts one angle from another and produces their difference.
+    public static func - (lhs: Self, rhs: Self) -> Self {
+        Self(radian: lhs.radian - rhs.radian)
+    }
+
+    /// Subtracts the second angle from the first and stores the difference in the left-hand-side variable.
+    public static func -= (lhs: inout Self, rhs: Self) {
+        lhs = lhs - rhs
+    }
+
+    /// Returns a rotation by adding the specified value to each rotation angle.
+    @_disfavoredOverload
+    public static func + (lhs: Self, rhs: Int) -> Self {
+        .radian(lhs.radian + Double(rhs))
+    }
+
+    /// Adds the specified value to each rotation angle.
+    @_disfavoredOverload
+    public static func += (lhs: inout Self, rhs: Int) {
+        lhs = lhs + rhs
+    }
+
+    /// Returns a rotation by subtracting the specified value from each rotation angle.
+    @_disfavoredOverload
+    public static func - (lhs: Self, rhs: Int) -> Self {
+        .radian(lhs.radian - Double(rhs))
+    }
+
+    /// Subtracts the specified value from each rotation angle.
+    @_disfavoredOverload
+    public static func -= (lhs: inout Self, rhs: Int) {
+        lhs = lhs - rhs
+    }
+
+    /// Returns a rotation by adding the specified value to each rotation angle.
+    @_disfavoredOverload
+    public static func + (lhs: Self, rhs: CGFloat) -> Self {
+        .radian(lhs.radian + rhs)
+    }
+
+    /// Adds the specified value to each rotation angle.
+    @_disfavoredOverload
+    public static func += (lhs: inout Self, rhs: CGFloat) {
+        lhs = lhs + rhs
+    }
+
+    /// Returns a rotation by subtracting the specified value from each rotation angle.
+    @_disfavoredOverload
+    public static func - (lhs: Self, rhs: CGFloat) -> Self {
+        .radian(lhs.radian - rhs)
+    }
+
+    /// Subtracts the specified value from each rotation angle.
+    @_disfavoredOverload
+    public static func -= (lhs: inout Self, rhs: CGFloat) {
+        lhs = lhs - rhs
+    }
+}
+
+/// The Objective-C class for ``RotationAngle``.
+public class __RotationAngle: NSObject, NSCopying, NSCoding {
+    let angle: RotationAngle
+
+    init(_ angle: RotationAngle) {
+        self.angle = angle
+    }
+
+    public func encode(with coder: NSCoder) {
+        coder.encode(Double(angle.radian), forKey: "angle")
+    }
+
+    public required init?(coder: NSCoder) {
+        angle = .radian(coder.decode("angle") ?? 0.0)
+    }
+
+    public func copy(with zone: NSZone? = nil) -> Any {
+        self
+    }
+
+    override public func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else { return false }
+        return self === other || angle == other.angle
+    }
+
+    override public var hash: Int {
+        Hasher.hash(angle)
+    }
+}
+
+extension RotationAngle: ReferenceConvertible {
+    /// The Objective-C type for the rotation angle.
+    public typealias ReferenceType = __RotationAngle
+
+    public func _bridgeToObjectiveC() -> ReferenceType {
+        return .init(self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) {
+        result = source.angle
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) -> Bool {
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: ReferenceType?) -> Self {
+        if let source = source {
+            var result: Self?
+            _forceBridgeFromObjectiveC(source, result: &result)
+            return result!
+        }
+        return .zero
+    }
+
+    public var debugDescription: String {
+        description
     }
 }

@@ -87,7 +87,7 @@ public struct Point3D: Hashable, Codable, CustomStringConvertible {
 }
 
 /// The Objective-C class for ``Point3D``.
-public class __Point3D: NSObject, NSCopying {
+public class __Point3D: NSObject, NSCopying, NSCoding {
     let point: Point3D
     
     init(point: Point3D) {
@@ -96,6 +96,16 @@ public class __Point3D: NSObject, NSCopying {
     
     public func copy(with zone: NSZone? = nil) -> Any {
         self
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(point.x, forKey: "x")
+        coder.encode(point.y, forKey: "y")
+        coder.encode(point.z, forKey: "z")
+    }
+
+    public required init?(coder: NSCoder) {
+        point = .init(coder.decode("x") ?? 0.0, coder.decode("y") ?? 0.0, coder.decode("z") ?? 0.0)
     }
     
     public override func isEqual(_ object: Any?) -> Bool {

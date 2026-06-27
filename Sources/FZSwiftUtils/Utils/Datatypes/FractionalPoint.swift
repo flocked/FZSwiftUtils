@@ -138,7 +138,7 @@ extension CGRect {
 }
 
 /// The Objective-C class for ``FractionalPoint``.
-public class __FractionalPoint: NSObject, NSCopying {
+public class __FractionalPoint: NSObject, NSCopying, NSCoding {
     let point: FractionalPoint
     
     public init(point: FractionalPoint) {
@@ -147,6 +147,15 @@ public class __FractionalPoint: NSObject, NSCopying {
     
     public func copy(with zone: NSZone? = nil) -> Any {
         self
+    }
+    
+    public func encode(with coder: NSCoder) {
+        coder.encode(point.x, forKey: "x")
+        coder.encode(point.y, forKey: "y")
+    }
+    
+    public required init?(coder: NSCoder) {
+        point = .init(coder.decode("x") ?? 0.0, coder.decode("y") ?? 0.0)
     }
     
     public override func isEqual(_ object: Any?) -> Bool {
