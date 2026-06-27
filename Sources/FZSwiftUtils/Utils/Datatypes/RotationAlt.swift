@@ -75,16 +75,10 @@ public struct RotationAlt: Hashable, Codable, Sendable, CustomStringConvertible,
         }
     }
 
-    /// The angle of the rotation expressed in radians.
-    public var angle: CGFloat {
-        get { CGFloat(quaternion.angle) }
-        set { quaternion = simd_quatd(angle: Double(newValue), axis: quaternion.axis) }
-    }
-
-    /// The angle of the rotation expressed in degrees.
-    public var angleDegrees: CGFloat {
-        get { angle.radiansToDegrees }
-        set { angle = newValue.degreesToRadians }
+    /// The angle of the rotation.
+    public var angle: Angle {
+        get { .radians(CGFloat(quaternion.angle)) }
+        set { quaternion = simd_quatd(angle: Double(newValue.radians), axis: quaternion.axis) }
     }
 
     /// A rotation whose quaternion is normalized.
@@ -209,56 +203,28 @@ public struct RotationAlt: Hashable, Codable, Sendable, CustomStringConvertible,
     public static func radians(x: CGFloat = 0.0, y: CGFloat = 0.0, z: CGFloat = 0.0, order: AnglesOrder = .xyz) -> Self {
         .init(radians: .init(x, y, z), order: order)
     }
-    
+
     /**
-     Creates a rotation with the specified rotation axis and angle, expressed in radians.
+     Creates a rotation with the specified rotation axis and angle, expressed in degrees.
 
      - Parameters:
        - axis: The rotation axis.
-       - angle: The rotation angle, expressed in radians.
+       - angle: The rotation angle.
      */
-    public static func axis(_ axis: Axis, angle: CGFloat) -> Self {
+    public static func axis(_ axis: Axis, angle: Angle) -> Self {
         .init(axis: axis, angle: angle)
     }
 
     /**
-     Creates a rotation with the specified rotation axis and angle, expressed in degrees.
-
-     - Parameters:
-       - axis: The rotation axis.
-       - degrees: The rotation angle, expressed in degrees.
-     */
-    public static func axis(_ axis: Axis, degrees: CGFloat) -> Self {
-        .init(axis: axis, degrees: degrees)
-    }
-    
-    ///  Creates a rotation axis from the specified quaternion.
-    public static func quaternion(_ quaternion: simd_quatd) -> Self {
-        .init(quaternion: quaternion)
-    }
-
-    /**
      Creates a rotation with the specified rotation axis and angle, expressed in radians.
 
      - Parameters:
        - axis: The rotation axis.
-       - angle: The rotation angle, expressed in radians.
+       - angle: The rotation angle.
      */
-    public init(axis: Axis, angle: CGFloat) {
-        quaternion = simd_quatd(angle: Double(angle), axis: simd.normalize(axis.simdValue))
+    public init(axis: Axis, angle: Angle) {
+        quaternion = simd_quatd(angle: Double(angle.radians), axis: simd.normalize(axis.simdValue))
     }
-
-    /**
-     Creates a rotation with the specified rotation axis and angle, expressed in degrees.
-
-     - Parameters:
-       - axis: The rotation axis.
-       - degrees: The rotation angle, expressed in degrees.
-     */
-    public init(axis: Axis, degrees: CGFloat) {
-        self.init(axis: axis, angle: degrees.degreesToRadians)
-    }
-
     
     private enum CodingKeys: String, CodingKey {
         case anglesOrder
@@ -707,6 +673,164 @@ extension RotationAlt {
     }
 }
 
+extension RotationAlt {
+    /// A geometric angle.
+    public struct Angle: Hashable, Codable, AdditiveArithmetic, CustomStringConvertible {
+        /// The angle in radians.
+        public var radians: CGFloat
+        
+        /// The angle in degrees.
+        public var degrees: CGFloat {
+            get { radians.radiansToDegrees }
+            set { radians = newValue.degreesToRadians }
+        }
+        
+        /// Creates an angle with the specified double-precision radians.
+        public init(radians: CGFloat) {
+            self.radians = radians
+        }
+        
+        /// Creates an angle with the specified double-precision degrees.
+        public init(degrees: CGFloat) {
+            self.radians = degrees.degreesToRadians
+        }
+        
+        /// Creates an angle.
+        public init() {
+            self.radians = 0.0
+        }
+        
+        /// Returns the specified angle normalized between –180° and 180°.
+        public var normalized: Self {
+            .degrees((degrees + 180).modulo(360) - 180)
+        }
+        
+        /// Normalizes the angle.
+        public mutating func normalize() {
+            self = normalized
+        }
+        
+        public var description: String {
+            "(radians: \(radians), degrees: \(degrees))"
+        }
+        
+        /// The angle with the zero value.
+        public static let zero = Self()
+        
+        /// Returns a new angle structure with the specified double-precision radians.
+        public static func radians(_ radians: CGFloat) -> Self {
+            .init(radians: radians)
+        }
+        
+        /// Returns a new angle structure with the specified double-precision degrees.
+        public static func degrees(_ degrees: CGFloat) -> Self {
+            .init(degrees: degrees)
+        }
+        
+        /**
+         Returns the inverse cosine of the specified value.
+
+         - Parameter value: The value whose inverse cosine is to be returned.
+         - Returns: The inverse cosine of `value`.
+         */
+        static func acos(_ value: Double) -> Self {
+            .radians(CGFloat(Darwin.acos(value)))
+        }
+
+        /**
+         Returns the inverse hyperbolic cosine of the specified value.
+
+         - Parameter value: The value whose inverse hyperbolic cosine is to be returned.
+         - Returns: The inverse hyperbolic cosine of `value`.
+         */
+        static func acosh(_ value: Double) -> Self {
+            .radians(CGFloat(Darwin.acosh(value)))
+        }
+
+        /**
+         Returns the inverse sine of the specified value.
+
+         - Parameter value: The value whose inverse sine is to be returned.
+         - Returns: The inverse sine of `value`.
+         */
+        static func asin(_ value: Double) -> Self {
+            .radians(CGFloat(Darwin.asin(value)))
+        }
+
+        /**
+         Returns the inverse hyperbolic sine of the specified value.
+
+         - Parameter value: The value whose inverse hyperbolic sine is to be returned.
+         - Returns: The inverse hyperbolic sine of `value`.
+         */
+        static func asinh(_ value: Double) -> Self {
+            .radians(CGFloat(Darwin.asinh(value)))
+        }
+
+        /**
+         Returns the inverse tangent of the specified value.
+
+         - Parameter value: The value whose inverse tangent is to be returned.
+         - Returns: The inverse tangent of `value`.
+         */
+        static func atan(_ value: Double) -> Self {
+            .radians(CGFloat(Darwin.atan(value)))
+        }
+
+        /**
+         Returns the two-argument arctangent of the specified values.
+
+         - Parameters:
+           - y: The y-coordinate.
+           - x: The x-coordinate.
+         - Returns: The two-argument arctangent of `y` and `x`.
+         */
+        static func atan2(y: Double, x: Double) -> Self {
+            .radians(CGFloat(Darwin.atan2(y, x)))
+        }
+
+        /**
+         Returns the inverse hyperbolic tangent of the specified value.
+
+         - Parameter value: The value whose inverse hyperbolic tangent is to be returned.
+         - Returns: The inverse hyperbolic tangent of `value`.
+         */
+        static func atanh(_ value: Double) -> Self {
+            .radians(CGFloat(Darwin.atanh(value)))
+        }
+        
+        /// Returns the given angle unchanged.
+        public static prefix func + (angle: Self) -> Self {
+            angle
+        }
+
+        /// Returns the inverse rotation.
+        public static prefix func - (angle: Self) -> Self {
+            .radians(-angle.radians)
+        }
+        
+        /// Adds two angles and produces their sum.
+        public static func + (lhs: Self, rhs: Self) -> Self {
+            .radians(lhs.radians + rhs.radians)
+        }
+        
+        /// Adds two angles and stores the result in the left-hand-side variable.
+        public static func += (lhs: inout Self, rhs: Self) {
+            lhs = lhs + rhs
+        }
+        
+        /// Returns the additive inverse of the given angle.
+        public static func - (lhs: Self, rhs: Self) -> Self {
+            .radians(lhs.radians - rhs.radians)
+        }
+        
+        /// Subtracts one angle from another and produces their difference.
+        public static func -= (lhs: inout Self, rhs: Self) {
+            lhs = lhs - rhs
+        }
+    }
+}
+
 private extension simd_quatd {
 
     /**
@@ -821,5 +945,20 @@ extension RotationAlt: ReferenceConvertible {
 
     public var debugDescription: String {
         description
+    }
+}
+
+fileprivate extension FloatingPoint {
+    func modulo(_ divisor: Self) -> Self {
+        guard divisor != 0 else { return 0 }
+
+        let remainder = truncatingRemainder(dividingBy: divisor)
+        if remainder == 0 {
+            return 0
+        }
+        if (remainder < 0) != (divisor < 0) {
+            return remainder + divisor
+        }
+        return remainder
     }
 }
