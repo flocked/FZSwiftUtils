@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Spatial
 
 /// Rotation in a three-dimensional space.
 public struct Rotation: Hashable, Codable, Sendable, CustomStringConvertible, AdditiveArithmetic {
@@ -453,6 +454,7 @@ extension Rotation: ReferenceConvertible {
         description
     }
 }
+
 
 /*
  public var fractional: FractionalPoint {
