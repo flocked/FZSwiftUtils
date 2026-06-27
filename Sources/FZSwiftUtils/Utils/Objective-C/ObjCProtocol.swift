@@ -190,11 +190,11 @@ extension Protocol {
         if let description = methodDescriptionWithoutSearchingInheritedProtocols(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly) {
             return description
         }
-        return protocols(recursive: false).lazy.compactMap( { $0.methodDescription(for: selector, isInstanceMethod: isInstanceMethod) }).first
+        return protocols(recursive: false).lazy.compactMap( { $0.methodDescription(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly) }).first
     }
     
     func methodTypeEncoding(for selector: Selector, isInstanceMethod: Bool, optionalOnly: Bool = false) -> String? {
-        methodDescription(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly)?.types?.stringAndFree()
+        methodDescription(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly)?.types?.string
     }
     
     func methodSignature(for selector: Selector, isInstanceMethod: Bool, optionalOnly: Bool = false) throws -> Signature {
