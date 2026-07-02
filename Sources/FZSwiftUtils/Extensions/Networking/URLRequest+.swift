@@ -78,7 +78,6 @@ public extension URLRequest {
         setValue(validator, forHTTPHeaderField: "If-Range")
     }
 
-
     /**
      Adds a `Range` HTTP header to the request, specifying that the request should continue from the end of the given file.
 
@@ -177,8 +176,8 @@ public extension URLRequest {
 
     /// A dictionary containing all of the HTTP header fields for a request.
     var httpHeaderFields: [HTTPRequestHeaderField: String] {
-        get { allHTTPHeaderFields?.mapKeys({ HTTPRequestHeaderField($0) }) ?? [:] }
-        set { allHTTPHeaderFields = newValue.isEmpty ? nil : newValue.mapKeys({$0.rawValue}) }
+        get { allHTTPHeaderFields?.mapKeys { HTTPRequestHeaderField($0) } ?? [:] }
+        set { allHTTPHeaderFields = newValue.isEmpty ? nil : newValue.mapKeys { $0.rawValue } }
     }
     
     /// Sets the dictionary containing all of the HTTP header fields for the request.
@@ -426,44 +425,119 @@ extension URLRequest: Swift.Encodable, Swift.Decodable {
     }
 }
 
-extension URLRequest {
-    func swiftCode() -> String? {
+public extension URLRequest {
+    /**
+     Generates Swift source code that recreates this `URLRequest`.
+
+     The generated code includes the request URL, cache policy, timeout interval, HTTP method,
+     main document URL, cookie handling flag, HTTP headers, and HTTP body when present.
+     Optionally, it also includes example `URLSession` code that executes the request.
+
+     - Parameter includeTask: A Boolean value indicating whether to include example
+       `URLSession.shared.dataTask(with:)` code that performs the request. The default is `true`.
+
+     - Returns: Swift source code that recreates this `URLRequest`, or `nil` if the request
+       does not contain a valid URL.
+     */
+    func swiftCode(includeTask: Bool = true) -> String? {
         guard let url = url?.absoluteString else { return nil }
         var mainParts = ["url: URL(string: \(url.swiftStringLiteral))!"]
+        
         if cachePolicy != .useProtocolCachePolicy {
-            mainParts += "cachePolicy: \(cachePolicy.string)"
-        }
-        if timeoutInterval != 60.0 {
-            mainParts += "timeoutInterval: \(timeoutInterval)"
+            mainParts += "cachePolicy: \(cachePolicy.swiftCode)"
         }
         
-        var strings = ["var request = URLRequest(\(mainParts.joined(separator: ", ")))"]
+        if timeoutInterval != 60.0 {
+            mainParts += "timeoutInterval: \(timeoutInterval.swiftCode)"
+        }
+        
+        var strings = [
+            "var request = URLRequest(\(mainParts.joined(separator: ", ")))"
+        ]
+        
         if let httpMethod, httpMethod != "GET" {
             strings += "request.httpMethod = \(httpMethod.swiftStringLiteral)"
         }
+        
         if let mainDocumentURL = mainDocumentURL?.absoluteString {
             strings += "request.mainDocumentURL = URL(string: \(mainDocumentURL.swiftStringLiteral))"
         }
+        
         if !httpShouldHandleCookies {
             strings += "request.httpShouldHandleCookies = false"
         }
-        strings += (allHTTPHeaderFields ?? [:]).map({ "request.addValue(\($0.value.swiftStringLiteral), forHTTPHeaderField: \($0.key.swiftStringLiteral))" })
-
+        for (field, value) in (allHTTPHeaderFields ?? [:])
+            .sorted(by: { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }) {
+            strings += "request.setValue(\(value.swiftStringLiteral), forHTTPHeaderField: \(field.swiftStringLiteral))"
+        }
+        
+        if let httpBody, !httpBody.isEmpty {
+            if let body = String(data: httpBody, encoding: .utf8) {
+                strings += "request.httpBody = \(body.swiftStringLiteral).data(using: .utf8)"
+            } else {
+                strings += "request.httpBody = Data(base64Encoded: \(httpBody.base64EncodedString().swiftStringLiteral))"
+            }
+        }
+        
+        if includeTask {
+            strings += """
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+              guard let data = data else {
+                print(String(describing: error))
+                return
+              }
+              print(String(data: data, encoding: .utf8)!)
+            }
+            
+            task.resume()
+            """
+        }
         return strings.joined(separator: "\n")
     }
 }
 
-fileprivate extension URLRequest.CachePolicy {
-    var string: String {
+private extension String {
+    var swiftStringLiteral: String {
+        var result = "\""
+        for character in self {
+            switch character {
+            case "\\":
+                result += "\\\\"
+            case "\"":
+                result += "\\\""
+            case "\n":
+                result += "\\n"
+            case "\r":
+                result += "\\r"
+            case "\t":
+                result += "\\t"
+            default:
+                result += character
+            }
+        }
+        result += "\""
+        return result
+    }
+}
+
+private extension URLRequest.CachePolicy {
+    var swiftCode: String {
         switch self {
-        case .useProtocolCachePolicy: ".useProtocolCachePolicy"
-        case .reloadIgnoringLocalAndRemoteCacheData: ".reloadIgnoringLocalAndRemoteCacheData"
-        case .reloadIgnoringLocalCacheData: ".reloadIgnoringLocalCacheData"
-        case .reloadRevalidatingCacheData: ".reloadRevalidatingCacheData"
-        case .returnCacheDataDontLoad: ".returnCacheDataDontLoad"
-        case .reloadIgnoringCacheData: ".reloadIgnoringCacheData"
-        case .returnCacheDataElseLoad: ".returnCacheDataElseLoad"
-        default: ".init(rawValue: \(rawValue))!"
+        case .useProtocolCachePolicy:
+            ".useProtocolCachePolicy"
+        case .reloadIgnoringLocalCacheData:
+            ".reloadIgnoringLocalCacheData"
+        case .reloadIgnoringLocalAndRemoteCacheData:
+            ".reloadIgnoringLocalAndRemoteCacheData"
+        case .returnCacheDataElseLoad:
+            ".returnCacheDataElseLoad"
+        case .returnCacheDataDontLoad:
+            ".returnCacheDataDontLoad"
+        case .reloadRevalidatingCacheData:
+            ".reloadRevalidatingCacheData"
+        @unknown default:
+            ".init(rawValue: \(rawValue)) ?? .useProtocolCachePolicy"
         }
     }
 }
