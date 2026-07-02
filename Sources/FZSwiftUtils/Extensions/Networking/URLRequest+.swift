@@ -426,73 +426,139 @@ extension URLRequest: Swift.Encodable, Swift.Decodable {
 }
 
 public extension URLRequest {
+    /// The example task code to include when generating Swift source for a request.
+    enum SwiftCodeTaskStyle {
+        /// Do not include URLSession execution code.
+        case none
+        /// Include a completion-handler `URLSession.shared.dataTask(with:)` example.
+        case dataTask
+        /// Include an async/await `URLSession.shared.data(for:)` example.
+        case asyncAwait
+    }
+
     /**
      Generates Swift source code that recreates this `URLRequest`.
 
-     The generated code includes the request URL, cache policy, timeout interval, HTTP method,
-     main document URL, cookie handling flag, HTTP headers, and HTTP body when present.
-     Optionally, it also includes example `URLSession` code that executes the request.
-
-     - Parameter includeTask: A Boolean value indicating whether to include example
-       `URLSession.shared.dataTask(with:)` code that performs the request. The default is `true`.
-
+     - Parameter taskStyle: The style of example `URLSession` code to include. The default is `.dataTask`.
      - Returns: Swift source code that recreates this `URLRequest`, or `nil` if the request
        does not contain a valid URL.
      */
-    func swiftCode(includeTask: Bool = true) -> String? {
-        guard let url = url?.absoluteString else { return nil }
-        var mainParts = ["url: URL(string: \(url.swiftStringLiteral))!"]
+    func swiftCode(taskStyle: SwiftCodeTaskStyle = .dataTask) -> String? {
+        guard let url = url else { return nil }
         
+        var mainParts = ["url: URL(string: \(url.absoluteString.swiftStringLiteral))!"]
         if cachePolicy != .useProtocolCachePolicy {
             mainParts += "cachePolicy: \(cachePolicy.swiftCode)"
         }
-        
         if timeoutInterval != 60.0 {
             mainParts += "timeoutInterval: \(timeoutInterval.swiftCode)"
         }
         
-        var strings = [
-            "var request = URLRequest(\(mainParts.joined(separator: ", ")))"
-        ]
+        var strings = ["var request = URLRequest(\(mainParts.joined(separator: ", ")))"]
         
         if let httpMethod, httpMethod != "GET" {
             strings += "request.httpMethod = \(httpMethod.swiftStringLiteral)"
         }
         
         if let mainDocumentURL = mainDocumentURL?.absoluteString {
-            strings += "request.mainDocumentURL = URL(string: \(mainDocumentURL.swiftStringLiteral))"
+            strings += "request.mainDocumentURL = URL(string: \(mainDocumentURL.swiftStringLiteral))!"
         }
         
         if !httpShouldHandleCookies {
             strings += "request.httpShouldHandleCookies = false"
         }
+        
+        if httpShouldUsePipelining {
+            strings += "request.httpShouldUsePipelining = true"
+        }
+        
+        if allowsCellularAccess != true {
+            strings += "request.allowsCellularAccess = \(allowsCellularAccess)"
+        }
+        
+        if assumesHTTP3Capable != false {
+            strings += "request.assumesHTTP3Capable = \(assumesHTTP3Capable)"
+        }
+        
+        if allowsConstrainedNetworkAccess != true {
+            strings += "request.allowsConstrainedNetworkAccess = \(allowsConstrainedNetworkAccess)"
+        }
+        
+        if allowsExpensiveNetworkAccess != true {
+            strings += "request.allowsExpensiveNetworkAccess = \(allowsExpensiveNetworkAccess)"
+        }
+        
+        if networkServiceType != .default {
+            strings += "request.networkServiceType = \(networkServiceType.swiftCode)"
+        }
+        
+        if attribution != .developer {
+            strings += "request.attribution = \(attribution.swiftCode)"
+        }
+        
+        if #available(macOS 13.0, iOS 16.1, tvOS 16.1, watchOS 9.1, *),
+           requiresDNSSECValidation != false {
+            strings += "request.requiresDNSSECValidation = \(requiresDNSSECValidation)"
+        }
+        
+        if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *),
+           allowsPersistentDNS != false {
+            strings += "request.allowsPersistentDNS = \(allowsPersistentDNS)"
+        }
+        
         for (field, value) in (allHTTPHeaderFields ?? [:])
             .sorted(by: { $0.key.localizedCaseInsensitiveCompare($1.key) == .orderedAscending }) {
             strings += "request.setValue(\(value.swiftStringLiteral), forHTTPHeaderField: \(field.swiftStringLiteral))"
         }
         
-        if let httpBody, !httpBody.isEmpty {
-            if let body = String(data: httpBody, encoding: .utf8) {
+        if let httpBody {
+            if httpBody.isEmpty {
+                strings += "request.httpBody = Data()"
+            } else if let body = String(data: httpBody, encoding: .utf8) {
                 strings += "request.httpBody = \(body.swiftStringLiteral).data(using: .utf8)"
             } else {
-                strings += "request.httpBody = Data(base64Encoded: \(httpBody.base64EncodedString().swiftStringLiteral))"
+                strings += """
+                guard let body = Data(base64Encoded: \(httpBody.base64EncodedString().swiftStringLiteral)) else {
+                    fatalError("Invalid body data")
+                }
+                request.httpBody = body
+                """
             }
         }
         
-        if includeTask {
+        if httpBodyStream != nil {
+            strings += "// Body is provided via httpBodyStream and cannot be represented as inline source."
+        }
+        
+        switch taskStyle {
+        case .none:
+            break
+        case .dataTask:
             strings += """
-            
+
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
-              guard let data = data else {
-                print(String(describing: error))
-                return
-              }
-              print(String(data: data, encoding: .utf8)!)
+                guard let data else {
+                    print(String(describing: error))
+                    return
+                }
+                print(String(data: data, encoding: .utf8) ?? "")
             }
             
             task.resume()
             """
+        case .asyncAwait:
+            strings += """
+
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                print(response)
+                print(String(data: data, encoding: .utf8) ?? "")
+            } catch {
+                print(error)
+            }
+            """
         }
+        
         return strings.joined(separator: "\n")
     }
 }
@@ -500,24 +566,66 @@ public extension URLRequest {
 private extension String {
     var swiftStringLiteral: String {
         var result = "\""
-        for character in self {
-            switch character {
-            case "\\":
+        for scalar in unicodeScalars {
+            switch scalar.value {
+            case 0x5C:
                 result += "\\\\"
-            case "\"":
+            case 0x22:
                 result += "\\\""
-            case "\n":
+            case 0x0A:
                 result += "\\n"
-            case "\r":
+            case 0x0D:
                 result += "\\r"
-            case "\t":
+            case 0x09:
                 result += "\\t"
+            case 0x00..<0x20:
+                result += "\\u{\(String(scalar.value, radix: 16))}"
             default:
-                result += character
+                result += String(scalar)
             }
         }
         result += "\""
         return result
+    }
+}
+
+private extension URLRequest.NetworkServiceType {
+    var swiftCode: String {
+        switch self {
+        case .default:
+            ".default"
+        case .voip:
+            ".voip"
+        case .video:
+            ".video"
+        case .background:
+            ".background"
+        case .voice:
+            ".voice"
+        case .responsiveData:
+            ".responsiveData"
+        case .avStreaming:
+            ".avStreaming"
+        case .responsiveAV:
+            ".responsiveAV"
+        case .callSignaling:
+            ".callSignaling"
+        @unknown default:
+            ".init(rawValue: \(rawValue)) ?? .default"
+        }
+    }
+}
+
+private extension URLRequest.Attribution {
+    var swiftCode: String {
+        switch self {
+        case .developer:
+            ".developer"
+        case .user:
+            ".user"
+        @unknown default:
+            ".developer"
+        }
     }
 }
 
