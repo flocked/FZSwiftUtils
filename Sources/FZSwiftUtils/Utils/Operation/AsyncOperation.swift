@@ -106,12 +106,12 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         case .finished, .failed:
             return ["isFinished"]
         case .cancelled:
-            return ["isFinished"]
+            return ["isFinished", "isCancelled"]
         }
     }
     
     override public var isReady: Bool {
-        super.isReady && state == .ready
+        state == .ready
     }
 
     override public var isExecuting: Bool {
@@ -120,6 +120,10 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
 
     override public var isFinished: Bool {
         state == .finished || state == .cancelled || state == .failed
+    }
+    
+    override public var isCancelled: Bool {
+        state == .cancelled
     }
     
     override public var isAsynchronous: Bool {
@@ -156,13 +160,15 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     override open func cancel() {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
-        let shouldSignalPause = state == .paused
-        guard !isFinished else { return }
+        guard isReady || isExecuting else { return }
+        if state == .ready {
+            setState(.executing)
+        }
         super.cancel()
-        setState(.cancelled)
-        if shouldSignalPause {
+        if state == .paused {
             pauseCondition.signal()
         }
+        setState(.cancelled)
     }
     
     /**
