@@ -16,7 +16,7 @@ import Foundation
  */
 open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     
-    private let stateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath + ".AsyncOperationState")
+    private let stateQueue = DispatchQueue(label: Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath + ".AsyncOperationState", attributes: .concurrent)
     private var _state: State = .ready
     private let pauseCondition = NSCondition()
     
@@ -57,56 +57,32 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
     }
     
     /// The state of the operation.
-    @objc dynamic public var state: State {
-        stateQueue.sync { _state }
+    @objc dynamic public private(set) var state: State {
+        get { stateQueue.sync { _state } }
+        set {
+            guard newValue != _state else { return }
+            if validateState(newValue) {
+                stateQueue.async(flags: .barrier) { self._state = newValue }
+            } else {
+                debugPrint("\(String(describing: type(of: self))): Invalid change from `\(state)` to `\(newValue)`")
+            }
+        }
     }
         
-    private func validateState(_ newState: State, from oldState: State) -> Bool {
+    private func validateState(_ newState: State) -> Bool {
         switch newState {
         case .ready:
             return false
         case .executing:
-            return oldState == .ready || oldState == .paused
+            return state == .ready || state == .paused
         case .finished:
-            return oldState != .cancelled
+            return state != .cancelled
         case .cancelled:
             return true
         case .paused:
-            return oldState == .executing || oldState == .ready
+            return state == .executing || state == .ready
         case .failed:
-            return oldState == .executing || oldState == .ready
-        }
-    }
-    
-    private func setState(_ newState: State) {
-        let oldState = state
-        guard newState != oldState else { return }
-        guard validateState(newState, from: oldState) else {
-            debugPrint("\(String(describing: type(of: self))): Invalid change from `\(oldState)` to `\(newState)`")
-            return
-        }
-        
-        var changedKeyPaths = ["state"]
-        (operationKeyPaths(for: oldState) + operationKeyPaths(for: newState)).forEach {
-            if !changedKeyPaths.contains($0) {
-                changedKeyPaths.append($0)
-            }
-        }
-        changedKeyPaths.forEach { willChangeValue(forKey: $0) }
-        stateQueue.sync { _state = newState }
-        changedKeyPaths.reversed().forEach { didChangeValue(forKey: $0) }
-    }
-    
-    private func operationKeyPaths(for state: State) -> [String] {
-        switch state {
-        case .ready:
-            return ["isReady"]
-        case .executing, .paused:
-            return ["isExecuting"]
-        case .finished, .failed:
-            return ["isFinished"]
-        case .cancelled:
-            return ["isFinished", "isCancelled"]
+            return state == .executing || state == .ready
         }
     }
     
@@ -142,7 +118,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
      */
     override open func start() {
         guard !isCancelled, !isExecuting, !isFinished else { return }
-        setState(.executing)
+        state = .executing
         currentAttempt = 1
         startHandler?()
         main()
@@ -162,13 +138,13 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         defer { pauseCondition.unlock() }
         guard isReady || isExecuting else { return }
         if state == .ready {
-            setState(.executing)
+            state = .executing
         }
         super.cancel()
         if state == .paused {
             pauseCondition.signal()
         }
-        setState(.cancelled)
+        state = .cancelled
     }
     
     /**
@@ -186,12 +162,12 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         defer { pauseCondition.unlock() }
         guard isExecuting, state != .paused else { return }
         if success {
-            setState(.finished)
+            state = .finished
         } else if currentAttempt < maximumRetries {
             currentAttempt += 1
             main()
         } else {
-            setState(.failed)
+            state = .failed
         }
     }
 
@@ -204,7 +180,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
         guard isExecuting, state != .paused else { return }
-        setState(.paused)
+        state = .paused
     }
     
     /**
@@ -216,7 +192,7 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
         pauseCondition.lock()
         defer { pauseCondition.unlock() }
         guard isExecuting, state == .paused else { return }
-        setState(.executing)
+        state = .executing
         pauseCondition.signal()
     }
     
@@ -246,6 +222,13 @@ open class AsyncOperation: Operation, Pausable, @unchecked Sendable {
             pauseCondition.wait()
         }
         pauseCondition.unlock()
+    }
+        
+    override open class func keyPathsForValuesAffectingValue(forKey key: String) -> Set<String> {
+        if ["isReady", "isFinished", "isExecuting", "isCancelled"].contains(key) {
+            return ["state"]
+        }
+        return super.keyPathsForValuesAffectingValue(forKey: key)
     }
 }
 
