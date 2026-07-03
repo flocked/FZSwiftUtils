@@ -49,7 +49,7 @@ public class NotificationToken: NSObject {
         - queue: The operation queue on which to execute the block.
         - block: The closure to run when a matching notification is posted.
 ´     */
-    public init(for name: Notification.Name, postedBy object: Any, notificationCenter: NotificationCenter = .default, queue: OperationQueue? = nil, block: @escaping (_ notification: Notification) -> Void) {
+    public init(for name: Notification.Name, postedBy object: Any?, notificationCenter: NotificationCenter = .default, queue: OperationQueue? = nil, block: @escaping (_ notification: Notification) -> Void) {
         self.notificationCenter = notificationCenter
         self.name = name
         self.token = notificationCenter.addObserver(forName: name, object: object, queue: queue, using: block)
@@ -112,7 +112,7 @@ public extension NotificationCenter {
         - block: The closure to run when a matching notification is posted.
      - Returns: A token that keeps the observation alive and removes it on deallocation.
      */
-    func observe(_ name: Notification.Name, postedBy object: Any, on queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void)  -> NotificationToken {
+    func observe(_ name: Notification.Name, postedBy object: Any?, on queue: OperationQueue? = nil, using block: @escaping (_ notification: Notification) -> Void)  -> NotificationToken {
         NotificationToken(for: name, postedBy: object, notificationCenter: self, queue: queue, block: block)
     }
     
