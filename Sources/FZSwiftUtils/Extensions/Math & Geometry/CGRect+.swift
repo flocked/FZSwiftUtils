@@ -136,6 +136,17 @@ public extension CGRect {
         CGRect(origin: origin.scaledIntegral(for: screen), size: size.scaledIntegral(for: screen))
     }
     #endif
+    
+    #if os(macOS)
+    /**
+     Draws the outline of the rectangle using the current stroke color and drawing attributes.
+     
+     This method uses the current drawing attributes, such as the stroke color and line width. Attributes that are not explicitly set use their default values.
+     */
+    func stroke() {
+        NSBezierPath(rect: self).stroke()
+    }
+    #endif
 
     /// The x-coordinate of the origin of the rectangle.
     var x: CGFloat {
