@@ -28,6 +28,9 @@ extension ObjCCategoryInfo {
         /// Includes the fields of structures and unions.
         public static let includeStructAndUnionFields = Self(rawValue: 1 << 4)
 
+        /// Includes Objective-C type modifiers such as `const`, `in`, `out`, `byref`, and `oneway`.
+        public static let includeTypeModifiers = Self(rawValue: 1 << 5)
+
         public let rawValue: UInt32
 
         public init(rawValue: UInt32) {

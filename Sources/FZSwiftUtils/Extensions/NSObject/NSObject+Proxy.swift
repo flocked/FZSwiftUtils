@@ -63,10 +63,10 @@ extension NSObjectProtocol where Self: NSObject {
      
      To get the returned value of the method call, use the inovcations's `returnValue` property.
                          
-     - Parameter invocationHandler: The handler that provides the inovcation whenever a method of the object is called.
+     - Parameter handler: The handler that provides the inovcation whenever a method of the object is called.
      */
-    public func proxy(invocationHandler: @escaping (_ invocation: Invocation)->()) -> Self {
-        InvocationProxy(object: self, handler: invocationHandler).asObject()
+    public func invocationProxy(_ handler: @escaping (_ invocation: Invocation)->()) -> Self {
+        InvocationProxy(object: self, handler: handler).asObject()
     }
 }
 

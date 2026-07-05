@@ -115,23 +115,18 @@ public extension NSObject {
      Example usage:
      
      ```swift
-     class MyObject: NSObject {
-        @objc dynamic func sum(of number1: Int, and number2: Int) -> Int {
-            return number1 + number2
-        }
-     }
+     let textField = NSTextField()
      
-     let object = MyObject()
-     
-     try! object.hook(#selector(MyObject.sum(of:and:)), closure: {
-        original, object, selector, number1, number2 in
-        let value = original(object, selector, number1, number2)
-        return value * 2
+     try! textField.hook(#selector(setter: NSTextField.stringValue), closure: {
+        original, textField, selector, stringValue in
+        // Apply the modified string value by using the `original` method.
+        original(textField, selector, stringValue.lowercased())
      } as @convention(block) (
-         (MyObject, Selector, Int, Int) -> Int,
-        MyObject, Selector, Int, Int) -> Int)
+         (NSTextField, Selector, String) -> Void,
+        NSTextField, Selector, String) -> Void)
      
-     object.sum(of: 1, and: 2) // 6
+     textField.stringValue = "TEST"
+     print(textField.stringValue) // test
      ```
      - Parameters:
         - selector: The method you want to hook on.

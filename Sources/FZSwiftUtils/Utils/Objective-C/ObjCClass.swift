@@ -10,45 +10,47 @@ import Foundation
 /// An Objective-C class.
 public struct ObjCClass {
     /// The class.
-    public let `class`: AnyClass
+    public let cls: AnyClass
     
     public init(_ class: AnyClass) {
-        self.`class` = `class`
+        self.cls = `class`
     }
     
     public init?(_ className: String) {
         guard let cls = NSClassFromString(className) else { return nil }
-        self.`class` = cls
+        self.cls = cls
     }
     
     /// The name of the class.
     public var name: String {
-        ObjCRuntime.name(for: `class`)
+        class_getName(cls).string
     }
     
     /// The version of the class.
     public var version: Int32 {
-        class_getVersion(`class`)
+        class_getVersion(cls)
     }
     
     /// The size of an instance of the class.
     public var instanceSize: Int {
-        class_getInstanceSize(`class`)
+        class_getInstanceSize(cls)
     }
     
     /// The path of the dynamic library / framework the class originated from.
     public var imagePath: String? {
-        class_getImageName(`class`)?.string
+        class_getImageName(cls)?.string
     }
     
+    /*
     /// The runtime origin of the class.
     public var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
-        ObjCRuntime.origin(of: `class`)
+        ObjCRuntime.origin(of: cls)
     }
+    */
     
     /// The superclass of the class.
     public var superclass: AnyClass? {
-        `class`.superclass()
+        cls.superclass()
     }
     
     /// The root superclass of the class.
@@ -67,27 +69,27 @@ public struct ObjCClass {
      - Parameter includeNested: A Boolean value indicating whether to include nested subclasses.
      */
     public func subclasses(includeNested: Bool = false) -> [AnyClass] {
-        ObjCRuntime.subclasses(of: `class`, includeNested: includeNested)
+        ObjCRuntime.subclasses(of: cls, includeNested: includeNested)
     }
     
     /// A Boolean value indicating whether the class is a subclass of the specified other class.
     public func isSubclass(of class: AnyClass) -> Bool {
-        self.class.isSubclass(of: `class`)
+        cls.isSubclass(of: `class`)
     }
     
     /// A Boolean value indicating whether the class is a superclass of the specified other class.
     public func isSuperclass(of class: AnyClass) -> Bool {
-        `class`.isSubclass(of: self.class)
+        `class`.isSubclass(of: cls)
     }
     
     /// A Boolean value indicating whether the class is a meta class.
     public var isMetaClass: Bool {
-        class_isMetaClass(`class`)
+        class_isMetaClass(cls)
     }
     
     /// Returns the meta class for the class.
     public var metaClass: AnyClass {
-        isMetaClass ? `class` : object_getClass(`class`)!
+        isMetaClass ? cls : object_getClass(cls)!
     }
     
     /**
@@ -186,17 +188,17 @@ public struct ObjCClass {
     }
     
     private func classes(_ includeSuperclasses: Bool) -> [AnyClass] {
-        includeSuperclasses ? `class` + superclasses : [`class`]
+        includeSuperclasses ? cls + superclasses : [cls]
     }
     
     /// A Boolean value indicating whether the class conforms to the specified protocol.
     public func conforms(to protocol: Protocol) -> Bool {
-        class_conformsToProtocol(`class`, `protocol`)
+        class_conformsToProtocol(cls, `protocol`)
     }
     
     /// Returns a Boolean value indicating whether instances of this class respond to the specified selector.
     public func responds(to selector: Selector) -> Bool {
-        class_respondsToSelector(`class`, selector)
+        class_respondsToSelector(cls, selector)
     }
     
     /// Returns a Boolean value indicating whether the class responds to the specified selector.
@@ -206,7 +208,7 @@ public struct ObjCClass {
     
     /// Returns the instance property of the class with the specified name.
     public func property(named name: String) -> objc_property_t? {
-        class_getProperty(`class`, name)
+        class_getProperty(cls, name)
     }
     
     /// Returns the class property of the class with the specified name.
@@ -216,7 +218,7 @@ public struct ObjCClass {
     
     /// Returns the instance variable of the class with the specified name.
     public func variable(named name: String) -> Ivar? {
-        class_getInstanceVariable(`class`, name)
+        class_getInstanceVariable(cls, name)
     }
     
     /**
@@ -228,7 +230,7 @@ public struct ObjCClass {
      - Returns: The matching instance method, or `nil` if no such method exists.
      */
     public func method(for selector: Selector, declaredOnly: Bool = false) -> Method? {
-        declaredOnly ? declaredMethod(for: `class`, selector) : class_getInstanceMethod(`class`, selector)
+        declaredOnly ? declaredMethod(for: cls, selector) : class_getInstanceMethod(cls, selector)
     }
     
     /**
@@ -240,7 +242,7 @@ public struct ObjCClass {
      - Returns: The matching class method, or `nil` if no such method exists.
      */
     public func classMethod(for selector: Selector, declaredOnly: Bool = false) -> Method? {
-        declaredOnly ? declaredMethod(for: metaClass, selector) : class_getClassMethod(`class`, selector)
+        declaredOnly ? declaredMethod(for: metaClass, selector) : class_getClassMethod(cls, selector)
     }
     
     private func declaredMethod(for cls: AnyClass, _ selector: Selector) -> Method? {
@@ -257,7 +259,7 @@ public struct ObjCClass {
      - Returns: The implementation pointer (`IMP`) that would be invoked if the selector were sent to an instance of this class, or `nil` if no implementation can be resolved.
      */
     public func methodImplementation(for selector: Selector) -> IMP? {
-        class_getMethodImplementation(`class`, selector)
+        class_getMethodImplementation(cls, selector)
     }
     
     /**
@@ -298,7 +300,7 @@ public struct ObjCClass {
     
     func `protocol`(for selector: Selector, isInstanceMethod: Bool) throws -> Protocol? {
         var protocolBySignature: [String: Protocol] = [:]
-        for proto in ObjCClass(isInstanceMethod ? `class` : metaClass).protocols(includeSuperclasses: true, includeInheritedProtocols: true) {
+        for proto in ObjCClass(isInstanceMethod ? cls : metaClass).protocols(includeSuperclasses: true, includeInheritedProtocols: true) {
             guard let typeEncoding = proto.methodTypeEncoding(for: selector, isInstanceMethod: isInstanceMethod) else { continue }
             if protocolBySignature[typeEncoding] == nil {
                 protocolBySignature[typeEncoding] = proto

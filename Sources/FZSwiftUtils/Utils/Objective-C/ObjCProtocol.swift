@@ -15,7 +15,7 @@ extension Protocol {
     
     /// The name of the protocol.
     public var name: String {
-        ObjCRuntime.name(for: self)
+        protocol_getName(self).string
     }
     
     /// A Boolean value indicating whether the protocol conforms to the specified other protocol.

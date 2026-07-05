@@ -9,88 +9,108 @@
 import Foundation
 
 /// Represents an Objective-C type, including primitive, pointer, object, struct, union, and modified types.
-public indirect enum ObjCType: Sendable, Hashable, Codable {
-    /// Objective-C class.
-    case `class`
-    /// Objective-C selector (`SEL`).
-    case selector
-
-    /// Signed char (`char`).
-    case char
-    /// Unsigned char (`unsigned char`).
-    case uchar
-
-    /// Signed short (`short`).
-    case short
-    /// Unsigned short (`unsigned short`).
-    case ushort
-
-    /// Signed integer (`int`).
-    case int
-    /// Unsigned integer (`unsigned int`).
-    case uint
-
-    /// Signed long (`long`).
-    case long
-    /// Unsigned long (`unsigned long`).
-    case ulong
-
-    /// Signed long long (`long long`).
-    case longLong
-    /// Unsigned long long (`unsigned long long`).
-    case ulongLong
-
-    /// 128-bit signed integer.
-    case int128
-    /// 128-bit unsigned integer.
-    case uint128
-
-    /// Float.
-    case float
-    /// Double.
-    case double
-    /// Long double.
-    case longDouble
-
-    /// Boolean (`BOOL`/`bool`).
-    case bool
-    /// Void.
-    case void
-    /// Unknown type.
-    case unknown
-
-    /// Pointer to char (`char *`).
-    case charPtr
-    /// Pointer to another type.
-    case pointer(type: ObjCType)
-    /// Function pointer.
-    case functionPointer
-
-    /// Atomic type.
-    case atom
-
-    /// Objective-C object.
-    case object(name: String?)
-    /// Block.
-    case block(return: ObjCType?, args: [ObjCType]?)
-
-    /// Array.
-    case array(type: ObjCType, size: Int?)
-
-    /// Bitfield with specified width.
-    case bitField(width: Int)
-
-    /// Union.
-    case union(name: String?, fields: [ObjCField]?)
-    /// Struct.
-    case `struct`(name: String?, fields: [ObjCField]?)
-
-    /// A modified Objective-C type.
-    case modified(_ modifiers: [Modifier], type: ObjCType)
-
-    /// Any other type.
-    case other(String)
+public struct ObjCType: Sendable, Hashable, Codable {
     
+    /// The structural kind of the Objective-C type.
+    public let kind: Kind
+    /// The modifiers that qualify this Objective-C type.
+    public let modifiers: [Modifier]
+    /// The Objective-C runtime type encoding for this type.
+    public let typeEncoding: String
+    
+    public indirect enum Kind: Sendable, Hashable, Codable {
+        /// Objective-C class.
+        case `class`
+        /// Objective-C selector (`SEL`).
+        case selector
+        
+        /// Signed char (`char`).
+        case char
+        /// Unsigned char (`unsigned char`).
+        case uchar
+        
+        /// Signed short (`short`).
+        case short
+        /// Unsigned short (`unsigned short`).
+        case ushort
+        
+        /// Signed integer (`int`).
+        case int
+        /// Unsigned integer (`unsigned int`).
+        case uint
+        
+        /// Signed long (`long`).
+        case long
+        /// Unsigned long (`unsigned long`).
+        case ulong
+        
+        /// Signed long long (`long long`).
+        case longLong
+        /// Unsigned long long (`unsigned long long`).
+        case ulongLong
+        
+        /// 128-bit signed integer.
+        case int128
+        /// 128-bit unsigned integer.
+        case uint128
+        
+        /// Float.
+        case float
+        /// Double.
+        case double
+        /// Long double.
+        case longDouble
+        
+        /// Boolean (`BOOL`/`bool`).
+        case bool
+        /// Void.
+        case void
+        /// Unknown type.
+        case unknown
+        
+        /// Pointer to char (`char *`).
+        case charPtr
+        /// Pointer to another type.
+        case pointer(type: ObjCType)
+        /// Function pointer.
+        case functionPointer
+        
+        /// Atomic type.
+        case atom
+        
+        /// Objective-C object.
+        case object(name: String?)
+        /// Block.
+        case block(return: ObjCType?, args: [ObjCType]?)
+        
+        /// Array.
+        case array(type: ObjCType, size: Int?)
+        
+        /// Bitfield with specified width.
+        case bitField(width: Int)
+        
+        /// Union.
+        case union(name: String?, fields: [ObjCField]?)
+        /// Struct.
+        case `struct`(name: String?, fields: [ObjCField]?)
+        
+        /// Any other type.
+        case other(String)
+    }
+
+    /// Creates a new instance from the specified kind and modifiers.
+    public init(kind: Kind, modifiers: [Modifier] = []) {
+        self.kind = kind
+        self.modifiers = modifiers
+        if kind == .void, modifiers == [.const] {
+            typeEncoding = "1"
+        } else if kind == .void, modifiers == [.in] {
+            typeEncoding = "2"
+        } else {
+            typeEncoding = modifiers.map(\.rawValue).joined() + kind.typeEncoding
+        }
+    }
+
     /// Creates a new instance from the specified type encoding.
     public init?(_ typeEncoding: String) {
         if let type = Self.cache[typeEncoding] {
@@ -102,14 +122,154 @@ public indirect enum ObjCType: Sendable, Hashable, Codable {
             return nil
         }
     }
-    
+
     static var cache: [String: Self] = [:]
 }
+
+private extension ObjCType.Kind {
+    var typeEncoding: String {
+        switch self {
+        case .class: return "#"
+        case .selector: return ":"
+        case .char: return "c"
+        case .uchar: return "C"
+        case .short: return "s"
+        case .ushort: return "S"
+        case .int: return "i"
+        case .uint: return "I"
+        case .long: return "l"
+        case .ulong: return "L"
+        case .longLong: return "q"
+        case .ulongLong: return "Q"
+        case .int128: return "t"
+        case .uint128: return "T"
+        case .float: return "f"
+        case .double: return "d"
+        case .longDouble: return "D"
+        case .bool: return "B"
+        case .void: return "v"
+        case .unknown: return "?"
+        case .charPtr: return "*"
+        case .functionPointer: return "^?"
+        case .atom: return "%"
+        case .object(let name):
+            if let name { return "@\"\(name)\"" }
+            return "@"
+        case .block(let returnType, let args):
+            guard let returnType, let args else { return "@?" }
+            return "@?<\(returnType.typeEncoding)@?\(args.map(\.typeEncoding).joined())>"
+        case .array(let type, let size):
+            return "[\(size?.string ?? "")\(type.typeEncoding)]"
+        case .pointer(let type):
+            return "^\(type.typeEncoding)"
+        case .bitField(let width):
+            return "b\(width)"
+        case .union(let name, let fields):
+            guard let fields else { return "(\(name ?? ""))" }
+            return "(\(name ?? "?")=\(fields.map({ $0.encoded() }).joined()))"
+        case .struct(let name, let fields):
+            guard let fields else { return "{\(name ?? "")}" }
+            return "{\(name ?? "?")=\(fields.map({ $0.encoded() }).joined())}"
+        case .other(let string):
+            return string
+        }
+    }
+}
+
+public extension ObjCType {
+    /// An Objective-C class type.
+    static let `class` = ObjCType(kind: .class)
+    /// An Objective-C selector type.
+    static let selector = ObjCType(kind: .selector)
+    /// A signed char type.
+    static let char = ObjCType(kind: .char)
+    /// An unsigned char type.
+    static let uchar = ObjCType(kind: .uchar)
+    /// A signed short type.
+    static let short = ObjCType(kind: .short)
+    /// An unsigned short type.
+    static let ushort = ObjCType(kind: .ushort)
+    /// A signed integer type.
+    static let int = ObjCType(kind: .int)
+    /// An unsigned integer type.
+    static let uint = ObjCType(kind: .uint)
+    /// A signed long type.
+    static let long = ObjCType(kind: .long)
+    /// An unsigned long type.
+    static let ulong = ObjCType(kind: .ulong)
+    /// A signed long long type.
+    static let longLong = ObjCType(kind: .longLong)
+    /// An unsigned long long type.
+    static let ulongLong = ObjCType(kind: .ulongLong)
+    /// A 128-bit signed integer type.
+    static let int128 = ObjCType(kind: .int128)
+    /// A 128-bit unsigned integer type.
+    static let uint128 = ObjCType(kind: .uint128)
+    /// A float type.
+    static let float = ObjCType(kind: .float)
+    /// A double type.
+    static let double = ObjCType(kind: .double)
+    /// A long double type.
+    static let longDouble = ObjCType(kind: .longDouble)
+    /// A Boolean type.
+    static let bool = ObjCType(kind: .bool)
+    /// A void type.
+    static let void = ObjCType(kind: .void)
+    /// An unknown type.
+    static let unknown = ObjCType(kind: .unknown)
+    /// A C string pointer type.
+    static let charPtr = ObjCType(kind: .charPtr)
+    /// A function pointer type.
+    static let functionPointer = ObjCType(kind: .functionPointer)
+    /// An atomic type.
+    static let atom = ObjCType(kind: .atom)
+
+    /// Creates an Objective-C object type with an optional runtime class or protocol name.
+    static func object(name: String?) -> ObjCType {
+        ObjCType(kind: .object(name: name))
+    }
+
+    /// Creates a pointer type to another Objective-C type.
+    static func pointer(type: ObjCType) -> ObjCType {
+        ObjCType(kind: .pointer(type: type))
+    }
+
+    /// Creates a block type with optional return and argument types.
+    static func block(return returnType: ObjCType?, args: [ObjCType]?) -> ObjCType {
+        ObjCType(kind: .block(return: returnType, args: args))
+    }
+
+    /// Creates an array type with an optional fixed size.
+    static func array(type: ObjCType, size: Int?) -> ObjCType {
+        ObjCType(kind: .array(type: type, size: size))
+    }
+
+    /// Creates a bitfield type with the specified width.
+    static func bitField(width: Int) -> ObjCType {
+        ObjCType(kind: .bitField(width: width))
+    }
+
+    /// Creates a union type with an optional name and fields.
+    static func union(name: String?, fields: [ObjCField]?) -> ObjCType {
+        ObjCType(kind: .union(name: name, fields: fields))
+    }
+
+    /// Creates a struct type with an optional name and fields.
+    static func `struct`(name: String?, fields: [ObjCField]?) -> ObjCType {
+        ObjCType(kind: .struct(name: name, fields: fields))
+    }
+
+    /// Creates an Objective-C type for an unsupported or custom encoding string.
+    static func other(_ string: String) -> ObjCType {
+        ObjCType(kind: .other(string))
+    }
+}
+
 
 public extension ObjCType {
     /// A Boolean value indicating whether the type is ``void``.
     var isVoid: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .void: return true
         default: return false
         }
@@ -117,7 +277,7 @@ public extension ObjCType {
     
     /// A Boolean value indicating whether the type is an object.
     var isObject: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .object: return true
         default: return false
         }
@@ -125,7 +285,7 @@ public extension ObjCType {
     
     /// A Boolean value indicating whether the type is a block.
     var isBlock: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .block: return true
         default: return false
         }
@@ -133,7 +293,7 @@ public extension ObjCType {
     
     /// A Boolean value indicating whether the type is a pointer.
     var isPointer: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .pointer, .charPtr: return true
         default: return false
         }
@@ -141,7 +301,7 @@ public extension ObjCType {
 
     /// A Boolean value indicating whether the type is an array.
     var isArray: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .array: return true
         default: return false
         }
@@ -149,7 +309,7 @@ public extension ObjCType {
     
     /// A Boolean value indicating whether the type is an union.
     var isUnion: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .union: return true
         default: return false
         }
@@ -157,7 +317,7 @@ public extension ObjCType {
     
     /// A Boolean value indicating whether the type is a structure.
     var isStruct: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .struct: return true
         default: return false
         }
@@ -165,34 +325,22 @@ public extension ObjCType {
             
     /// A Boolean value indicating whether the type is a bit field.
     var isBitField: Bool {
-        switch resolved {
+        switch resolved.kind {
         case .bitField: return true
         default: return false
         }
     }
     
-    /// The modifiers of the type.
-    var modifiers: [Modifier] {
-        switch self {
-        case .modified(let modifiers, type: let type):
-            return modifiers + type.modifiers
-        default:
-            return []
-        }
-    }
-    
     /// The resolved type.
     var resolved: ObjCType {
-        switch self {
-        case .modified(_, type: let type): return type.resolved
-        default: return self
-        }
+        self
     }
 }
 
 extension ObjCType: CustomStringConvertible {
-    public func decoded(tab: String = "    ", includeFields: Bool = true) -> String {
-        switch self {
+    public func decoded(tab: String = "    ", includeFields: Bool = true, includeModifiers: Bool = false) -> String {
+        let decoded: String = {
+            switch kind {
         case .class: return "Class"
         case .selector: return "SEL"
         case .char: return "char"
@@ -223,13 +371,13 @@ extension ObjCType: CustomStringConvertible {
             return "\(name) *"
         case .block(let ret, let args):
             guard let ret, let args else { return "id /* block */" }
-            return "\(ret.decoded(tab: tab, includeFields: includeFields)) (^)(\(args.map({ $0.decoded(tab: tab, includeFields: includeFields) }).joined(separator: ", ")))"
+            return "\(ret.decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers)) (^)(\(args.map({ $0.decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers) }).joined(separator: ", ")))"
         case .functionPointer:
             return "IMP"
         case .array(let type, let size):
-            return "\(type.decoded(tab: tab, includeFields: includeFields))[\(size?.string ?? "")]"
+            return "\(type.decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers))[\(size?.string ?? "")]"
         case .pointer(let type):
-            return "\(type.decoded(tab: tab, includeFields: includeFields)) *"
+            return "\(type.decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers)) *"
         case .bitField(let width):
             return "int x : \(width)"
         case .union(let name, let fields), .struct(let name, let fields):
@@ -244,18 +392,19 @@ extension ObjCType: CustomStringConvertible {
             let name = name != nil ? " \(name!) " : " "
             return """
             \(type)\(name){
-            \(fields.decoded(tab: tab))
+            \(fields.decoded(tab: tab, includeModifiers: includeModifiers))
             }
             """
-        case .modified(let modifiers, let type):
-            return "\(modifiers.map({ $0.decoded(tab: tab) }).joined(separator: " ")) \(type.decoded(tab: tab, includeFields: includeFields))"
         case .other(let string):
             return string
         }
+        }()
+        guard includeModifiers, !modifiers.isEmpty else { return decoded }
+        return "\(modifiers.map({ $0.decoded(tab: tab) }).joined(separator: " ")) \(decoded)"
     }
     
-    func decodedForIvar(tab: String = "    ", includeFields: Bool) -> String {
-        switch self {
+    func decodedForIvar(tab: String = "    ", includeFields: Bool, includeModifiers: Bool = false) -> String {
+        switch kind {
         case .struct(name: let name, fields: let fields):
             guard let fields = fields, fields.contains(where: {$0.bitWidth != nil }) else { break }
             if let name = name {
@@ -264,71 +413,16 @@ extension ObjCType: CustomStringConvertible {
             let name = name != nil ? " \(name!) " : " "
             return """
             \(typeKind.rawValue)\(name){
-            \(fields.decoded(tab: tab))
+            \(fields.decoded(tab: tab, includeModifiers: includeModifiers))
             }
             """
         default: break
         }
-        return decoded(tab: tab, includeFields: includeFields)
+        return decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers)
     }
 
-    /// The type encodibg of the Objective-C type.
-    public func encoded() -> String {
-        switch self {
-        case .class: return "#"
-        case .selector: return ":"
-        case .char: return "c"
-        case .uchar: return "C"
-        case .short: return "s"
-        case .ushort: return "S"
-        case .int: return "i"
-        case .uint: return "I"
-        case .long: return "l"
-        case .ulong: return "L"
-        case .longLong: return "q"
-        case .ulongLong: return "Q"
-        case .int128: return "t"
-        case .uint128: return "T"
-        case .float: return "f"
-        case .double: return "d"
-        case .longDouble: return "D"
-        case .bool: return "B"
-        case .void: return "v"
-        case .unknown: return "?"
-        case .charPtr: return "*"
-        case .atom: return "%"
-        case .object(let name):
-            if let name { return "@\"\(name)\"" }
-            return "@"
-        case let .block(ret, args):
-            guard let ret, let args else { return "@?" }
-            return "@?<\(ret.encoded())@?\(args.map({ $0.encoded() }).joined())>"
-        case .functionPointer: return "^?"
-        case .array(let type, let size):
-            return "[\(size?.string ?? "")\(type.encoded())]"
-        case .pointer(let type):
-            return "^\(type.encoded())"
-        case .bitField(let width):
-            return "b\(width)"
-        case .union(let name, let fields):
-            guard let fields else { return "(\(name ?? ""))" }
-            return "(\(name ?? "?")=\(fields.map({ $0.encoded() }).joined()))"
-        case .struct(let name, let fields):
-            guard let fields else { return "{\(name ?? "")}" }
-            return "{\(name ?? "?")=\(fields.map({ $0.encoded() }).joined())}"
-        case .modified(let modifiers, let type) where type == .void && modifiers == [.const]:
-            return "1"
-        case .modified(let modifiers, let type) where type == .void && modifiers == [.in]:
-            return "2"
-        case .modified(let modifiers, let type):
-            return "\(modifiers.map({ $0.encoded() }).joined())\(type.encoded())"
-        case .other(let string):
-            return string
-        }
-    }
-    
     public var description: String {
-        switch self {
+        switch kind {
         case .class: return "AnyClass"
         case .selector: return "Selector"
         case .char: return "Int8"
@@ -366,7 +460,6 @@ extension ObjCType: CustomStringConvertible {
         case .bitField(_): return "Int"
         case .union(let name, _): return name ?? "union"
         case .struct(let name, _): return name ?? "struct"
-        case .modified(_, let type): return type.description
         case .other(let str): return str
         }
     }
@@ -375,10 +468,10 @@ extension ObjCType: CustomStringConvertible {
         var typeNames: Set<String> = []
         var fieldNames: Set<String> = []
         func visit(_ type: ObjCType) {
-            switch type {
+            switch type.kind {
             case .object(name: let name):
                 typeNames += name
-            case .modified(_, type: let type), .array(type: let type, size: _), .pointer(type: let type):
+            case .array(type: let type, size: _), .pointer(type: let type):
                 visit(type)
             case .struct(name: let name, fields: let fields), .union(name: let name, fields: let fields):
                 typeNames += name
@@ -423,9 +516,9 @@ extension ObjCType {
         case "{":
             return decodeStruct(type)
         case "1":
-            return (.modified([.const], type: .void), type.removingFirst())
+            return (ObjCType(kind: .void, modifiers: [.const]), type.removingFirst())
         case "2":
-            return (.modified([.in], type: .void), type.removingFirst())
+            return (ObjCType(kind: .void, modifiers: [.in]), type.removingFirst())
         default:
             break
         }
@@ -433,17 +526,12 @@ extension ObjCType {
     }
     
     private static func decodeModified(_ first: Character, _ type: String) -> Node? {
-        guard let modifier = Modifier(rawValue: first),
+        guard let modifier = Modifier(rawValue: String(first)),
               let content = decode(type.removingFirst()),
               let type = content.decoded else {
             return nil
         }
-        switch type {
-        case .modified(let modifiers, let type):
-            return (.modified([modifier] + modifiers, type: type), content.trailing)
-        default:
-            return (.modified([modifier], type: type), content.trailing)
-        }
+        return (ObjCType(kind: type.kind, modifiers: [modifier] + type.modifiers), content.trailing)
     }
 
     private static func decodeBitField(_ type: String) -> Node? {
@@ -569,17 +657,17 @@ extension ObjCType {
         }
     }
     
-    func decodedStringForArgument(includeFields: Bool = false) -> String {
+    func decodedStringForArgument(includeFields: Bool = false, includeModifiers: Bool = false) -> String {
         if includeFields {
-            return decoded(tab: "", includeFields: includeFields).components(separatedBy: .newlines).joined(separator: " ")
+            return decoded(tab: "", includeFields: includeFields, includeModifiers: includeModifiers).components(separatedBy: .newlines).joined(separator: " ")
         }
-        switch self {
+        switch kind {
         case .struct(let name, let fields), .union(let name, let fields):
             if isStruct, let name = name {
                 Self.structNames.insert(name)
             }
             if let name { return "\(typeKind.rawValue) \(name)" }
-            return typeKind.type(name: nil, fields: fields).decoded(tab: "").components(separatedBy: .newlines).joined(separator: " ")
+            return typeKind.type(name: nil, fields: fields).decoded(tab: "", includeModifiers: includeModifiers).components(separatedBy: .newlines).joined(separator: " ")
         // Objective-C BOOL types may be represented by signed char or by C/C++ bool types.
         // This means that the type encoding may be represented as `c` or as `B`.
         // [reference](https://github.com/apple-oss-distributions/objc4/blob/01edf1705fbc3ff78a423cd21e03dfc21eb4d780/runtime/objc.h#L61-L86)
@@ -588,26 +676,26 @@ extension ObjCType {
         default:
             break
         }
-        return decoded(tab: "", includeFields: includeFields).components(separatedBy: .newlines).joined(separator: " ")
+        return decoded(tab: "", includeFields: includeFields, includeModifiers: includeModifiers).components(separatedBy: .newlines).joined(separator: " ")
     }
     
     private var typeKind: TypeKind {
-        switch self {
+        switch kind {
         case .union: .union
         default: .struct
         }
     }
     
     var normalized: ObjCType {
-        switch self {
-        case .pointer(let t), .modified(_, let t): return t.normalized
+        switch kind {
+        case .pointer(let t): return t.normalized
         default: return self
         }
     }
     
     /// The raw Objective-C runtime name (may be Swift-mangled)
     public var objcRuntimeName: String? {
-        switch self {
+        switch kind {
         case .object(let name): return name
         default: return nil
         }
@@ -630,7 +718,7 @@ extension ObjCType {
      */
     public func matches(_ swiftType: Any.Type) -> Bool? {
         let swiftType = (swiftType.self as? any OptionalProtocol.Type)?.wrappedType ?? swiftType.self
-        switch self {
+        switch kind {
         case .char: return swiftType == Int8.self || swiftType == CChar.self
         case .uchar: return swiftType == UInt8.self || swiftType == CUnsignedChar.self
         case .short: return swiftType == Int16.self || swiftType == CShort.self
@@ -670,7 +758,6 @@ extension ObjCType {
             return nil
         case .selector: return swiftType == Selector.self
         case .class: return swiftType is AnyClass
-        case let .modified(_, type): return type.matches(swiftType)
         case .other, .unknown, .atom: return nil
         }
     }

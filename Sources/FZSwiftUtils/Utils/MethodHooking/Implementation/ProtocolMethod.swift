@@ -22,7 +22,7 @@ private func missingMethodCalledFunction(cif: UnsafeMutablePointer<ffi_cif>?, re
 }
 
 private func addProtocolAndInheritedProtocols(_ proto: Protocol, result: inout [Protocol], includedProtocolNames: inout Set<String>) {
-    let protocolName = NSStringFromProtocol(proto)
+    let protocolName = protocol_getName(proto).string
     guard !includedProtocolNames.contains(protocolName) else {
         return
     }

@@ -37,7 +37,7 @@ extension ObjCPropertyInfo {
         /// The type encodibg of the attribute.
         public func encoded() -> String {
             switch self {
-            case .type(let type): "T" + type?.encoded()
+            case .type(let type): "T" + type?.typeEncoding
             case .readonly: "R"
             case .nonatomic: "N"
             case .dynamic: "D"
@@ -102,7 +102,7 @@ extension ObjCPropertyInfo.Attribute {
     }
     
     var size: Int? {
-        guard let typeEncoding = type?.encoded() else { return nil }
+        guard let typeEncoding = type?.typeEncoding else { return nil }
         return ObjCRuntime.sizeAndAlignment(for: typeEncoding)?.size
     }
     
@@ -169,7 +169,7 @@ extension ObjCPropertyAttribute {
     var value: String {
         switch self {
         case .type(let type):
-            return type?.encoded() ?? ""
+            return type?.typeEncoding ?? ""
         case .getter(let name), .setter(let name), .ivar(let name):
             return name
         case .other(let string):

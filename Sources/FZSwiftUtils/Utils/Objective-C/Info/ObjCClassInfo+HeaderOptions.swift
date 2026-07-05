@@ -71,6 +71,9 @@ extension ObjCClassInfo {
 
         /// Include the fields of structures and union.
         public static let includeStructAndUnionFields = Self(rawValue: 1 << 13)
+
+        /// Includes Objective-C type modifiers such as `const`, `in`, `out`, `byref`, and `oneway`.
+        public static let includeTypeModifiers = Self(rawValue: 1 << 14)
                 
 
         /*

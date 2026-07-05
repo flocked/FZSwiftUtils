@@ -91,7 +91,7 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
      - Parameter protocol: The protocol of the target for which information is to be obtained.
      */
     public init(_ `protocol`: Protocol) {
-        let name = String(cString: protocol_getName(`protocol`))
+        let name = protocol_getName(`protocol`).string
         var classMethods = Self.classMethods(of: `protocol`)
         var methods = Self.methods(of: `protocol`)
         var optionalClassMethods = Self.optionalClassMethods(of: `protocol`)
@@ -156,12 +156,14 @@ extension ObjCProtocolInfo: CustomStringConvertible {
         let includePropertyComments = options.contains(.addPropertyAttributesComments)
         let includeTypeEncoding = options.contains(.addMethodTypeEncodingComments)
         let renameArguments = options.contains(.renameMethodArguments)
+        let includeTypeModifiers = options.contains(.includeTypeModifiers)
         var declarations: [(line: String, key: NSAttributedString.Key, value: Any)] = []
 
         func propertyLines(_ properties: [ObjCPropertyInfo]) -> [String] {
             properties.map { property in
                 let line = property.headerString(
                     includeFields: includeFields,
+                    includeTypeModifiers: includeTypeModifiers,
                     includeDefaultAttributes: includeDefaultAttributes,
                     includeComments: includePropertyComments
                 )
@@ -174,6 +176,7 @@ extension ObjCProtocolInfo: CustomStringConvertible {
             methods.map { method in
                 let line = method.headerString(
                     includeArgumentFields: includeFields,
+                    includeTypeModifiers: includeTypeModifiers,
                     includeTypeEncoding: includeTypeEncoding,
                     renameArguments: renameArguments
                 )

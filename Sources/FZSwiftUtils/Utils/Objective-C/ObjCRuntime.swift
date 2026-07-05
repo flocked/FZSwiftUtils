@@ -18,7 +18,7 @@ public enum ObjCRuntime {
         var count: UInt32 = 0
         guard let classList = objc_copyClassList(&count) else { return [] }
         let allClasses = classList.buffer(count: count).filter({
-            !Self.classNamesToSkip.contains(NSStringFromClass($0))
+            !Self.classNamesToSkip.contains(class_getName($0).string)
         })
         defer { free(UnsafeMutableRawPointer(classList)) }
         Cache.classes = allClasses
@@ -88,7 +88,7 @@ public enum ObjCRuntime {
             }
             return nil
         }
-        return subclasses.map { (type: $0, name: name(for: $0)) }.sorted(by: \.name).map { $0.type }
+        return subclasses.map { (type: $0, name: class_getName($0).string) }.sorted(by: \.name).map { $0.type }
     }
     
     /**
@@ -111,7 +111,7 @@ public enum ObjCRuntime {
                 current = includeNested ? superClass : nil
             }
             return false
-        }).map({(class: $0 as AnyClass, name: name(for: $0))}).sorted(by: \.name).map({$0.class})
+        }).map({(class: $0 as AnyClass, name: class_getName($0).string)}).sorted(by: \.name).map({$0.class})
     }
     
     /**
@@ -250,18 +250,11 @@ public enum ObjCRuntime {
         Cache.methodOrigins[ObjCMethodKey(method), initial: origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))]
     }
     
-    /**
-     Returns runtime origin information for the specified class.
-     
-     - Parameter class: The class to retrive runtime origin information.
-     - Returns:
-        - `imagePath`: The path of the Mach-O image that contains the class.
-        - `categoryName`: The Objective-C category name when the symbol represents a category method.
-        - `symbolName`: The symbol name associated with the class.
-     */
+    /*
     public static func origin(of class: AnyClass) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
         Cache.classOrigins[ObjectIdentifier(`class`), initial: origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))]
     }
+    */
     
     private static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
         var info = Dl_info()
@@ -296,26 +289,8 @@ public enum ObjCRuntime {
         return list.buffer(count: count).map({$0.string})
     }
     
-    static func name(for class: AnyClass) -> String {
-        if let name = Cache.cachedName[`class`] {
-            return name
-        }
-        let name = NSStringFromClass(`class`)
-        Cache.cachedName[`class`] = name
-        return name
-    }
-    
-    static func name(for protocol: Protocol) -> String {
-        if let name = Cache.cachedName[`protocol`] {
-            return name
-        }
-        let name = NSStringFromProtocol(`protocol`)
-        Cache.cachedName[`protocol`] = name
-        return name
-    }
-    
     static let classNamesToSkip = Set([
-        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object"
+        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object", "PKAppProtectionCoordinator"
     ])
     
     private static let classesToSkip = Set(classNamesToSkip.compactMap({NSClassFromString($0)}).map({ObjectIdentifier($0)}))
@@ -414,7 +389,6 @@ fileprivate extension ObjCRuntime {
         static var classNames: Set<String>?
         static var protocolNames: Set<String>?
         static var protocols: [Protocol]?
-        static var cachedName: [ObjectIdentifier: String] = [:]
         
         static var searchClasses: [SearchClass] {
             if _searchClasses.isEmpty {

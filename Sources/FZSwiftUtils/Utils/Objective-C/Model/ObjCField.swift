@@ -33,30 +33,30 @@ public struct ObjCField: Sendable, Codable, Hashable {
         if let bitWidth {
             return "\(name)b\(bitWidth)"
         } else {
-            return "\(name)\(type.encoded())"
+            return "\(name)\(type.typeEncoding)"
         }
     }
 
-   public func decoded(fallbackName: String = "x", tab: String = "    ", includeFields: Bool = false) -> String {
+   public func decoded(fallbackName: String = "x", tab: String = "    ", includeFields: Bool = false, includeModifiers: Bool = false) -> String {
         if let bitWidth {
-            "\(type.decoded(tab: tab, includeFields: includeFields)) \(name ?? fallbackName) : \(bitWidth);"
+            "\(type.decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers)) \(name ?? fallbackName) : \(bitWidth);"
         } else {
-            "\(type.decoded(tab: tab, includeFields: includeFields)) \(name ?? fallbackName);"
+            "\(type.decoded(tab: tab, includeFields: includeFields, includeModifiers: includeModifiers)) \(name ?? fallbackName);"
         }
     }
     
-    func decodedForHeader(fallbackName: String, tab: String = "    ", includeFields: Bool = true) -> String  {
+    func decodedForHeader(fallbackName: String, tab: String = "    ", includeFields: Bool = true, includeModifiers: Bool = false) -> String  {
         if [.char, .uchar].contains(type) {
             return "BOOL \(name ?? fallbackName);"
         }
-        return decoded(fallbackName: fallbackName, tab: tab, includeFields: includeFields)
+        return decoded(fallbackName: fallbackName, tab: tab, includeFields: includeFields, includeModifiers: includeModifiers)
     }
 }
 
 extension [ObjCField] {
-    func decoded(tab: String) -> String {
+    func decoded(tab: String, includeModifiers: Bool = false) -> String {
         enumerated().map {
-            $1.decoded(fallbackName: "x\($0)", tab: tab).components(separatedBy: .newlines).map { tab + $0 }.joined(separator: "\n")
+            $1.decoded(fallbackName: "x\($0)", tab: tab, includeModifiers: includeModifiers).components(separatedBy: .newlines).map { tab + $0 }.joined(separator: "\n")
         }.joined(separator: "\n")
     }
 }

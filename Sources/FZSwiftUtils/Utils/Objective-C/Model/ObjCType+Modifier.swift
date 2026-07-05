@@ -10,7 +10,7 @@ import Foundation
 
 extension ObjCType {
     /// Represents Objective-C modifiers for method argument or return types.
-    public enum Modifier: Character, CaseIterable, Sendable, Equatable, Codable {
+    public enum Modifier: String, CaseIterable, Sendable, Equatable, Codable {
         /// Complex type, e.g., struct or union.
         case complex = "j"
         /// Atomic access modifier (rare for methods).
@@ -31,11 +31,6 @@ extension ObjCType {
         case oneway = "V"
         /// Suggests storage in a CPU register.
         case register = "+"
-        
-        /// The type encodibg for the modifier.
-        public func encoded() -> String {
-            String(rawValue)
-        }
         
         public func decoded(tab: String = "    ") -> String {
             switch self {

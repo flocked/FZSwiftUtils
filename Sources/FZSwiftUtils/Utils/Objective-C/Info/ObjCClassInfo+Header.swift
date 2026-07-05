@@ -30,8 +30,8 @@ extension ObjCClassInfo {
         - options: The header string options.
         - font: The font of the attributed string, or `nil` to use the default font.
      */
-    public func attributedHeaderString(options: HeaderStringOptions = [.groupByOrigin, .includeCategoryMethods, .addPropertyAttributesComments], font: NSUIFont? = nil) -> NSAttributedString {
-        let val = _headerString(options: options)
+    public func attributedHeaderString(searchText: String? = nil, options: HeaderStringOptions = [.groupByOrigin, .includeCategoryMethods, .addPropertyAttributesComments], font: NSUIFont? = nil) -> NSAttributedString {
+        let val = _headerString(searchText: searchText, options: options)
         let attributed = NSMutableAttributedString(
             attributedString: .objCHeader(for: val.string, font: font)
         )
@@ -40,7 +40,7 @@ extension ObjCClassInfo {
     }
     
     /// Returns a string representing the class in a Objective-C header.
-   private func _headerString(options: HeaderStringOptions = [.groupByOrigin, .includeCategoryMethods, .addPropertyAttributesComments]) -> (string: String, declarations: [(line: String, key: NSAttributedString.Key, value: Any)]) {
+   private func _headerString(searchText: String? = nil, options: HeaderStringOptions = [.groupByOrigin, .includeCategoryMethods, .addPropertyAttributesComments]) -> (string: String, declarations: [(line: String, key: NSAttributedString.Key, value: Any)]) {
         var stripProperties: Set<String> = []
         var stripClassProperties: Set<String> = []
         var stripMethods: Set<String> = []
@@ -52,6 +52,7 @@ extension ObjCClassInfo {
         if options.contains(.stripDtorMethod){
             stripMethods.insert(".cxx_destruct")
         }
+       
         /*
         if options.contains(.stripPublic), let info = ObjCHeader.getClass(named: name) {
             stripMethods += info.methods.map({$0.name})
@@ -60,6 +61,7 @@ extension ObjCClassInfo {
             stripClassProperties += info.classProperties.map({$0.name})
         }
          */
+       
         if options.contains(.stripOverrides) {
             var superclass = superclass
             while let info = superclass {
@@ -73,10 +75,12 @@ extension ObjCClassInfo {
                 stripClassMethods += info.classProperties.flatMap({ $0.methodNames })
             }
         }
+       
         if options.contains(.stripSynthesizedMethods) {
             stripMethods += properties.flatMap({ $0.methodNames })
             stripClassMethods += classProperties.flatMap({ $0.methodNames })
         }
+       
         if options.contains(.stripProtocolConformance) {
             for info in allProtocols {
                 stripMethods += info.methods.map({$0.name})
@@ -95,13 +99,14 @@ extension ObjCClassInfo {
                 stripClassMethods += info.optionalClassProperties.flatMap({ $0.methodNames })
             }
         }
-       if options.contains(.stripPublic), let info = ObjCHeader.getClass(named: name) {
+       
+       if options.contains(.stripPublic), let info = ObjCHeader.getClass(named: name, collectAllIfNeeded: false) {
            stripMethods += info.methods.map({$0.name})
            stripClassMethods += info.classMethods.map({$0.name})
            stripProperties += info.properties.map({$0.name})
            stripClassProperties += info.classProperties.map({$0.name})
        }
-        
+
         var ivars = ivars
         if options.contains(.stripSynthesizedIvars) {
             let stripIvars: Set<String> = .init(properties.compactMap({$0.ivarName}))
@@ -114,7 +119,7 @@ extension ObjCClassInfo {
         }
         
         if let _superclass {
-            decl += " : \(NSStringFromClass(_superclass))"
+            decl += " : \(class_getName(_superclass).string)"
         }
         if !protocols.isEmpty {
             decl += " <\(protocols.map(\.name).joined(separator: ", "))>"
@@ -125,8 +130,12 @@ extension ObjCClassInfo {
         if !ivars.isEmpty {
             lines[0] += " {"
             let includeFields = options.contains(.includeStructAndUnionFields)
-            lines += ivars.map({ ivar in
-                let line = ivar.headerString(includeFields: includeFields).components(separatedBy: .newlines).map { "    \($0)" }.joined(separator: "\n")
+            let includeTypeModifiers = options.contains(.includeTypeModifiers)
+            lines += ivars.compactMap({ ivar in
+                let line = ivar.headerString(includeFields: includeFields, includeTypeModifiers: includeTypeModifiers).components(separatedBy: .newlines).map { "    \($0)" }.joined(separator: "\n")
+                if let searchText = searchText, !line.lowercased().contains(searchText) {
+                    return nil
+                }
                 declarations += (line, .objcIvar, value: ivar)
                 return line
             })
@@ -138,7 +147,9 @@ extension ObjCClassInfo {
             stripMethods,
             stripClassMethods,
             options: options,
-            declarations: &declarations
+            searchText: searchText,
+            declarations: &declarations,
+            searchString: searchText
         )
         lines += ["", "@end"]
         return (lines.joined(separator: "\n"), declarations)
@@ -146,18 +157,19 @@ extension ObjCClassInfo {
 }
 
 fileprivate extension ObjCClassInfo {
-    func memberHeaderLines(for stripProperties: Set<String>,_ stripClassProperties: Set<String>, _ stripMethods: Set<String>, _ stripClassMethods: Set<String>, options: HeaderStringOptions, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)]) -> [String] {
+    func memberHeaderLines(for stripProperties: Set<String>,_ stripClassProperties: Set<String>, _ stripMethods: Set<String>, _ stripClassMethods: Set<String>, options: HeaderStringOptions, searchText: String? = nil, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)], searchString: String? = nil) -> [String] {
         let propertyOptions = options.contains(.addImplicitPropertyAttributes)
         let propertyComments = options.contains(.addPropertyAttributesComments)
         let methodTypeEncodings = options.contains(.addMethodTypeEncodingComments)
         let renameArguments = options.contains(.renameMethodArguments)
         let includeFields = options.contains(.includeStructAndUnionFields)
+        let includeTypeModifiers = options.contains(.includeTypeModifiers)
         guard options.contains(.groupByOrigin) || !options.contains(.includeCategoryMethods), var sections = allHeaderSections() else {
             let classProperties = classProperties.filter({ !stripClassProperties.contains($0.name)})
             let properties = properties.filter({ !stripProperties.contains($0.name)})
             let classMethods = classMethods.filter({ !stripClassMethods.contains($0.name)})
             let methods = methods.filter({ !stripMethods.contains($0.name)})
-            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, includeFields: includeFields, declarations: &declarations)
+            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, includeFields: includeFields, includeTypeModifiers: includeTypeModifiers, declarations: &declarations, searchText: searchText)
         }
         
         let includeCategories = options.contains(.includeCategoryMethods)
@@ -168,7 +180,7 @@ fileprivate extension ObjCClassInfo {
             let properties = sections.flatMap(\.instanceProperties).sorted(by: \.name)
             let classMethods = sections.flatMap(\.classMethods).sorted(by: \.name)
             let methods = sections.flatMap(\.instanceMethods).sorted(by: \.name)
-            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, includeFields: includeFields, declarations: &declarations)
+            return lines(for: classProperties, properties, classMethods, methods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, includeFields: includeFields, includeTypeModifiers: includeTypeModifiers, declarations: &declarations, searchText: searchText)
         }
 
         let hasMembersFromMoreThanOneImage = Set(sections.map(\.imagePath)).count > 1
@@ -189,7 +201,7 @@ fileprivate extension ObjCClassInfo {
                 lines += "// \(name) (\(section.categoryName))"
                 lines += ""
             }
-            let newLines = self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, includeFields: includeFields, declarations: &declarations)
+            let newLines = self.lines(for: section.classProperties, section.instanceProperties, section.classMethods, section.instanceMethods, propertyOptions: propertyOptions, propertyComments: propertyComments, methodTypeEncodings: methodTypeEncodings, renameArguments: renameArguments, includeFields: includeFields, includeTypeModifiers: includeTypeModifiers, declarations: &declarations, searchText: searchText)
             if !newLines.isEmpty {
                 lines += newLines.dropFirst()
             }
@@ -204,32 +216,44 @@ fileprivate extension ObjCClassInfo {
         return !lines.isEmpty ? "" + lines : lines
     }
     
-    func lines(for classProperties: [ObjCPropertyInfo], _ properties: [ObjCPropertyInfo], _ classMethods: [ObjCMethodInfo], _ methods: [ObjCMethodInfo], propertyOptions: Bool, propertyComments: Bool, methodTypeEncodings: Bool, renameArguments: Bool, includeFields: Bool, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)]) -> [String] {
+    func lines(for classProperties: [ObjCPropertyInfo], _ properties: [ObjCPropertyInfo], _ classMethods: [ObjCMethodInfo], _ methods: [ObjCMethodInfo], propertyOptions: Bool, propertyComments: Bool, methodTypeEncodings: Bool, renameArguments: Bool, includeFields: Bool, includeTypeModifiers: Bool, declarations: inout [(line: String, key: NSAttributedString.Key, value: Any)], searchText: String? = nil) -> [String] {
         var lines: [String] = []
         if !classProperties.isEmpty {
-            lines += "" + classProperties.map({
-                let line = $0.headerString(includeFields: includeFields, includeDefaultAttributes: propertyOptions, includeComments: propertyComments)
+            lines += "" + classProperties.compactMap({
+                let line = $0.headerString(includeFields: includeFields, includeTypeModifiers: includeTypeModifiers, includeDefaultAttributes: propertyOptions, includeComments: propertyComments)
+                if let searchText = searchText, !line.lowercased().contains(searchText) {
+                    return nil
+                }
                 declarations += (line, .objcClassProperty, $0)
                 return line
             })
         }
         if !properties.isEmpty {
-            lines += "" + properties.map({
-                let line = $0.headerString(includeFields: includeFields, includeDefaultAttributes: propertyOptions, includeComments: propertyComments)
+            lines += "" + properties.compactMap({
+                let line = $0.headerString(includeFields: includeFields, includeTypeModifiers: includeTypeModifiers, includeDefaultAttributes: propertyOptions, includeComments: propertyComments)
+                if let searchText = searchText, !line.lowercased().contains(searchText) {
+                    return nil
+                }
                 declarations += (line, .objcProperty, $0)
                 return line
             })
         }
         if !classMethods.isEmpty {
-            lines += "" + classMethods.map({
-                let line = $0.headerString(includeArgumentFields: includeFields, includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
+            lines += "" + classMethods.compactMap({
+                let line = $0.headerString(includeArgumentFields: includeFields, includeTypeModifiers: includeTypeModifiers, includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
+                if let searchText = searchText, !line.lowercased().contains(searchText) {
+                    return nil
+                }
                 declarations += (line, .objcClassMethod, $0)
                 return line
             })
         }
         if !methods.isEmpty {
-            lines += "" + methods.map({
-                let line = $0.headerString(includeArgumentFields: includeFields, includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
+            lines += "" + methods.compactMap({
+                let line = $0.headerString(includeArgumentFields: includeFields, includeTypeModifiers: includeTypeModifiers, includeTypeEncoding: methodTypeEncodings, renameArguments: renameArguments)
+                if let searchText = searchText, !line.lowercased().contains(searchText) {
+                    return nil
+                }
                 declarations += (line, .objcMethod, $0)
                 return line
             })
@@ -341,4 +365,3 @@ fileprivate extension String {
         URL(fileURLWithPath: self).lastPathComponent
     }
 }
-

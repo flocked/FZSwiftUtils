@@ -22,7 +22,7 @@ public extension NSKeyedArchiver {
      */
     class func archivedData<Object: NSCoding, Subclass: NSCoding>(withRootObject object: Object, requiringSecureCoding: Bool = false, as subclass: Subclass.Type) throws -> Data {
         guard Subclass.self is Object.Type else { throw Error.invalidSubclass(subclass: Subclass.self, superclass: Object.self) }
-        NSKeyedArchiver.setClassName(NSStringFromClass(Subclass.self), for: Object.self)
+        NSKeyedArchiver.setClassName(class_getName(Subclass.self).string, for: Object.self)
         defer { NSKeyedArchiver.setClassName(nil, for: Object.self) }
         return try NSKeyedArchiver.archivedData(withRootObject: object, requiringSecureCoding: requiringSecureCoding)
     }

@@ -315,14 +315,14 @@ extension ObjCClassInfo {
         guard !keys.isEmpty else { return type }
         var keys = keys
         let key = keys.removeFirst()
-        switch type {
+        switch type.kind {
         case .object(name: let name):
             guard let name = name, let classInfo = name == self.name ? self : ObjCClassInfo(name) else { return nil }
             return classInfo.propertyType(for: key + keys, isInstance: isInstance)
         case .struct(_, fields: let fields):
             guard let type = fields?.first(where: { $0.name == key })?.type else { return nil }
             return resolve(type: type.normalized, keys: keys, isInstance: isInstance)
-        case .pointer(type: let type), .modified(_, type: let type):
+        case .pointer:
             return resolve(type: type.normalized, keys: keys, isInstance: isInstance)
         default:
             return keys.isEmpty ? type : nil
@@ -503,7 +503,7 @@ extension ObjCClassInfo {
     private static func classes(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
         var cls: AnyClass = cls
         if !isInstance {
-            if ObjCRuntime.classNamesToSkip.contains(NSStringFromClass(cls)) { return [] }
+            if ObjCRuntime.classNamesToSkip.contains(class_getName(cls).string) { return [] }
             guard let metaclass = object_getClass(cls) else { return [] }
             cls = metaclass
         }
@@ -514,7 +514,7 @@ extension ObjCClassInfo {
     private static func classess(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
         var start: AnyClass = cls
         if !isInstance {
-            if ObjCRuntime.classNamesToSkip.contains(NSStringFromClass(cls)) { return [] }
+            if ObjCRuntime.classNamesToSkip.contains(class_getName(cls).string) { return [] }
             guard let metaclass = object_getClass(cls) else { return [] }
             start = metaclass
         }

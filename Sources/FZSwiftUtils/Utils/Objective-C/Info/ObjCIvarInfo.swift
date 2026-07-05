@@ -74,15 +74,15 @@ extension ObjCIvarInfo: CustomStringConvertible {
         headerString(includeFields: false)
     }
     
-    public func headerString(includeFields: Bool = false) -> String {
-        if let type, case let .bitField(width) = type {
+    public func headerString(includeFields: Bool = false, includeTypeModifiers: Bool = false) -> String {
+        if let type, case let .bitField(width) = type.kind {
             let field = ObjCField(type: .int, name: name, bitWidth: width)
-            return field.decodedForHeader(fallbackName: name)
+            return field.decodedForHeader(fallbackName: name, includeModifiers: includeTypeModifiers)
         }
         if [.char, .uchar].contains(type) {
             return "BOOL \(name)"
         }
-        let type = type?.decodedForIvar(includeFields: includeFields)
+        let type = type?.decodedForIvar(includeFields: includeFields, includeModifiers: includeTypeModifiers)
         if let type, type.last == "*" {
             return "\(type)\(name);"
         }
@@ -95,9 +95,9 @@ extension ObjCIvarInfo: CustomStringConvertible {
      The complete declaration is associated with this instance variable through
      ``NSAttributedString/Key/objcIvar``.
      */
-    public func attributedHeaderString(includeFields: Bool = false, font: NSUIFont? = nil) -> NSAttributedString {
+    public func attributedHeaderString(includeFields: Bool = false, includeTypeModifiers: Bool = false, font: NSUIFont? = nil) -> NSAttributedString {
         let attributed = NSMutableAttributedString(
-            attributedString: .objCHeader(for: headerString(includeFields: includeFields), font: font)
+            attributedString: .objCHeader(for: headerString(includeFields: includeFields, includeTypeModifiers: includeTypeModifiers), font: font)
         )
         attributed.addAttribute(.objcIvar, value: self, range: NSRange(location: 0, length: attributed.length))
         return attributed

@@ -102,7 +102,7 @@ public struct _AnyClass: Identifiable, CustomStringConvertible, Equatable, Codab
     }
     
     public func encode(to encoder: any Encoder) throws {
-       try encoder.encodeSingle(NSStringFromClass(cls))
+       try encoder.encodeSingle(class_getName(cls).string)
     }
     
     public init(from decoder: any Decoder) throws {

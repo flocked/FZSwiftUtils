@@ -49,13 +49,19 @@ public enum ObjCHeader {
     public static var structTypedefsByName: [String: StructTypedef] = [:]
     public static var bridgedTypedefsByName: [String: BridgedTypedef] = [:]
     public static var didCollect = false
+    public private(set) static var isCollecting = false
     
-    public static func getClass(named name: String) -> Class? {
-        if didCollect {
+    public static func getClass(named name: String, collectAllIfNeeded: Bool = true) -> Class? {
+        if isCollecting {
+            return nil
+        } else if didCollect {
             return classesByName[name]
+        } else if let info = classesByName[name] {
+            return info
         } else if let file = publicHeaderURLs.removeFirst(where: { $0.nameExludingExtension == name }) {
                 return parse(file)?.classes.first(where: { $0.name == name })
         }
+        guard collectAllIfNeeded else { return nil }
         collectAll()
         return classesByName[name]
     }
@@ -64,7 +70,9 @@ public enum ObjCHeader {
     }
 
     public static func getProtocol(named name: String) -> ProtocolInfo? {
-        if let info = protocolsByName[name] {
+        if isCollecting {
+            return nil
+        } else if let info = protocolsByName[name] {
             return info
         }
         for fileName in [name, "\(name)-Protocol"] {
@@ -78,10 +86,18 @@ public enum ObjCHeader {
         return protocolsByName[name]
     }
     
-    public static func collectAll(options: ParseOptions = .all) {
+    public static func collectAll(options: ParseOptions = .all, completion: (() -> Void)? = nil) {
+        guard !isCollecting else { return }
         if options == .all {
             guard !didCollect else { return }
-            didCollect = true
+        }
+        isCollecting = true
+        defer {
+            if options == .all {
+                didCollect = true
+            }
+            isCollecting = false
+            completion?()
         }
         for file in publicHeaderURLs {
            parse(file, options: options)

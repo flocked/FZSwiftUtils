@@ -65,7 +65,7 @@ public extension CGRect {
         - point2: The second point.
      */
     init(point1: CGPoint, point2: CGPoint) {
-        self.init(x: min(point1.x, point2.x), y: min(point1.y, point2.y), width: abs(point1.x - point2.x), height: abs(point1.y - point2.y))        
+        self.init(x: min(point1.x, point2.x), y: min(point1.y, point2.y), width: abs(point1.x - point2.x), height: abs(point1.y - point2.y))
     }
 
     /**
@@ -124,6 +124,7 @@ public extension CGRect {
     func scaledIntegral(for application: NSApplication) -> Self {
         CGRect(origin.scaledIntegral(for: application), size.scaledIntegral(for: application))
     }
+
     #elseif os(iOS) || os(tvOS)
     /**
      Returns the scaled integral value of the value for the specified screen.
@@ -134,17 +135,6 @@ public extension CGRect {
      */
     func scaledIntegral(for screen: UIScreen) -> Self {
         CGRect(origin: origin.scaledIntegral(for: screen), size: size.scaledIntegral(for: screen))
-    }
-    #endif
-    
-    #if os(macOS)
-    /**
-     Draws the outline of the rectangle using the current stroke color and drawing attributes.
-     
-     This method uses the current drawing attributes, such as the stroke color and line width. Attributes that are not explicitly set use their default values.
-     */
-    func stroke() {
-        NSBezierPath(rect: self).stroke()
     }
     #endif
 
@@ -420,6 +410,7 @@ public extension CGRect {
     func inset(by insets: NSDirectionalEdgeInsets, layoutDirection: NSUserInterfaceLayoutDirection = NSApp.userInterfaceLayoutDirection) -> CGRect {
         layoutDirection == .leftToRight ? _inset(by: insets) : _inset(by: .init(top: insets.top, leading: insets.trailing, bottom: insets.bottom, trailing: insets.leading))
     }
+
     #elseif os(iOS) || os(tvOS)
     /**
      Adjusts a rectangle by the given directional edge insets.
@@ -675,7 +666,7 @@ public extension CGRect {
         - edge: The side of the rectangle from which to measure the atDistance parameter, defining the line along which to divide the rectangle.
      */
     func divided(atPercentage percentage: CGFloat, from edge: CGRectEdge) -> (slice: CGRect, remainder: CGRect) {
-        divided(atDistance: edge.value(for: self) * percentage.clamped(to: 0...1.0), from: edge)
+        divided(atDistance: edge.value(for: self) * percentage.clamped(to: 0 ... 1.0), from: edge)
     }
 
     /**
@@ -830,17 +821,21 @@ public extension CGRect {
      */
     func edge(containing point: CGPoint, tolerance: CGFloat) -> CGRectEdge? {
         guard insetBy(dx: -tolerance, dy: -tolerance).contains(point) else { return nil }
-        if point.y >= minY - tolerance && point.y <= minY + tolerance &&
-            point.x >= minX - tolerance && point.x <= maxX + tolerance {
+        if point.y >= minY - tolerance, point.y <= minY + tolerance,
+           point.x >= minX - tolerance, point.x <= maxX + tolerance
+        {
             return .minYEdge
-        } else if point.y >= maxY - tolerance && point.y <= maxY + tolerance &&
-            point.x >= minX - tolerance && point.x <= maxX + tolerance {
+        } else if point.y >= maxY - tolerance, point.y <= maxY + tolerance,
+                  point.x >= minX - tolerance, point.x <= maxX + tolerance
+        {
             return .maxYEdge
-        } else if point.x >= minX - tolerance && point.x <= minX + tolerance &&
-            point.y >= minY - tolerance && point.y <= maxY + tolerance {
+        } else if point.x >= minX - tolerance, point.x <= minX + tolerance,
+                  point.y >= minY - tolerance, point.y <= maxY + tolerance
+        {
             return .left
-        } else if point.x >= maxX - tolerance && point.x <= maxX + tolerance &&
-            point.y >= minY - tolerance && point.y <= maxY + tolerance {
+        } else if point.x >= maxX - tolerance, point.x <= maxX + tolerance,
+                  point.y >= minY - tolerance, point.y <= maxY + tolerance
+        {
             return .right
         }
         return nil
@@ -879,7 +874,6 @@ public extension CGRect {
         if insetBy(dx: -cornerTolerance, dy: -cornerTolerance).contains(point) {
             if point.x.isBetween(minX - cornerTolerance, minX + cornerTolerance) {
                 if point.y.isBetween(minY - cornerTolerance, minY + cornerTolerance) {
-                    
                     return .minXminY
                 } else if point.y.isBetween(maxY - cornerTolerance, maxY + cornerTolerance) {
                     return .minXmaxY
@@ -910,7 +904,7 @@ public extension CGRect {
 
 public extension CGRect {
     /// The vertical order to split a rectangle.
-    enum VerticalSplitOrder: Int  {
+    enum VerticalSplitOrder: Int {
         /// Bottom to top.
         case bottomToTop
         /// Top to bottom.
@@ -937,7 +931,6 @@ public extension CGRect {
         case random
     }
 
-    
     /**
      Divides the rectangle into a grid of subrectangles with a specified number of rows and columns.
 
@@ -966,7 +959,6 @@ public extension CGRect {
      - Returns: An array with the subdivided rectangles.
      */
     func divided(into size: CGSize, horizontalOrder: HorizontalSplitOrder = .leftToRight, verticalOrder: VerticalSplitOrder = .bottomToTop) -> [CGRect] {
-        
         var verticalCount = Int(height / size.height)
         var horizontalCount = Int(width / size.width)
                 
@@ -980,7 +972,7 @@ public extension CGRect {
         }
         
         var rects: [CGRect] = []
-        var xIndices = (0..<horizontalCount).map({CGFloat($0)})
+        var xIndices = (0..<horizontalCount).map { CGFloat($0) }
         switch horizontalOrder {
         case .leftToRight: break
         case .rightToLeft:
@@ -993,7 +985,7 @@ public extension CGRect {
             xIndices = xIndices.shuffled()
         }
         
-        var yIndices = (0..<verticalCount).map({CGFloat($0)})
+        var yIndices = (0..<verticalCount).map { CGFloat($0) }
         switch verticalOrder {
         case .bottomToTop: break
         case .topToBottom:
@@ -1201,6 +1193,7 @@ public extension CGRect {
     func snappedToPixels(of application: NSApplication, rule: PixelSnapRule = .outward) -> CGRect {
         snappedToPixels(scale: application.backingScaleFactor, rule: rule)
     }
+
     #elseif os(iOS) || os(tvOS)
     /**
      Returns a rectangle aligned to the device pixel grid defined by the specified screen.
@@ -1214,6 +1207,117 @@ public extension CGRect {
     }
     #endif
 }
+
+#if os(macOS) || os(iOS) || os(tvOS)
+extension CGRect {
+    /**
+     Draws the outline of the rect using the specified stroke color.
+
+     This method temporarily sets the current stroke color, draws the rect using the specified line width, and restores the previous graphics state.
+
+     - Parameters:
+       - color: The color used to stroke the rect.
+       - width: The width of the stroked border. The default value is `1.0`.
+     */
+    func stroke(_ color: NSUIColor, width: CGFloat = 1.0) {
+        guard let context = CGContext.current else { return }
+        context.saveGState()
+        color.setStroke()
+        context.stroke(self, width: width)
+        context.restoreGState()
+    }
+
+    /**
+     Strokes the outline of an ellipse inscribed in the rect using the specified stroke color.
+
+     This method temporarily sets the current stroke color, strokes the ellipse, and restores the previous graphics state.
+
+     - Parameters:
+       - color: The color used to stroke the ellipse.
+       - width: The width of the stroked border.
+     */
+    func strokeEllipse(_ color: NSUIColor, width: CGFloat = 1.0) {
+        guard let context = CGContext.current else { return }
+        context.saveGState()
+        defer { context.restoreGState() }
+        color.setStroke()
+        context.setLineWidth(width)
+        context.strokeEllipse(in: self)
+    }
+
+    #if os(macOS)
+    /**
+     Fills the rect using the specified fill color and compositing operation.
+
+     This method temporarily sets the current fill color, fills the rect using the specified compositing operation, and restores the previous graphics state.
+
+     - Parameters:
+       - color: The color used to fill the rect.
+       - operation: The compositing operation used when drawing the rect. The default value is the current graphics context's compositing operation, or `.sourceOver` if no graphics context is available.
+     */
+    func fill(_ color: NSUIColor, using operation: NSCompositingOperation = NSGraphicsContext.current?.compositingOperation ?? .sourceOver) {
+        guard let context = CGContext.current else { return }
+        context.saveGState()
+        color.setFill()
+        fill(using: operation)
+        context.restoreGState()
+    }
+    #else
+    /**
+
+     Fills the rect using the current fill color.
+
+     - Parameter blendMode: The blend mode to use when drawing the rect. If `nil`, the current blend mode is used.
+     */
+    func fill(using blendMode: CGBlendMode? = nil) {
+        guard let context = CGContext.current else { return }
+        context.saveGState()
+        defer { context.restoreGState() }
+        if let blendMode = blendMode {
+            context.setBlendMode(blendMode)
+        }
+        context.fill(self)
+    }
+
+    /**
+
+     Fills the rect using the specified fill color.
+
+     This method temporarily sets the current fill color, fills the rect, and restores the previous graphics state.
+
+     - Parameters:
+       - color: The color used to fill the rect.
+       - blendMode: The blend mode to use when drawing the rect. If `nil`, the current blend mode is used.
+
+     */
+    func fill(_ color: NSUIColor, using blendMode: CGBlendMode? = nil) {
+        guard let context = CGContext.current else { return }
+        context.saveGState()
+        defer { context.restoreGState() }
+        color.setFill()
+        if let blendMode = blendMode {
+            context.setBlendMode(blendMode)
+        }
+        context.fill(self)
+    }
+    #endif
+    
+    /**
+     Fills an ellipse inscribed in the rect using the specified fill color.
+
+     This method temporarily sets the current fill color, fills the ellipse, and restores the previous graphics state.
+
+     - Parameter color: The color used to fill the ellipse.
+     */
+    func fillEllipse(_ color: NSUIColor) {
+        guard let context = CGContext.current else { return }
+        context.saveGState()
+        defer { context.restoreGState() }
+        color.setFill()
+        context.fillEllipse(in: self)
+    }
+}
+#endif
 
 #if compiler(>=6.0)
 extension CGRect: @retroactive Hashable {
@@ -1234,7 +1338,7 @@ extension CGRect: Hashable {
 public extension Collection where Element == CGRect {
     /// The union of all rectangles in the collection.
     func union() -> CGRect {
-        reduce(CGRect.zero) {$0.union($1)}
+        reduce(CGRect.zero) { $0.union($1) }
     }
     
     /// Returns the rectangle in the center.
@@ -1303,43 +1407,43 @@ public extension Collection where Element == CGRect {
     /// Aligns the rectangles vertically.
     func alignVertically(at alignment: CGRect.HorizontalAlignment = .center, spacing: CGFloat = 0.0) -> [CGRect] {
         if isEmpty || count == 1 { return Array(self) }
-        let totalWidth = map({ $0.width }).max() ?? 0.0
+        let totalWidth = map { $0.width }.max() ?? 0.0
         var yOffset: CGFloat = 0
-        return map({ rect in
+        return map { rect in
             let xOrigin: CGFloat
             switch alignment {
             case .left: xOrigin = 0
             case .center: xOrigin = (totalWidth - rect.width) / 2
-            case .right: xOrigin = totalWidth-rect.width
+            case .right: xOrigin = totalWidth - rect.width
             }
             let frame = CGRect(CGPoint(xOrigin, yOffset), rect.size)
             yOffset += rect.height + spacing
             return frame
-        })
+        }
     }
     
     /// Aligns the rectangles horizontally.
     func alignHorizontally(at alignment: CGRect.VerticalAlignment = .center, spacing: CGFloat = 0.0) -> [CGRect] {
         if isEmpty || count == 1 { return Array(self) }
         var xOffset: CGFloat = 0
-        let totalHeight = map({ $0.height }).max() ?? 0.0
-        return map({ rect in
+        let totalHeight = map { $0.height }.max() ?? 0.0
+        return map { rect in
             let yOrigin: CGFloat
             switch alignment {
             case .top: yOrigin = 0
             case .center: yOrigin = (totalHeight - rect.height) / 2
-            case .bottom: yOrigin = totalHeight-rect.height
+            case .bottom: yOrigin = totalHeight - rect.height
             }
             let frame = CGRect(CGPoint(xOffset, yOrigin), rect.size)
             xOffset += rect.width + spacing
             return frame
-        })
+        }
     }
 }
 
-extension CGRect {
+public extension CGRect {
     /// The vertical alignment of a rectangle.
-    public enum VerticalAlignment: Int {
+    enum VerticalAlignment: Int {
         /// bottom.
         case bottom
         /// Center.
@@ -1349,7 +1453,7 @@ extension CGRect {
     }
     
     /// The horizontal alignment of a rectangle.
-    public enum HorizontalAlignment: Int {
+    enum HorizontalAlignment: Int {
         /// Left.
         case left
         /// Center.
@@ -1397,6 +1501,19 @@ extension Sequence where Element == CGRect {
     /// Returns the bounding rectangle that encloses all rects in the sequence.
     var boundingRect: CGRect {
         guard let first = first else { return .zero }
-        return dropFirst().reduce(first) { $0.union($1)  }
+        return dropFirst().reduce(first) { $0.union($1) }
     }
+}
+
+private extension CGContext {
+    #if os(macOS)
+    static var current: CGContext? {
+        NSGraphicsContext.current?.cgContext
+    }
+
+    #elseif os(iOS) || os(tvOS)
+    static var current: CGContext? {
+        UIGraphicsGetCurrentContext()
+    }
+    #endif
 }

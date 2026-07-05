@@ -21,7 +21,7 @@ extension ObjCMethodInfo {
      */
     public func swiftExtensionString(for class: AnyClass, includeUnknownArgumentTypes: Bool = false, isThrowing: Bool = true) -> String? {
         guard let string = _swiftExtensionString(for: `class`, includeUnknownArgumentTypes: includeUnknownArgumentTypes, isThrowing: isThrowing) else { return nil }
-        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(`class`), string: string)
+        return FZSwiftUtils.swiftExtensionString(for: class_getName(`class`).string, string: string)
     }
     
     fileprivate func _swiftExtensionString(for class: AnyClass, includeUnknownArgumentTypes: Bool = false, isThrowing: Bool = true) -> String? {
@@ -32,7 +32,7 @@ extension ObjCMethodInfo {
         let methodBaseName = selectorParts.first.map(swiftIdentifier(for:)) ?? swiftIdentifier(for: name)
         let parameterNames = parameterNames(selectorParts: selectorParts)
         let parameterClauses = parameterClauses(selectorParts: selectorParts, parameterNames: parameterNames, swiftTypes: swiftArguments)
-        let className = NSStringFromClass(`class`)
+        let className = class_getName(`class`).string
         let receiverType = isClassMethod ? "\(className).Type" : className
         let receiverValue = isClassMethod ? "self" : "self"
         let methodLookup = isClassMethod ? "class_getClassMethod(self, selector)" : "class_getInstanceMethod(type(of: self), selector)"
@@ -71,7 +71,7 @@ extension ObjCMethodInfo {
         guard let swiftReturnType = returnType.resolvedSwiftType ?? (includeUnknownArgumentTypes ? "<#T##Any#>" : nil) else { return nil }
         let swiftArguments = argumentTypes.compactMap({ $0.resolvedSwiftType ?? (includeUnknownArgumentTypes ? "<#T##Any#>" : nil) })
         guard swiftArguments.count == argumentTypes.count else { return nil }
-        let className = NSStringFromClass(`class`)
+        let className = class_getName(`class`).string
         let methodBaseName = swiftIdentifier(for: name.split(separator: ":").first.map(String.init) ?? name)
         let receiverType = isClassMethod ? "\(className).Type" : className
         let functionTypeArguments = ([receiverType, "Selector"] + swiftArguments).joined(separator: ", ")
@@ -159,7 +159,7 @@ extension ObjCPropertyInfo {
      */
     public func swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let string = _swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
-        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(`class`), string: string)
+        return FZSwiftUtils.swiftExtensionString(for: class_getName(`class`).string, string: string)
     }
 
     @available(*, deprecated, renamed: "swiftExtensionString(for:handleUnknownType:)")
@@ -235,7 +235,7 @@ extension ObjCIvarInfo {
      */
     public func swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let string = _swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
-        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(`class`), string: string)
+        return FZSwiftUtils.swiftExtensionString(for: class_getName(`class`).string, string: string)
     }
 
     @available(*, deprecated, renamed: "swiftExtensionString(for:handleUnknownType:)")
@@ -282,7 +282,7 @@ extension ObjCClassInfo {
         strings += self.classMethods.filter({classMethods.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, includeUnknownArgumentTypes: handleUnknownTypes)})
         strings += self.ivars.filter({ivars.contains($0.name)}).compactMap({$0._swiftExtensionString(for: cls, handleUnknownType: handleUnknownTypes)})
         guard !strings.isEmpty else { return nil }
-        return FZSwiftUtils.swiftExtensionString(for: NSStringFromClass(cls), string: strings.joined(separator: "\n\n"))
+        return FZSwiftUtils.swiftExtensionString(for: class_getName(cls).string, string: strings.joined(separator: "\n\n"))
     }
 
     /// Returns Swift source code for an Objective-C protocol containing the selected methods and properties.
@@ -497,7 +497,7 @@ extension ObjCType {
     }
     
     var resolvedSwiftType: String? {
-        switch self {
+        switch kind {
         case .class: return "AnyClass"
         case .selector: return "Selector"
         case .char: return "Int8"
@@ -532,9 +532,6 @@ extension ObjCType {
             return name
         case .atom, .unknown, .other, .union, .bitField, .array:
             return nil
-        case .modified(_, type: _):
-            let resolved = resolved
-            return resolved != .charPtr ? resolved.resolvedSwiftType : modifiers.contains(.const) ? "UnsafePointer<CChar>" : "UnsafeMutablePointer<CChar>"
         }
     }
 }

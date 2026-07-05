@@ -49,7 +49,7 @@ fileprivate class DynamicClassContext {
     fileprivate init(baseClass: AnyClass) throws {
         self.baseClass = baseClass
         // Can't use `let dynamicClassName = "SwiftHook_" + "\(baseClass)"` here because the "\(baseClass)" doesn't contain namespace. There maybe some different class with the same className.
-        let dynamicClassName = "SwiftHook_" + NSStringFromClass(baseClass)
+        let dynamicClassName = "SwiftHook_" + class_getName(baseClass).string
         guard let dynamicClass = objc_allocateClassPair(baseClass, dynamicClassName, 0) else {
             throw HookError.internalError(file: #file, line: #line)
         }

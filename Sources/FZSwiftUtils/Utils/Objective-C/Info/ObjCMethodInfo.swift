@@ -51,6 +51,8 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
         self.signature = ObjCMethodSignature(typeEncoding)
         self.isClassMethod = isClassMethod
     }
+    
+    static var cache: [String: ObjCMethodSignature] = [:]
 
     init(name: String, signature: ObjCMethodSignature, isClassMethod: Bool) {
         self.name = name
@@ -107,9 +109,9 @@ extension ObjCMethodInfo: CustomStringConvertible {
     }
     
     /// Returns a string representing the method in a Objective-C header.
-    public func headerString(includeArgumentFields: Bool = false, includeTypeEncoding: Bool, renameArguments: Bool) -> String {
+    public func headerString(includeArgumentFields: Bool = false, includeTypeModifiers: Bool = false, includeTypeEncoding: Bool, renameArguments: Bool) -> String {
         let prefix = isClassMethod ? "+" : "-"
-        let returnType = returnType.decodedStringForArgument(includeFields: includeArgumentFields)
+        let returnType = returnType.decodedStringForArgument(includeFields: includeArgumentFields, includeModifiers: includeTypeModifiers)
         let nameAndLabels = name.split(separator: ":")
 
         var result = "\(prefix) (\(returnType))"
@@ -117,7 +119,7 @@ extension ObjCMethodInfo: CustomStringConvertible {
             result += name
         } else {
             var takenNames: Set<String> = []
-            result += zip(nameAndLabels,argumentTypes.map({$0.decodedStringForArgument(includeFields: includeArgumentFields)}))
+            result += zip(nameAndLabels,argumentTypes.map({$0.decodedStringForArgument(includeFields: includeArgumentFields, includeModifiers: includeTypeModifiers)}))
                 .enumerated()
                 .map { index, value in
                     let publicHeaderName = !renameArguments ? signature.arguments[index + 2].name : nil
@@ -140,11 +142,12 @@ extension ObjCMethodInfo: CustomStringConvertible {
      The complete declaration is associated with this method through either
      ``NSAttributedString/Key/objcMethod`` or ``NSAttributedString/Key/objcClassMethod``.
      */
-    public func attributedHeaderString(includeArgumentFields: Bool = false, includeTypeEncoding: Bool = false, renameArguments: Bool = false, font: NSUIFont? = nil) -> NSAttributedString {
+    public func attributedHeaderString(includeArgumentFields: Bool = false, includeTypeModifiers: Bool = false, includeTypeEncoding: Bool = false, renameArguments: Bool = false, font: NSUIFont? = nil) -> NSAttributedString {
         let attributed = NSMutableAttributedString(
             attributedString: .objCHeader(
                 for: headerString(
                     includeArgumentFields: includeArgumentFields,
+                    includeTypeModifiers: includeTypeModifiers,
                     includeTypeEncoding: includeTypeEncoding,
                     renameArguments: renameArguments
                 ),

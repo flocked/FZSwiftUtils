@@ -105,7 +105,7 @@ extension NSObject {
         }
         var tempClass: AnyClass? = isaClass
         while let currentClass = tempClass, currentClass != typeClass {
-            if NSStringFromClass(currentClass).hasPrefix("NSKVONotifying_" + NSStringFromClass(class_getSuperclass(currentClass)!)) {
+            if class_getName(currentClass).string.hasPrefix("NSKVONotifying_" + NSStringFromClass(class_getSuperclass(currentClass)!)) {
                 return true
             }
             tempClass = class_getSuperclass(currentClass)
