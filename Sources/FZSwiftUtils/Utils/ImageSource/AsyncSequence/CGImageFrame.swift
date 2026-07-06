@@ -11,6 +11,7 @@ import AppKit
 import UIKit
 #endif
 
+/// A frame of an animated image.
 public struct CGImageFrame {
     /// The image of the frame.
     public let image: CGImage
@@ -44,6 +45,7 @@ public struct CGImageFrame {
 }
 
 #if os(macOS)
+/// A frame of an animated image.
 public struct NSImageFrame {
     /// The image of the frame.
     public let image: NSImage
@@ -70,6 +72,7 @@ public struct NSImageFrame {
     }
 }
 #else
+/// A frame of an animated image.
 public struct UIImageFrame {
     /// The image of the frame.
     public let image: UIImage
