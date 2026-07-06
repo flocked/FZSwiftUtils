@@ -57,11 +57,6 @@ public class ImageSource {
         return ImageProperties(rawValue: properties)
     }
     
-    func pixelSize(at index: Int?) -> CGSize? {
-        guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index ?? primaryImageIndex, nil) as? [CFString: Any], let width = properties[kCGImagePropertyPixelWidth] as? CGFloat, let height = properties[kCGImagePropertyPixelHeight] as? CGFloat else { return nil }
-        return CGSize(width: width, height: height)
-    }
-    
     /// Returns the metadata of the image at the specified index.
     public func metadata(at index: Int? = nil) -> CGImageMetadata? {
         CGImageSourceCopyMetadataAtIndex(cgImageSource, index ?? primaryImageIndex, nil)
@@ -185,7 +180,7 @@ public class ImageSource {
     public func imageFrames(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> ImageFrameSequence {
         ImageFrameSequence(count: count) { [self] index in
             guard let image = await image(at: index, options: options) else { return nil }
-            return CGImageFrame(image, properties(at: index)?.delayTime)
+            return CGImageFrame(image, durations(at: index))
         }
     }
     
@@ -199,7 +194,7 @@ public class ImageSource {
     public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> ImageFrameSequence {
         ImageFrameSequence(count: count) { [self] index in
             guard let image = await thumbnail(at: index, options: options) else { return nil }
-            return CGImageFrame(image, properties(at: index)?.delayTime)
+            return CGImageFrame(image, durations(at: index))
         }
     }
     
@@ -449,5 +444,24 @@ extension ImageSource {
             dict[kCGImageDestinationDateTime] = date as CFDate?
             return dict as CFDictionary
         }
+    }
+}
+
+extension ImageSource {
+    func pixelSize(at index: Int?) -> CGSize? {
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index ?? primaryImageIndex, nil) as? [CFString: Any], let width = properties[kCGImagePropertyPixelWidth] as? CGFloat, let height = properties[kCGImagePropertyPixelHeight] as? CGFloat else { return nil }
+        return CGSize(width: width, height: height)
+    }
+    
+    func durations(at index: Int) -> (duration: TimeInterval, unclampedDuration: TimeInterval)? {
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [CFString: Any] else { return nil }
+        for key in [kCGImagePropertyGIFDictionary, kCGImagePropertyHEICSDictionary, kCGImagePropertyPNGDictionary, kCGImagePropertyWebPDictionary] {
+            guard let properties = properties[key] as? [CFString: Any] else { continue }
+            let duration = properties[kCGImagePropertyGIFDelayTime] as? TimeInterval
+            let unclampedDuration = properties[kCGImagePropertyGIFUnclampedDelayTime] as? TimeInterval
+            guard duration != nil || unclampedDuration != nil else { continue }
+            return (duration ?? unclampedDuration!.clamped(min: 0.1), unclampedDuration ?? duration!)
+        }
+        return nil
     }
 }

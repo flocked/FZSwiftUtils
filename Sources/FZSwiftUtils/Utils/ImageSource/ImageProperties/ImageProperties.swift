@@ -134,7 +134,7 @@ public struct ImageProperties: RawRepresentable {
     /**
      The number of seconds to wait before displaying the next image in an animated sequence.
 
-     This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
+     This value may be `0` milliseconds or higher. Unlike the ``clampedDelayTime`` property, this value is not clamped at the low end of the range.
      */
     public var unclampedDelayTime: Double? {
         gif?.unclampedDelayTime ?? heic?.unclampedDelayTime ?? png?.unclampedDelayTime ?? webp?.unclampedDelayTime
@@ -167,7 +167,6 @@ public struct ImageProperties: RawRepresentable {
         colorProfile = rawValue[typed: kCGImagePropertyProfileName]
         colorModel = rawValue[typed: kCGImagePropertyColorModel]
         depth = rawValue[typed: kCGImagePropertyDepth]
-            
         gif = rawValue[typed: kCGImagePropertyGIFDictionary]
         png = rawValue[typed: kCGImagePropertyPNGDictionary]
         jpeg = rawValue[typed: kCGImagePropertyJFIFDictionary]

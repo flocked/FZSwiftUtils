@@ -25,7 +25,7 @@ public struct ImageFrameSequence: AsyncSequence {
         self.init(count: representation.frameCount) { index in
             representation.currentFrame = index
             guard let image = representation.cgImage else { return nil }
-            return CGImageFrame(image, representation.currentFrameDuration)
+            return CGImageFrame(image: image, duration: representation.currentFrameDuration)
         }
     }
     #endif
