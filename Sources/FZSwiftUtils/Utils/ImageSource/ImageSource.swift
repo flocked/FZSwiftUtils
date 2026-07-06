@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 
 public class ImageSource {
     /// The `CGImageSource`.
-    let cgImageSource: CGImageSource
+    public let cgImageSource: CGImageSource
 
     /// The content type of the image.
     public var contentType: UTType? {
@@ -55,6 +55,11 @@ public class ImageSource {
     public func properties(at index: Int) -> ImageProperties? {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [CFString: Any] else { return nil }
         return ImageProperties(rawValue: properties)
+    }
+    
+    func pixelSize(at index: Int?) -> CGSize? {
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index ?? primaryImageIndex, nil) as? [CFString: Any], let width = properties[kCGImagePropertyPixelWidth] as? CGFloat, let height = properties[kCGImagePropertyPixelHeight] as? CGFloat else { return nil }
+        return CGSize(width: width, height: height)
     }
     
     /// Returns the metadata of the image at the specified index.
@@ -115,8 +120,8 @@ public class ImageSource {
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> CGImage? {
-        try? ObjCRuntime.catchException { CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options.dictionary) }
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> CGImage? {
+        try? ObjCRuntime.catchException { CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options.dictionary(for: self, index: index)) }
     }
 
     /**
@@ -128,7 +133,7 @@ public class ImageSource {
 
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) async -> CGImage? {
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) async -> CGImage? {
         await withCheckedContinuation { continuation in
             thumbnail(at: index ?? primaryImageIndex, options: options) { image in
                 continuation.resume(returning: image)
@@ -144,7 +149,7 @@ public class ImageSource {
         - options: Additional thumbnail creation options.
         - completionHandler: A closure the method calls on completion which returns the thumbnail at the specified index, or `nil` if an error occurs.
      */
-    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil), completionHandler: @escaping (CGImage?) -> Void) {
+    public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic), completionHandler: @escaping (CGImage?) -> Void) {
         DispatchQueue.background.async {
             completionHandler(self.thumbnail(at: index ?? self.primaryImageIndex, options: options))
         }
@@ -152,7 +157,9 @@ public class ImageSource {
     
     /// The images of the image source asynchronously.
     public func images(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> ImageSequence {
-        ImageSequence(source: self, type: .image, imageOptions: options)
+        ImageSequence(count: count) { [self] index in
+            await image(at: index, options: options)
+        }
     }
     
     /// The images of the image source.
@@ -162,19 +169,24 @@ public class ImageSource {
     }
 
     /// The thumbnails of the image source asynchronously.
-    public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> ImageSequence {
-        ImageSequence(source: self, type: .thumbnail, thumbnailOptions: options)
+    public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> ImageSequence {
+        ImageSequence(count: count) { [self] index in
+            await thumbnail(at: index, options: options)
+        }
     }
     
     /// The thumbnails of the image source.
     @_disfavoredOverload
-    public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> [CGImage] {
+    public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> [CGImage] {
         (try? thumbnails(options: options).collect()) ?? []
     }
 
     /// The image frames of the image source asynchronously.
     public func imageFrames(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> ImageFrameSequence {
-        ImageFrameSequence(source: self, type: .image, imageOptions: options)
+        ImageFrameSequence(count: count) { [self] index in
+            guard let image = await image(at: index, options: options) else { return nil }
+            return CGImageFrame(image, properties(at: index)?.delayTime)
+        }
     }
     
     /// The image frames of the image source.
@@ -184,13 +196,16 @@ public class ImageSource {
     }
 
     /// The thumbnail frames of the image source asynchronously.
-    public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> ImageFrameSequence {
-        ImageFrameSequence(source: self, type: .thumbnail, thumbnailOptions: options)
+    public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> ImageFrameSequence {
+        ImageFrameSequence(count: count) { [self] index in
+            guard let image = await thumbnail(at: index, options: options) else { return nil }
+            return CGImageFrame(image, properties(at: index)?.delayTime)
+        }
     }
     
     /// The thumbnail frames of the image source.
     @_disfavoredOverload
-    public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampleFactor: nil)) -> [CGImageFrame] {
+    public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> [CGImageFrame] {
         (try? thumbnailFrames(options: options).collect()) ?? []
     }
     

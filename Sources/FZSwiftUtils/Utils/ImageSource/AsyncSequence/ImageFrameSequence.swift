@@ -12,77 +12,40 @@ import AppKit
 #endif
 
 public struct ImageFrameSequence: AsyncSequence {
-    public typealias Element = CGImageFrame
-
-    enum ImageType {
-        case image
-        case thumbnail
-    }
-
-    let source: ImageSource?
-    let thumbnailOptions: ImageSource.ThumbnailOptions?
-    let imageOptions: ImageSource.ImageOptions?
-    let type: ImageType
     public let count: Int
-    #if os(macOS)
-    let representation: NSBitmapImageRep?
-    #endif
+    private let frameAtIndex: (Int) async -> CGImageFrame?
 
-    init(source: ImageSource, type: ImageType, imageOptions: ImageSource.ImageOptions? = nil, thumbnailOptions: ImageSource.ThumbnailOptions? = nil) {
-        self.source = source
-        self.imageOptions = imageOptions
-        self.thumbnailOptions = thumbnailOptions
-        self.type = type
-        self.count = source.count
-        #if os(macOS)
-        representation = nil
-        #endif
+    init(count: Int, frameAtIndex: @escaping (Int) async -> CGImageFrame?) {
+        self.count = count
+        self.frameAtIndex = frameAtIndex
     }
-
+    
     #if os(macOS)
     init(_ representation: NSBitmapImageRep) {
-        self.representation = representation
-        type = .image
-        imageOptions = nil
-        thumbnailOptions = nil
-        count = representation.frameCount
-        source = nil
+        self.init(count: representation.frameCount) { index in
+            representation.currentFrame = index
+            guard let image = representation.cgImage else { return nil }
+            return CGImageFrame(image, representation.currentFrameDuration)
+        }
     }
     #endif
 
     public func makeAsyncIterator() -> Iterator {
-        Iterator(self)
+        Iterator(sequence: self)
     }
-    
-    public struct Iterator: AsyncIteratorProtocol {
-        var index = -1
-        let sequence: ImageFrameSequence
 
-        init(_ sequence: ImageFrameSequence) {
+    public struct Iterator: AsyncIteratorProtocol {
+        private var index = 0
+        private let sequence: ImageFrameSequence
+
+        init(sequence: ImageFrameSequence) {
             self.sequence = sequence
         }
 
         public mutating func next() async -> CGImageFrame? {
-            index += 1
             guard index < sequence.count else { return nil }
-            if let source = sequence.source {
-                switch sequence.type {
-                case .image:
-                    guard let image = await source.image(at: index, options: sequence.imageOptions!) else { return nil }
-                    return CGImageFrame(image, source.properties(at: index)?.delayTime)
-                case .thumbnail:
-                    guard let image = await source.thumbnail(at: index, options: sequence.thumbnailOptions!) else { return nil }
-                    return CGImageFrame(image, source.properties(at: index)?.delayTime)
-                }
-            }
-            #if os(macOS)
-            if let representation = sequence.representation {
-                representation.currentFrame = index
-                guard let image = representation.cgImage else { return nil }
-                return CGImageFrame(image, representation.currentFrameDuration)
-            }
-            #endif
-            return nil
+            defer { index += 1 }
+            return await sequence.frameAtIndex(index)
         }
     }
 }

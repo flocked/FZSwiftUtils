@@ -15,14 +15,14 @@ public extension ImageSource {
         public var caches: Bool = true
         /// A Boolean value indicating whether image decoding and caching happens at image creation time.
         public var decodesImmediately: Bool = true
-        /// The factor by which to scale down any returned images.
-        public var subsampleFactor: SubsampleFactor?
+        /// The subsampling mode to use when creating thumbnails.
+        public var subsampling: Subsampling = .automatic
         /// A Boolean indicating whether to use floating-point values in returned images.
         public var allowsFloat: Bool = false
         /// The maximum width and height of a thumbnail image, or `nil` to use the original image size.
         public var maxSize: Int?
         /// A Boolean value indicating whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
-        public var transformsIfNeeded: Bool = false
+        public var transformsIfNeeded: Bool = true
         
         /**
          Specifies how thumbnail images are obtained.
@@ -38,15 +38,25 @@ public extension ImageSource {
             set { _preferredDynamicRange = newValue?.rawValue }
         }
         private var _preferredDynamicRange: Int?
+                
+        /// Specifies how image subsampling is applied during thumbnail creation.
+        public enum Subsampling: Hashable, Codable {
+            /// Automatically selects an appropriate subsample factor based on the requested thumbnail ``ImageSource/ThumbnailOptions/maxSize``.
+            case automatic
+            /// Uses the specified subsample factor.
+            case factor(SubsampleFactor)
+            /// Disables image subsampling.
+            case disabled
 
-        /// The factor by which to scale down returned images.
-        public enum SubsampleFactor: Int, Codable, Hashable {
-            /// Factor 2
-            case factor2 = 2
-            /// Factor 4
-            case factor4 = 4
-            /// Factor 8
-            case factor8 = 8
+            /// The factor by which to scale down decoded images.
+            public enum SubsampleFactor: Int, Codable, Hashable {
+                /// Reduces the decoded image dimensions by a factor of 2.
+                case factor2 = 2
+                /// Reduces the decoded image dimensions by a factor of 4.
+                case factor4 = 4
+                /// Reduces the decoded image dimensions by a factor of 8.
+                case factor8 = 8
+            }
         }
         
         /**
@@ -70,6 +80,10 @@ public extension ImageSource {
             case standard
             /// High dynamic range (HDR)
             case high
+            
+            var value: CFString {
+                self == .standard ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
+            }
         }
 
         /**
@@ -82,15 +96,15 @@ public extension ImageSource {
             - decodesImmediately: A Boolean value indicating whether image decoding and caching happens at image creation time.
             - allowsFloat: A Boolean indicating whether to use floating-point values in returned images.
             - transformsIfNeeded:A Boolean value indicating whether to rotate and scale the thumbnail image to match the image’s orientation and aspect ratio.
-            - subsampleFactor: The factor by which to scale down any returned images.
+            - subsampling: The subsampling mode to use when creating thumbnails.
          */
-        public init(create: CreationPolicy = .always, maxSize: Int? = nil, caches: Bool = true, decodesImmediately: Bool = true, allowsFloat: Bool = false, transformsIfNeeded: Bool = false, subsampleFactor: SubsampleFactor? = nil) {
+        public init(create: CreationPolicy = .always, maxSize: Int? = nil, caches: Bool = true, decodesImmediately: Bool = true, allowsFloat: Bool = false, transformsIfNeeded: Bool = true, subsampling: Subsampling = .automatic) {
             self.maxSize = maxSize
             self.caches = caches
             self.decodesImmediately = decodesImmediately
             self.allowsFloat = allowsFloat
             self.transformsIfNeeded = transformsIfNeeded
-            self.subsampleFactor = subsampleFactor
+            self.subsampling = subsampling
             self.creationPolicy = create
         }
 
@@ -110,27 +124,42 @@ public extension ImageSource {
 
          - Parameter subsampleFactor: The factor by which to scale down returned images.
          */
-        public static func subsampleFactor(_ subsampleFactor: SubsampleFactor) -> ThumbnailOptions {
+        public static func subsampleFactor(_ subsampleFactor: Subsampling.SubsampleFactor) -> ThumbnailOptions {
             var options = ThumbnailOptions()
-            options.subsampleFactor = subsampleFactor
+            options.subsampling = .factor(subsampleFactor)
             return options
         }
-
-        var dictionary: CFDictionary {
+        
+        func dictionary(for imageSource: ImageSource, index: Int?) -> CFDictionary {
             var options: [CFString: Any] = [:]
             options[kCGImageSourceShouldAllowFloat] = allowsFloat
             options[kCGImageSourceShouldCache] = caches
             options[kCGImageSourceShouldCacheImmediately] = decodesImmediately
             options[kCGImageSourceCreateThumbnailWithTransform] = transformsIfNeeded
-            options[kCGImageSourceSubsampleFactor] = subsampleFactor?.rawValue
             options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *), preferredDynamicRange != nil {
-                options[kCGImageSourceDecodeRequest] = preferredDynamicRange == .standard ? kCGImageSourceDecodeToSDR : kCGImageSourceDecodeToHDR
+            switch subsampling {
+            case .automatic:
+                guard let maxSize = maxSize, let imageSize = imageSource.pixelSize(at: index) else { break }
+                let scale = imageSize.min / CGFloat(maxSize)
+                if scale >= 8 {
+                    options[kCGImageSourceSubsampleFactor] = 8
+                } else if scale >= 4 {
+                    options[kCGImageSourceSubsampleFactor] = 4
+                } else if scale >= 2 {
+                    options[kCGImageSourceSubsampleFactor] = 2
+                }
+            case .factor(let factor):
+                options[kCGImageSourceSubsampleFactor] = factor.rawValue
+            case .disabled:
+                break
             }
             switch creationPolicy {
             case .ifAbsent: options[kCGImageSourceCreateThumbnailFromImageIfAbsent] = true
             case .always: options[kCGImageSourceCreateThumbnailFromImageAlways] = true
             case .embeddedOnly: break
+            }
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+                options[kCGImageSourceDecodeRequest] = preferredDynamicRange?.value
             }
             return options as CFDictionary
         }

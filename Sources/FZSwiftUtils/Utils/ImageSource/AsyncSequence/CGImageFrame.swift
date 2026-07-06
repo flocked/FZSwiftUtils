@@ -6,14 +6,14 @@
 //
 
 #if os(macOS)
-    import AppKit
+import AppKit
 #elseif canImport(UIKit)
-    import UIKit
+import UIKit
 #endif
 
 public struct CGImageFrame {
-    public var image: CGImage
-    public var duration: TimeInterval?
+    public let image: CGImage
+    public let duration: TimeInterval?
     public init(_ image: CGImage, _ duration: TimeInterval?) {
         self.image = image
         self.duration = duration
@@ -21,8 +21,8 @@ public struct CGImageFrame {
 }
 
 public struct ImageFrame {
-    public var image: NSUIImage
-    public var duration: TimeInterval?
+    public let image: NSUIImage
+    public let duration: TimeInterval?
     public init(_ image: NSUIImage, _ duration: TimeInterval?) {
         self.image = image
         self.duration = duration
