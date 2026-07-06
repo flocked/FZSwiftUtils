@@ -35,6 +35,8 @@ public struct ImageProperties: RawRepresentable {
     public let depth: Int?
     /// A Boolean value that indicates whether the image contains floating-point pixel samples.
     public let isFloat: Bool
+    /// The total number of bytes in each row of the image.
+    public var bytesPerRow: Int?
         
     private var _orientation: CGImagePropertyOrientation?
 
@@ -155,7 +157,7 @@ public struct ImageProperties: RawRepresentable {
 
     public init(rawValue: [CFString: Any]) {
         self.rawValue = rawValue
-        
+        bytesPerRow = rawValue[typed: kCGImagePropertyBytesPerRow]
         fileSize = (rawValue[typed: kCGImagePropertyFileSize] as Int64?).map({.bytes($0)})
         isFloat = rawValue[typed: kCGImagePropertyIsFloat] ?? false
         pixelWidth = rawValue[typed: kCGImagePropertyPixelWidth]
