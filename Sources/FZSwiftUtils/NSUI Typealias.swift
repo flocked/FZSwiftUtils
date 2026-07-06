@@ -23,6 +23,7 @@ public typealias NSUIFontDescriptor = NSFontDescriptor
 @available(macOS 11.0, *)
 public typealias NSUIFontTextStyle = NSFont.TextStyle
 public typealias NSUIImage = NSImage
+public typealias NSUIImageFrame = NSImageFrame
 public typealias NSUIStoryboard = NSStoryboard
 public typealias NSUIView = NSView
 public typealias NSUISegmentedControl = NSSegmentedControl
@@ -50,6 +51,7 @@ public typealias NSUIFont = UIFont
 public typealias NSUIFontDescriptor = UIFontDescriptor
 public typealias NSUIFontTextStyle = UIFont.TextStyle
 public typealias NSUIImage = UIImage
+public typealias NSUIImageFrame = UIImageFrame
 public typealias NSUIRectCorner = UIRectCorner
 public typealias NSUIImageSymbolConfiguration = UIImage.SymbolConfiguration
 public typealias NSUIImageSymbolScale = UIImage.SymbolScale
