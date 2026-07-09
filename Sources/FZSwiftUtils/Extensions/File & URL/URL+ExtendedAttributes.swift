@@ -34,20 +34,20 @@ public extension URL {
         }
         
         /// Returns the value for the specified extended attribute.
-        public subscript<T>(key: String, flags: Flags = []) -> T? {
+        public subscript<T>(key: String, flags flags: Flags = []) -> T? {
             get { try? get(key) }
             set { try? set(newValue, for: key, flags: flags) }
         }
         
         /// Returns the value for the specified extended attribute.
-        public subscript<T>(key: String, strategy: CodingStrategy = .json, flags: Flags = []) -> T? where T: Codable {
+        public subscript<T>(key: String, strategy: CodingStrategy = .json, flags flags: Flags = []) -> T? where T: Codable {
             get { try? get(key, using: strategy) }
             set { try? set(newValue, for: key, using: strategy, flags: flags) }
         }
         
         /// Returns the data for the specified extended attribute.
         @_disfavoredOverload
-        public subscript(key: String, flags: Flags = []) -> Data? {
+        public subscript(key: String, flags flags: Flags = []) -> Data? {
             get { try? getData(for: key) }
             set { try? setData(newValue, for: key, flags: flags) }
         }
