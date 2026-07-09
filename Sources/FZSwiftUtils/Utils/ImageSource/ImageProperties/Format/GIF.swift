@@ -11,31 +11,31 @@ import ImageIO
 public extension ImageProperties {
     struct GIF: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /**
          The number of times that an animated image should play through its frames before stopping.
 
          A value of `0` means the animated image repeats forever.
          */
-        public let loopCount: Int?
+        public var loopCount: Int?
         
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
-        public let clampedDelayTime: Double?
+        public var clampedDelayTime: Double?
         
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
-        public let unclampedDelayTime: Double?
+        public var unclampedDelayTime: Double?
         
         /// A Boolean value indicating whether the GIF has a global color map.
-        public let hasGlobalColorMap: Bool?
+        public var hasGlobalColorMap: Bool?
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
@@ -43,10 +43,10 @@ public extension ImageProperties {
         }
         
         /// The pixel width of the main image.
-        public let canvasPixelWidth: Double?
+        public var canvasPixelWidth: Double?
         
         /// The pixel height of the main image.
-        public let canvasPixelHeight: Double?
+        public var canvasPixelHeight: Double?
         
         /// The pixel size of the main image.
         public var canvasPixelSize: CGSize? {
@@ -55,10 +55,10 @@ public extension ImageProperties {
         }
         
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
-        public let framesInfo: [FrameInfo]?
+        public var framesInfo: [FrameInfo]?
         
         /// The color map of the image.
-        public let colorMap: Data?
+        public var colorMap: Data?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue

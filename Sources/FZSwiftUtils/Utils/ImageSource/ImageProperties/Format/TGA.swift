@@ -11,10 +11,10 @@ import ImageIO
 public extension ImageProperties {
     struct TGA: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /// The compression of the image.
-        public let compression: CGImagePropertyTGACompression?
+        public var compression: CGImagePropertyTGACompression?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue

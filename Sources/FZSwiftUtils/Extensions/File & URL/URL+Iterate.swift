@@ -209,12 +209,16 @@ extension URL.URLSequence {
         return sequence
     }
     
-    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``resources`` property.
-    public func prefetchingProperties(_ keys: [URLResourceKey]) -> Self {
+    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
+    public func prefetchingProperties(_ keys: [URLResources.Keys]) -> Self {
         var sequence = self
-        let keys = keys.uniqued()
-        sequence.resourceKeys = keys
+        sequence.resourceKeys = keys.uniqued().map({$0.rawValue})
         return sequence
+    }
+    
+    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
+    public func prefetchingProperties(_ keys: URLResources.Keys...) -> Self {
+        prefetchingProperties(keys)
     }
         
     /// The number of URLs in the sequence.
@@ -367,12 +371,16 @@ extension URL.FileURLSequence {
         return sequence
     }
     
-    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``resources`` property.
-    public func prefetchingProperties(_ keys: [URLResourceKey]) -> Self {
+    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding  ``Foundation/URL/resources`` property.
+    public func prefetchingProperties(_ keys: [URLResources.Keys]) -> Self {
         var sequence = self
-        let keys = keys.uniqued()
-        sequence.resourceKeys = keys
+        sequence.resourceKeys = keys.uniqued().uniqued().map(\.rawValue)
         return sequence
+    }
+    
+    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
+    public func prefetchingProperties(_ keys: URLResources.Keys...) -> Self {
+        prefetchingProperties(keys)
     }
         
     /// The file content types of the files to iterate.

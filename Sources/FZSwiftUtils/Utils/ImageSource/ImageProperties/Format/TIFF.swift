@@ -11,37 +11,37 @@ import ImageIO
 public extension ImageProperties {
     struct TIFF: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         /// The artist who created the image.
-        public let artist: String?
+        public var artist: String?
         /// The compression scheme used on the image data.
-        public let compression: Double?
+        public var compression: Double?
         /// Copyright information.
-        public let copyright: String?
+        public var copyright: String?
         /// The document name.
-        public let documentName: String?
+        public var documentName: String?
         /// The computer or operating system used when the image was created.
-        public let hostComputer: String?
+        public var hostComputer: String?
         /// The image description.
-        public let imageDescription: String?
+        public var imageDescription: String?
         /// The name of the manufacturer of the camera or input device.
-        public let cameraMaker: String?
+        public var cameraMaker: String?
         /// The camera or input device model.
-        public let cameraModel: String?
+        public var cameraModel: String?
         /// The color space of the image data.
-        public let photometricInterpretation: Double?
+        public var photometricInterpretation: Double?
         /// The chromaticities of the primaries of the image.
-        public let primaryChromaticities: [Double]?
+        public var primaryChromaticities: [Double]?
         /// The name and version of the software used for image creation.
-        public let software: String?
+        public var software: String?
         /// The tile length.
-        public let tileLength: Int?
+        public var tileLength: Int?
         /// The tile width.
-        public let tileWidth: Int?
+        public var tileWidth: Int?
         /// The transfer function, in tabular format, used to map pixel components from a nonlinear form into a linear form.
-        public let transferFunction: Double?
+        public var transferFunction: Double?
         /// The white point of the image.
-        public let whitePoint: [Double]?
+        public var whitePoint: [Double]?
         /// The horizontal position of the TIFF image.
         @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *)
         public var xPosition: Double? {
@@ -58,15 +58,15 @@ public extension ImageProperties {
         private var _yPosition: Double?
 
         /// The units of resolution.
-        public let resolutionUnit: Double?
+        public var resolutionUnit: Double?
         /// The number of pixels per resolution unit in the image width direction.
-        public let xResolution: Double?
+        public var xResolution: Double?
         /// The number of pixels per resolution unit in the image height direction.
-        public let yResolution: Double?
+        public var yResolution: Double?
         /// The image orientation.
-        public let orientation: CGImagePropertyOrientation?
+        public var orientation: CGImagePropertyOrientation?
         /// The date and time that the image was created.
-        public let timestamp: Date?
+        public var timestamp: Date?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue

@@ -11,194 +11,194 @@ import ImageIO
 public extension ImageProperties {
     struct DNG: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         /// The amount of sharpening required for this camera model.
-        public let baselineSharpness: Double?
+        public var baselineSharpness: Double?
         /// The fraction of the encoding range, above which the response may become significantly non-linear.
-        public let linearResponseLimit: Double?
+        public var linearResponseLimit: Double?
         /// A hint to the DNG reader about how much chroma blur to apply to the image.
-        public let chromaBlurRadius: Double?
+        public var chromaBlurRadius: Double?
         /// A hint to the DNG reader about how strong the camera’s antialias filter is.
-        public let antiAliasStrength: Double?
+        public var antiAliasStrength: Double?
         /// A tag that Adobe Camera Raw uses to control the sensitivity of its Shadows slider.
-        public let shadowScale: Double?
+        public var shadowScale: Double?
         /// The scale factor to apply to the default scale to achieve the best quality image size.
-        public let bestQualityScale: Double?
+        public var bestQualityScale: Double?
         /// The default scale factors for each direction to convert the image to square pixels.
-        public let defaultScale: Any?
+        public var defaultScale: Any?
         /// A lookup table that maps stored values into linear values.
-        public let linearizationTable: Any?
+        public var linearizationTable: Any?
         
         /// The amount by which to adjust the zero point of the exposure, specified in EV units.
-        public let baselineExposure: Double?
+        public var baselineExposure: Double?
         /// The relative noise level of the camera model at an ISO of 100.
-        public let baselineNoise: Double?
+        public var baselineNoise: Double?
         /// The amount of EV units to add to the baseline exposure during image rendering.
-        public let baselineExposureOffset: Double?
+        public var baselineExposureOffset: Double?
         
         /// The analog or digital gain that applies to the stored raw values.
-        public let analogBalance: Any?
+        public var analogBalance: Any?
         /// The selected white balance at the time of capture, encoded as the coordinates of a neutral color in linear reference space values.
-        public let asShotNeutral: Any?
+        public var asShotNeutral: Any?
         /// The selected white balance at the time of capture, encoded as x-y chromaticity coordinates.
-        public let asShotWhiteXY: Any?
+        public var asShotWhiteXY: Any?
         /// A value that specifies how closely green pixels in the blue/green rows track the green pixels in red/green rows.
-        public let bayerGreenSplit: Int?
+        public var bayerGreenSplit: Int?
         /// A matrix that maps white balanced camera colors to XYZ D50 colors.
-        public let forwardMatrix1: Any?
+        public var forwardMatrix1: Any?
         /// A matrix that maps white balanced camera colors to XYZ D50 colors.
-        public let forwardMatrix2: Any?
+        public var forwardMatrix2: Any?
         /// A hint to the raw converter about how to handle the black point during rendering.
-        public let defaultBlackRender: Int?
+        public var defaultBlackRender: Int?
         
         /// The repeat pattern size for the black level tag.
-        public let blackLevelRepeatDim: Any?
+        public var blackLevelRepeatDim: Any?
         /// The zero light encoding level, specified as a repeating pattern.
-        public let blackLevel: Any?
+        public var blackLevel: Any?
         /// The difference between the zero-light encoding level for each column and the baseline zero-light encoding level.
-        public let blackLevelDeltaH: Any?
+        public var blackLevelDeltaH: Any?
         /// The difference between the zero-light encodoing level for each row and the baseline zero-light encoding level.
-        public let blackLevelDeltaV: Any?
+        public var blackLevelDeltaV: Any?
         /// The saturated encoding level for the raw sample values.
-        public let whiteLevel: Any?
+        public var whiteLevel: Any?
         /// The illuminant for the first set of color calibration tags.
-        public let calibrationIlluminant1: Int?
+        public var calibrationIlluminant1: Int?
         /// The illuminant for an optional second set of color calibration tags.
-        public let calibrationIlluminant2: Int?
+        public var calibrationIlluminant2: Int?
         /// A transformation matrix that converts XYZ values to reference camera native color spaces, under the first calibration illuminant.
-        public let colorMatrix1: [CGFloat]?
+        public var colorMatrix1: [CGFloat]?
         /// A transformation matrix that converts XYZ values to reference camera native color spaces, under the second calibration illuminant.
-        public let colorMatrix2: [CGFloat]?
+        public var colorMatrix2: [CGFloat]?
         /// A matrix that transforms reference camera native space values to camera-native space values under the first calibration illuminant.
-        public let cameraCalibration1: Any?
+        public var cameraCalibration1: Any?
         /// A matrix that transforms reference camera native space values to camera-native space values under the second calibration illuminant.
-        public let cameraCalibration2: Any?
+        public var cameraCalibration2: Any?
         /// A reduction matrix that converts color camera-native space values to XYZ values, under the first calibration illuminant.
-        public let reductionMatrix1: Any?
+        public var reductionMatrix1: Any?
         /// A reduction matrix that converts color camera-native space values to XYZ values, under the second calibration illuminant.
-        public let reductionMatrix2: Any?
+        public var reductionMatrix2: Any?
         /// A profile that specifies default color rendering from camera color-space coordinates into the ICC profile space.
-        public let asShotICCProfile: Any?
+        public var asShotICCProfile: Any?
         /// A matrix to apply to the camera color-space coordinates before processing values through the ICC profile.
-        public let asShotPreProfileMatrix: Any?
+        public var asShotPreProfileMatrix: Any?
         /// A profile that specifies default color rendering from camera color-space coordinates into the ICC profile space.
-        public let currentICCProfile: Any?
+        public var currentICCProfile: Any?
         /// A matrix to apply to the current camera color-space coordinates before processing values through the ICC profile.
-        public let currentPreProfileMatrix: Any?
+        public var currentPreProfileMatrix: Any?
         /// The colorimetric reference for the CIE XYZ values.
-        public let colorimetricReference: Int?
+        public var colorimetricReference: Int?
         /// A string to match against the profile calibration signature for the selected camera profile.
-        public let cameraCalibrationSignature: String?
+        public var cameraCalibrationSignature: String?
         /// A string that describes the calibration for the current profile.
-        public let profileCalibrationSignature: String?
+        public var profileCalibrationSignature: String?
         /// The rectangle that defines the non-masked pixels of the sensor.
-        public let activeArea: Any?
+        public var activeArea: Any?
         /// A list of non-overlapping rectangles that contain fully masked pixels in the image.
-        public let maskedAreas: Any?
+        public var maskedAreas: Any?
         /// The origin of the final image area, relative to the top-left corner of the active area rectangle.
-        public let defaultCropOrigin: CGPoint?
+        public var defaultCropOrigin: CGPoint?
         /// The size of the final image area, in raw image coordinates.
-        public let defaultCropSize: CGSize?
+        public var defaultCropSize: CGSize?
         /// A default user-crop rectangle in relative coordinates.
-        public let defaultUserCrop: Any?
+        public var defaultUserCrop: Any?
         /// The file name of the original raw file.
-        public let originalRawFileName: String?
+        public var originalRawFileName: String?
         /// The compressed contents of the original raw file.
-        public let originalRawFileData: Any?
+        public var originalRawFileData: Any?
         /// The amount of noise reduction applied to the raw data on a scale of 0.0 to 1.0.
-        public let noiseReductionApplied: Double?
+        public var noiseReductionApplied: Double?
         /// An MD5 digest of the raw image data.
-        public let newRawImageDigest: Any?
+        public var newRawImageDigest: Any?
         /// An MD5 digest of the data stored for the original raw file data.
-        public let originalRawFileDigest: Any?
+        public var originalRawFileDigest: Any?
         /// A modified MD5 digest of the raw image data.
-        public let rawImageDigest: Any?
+        public var rawImageDigest: Any?
         /// THe default final size of the larger original file that was the source of this proxy.
-        public let originalDefaultFinalSize: Any?
+        public var originalDefaultFinalSize: Any?
         /// The best-quality final size of the larger original file that was the source of this proxy.
-        public let originalBestQualityFinalSize: Any?
+        public var originalBestQualityFinalSize: Any?
         /// The default crop size of the larger original file that was the source of this proxy.
-        public let originalDefaultCropSize: Any?
+        public var originalDefaultCropSize: Any?
         /// The gain between the main raw IFD and the preview IFD that contains this tag.
-        public let rawToPreviewGain: Double?
+        public var rawToPreviewGain: Double?
         /// The amount of noise in the raw image.
-        public let noiseProfile: Any?
+        public var noiseProfile: Any?
         /// The spatial layout of the CFA.
-        public let cfaLayout: Int?
+        public var cfaLayout: Int?
         /// A mapping between the values in the CFA pattern tag and the plane numbers in linear raw space.
-        public let cfaPlaneColor: Any?
+        public var cfaPlaneColor: Any?
         /// The list of opcodes to apply to the raw image, as read directly from the file.
-        public let opcodeList1: Any?
+        public var opcodeList1: Any?
         /// THe list of opcodes to apply to the raw image, after mapping it to linear reference values.
-        public let dngOpcodeList2: Any?
+        public var dngOpcodeList2: Any?
         /// The list of opcodes to apply to the raw image, after demosaicing it.
-        public let dngOpcodeList3: Any?
+        public var dngOpcodeList3: Any?
         /// An opcode to apply a warp to an image to correct for geometric distortion and lateral chromatic aberration for rectilinear lenses.
-        public let warpRectilinear: Any?
+        public var warpRectilinear: Any?
         /// An opcode to unwrap an image captued with a fisheye lens and map it to a perspective projection.
-        public let warpFisheye: Any?
+        public var warpFisheye: Any?
         /// An opcode to apply a gain function to an image to correct vignetting.
-        public let fixVignetteRadial: Any?
+        public var fixVignetteRadial: Any?
         /// Private data that manufacturers may store with an image and use in their own converters.
-        public let dngPrivateData: Any?
+        public var dngPrivateData: Any?
         /// A Boolean value that tells the DNG reader whether the EXIF MakerNote tag is safe to preserve.
-        public let makerNoteSafety: Int?
+        public var makerNoteSafety: Int?
         /// A 16-byte unique identifier for the raw image data.
-        public let dngRawDataUniqueID: String?
+        public var dngRawDataUniqueID: String?
         /// The size of rectangular blocks that tiles use to group pixels.
-        public let subTileBlockSize: Any?
+        public var subTileBlockSize: Any?
         /// The number of interleaved fields for the rows of the image.
-        public let rowInterleaveFactor: Int?
+        public var rowInterleaveFactor: Int?
         /// The oldest version for which a file is compatible.
-        public let dngBackwardVersion: [Int]?
+        public var dngBackwardVersion: [Int]?
         /// An encoding of the four-tier version number.
-        public let dngVersion: [Double]?
+        public var dngVersion: [Double]?
         /// A list of file offsets to extra camera profiles.
-        public let extraCameraProfiles: Any?
+        public var extraCameraProfiles: Any?
         /// A string containing the name of the "as shot" camera profile, if any.
-        public let asShotProfileName: String?
+        public var asShotProfileName: String?
         /// The number of input samples in each dimension of the hue/saturation/value mapping tables.
-        public let profileHueSatMapDims: Any?
+        public var profileHueSatMapDims: Any?
         /// The data for the first hue/saturation/value mapping table.
-        public let profileHueSatMapData1: Any?
+        public var profileHueSatMapData1: Any?
         /// The data for the second hue/saturation/value mapping table.
-        public let profileHueSatMapData2: Any?
+        public var profileHueSatMapData2: Any?
         /// The encoding option to use when indexing into a 3D look table during raw conversion.
-        public let profileHueSatMapEncoding: Int?
+        public var profileHueSatMapEncoding: Int?
         /// The default tone curve to apply when processing the image as a starting point for user adjustments.
-        public let profileToneCurve: Any?
+        public var profileToneCurve: Any?
         /// A string containing the name of the camera profile.
-        public let dngProfileName: String?
+        public var dngProfileName: String?
         /// The usage rules for the camera profile.
-        public let profileEmbedPolicy: Int?
+        public var profileEmbedPolicy: Int?
         /// The copyright information for the camera profile.
-        public let profileCopyright: String?
+        public var profileCopyright: String?
         /// The number of input samples in each dimentsion of a default "look" table.
-        public let profileLookTableDims: Any?
+        public var profileLookTableDims: Any?
         /// The default "look" table to apply when processing the image as a starting point for user adjustment.
-        public let profileLookTableData: Any?
+        public var profileLookTableData: Any?
         /// The encoding option to use when indexing into a 3D look table during raw conversion.
-        public let profileLookTableEncoding: Int?
+        public var profileLookTableEncoding: Int?
         /// The name of the app that created the preview stored in the IFD.
-        public let previewApplicationName: String?
+        public var previewApplicationName: String?
         /// The version number of the app that created the preview stored in the IFD.
-        public let previewApplicationVersion: String?
+        public var previewApplicationVersion: String?
         /// The name of the conversion settings for the preview.
-        public let previewSettingsName: String?
+        public var previewSettingsName: String?
         /// A unique ID of the conversion settings used to render the preview.
-        public let previewSettingsDigest: [Int]?
+        public var previewSettingsDigest: [Int]?
         /// The color space associated with the rendered preview.
-        public let previewColorSpace: Int?
+        public var previewColorSpace: Int?
         /// The date and time for the render of the preview.
-        public let previewDateTime: Date?
+        public var previewDateTime: Date?
         /// Information about the lens used for the image.
-        public let lensInfo: String?
+        public var lensInfo: String?
         /// A unique, nonlocalized name for the camera model.
-        public let uniqueCameraModel: String?
+        public var uniqueCameraModel: String?
         /// The localized camera model name.
-        public let localizedCameraModel: String?
+        public var localizedCameraModel: String?
         /// The camera serial number.
-        public let cameraSerialNumber: String?
+        public var cameraSerialNumber: String?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue

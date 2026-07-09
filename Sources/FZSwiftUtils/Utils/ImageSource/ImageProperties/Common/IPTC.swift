@@ -11,237 +11,237 @@ import ImageIO
 public extension ImageProperties {
     struct IPTC: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /// The artworks of the image.
-        public let artworks: [Artwork]
+        public var artworks: [Artwork]
         
         /// The action advised metadata.
-        public let actionAdvised: [String]?
+        public var actionAdvised: [String]?
         /// The additional model information.
-        public let additionalModelInfo: String?
+        public var additionalModelInfo: String?
         
         /// The audio bitrate metadata.
-        public let audioBitrate: Double?
+        public var audioBitrate: Double?
         /// The audio bitrate mode.
-        public let audioBitrateMode: String?
+        public var audioBitrateMode: String?
         /// The audio channel count.
-        public let audioChannelCount: Int?
+        public var audioChannelCount: Int?
         /// The byline metadata.
-        public let byline: [String]?
+        public var byline: [String]?
         /// The byline title metadata.
-        public let bylineTitle: [String]?
+        public var bylineTitle: [String]?
         /// The caption or abstract metadata.
-        public let captionAbstract: String?
+        public var captionAbstract: String?
         /// The category metadata.
-        public let category: String?
+        public var category: String?
         /// The circa date created metadata.
-        public let circaDateCreated: String?
+        public var circaDateCreated: String?
         /// The city metadata.
-        public let city: String?
+        public var city: String?
         /// The contact metadata.
-        public let contact: [String]?
+        public var contact: [String]?
         /// The container format metadata.
-        public let containerFormats: [ContainerFormat]?
+        public var containerFormats: [ContainerFormat]?
         /// The content location code.
-        public let contentLocationCode: [String]?
+        public var contentLocationCode: [String]?
         /// The content location name.
-        public let contentLocationName: [String]?
+        public var contentLocationName: [String]?
         /// The contributor metadata.
-        public let contributors: [Contributor]?
+        public var contributors: [Contributor]?
         /// The controlled vocabulary term.
-        public let controlledVocabularyTerm: Any?
+        public var controlledVocabularyTerm: Any?
         /// The copyright notice.
-        public let copyrightNotice: String?
+        public var copyrightNotice: String?
         /// The copyright year.
-        public let copyrightYear: Int?
+        public var copyrightYear: Int?
         /// The primary location code.
-        public let countryPrimaryLocationCode: String?
+        public var countryPrimaryLocationCode: String?
         /// The primary location name.
-        public let countryPrimaryLocationName: String?
+        public var countryPrimaryLocationName: String?
         /// The creator metadata.
-        public let creators: [Creator]?
+        public var creators: [Creator]?
         /// The creator contact information.
-        public let creatorContactInfo: CreatorContactInfo?
+        public var creatorContactInfo: CreatorContactInfo?
         /// The credit metadata.
-        public let credit: String?
+        public var credit: String?
         /// The data-on-screen metadata.
-        public let dataOnScreen: [TextRegion]?
+        public var dataOnScreen: [TextRegion]?
         /// The creation date.
-        public let dateCreated: Date?
+        public var dateCreated: Date?
         /// The digital creation date.
-        public let digitalCreationDate: Date?
+        public var digitalCreationDate: Date?
         /// The digital creation time.
-        public let digitalCreationTime: String?
+        public var digitalCreationTime: String?
         /// The digital image GUID.
-        public let digitalImageGUID: String?
+        public var digitalImageGUID: String?
         /// The digital source file type.
-        public let digitalSourceFileType: String?
+        public var digitalSourceFileType: String?
         /// The digital source type.
-        public let digitalSourceType: String?
+        public var digitalSourceType: String?
         /// The dopesheet metadata.
-        public let dopesheet: String?
+        public var dopesheet: String?
         /// The dopesheet link metadata.
-        public let dopesheetLinks: [DopesheetLink]?
+        public var dopesheetLinks: [DopesheetLink]?
         /// The edit status.
-        public let editStatus: String?
+        public var editStatus: String?
         /// The editorial update metadata.
-        public let editorialUpdate: String?
+        public var editorialUpdate: String?
         /// The episode metadata.
-        public let episodes: [Episode]?
+        public var episodes: [Episode]?
         /// The event metadata.
-        public let event: String?
+        public var event: String?
         /// The expiration date.
-        public let expirationDate: Date?
+        public var expirationDate: Date?
         /// The expiration time.
-        public let expirationTime: String?
+        public var expirationTime: String?
         /// The external metadata link.
-        public let externalMetadataLink: String?
+        public var externalMetadataLink: String?
         /// The feed identifier.
-        public let feedIdentifier: String?
+        public var feedIdentifier: String?
         /// The fixture identifier.
-        public let fixtureIdentifier: [String]?
+        public var fixtureIdentifier: [String]?
         /// The genre metadata.
-        public let genres: [CVTermDetails]?
+        public var genres: [CVTermDetails]?
         /// The headline metadata.
-        public let headline: String?
+        public var headline: String?
         /// The IPTC last edited metadata.
-        public let iPTCLastEdited: Date?
+        public var iPTCLastEdited: Date?
         /// The orientation of the IPTC image.
-        public let orientation: CGImagePropertyOrientation?
+        public var orientation: CGImagePropertyOrientation?
         /// The image type metadata.
-        public let imageType: [String]?
+        public var imageType: [String]?
         /// The keywords metadata.
-        public let keywords: [String]?
+        public var keywords: [String]?
         /// The language identifier.
-        public let languageIdentifier: String?
+        public var languageIdentifier: String?
         /// The created location metadata.
-        public let locationsCreated: [Location]?
+        public var locationsCreated: [Location]?
         /// The shown location metadata.
-        public let locationsShown: [Location]?
+        public var locationsShown: [Location]?
         /// The maximum available height.
-        public let maxAvailHeight: Int?
+        public var maxAvailHeight: Int?
         /// The maximum available width.
-        public let maxAvailWidth: Int?
+        public var maxAvailWidth: Int?
         /// The model age metadata.
-        public let modelAge: [Int]?
+        public var modelAge: [Int]?
         /// The object attribute reference.
-        public let objectAttributeReference: [String]?
+        public var objectAttributeReference: [String]?
         /// The object cycle metadata.
-        public let objectCycle: String?
+        public var objectCycle: String?
         /// The object name.
-        public let objectName: String?
+        public var objectName: String?
         /// The object type reference.
-        public let objectTypeReference: String?
+        public var objectTypeReference: String?
         /// The organisation-in-image code.
-        public let organisationInImageCode: [String]?
+        public var organisationInImageCode: [String]?
         /// The organisation-in-image name.
-        public let organisationInImageName: [String]?
+        public var organisationInImageName: [String]?
         /// The original transmission reference.
-        public let originalTransmissionReference: String?
+        public var originalTransmissionReference: String?
         /// The originating program.
-        public let originatingProgram: String?
+        public var originatingProgram: String?
         /// The person-heard metadata.
-        public let personHeard: [PersonHeard]?
+        public var personHeard: [PersonHeard]?
         /// The person-in-image metadata.
-        public let personsInImage: [String]?
+        public var personsInImage: [String]?
         /// The detailed person-in-image metadata.
-        public let personsInImageDetails: [PersonInImage]?
+        public var personsInImageDetails: [PersonInImage]?
         
         /// The product-in-image metadata.
-        public let productsInImage: [ProductInImage]?
+        public var productsInImage: [ProductInImage]?
         /// The program version.
-        public let programVersion: String?
+        public var programVersion: String?
         /// The province or state metadata.
-        public let provinceOrState: String?
+        public var provinceOrState: String?
         /// The publication event metadata.
-        public let publicationEvents: [PublicationEvent]?
+        public var publicationEvents: [PublicationEvent]?
         /// The rating metadata.
-        public let ratings: [Rating]?
+        public var ratings: [Rating]?
         /// The reference date.
-        public let referenceDate: Date?
+        public var referenceDate: Date?
         /// The reference number.
-        public let referenceNumber: Any?
+        public var referenceNumber: Any?
         /// The reference service.
-        public let referenceService: Any?
+        public var referenceService: Any?
         /// The registry entry role.
-        public let registryEntryRole: String?
+        public var registryEntryRole: String?
         /// The release date.
-        public let releaseDate: Date?
+        public var releaseDate: Date?
         /// The release-ready metadata.
-        public let isReleaseReady: Bool?
+        public var isReleaseReady: Bool?
         /// The release time.
-        public let releaseTime: String?
+        public var releaseTime: String?
         /// The scene metadata.
-        public let scene: [String]?
+        public var scene: [String]?
         /// The season metadata.
-        public let seasons: [Season]?
+        public var seasons: [Season]?
         /// The series metadata.
-        public let series: [Series]?
+        public var series: [Series]?
         /// The shown event metadata.
-        public let shownEvents: [ShownEvent]?
+        public var shownEvents: [ShownEvent]?
         /// The source metadata.
-        public let source: String?
+        public var source: String?
         /// The special instructions.
-        public let specialInstructions: String?
+        public var specialInstructions: String?
         /// The star rating metadata.
-        public let starRating: Double?
+        public var starRating: Double?
         /// The storyline identifier.
-        public let storylineIdentifier: String?
+        public var storylineIdentifier: String?
         /// The stream-ready metadata.
-        public let isStreamReady: Bool?
+        public var isStreamReady: Bool?
         /// The style period metadata.
-        public let stylePeriod: String?
+        public var stylePeriod: String?
         /// The sublocation metadata.
-        public let subLocation: String?
+        public var subLocation: String?
         /// The subject reference metadata.
-        public let subjectReference: [String]?
+        public var subjectReference: [String]?
         /// The supplemental category metadata.
-        public let supplementalCategory: [String]?
+        public var supplementalCategory: [String]?
         /// The supply chain source metadata.
-        public let supplyChainSources: [SupplyChainSource]?
+        public var supplyChainSources: [SupplyChainSource]?
         /// The temporal coverage metadata.
-        public let temporalCoverage: String?
+        public var temporalCoverage: String?
         /// The temporal coverage start.
-        public let temporalCoverageFrom: String?
+        public var temporalCoverageFrom: String?
         /// The temporal coverage end.
-        public let temporalCoverageTo: String?
+        public var temporalCoverageTo: String?
         /// The creation time.
-        public let timeCreated: String?
+        public var timeCreated: String?
         /// The transcript metadata.
-        public let transcript: String?
+        public var transcript: String?
         /// The transcript link metadata.
-        public let transcriptLinks: [TranscriptLink]?
+        public var transcriptLinks: [TranscriptLink]?
         /// The urgency metadata.
-        public let urgency: String?
+        public var urgency: String?
         /// The usage terms metadata.
-        public let usageTerms: String?
+        public var usageTerms: String?
         /// The video bitrate metadata.
-        public let videoBitrate: Double?
+        public var videoBitrate: Double?
         /// The video bitrate mode.
-        public let videoBitrateMode: String?
+        public var videoBitrateMode: String?
         /// The video display aspect ratio.
-        public let videoDisplayAspectRatio: String?
+        public var videoDisplayAspectRatio: String?
         /// The video encoding profile.
-        public let videoEncodingProfile: String?
+        public var videoEncodingProfile: String?
         /// The video shot type metadata.
-        public let videoShotTypes: [VideoShotType]?
+        public var videoShotTypes: [VideoShotType]?
         /// The video streams count.
-        public let videoStreamsCount: Int?
+        public var videoStreamsCount: Int?
         /// The visual color metadata.
-        public let visualColor: String?
+        public var visualColor: String?
         /// The workflow tag metadata.
-        public let workflowTags: [CVTermDetails]?
+        public var workflowTags: [CVTermDetails]?
         /// The writer or editor metadata.
-        public let writerEditor: [String]?
+        public var writerEditor: [String]?
         /// The registry entries describing controlled vocabulary items and their defining organizations associated with the image metadata.
-        public let registryEntries: [RegistryEntry]?
+        public var registryEntries: [RegistryEntry]?
         /// The encoded rights expressions embedded directly within the image metadata.
-        public let embeddedExpressions: [EncodedRightsExpression]?
+        public var embeddedExpressions: [EncodedRightsExpression]?
         /// The encoded rights expressions referenced externally by the image metadata.
-        public let linkedExpressions: [EncodedRightsExpression]?
+        public var linkedExpressions: [EncodedRightsExpression]?
         /// The controlled vocabulary terms describing what the image is about.
-        public let aboutTerms: [CVTermDetails]?
+        public var aboutTerms: [CVTermDetails]?
         
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue
@@ -490,23 +490,23 @@ extension ImageProperties.IPTC {
     /// The creators contact info.
     public struct CreatorContactInfo {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         /// The address of the creator.
-        public let address: String?
+        public var address: String?
         /// The city of the creator.
-        public let city: String?
+        public var city: String?
         /// The country of the creator.
-        public let country: String?
+        public var country: String?
         /// The postal code of the creator.
-        public let postalCode: String?
+        public var postalCode: String?
         /// The state/province of the creator.
-        public let stateProvince: String?
+        public var stateProvince: String?
         /// The email addresses of the creator.
-        public let emailAddresses: String?
+        public var emailAddresses: String?
         /// The phone numbers of the creator.
-        public let phoneNumbers: String?
+        public var phoneNumbers: String?
         /// The websites of the creator.
-        public let websites: String?
+        public var websites: String?
         
         init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue
@@ -524,32 +524,32 @@ extension ImageProperties.IPTC {
     /// Information about a location.
     public struct Location: Hashable, Sendable {
         /// A human-readable name for the location.
-        public let name: [String]?
+        public var name: [String]?
         /// The sublocation of the location.
-        public let sublocation: String?
+        public var sublocation: String?
         /// The province or state of the location.
-        public let provinceState: String?
+        public var provinceState: String?
         /// The country name of the location.
-        public let country: String?
+        public var country: String?
         /// The ISO country code of the location.
-        public let countryCode: String?
+        public var countryCode: String?
         /// The city name of the location.
-        public let city: String?
+        public var city: String?
         /// The broader world region (e.g. "Europe", "Asia").
-        public let worldRegion: String?
+        public var worldRegion: String?
         /// The GPS latitude in decimal degrees.
-        public let gpsLatitude: String?
+        public var gpsLatitude: String?
         /// The GPS longitude in decimal degrees.
-        public let gpsLongitude: String?
+        public var gpsLongitude: String?
         /// The GPS altitude in decimal degrees.
-        public let gpsAltitude: String?
+        public var gpsAltitude: String?
         /// The identifier of the location.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         
         /// The alternative identifier of the location.
-        public let locationIDs: [String]?
+        public var locationIDs: [String]?
         
-        public let countryPrimaryLocationCode: String?
+        public var countryPrimaryLocationCode: String?
                 
         init(rawValue: [CFString: Any], isRating: Bool = false) {
             let rating = (isRating ? "RatingRegion" : "") as CFString
@@ -571,47 +571,47 @@ extension ImageProperties.IPTC {
     
     public struct Artwork {
         /// The creator or artist of the artwork.
-        public let creator: String?
+        public var creator: String?
         /// The date the artwork was created.
-        public let dateCreated: Date?
+        public var dateCreated: Date?
         /// The circa date the artwork was created.
-        public let circaDateCreated: String?
+        public var circaDateCreated: String?
         /// The source of the artwork.
-        public let source: String?
+        public var source: String?
         /// The copyright notice of the artwork.
-        public let copyrightNotice: String?
+        public var copyrightNotice: String?
         /// The copyright owner of the artwork.
-        public let copyrightOwner: String?
+        public var copyrightOwner: String?
         /// The copyright owne identifier of the artwork.
-        public let copyrightOwnerID: String?
+        public var copyrightOwnerID: String?
         /// The content description of the artwork.
-        public let contentDescription: String?
+        public var contentDescription: String?
         /// The inventory number assigned by the source.
-        public let sourceInventoryNumber: String?
+        public var sourceInventoryNumber: String?
         /// The inventory URL assigned by the source.
-        public let sourceInventoryURL: String?
+        public var sourceInventoryURL: String?
         /// A description of the artwork’s physical appearance.
-        public let physicalDescription: String?
+        public var physicalDescription: String?
         /// The creator’s identifier (e.g. VIAF, ULAN).
-        public let creatorID: String?
+        public var creatorID: String?
         /// The style or period of the artwork.
-        public let stylePeriod: String?
+        public var stylePeriod: String?
         /// The contribution description of the artwork.
-        public let contributionDescription: String?
+        public var contributionDescription: String?
         /// The licensor name of the artwork.
-        public let licensorName: String?
+        public var licensorName: String?
         /// The licensor ID of the artwork.
-        public let licensorID: String?
+        public var licensorID: String?
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         
         /*
          /// A unique identifier for the artwork.
-         public let artworkOrObjectID: String?
+         public var artworkOrObjectID: String?
          /// The title of the artwork.
-         public let title: String?
+         public var title: String?
          /// The current owner of the artwork.
-         public let currentOwner: String?
+         public var currentOwner: String?
          */
 
         init(rawValue: [CFString: Any]) {
@@ -639,9 +639,9 @@ extension ImageProperties.IPTC {
     /// Represents a single IPTC Extension registry reference describing a controlled vocabulary entry and its defining authority.
     public struct RegistryEntry {
         /// The identifier of the registry item that defines the referenced concept or controlled vocabulary entry.
-        public let itemID: String?
+        public var itemID: String?
         /// The identifier of the organization or authority that maintains the registry referenced by the item ID.
-        public let organisationID: String?
+        public var organisationID: String?
         
         init(rawValue: [CFString: Any]) {
             itemID = rawValue[typed: kCGImagePropertyIPTCExtRegistryItemID]
@@ -652,11 +652,11 @@ extension ImageProperties.IPTC {
     /// Represents a machine-readable rights expression, either embedded in metadata or linked externally.
     public struct EncodedRightsExpression {
         /// The encoded rights expression or a reference to it depending on context.
-        public let value: String?
+        public var value: String?
         /// The language identifier describing the human-readable components of the expression.
-        public let languageID: String?
+        public var languageID: String?
         /// The type or format of the encoded rights expression defining how it should be interpreted.
-        public let type: String?
+        public var type: String?
         
         init(rawValue: [CFString: Any]) {
             value = rawValue[typed: kCGImagePropertyIPTCExtLinkedEncodedRightsExpr]
@@ -674,13 +674,13 @@ extension ImageProperties.IPTC {
     /// Represents a controlled vocabulary term describing what the image is about.
     public struct CVTermDetails {
         /// The identifier of the controlled vocabulary defining the term.
-        public let cvID: String?
+        public var cvID: String?
         /// The identifier of the term within the controlled vocabulary.
-        public let id: String?
+        public var id: String?
         /// The human-readable name of the term.
-        public let name: String?
+        public var name: String?
         /// A refinement providing a more specific semantic description of the term.
-        public let refinedAbout: String?
+        public var refinedAbout: String?
         
         init(rawValue: [CFString: Any], type: String) {
             let type = type as CFString
@@ -694,13 +694,13 @@ extension ImageProperties.IPTC {
     /// Represents a person depicted in the image with structured IPTC Extension details.
     public struct PersonInImage {
         /// The names of the person shown in the image.
-        public let names: [String]?
+        public var names: [String]?
         /// Descriptions providing additional information about the person.
-        public let descriptions: [String]?
+        public var descriptions: [String]?
         /// Identifiers referencing the person in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// Controlled vocabulary terms describing characteristics of the person.
-        public let characteristics: [CVTermDetails]?
+        public var characteristics: [CVTermDetails]?
         
         init(rawValue: [CFString: Any]) {
             names = rawValue[typed: kCGImagePropertyIPTCExtPersonInImageName]
@@ -717,11 +717,11 @@ extension ImageProperties.IPTC {
     /// Represents a person or organization that contributed to the image.
     public struct Contributor {
         /// The identifiers referencing the contributor in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the contributor.
-        public let names: [String]?
+        public var names: [String]?
         /// The roles describing how the contributor participated in creating or producing the image.
-        public let roles: [String]?
+        public var roles: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtContributorIdentifier]
@@ -733,11 +733,11 @@ extension ImageProperties.IPTC {
     /// Represents a person or organization that contributed to the image.
     public struct Creator {
         /// The identifiers referencing the contributor in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the contributor.
-        public let names: [String]?
+        public var names: [String]?
         /// The roles describing how the contributor participated in creating or producing the image.
-        public let roles: [String]?
+        public var roles: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtCreatorIdentifier]
@@ -749,17 +749,17 @@ extension ImageProperties.IPTC {
     /// Represents a rating applied to the image.
     public struct Rating {
         /// The rated regions where this rating applies.
-        public let regions: [Location]?
+        public var regions: [Location]?
         /// The maximum value of the rating scale.
-        public let scaleMaximumValue: String?
+        public var scaleMaximumValue: String?
         /// The minimum value of the rating scale.
-        public let scaleMinimumValue: String?
+        public var scaleMinimumValue: String?
         /// The link identifying the source of the rating.
-        public let sourceLink: String?
+        public var sourceLink: String?
         /// The rating value assigned to the image.
-        public let value: String?
+        public var value: String?
         /// The link to a logo representing the rating value or rating system.
-        public let valueLogoLink: String?
+        public var valueLogoLink: String?
         
         init(rawValue: [CFString: Any]) {
             scaleMaximumValue = rawValue[typed: kCGImagePropertyIPTCExtRatingScaleMaxValue]
@@ -778,9 +778,9 @@ extension ImageProperties.IPTC {
     /// Represents data or text displayed on screen within the image.
     public struct TextRegion {
         /// The text displayed in the region.
-        public let text: String?
+        public var text: String?
         /// The region of the text.
-        public let region: Region?
+        public var region: Region?
         
         init(rawValue: [CFString: Any]) {
             text = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionText]
@@ -794,17 +794,17 @@ extension ImageProperties.IPTC {
         /// Represents a region on screen where data or text is displayed.
         public struct Region {
             /// The horizontal position of the region.
-            public let x: Double?
+            public var x: Double?
             /// The vertical position of the region.
-            public let y: Double?
+            public var y: Double?
             /// The width of the region.
-            public let width: Double?
+            public var width: Double?
             /// The height of the region.
-            public let height: Double?
+            public var height: Double?
             /// The optional depth or z-order of the region.
-            public let depth: Double?
+            public var depth: Double?
             /// The coordinate unit used for the region.
-            public let unit: String?
+            public var unit: String?
             
             init(rawValue: [CFString: Any]) {
                 depth = rawValue[typed: kCGImagePropertyIPTCExtDataOnScreenRegionD]
@@ -820,9 +820,9 @@ extension ImageProperties.IPTC {
     /// Represents an event depicted in the image.
     public struct ShownEvent {
         /// The identifiers referencing the event in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the event.
-        public let names: [String]?
+        public var names: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtShownEventIdentifier]
@@ -838,9 +838,9 @@ extension ImageProperties.IPTC {
     /// Represents a source in the content supply chain of the image.
     public struct SupplyChainSource {
         /// The identifiers referencing the source in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the source.
-        public let names: [String]?
+        public var names: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtSupplyChainSourceIdentifier]
@@ -851,9 +851,9 @@ extension ImageProperties.IPTC {
     /// Represents a series associated with the image.
     public struct Series {
         /// The identifiers referencing the series in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the series.
-        public let names: [String]?
+        public var names: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtSeriesIdentifier]
@@ -864,9 +864,9 @@ extension ImageProperties.IPTC {
     /// Represents a container format of the image or associated media.
     public struct ContainerFormat {
         /// The identifiers referencing the container format.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the container format.
-        public let names: [String]?
+        public var names: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtContainerFormatIdentifier]
@@ -877,9 +877,9 @@ extension ImageProperties.IPTC {
     /// Represents a person who is heard in the image or associated media.
     public struct PersonHeard {
         /// The identifiers referencing the person in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the person.
-        public let names: [String]?
+        public var names: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtPersonHeardIdentifier]
@@ -890,9 +890,9 @@ extension ImageProperties.IPTC {
     /// Represents a video shot type describing the framing or composition of the content.
     public struct VideoShotType {
         /// The identifiers referencing the shot type in external or controlled vocabularies.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The human-readable names of the shot type.
-        public let names: [String]?
+        public var names: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtVideoShotTypeIdentifier]
@@ -903,11 +903,11 @@ extension ImageProperties.IPTC {
     /// Represents a product depicted in the image.
     public struct ProductInImage {
         /// The names of the product.
-        public let names: [String]?
+        public var names: [String]?
         /// Descriptions providing additional information about the product.
-        public let descriptions: [String]?
+        public var descriptions: [String]?
         /// The global trade item numbers identifying the product.
-        public let gtins: [String]?
+        public var gtins: [String]?
         
         init(rawValue: [CFString: Any]) {
             descriptions = rawValue[typed: kCGImagePropertyIPTCExtProductInImageDescription]
@@ -919,11 +919,11 @@ extension ImageProperties.IPTC {
     /// Represents a publication event associated with the image.
     public struct PublicationEvent {
         /// The identifiers referencing the publication event.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the publication event.
-        public let names: [String]?
+        public var names: [String]?
         /// The dates of the publication event.
-        public let dates: [Date]?
+        public var dates: [Date]?
         
         init(rawValue: [CFString: Any]) {
             if let strings: [String] = rawValue[typed: kCGImagePropertyIPTCExtPublicationEventDate] {
@@ -939,9 +939,9 @@ extension ImageProperties.IPTC {
     /// Represents a link to an external transcript.
     public struct TranscriptLink {
         /// The links referencing the transcript.
-        public let links: [String]?
+        public var links: [String]?
         /// Qualifiers describing the type of transcript.
-        public let qualifiers: [String]?
+        public var qualifiers: [String]?
         
         init(rawValue: [CFString: Any]) {
             links = rawValue[typed: kCGImagePropertyIPTCExtTranscriptLinkLink]
@@ -952,9 +952,9 @@ extension ImageProperties.IPTC {
     /// Represents a link to a dopesheet describing timing or production details.
     public struct DopesheetLink {
         /// The links referencing the dopesheet.
-        public let links: [String]?
+        public var links: [String]?
         /// Qualifiers describing the type of dopesheet.
-        public let qualifiers: [String]?
+        public var qualifiers: [String]?
 
         init(rawValue: [CFString: Any]) {
             links = rawValue[typed: kCGImagePropertyIPTCExtDopesheetLinkLink]
@@ -965,11 +965,11 @@ extension ImageProperties.IPTC {
     /// Represents an episode associated with the image.
     public struct Episode {
         /// The identifiers referencing the episode in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the episode.
-        public let names: [String]?
+        public var names: [String]?
         /// The numbers identifying the episode.
-        public let numbers: [String]?
+        public var numbers: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtEpisodeIdentifier]
@@ -981,11 +981,11 @@ extension ImageProperties.IPTC {
     /// Represents a season associated with the image.
     public struct Season {
         /// The identifiers referencing the season in external or internal systems.
-        public let identifiers: [String]?
+        public var identifiers: [String]?
         /// The names of the season.
-        public let names: [String]?
+        public var names: [String]?
         /// The numbers identifying the season.
-        public let numbers: [String]?
+        public var numbers: [String]?
         
         init(rawValue: [CFString: Any]) {
             identifiers = rawValue[typed: kCGImagePropertyIPTCExtSeasonIdentifier]

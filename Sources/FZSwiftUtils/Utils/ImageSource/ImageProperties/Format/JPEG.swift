@@ -12,19 +12,19 @@ import ImageIO
 public extension ImageProperties {
     struct JPEG: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         /// The x pixel density.
-        public let xDensity: CGFloat?
+        public var xDensity: CGFloat?
         /// The y pixel density.
-        public let yDensity: CGFloat?
+        public var yDensity: CGFloat?
         /// The orientation of the image.
-        public let orientation: CGImagePropertyOrientation?
+        public var orientation: CGImagePropertyOrientation?
         /// The version of the image.
-        public let version: [Int]?
+        public var version: [Int]?
         /// The unit of the x and y density.
-        public let densityUnit: DensityUnit?
+        public var densityUnit: DensityUnit?
         /// A Boolean value indicating whether there are versions of the image of increasing quality.
-        public let isProgressive: Bool?
+        public var isProgressive: Bool?
         
         /// The unit of the x and y density.
         public enum DensityUnit: Int, Codable {

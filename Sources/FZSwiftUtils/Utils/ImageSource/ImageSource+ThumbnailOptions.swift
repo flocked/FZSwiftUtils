@@ -15,7 +15,11 @@ public extension ImageSource {
         public var caches: Bool = true
         /// A Boolean value indicating whether image decoding and caching happens at image creation time.
         public var decodesImmediately: Bool = true
-        /// The subsampling mode to use when creating thumbnails.
+        /**
+         The subsampling mode to use when creating thumbnails.
+         
+         The option is only supported for `JPEG`, `HEIF`, `TIFF`, and `PNG` images.
+         */
         public var subsampling: Subsampling = .automatic
         /// A Boolean indicating whether to use floating-point values in returned images.
         public var allowsFloat: Bool = false
@@ -39,7 +43,11 @@ public extension ImageSource {
         }
         private var _preferredDynamicRange: Int?
                 
-        /// Specifies how image subsampling is applied during thumbnail creation.
+        /**
+         Specifies how image subsampling is applied during thumbnail creation.
+         
+         The option is only supported for `JPEG`, `HEIF`, `TIFF`, and `PNG` images.
+         */
         public enum Subsampling: Hashable, Codable {
             /// Automatically selects an appropriate subsample factor based on the requested thumbnail ``ImageSource/ThumbnailOptions/maxSize``.
             case automatic

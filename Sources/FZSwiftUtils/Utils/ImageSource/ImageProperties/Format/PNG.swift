@@ -11,64 +11,64 @@ import ImageIO
 public extension ImageProperties {
     struct PNG: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         /// The author of the image.
-        public let author: String?
+        public var author: String?
         /// The chromaticities.
-        public let chromaticities: [Double]?
+        public var chromaticities: [Double]?
         /// The comment about the image.
-        public let comment: String?
+        public var comment: String?
         /// The PNG filter to apply prior to compression.
-        public let compressionFilter: CompressionFilter?
+        public var compressionFilter: CompressionFilter?
         /// The copyright of the image.
-        public let copyright: String?
+        public var copyright: String?
         /// The creation date of the image.
-        public let creationTime: Date?
+        public var creationTime: Date?
         /**
          The number of times that an animated image should play through its frames before stopping.
 
          A value of `0` means the animated image repeats forever.
          */
-        public let loopCount: Int?
+        public var loopCount: Int?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          The value of this key is never less than `100` millseconds, and the system adjusts values less than that amount to `100` milliseconds, as needed. Use ``unclampedDelayTime`` for the unclamped delay time.
          */
-        public let clampedDelayTime: Double?
+        public var clampedDelayTime: Double?
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          This value may be `0` milliseconds or higher. Unlike the ``unclampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
-        public let unclampedDelayTime: Double?
+        public var unclampedDelayTime: Double?
         
         /// A description of the image.
-        public let description: String?
+        public var description: String?
         /// The disclaimer for the image.
-        public let disclaimer: String?
+        public var disclaimer: String?
         /// The gamma value.
-        public let gamma: Double?
+        public var gamma: Double?
         /// The interlace type.
-        public let interlaceType: InterlaceType?
+        public var interlaceType: InterlaceType?
         /// The modification date of the image.
-        public let modificationTime: Date?
+        public var modificationTime: Date?
         /// The pixel aspect ratio of the PNG image.
-        public let pixelAspectRatio: Double?
+        public var pixelAspectRatio: Double?
         /// The software used to create the image.
-        public let software: String?
+        public var software: String?
         /// The source description for the PNG image.
-        public let source: String?
+        public var source: String?
         /// The title of the image.
-        public let title: String?
+        public var title: String?
         /// The warning for the image.
-        public let warning: String?
+        public var warning: String?
         /// The number of pixels per meter along the x-axis.
-        public let xPixelsPerMeter: Double?
+        public var xPixelsPerMeter: Double?
         /// The number of pixels per meter along the y-axis.
-        public let yPixelsPerMeter: Double?
+        public var yPixelsPerMeter: Double?
         /// The sRGB intent.
-        public let sRGBIntent: SRGBIntent?
+        public var sRGBIntent: SRGBIntent?
 
         /// The number of seconds to wait before displaying the next image in an animated sequence.
         public var delayTime: Double? {
@@ -76,10 +76,10 @@ public extension ImageProperties {
         }
         
         /// The pixel width of the main image.
-        public let canvasPixelWidth: Double?
+        public var canvasPixelWidth: Double?
         
         /// The pixel height of the main image.
-        public let canvasPixelHeight: Double?
+        public var canvasPixelHeight: Double?
         
         /// The pixel size of the main image.
         public var canvasPixelSize: CGSize? {
@@ -88,7 +88,7 @@ public extension ImageProperties {
         }
         
         /// The clamped and unclamped delay times for each frame, representing the number of seconds to wait before displaying the next image in an animated sequence.
-        public let framesInfo: [FrameInfo]?
+        public var framesInfo: [FrameInfo]?
         
         /// The rendering intent of a PNG image.
         public enum SRGBIntent: Int, Codable {
@@ -125,7 +125,7 @@ public extension ImageProperties {
             /// A filter in which each byte is replaced with the difference between it and the Paeth predictor of the bytes to its left, above, and upper left.
             public static let paeth = CompressionFilter(rawValue: IMAGEIO_PNG_FILTER_PAETH)
             
-            public let rawValue: Int32
+            public var rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }
         }
 

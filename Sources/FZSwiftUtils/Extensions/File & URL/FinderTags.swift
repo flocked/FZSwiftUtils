@@ -20,9 +20,13 @@ public struct FinderTag: Hashable, CustomStringConvertible {
         self.name = name
         self.color = color
     }
+    
+    var rawValue: String {
+        "\(name)\n\(color.rawValue)"
+    }
 
-    init?(string: String) {
-        let components = string.split(separator: "\n")
+    init?(_ rawValue: String) {
+        let components = rawValue.split(separator: "\n")
         guard let name = components.first else { return nil }
         self.name = String(name)
         guard components.count > 1, let color = Color(rawValue: Int(components[1]) ?? -1) else { return }
@@ -31,6 +35,41 @@ public struct FinderTag: Hashable, CustomStringConvertible {
     
     public var description: String {
         "\(name) (\(color))"
+    }
+    
+    /// A gray Finder tag with the specified name.
+    public static func gray(_ name: String) -> Self {
+        .init(name: name, color: .gray)
+    }
+    
+    /// A green Finder tag with the specified name.
+    public static func green(_ name: String) -> Self {
+        .init(name: name, color: .green)
+    }
+    
+    /// A purple Finder tag with the specified name.
+    public static func purple(_ name: String) -> Self {
+        .init(name: name, color: .purple)
+    }
+    
+    /// A blue Finder tag with the specified name.
+    public static func blue(_ name: String) -> Self {
+        .init(name: name, color: .blue)
+    }
+    
+    /// A yellow Finder tag with the specified name.
+    public static func yellow(_ name: String) -> Self {
+        .init(name: name, color: .yellow)
+    }
+    
+    /// A red Finder tag with the specified name.
+    public static func red(_ name: String) -> Self {
+        .init(name: name, color: .red)
+    }
+    
+    /// An orange Finder tag with the specified name.
+    public static func orange(_ name: String) -> Self {
+        .init(name: name, color: .orange)
     }
     
     /// The color of a Finder tag.

@@ -294,22 +294,11 @@ public class URLResources {
     /// The Finder tags of the resource.
     public var finderTags: [FinderTag] {
         get {
-            do {
-                let data = try url.extendedAttributes.getData(for: "com.apple.metadata:_kMDItemUserTags")
-                let strings = try PropertyListDecoder().decode([String].self, from: data)
-                return strings.compactMap({FinderTag(string: $0)})
-            } catch {
-                Swift.print(error)
-                return []
-            }
+           return (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) })
         }
         set {
-            do {
-                let data = try PropertyListSerialization.data(fromPropertyList: newValue.uniqued().map({"\($0.name)\n\($0.color.rawValue)"}), format: .binary, options: 0)
-                try url.extendedAttributes.setData(data, for: "com.apple.metadata:_kMDItemUserTags")
-            } catch {
-                Swift.print(error)
-            }
+            let newValue = newValue.uniqued()
+            url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] = newValue.isEmpty ? nil : newValue.map(\.rawValue)
         }
     }
     
@@ -653,6 +642,291 @@ extension URLResources {
     }
 }
 #endif
+
+extension URLResources {
+    /// Keys that apply to file system URLs.
+    public struct Keys: Hashable, RawRepresentable, Sendable {
+        /// Name of the resource in the file system.
+        public static let name = Self(.nameKey)
+
+        /// Localized or extension-hidden name  as displayed to users.
+        public static let localizedName = Self(.localizedNameKey)
+
+        /// A Boolean value indicating whether the resource is a regular file rather than a directory or a symbolic link.
+        public static let isRegularFile = Self(.isRegularFileKey)
+
+        /// A Boolean value indicating if the resource is a directory.
+        public static let isDirectory = Self(.isDirectoryKey)
+
+        /**
+         The count of file system objects in the directory.
+
+         This value is a count of objects that are actually in the file system, so it excludes virtual items like “.” and “..”. This property is useful for quickly identifying an empty directory for backup and syncing. If the URL isn’t a directory, or the file system can’t cheaply compute the value, the value is `nil`.
+         */
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        public static let directoryEntryCount = Self(.directoryEntryCountKey)
+
+        /// A Boolean value indicating if the resource is a isymbolic link.
+        public static let isSymbolicLink = Self(.isSymbolicLinkKey)
+
+        /// A Boolean value indicating if the resource is a volume.
+        public static let isVolume = Self(.isVolumeKey)
+
+        /**
+         A Boolean value indicating if the resource is a packaged directory.
+
+         - Note: You can only set or clear this property on directories; if you try to set this property on non-directory objects, the property is ignored. If the directory is a package for some other reason (extension type, etc), setting this property to false will have no effect.
+         */
+        public static let isPackage = Self(.isPackageKey)
+
+        /// A Boolean value indicating if the resource is an application.
+        public static let isApplication = Self(.isApplicationKey)
+
+        /// A Boolean value indicating if the resource is system-immutable.
+        public static let isSystemImmutable = Self(.isSystemImmutableKey)
+
+        /// A Boolean value indicating if the resource is user-immutable.
+        public static let isUserImmutable = Self(.isUserImmutableKey)
+
+        /**
+         A Boolean value indicating if the resource is normally not displayed to users.
+
+         - Note: If the resource is a hidden because its name starts with a period, setting this property to false will not change the property.
+         */
+        public static let isHidden = Self(.isHiddenKey)
+
+        /// A Boolean value indicating if the resources filename extension is removed from the localizedName property.
+        public static let hasHiddenExtension = Self(.hasHiddenExtensionKey)
+
+        /// Creation date of the resource.
+        public static let creationDate = Self(.creationDateKey)
+
+        /// Date the resource was created, or renamed into or within its parent directory.
+        public static let addedToDirectoryDate = Self(.addedToDirectoryDateKey)
+
+        /// Date the resource content was last accessed.
+        public static let contentAccessDate = Self(.contentAccessDateKey)
+
+        /// Date the resource content was last modified.
+        public static let contentModificationDate = Self(.contentModificationDateKey)
+
+        /// Date the resource’s attributes were last modified.
+        public static let attributeModificationDate = Self(.attributeModificationDateKey)
+
+        /// Number of hard links to the resource.
+        public static let linkCount = Self(.linkCountKey)
+
+        /// The resource’s parent directory, if any.
+        public static let parentDirectory = Self(.parentDirectoryURLKey)
+
+        /// User-visible type or “kind” description of the resource.
+        public static let localizedTypeDescription = Self(.localizedTypeDescriptionKey)
+
+        /// The label number assigned to the resource.
+        public static let labelNumber = Self(.labelNumberKey)
+
+        /// The user-visible label text of the resource.
+        public static let labelLocalizedName = Self(.localizedLabelKey)
+
+        /// A value APFS assigns that identifies a file’s content data stream.
+        public static let fileContentIdentifier = Self(.fileContentIdentifierKey)
+
+        /// The optimal block size when reading or writing this file’s data, or `nil` if not available.
+        public static let preferredIOBlockSize = Self(.preferredIOBlockSizeKey)
+
+        /// A Boolean value indicating if the resource is readable.
+        public static let isReadable = Self(.isReadableKey)
+
+        /// A Boolean value indicating if the resource is writable.
+        public static let isWritable = Self(.isWritableKey)
+
+        /// A Boolean value indicating if the resource is executable.
+        public static let isExecutable = Self(.isExecutableKey)
+
+        public static let fileSecurity = Self(.fileSecurityKey)
+
+        /// A Boolean value indicating whether the resource is excluded from backups.
+        public static let isExcludedFromBackup = Self(.isExcludedFromBackupKey)
+
+        /// File system path to the resource.
+        public static let path = Self(.pathKey)
+
+        /// The resource’s path as a canonical absolute file system path.
+        public static let canonicalPath = Self(.canonicalPathKey)
+
+        /// A Boolean value indicating whether the resource is a file system trigger directory.
+        public static let isMountTrigger = Self(.isMountTriggerKey)
+
+        /**
+         An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
+
+         For files the generation identifier will change when the data in the file’s data fork is changed. Changes to extended attributes or other file system metadata do not change the generation identifier.
+
+         For directories the generation identifier will change when direct children of that directory are added, removed or renamed. Changes to the data of the direct children will not change the generation identifier.
+
+         The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
+         */
+        public static let generationIdentifier = Self(.generationIdentifierKey)
+
+        /**
+         The identifier of the resource.
+
+         The value is assigned by the kernel to identify the resource regardless of where it moves on a volume.
+
+         The identifier survives safe-save operation, and is sticky to the path the kernel assigns. [replaceItemAt(_:withItemAt:backupItemName:options:)](https://developer.apple.com/documentation/foundation/filemanager/replaceitemat(_:withitemat:backupitemname:options:)-4210g) is the preferred safe-save API.
+
+         The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource. The identifier is only unique within a single volume and not all volumes support this property.
+         */
+        public static let identifier = Self(.documentIdentifierKey)
+
+        /// A Boolean value indicating whether the file may have extended attributes.
+        public static let mayHaveExtendedAttributes = Self(.mayHaveExtendedAttributesKey)
+
+        /// A Boolean value indicating whether the file system can delete the file when the system needs to free space.
+        public static let isPurgeable = Self(.isPurgeableKey)
+
+        /// A Boolean value indicating whether the file has sparse regions.
+        public static let isSparse = Self(.isSparseKey)
+
+        /// A Boolean value indicating whether the cloned files and their original files may share data blocks.
+        public static let mayShareFileContent = Self(.mayShareFileContentKey)
+
+        /// The type of the fresource.
+        public static let fileResourceType = Self(.fileResourceTypeKey)
+
+        /// A Boolean value indicating whether the resource is in the iCloud storage.
+        public static let isUbiquitousItem = Self(.isUbiquitousItemKey)
+
+        /// A Boolean value indicating whether the resource has outstanding conflicts.
+        public static let ubiquitousItemHasUnresolvedConflicts = Self(.ubiquitousItemHasUnresolvedConflictsKey)
+
+        /// A Boolean value indicating whether the system is downloading the resource.
+        public static let ubiquitousItemIsDownloading = Self(.ubiquitousItemIsDownloadingKey)
+
+        /// A Boolean value indicating whether data is present in the cloud for the resource.
+        public static let ubiquitousItemIsUploaded = Self(.ubiquitousItemIsUploadedKey)
+
+        /// A Boolean value indicating whether the system is uploading the resource.
+        public static let ubiquitousItemIsUploading = Self(.ubiquitousItemIsUploadingKey)
+
+        /// The download status of the resource.
+        public static let ubiquitousItemDownloadingStatus = Self(.ubiquitousItemDownloadingStatusKey)
+
+        /// The protection level for the resource.
+        public static let fileProtection = Self(.fileProtectionKey)
+
+        /// The total file size.
+        public static let fileSize = Self(.fileSizeKey)
+
+        /// The total allocated size on-disk for the file.
+        public static let fileAllocatedSize = Self(.fileAllocatedSizeKey)
+
+        /// The total displayable size of the file.
+        public static let totalFileSize = Self(.totalFileSizeKey)
+
+        /// The total allocated size of the file.
+        public static let totalFileAllocatedSize = Self(.totalFileAllocatedSizeKey)
+
+        /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
+        public static let isAliasFile = Self(.isAliasFileKey)
+
+        /// The content type of the resource.
+        public static let contentType = Self(.contentTypeKey)
+
+        #if os(macOS)
+        /**
+         The Finder tags of the resource.
+
+         To get or change the colors of the tags, use ``finderTags``.
+         */
+        public static let finderTagNames = Self(.tagNamesKey)
+
+        /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
+        public static let applicationIsScriptable = Self(.applicationIsScriptableKey)
+
+        /// The quarantine properties of the resource.
+        public static let quarantineProperties = Self(.quarantinePropertiesKey)
+
+        /// The icon stored with the resource.
+        public static let customIcon = Self(.customIconKey)
+
+        /// The normal icon for the resource.
+        public static let effectiveIcon = Self(.effectiveIconKey)
+
+        /// The label color of the resource.
+        public static let labelColor = Self(.labelColorKey)
+        #endif
+
+        /// The url of the volume.
+        public static let volumeURL = Self(.volumeURLKey)
+
+        /// The name of the volume.
+        public static let volumeName = Self(.volumeNameKey)
+
+        /// The name of the volume as it should be displayed in the user interface.
+        public static let volumeLocalizedName = Self(.volumeLocalizedNameKey)
+
+        /// The persistent UUID of the volume.
+        public static let volumeUUID = Self(.volumeUUIDStringKey)
+
+        /// The total number of resources on the volume.
+        public static let volumeResourceCount = Self(.volumeResourceCountKey)
+
+        /// The creation date of the volume.
+        public static let volumeCreationDate = Self(.volumeCreationDateKey)
+
+        /// A Boolean value indicating whether the volume is read-only.
+        public static let volumeIsReadOnly = Self(.volumeIsReadOnlyKey)
+
+        /// A Boolean value indicating whether the volume supports setting standard access permissions.
+        public static let volumeSupportsAccessPermissions = Self(.volumeSupportsAccessPermissionsKey)
+
+        /// A Boolean value indicating whether the volume can be renamed.
+        public static let volumeSupportsRenaming = Self(.volumeSupportsRenamingKey)
+
+        /// A Boolean value indicating whether the volume supports symbolic links.
+        public static let volumeSupportsSymbolicLinks = Self(.volumeSupportsSymbolicLinksKey)
+
+        /// A Boolean value indicating whether the volume is removable.
+        public static let volumeIsRemovable = Self(.volumeIsRemovableKey)
+
+        /// A Boolean value indicating whether the volume is stored on a local device.
+        public static let volumeIsLocal = Self(.volumeIsLocalKey)
+
+        /// A Boolean value indicating whether the volume’s device is connected to an internal bus, or nil if not available.
+        public static let volumeIsInternal = Self(.volumeIsInternalKey)
+
+        /// A Boolean value indicating whether the volume is ejectable.
+        public static let volumeIsEjectable = Self(.volumeIsEjectableKey)
+
+        /// A Boolean value indicating whether the volume is the root filesystem.
+        public static let volumeIsRootFileSystem = Self(.volumeIsRootFileSystemKey)
+
+        /// The available capacity of the volume.
+        public static let volumeAvailableCapacity = Self(.volumeAvailableCapacityKey)
+
+        #if os(macOS) || os(iOS)
+        /// The volume’s available capacity for storing nonessential resources, in bytes.
+        public static let volumeAvailableCapacityForImportantUsage = Self(.volumeAvailableCapacityForImportantUsageKey)
+
+        /// The available capacity of the volume.
+        public static let volumeAvailableCapacityForOpportunisticUsage = Self(.volumeAvailableCapacityForOpportunisticUsageKey)
+        #endif
+
+        /// The total capacity of the volume.
+        public static let volumeTotalCapacity = Self(.volumeTotalCapacityKey)
+
+        public init(rawValue: URLResourceKey) {
+            self.rawValue = rawValue
+        }
+
+        init(_ key: URLResourceKey) {
+            self.rawValue = key
+        }
+
+        public let rawValue: URLResourceKey
+    }
+}
 
 fileprivate extension BinaryInteger {
     var dataSize: DataSize {

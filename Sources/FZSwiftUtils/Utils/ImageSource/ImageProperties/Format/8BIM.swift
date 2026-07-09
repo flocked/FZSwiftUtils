@@ -12,12 +12,12 @@ public extension ImageProperties {
     /// Properties of an Adobe Photoshop image.
     struct A8BIM: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /// The Adobe Photoshop resource version of the image.
-        public let version: Int?
+        public var version: Int?
         /// The layer names stored in the Adobe Photoshop resource data.
-        public let layerNames: [String]?
+        public var layerNames: [String]?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue

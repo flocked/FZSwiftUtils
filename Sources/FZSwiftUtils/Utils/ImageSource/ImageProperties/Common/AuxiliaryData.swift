@@ -11,15 +11,15 @@ import ImageIO
 extension ImageProperties {
     public struct AuxiliaryData: RawRepresentable {
         /// The type of the auxiliary data.
-        public let type: AuxiliaryDataType
+        public var type: AuxiliaryDataType
         /// The auxiliary data for the image.
-        public let data: Data?
+        public var data: Data?
         /// A dictionary of keys that describe the auxiliary data.
-        public let dataDescription: [CFString: Any]?
+        public var dataDescription: [CFString: Any]?
         /// The metadata for any auxiliary data.
-        public let metadata: CGImageMetadata?
+        public var metadata: CGImageMetadata?
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         
         public init(type: AuxiliaryDataType, data: Data?, dataDescription: [CFString: Any]? = nil, metadata: CGImageMetadata? = nil) {
             var rawValue: [CFString: Any] = [kCGImagePropertyAuxiliaryDataType: type.rawValue]
@@ -70,7 +70,7 @@ extension ImageProperties.AuxiliaryData {
         /// The type for teeth matte information.
         public static let semanticSegmentationTeethMatte = Self(kCGImageAuxiliaryDataTypeSemanticSegmentationTeethMatte)
 
-        public let rawValue: CFString
+        public var rawValue: CFString
 
         public init(rawValue: CFString) {
             self.rawValue = rawValue

@@ -13,249 +13,249 @@ public extension ImageProperties {
     /// Exchangeable Image File Format (EXIF) data.
     struct EXIF: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         //  MARK: - Camera Settings
         
         /// For a particular camera mode, indicates the conditions for taking the picture.
-        public let deviceSettingDescription: Any?
+        public var deviceSettingDescription: Any?
         
         /// The F-number.
-        public let fNumber: Double?
+        public var fNumber: Double?
         
         /// The shutter speed value.
-        public let shutterSpeedValue: Double?
+        public var shutterSpeedValue: Double?
         
         /// The aperture value.
-        public let apertureValue: Double?
+        public var apertureValue: Double?
         
         /// The maximum aperture value.
-        public let maxApertureValue: Double?
+        public var maxApertureValue: Double?
         
         /// The focal length.
-        public let focalLength: Double?
+        public var focalLength: Double?
         
         /// The spectral sensitivity of each channel.
-        public let spectralSensitivity: Double?
+        public var spectralSensitivity: Double?
         
         /// The ISO speed ratings.
-        public let isoSpeedRatings: [Double]?
+        public var isoSpeedRatings: [Double]?
         
         /// The distance to the subject, in meters.
-        public let subjectDistance: Double?
+        public var subjectDistance: Double?
         
         /// The metering mode.
-        public let meteringMode: MeteringMode?
+        public var meteringMode: MeteringMode?
         
         /// The subject area.
-        public let subjectArea: SubjectArea?
+        public var subjectArea: SubjectArea?
         
         /// The location of the image’s primary subject.
-        public let subjectLocation: CGPoint?
+        public var subjectLocation: CGPoint?
         
         /// The sensor type of the camera or input device.
-        public let sensingMethod: SensingMethod?
+        public var sensingMethod: SensingMethod?
         
         /// The scene type.
-        public let sceneType: Int?
+        public var sceneType: Int?
         
         /// The digital zoom ratio.
-        public let digitalZoomRatio: Double?
+        public var digitalZoomRatio: Double?
         
         /// The equivalent focal length in 35 mm film.
-        public let focalLengthIn35mmFilm: Double?
+        public var focalLengthIn35mmFilm: Double?
         
         /// The scene capture type; for example, standard, landscape, portrait, or night.
-        public let sceneCaptureType: SceneCaptureType?
+        public var sceneCaptureType: SceneCaptureType?
         
         /// The distance to the subject.
-        public let subjectDistanceRange: SubjectDistanceRangeType?
+        public var subjectDistanceRange: SubjectDistanceRangeType?
         
         //  MARK: - Exposure
         
         /// The exposure time.
-        public let exposureTime: TimeInterval?
+        public var exposureTime: TimeInterval?
         
         /// The exposure program.
-        public let exposureProgram: ExposureProgram?
+        public var exposureProgram: ExposureProgram?
         
         /// The selected exposure index.
-        public let exposureIndex: Double?
+        public var exposureIndex: Double?
         
         /// The exposure mode setting.
-        public let exposureMode: ExposureMode?
+        public var exposureMode: ExposureMode?
         
         /// The ISO speed setting used to capture the image.
-        public let isoSpeed: Double?
+        public var isoSpeed: Double?
         
         /// The ISO speed latitude yyy value.
-        public let isoSpeedLatitudeYYY: Double?
+        public var isoSpeedLatitudeYYY: Double?
         
         /// The ISO speed latitude zzz value.
-        public let isoSpeedLatitudeZZZ: Double?
+        public var isoSpeedLatitudeZZZ: Double?
         
         /// The recommended exposure index.
-        public let recommendedExposureIndex: Int?
+        public var recommendedExposureIndex: Int?
         
         /// The exposure bias value.
-        public let exposureBiasValue: Double?
+        public var exposureBiasValue: Double?
         
         /// The type of sensitivity data stored for the image.
-        public let sensitivityType: SensitivityType?
+        public var sensitivityType: SensitivityType?
         
         /// The sensitivity data for the image.
-        public let standardOutputSensitivity: UInt?
+        public var standardOutputSensitivity: UInt?
         
         /// The exposure times for composite images.
-        public let sourceExposureTimesOfCompositeImage: Any?
+        public var sourceExposureTimesOfCompositeImage: Any?
         
         //  MARK: - Image Quality
         
         /// The color filter array (CFA) pattern, which is the geometric pattern of the image sensor for a 1-chip color sensor area.
-        public let cfaPattern: Any?
+        public var cfaPattern: Any?
         
         /// The brightness value.
-        public let brightnessValue: Double?
+        public var brightnessValue: Double?
         
         /// The light source.
-        public let lightSource: LightSourceType?
+        public var lightSource: LightSourceType?
         
         /// The flash status when the image was shot.
-        public let flash: Flash?
+        public var flash: Flash?
         
         /// The spatial frequency table and spatial frequency response values in the width, height, and diagonal directions.
-        public let spatialFrequencyResponse: String?
+        public var spatialFrequencyResponse: String?
         
         /// The contrast setting.
-        public let contrast: ContrastDirection?
+        public var contrast: ContrastDirection?
         
         /// The saturation setting.
-        public let saturation: SaturationDirection?
+        public var saturation: SaturationDirection?
         
         /// The sharpness setting.
-        public let sharpness: SharpnessDirection?
+        public var sharpness: SharpnessDirection?
         
         /// The gamma setting.
-        public let gamma: Double?
+        public var gamma: Double?
         
         /// The white balance mode.
-        public let whiteBalance: WhiteBalanceMode?
+        public var whiteBalance: WhiteBalanceMode?
         
         //  MARK: - Image Settings
         
         /// The gain adjustment setting.
-        public let gainControl: GainControl?
+        public var gainControl: GainControl?
         
         /// The unique ID of the image.
-        public let imageUniqueId: String?
+        public var imageUniqueId: String?
         
         /// The bits per pixel of the compression mode.
-        public let compressedBitsPerPixel: Double?
+        public var compressedBitsPerPixel: Double?
         
         /// The color space.
-        public let colorSpace: ColorSpace?
+        public var colorSpace: ColorSpace?
         
         /// The x dimension of a pixel.
-        public let pixelXDimension: UInt?
+        public var pixelXDimension: UInt?
         
         /// The y dimension of a pixel.
-        public let pixelYDimension: UInt?
+        public var pixelYDimension: UInt?
         
         /// A sound file related to the image.
-        public let relatedSoundFile: String?
+        public var relatedSoundFile: String?
         
         /// The number of image-width pixels (x-axis) per focal plane resolution unit.
-        public let focalPlaneXResolution: Double?
+        public var focalPlaneXResolution: Double?
         
         /// The number of image-height pixels (y-axis) per focal plane resolution unit.
-        public let focalPlaneYResolution: Double?
+        public var focalPlaneYResolution: Double?
         
         /// The unit of measurement for the focal plane x and y resolutions.
-        public let focalPlaneResolutionUnit: ResolutionUnit?
+        public var focalPlaneResolutionUnit: ResolutionUnit?
         
         /// Special rendering performed on the image data.
-        public let customRendered: CustomRenderedType?
+        public var customRendered: CustomRenderedType?
         
-        public let compositeImage: CompositeImageType?
+        public var compositeImage: CompositeImageType?
         
         /// The opto-electric conversion function (OECF) that defines the relationship between the optical input of the camera and the resulting image.
-        public let oecf: Double?
+        public var oecf: Double?
         
         /// The components configuration for compressed data.
-        public let componentsConfiguration: [Int]?
+        public var componentsConfiguration: [Int]?
         
         /// The number of images that make up a composite image.
-        public let sourceImageNumberOfCompositeImage: [Int]?
+        public var sourceImageNumberOfCompositeImage: [Int]?
         
         /// The image source.
-        public let fileSource: FileSourceType?
+        public var fileSource: FileSourceType?
         
         //  MARK: - Timestamp
         
         /// The original date and time.
-        public let dateTimeOriginal: Date?
+        public var dateTimeOriginal: Date?
         
         /// The digitized date and time.
-        public let dateTimeDigitized: Date?
+        public var dateTimeDigitized: Date?
         
         /// The fraction of seconds for the date and time tag.
-        public let subsecTime: String?
+        public var subsecTime: String?
         
         /// The fraction of seconds for the original date and time tag.
-        public let subsecTimeOriginal: String?
+        public var subsecTimeOriginal: String?
         
         /// The fraction of seconds for the digitized date and time tag.
-        public let subsecTimeDigitized: String?
+        public var subsecTimeDigitized: String?
         
         
-        public let offsetTime: String?
+        public var offsetTime: String?
         
         
-        public let offsetTimeOriginal: String?
+        public var offsetTimeOriginal: String?
         
         
-        public let offsetTimeDigitized: String?
+        public var offsetTimeDigitized: String?
         
         //  MARK: - Lens Information
         
         /// The specification information for the camera lens.
-        public let lensSpecification: [Double]?
+        public var lensSpecification: [Double]?
         
         /// A string with the name of the lens manufacturer.
-        public let lensMake: String?
+        public var lensMake: String?
         
         /// A string with the lens model information.
-        public let lensModel: String?
+        public var lensModel: String?
         
         /// A string with the lens’s serial number.
-        public let lensSerialNumber: String?
+        public var lensSerialNumber: String?
         
         //  MARK: - Camera Information
         
         /// Information specified by the camera manufacturer.
-        public let makerNote: String?
+        public var makerNote: String?
         
         /// A user comment.
-        public let userComment: String?
+        public var userComment: String?
         
         /// A string with the name of the camera’s owner.
-        public let cameraOwnerName: String?
+        public var cameraOwnerName: String?
         
         /// A string with the serial number of the camera.
-        public let bodySerialNumber: String?
+        public var bodySerialNumber: String?
         
         //  MARK: - Flash Information
         
         /// The FlashPix version supported by an FPXR file.
-        public let flashpixVersion: [Int]?
+        public var flashpixVersion: [Int]?
         
         /// The strobe energy when the image was captured, in beam candle power seconds.
-        public let flashEnergy: Int?
+        public var flashEnergy: Int?
         
         //  MARK: - EXIF Format
         
         /// The EXIF version.
-        public let exifVersion: [Int]?
+        public var exifVersion: [Int]?
         
         /// A Boolean value indicating whether the image is a screenshot.
         public var isScreenshot: Bool {
@@ -493,10 +493,10 @@ public extension ImageProperties.EXIF {
     
     /// Represents EXIF flash metadata.
      struct Flash: RawRepresentable, CustomStringConvertible {
-        public let rawValue: Int
+        public var rawValue: Int
         
         /// The flash flags stored in the EXIF value.
-        public let options: Options
+        public var options: Options
         
         public init(rawValue: Int) {
             self.rawValue = rawValue
@@ -542,7 +542,7 @@ public extension ImageProperties.EXIF {
         /// Represents EXIF flash bit flags.
         public struct Options: OptionSet {
 
-            public let rawValue: Int
+            public var rawValue: Int
 
             public init(rawValue: Int) {
                 self.rawValue = rawValue

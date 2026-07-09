@@ -36,9 +36,9 @@ public struct ImageProperties: RawRepresentable {
     /// A Boolean value that indicates whether the image contains floating-point pixel samples.
     public let isFloat: Bool
     /// The total number of bytes in each row of the image.
-    public var bytesPerRow: Int?
+    public let bytesPerRow: Int?
         
-    private var _orientation: CGImagePropertyOrientation?
+    private let _orientation: CGImagePropertyOrientation?
 
     /// Additional GIF properties of the image.
     public let gif: GIF?
@@ -199,94 +199,29 @@ public struct ImageProperties: RawRepresentable {
     }
 }
 
-/// A type that exposes raw image property metadata.
-public protocol ImagePropertiesRawValueProviding {
-    /// The raw image property metadata.
-    var rawValue: [CFString: Any] { get }
-}
-
-public extension ImagePropertiesRawValueProviding {
-    /// The keys contained in the raw image property metadata.
-    var keys: Dictionary<CFString, Any>.Keys {
-        rawValue.keys
-    }
-    
-    /// The values contained in the raw image property metadata.
-    var values: Dictionary<CFString, Any>.Values {
-        rawValue.values
-    }
-    
-    /// Returns the raw metadata value for the specified key.
-    subscript(key: CFString) -> Any? {
-        rawValue[key]
-    }
-    
-    /// Returns the metadata value for the specified key as the inferred type.
-    subscript<T>(typed key: CFString) -> T? {
-        guard let value = self[key] else { return nil }
-        guard let value = value as? T else {
-            Swift.print("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
-            return nil
-        }
-        return value
-    }
-    
-    /// Returns the metadata value for the specified key as the inferred raw-representable type.
-    subscript<T>(typed key: CFString) -> T? where T: RawRepresentable {
-        guard let value = self[key] else { return nil }
-        guard let rawValue = value as? T.RawValue, let value = T(rawValue: rawValue) else {
-            Swift.print("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
-            return nil
-        }
-        return value
-    }
-}
-
-extension ImageProperties: ImagePropertiesRawValueProviding {}
-extension ImageProperties.A8BIM: ImagePropertiesRawValueProviding {}
-extension ImageProperties.AuxiliaryData: ImagePropertiesRawValueProviding {}
-extension ImageProperties.Canon: ImagePropertiesRawValueProviding {}
-extension ImageProperties.CIFF: ImagePropertiesRawValueProviding {}
-extension ImageProperties.DNG: ImagePropertiesRawValueProviding {}
-extension ImageProperties.EXIF: ImagePropertiesRawValueProviding {}
-extension ImageProperties.GIF: ImagePropertiesRawValueProviding {}
-extension ImageProperties.GPS: ImagePropertiesRawValueProviding {}
-extension ImageProperties.HEIC: ImagePropertiesRawValueProviding {}
-extension ImageProperties.IPTC: ImagePropertiesRawValueProviding {}
-extension ImageProperties.IPTC.Artwork: ImagePropertiesRawValueProviding {}
-extension ImageProperties.IPTC.CreatorContactInfo: ImagePropertiesRawValueProviding {}
-extension ImageProperties.JPEG: ImagePropertiesRawValueProviding {}
-extension ImageProperties.FrameInfo: ImagePropertiesRawValueProviding {}
-extension ImageProperties.Nikon: ImagePropertiesRawValueProviding {}
-extension ImageProperties.OpenEXRA: ImagePropertiesRawValueProviding {}
-extension ImageProperties.PNG: ImagePropertiesRawValueProviding {}
-extension ImageProperties.TGA: ImagePropertiesRawValueProviding {}
-extension ImageProperties.TIFF: ImagePropertiesRawValueProviding {}
-extension ImageProperties.WEBP: ImagePropertiesRawValueProviding {}
-
 extension ImageProperties {
-    public static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssXXXXX", "yyyyMMdd", "yyyy:MM:dd HH:mm:ss"]).includeISO8601(true).adjusted(true)
+    static let dateFormatter = DateFormatter.multiple(["yyyy:MM:dd HH:mm:ss", "HH:mm:ss.SSS", "YYYY:MM:DD", "HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ssXXXXX", "yyyyMMdd", "yyyy:MM:dd HH:mm:ss"]).includeISO8601(true).adjusted(true)
 }
 
 extension ImageProperties {
     /// Infromation about a single image frame.
     public struct FrameInfo {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         
         /**
          The number of seconds to wait before displaying the next image in the sequence, clamped to a minimum of 0.1 seconds.
          
          The value of this key is never less than 100 millseconds, and the system adjusts values less than that amount to 100 milliseconds, as needed. See ``unclampedDelayTime`` for the unclamped delay time.
          */
-        public let delayTime: Double?
+        public var delayTime: Double?
         
         /**
          The number of seconds to wait before displaying the next image in an animated sequence.
 
          This value may be 0 milliseconds or higher. Unlike the ``clampedDelayTime`` property, this value is not clamped at the low end of the range.
          */
-        public let unclampedDelayTime: Double?
+        public var unclampedDelayTime: Double?
         
         init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue
@@ -298,22 +233,26 @@ extension ImageProperties {
     /// The color model of an image, such as RGB, CMYK, grayscale, or Lab.
     public struct ColorModel: RawRepresentable, CustomStringConvertible {
         /// Red, Green, Blue (RGB) color model.
-        public static let rgb = Self(rawValue: kCGImagePropertyColorModelRGB as String)
+        public static let rgb = Self(kCGImagePropertyColorModelRGB)
         /// Grayscale color model.
-        public static let gray = Self(rawValue: kCGImagePropertyColorModelGray as String)
+        public static let gray = Self(kCGImagePropertyColorModelGray)
         /// Cyan, Magenta, Yellow, Black (CMYK) color model.
-        public static let cmyk = Self(rawValue: kCGImagePropertyColorModelCMYK as String)
+        public static let cmyk = Self(kCGImagePropertyColorModelCMYK)
         /// CIE Lab color model.
-        public static let lab = Self(rawValue: kCGImagePropertyColorModelLab as String)
+        public static let lab = Self(kCGImagePropertyColorModelLab)
         
         public var description: String {
             rawValue
         }
         
-        public let rawValue: String
+        public var rawValue: String
         
         public init(rawValue: String) {
             self.rawValue = rawValue
+        }
+        
+        init(_ rawValue: CFString) {
+            self.rawValue = rawValue as String
         }
     }
 }

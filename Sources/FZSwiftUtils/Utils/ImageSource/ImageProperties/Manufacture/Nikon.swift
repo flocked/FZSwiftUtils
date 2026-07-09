@@ -12,44 +12,44 @@ public extension ImageProperties {
     /// Nikon camera specific image properties.
     struct Nikon: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /// The ISO setting values recorded by the Nikon camera.
-        public let iSOSetting: [Int]?
+        public var iSOSetting: [Int]?
         /// The color mode selected on the Nikon camera.
-        public let colorMode: String?
+        public var colorMode: String?
         /// The image quality mode selected on the Nikon camera.
-        public let quality: String?
+        public var quality: String?
         /// The white balance mode selected on the Nikon camera.
-        public let whiteBalanceMode: String?
+        public var whiteBalanceMode: String?
         /// The sharpening mode selected on the Nikon camera.
-        public let sharpenMode: String?
+        public var sharpenMode: String?
         /// The focus mode selected on the Nikon camera.
-        public let focusMode: String?
+        public var focusMode: String?
         /// The flash setting selected on the Nikon camera.
-        public let flashSetting: String?
+        public var flashSetting: String?
         /// The ISO selection mode selected on the Nikon camera.
-        public let iSOSelection: String?
+        public var iSOSelection: String?
         /// The flash exposure compensation applied by the Nikon camera.
-        public let flashExposureComp: Double?
+        public var flashExposureComp: Double?
         /// The image adjustment mode selected on the Nikon camera.
-        public let imageAdjustment: String?
+        public var imageAdjustment: String?
         /// The lens adapter value recorded by the Nikon camera.
-        public let lensAdapter: String?
+        public var lensAdapter: String?
         /// The type flags of the mounted Nikon lens.
-        public let lensType: LensType?
+        public var lensType: LensType?
         /// The lens information string recorded by the Nikon camera.
-        public let lensInfo: String?
+        public var lensInfo: String?
         /// The focus distance recorded by the Nikon camera.
-        public let focusDistance: Double?
+        public var focusDistance: Double?
         /// The digital zoom factor used by the Nikon camera.
-        public let digitalZoom: Double?
+        public var digitalZoom: Double?
         /// The shooting mode flags recorded by the Nikon camera.
-        public let shootingMode: ShootingMode?
+        public var shootingMode: ShootingMode?
         /// The serial number of the Nikon camera.
-        public let cameraSerialNumber: String?
+        public var cameraSerialNumber: String?
         /// The shutter count of the Nikon camera.
-        public let shutterCount: Int?
+        public var shutterCount: Int?
 
         /// The Nikon shooting mode flags.
         public struct ShootingMode: OptionSet, Codable {
@@ -72,7 +72,7 @@ public extension ImageProperties {
             /// Captures images with varying D-Lighting levels.
             public static let dLightingBracketing = ShootingMode(rawValue: 1 << 8)
 
-            public let rawValue: Int32
+            public var rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }
         }
 
@@ -87,7 +87,7 @@ public extension ImageProperties {
             /// Lens with vibration reduction (image stabilization).
             public static let VR = LensType(rawValue: 1 << 3)
             
-            public let rawValue: Int32
+            public var rawValue: Int32
             public init(rawValue: Int32) { self.rawValue = rawValue }
         }
 

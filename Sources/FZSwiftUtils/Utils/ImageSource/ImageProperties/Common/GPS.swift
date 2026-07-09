@@ -12,19 +12,19 @@ import ImageIO
 public extension ImageProperties {
     struct GPS: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
         
         /// The GPS tag version information.
-        public let version: [Double]?
+        public var version: [Double]?
         
         /// The latitude in signed decimal degrees.
-        public let latitude: Double?
+        public var latitude: Double?
 
         /// The longitude in signed decimal degrees.
-        public let longitude: Double?
+        public var longitude: Double?
 
         /// The altitude in signed meters relative to sea level.
-        public let altitude: Double?
+        public var altitude: Double?
         
         /// The coordinate represented by the GPS metadata.
         public var coordinate: CLLocationCoordinate2D? {
@@ -43,35 +43,35 @@ public extension ImageProperties {
         }
         
         /// The UTC time associated with the GPS measurement.
-        public let timeStamp: Date?
+        public var timeStamp: Date?
         /// The satellites used for the GPS measurement.
-        public let satellites: String?
+        public var satellites: String?
         /// The status of the GPS receiver.
-        public let status: Status?
+        public var status: Status?
         /// The dimensionality of the GPS measurement.
-        public let measureMode: MeasureMode?
+        public var measureMode: MeasureMode?
         /// The degree of precision for the GPS measurement.
-        public let dOP: Double?
+        public var dOP: Double?
         /// The unit used for the speed value.
-        public let speedRef: SpeedRef?
+        public var speedRef: SpeedRef?
         /// The speed of the GPS receiver movement.
-        public let speed: Double?
+        public var speed: Double?
         /// The reference for the track angle.
-        public let trackRef: DirectionRef?
+        public var trackRef: DirectionRef?
         /// The direction of movement of the GPS receiver.
-        public let track: Double?
+        public var track: Double?
         /// The reference for the image direction value.
-        public let imageDirectionRef: DirectionRef?
+        public var imageDirectionRef: DirectionRef?
         /// The direction the image was taken.
-        public let imageDirection: Double?
+        public var imageDirection: Double?
         /// The geodetic survey data used by the GPS receiver.
-        public let mapDatum: String?
+        public var mapDatum: String?
         
         /// The destination latitude in degrees.
-        public let destinationLatitude: Double?
+        public var destinationLatitude: Double?
         
         /// The destination longitude in degrees.
-        public let destinationLongitude: Double?
+        public var destinationLongitude: Double?
         
         /// The destination coordinate represented by the GPS metadata.
         public var destinationCoordinate: CLLocationCoordinate2D? {
@@ -80,23 +80,23 @@ public extension ImageProperties {
         }
         
         /// The reference for the destination bearing value.
-        public let destinationBearingRef: BearingRef?
+        public var destinationBearingRef: BearingRef?
         /// The bearing to the destination point.
-        public let destinationBearing: Double?
+        public var destinationBearing: Double?
         
         /// The distance to the destination point in meters.
-        public let destinationDistance: Double?
+        public var destinationDistance: Double?
         
         /// The name of the positioning method used for the GPS data.
-        public let processingMethod: String?
+        public var processingMethod: String?
         /// The name of the GPS area associated with the measurement.
-        public let areaInformation: String?
+        public var areaInformation: String?
         /// The UTC date associated with the GPS measurement.
-        public let dateStamp: Date?
+        public var dateStamp: Date?
         /// The GPS differential correction status.
-        public let differential: Double?
+        public var differential: Double?
         /// The horizontal positioning error in meters.
-        public let horizontalPositioningError: Double?
+        public var horizontalPositioningError: Double?
                 
         /// The reference system used for a bearing value.
         public enum BearingRef: String, Codable {

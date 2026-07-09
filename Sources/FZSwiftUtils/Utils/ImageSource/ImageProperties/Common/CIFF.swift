@@ -12,50 +12,50 @@ import ImageIO
 public extension ImageProperties {
     struct CIFF: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /// The camera serial number.
-        public let cameraSerialNumber: String?
+        public var cameraSerialNumber: String?
         /// The continuous drive mode.
-        public let continuousDrive: Double?
+        public var continuousDrive: Double?
         /// The camera description.
-        public let description: String?
+        public var description: String?
         /// The firmware version of the camera.
-        public let firmware: String?
+        public var firmware: String?
         /// The flash exposure compensation.
-        public let flashExposureComp: Double?
+        public var flashExposureComp: Double?
         /// The focus mode.
-        public let focusMode: String?
+        public var focusMode: String?
         /// The image file name.
-        public let imageFileName: String?
+        public var imageFileName: String?
         /// The image name.
-        public let imageName: String?
+        public var imageName: String?
         /// The image serial number.
-        public let imageSerialNumber: Int?
+        public var imageSerialNumber: Int?
         /// The maximum lens length in millimeters.
-        public let lensMaxMM: Double?
+        public var lensMaxMM: Double?
         /// The minimum lens length in millimeters.
-        public let lensMinMM: Double?
+        public var lensMinMM: Double?
         /// The lens model.
-        public let lensModel: String?
+        public var lensModel: String?
         /// The measured exposure value.
-        public let measuredEV: Double?
+        public var measuredEV: Double?
         /// The metering mode.
-        public let meteringMode: Double?
+        public var meteringMode: Double?
         /// The name of the camera’s owner.
-        public let ownerName: String?
+        public var ownerName: String?
         /// The number of images taken since the camera shipped.
-        public let recordID: Int?
+        public var recordID: Int?
         /// The method of shutter release—single-shot or continuous.
-        public let releaseMethod: Double?
+        public var releaseMethod: Double?
         /// The release timing stored in the CIFF metadata.
-        public let releaseTiming: Double?
+        public var releaseTiming: Double?
         /// The time in milliseconds until shutter release when using the self-timer.
-        public let selfTimingTime: Double?
+        public var selfTimingTime: Double?
         /// The shooting mode.
-        public let shootingMode: Double?
+        public var shootingMode: Double?
         /// The white balance index.
-        public let whiteBalanceIndex: Double?
+        public var whiteBalanceIndex: Double?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue

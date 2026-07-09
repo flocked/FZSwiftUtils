@@ -12,33 +12,33 @@ public extension ImageProperties {
     /// Canon camera specific image properties.
     struct Canon: RawRepresentable {
         /// The raw values.
-        public let rawValue: [CFString: Any]
+        public var rawValue: [CFString: Any]
 
         /// The owner name recorded by the Canon camera.
-        public let ownerName: String?
+        public var ownerName: String?
         /// The serial number of the Canon camera.
-        public let cameraSerialNumber: Int?
+        public var cameraSerialNumber: Int?
         /// The serial number assigned to the captured image.
-        public let imageSerialNumber: Int?
+        public var imageSerialNumber: Int?
         /// The flash exposure compensation applied by the Canon camera.
-        public let flashExposureComp: Double?
+        public var flashExposureComp: Double?
         /// The continuous drive mode recorded by the Canon camera.
-        public let continuousDrive: Double?
+        public var continuousDrive: Double?
         /// The model name of the mounted Canon lens.
-        public let lensModel: String?
+        public var lensModel: String?
         /// The firmware version of the Canon camera.
-        public let firmware: String?
+        public var firmware: String?
         /// The aspect ratio information recorded by the Canon camera.
-        public let aspectRatioInfo: Int?
+        public var aspectRatioInfo: Int?
 
         /// The minimum aperture value of the mounted lens.
-        public let minAperture: Double?
+        public var minAperture: Double?
         /// The maximum aperture value of the mounted lens.
-        public let maxAperture: Double?
+        public var maxAperture: Double?
         /// The unique model identifier of the Canon camera.
-        public let uniqueModelID: Int?
+        public var uniqueModelID: Int?
         /// The white balance setting recorded by the Canon camera.
-        public let whiteBalance: ImageProperties.EXIF.WhiteBalanceMode?
+        public var whiteBalance: ImageProperties.EXIF.WhiteBalanceMode?
 
         public init(rawValue: [CFString: Any]) {
             self.rawValue = rawValue
