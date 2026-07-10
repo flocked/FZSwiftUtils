@@ -290,8 +290,7 @@ public class URLResources {
     /// The content type of the resource.
     public var contentType: UTType? { value(for: .contentTypeKey, \.contentType) }
 
-    #if os(macOS)
-    /// The Finder tags of the resource.
+    /// The macOS Finder tags of the resource.
     public var finderTags: [FinderTag] {
         get {
            return (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) })
@@ -302,8 +301,9 @@ public class URLResources {
         }
     }
     
+    #if os(macOS)
     /**
-     The Finder tags of the resource.
+     The macOS Finder tag names of the resource.
      
      To get or change the colors of the tags, use ``finderTags``.
      */
@@ -311,20 +311,11 @@ public class URLResources {
         get { value(for: .tagNamesKey, \.tagNames) ?? [] }
         set {
             do {
-                try (url as NSURL).setResourceValue(newValue.uniqued() as NSArray, forKey: .tagNamesKey)
+                try (url as NSURL).setResourceValue(newValue.uniqued(), forKey: .tagNamesKey)
             } catch {
                 Swift.print(error)
             }
         }
-    }
-    #else
-    /// The macOS Finder tags of the resource.
-    public var finderTags: [String] {
-        get {
-            let tags: [String] = url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] ?? []
-            return tags.compactMap { $0.replacingOccurrences(of: "\n6", with: "") }
-        }
-        set { url.extendedAttributes["com.apple.metadata:kMDItemUserTags"] = newValue.compactMap({ (String($0.suffix(3)) != "\n6") ? ($0 + "\n6") : $0 }).uniqued() }
     }
     #endif
 }
@@ -834,11 +825,7 @@ extension URLResources {
         public static let contentType = Self(.contentTypeKey)
 
         #if os(macOS)
-        /**
-         The Finder tags of the resource.
-
-         To get or change the colors of the tags, use ``finderTags``.
-         */
+        /// The Finder tag names of the resource.
         public static let finderTagNames = Self(.tagNamesKey)
 
         /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.

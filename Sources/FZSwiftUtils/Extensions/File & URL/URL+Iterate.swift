@@ -209,16 +209,16 @@ extension URL.URLSequence {
         return sequence
     }
     
-    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
-    public func prefetchingProperties(_ keys: [URLResources.Keys]) -> Self {
+    /// Pre-fetches the specified URL resources values. The values for these keys are cached in ``Foundation/URL/resources`` property of each url.
+    public func prefetching(_ keys: [URLResources.Keys]) -> Self {
         var sequence = self
         sequence.resourceKeys = keys.uniqued().map({$0.rawValue})
         return sequence
     }
     
-    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
-    public func prefetchingProperties(_ keys: URLResources.Keys...) -> Self {
-        prefetchingProperties(keys)
+    /// Pre-fetches the specified URL resources values. The values for these keys are cached in ``Foundation/URL/resources`` property of each url.
+    public func prefetching(_ keys: URLResources.Keys...) -> Self {
+        prefetching(keys)
     }
         
     /// The number of URLs in the sequence.
@@ -371,16 +371,16 @@ extension URL.FileURLSequence {
         return sequence
     }
     
-    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding  ``Foundation/URL/resources`` property.
-    public func prefetchingProperties(_ keys: [URLResources.Keys]) -> Self {
+    /// Pre-fetches the specified URL resources values. The values for these keys are cached in ``Foundation/URL/resources`` property of each url.
+    public func prefetching(_ keys: [URLResources.Keys]) -> Self {
         var sequence = self
         sequence.resourceKeys = keys.uniqued().uniqued().map(\.rawValue)
         return sequence
     }
     
-    /// Pre-fetches the URL resources values for the specified keys. The values for these keys are cached in the corresponding ``Foundation/URL/resources`` property.
-    public func prefetchingProperties(_ keys: URLResources.Keys...) -> Self {
-        prefetchingProperties(keys)
+    /// Pre-fetches the specified URL resources values. The values for these keys are cached in ``Foundation/URL/resources`` property of each url.
+    public func prefetching(_ keys: URLResources.Keys...) -> Self {
+        prefetching(keys)
     }
         
     /// The file content types of the files to iterate.

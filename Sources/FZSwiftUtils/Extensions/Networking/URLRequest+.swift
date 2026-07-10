@@ -27,20 +27,23 @@ public extension URLRequest {
      Setting this value updates the request's `Cookie` header field.
      */
     var cookies: [HTTPCookie] {
-        get {
-            guard let url = url else { return [] }
-            return HTTPCookie.cookies(withResponseHeaderFields: allHTTPHeaderFields ?? [:], for: url)
-        }
-        set {
-            guard !newValue.isEmpty else {
-                setValue(nil, forHTTPHeaderField: "Cookie")
-                return
-            }
-            for (field, value) in HTTPCookie.requestHeaderFields(with: newValue) {
-                setValue(value, forHTTPHeaderField: field)
-            }
-        }
-    }
+         get {
+             guard let url, let header = value(forHTTPHeaderField: "Cookie") else { return [] }
+             return header.split(separator: ";").compactMap {
+                 let pair = $0.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+                 guard pair.count == 2 else { return nil }
+                 return HTTPCookie(properties: [
+                     .name: pair[0].trimmingCharacters(in: .whitespaces),
+                     .value: pair[1].trimmingCharacters(in: .whitespaces),
+                     .originURL: url,
+                     .path: "/",
+                     .secure: url.scheme?.lowercased() == "https" ? "TRUE" : "FALSE"])
+             }
+         }
+         set {
+             setValue(newValue.isEmpty ? nil : newValue.map { "\($0.name)=\($0.value)" }.joined(separator: "; "), forHTTPHeaderField: "Cookie")
+         }
+     }
     
     /// Sets the cookies attached to the request by replacing the `Cookie` header field.
     func cookies(_ cookies: [HTTPCookie]) -> Self {

@@ -7,34 +7,41 @@
 
 #if os(macOS)
 import AppKit
+#else
+import UIKit
+#endif
 
-/// A representation of a Finder tag.
-public struct FinderTag: Hashable, CustomStringConvertible {
+/// A representation of a macOS Finder tag.
+public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
     /// The name of the Finder Tag.
-    public var name: String
-    /// he color of the Finder tag.
-    public var color: Color = .none
+    public let name: String
+    /// The color of the Finder tag.
+    public var color: Color?
     
-    /// Creates a represntation of a Finder tag with the specified name and color.
-    public init(name: String, color: Color) {
+    /// Creates a representation of a macOS Finder tag with the specified name and color.
+    public init(name: String, color: Color?) {
         self.name = name
         self.color = color
     }
     
-    var rawValue: String {
-        "\(name)\n\(color.rawValue)"
-    }
-
     init?(_ rawValue: String) {
         let components = rawValue.split(separator: "\n")
         guard let name = components.first else { return nil }
         self.name = String(name)
-        guard components.count > 1, let color = Color(rawValue: Int(components[1]) ?? -1) else { return }
-        self.color = color
+        self.color = components.count > 1 ? Color(rawValue: Int(components[1]) ?? -1) : nil
+    }
+    
+    var rawValue: String {
+        color != nil ? "\(name)\n\(color!.rawValue)" : name
     }
     
     public var description: String {
-        "\(name) (\(color))"
+        color != nil ? "\(name) (\(color!))" : name
+    }
+    
+    /// A Finder tag without color with the specified name.
+    public static func uncolored(_ name: String) -> Self {
+        .init(name: name, color: .none)
     }
     
     /// A gray Finder tag with the specified name.
@@ -73,27 +80,24 @@ public struct FinderTag: Hashable, CustomStringConvertible {
     }
     
     /// The color of a Finder tag.
-    public enum Color: Int, CaseIterable, Hashable, CustomStringConvertible, Codable {
-        /// None.
-        case none
+    public enum Color: Int, CaseIterable, Hashable, CustomStringConvertible, Codable, Sendable {
         /// Gray.
-        case gray
+        case gray = 1
         /// Green.
-        case green
+        case green = 2
         /// Purple.
-        case purple
+        case purple = 3
         /// Blue.
-        case blue
+        case blue = 4
         /// Yellow.
-        case yellow
+        case yellow = 5
         /// Red.
-        case red
+        case red = 6
         /// Orange.
-        case orange
+        case orange = 7
         
         public var description: String {
             switch self {
-            case .none: "none"
             case .gray: "gray"
             case .green: "green"
             case .purple: "purple"
@@ -105,9 +109,8 @@ public struct FinderTag: Hashable, CustomStringConvertible {
         }
         
         /// The represented color of the tag.
-        public var color: NSColor {
+        public var color: NSUIColor {
             switch self {
-                case .none: .clear
                 case .gray: .systemGray
                 case .green: .systemGreen
                 case .purple: .systemPurple
@@ -117,8 +120,5 @@ public struct FinderTag: Hashable, CustomStringConvertible {
                 case .orange: .systemOrange
             }
         }
-        
-        public static let allCases: [Self] = [.none, .red, .orange, .yellow, .green, .blue, .purple, .gray]
     }
 }
-#endif

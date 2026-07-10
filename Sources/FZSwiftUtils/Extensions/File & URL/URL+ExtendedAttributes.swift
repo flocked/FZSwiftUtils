@@ -79,10 +79,10 @@ public extension URL {
          The attribute is decoded using the supplied coding strategy.
          
          - Parameters:
-         - key: The name of the extended attribute.
-         - strategy: The strategy used to decode the stored value.
-         - Returns: The decoded value.
-         - Throws: An error if the file doesn't exist or the attribute cannot be read or decoded.
+            - key: The name of the extended attribute.
+            - strategy: The strategy used to decode the stored value.
+        - Returns: The decoded value.
+        - Throws: An error if the file doesn't exist or the attribute cannot be read or decoded.
          */
         public func get<T: Codable>(_ key: String, using strategy: CodingStrategy = .json) throws -> T {
             strategy == .json ? try getJSON(key) : try getPropertyList(key)
@@ -104,10 +104,9 @@ public extension URL {
          Encodes and stores the specified value as an extended attribute.
          
          - Parameters:
-         - value: The value to encode and store, or `nil` to remove the attribute.
-         - key: The name of the attribute.
-         - flags: The flags describing how the attribute should be handled by the file system.
-         
+            - value: The value to encode and store, or `nil` to remove the attribute.
+            - key: The name of the attribute.
+            - flags: The flags describing how the attribute should be handled by the file system.
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
         public func set<T>(_ value: T?, for key: String, flags: Flags = []) throws {
@@ -118,10 +117,10 @@ public extension URL {
          Encodes and stores the specified value as an extended attribute.
          
          - Parameters:
-         - value: The value to encode and store, or `nil` to remove the attribute.
-         - key: The name of the attribute.
-         - strategy: The strategy used to encode the value.
-         - flags: The flags describing how the attribute should be handled by the file system.
+            - value: The value to encode and store, or `nil` to remove the attribute.
+            - key: The name of the attribute.
+            - strategy: The strategy used to encode the value.
+            - flags: The flags describing how the attribute should be handled by the file system.
          
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
@@ -190,9 +189,9 @@ public extension URL {
          Stores the specified raw data as an extended attribute.
          
          - Parameters:
-         - data: The data to store, or `nil` to remove the attribute.
-         - key: The name of the extended attribute.
-         - flags: The attribute flags describing how the attribute should be handled by the file system.
+            - data: The data to store, or `nil` to remove the attribute.
+            - key: The name of the extended attribute.
+            - flags: The attribute flags describing how the attribute should be handled by the file system.
          - Throws: An error if the file doesn't exist or the attribute cannot be written or removed.
          */
         public func setData(_ data: Data?, for key: String, flags: Flags = []) throws {
@@ -213,7 +212,7 @@ public extension URL {
          A Boolean value indicating whether the attribute with an name exists.
          
          - Parameter key: The name of the extended attribute.
-         - Returns: `true` if the attribute exists; otherwise `false`.
+         - Returns: A Boolean value indicating whether the attribute exists.
          - Throws: An error if the file doesn't exist.
          */
         public func has(_ key: String) throws -> Bool {
@@ -263,33 +262,43 @@ public extension URL {
             }
         }
         
+        /// Flags describing how an extended attribute should be handled by the file system.
         public struct Flags: OptionSet, CustomStringConvertible {
             /**
-             Declare that the attribute should not be exported. This is deliberately a bit vague, but this is used by `XATTR_OPERATION_INTENT_SHARE` to indicate not to preserve the attribute.
+             Prevents the attribute from being shared or exported outside the local system.
+             
+             When a file operation uses the `XATTR_OPERATION_INTENT_SHARE` intent (such as AirDrop, Email, or system sharing sheets), attributes marked with this flag are stripped to protect privacy. However, they are typically preserved during standard local copies (`XATTR_OPERATION_INTENT_COPY`).
              */
             public static let noExport = Self(rawValue: XATTR_FLAG_NO_EXPORT)
             
+            
             /**
-             Declares the  attribute to be tied to the contents of the file (or vice versa), such that it should be re-created when the contents of the file change. Examples might include cryptographic keys, checksums, saved position or search information, and text encoding.
+             Ties the life cycle of the attribute directly to the raw data contents of the file.
              
-             This property causes the attribute to be preserved for copy and share, but not for safe save. In a safe save, the attriubte exists on the original, and will not be copied to the new version.
+             This flag is ideal for metadata that becomes invalid if the file changes, such as cryptographic checksums, hashes, window/scroll positions, or text encodings.
+             
+             - Note: The attribute is preserved during standard copies and shares, but it is **omitted during a "safe save"** (`XATTR_OPERATION_INTENT_SAVE`), meaning it must be re-calculated and re-written when the file data is updated.
              */
             public static let contentDependent = Self(rawValue: XATTR_FLAG_CONTENT_DEPENDENT)
             
             /**
-             Declares that the attribute should never be copied.
+             Ensures the attribute is strictly ephemeral and never duplicated.
              
-             Attributes marked with this flag are not preserved, regardless of the operation's preservation intent.
+             Attributes marked with this flag will be entirely stripped during *any* operation, completely overriding all other preservation intents (copying, saving, sharing, syncing, or backing up).
              */
             public static let neverPreserve = Self(rawValue: XATTR_FLAG_NEVER_PRESERVE)
-            
+ 
             /**
-             Declares that the attribute is to be synced, used by the `XATTR_OPERATION_ITENT_SYNC` intention. Syncing tends to want to minimize the amount of metadata synced around, hence the default behavior is for the attribute NOT to be synced, even if it would else be preserved for the `XATTR_OPERATION_ITENT_COPY` intention.
+             Explicitly allows the attribute to be synced across cloud services (like iCloud Drive).
+             
+             By default, macOS strips most custom extended attributes during a sync operation (`XATTR_OPERATION_INTENT_SYNC`) to minimize bandwidth and prevent fake data conflicts. Marking an attribute as syncable overrides this behavior, forcing cloud sync engines to preserve it.
              */
             public static let syncable = Self(rawValue: XATTR_FLAG_SYNCABLE)
             
             /**
-             Declares that the attribute should only be copied if the intention is `XATTR_OPERATION_INTENT_BACKUP`. That intention is distinct from the `XATTR_OPERATION_INTENT_SYNC` intention in that there is no desire to minimize the amount of metadata being moved.
+             Restricts the attribute to system backups only.
+             
+             This attribute is stripped during routine local copies, sharing, or cloud syncing. It will only be preserved when the intent is explicitly `XATTR_OPERATION_INTENT_BACKUP` (such as a Time Machine backup), where minimizing metadata overhead is not a priority.
              */
             public static let onlyBackup = Self(rawValue: XATTR_FLAG_ONLY_BACKUP)
             
@@ -320,7 +329,7 @@ public extension URL {
                 return String(cString: newName)
             }
             
-            func nameWithFlags(_ name: String) throws -> String {
+            public func nameWithFlags(_ name: String) throws -> String {
                 if isEmpty { return name }
                 guard let newName = xattr_name_with_flags(name, rawValue) else {
                     throw NSError.posix(errno)
