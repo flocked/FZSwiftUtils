@@ -29,16 +29,7 @@ public extension URLRequest {
     var cookies: [HTTPCookie] {
          get {
              guard let url, let header = value(forHTTPHeaderField: "Cookie") else { return [] }
-             return header.split(separator: ";").compactMap {
-                 let pair = $0.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
-                 guard pair.count == 2 else { return nil }
-                 return HTTPCookie(properties: [
-                     .name: pair[0].trimmingCharacters(in: .whitespaces),
-                     .value: pair[1].trimmingCharacters(in: .whitespaces),
-                     .originURL: url,
-                     .path: "/",
-                     .secure: url.scheme?.lowercased() == "https" ? "TRUE" : "FALSE"])
-             }
+             return HTTPCookie.cookies(fromCookieHeader: header, for: url)
          }
          set {
              setValue(newValue.isEmpty ? nil : newValue.map { "\($0.name)=\($0.value)" }.joined(separator: "; "), forHTTPHeaderField: "Cookie")

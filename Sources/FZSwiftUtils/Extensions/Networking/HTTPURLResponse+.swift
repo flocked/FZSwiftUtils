@@ -15,7 +15,7 @@ public extension HTTPURLResponse {
         value(forHTTPHeaderField: httpHeaderField.rawValue)
     }
     
-    ///The cookies set by the response, parsed from the `Set-Cookie` response header fields.
+    ///The cookies set by the response, parsed from the `Set-Cookie` response header field.
     var cookies: [HTTPCookie] {
         guard let url else { return [] }
         return HTTPCookie.cookies(withResponseHeaderFields: allHeaderFields.mapKeyValues({ (String(describing: $0), String(describing: $1)) }), for: url)

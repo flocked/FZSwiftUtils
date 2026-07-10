@@ -80,6 +80,29 @@ extension HTTPCookie {
     }
     
     /**
+     Creates cookies by parsing the value of an HTTP `Cookie` request header.
+
+     The created cookies use the specified URL as their origin. Since a `Cookie` request header does not include metadata such as the path, domain, expiration date, or `HttpOnly` attribute, these values cannot be reconstructed and are assigned default values where required.
+
+     - Parameters:
+       - header: The value of the HTTP `Cookie` request header.
+       - url: The URL associated with the request.
+     - Returns: An array of cookies parsed from the header.
+     */
+    public static func cookies(fromCookieHeader header: String, for url: URL) -> [HTTPCookie] {
+        header.split(separator: ";").compactMap {
+            let pair = $0.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
+            guard pair.count == 2 else { return nil }
+            return HTTPCookie(properties: [
+                .name: pair[0].trimmingCharacters(in: .whitespaces),
+                .value: pair[1].trimmingCharacters(in: .whitespaces),
+                .originURL: url,
+                .path: "/",
+                .secure: url.scheme?.lowercased() == "https" ? "TRUE" : "FALSE"])
+        }
+    }
+    
+    /**
      Returns a JSON-serializable array of dictionaries for the specified HTTP cookies.
      
      - Parameter cookies: The cookies to convert.
