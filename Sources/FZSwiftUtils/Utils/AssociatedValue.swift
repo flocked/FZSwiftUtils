@@ -178,7 +178,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter key: The key of the associated value.
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
-    public func getAssociatedValue<T>(_ key: String) -> T? {
+    public func getAssociatedValue<T>(_ key: String, as _: T.Type = T.self) -> T? {
         FZSwiftUtils.getAssociatedValue(key, object: self)
     }
     
@@ -306,7 +306,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter key: The key of the associated value.
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
-    public static func getAssociatedValue<T>(_ key: String) -> T? {
+    public static func getAssociatedValue<T>(_ key: String, as _: T.Type = T.self) -> T? {
         FZSwiftUtils.getAssociatedValue(key, object: self)
     }
     
@@ -392,7 +392,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter key: The key of the associated value.
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
-    public func getAssociatedValue<T>(_ key: KeyPath<Self, T>) -> T? {
+    public func getAssociatedValue<T>(_ key: KeyPath<Self, T>, as _: T.Type = T.self) -> T? {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self)
     }
     
@@ -472,7 +472,7 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter key: The key of the associated value.
      - Returns: The associated value for the key, or `nil` if the value couldn't be found for the key.
      */
-    public static func getAssociatedValue<T>(_ key: KeyPath<Self.Type, T>) -> T? {
+    public static func getAssociatedValue<T>(_ key: KeyPath<Self.Type, T>, as _: T.Type = T.self) -> T? {
         FZSwiftUtils.getAssociatedValue(key.stringValue, object: self)
     }
     
