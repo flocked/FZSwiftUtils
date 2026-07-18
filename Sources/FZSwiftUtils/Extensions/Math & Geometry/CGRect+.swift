@@ -411,7 +411,7 @@ public extension CGRect {
         layoutDirection == .leftToRight ? _inset(by: insets) : _inset(by: .init(top: insets.top, leading: insets.trailing, bottom: insets.bottom, trailing: insets.leading))
     }
 
-    #elseif os(iOS) || os(tvOS)
+    #elseif os(iOS) || os(tvOS) || os(visionOS)
     /**
      Adjusts a rectangle by the given directional edge insets.
      
@@ -1208,7 +1208,7 @@ public extension CGRect {
     #endif
 }
 
-#if os(macOS) || os(iOS) || os(tvOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
 extension CGRect {
     /**
      Draws the outline of the rect using the specified stroke color.
@@ -1511,7 +1511,7 @@ private extension CGContext {
         NSGraphicsContext.current?.cgContext
     }
 
-    #elseif os(iOS) || os(tvOS)
+    #elseif os(iOS) || os(tvOS) || os(visionOS)
     static var current: CGContext? {
         UIGraphicsGetCurrentContext()
     }
