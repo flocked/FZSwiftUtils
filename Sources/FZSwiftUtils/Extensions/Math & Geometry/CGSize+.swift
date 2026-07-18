@@ -38,6 +38,21 @@ public extension CGSize {
     var scaledIntegral: CGSize {
         CGSize(width: width.scaledIntegral, height: height.scaledIntegral)
     }
+    
+    /// A Boolean value indicating whether both dimensions are finite.
+    var isFinite: Bool {
+        width.isFinite && height.isFinite
+    }
+
+    /// A Boolean value indicating whether both dimensions are greater than zero.
+    var isPositive: Bool {
+        width > 0 && height > 0
+    }
+    
+    /// A Boolean value indicating whether either dimension is less than or equal to zero.
+     var isEmpty: Bool {
+         width <= 0 || height <= 0
+     }
 
     #if os(macOS)
     /**

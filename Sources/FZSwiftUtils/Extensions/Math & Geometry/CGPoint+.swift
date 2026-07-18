@@ -145,6 +145,11 @@ public extension CGPoint {
         CGPoint(x: x.scaledIntegral, y: y.scaledIntegral)
     }
     
+    /// A Boolean value indicating whether both coordinates are finite.
+    var isFinite: Bool {
+        x.isFinite && y.isFinite
+    }
+    
     #if os(macOS)
     /**
      Returns the scaled integral point of the current point for the specified screen.

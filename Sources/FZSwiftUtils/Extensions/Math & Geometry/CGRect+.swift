@@ -79,6 +79,11 @@ public extension CGRect {
         CGRect(origin: origin.scaledIntegral, size: size.scaledIntegral)
     }
     
+    /// A Boolean value indicating whether the origin coordinates and size dimensions are finite.
+    var isFinite: Bool {
+        origin.isFinite && size.isFinite
+    }
+    
     #if os(macOS)
     /**
      Returns the scaled integral rectangle based on the current rectangle for the specfied screen.
