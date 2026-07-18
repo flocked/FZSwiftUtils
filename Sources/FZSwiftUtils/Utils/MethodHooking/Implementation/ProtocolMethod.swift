@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  ProtocolMethod.swift
 //
@@ -105,4 +104,3 @@ func addProtocolMethodIfNeeded(targetClass: AnyClass, selector: Selector, protoc
     ProtocolMethodContext.pool.insert(context)
 }
 
-#endif

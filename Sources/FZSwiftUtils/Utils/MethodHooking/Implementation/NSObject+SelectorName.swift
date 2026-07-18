@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  NSObject+SelectorName.swift
 //
@@ -96,4 +95,3 @@ fileprivate extension objc_property_t {
     }
 }
 
-#endif

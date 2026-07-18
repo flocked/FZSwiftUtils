@@ -129,7 +129,6 @@ public extension ByteCountFormatter {
 
 private extension ByteCountFormatter {
     func swizzle(_ shouldSwizzle: Bool) {
-        #if !os(visionOS)
         let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
         if shouldSwizzle, !isReplaced {
             do {
@@ -156,7 +155,6 @@ private extension ByteCountFormatter {
             revertHooks(for: #selector(ByteCountFormatter.string(fromByteCount:)))
             revertHooks(for: #selector(ByteCountFormatter.string(from:)))
         }
-        #endif
     }
     
     func localizedString(fromByteCount count: Int64) -> String? {

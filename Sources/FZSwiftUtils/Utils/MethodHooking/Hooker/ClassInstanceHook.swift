@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  ClassInstanceHook.swift
 //  
@@ -218,4 +217,3 @@ extension ClassInstanceHook where T: NSObject {
     }
 }
 
-#endif

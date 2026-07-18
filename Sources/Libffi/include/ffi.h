@@ -23,7 +23,7 @@
   #else
     #error Unsupported tvOS architecture
   #endif
-#elif TARGET_OS_IPHONE
+#elif TARGET_OS_VISION || TARGET_OS_IPHONE
   #if defined(__arm64__)
     #include "darwin_ios/ffi_arm64.h"
   #elif defined(__x86_64__)
@@ -31,7 +31,7 @@
   #elif defined(__arm__)
     #include "darwin_ios/ffi_arm64.h"
   #else
-    #error Unsupported iOS architecture
+    #error Unsupported iOS/visionOS architecture
   #endif
 #elif TARGET_OS_OSX
   #if defined(__arm64__)

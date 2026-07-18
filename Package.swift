@@ -16,7 +16,13 @@ let package = Package(
     targets: [
         .target(
             name: "FZSwiftUtils",
-            dependencies: ["_FZSwiftUtilsObjC"]
+            dependencies: [
+                "_FZSwiftUtilsObjC",
+                .target(
+                    name: "_Libffi",
+                    condition: .when(platforms: [.macOS, .iOS, .macCatalyst, .tvOS, .watchOS, .visionOS])
+                ),
+            ]
         ),
         .target(name: "_Libffi",
                 path: "Sources/Libffi",
@@ -34,7 +40,7 @@ let package = Package(
             dependencies: [
                 .target(
                     name: "_Libffi",
-                    condition: .when(platforms: [.macOS, .iOS, .macCatalyst, .tvOS, .watchOS])
+                    condition: .when(platforms: [.macOS, .iOS, .macCatalyst, .tvOS, .watchOS, .visionOS])
                 ),
             ],
             path: "Sources/FZSwiftUtils+ObjC",

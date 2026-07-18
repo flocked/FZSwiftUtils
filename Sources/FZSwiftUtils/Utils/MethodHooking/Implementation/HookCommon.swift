@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  HookCommon.swift
 //
@@ -37,4 +36,3 @@ enum HookError: Error {
     case nonObjcProperty // The partial keyPath isn't KVO / @objc.
 }
 
-#endif

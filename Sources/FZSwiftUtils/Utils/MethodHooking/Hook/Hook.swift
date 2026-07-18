@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  Hook.swift
 //
@@ -94,4 +93,3 @@ public class Hook: Hashable {
     }
 }
 
-#endif

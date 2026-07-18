@@ -298,7 +298,6 @@ public struct ObjCClass {
         return false
     }
     
-    #if !os(visionOS)
     func `protocol`(for selector: Selector, isInstanceMethod: Bool) throws -> Protocol? {
         var protocolBySignature: [String: Protocol] = [:]
         for proto in ObjCClass(isInstanceMethod ? cls : metaClass).protocols(includeSuperclasses: true, includeInheritedProtocols: true) {
@@ -317,5 +316,4 @@ public struct ObjCClass {
         }.sorted().joined(separator: ", ")
         throw HookError.inferredProtocolMethodAmbiguous("Found multiple protocol signatures for selector `\(selector.string)`: \(signatures).")
     }
-    #endif
 }

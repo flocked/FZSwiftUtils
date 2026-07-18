@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  DynamicClass.swift
 //
@@ -87,4 +86,3 @@ fileprivate class DynamicClassContext {
     }
 }
 
-#endif

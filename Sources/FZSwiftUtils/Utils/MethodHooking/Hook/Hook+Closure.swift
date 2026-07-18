@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  Hook+Closure.swift
 //
@@ -604,4 +603,3 @@ extension Hook {
     }
 }
 
-#endif

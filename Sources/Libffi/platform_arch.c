@@ -22,7 +22,7 @@
     #include "vendor/darwin_tvos/src/x86/ffiw64_x86_64.c"
     #undef ffi_call_int
   #endif
-#elif TARGET_OS_IPHONE
+#elif TARGET_OS_VISION || TARGET_OS_IPHONE
   #if defined(__arm64__)
     #include "vendor/darwin_ios/src/aarch64/ffi_arm64.c"
   #elif defined(__x86_64__)

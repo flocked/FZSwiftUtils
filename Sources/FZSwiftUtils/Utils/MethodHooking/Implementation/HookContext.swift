@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  HookContext.swift
 //
@@ -320,4 +319,3 @@ fileprivate func callBeforeOrAfterClosure(_ hookClosure: AnyObject, _ hookContex
     }
 }
 
-#endif

@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  InsteadContext.swift
 //
@@ -34,4 +33,3 @@ func getInsteadContext(insteadClosure: AnyObject) -> InsteadContext? {
     getAssociatedValue("associatedInsteadContextHandle", object: insteadClosure)
 }
 
-#endif

@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  Hook+Deinit.swift
 //
@@ -53,4 +52,3 @@ extension Hook {
     }
 }
 
-#endif

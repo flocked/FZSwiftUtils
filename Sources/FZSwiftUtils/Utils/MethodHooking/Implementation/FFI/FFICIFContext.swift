@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  FFICIFContext.swift
 //
@@ -58,4 +57,3 @@ class FFICIFContext {
     }
 }
 
-#endif

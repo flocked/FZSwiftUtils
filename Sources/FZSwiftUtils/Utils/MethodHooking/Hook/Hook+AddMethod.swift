@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  Hook+AddMethod.swift
 //
@@ -133,4 +132,3 @@ extension Hook {
     }
 }
 
-#endif

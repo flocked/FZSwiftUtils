@@ -1062,7 +1062,6 @@ extension TimeDuration {
 
 fileprivate extension TimeDuration {
     static func swizzleFormatters() {
-        #if !os(visionOS)
         guard formatterHooks.isEmpty else { return }
         do {
             formatterHooks += try DateComponentsFormatter.hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
@@ -1076,10 +1075,7 @@ fileprivate extension TimeDuration {
         } catch {
             Swift.print(error)
         }
-        #endif
     }
     
-    #if !os(visionOS)
     static var formatterHooks: [Hook] = []
-    #endif
 }

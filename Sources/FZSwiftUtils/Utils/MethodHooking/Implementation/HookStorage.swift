@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  Hook+Storage.swift
 //  
@@ -120,4 +119,3 @@ extension Hook {
     }
 }
 
-#endif

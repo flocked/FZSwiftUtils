@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  ObjectHook.swift
 //  
@@ -224,4 +223,3 @@ extension ObjectHook {
 
 }
 
-#endif

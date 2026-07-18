@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  FFIClosureContext.swift
 //
@@ -40,4 +39,3 @@ class FFIClosureContext {
     }
 }
 
-#endif

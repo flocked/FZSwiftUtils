@@ -18,7 +18,7 @@
     #include "vendor/darwin_tvos/src/x86/unix64_x86_64.S"
     #include "vendor/darwin_tvos/src/x86/win64_x86_64.S"
   #endif
-#elif TARGET_OS_IPHONE
+#elif TARGET_OS_VISION || TARGET_OS_IPHONE
   #if defined(__arm64__)
     #include "vendor/darwin_ios/src/aarch64/sysv_arm64.S"
   #elif defined(__x86_64__)

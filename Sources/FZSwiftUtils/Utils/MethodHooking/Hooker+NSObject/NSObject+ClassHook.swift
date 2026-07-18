@@ -1,4 +1,3 @@
-#if !os(visionOS)
 //
 //  NSObject+ClassHook.swift
 //
@@ -696,4 +695,3 @@ extension NSObjectProtocol where Self: NSObject {
     }
 }
 
-#endif
