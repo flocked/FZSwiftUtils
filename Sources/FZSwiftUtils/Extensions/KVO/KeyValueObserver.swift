@@ -164,7 +164,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
      */
     open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
-        if let observation = KeyValueObservation(observedObject, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler) {
+        if let observation = KeyValueObservation(observedObject, keyPath: keyPath, initial: sendInitialValue, uniqueValues: uniqueValues, fallbackToKeyPathStringObserver: false, handler: handler) {
             add(keyPath, observation: observation)
             return
         }

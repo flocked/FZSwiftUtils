@@ -67,11 +67,15 @@ public class KeyValueObservation: NSObject {
         handler(value, value)
     }
     
-    init?<Object: NSObject, Value: Equatable>(_ object: Object?, keyPath: String, sendInitialValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
-        guard let observer = Self.observer(for: object, keyPath: keyPath, uniqueValues: uniqueValues, handler: handler) else { return nil }
-        self.observer = observer
-        guard sendInitialValue, let object, let value = object.value(forKeyPathSafely: keyPath) as? Value else { return }
-        handler(value, value)
+    init?<Object: NSObject, Value: Equatable>(_ object: Object?, keyPath: String, initial: Bool = false, uniqueValues: Bool = true, fallbackToKeyPathStringObserver: Bool = true, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) {
+        if let observer = Self.observer(for: object, keyPath: keyPath, uniqueValues: uniqueValues, handler: handler) {
+            self.observer = observer
+            guard initial, let object, let value = object.value(forKeyPathSafely: keyPath) as? Value else { return }
+            handler(value, value)
+        } else {
+            guard fallbackToKeyPathStringObserver, let object, object.isObservable(keyPath, Value.self) else { return nil }
+            self.observer = KeyPathStringObserver(object, keyPath: keyPath, initial: initial, uniqueValues: uniqueValues, handler: handler)
+        }
     }
     
     #if os(macOS) || os(iOS)
@@ -112,19 +116,6 @@ public class KeyValueObservation: NSObject {
         observer = KeyPathStringObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
             guard let newValue = change.newValue as? Value else { return }
             handler(change.oldValue as? Value ?? newValue, newValue)
-        }
-    }
-    
-    init?<Object: NSObject, Value: Equatable>(_ object: Object, keyPath: String, initial: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
-        guard object.isObservable(keyPath, Value.self) else { return nil }
-        observer = KeyPathStringObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
-            guard let new = change.newValue as? Value else { return }
-            if let old = change.oldValue as? Value {
-                guard !uniqueValues || old != new else { return }
-                handler(old, new)
-            } else {
-                handler(new, new)
-            }
         }
     }
     
@@ -262,8 +253,13 @@ private extension KeyValueObservation {
         let options: NSKeyValueObservingOptions
 
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? Object
+            guard object !== self.object else {
+                isActive = activate
+                return
+            }
             isActive = false
-            self.object = object as? Object
+            self.object = object
             isActive = activate
         }
         
@@ -339,9 +335,26 @@ private extension KeyValueObservation {
             isActive = true
         }
         
+        convenience init<Value: Equatable>(_ object: Object?, keyPath: String, initial: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+            self.init(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
+                guard let new = change.newValue as? Value else { return }
+                if let old = change.oldValue as? Value {
+                    guard !uniqueValues || old != new else { return }
+                    handler(old, new)
+                } else {
+                    handler(new, new)
+                }
+            }
+        }
+        
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? Object
+            guard object !== self.object else {
+                isActive = activate
+                return
+            }
             isActive = false
-            self.object = object as? Object
+            self.object = object
             isActive = activate
         }
         
@@ -392,9 +405,14 @@ private extension KeyValueObservation {
         }
         
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? Object
+            guard object !== self.object else {
+                isActive = activate
+                return
+            }
             hooks.forEach { try? $0.revert() }
             hooks = []
-            self.object = object as? Object
+            self.object = object
             isActive = activate
         }
         
@@ -457,8 +475,13 @@ private extension KeyValueObservation {
         let keyPathString: String
         
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? Object
+            guard object !== self.object else {
+                isActive = activate
+                return
+            }
             isActive = false
-            self.object = object as? Object
+            self.object = object
             isActive = activate
         }
 
@@ -504,8 +527,13 @@ private extension KeyValueObservation {
         }
                     
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? UIView
+            guard object !== view else {
+                isActive = activate
+                return
+            }
             isActive = false
-            view = object as? UIView
+            view = object
             isActive = activate
         }
         
@@ -597,8 +625,13 @@ private extension KeyValueObservation {
         }
         
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? CALayer
+            guard object !== layer else {
+                isActive = activate
+                return
+            }
             isActive = false
-            layer = object as? CALayer
+            layer = object
             isActive = activate
         }
         
@@ -653,8 +686,13 @@ private extension KeyValueObservation {
         }
         
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? CALayer
+            guard object !== layer else {
+                isActive = activate
+                return
+            }
             isActive = false
-            layer = object as? CALayer
+            layer = object
             isActive = activate
         }
         
@@ -671,8 +709,13 @@ private extension KeyValueObservation {
         let uniqueValues: Bool
         
         func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? CALayer
+            guard object !== layer else {
+                isActive = activate
+                return
+            }
             isActive = false
-            layer = object as? CALayer
+            layer = object
             isActive = activate
         }
         
