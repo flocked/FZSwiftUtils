@@ -9,7 +9,7 @@ import CoreGraphics
 import Foundation
 #if os(macOS)
 import AppKit
-#elseif os(iOS) || os(tvOS)
+#elseif os(iOS) || os(tvOS) || os(visionOS)
 import UIKit
 #endif
 
@@ -17,7 +17,7 @@ public extension CGSize {
     init(_ width: CGFloat, _ height: CGFloat) {
         self.init(width: width, height: height)
     }
-    
+
     init(_ width: Int, _ height: Int) {
         self.init(width: width, height: height)
     }
@@ -25,10 +25,26 @@ public extension CGSize {
     init(_ widthHeight: CGFloat) {
         self.init(width: widthHeight, height: widthHeight)
     }
-    
+
     init(_ widthHeight: Int) {
         self.init(width: widthHeight, height: widthHeight)
     }
+
+    #if os(macOS)
+    /**
+     A size indicating that both dimensions have no intrinsic value.
+     
+     This constant is equivalent to a size whose width and height are both [NSView.noIntrinsicMetric](https://developer.apple.com/documentation/appkit/nsview/nointrinsicmetric).
+     */
+    static let noIntrinsicSize = CGSize(NSView.noIntrinsicMetric, NSView.noIntrinsicMetric)
+    #elseif os(iOS) || os(tvOS) || os(visionOS)
+    /**
+     A size indicating that both dimensions have no intrinsic value.
+
+     This constant is equivalent to a size whose width and height are both [UIView.noIntrinsicMetric](https://developer.apple.com/documentation/uikit/uiview/nointrinsicmetric).
+     */
+    static let noIntrinsicSize = CGSize(UIView.noIntrinsicMetric, UIView.noIntrinsicMetric)
+    #endif
 
     /**
      Returns the scaled integral of the size.
@@ -38,7 +54,7 @@ public extension CGSize {
     var scaledIntegral: CGSize {
         CGSize(width: width.scaledIntegral, height: height.scaledIntegral)
     }
-    
+
     /// A Boolean value indicating whether both dimensions are finite.
     var isFinite: Bool {
         width.isFinite && height.isFinite
@@ -48,11 +64,11 @@ public extension CGSize {
     var isPositive: Bool {
         width > 0 && height > 0
     }
-    
+
     /// A Boolean value indicating whether either dimension is less than or equal to zero.
-     var isEmpty: Bool {
-         width <= 0 || height <= 0
-     }
+    var isEmpty: Bool {
+        width <= 0 || height <= 0
+    }
 
     #if os(macOS)
     /**
@@ -98,6 +114,7 @@ public extension CGSize {
     func scaledIntegral(for application: NSApplication) -> Self {
         CGSize(width.scaledIntegral(for: application), height.scaledIntegral(for: application))
     }
+
     #elseif os(iOS) || os(tvOS)
     /**
      Returns the scaled integral value of the value for the specified screen.
@@ -110,61 +127,61 @@ public extension CGSize {
         CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
     }
     #endif
-    
+
     /// Returns the smaller of the `width` and `height` value..
     var min: CGFloat {
         Swift.min(width, height)
     }
-    
+
     /// Returns the larger of the `width` and `height` value..
     var max: CGFloat {
         Swift.max(width, height)
     }
-    
+
     func expandedBy(width: CGFloat) -> CGSize {
         expandedBy(width: width, height: 0)
     }
-    
+
     func expandedBy(height: CGFloat) -> CGSize {
         expandedBy(width: 0, height: height)
     }
-    
+
     func expandedBy(width: CGFloat, height: CGFloat) -> CGSize {
         CGSize((self.width + width).clamped(min: 0.0), (self.height + height).clamped(min: 0.0))
     }
-    
+
     func expandedBy(_ width: CGFloat, _ height: CGFloat) -> CGSize {
         expandedBy(width: width, height: height)
     }
-    
+
     func expandedBy(_ amount: CGFloat) -> CGSize {
         expandedBy(width: amount, height: amount)
     }
-    
+
     func expanded(by size: CGSize) -> CGSize {
         expandedBy(size.width, size.height)
     }
-    
+
     mutating func expandBy(width: CGFloat) {
         self = expandedBy(width: width)
     }
-    
+
     mutating func expandBy(height: CGFloat) {
         self = expandedBy(height: height)
     }
-    
+
     mutating func expandBy(width: CGFloat, height: CGFloat) {
         self = expandedBy(width: width, height: height)
     }
-    
+
     mutating func expandBy(_ width: CGFloat, _ height: CGFloat) {
         self = expandedBy(width: width, height: height)
     }
-    
+
     mutating func expandBy(_ amount: CGFloat) {
         self = expandedBy(amount)
     }
-    
+
     mutating func expand(by size: CGSize) {
         self = expanded(by: size)
     }
@@ -258,7 +275,7 @@ public extension CGSize {
         var newSize = self
         if size.width > size.height {
             newSize = newSize.scaled(toWidth: size.width)
-            if  newSize.height < size.height {
+            if newSize.height < size.height {
                 newSize = newSize.scaled(toHeight: size.height)
             }
         } else {
@@ -382,11 +399,11 @@ public extension CGSize {
     func height(_ height: CGFloat) -> CGSize {
         CGSize(width, height)
     }
-    
+
     var swapped: CGSize {
         CGSize(height, width)
     }
-    
+
     /// Defines strategies for aligning sizes to device pixel boundaries.
     enum PixelSnapRule {
         /// Expands the size so it is at least as large as the original.
@@ -396,10 +413,10 @@ public extension CGSize {
         /// Rounds the width and height to nearest pixel.
         case nearest
     }
-    
+
     /**
      Returns a size aligned to device pixel boundaries.
-     
+
      - Parameters:
         - scale: The backing scale factor to align against.
         - rule: The edge alignment strategy.
@@ -417,11 +434,11 @@ public extension CGSize {
         }
         return CGSize(width: snapped.width / scale, height: snapped.height / scale)
     }
-    
+
     #if os(macOS)
     /**
      Returns a size aligned to the device pixel grid defined by the specified window.
- 
+
      - Parameters:
         - window: The window whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
@@ -432,7 +449,7 @@ public extension CGSize {
 
     /**
      Returns a size aligned to the device pixel grid defined by the specified screen.
- 
+
      - Parameters:
         - screen: The screen whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
@@ -443,7 +460,7 @@ public extension CGSize {
 
     /**
      Returns a size aligned to the device pixel grid defined by the specified voew.
- 
+
      - Parameters:
         - voew: The voew whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
@@ -454,7 +471,7 @@ public extension CGSize {
 
     /**
      Returns a size aligned to the device pixel grid defined by the specified application.
- 
+
      - Parameters:
         - application: The application whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
@@ -462,10 +479,11 @@ public extension CGSize {
     func snappedToPixels(of application: NSApplication, rule: PixelSnapRule = .outward) -> CGSize {
         snappedToPixels(scale: application.backingScaleFactor, rule: rule)
     }
+
     #elseif os(iOS) || os(tvOS)
     /**
      Returns a size aligned to the device pixel grid defined by the specified screen.
- 
+
      - Parameters:
         - screen: The screen whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
@@ -492,7 +510,7 @@ extension CGSize: Swift.AdditiveArithmetic {
     public static func - (lhs: CGSize, rhs: CGFloat) -> CGSize {
         CGSize(width: lhs.width - rhs, height: lhs.height - rhs)
     }
-    
+
     public static func * (lhs: CGSize, rhs: CGSize) -> CGSize {
         CGSize(width: lhs.width * rhs.width, height: lhs.height * rhs.height)
     }
@@ -500,7 +518,7 @@ extension CGSize: Swift.AdditiveArithmetic {
     public static func * (lhs: CGSize, rhs: CGFloat) -> CGSize {
         CGSize(width: lhs.width * rhs, height: lhs.height * rhs)
     }
-    
+
     public static func * (lhs: CGFloat, rhs: CGSize) -> CGSize {
         CGSize(width: lhs * rhs.width, height: lhs * rhs.height)
     }
@@ -524,7 +542,7 @@ extension CGSize: Swift.AdditiveArithmetic {
     public static func -= (lhs: inout CGSize, rhs: CGFloat) {
         lhs = lhs - rhs
     }
-    
+
     public static func *= (lhs: inout CGSize, rhs: CGSize) {
         lhs = lhs * rhs
     }
@@ -611,7 +629,7 @@ public extension Collection where Element == CGSize {
        - orientation: The orientation that determines how sizes are combined.
      */
     func scaledToFit(height: CGFloat, orientation: InterfaceOrientation) -> [CGSize] {
-        return scaledToFit(CGSize(width:.greatestFiniteMagnitude, height: height), orientation: orientation)
+        return scaledToFit(CGSize(width: .greatestFiniteMagnitude, height: height), orientation: orientation)
     }
     #endif
 }
