@@ -8,7 +8,7 @@
 import Foundation
 import os
 
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
 extension Logger {
     static let subsystem = Bundle.main.bundleIdentifier ?? Bundle.main.bundlePath
     

@@ -98,7 +98,7 @@ public extension URL {
      
      If `base` is provided, the file path will be resolved relative to this base URL.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     static func file(_ path: String, directoryHint: DirectoryHint = .inferFromPath, relativeTo base: URL? = nil) -> URL {
         URL(filePath: path, directoryHint: directoryHint, relativeTo: base)
     }
@@ -205,7 +205,7 @@ public extension URL {
         - pathComponent: The new path component.
         - directoryHint: A hint indicating whether the new path component represents a directory or a file.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     func lastPathComponent(_ pathComponent: String, directoryHint: DirectoryHint = .inferFromPath) -> URL {
         deletingLastPathComponent().appending(path: pathComponent, directoryHint: directoryHint)
     }
@@ -217,7 +217,7 @@ public extension URL {
         - pathComponent: The new path component.
         - directoryHint: A hint indicating whether the new path component represents a directory or a file.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     mutating func lastPathComponent(_ pathComponent: String, directoryHint: DirectoryHint = .inferFromPath) {
         self = lastPathComponent(pathComponent, directoryHint: directoryHint)
     }
@@ -239,7 +239,7 @@ public extension URL {
         - components: The path components to add, as a variadic parameter.
         - directoryHint: A hint to the initializer to indicate whether the path is a directory, or to instruct the method to make this determination.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     func appending<S: Sequence>(components: S, directoryHint: DirectoryHint = .inferFromPath) -> URL where S.Element: StringProtocol {
         var url = self
         components.forEach({ url = url.appending(component: $0, directoryHint: directoryHint) })
@@ -253,7 +253,7 @@ public extension URL {
         - components: The path components to add, as a variadic parameter.
         - directoryHint: A hint to the initializer to indicate whether the path is a directory, or to instruct the method to make this determination.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     mutating func append<S: Sequence>(components: S, directoryHint: DirectoryHint = .inferFromPath) where S.Element: StringProtocol {
         var url = self
         components.forEach({ url = url.appending(component: $0, directoryHint: directoryHint) })
@@ -429,22 +429,22 @@ public extension URL {
         lhs = lhs + rhs
     }
     
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     static func + (lhs: URL, rhs: URLQueryItem) -> Self {
         lhs.appending(queryItems: [rhs])
     }
     
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     static func += (lhs: inout URL, rhs: URLQueryItem) {
         lhs = lhs + rhs
     }
     
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     static func + (lhs: URL, rhs: [URLQueryItem]) -> Self {
         lhs.appending(queryItems: rhs)
     }
     
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     static func += (lhs: inout URL, rhs: [URLQueryItem]) {
         lhs = lhs + rhs
     }

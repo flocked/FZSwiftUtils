@@ -699,6 +699,7 @@ private extension DataSize.CountStyle {
 
 private extension DataSize {
     static func swizzleFormatter() {
+        #if !os(visionOS)
         guard formatterHook == nil else { return }
         do {
             formatterHook = try ByteCountFormatter.hook(all: #selector(ByteCountFormatter.string(for:)), closure: {
@@ -708,7 +709,10 @@ private extension DataSize {
         } catch {
             Swift.print(error)
         }
+        #endif
     }
 
+    #if !os(visionOS)
     static var formatterHook: Hook?
+    #endif
 }

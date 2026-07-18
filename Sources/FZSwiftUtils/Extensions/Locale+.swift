@@ -35,7 +35,7 @@ extension Locale {
     }
     
     /// A type that represents a continent, for use in specifying a locale.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public enum Continent: String {
         /// Europe.
         case europe = "150"
@@ -67,14 +67,14 @@ extension Locale {
     }
     
     /// The continent that contains this locale.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public var continent: Continent {
         guard let identifier = region?.continent?.identifier else { return .unknown }
         return Continent(rawValue: identifier)!
     }
     
     /// Returns a localized string for a specified continent.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forContient continent: Continent) -> String? {
         localizedString(forRegionCode: continent.region.identifier)
     }
@@ -115,44 +115,44 @@ extension Locale {
     }
     
     /// Returns a localized string for a specified language code.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forLanguageCode languageCode: LanguageCode) -> String? {
         localizedString(forLanguageCode: languageCode.identifier)
     }
     
     /// Returns a localized string for a specified language.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forLanguage language: Language) -> String? {
         guard let languageCode = language.languageCode else { return nil }
         return localizedString(forLanguageCode: languageCode)
     }
     
     /// Returns a localized string for a specified script.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forScript script: Script) -> String? {
         localizedString(forScriptCode: script.identifier)
     }
     
     /// Returns a localized string for a specified region.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forRegion region: Region) -> String? {
         localizedString(forRegionCode: region.identifier)
     }
     
     /// Returns a localized string for a specified currency.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forCurrency currency: Currency) -> String? {
         localizedString(forCurrencyCode: currency.identifier)
     }
     
     /// Returns a localized string for a specified variant.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forVariant variant: Variant) -> String? {
         localizedString(forVariantCode: variant.identifier)
     }
     
     /// Returns a localized string for a specified collation.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func localizedString(forCollation collation: Collation) -> String? {
         localizedString(forCollationIdentifier: collation.identifier)
     }
@@ -190,7 +190,7 @@ extension Locale {
 
 extension Locale {
     /// Creates a locale with the specified language code, script, and region identifier.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public init(_ languageCode: Locale.LanguageCode?, script: Locale.Script? = nil, languageRegion: Locale.Region? = nil) {
         self = Locale(languageCode: languageCode, script: script, languageRegion: languageRegion)
     }

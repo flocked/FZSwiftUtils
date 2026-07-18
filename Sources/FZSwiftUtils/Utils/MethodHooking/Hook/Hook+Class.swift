@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  Hook+Class.swift
 //
@@ -56,3 +57,5 @@ extension Hook {
         }
     }
 }
+
+#endif

@@ -1001,7 +1001,7 @@ public extension SynchronizedContiguousArray where Element: Comparable {
     func sort<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) where Value: Comparable {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+            if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
                 array.sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
             } else {
                 array.sort(by: keyPath, order)
@@ -1019,7 +1019,7 @@ public extension SynchronizedContiguousArray where Element: Comparable {
     func sort<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) where Value: Comparable {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+            if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
                 array.sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
             } else {
                 array.sort(by: keyPath, order)

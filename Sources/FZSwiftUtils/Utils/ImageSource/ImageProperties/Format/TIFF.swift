@@ -43,7 +43,7 @@ public extension ImageProperties {
         /// The white point of the image.
         public var whitePoint: [Double]?
         /// The horizontal position of the TIFF image.
-        @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *)
+        @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, visionOS 1.0, *)
         public var xPosition: Double? {
             get { _xPosition }
         }
@@ -51,7 +51,7 @@ public extension ImageProperties {
         private var _xPosition: Double?
 
         /// The number of pixels per resolution unit in the image height direction.
-        @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *)
+        @available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, visionOS 1.0, *)
         public var yPosition: Double? {
             get { _yPosition }
         }
@@ -86,7 +86,7 @@ public extension ImageProperties {
             tileWidth = rawValue[typed: kCGImagePropertyTIFFTileWidth]
             transferFunction = rawValue[typed: kCGImagePropertyTIFFTransferFunction]
             whitePoint = rawValue[typed: kCGImagePropertyTIFFWhitePoint]
-            if #available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, *) {
+            if #available(macOS 14.4, iOS 17.4, tvOS 17.4, watchOS 10.4, visionOS 1.1, *) {
                 _xPosition = rawValue[typed: kCGImagePropertyTIFFXPosition]
                 _yPosition = rawValue[typed: kCGImagePropertyTIFFYPosition]
             } else {

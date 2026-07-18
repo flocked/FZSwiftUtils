@@ -52,7 +52,7 @@ extension URL {
             try FileManager.default.removeItem(at: url)
         }
         
-        #if os(macOS) || os(iOS)
+        #if os(macOS) || os(iOS) || os(visionOS)
         /// Moves the item to the trash.
         @discardableResult
         public func moveToTrash() throws -> URL {

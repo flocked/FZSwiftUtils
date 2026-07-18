@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "FZSwiftUtils",
-    platforms: [.macOS(.v12), .iOS(.v15), .macCatalyst(.v15), .tvOS(.v15), .watchOS(.v8)],
+    platforms: [.macOS(.v12), .iOS(.v15), .macCatalyst(.v15), .tvOS(.v15), .watchOS(.v8), .visionOS(.v1)],
     products: [
         .library(
             name: "FZSwiftUtils",
@@ -14,7 +14,10 @@ let package = Package(
     ],
     dependencies: [],
     targets: [
-        .target(name: "FZSwiftUtils", dependencies: ["_FZSwiftUtilsObjC", "_Libffi"]),
+        .target(
+            name: "FZSwiftUtils",
+            dependencies: ["_FZSwiftUtilsObjC"]
+        ),
         .target(name: "_Libffi",
                 path: "Sources/Libffi",
                 exclude: ["vendor"],
@@ -28,7 +31,12 @@ let package = Package(
                ),
         .target(
             name: "_FZSwiftUtilsObjC",
-            dependencies: ["_Libffi"],
+            dependencies: [
+                .target(
+                    name: "_Libffi",
+                    condition: .when(platforms: [.macOS, .iOS, .macCatalyst, .tvOS, .watchOS])
+                ),
+            ],
             path: "Sources/FZSwiftUtils+ObjC",
             publicHeadersPath: "include",
             cSettings: [

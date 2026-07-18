@@ -444,7 +444,7 @@ public extension NSObjectProtocol where Self: NSAttributedString {
         get { self[.strikethroughStyle] }
     }
     
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(visionOS) || os(tvOS) || os(visionOS)
     /// The attachment of the attributed string.
     var attachment: NSTextAttachment? {
         get { self[.attachment] }
@@ -549,7 +549,7 @@ public extension NSObjectProtocol where Self: NSMutableAttributedString {
         set { self[.strikethroughStyle] = newValue }
     }
     
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(visionOS) || os(tvOS) || os(visionOS)
     /// The attachment of the attributed string.
     var attachment: NSTextAttachment? {
         get { self[.attachment] }
@@ -916,7 +916,7 @@ extension NSAttributedString {
         }
     }
     
-    #if os(macOS) || os(iOS)
+    #if os(macOS) || os(iOS) || os(visionOS)
     /// Creates an attributed string by converting the contents of the specified HTML URL request.
     public class func loadFromHTML(request: URLRequest, options: DocumentReadingOptions, completionHandler: @escaping CompletionHandler) {
         loadFromHTML(request: request, options: options.dict, completionHandler: completionHandler)
@@ -970,7 +970,7 @@ extension NSAttributedString {
         }
         #endif
         
-        #if os(macOS) || os(iOS)
+        #if os(macOS) || os(iOS) || os(visionOS)
         /// The local files WebKit can access when loading content.
         public var readAccessURL: URL?
         #endif
@@ -1006,7 +1006,7 @@ extension NSAttributedString {
             dict[.textSizeMultiplier] = textSizeMultiplier
             dict[.timeout] = timeout
             #endif
-            #if os(macOS) || os(iOS)
+            #if os(macOS) || os(iOS) || os(visionOS)
             dict[.readAccessURL] = readAccessURL
             #endif
             return dict
@@ -1163,7 +1163,7 @@ extension NSAttributedString {
             /// The character range of the section.
             public let range: NSRange
             
-            #if os(macOS) || os(iOS) || os(tvOS)
+            #if os(macOS) || os(iOS) || os(visionOS) || os(tvOS) || os(visionOS)
             var dict: [TextLayoutSectionKey: Any] {
                 [.orientation: NSLayoutManager.TextLayoutOrientation(rawValue: orientation.rawValue)!, .range: range]
             }
@@ -1276,7 +1276,7 @@ extension NSAttributedString {
             dict[.textLayoutSections] = textLayoutSections?.compactMap({$0.dict})
             dict[.textScaling] = textScaling
             dict[.sourceTextScaling] = sourceTextScaling
-            if #available(macOS 14, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+            if #available(macOS 14, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
                 dict[.defaultFontExcluded] = isDefaultFontExcluded
             }
             return dict
@@ -1322,7 +1322,7 @@ extension NSAttributedString {
             textLayoutSections = (dict[.textLayoutSections] as? [[TextLayoutSectionKey: Any]])?.compactMap({TextLayoutSection(dict: $0)})
             textScaling = dict[.textScaling] as? CGFloat
             sourceTextScaling = dict[.sourceTextScaling] as? CGFloat
-            if #available(macOS 14, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+            if #available(macOS 14, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
                 isDefaultFontExcluded = dict[.defaultFontExcluded] as? Bool
             }
         }

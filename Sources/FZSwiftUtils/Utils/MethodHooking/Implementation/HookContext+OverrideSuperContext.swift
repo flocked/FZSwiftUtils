@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  OverrideSuperMethodContext.swift
 //
@@ -78,3 +79,5 @@ fileprivate func overrideMethodCalled(cif: UnsafeMutablePointer<ffi_cif>?,
     }
     ffi_call(overrideMethodContext.methodCifContext.cif, unsafeBitCast(methodIMP, to: (@convention(c) () -> Void).self), ret, args)
 }
+
+#endif

@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  NSObject+ClassInstanceHook.swift
 //
@@ -761,3 +762,5 @@ extension NSObjectProtocol where Self: NSObject {
         try hook(setAll: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
 }
+
+#endif

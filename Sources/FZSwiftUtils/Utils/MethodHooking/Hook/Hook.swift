@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  Hook.swift
 //
@@ -92,3 +93,5 @@ public class Hook: Hashable {
         hasher.combine(id)
     }
 }
+
+#endif

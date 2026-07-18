@@ -36,7 +36,7 @@ public extension ImageSource {
         public var creationPolicy: CreationPolicy = .always
         
         /// The preferred dynamic range to use when decoding the thumbnail.
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, visionOS 1.0, *)
         var preferredDynamicRange: DynamicRange? {
             get { DynamicRange(rawValue: _preferredDynamicRange ?? -1) }
             set { _preferredDynamicRange = newValue?.rawValue }
@@ -82,7 +82,7 @@ public extension ImageSource {
         }
         
         /// The dynamic range to prefer when decoding a thumbnail.
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, visionOS 1.0, *)
         enum DynamicRange: Int, Codable {
             /// Standard dynamic range (SDR)
             case standard
@@ -166,7 +166,7 @@ public extension ImageSource {
             case .always: options[kCGImageSourceCreateThumbnailFromImageAlways] = true
             case .embeddedOnly: break
             }
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
                 options[kCGImageSourceDecodeRequest] = preferredDynamicRange?.value
             }
             return options as CFDictionary
@@ -242,13 +242,13 @@ public extension ImageSource {
         }
         
         /// The preferred dynamic range to use when decoding the image.
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, visionOS 1.0, *)
         public static func preferredDynamicRange(_ dynamicRange: DynamicRange) -> Self {
             dynamicRange == .standard ? .preferStandardDynamicRange : .preferHighDynamicRange
         }
         
         /// The dynamic range to prefer when decoding an image.
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, *)
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, visionOS 1.0, *)
         public enum DynamicRange: Int, Codable {
             /// Standard dynamic range.
             case standard
@@ -279,7 +279,7 @@ public extension ImageSource {
                 options[kCGImageSourceSubsampleFactor] = 2
             }
             // options[kCGImageSourceThumbnailMaxPixelSize] = maxSize
-            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, *) {
+            if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
                 if contains(.preferHighDynamicRange) {
                     options[kCGImageSourceDecodeRequest] = kCGImageSourceDecodeToHDR
                 } else if contains(.preferStandardDynamicRange) {

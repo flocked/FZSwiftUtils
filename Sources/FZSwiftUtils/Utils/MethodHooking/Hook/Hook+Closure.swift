@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  Hook+Closure.swift
 //
@@ -602,3 +603,5 @@ extension Hook {
         self.closure(for: { closure($0, Value(rawValue: $1)!) })
     }
 }
+
+#endif

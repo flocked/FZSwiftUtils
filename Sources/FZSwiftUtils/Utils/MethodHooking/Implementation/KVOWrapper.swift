@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  KVOWrapper.swift
 //
@@ -165,3 +166,5 @@ fileprivate class Observer: NSObject {
      return false
  }
  */
+
+#endif

@@ -545,7 +545,7 @@ public extension NSCoder {
         decode(key) ?? .notFound
     }
     
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
     /// Decodes and returns a `CATransform3D` value that was previously encoded with `encode(_:)`.
     func decodeCATransform3D(forKey key: String) -> CATransform3D {
         decode(key) ?? .init()

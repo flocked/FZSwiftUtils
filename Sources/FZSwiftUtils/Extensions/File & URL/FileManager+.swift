@@ -15,7 +15,7 @@ public extension FileManager {
      */
     func createTemporaryDirectory() throws -> URL {
         let temporaryDirectoryURL: URL
-        if #available(macOS 10.12, iOS 10.0, tvOS 10.0, *) {
+        if #available(macOS 10.12, iOS 10.0, tvOS 10.0, visionOS 1.0, *) {
             temporaryDirectoryURL = temporaryDirectory
         } else {
             temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
@@ -26,7 +26,7 @@ public extension FileManager {
         return folderURL
     }
 
-    #if os(macOS) || os(iOS)
+    #if os(macOS) || os(iOS) || os(visionOS)
     /**
      Moves an item to the trash.
 

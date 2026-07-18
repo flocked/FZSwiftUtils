@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  DynamicClass.swift
 //
@@ -85,3 +86,5 @@ fileprivate class DynamicClassContext {
         byDynamicClass[dynamicClass]
     }
 }
+
+#endif

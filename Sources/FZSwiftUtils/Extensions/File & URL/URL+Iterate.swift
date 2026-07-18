@@ -272,7 +272,7 @@ extension URL {
                 }
                 maxLevel = sequence.maxDepth
                 var resourceKeys = sequence.resourceKeys + URL.sequenceResourceKeys(for: predicate, prefetchID: sequence.prefetchID) + [.isRegularFileKey]
-                #if os(macOS) || os(iOS) || os(tvOS)
+                #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
                 if sequence.contentTypesFilter != nil, #available(macOS 11.0, *) {
                     resourceKeys += .contentTypeKey
                 }
@@ -384,7 +384,7 @@ extension URL.FileURLSequence {
     }
         
     /// The file content types of the files to iterate.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
     public func contentTypes(_ contentTypes: [UTType]) -> Self {
         var copy = self
         copy.contentTypesFilter = contentTypes.isEmpty ? nil : { $0.contentType?.conforms(toAny: contentTypes) == true }
@@ -392,7 +392,7 @@ extension URL.FileURLSequence {
     }
     
     /// The file content types of the files to iterate.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
     public func contentTypes(_ contentTypes: UTType...) -> Self {
         self.contentTypes(contentTypes)
     }

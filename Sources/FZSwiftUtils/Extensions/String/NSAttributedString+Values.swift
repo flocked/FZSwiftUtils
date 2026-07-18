@@ -157,7 +157,7 @@ extension NSAttributedString {
         }
         
         /// The amount to modify the default tracking.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
         public var tracking: CGFloat? {
             get { self[.tracking] }
             set { self[.tracking] = newValue }
@@ -235,23 +235,23 @@ extension NSAttributedString {
         
         #if compiler(>=6.0)
         /// The custom highlight color to apply to the text.
-        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
         public var textHighlightColorScheme: TextHighlightColorScheme? {
             get { self[.textHighlightColorScheme] }
             set { self[.textHighlightColorScheme] = newValue }
         }
         
         /// An attribute that adds a highlight color to the text to emphasize it.
-        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
         public var textHighlightStyle: TextHighlightStyle? {
             get { self[.textHighlightStyle] }
             set { self[.textHighlightStyle] = newValue }
         }
         #endif
         
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         /// The name of a custom tag associated with a text item.
-        @available(iOS 17.0, *)
+        @available(iOS 17.0, visionOS 1.0, *)
         public var textItemTag: String? {
             get { self[.textItemTag] }
             set { self[.textItemTag] = newValue }
@@ -290,9 +290,9 @@ extension NSAttributedString {
         }
         #endif
         
-        #if os(macOS) || os(iOS)
+        #if os(macOS) || os(iOS) || os(visionOS)
         /// A highlight associated with a Spotlight suggestion.
-        @available(macOS 13.0, iOS 16.0, tvOS 16.0, *)
+        @available(macOS 13.0, iOS 16.0, tvOS 16.0, visionOS 1.0, *)
         public var suggestionHighlight: String? {
             get { self[.suggestionHighlight] }
             set { self[.suggestionHighlight] = newValue }
@@ -303,7 +303,7 @@ extension NSAttributedString {
         
         #if compiler(>=6.0)
         /// The adaptive image glyph for the text.
-        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
         public var adaptiveImageGlyph: NSAdaptiveImageGlyph? {
             get { self[.adaptiveImageGlyph] }
             set { self[.adaptiveImageGlyph] = newValue }
@@ -416,51 +416,51 @@ extension NSAttributedString {
         }
         #endif
          
-        #if os(iOS) || os(tvOS) || os(watchOS)
+        #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS)
         /// The speech announcement priority for accessibility.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechAnnouncementPriority: Any? {
             get { self[.accessibilitySpeechAnnouncementPriority] }
             set { self[.accessibilitySpeechAnnouncementPriority] = newValue }
         }
          
         /// The pronunciation of a specific word or phrase, such as a proper name.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechIPANotation: String? {
             get { self[.accessibilitySpeechIPANotation] }
             set { self[.accessibilitySpeechIPANotation] = newValue }
         }
          
         /// The language to use when speaking a string.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechLanguage: String? {
             get { self[.accessibilitySpeechLanguage] }
             set { self[.accessibilitySpeechLanguage] = newValue }
         }
          
         /// The pitch to apply to spoken content.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechPitch: CGFloat? {
             get { self[.accessibilitySpeechPitch] }
             set { self[.accessibilitySpeechPitch] = newValue }
         }
          
         /// Whether to speak punctuation.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechPunctuation: Bool? {
             get { self[.accessibilitySpeechPunctuation] }
             set { self[.accessibilitySpeechPunctuation] = newValue }
         }
          
         /// Whether to queue an announcement behind existing speech or to interrupt it.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechQueueAnnouncement: Bool? {
             get { self[.accessibilitySpeechQueueAnnouncement] }
             set { self[.accessibilitySpeechQueueAnnouncement] = newValue }
         }
          
         /// Whether to spell out the text during speech.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var accessibilitySpeechSpellOut: Any? {
             get { self[.accessibilitySpeechSpellOut] }
             set { self[.accessibilitySpeechSpellOut] = newValue }
@@ -511,7 +511,7 @@ extension NSAttributedString {
         }
         #endif
          
-        #if os(iOS) || os(tvOS) || os(watchOS)
+        #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS)
         /// UI accessibility text attribute context.
         public var UIAccessibilityTextAttributeContext: Any? {
             get { self[.UIAccessibilityTextAttributeContext] }
@@ -521,35 +521,35 @@ extension NSAttributedString {
         // MARK: - Markdown Attributes
          
         /// An attribute that provides details for an inline Markdown element.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var inlinePresentationIntent: InlinePresentationIntent? {
             get { self[.inlinePresentationIntent] }
             set { self[.inlinePresentationIntent] = newValue }
         }
          
         /// An attribute that provides details for a block-level Markdown element.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var presentationIntentAttributeName: PresentationIntent? {
             get { self[.presentationIntentAttributeName] }
             set { self[.presentationIntentAttributeName] = newValue }
         }
          
         /// The position in a Markdown source string corresponding to some attributed text.
-        @available(iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+        @available(iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
         public var markdownSourcePosition: Any? {
             get { self[.markdownSourcePosition] }
             set { self[.markdownSourcePosition] = newValue }
         }
          
         /// An alternate description for a URL or image.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var alternateDescription: String? {
             get { self[.alternateDescription] }
             set { self[.alternateDescription] = newValue }
         }
          
         /// The URL for an image in Markdown text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var imageURL: URL? {
             get { self[.imageURL] }
             set { self[.imageURL] = newValue }
@@ -558,56 +558,56 @@ extension NSAttributedString {
         // MARK: - Translation Attributes
          
         /// The language identifier associated with the range of text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var languageIdentifier: String? {
             get { self[.languageIdentifier] }
             set { self[.languageIdentifier] = newValue }
         }
          
         /// An attribute that contains grammatical properties to apply to the text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var morphology: Morphology? {
             get { self[.morphology] }
             set { self[.morphology] = newValue }
         }
          
         /// An attribute that tells the system how to apply grammar rules and other modifiers to the range of text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var inflect: InflectionRule? {
             get { self[.inflectionRule] }
             set { self[.inflectionRule] = newValue }
         }
          
         /// The alternative translation for a string when no suitable inflection exists.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var inflectionAlternative: String? {
             get { self[.inflectionAlternative] }
             set { self[.inflectionAlternative] = newValue }
         }
          
         /// An attribute that specifies agreement with a particular argument.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var agreeWithArgument: Any? {
             get { self[.agreeWithArgument] }
             set { self[.agreeWithArgument] = newValue }
         }
          
         /// An attribute that specifies agreement with a concept.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var agreeWithConcept: Any? {
             get { self[.agreeWithConcept] }
             set { self[.agreeWithConcept] = newValue }
         }
          
         /// An attribute that specifies a referent concept.
-        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+        @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public var referentConcept: Any? {
             get { self[.referentConcept] }
             set { self[.referentConcept] = newValue }
         }
          
         /// An attribute that specifies a localized number format.
-        @available(iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+        @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
         public var localizedNumberFormat: Any? {
             get { self[.localizedNumberFormat] }
             set { self[.localizedNumberFormat] = newValue }
@@ -729,7 +729,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the amount to modify the default tracking.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
     @discardableResult
     public func tracking(_ tracking: CGFloat?) -> Self {
         self.tracking = tracking
@@ -805,7 +805,7 @@ extension NSAttributedString.AttributeValues {
 
     #if compiler(>=6.0)
     /// Sets the custom highlight color scheme to apply to the text.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     @discardableResult
     public func textHighlightColorScheme(_ scheme: NSAttributedString.TextHighlightColorScheme?) -> Self {
         self.textHighlightColorScheme = scheme
@@ -813,7 +813,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the highlight style to emphasize the text.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     @discardableResult
     public func textHighlightStyle(_ style: NSAttributedString.TextHighlightStyle?) -> Self {
         self.textHighlightStyle = style
@@ -821,9 +821,9 @@ extension NSAttributedString.AttributeValues {
     }
     #endif
 
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     /// Sets the custom tag associated with a text item.
-    @available(iOS 17.0, *)
+    @available(iOS 17.0, visionOS 1.0, *)
     @discardableResult
     public func textItemTag(_ tag: String?) -> Self {
         self.textItemTag = tag
@@ -868,9 +868,9 @@ extension NSAttributedString.AttributeValues {
     }
     #endif
 
-    #if os(macOS) || os(iOS)
+    #if os(macOS) || os(iOS) || os(visionOS)
     /// Sets the highlight associated with a Spotlight suggestion.
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, visionOS 1.0, *)
     @discardableResult
     public func suggestionHighlight(_ highlight: String?) -> Self {
         self.suggestionHighlight = highlight
@@ -882,7 +882,7 @@ extension NSAttributedString.AttributeValues {
 
     #if compiler(>=6.0)
     /// Sets the adaptive image glyph for the text.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     @discardableResult
     public func adaptiveImageGlyph(_ glyph: NSAdaptiveImageGlyph?) -> Self {
         self.adaptiveImageGlyph = glyph
@@ -1013,9 +1013,9 @@ extension NSAttributedString.AttributeValues {
     }
     #endif
     
-    #if os(iOS) || os(tvOS) || os(watchOS)
+    #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS)
     /// Sets the speech announcement priority for accessibility.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechAnnouncementPriority(_ priority: Any?) -> Self {
         self.accessibilitySpeechAnnouncementPriority = priority
@@ -1023,7 +1023,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the pronunciation of a specific word or phrase, such as a proper name.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechIPANotation(_ notation: String?) -> Self {
         self.accessibilitySpeechIPANotation = notation
@@ -1031,7 +1031,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the language to use when speaking a string.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechLanguage(_ language: String?) -> Self {
         self.accessibilitySpeechLanguage = language
@@ -1039,7 +1039,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the pitch to apply to spoken content.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechPitch(_ pitch: CGFloat?) -> Self {
         self.accessibilitySpeechPitch = pitch
@@ -1047,7 +1047,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets whether to speak punctuation.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechPunctuation(_ punctuation: Bool?) -> Self {
         self.accessibilitySpeechPunctuation = punctuation
@@ -1055,7 +1055,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets whether to queue an announcement behind existing speech or to interrupt it.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechQueueAnnouncement(_ queue: Bool?) -> Self {
         self.accessibilitySpeechQueueAnnouncement = queue
@@ -1063,7 +1063,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets whether to spell out the text during speech.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func accessibilitySpeechSpellOut(_ spellOut: Any?) -> Self {
         self.accessibilitySpeechSpellOut = spellOut
@@ -1122,7 +1122,7 @@ extension NSAttributedString.AttributeValues {
     }
     #endif
 
-    #if os(iOS) || os(tvOS) || os(watchOS)
+    #if os(iOS) || os(tvOS) || os(visionOS) || os(watchOS)
     /// Sets the UI accessibility text attribute context.
     @discardableResult
     public func UIAccessibilityTextAttributeContext(_ context: Any?) -> Self {
@@ -1133,7 +1133,7 @@ extension NSAttributedString.AttributeValues {
     // MARK: - Markdown Attributes
 
     /// Sets the details for an inline Markdown element.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func inlinePresentationIntent(_ intent: InlinePresentationIntent?) -> Self {
         self.inlinePresentationIntent = intent
@@ -1141,7 +1141,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the details for a block-level Markdown element.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func presentationIntentAttributeName(_ intent: PresentationIntent?) -> Self {
         self.presentationIntentAttributeName = intent
@@ -1149,7 +1149,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the position in a Markdown source string corresponding to some attributed text.
-    @available(iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     @discardableResult
     public func markdownSourcePosition(_ position: Any?) -> Self {
         self.markdownSourcePosition = position
@@ -1157,7 +1157,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets an alternate description for a URL or image.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func alternateDescription(_ description: String?) -> Self {
         self.alternateDescription = description
@@ -1165,7 +1165,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the URL for an image in Markdown text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func imageURL(_ url: URL?) -> Self {
         self.imageURL = url
@@ -1175,7 +1175,7 @@ extension NSAttributedString.AttributeValues {
     // MARK: - Translation Attributes
 
     /// Sets the language identifier associated with the range of text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func languageIdentifier(_ identifier: String?) -> Self {
         self.languageIdentifier = identifier
@@ -1183,7 +1183,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the grammatical properties to apply to the text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func morphology(_ morphology: Morphology?) -> Self {
         self.morphology = morphology
@@ -1191,7 +1191,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the grammar rules and other modifiers to apply to the text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func inflect(_ rule: InflectionRule?) -> Self {
         self.inflect = rule
@@ -1199,7 +1199,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the alternative translation for a string when no suitable inflection exists.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func inflectionAlternative(_ alternative: String?) -> Self {
         self.inflectionAlternative = alternative
@@ -1207,7 +1207,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the agreement with a particular argument.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func agreeWithArgument(_ argument: Any?) -> Self {
         self.agreeWithArgument = argument
@@ -1215,7 +1215,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the agreement with a concept.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func agreeWithConcept(_ concept: Any?) -> Self {
         self.agreeWithConcept = concept
@@ -1223,7 +1223,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the referent concept.
-    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, *)
+    @available(iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     @discardableResult
     public func referentConcept(_ concept: Any?) -> Self {
         self.referentConcept = concept
@@ -1231,7 +1231,7 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the localized number format.
-    @available(iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     @discardableResult
     public func localizedNumberFormat(_ format: Any?) -> Self {
         self.localizedNumberFormat = format
@@ -1379,7 +1379,7 @@ public struct ParagraphStyle: CustomStringConvertible {
         self.allowsDefaultTighteningForTruncation = style.allowsDefaultTighteningForTruncation
         self.headerLevel = headerLevel
         self.baseWritingDirection = style.baseWritingDirection
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
             _usesDefaultHyphenation = style.usesDefaultHyphenation
         }
         #if os(macOS)
@@ -1403,7 +1403,7 @@ public struct ParagraphStyle: CustomStringConvertible {
         paragraphStyle.lineBreakStrategy = lineBreakStrategy
         paragraphStyle.hyphenationFactor = hyphenationFactor
         paragraphStyle.allowsDefaultTighteningForTruncation = allowsDefaultTighteningForTruncation
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, *) {
+        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
             paragraphStyle.usesDefaultHyphenation = usesDefaultHyphenation
         }
         paragraphStyle.baseWritingDirection = baseWritingDirection

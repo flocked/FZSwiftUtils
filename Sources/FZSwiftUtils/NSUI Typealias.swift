@@ -59,7 +59,7 @@ public typealias NSUIImageSymbolWeight = UIImage.SymbolWeight
 public typealias NSUIRectEdge = UIRectEdge
 #endif
 
-#if os(iOS) || os(tvOS)
+#if os(iOS) || os(tvOS) || os(visionOS)
 public typealias NSUICollectionView = UICollectionView
 public typealias NSUICollectionViewCompositionalLayout = UICollectionViewCompositionalLayout
 public typealias NSUICollectionViewCompositionalLayoutConfiguration = UICollectionViewCompositionalLayoutConfiguration

@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  FFICIFContext.swift
 //
@@ -56,3 +57,5 @@ class FFICIFContext {
         self.argTypes.deallocate()
     }
 }
+
+#endif

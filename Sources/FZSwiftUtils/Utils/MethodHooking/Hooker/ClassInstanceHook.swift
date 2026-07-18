@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  ClassInstanceHook.swift
 //  
@@ -216,3 +217,5 @@ extension ClassInstanceHook where T: NSObject {
         try hook(set: keyPath) { object, value, origial in origial(closure(object, value)) }
     }
 }
+
+#endif

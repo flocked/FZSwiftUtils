@@ -301,7 +301,7 @@ public class ImageSource {
      
      The default value is ``supportedContentTypes``.
      */
-    @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, *)
+    @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, visionOS 1.0, *)
     public static var allowedContentTypes: Set<UTType> {
         get { getAssociatedValue("allowedTypeIdentifiers", object: self) ?? supportedContentTypes }
         set {

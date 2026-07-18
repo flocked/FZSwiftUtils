@@ -253,7 +253,7 @@ public extension URLRequest {
     }
     
     /// Sets the Boolean value indicating whether the request is allowed to store and use DNS answers, potentially beyond TTL expiry, in a persistent per-process cache, false otherwise.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     func allowsPersistentDNS(_ allows: Bool) -> Self {
         var request = self
         request.allowsPersistentDNS = allows
@@ -268,7 +268,7 @@ public extension URLRequest {
     }
     
     /// Sets the Boolean value indicating whether the request is required to do DNSSEC validation during DNS lookup.
-    @available(macOS 13.0, iOS 16.1, tvOS 16.1, watchOS 9.1, *)
+    @available(macOS 13.0, iOS 16.1, tvOS 16.1, watchOS 9.1, visionOS 1.0, *)
     func requiresDNSSECValidation(_ requires: Bool) -> Self {
         var request = self
         request.requiresDNSSECValidation = requires
@@ -304,7 +304,7 @@ public extension URLRequest {
     }
     
     /// Sets the Boolean value that indicates whether the receiver is allowed to use an interface marked as ultra-constrained to satify the request.
-    @available(macOS 26.1, iOS 26.1, tvOS 26.1, watchOS 26.1, *)
+    @available(macOS 26.1, iOS 26.1, tvOS 26.1, watchOS 26.1, visionOS 26.1, *)
     func allowsUltraConstrainedNetworkAccess(_ allows: Bool) -> Self {
         var request = self
         request.allowsUltraConstrainedNetworkAccess = allows
@@ -312,7 +312,7 @@ public extension URLRequest {
     }
     
     /// Sets the cookie partition identifier.
-    @available(macOS 15.2, iOS 18.2, tvOS 18.2, watchOS 11.2, *)
+    @available(macOS 15.2, iOS 18.2, tvOS 18.2, watchOS 11.2, visionOS 2.2, *)
     func cookiePartitionIdentifier(_ cookiePartitionIdentifier: String?) -> Self {
         var request = self
         request.cookiePartitionIdentifier = cookiePartitionIdentifier
@@ -490,12 +490,12 @@ public extension URLRequest {
             strings += "request.attribution = \(attribution.swiftCode)"
         }
         
-        if #available(macOS 13.0, iOS 16.1, tvOS 16.1, watchOS 9.1, *),
+        if #available(macOS 13.0, iOS 16.1, tvOS 16.1, watchOS 9.1, visionOS 1.0, *),
            requiresDNSSECValidation != false {
             strings += "request.requiresDNSSECValidation = \(requiresDNSSECValidation)"
         }
         
-        if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *),
+        if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *),
            allowsPersistentDNS != false {
             strings += "request.allowsPersistentDNS = \(allowsPersistentDNS)"
         }

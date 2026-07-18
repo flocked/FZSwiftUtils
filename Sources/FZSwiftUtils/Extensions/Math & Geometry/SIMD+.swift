@@ -4463,7 +4463,7 @@ public extension matrix_float2x2 {
 
 public extension matrix_half2x2 {
     /// Returns the identity matrix of a `matrix_half2x2`.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     static let identity = matrix_identity_half2x2
     
     /// Returns a `matrix_half2x2` with all zeros.
@@ -4488,7 +4488,7 @@ public extension matrix_float3x3 {
 
 public extension matrix_half3x3 {
     /// Returns the identity matrix of a `matrix_half3x3`.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     static let identity = matrix_identity_half3x3
     
     /// Returns a `matrix_half3x3` with all zeros.
@@ -4514,7 +4514,7 @@ public extension matrix_float4x4 {
 
 public extension matrix_half4x4 {
     /// Returns the identity matrix of a `matrix_half4x4`.
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *)
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     static let identity = matrix_identity_half4x4
     
     /// Returns a `matrix_half4x4` with all zeros.

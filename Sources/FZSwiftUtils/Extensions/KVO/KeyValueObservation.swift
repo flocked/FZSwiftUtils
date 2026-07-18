@@ -110,13 +110,13 @@ public class KeyValueObservation: NSObject {
             observer = HookObserver(keyPath: keyPathString, hooks: [hook])
         case ("parentViewAppearance", let object as CALayer) where Value.self is NSAppearance.Type:
             observer = LayerAppearanceObserver(object, handler: cast(handler))
-        #elseif os(iOS)
+        #elseif os(iOS) || os(visionOS)
         case ("parentViewUserInterfaceStyle", let object as CALayer) where Value.self is UIUserInterfaceStyle.Type:
             observer = LayerAppearanceObserver(object, handler: cast(handler))
         case ("traitCollection", let object as UIView) where Value.self is UITraitCollection.Type:
             observer = TraitCollectionObserver(object, handler: cast(handler))
         #endif
-        #if os(macOS) || os(iOS) || os(tvOS)
+        #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
         case ("frame", let object as CALayer) where Value.self is CGRect.Type:
             observer = LayerFrameObserver(object, uniqueValues: uniqueValues, handler: cast(handler))
         case ("sublayers", let object as CALayer) where Value.self is [CALayer]?.Type:
@@ -402,7 +402,7 @@ fileprivate extension KeyValueObservation {
         }
     }
     
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     class TraitCollectionObserver: NSObject, KVObserver {
         let keyPathString = "traitCollection"
         weak var view: UIView?
@@ -454,7 +454,7 @@ fileprivate extension KeyValueObservation {
         }
     }
     #endif
-    #if os(macOS) || os(iOS)
+    #if os(macOS) || os(iOS) || os(visionOS)
     class LayerAppearanceObserver: NSObject, KVObserver {
         weak var layer: CALayer?
         var handler: (_ old: Any, _ new: Any)->()
@@ -514,7 +514,7 @@ fileprivate extension KeyValueObservation {
         }
     }
     #endif
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
     class LayerFrameObserver: NSObject, KVObserver {
         weak var layer: CALayer?
         let handler: (CGRect, CGRect) -> Void
@@ -599,7 +599,7 @@ fileprivate extension KeyValueObservation {
     #endif
 }
 
-#if os(macOS) || os(iOS) || os(tvOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
 fileprivate extension CALayer {
     var parentView: NSUIView? {
         delegate as? NSUIView ?? superlayer?.parentView

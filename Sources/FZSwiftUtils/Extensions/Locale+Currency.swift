@@ -7,7 +7,7 @@
 
 import Foundation
 
-@available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+@available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
 extension Locale.Currency {
     /// United Arab Emirates Dirham
     public static let unitedArabEmiratesDirham = Self("AED")

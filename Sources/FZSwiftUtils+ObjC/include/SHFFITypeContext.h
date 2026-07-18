@@ -7,6 +7,9 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <TargetConditionals.h>
+
+#if !TARGET_OS_VISION
 @import _Libffi;
 
 NS_ASSUME_NONNULL_BEGIN
@@ -23,3 +26,4 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 NS_ASSUME_NONNULL_END
+#endif

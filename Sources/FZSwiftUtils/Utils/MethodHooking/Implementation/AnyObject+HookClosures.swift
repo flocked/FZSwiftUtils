@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  ClosuresContext.swift
 //
@@ -72,3 +73,5 @@ fileprivate class ClosuresContext {
 fileprivate func closuresContext(for object: AnyObject) -> ClosuresContext? {
     getAssociatedValue("closuresContext", object: object)
 }
+
+#endif

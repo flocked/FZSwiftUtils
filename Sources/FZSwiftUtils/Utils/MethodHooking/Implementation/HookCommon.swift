@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  HookCommon.swift
 //
@@ -35,3 +36,5 @@ enum HookError: Error {
     case hookKVOUnsupportedInstance // Unable to hook a instance which is not support KVO.
     case nonObjcProperty // The partial keyPath isn't KVO / @objc.
 }
+
+#endif

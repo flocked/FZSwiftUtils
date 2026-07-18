@@ -197,7 +197,7 @@ public extension NSAttributedString.Key {
     static let objcIvar = NSAttributedString.Key("objcIvar")
 }
 
-#if os(macOS) || os(iOS) || os(tvOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
 extension NSUIColor {
     convenience init(light: NSUIColor, dark: NSUIColor) {
         #if os(macOS)
@@ -214,7 +214,7 @@ struct XcodePresentationTheme {
     
     public var selectionBackgroundColor: NSUIColor = #colorLiteral(red: 0.3904261589, green: 0.4343567491, blue: 0.5144847631, alpha: 1)
 
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
     public var backgroundColor: NSUIColor = .init(light: #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1), dark: #colorLiteral(red: 0.1251632571, green: 0.1258862913, blue: 0.1465735137, alpha: 1))
     #else
     public var backgroundColor: NSUIColor = #colorLiteral(red: 1, green: 0.9999999404, blue: 1, alpha: 1)
@@ -265,13 +265,13 @@ struct XcodePresentationTheme {
         default:
             #if os(macOS)
             return .labelColor
-            #elseif os(iOS) || os(tvOS)
+            #elseif os(iOS) || os(tvOS) || os(visionOS)
             return .label
             #else
             return .black
             #endif
         }
-        #if os(macOS) || os(iOS) || os(tvOS)
+        #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
         let color = NSUIColor(light: light, dark: dark)
         #else
         let color = dark

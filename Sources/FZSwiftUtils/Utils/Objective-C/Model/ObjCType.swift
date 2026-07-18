@@ -730,9 +730,9 @@ extension ObjCType {
         case .longLong: return swiftType == Int64.self || swiftType == CLongLong.self || swiftType == Int.self
         case .ulongLong: return swiftType == UInt64.self || swiftType == CUnsignedLongLong.self || swiftType == UInt.self
         case .int128:
-            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == Int128.self } else { return nil }
+            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) { return swiftType == Int128.self } else { return nil }
         case .uint128:
-            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, *) { return swiftType == UInt128.self } else { return nil }
+            if #available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) { return swiftType == UInt128.self } else { return nil }
         case .float: return swiftType == Float.self
         case .double: return swiftType == Double.self || swiftType == CGFloat.self
         case .longDouble: return swiftType == Double.self

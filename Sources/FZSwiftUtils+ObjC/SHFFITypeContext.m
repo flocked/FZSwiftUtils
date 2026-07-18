@@ -7,6 +7,9 @@
 //
 
 #import "SHFFITypeContext.h"
+#import <TargetConditionals.h>
+
+#if !TARGET_OS_VISION
 
 @interface SHFFITypeContext()
 
@@ -260,3 +263,4 @@
 }
 
 @end
+#endif

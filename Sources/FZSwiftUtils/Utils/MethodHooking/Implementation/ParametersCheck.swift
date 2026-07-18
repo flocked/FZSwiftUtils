@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  ParametersCheck.swift
 //
@@ -193,3 +194,5 @@ extension Hook {
         }
     }
 }
+
+#endif

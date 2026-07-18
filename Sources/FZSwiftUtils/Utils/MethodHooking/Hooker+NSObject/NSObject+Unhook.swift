@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  NSObject+Unhook.swift
 //  
@@ -177,3 +178,5 @@ extension NSObjectProtocol where Self: NSObject {
 }
 
 
+
+#endif

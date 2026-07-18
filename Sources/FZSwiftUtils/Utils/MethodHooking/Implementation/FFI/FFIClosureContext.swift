@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  FFIClosureContext.swift
 //
@@ -38,3 +39,5 @@ class FFIClosureContext {
         ffi_closure_free(self.ffiClosure)
     }
 }
+
+#endif

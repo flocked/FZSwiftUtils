@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  HookContext.swift
 //
@@ -318,3 +319,5 @@ fileprivate func callBeforeOrAfterClosure(_ hookClosure: AnyObject, _ hookContex
         ffi_call(hookContext.beforeAfterCifContext.cif, unsafeBitCast(sh_blockInvoke(hookClosurePointer.pointee), to: (@convention(c) () -> Void).self), nil, hookArgsBuffer.baseAddress)
     }
 }
+
+#endif

@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  Signature.swift
 //
@@ -152,3 +153,5 @@ extension Array where Element == Signature.TypeValue {
     }
 }
 
+
+#endif

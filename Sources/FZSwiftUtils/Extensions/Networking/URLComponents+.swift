@@ -142,7 +142,7 @@ extension URLComponents {
     }
     
     /// Sets the host subcomponent, encoded.
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func encodedHost(_ host: String?) -> Self {
         var components = self
         components.encodedHost = host

@@ -150,7 +150,7 @@ public extension UIEdgeInsets {
 }
 #endif
 
-#if os(macOS) || os(iOS) || os(tvOS)
+#if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
 public extension CATransform3D {
     /// A `NSValue` representation of the value.
     var nsValue: NSValue {

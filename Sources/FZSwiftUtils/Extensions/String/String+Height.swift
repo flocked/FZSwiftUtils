@@ -77,7 +77,7 @@ public extension NSAttributedString {
       */
 }
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension AttributedString {
     /**
      Calculates the height of the attributed string with the given constrained width.
@@ -182,7 +182,7 @@ public extension AttributedString {
         }
     }
 
-#elseif os(iOS) || os(tvOS)
+#elseif os(iOS) || os(tvOS) || os(visionOS)
     import UIKit
 
     public extension String {
@@ -231,7 +231,7 @@ public extension AttributedString {
         }
     }
 
-    @available(iOS 15, tvOS 15.0, *)
+    @available(iOS 15, tvOS 15.0, visionOS 1.0, *)
     public extension AttributedString {
         /**
          Calculates the height of the string with the given constrained width, maximum number of lines and line break mode.

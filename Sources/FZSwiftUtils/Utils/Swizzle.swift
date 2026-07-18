@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  Swizzle.swift
 //
@@ -774,3 +775,5 @@ fileprivate extension NSObject {
     }
 }
 
+
+#endif

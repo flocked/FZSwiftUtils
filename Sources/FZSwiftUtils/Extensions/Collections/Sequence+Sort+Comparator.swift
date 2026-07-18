@@ -29,7 +29,7 @@ extension Sequence {
         - comparators: The sort comparators used to compare elements.
         - order: The order of sorting. The default value is `forward`.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func sorted(using comparators: [any SortComparator<Element>], order: SortOrder = .forward) -> [Element] {
         sorted {
             for sorting in comparators {
@@ -51,7 +51,7 @@ extension Sequence {
         - comparators: The sort comparators used to compare elements.
         - order: The order of sorting. The default value is `forward`.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     public func sorted(using comparators: any SortComparator<Element>..., order: SortOrder = .forward) -> [Element] {
         sorted(using: comparators, order: order)
     }
@@ -79,7 +79,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         - comparators: The sort comparators used to compare elements.
         - order: The order of sorting. The default value is `forward`.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     mutating func sort(using comparators: [any SortComparator<Element>], _ order: SortOrder = .forward) {
         sort {
             for sorting in comparators {
@@ -101,7 +101,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
         - comparators: The sort comparators used to compare elements.
         - order: The order of sorting. The default value is `forward`.
      */
-    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+    @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
     mutating func sort(using comparators: any SortComparator<Element>..., order: SortOrder = .forward) {
         sort(using: comparators, order)
     }

@@ -31,7 +31,7 @@ public struct TimeDuration: Hashable, Sendable, Codable {
         Self.swizzleFormatters()
     }
 
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
     /**
      Initializes a new `TimeDuration` instance with the specified `CMTime`.
 
@@ -795,7 +795,7 @@ extension TimeDuration: CustomStringConvertible {
     }
 }
 
-@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, *)
+@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
 extension TimeDuration: DurationProtocol {}
 
 extension TimeDuration: Comparable, AdditiveArithmetic {
@@ -1062,6 +1062,7 @@ extension TimeDuration {
 
 fileprivate extension TimeDuration {
     static func swizzleFormatters() {
+        #if !os(visionOS)
         guard formatterHooks.isEmpty else { return }
         do {
             formatterHooks += try DateComponentsFormatter.hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
@@ -1075,7 +1076,10 @@ fileprivate extension TimeDuration {
         } catch {
             Swift.print(error)
         }
+        #endif
     }
     
+    #if !os(visionOS)
     static var formatterHooks: [Hook] = []
+    #endif
 }

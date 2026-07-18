@@ -304,13 +304,13 @@ public extension Date {
     /// The day of the year of this date.
     var dayOfYear: Int {
         get {
-            if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
+            if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
                 return value(for: .dayOfYear)
             }
             return Calendar.current.ordinality(of: .day, in: .year, for: self) ?? 0
         }
         set {
-            if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, *) {
+            if #available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *) {
                 set(.dayOfYear, to: newValue)
             } else {
                 let calendar = Calendar.current

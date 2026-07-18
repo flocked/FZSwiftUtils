@@ -547,7 +547,7 @@ public extension Collection where Element == CGSize {
         return totalSize
     }
 
-    #if os(macOS) || os(iOS) || os(tvOS)
+    #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
     /**
      Returns the sizes scaled proportionally to fit within a specified target size, based on the given orientation.
 

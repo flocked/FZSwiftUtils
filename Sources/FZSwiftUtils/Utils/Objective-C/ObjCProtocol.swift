@@ -197,12 +197,14 @@ extension Protocol {
         methodDescription(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly)?.types?.string
     }
     
+    #if !os(visionOS)
     func methodSignature(for selector: Selector, isInstanceMethod: Bool, optionalOnly: Bool = false) throws -> Signature {
         guard let types = methodDescription(for: selector, isInstanceMethod: isInstanceMethod, optionalOnly: optionalOnly)?.types else {
             throw HookError.noRespondSelector
         }
         return try Signature(typeEncoding: types)
     }
+    #endif
     
     private func methodDescriptionWithoutSearchingInheritedProtocols(for selector: Selector, isInstanceMethod: Bool, optionalOnly: Bool = false) -> objc_method_description? {
         let optionalDescription = protocol_getMethodDescription(self, selector, false, isInstanceMethod)

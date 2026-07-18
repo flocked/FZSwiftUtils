@@ -1,3 +1,4 @@
+#if !os(visionOS)
 //
 //  ObjectHook.swift
 //  
@@ -222,3 +223,5 @@ extension ObjectHook where T: NSObject {
 extension ObjectHook {
 
 }
+
+#endif
