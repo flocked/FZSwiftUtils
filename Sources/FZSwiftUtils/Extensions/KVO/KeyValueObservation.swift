@@ -11,9 +11,6 @@ import AppKit
 #else
 import UIKit
 #endif
-#if os(macOS) || os(iOS)
-import AVKit
-#endif
 
 /**
  An object that observes the value of a key-value compatible property,
@@ -124,12 +121,6 @@ public class KeyValueObservation: NSObject {
             observer = LayerFrameObserver(object, uniqueValues: uniqueValues, handler: cast(handler))
         case ("sublayers", let object as CALayer) where Value.self is [CALayer]?.Type:
             observer = SublayersObserver(object, uniqueValues: uniqueValues, handler: cast(handler))
-        #endif
-        #if os(macOS) || os(iOS)
-        case ("isDisplayingPictureInPicture", let object as NSUIView) where Value.self is Bool.Type:
-            guard let controller = object.pictureInPictureController else { return nil }
-            guard let observation = controller.observeChanges(for: \.isPictureInPictureActive, uniqueValues: uniqueValues, handler: handler as! (Bool, Bool) -> Void) else { return nil }
-            observer = observation.observer
         #endif
         default: break
         }
@@ -616,14 +607,6 @@ fileprivate extension CALayer {
     
     @objc dynamic var aSublayers: [CALayer]? {
         sublayers
-    }
-}
-#endif
-
-#if os(macOS) || os(iOS)
-fileprivate extension NSUIView {
-    var pictureInPictureController: AVPictureInPictureController? {
-        getAssociatedValue("pictureInPictureController")
     }
 }
 #endif
