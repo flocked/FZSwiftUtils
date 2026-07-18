@@ -83,7 +83,7 @@ extension Progress {
                     self.eta.count = 0
                     self.updateEstimatedTimeRemaining()
                 }
-                eta.observations += observeChanges(for: \.fractionCompleted, sendInitalValue: true) { [weak self] old, new in
+                eta.observations += observeChanges(for: \.fractionCompleted, sendInitialValue: true) { [weak self] old, new in
                     guard let self = self else { return }
                     self.eta.count = 0
                     self.updateEstimatedTimeRemaining()

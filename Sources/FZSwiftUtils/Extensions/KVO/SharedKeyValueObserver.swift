@@ -85,14 +85,14 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
 
      - Parameters:
         - keyPath: The key path to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: The handler to be called whenever the key path value changes.
      - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
      */
     @discardableResult
-    open func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+    open func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
         guard let keyPath = keyPath._kvcKeyPathString else { return false }
-        add(keyPath, initial: sendInitalValue) { object, old, new, initial in
+        add(keyPath, initial: sendInitialValue) { object, old, new, initial in
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(object, old, new)
         }
@@ -104,17 +104,17 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
      
      The handler is called whenever the value of the property changes to a new value that isn't equal to it's previous.
      
-     If you want the handler to be called on all changes, use ``add(_:sendInitalValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
+     If you want the handler to be called on all changes, use ``add(_:sendInitialValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: The handler to be called.
      - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
      */
     @discardableResult
-    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
-        add(keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+        add(keyPath, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -122,15 +122,15 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
 
      - Parameters:
         - keyPath: The key path to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only be called if the new value isn't equal to the previous value.
         - handler: The handler to be called whenever the key path value changes.
      - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
      */
     @discardableResult
-    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
         guard let keyPath = keyPath._kvcKeyPathString else { return false }
-        add(keyPath, type: Value.self, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+        add(keyPath, type: Value.self, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
         return true
     }
     
@@ -140,11 +140,11 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The key path to observe.
         - type: The value type of the key path.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
      */
-    open func add<Value>(_ keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping (_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void) {
-        add(keyPath, initial: sendInitalValue) { object, old, new, _ in
+    open func add<Value>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping (_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void) {
+        add(keyPath, initial: sendInitialValue) { object, old, new, _ in
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(object, old, new)
         }
@@ -156,11 +156,11 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The key path to observe.
         - type: The value type of the key path.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
      */
-    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping (_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void) {
-        add(keyPath, type: type, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping (_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void) {
+        add(keyPath, type: type, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -169,18 +169,18 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The key path to observe.
         - type: The value type of the key path.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
      */
-    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void) {
+    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ object: Object, _ oldValue: Value, _ newValue: Value) -> Void) {
         if !uniqueValues {
-            add(keyPath, initial: sendInitalValue) { object, old, new, _ in
+            add(keyPath, initial: sendInitialValue) { object, old, new, _ in
                 guard let old = old as? Value, let new = new as? Value else { return }
                 handler(object, old, new)
             }
         } else {
-            add(keyPath, initial: sendInitalValue) { object, old, new, initial in
+            add(keyPath, initial: sendInitialValue) { object, old, new, initial in
                 guard let old = old as? Value, let new = new as? Value, old != new || initial else { return }
                 handler(object, old, new)
             }
@@ -339,7 +339,7 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
         }
     }
     
-    private func add(_ keyPath: String, initial: Bool, handler: @escaping (_ object: Object, _ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void) {
+    private func add(_ keyPath: String, initial: Bool, handler: @escaping (_ object: Object, _ oldValue: Any, _ newValue: Any, _ isInitial: Bool) -> Void) {
         lock.locked {
             var observation = observations[keyPath] ?? Observation(keyPath)
             observation.handler = handler
@@ -382,7 +382,7 @@ open class SharedKeyValueObserver<Object>: NSObject where Object: NSObject {
     
     private struct Observation {
         let keyPath: String
-        var handler: ((_ object: Object, _ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void)?
+        var handler: ((_ object: Object, _ oldValue: Any, _ newValue: Any, _ isInitial: Bool) -> Void)?
         var willChange: ((_ object: Object, Any)->Void)?
         var initial = false
         

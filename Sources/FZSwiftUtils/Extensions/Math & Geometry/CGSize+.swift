@@ -366,13 +366,49 @@ public extension CGSize {
     func clamped(min minSize: CGSize) -> CGSize {
         clamped(minWidth: minSize.width, minHeight: minSize.height)
     }
+    
+    /**
+     Clamps the size to the specified minimum size.
 
+     - Parameter minSize: The minimum size needed.
+     */
+    func clamped(min minSize: CGFloat) -> CGSize {
+        clamped(min: CGSize(minSize))
+    }
+    
+    /**
+     Clamps the size to the specified minimum size.
+
+     - Parameter minSize: The minimum size needed.
+     */
+    func clamped(min minSize: Int) -> CGSize {
+        clamped(min: CGSize(minSize))
+    }
+    
     /**
      Clamps the size to the specified minimum size.
 
      - Parameter minSize: The minimum size needed.
      */
     mutating func clamp(min minSize: CGSize) {
+        self = clamped(min: minSize)
+    }
+    
+    /**
+     Clamps the size to the specified minimum size.
+
+     - Parameter minSize: The minimum size needed.
+     */
+    mutating func clamp(min minSize: CGFloat) {
+        self = clamped(min: minSize)
+    }
+    
+    /**
+     Clamps the size to the specified minimum size.
+
+     - Parameter minSize: The minimum size needed.
+     */
+    mutating func clamp(min minSize: Int) {
         self = clamped(min: minSize)
     }
 
@@ -384,6 +420,24 @@ public extension CGSize {
     func clamped(max maxSize: CGSize) -> CGSize {
         clamped(maxWidth: maxSize.width, maxHeight: maxSize.height)
     }
+    
+    /**
+     Clamps the size to the specified maximum size.
+
+     - Parameter maxSize: The maximum size allowed.
+     */
+    func clamped(max maxSize: CGFloat) -> CGSize {
+        clamped(max: CGSize(maxSize))
+    }
+    
+    /**
+     Clamps the size to the specified maximum size.
+
+     - Parameter maxSize: The maximum size allowed.
+     */
+    func clamped(max maxSize: Int) -> CGSize {
+        clamped(max: CGSize(maxSize))
+    }
 
     /**
      Clamps the size to the specified maximum size.
@@ -391,6 +445,24 @@ public extension CGSize {
      - Parameter maxSize: The maximum size allowed.
      */
     mutating func clamp(max maxSize: CGSize) {
+        self = clamped(max: maxSize)
+    }
+    
+    /**
+     Clamps the size to the specified maximum size.
+
+     - Parameter maxSize: The maximum size allowed.
+     */
+    mutating func clamp(max maxSize: CGFloat) {
+        self = clamped(max: maxSize)
+    }
+    
+    /**
+     Clamps the size to the specified maximum size.
+
+     - Parameter maxSize: The maximum size allowed.
+     */
+    mutating func clamp(max maxSize: Int) {
         self = clamped(max: maxSize)
     }
 
@@ -402,6 +474,24 @@ public extension CGSize {
     func clamped(to sizeRange: ClosedRange<CGSize>) -> CGSize {
         clamped(min: sizeRange.lowerBound).clamped(max: sizeRange.upperBound)
     }
+    
+    /**
+     Clamps the size to the specified minimum and maximum size.
+
+     - Parameter sizeRange: The size range to clamp the value to.
+     */
+    func clamped(to sizeRange: ClosedRange<CGFloat>) -> CGSize {
+        clamped(min: sizeRange.lowerBound).clamped(max: sizeRange.upperBound)
+    }
+    
+    /**
+     Clamps the size to the specified minimum and maximum size.
+
+     - Parameter sizeRange: The size range to clamp the value to.
+     */
+    func clamped(to sizeRange: ClosedRange<Int>) -> CGSize {
+        clamped(min: sizeRange.lowerBound).clamped(max: sizeRange.upperBound)
+    }
 
     /**
      Clamps the size to the specified minimum and maximum size.
@@ -409,6 +499,24 @@ public extension CGSize {
      - Parameter sizeRange: The size range to clamp the value to.
      */
     mutating func clamp(to range: ClosedRange<CGSize>) {
+        self = clamped(to: range)
+    }
+    
+    /**
+     Clamps the size to the specified minimum and maximum size.
+
+     - Parameter sizeRange: The size range to clamp the value to.
+     */
+    mutating func clamp(to range: ClosedRange<CGFloat>) {
+        self = clamped(to: range)
+    }
+    
+    /**
+     Clamps the size to the specified minimum and maximum size.
+
+     - Parameter sizeRange: The size range to clamp the value to.
+     */
+    mutating func clamp(to range: ClosedRange<Int>) {
         self = clamped(to: range)
     }
 

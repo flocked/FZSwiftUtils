@@ -20,7 +20,9 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     public weak var observedObject: Object? {
         willSet {
             guard newValue !== observedObject else { return }
-            _isActive = isActive
+            if observedObject != nil {
+                _isActive = isActive
+            }
             isActive = false
         }
         didSet {
@@ -31,11 +33,16 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     private var _isActive = false
     private var observations: [String: Observation] = [:]
+    private var customObservations: [String: KeyValueObservation] = [:]
     private var context = 0
     
     var isActive: Bool = true {
         didSet {
-            guard oldValue != isActive, let observedObject = observedObject else { return }
+            guard oldValue != isActive else { return }
+            customObservations.values.forEach({
+                $0.setObject(isActive ? observedObject : nil, activate: isActive)
+            })
+            guard let observedObject = observedObject else { return }
             if isActive {
                 observations.forEach({ observedObject.addObserver(self, forKeyPath: $0.key, options: $0.value.options, context: &context) })
             } else {
@@ -63,14 +70,14 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
 
      - Parameters:
         - keyPath: The key path to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: The handler to be called whenever the key path value changes.
      - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
      */
     @discardableResult
-    open func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+    open func add<Value>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
         guard let keyPath = keyPath._kvcKeyPathString else { return false }
-        add(keyPath, initial: sendInitalValue) { old, new, initial in
+        add(keyPath, initial: sendInitialValue) { old, new, initial in
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(old, new)
         }
@@ -82,17 +89,17 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      
      The handler is called whenever the value of the property changes to a new value that isn't equal to it's previous. 
      
-     If you want the handler to be called on all changes, use ``add(_:sendInitalValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
+     If you want the handler to be called on all changes, use ``add(_:sendInitialValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
 
      - Parameters:
         - keyPath: The key path to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: The handler to be called.
      - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
      */
     @discardableResult
-    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
-        add(keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+        add(keyPath, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -100,16 +107,21 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
 
      - Parameters:
         - keyPath: The key path to the value to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only be called if the new value isn't equal to the previous value.
         - handler: The handler to be called whenever the key path value changes.
      - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
      */
     @discardableResult
-    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
-        guard let keyPath = keyPath._kvcKeyPathString else { return false }
-        add(keyPath, type: Value.self, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
-        return true
+    open func add<Value: Equatable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+        if let observation = KeyValueObservation(observedObject, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, fallbackToKeyPathObserver: false, handler: handler) {
+            add(keyPath.stringValue, observation: observation)
+            return true
+        } else {
+            guard let keyPath = keyPath._kvcKeyPathString else { return false }
+            add(keyPath, type: Value.self, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
+            return true
+        }
     }
     
     /**
@@ -118,11 +130,11 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The key path to observe.
         - type: The value type of the key path.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.     
      */
-    open func add<Value>(_ keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
-        add(keyPath, initial: sendInitalValue) { old, new, _ in
+    open func add<Value>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        add(keyPath, initial: sendInitialValue) { old, new, _ in
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(old, new)
         }
@@ -134,11 +146,11 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The key path to observe.
         - type: The value type of the key path.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
      */
-    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
-        add(keyPath, type: type, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        add(keyPath, type: type, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -147,18 +159,22 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameters:
         - keyPath: The key path to observe.
         - type: The value type of the key path.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
      */
-    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+    open func add<Value: Equatable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        if let observation = KeyValueObservation(observedObject, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler) {
+            add(keyPath, observation: observation)
+            return
+        }
         if !uniqueValues {
-            add(keyPath, initial: sendInitalValue) { old, new, _ in
+            add(keyPath, initial: sendInitialValue) { old, new, _ in
                 guard let old = old as? Value, let new = new as? Value else { return }
                 handler(old, new)
             }
         } else {
-            add(keyPath, initial: sendInitalValue) { old, new, initial in
+            add(keyPath, initial: sendInitialValue) { old, new, initial in
                 guard let old = old as? Value, let new = new as? Value, old != new || initial else { return }
                 handler(old, new)
             }
@@ -194,6 +210,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameter keyPath: The key path to remove.
      */
     open func remove(_ keyPath: PartialKeyPath<Object>) {
+        customObservations[keyPath.stringValue] = nil
         guard let keyPath = keyPath._kvcKeyPathString else { return }
         remove(keyPath)
     }
@@ -204,6 +221,7 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameter keyPath: The key path to remove.
      */
     open func remove(_ keyPath: String) {
+        customObservations[keyPath] = nil
         guard var observation = observations[keyPath] else { return }
         observation.handler = nil
         addObservation(observation)
@@ -277,12 +295,13 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     /// Removes all observers.
     open func removeAll() {
+        customObservations.keys.forEach { customObservations[$0] = nil }
         observations.keys.forEach { removeObservation(for: $0) }
     }
     
     /// A Boolean value indicating whether any value is observed.
     open var isObserving: Bool {
-        observations.isEmpty != false
+        !observations.isEmpty || !customObservations.isEmpty
     }
 
     /**
@@ -291,6 +310,9 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameter keyPath: The key path to the property.
      */
     open func isObserving(_ keyPath: PartialKeyPath<Object>) -> Bool {
+        if customObservations[keyPath.stringValue] != nil {
+            return true
+        }
         guard let name = keyPath._kvcKeyPathString else { return false }
         return isObserving(name)
     }
@@ -301,16 +323,23 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
      - Parameter keyPath: The key path to the property.
      */
     open func isObserving(_ keyPath: String) -> Bool {
-        observations[keyPath] != nil
+        observations[keyPath] != nil || customObservations[keyPath] != nil
     }
     
-    private func add(_ keyPath: String, initial: Bool, handler: @escaping (_ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void) {
+    private func add(_ keyPath: String, observation: KeyValueObservation) {
+        removeObservation(for: keyPath)
+        customObservations[keyPath] = observation
+        observation.isObserving = isActive
+    }
+    
+    private func add(_ keyPath: String, initial: Bool, handler: @escaping (_ oldValue: Any, _ newValue: Any, _ isInitial: Bool) -> Void) {
+        customObservations[keyPath] = nil
         var observation = observations[keyPath] ?? Observation(keyPath)
         observation.handler = handler
         observation.initial = initial
         addObservation(observation)
     }
-    
+        
     private func addObservation(_ observation: Observation) {
         removeObservation(for: observation.keyPath)
         guard observation.willChange != nil || observation.handler != nil else { return }
@@ -337,10 +366,10 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     private struct Observation {
         let keyPath: String
-        var handler: ((_ oldValue: Any, _ newValue: Any, _ isInital: Bool) -> Void)?
+        var handler: ((_ oldValue: Any, _ newValue: Any, _ isInitial: Bool) -> Void)?
         var willChange: ((Any)->Void)?
         var initial = false
-        
+
         var options: NSKeyValueObservingOptions {
             var options: NSKeyValueObservingOptions = [.old]
             options[.new] = handler != nil
@@ -357,12 +386,4 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     deinit {
         removeAll()
     }
-}
-
-extension [NSKeyValueChangeKey: Any] {
-    var newValue: Any? { self[.newKey] }
-    var oldValue: Any? { self[.oldKey] }
-    var isPrior: Bool { self[.notificationIsPriorKey] as? Bool ?? false }
-    var kind: NSKeyValueChange { .init(rawValue: self[.kindKey] as? UInt ?? 1) ?? .setting }
-    var indexes: IndexSet? { self[.indexesKey] as? IndexSet }
 }

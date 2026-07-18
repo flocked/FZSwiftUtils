@@ -373,6 +373,27 @@ public extension CGRect {
         size.area
     }
     
+    /// Returns the fraction (between `0.0...1.0`) of this rectangle that is visible inside the specified rectangle.
+    func visibleFraction(in other: CGRect) -> CGFloat {
+        guard !isNull, !isEmpty else { return 0 }
+        let visible = intersection(other)
+        guard !visible.isEmpty else { return 0 }
+        return visible.area / area
+    }
+
+    /**
+     Returns a Boolean value indicating whether at least the specified fraction of this rectangle is visible inside the specified rectangle.
+
+     - Parameters:
+       - other: The rectangle in which to test visibility.
+       - minimumFractionVisible: The minimum fraction of this rectangle that must be visible, between `0.0...1.0`.
+
+     - Returns: `true` if the visible fraction of this rectangle within `other` is greater than or equal to `minimumFractionVisible`; otherwise, `false`.
+     */
+    func isVisible(in other: CGRect, minimumFractionVisible: CGFloat = 0.0) -> Bool {
+        visibleFraction(in: other) >= minimumFractionVisible
+    }
+    
     private func apply<Value>(_ value: Value, to keyPath: WritableKeyPath<CGRect, Value>) -> Self {
         var rect = self
         rect[keyPath: keyPath] = value
@@ -465,6 +486,27 @@ public extension CGRect {
     }
     
     func offsetBy(_ dXY: CGFloat) -> CGRect {
+        offsetBy(dx: dXY, dy: dXY)
+    }
+    
+    func offsetBy(dx: Int, dy: Int) -> CGRect {
+        offsetBy(dx: CGFloat(dx), dy: CGFloat(dy))
+    }
+    
+    func offsetBy(dx: Int) -> CGRect {
+        offsetBy(dx: dx, dy: 0)
+    }
+    
+    func offsetBy(dy: Int) -> CGRect {
+        offsetBy(dx: 0, dy: dy)
+    }
+    
+    
+    func offsetBy(_ dx: Int, _ dy: Int) -> CGRect {
+        offsetBy(dx: CGFloat(dx), dy: CGFloat(dy))
+    }
+    
+    func offsetBy(_ dXY: Int) -> CGRect {
         offsetBy(dx: dXY, dy: dXY)
     }
     

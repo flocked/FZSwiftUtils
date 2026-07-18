@@ -29,13 +29,13 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
+    public func observeChanges<Value>(for keyPath: KeyPath<Self, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, sendInitialValue: sendInitialValue, handler: handler)
     }
     
     /**
@@ -58,16 +58,16 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeChanges<Value>(for keyPath: WritableKeyPath<Self, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         #if os(macOS) || os(iOS)
-        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
+        KeyValueObservation(self, keyPath: keyPath, sendInitialValue: sendInitialValue, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, sendInitialValue: sendInitialValue, handler: handler)
         #else
-        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, handler: handler)
+        KeyValueObservation(self, keyPath: keyPath, sendInitialValue: sendInitialValue, handler: handler)
         #endif
     }
     
@@ -90,13 +90,13 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        observeChanges(for: keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        observeChanges(for: keyPath, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -119,13 +119,13 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         - keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        observeChanges(for: keyPath, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        observeChanges(for: keyPath, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -145,14 +145,14 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         -  keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+    public func observeChanges<Value: Equatable>(for keyPath: KeyPath<Self, Value>, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
     }
     
     /**
@@ -175,17 +175,17 @@ extension NSObjectProtocol where Self: NSObject {
      
      - Parameters:
         -  keyPath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+    public func observeChanges<Value: Equatable>(for keyPath: WritableKeyPath<Self, Value>, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
         #if os(macOS) || os(iOS)
-        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+        KeyValueObservation(self, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler) ?? KeyValueObservation(self, writableKeyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
         #else
-        KeyValueObservation(self, keyPath: keyPath, sendInitalValue: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+        KeyValueObservation(self, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
         #endif
     }
     
@@ -304,13 +304,13 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The name of the key path of the property to observe.
         - type: The value type of the property.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, handler: handler)
+    public func observeChanges<Value>(for keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, initial: sendInitialValue, handler: handler)
     }
     
     /**
@@ -321,13 +321,13 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         - keyPath: The name key path of the property to observe.
         - type: The value type of the property.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        observeChanges(for: keyPath, type: type, sendInitalValue: sendInitalValue, uniqueValues: true, handler: handler)
+    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        observeChanges(for: keyPath, type: type, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
     }
     
     /**
@@ -338,14 +338,14 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameters:
         -  keyPath: The key path of the property to observe.
         - type: The value type of the property.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the old value, and the new value as parameters.
      
      - Returns: A ``KeyValueObservation`` object representing the observation.
      */
-    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitalValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
-        KeyValueObservation(self, keyPath: keyPath, initial: sendInitalValue, uniqueValues: uniqueValues, handler: handler)
+    public func observeChanges<Value: Equatable>(for keyPath: String, type: Value.Type, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> KeyValueObservation? {
+        KeyValueObservation(self, keyPath: keyPath, initial: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
     }
     
     /**
@@ -451,19 +451,19 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitialValue: Bool = false, uniqueValues: Bool = true, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
         if uniqueValues {
-            return publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+            return publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
                 .removeDuplicates(by: { $0 == $1 })
                 .sink(receiveValue: handler)
         } else {
-            return publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+            return publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
                 .sink(receiveValue: handler)
         }
     }
@@ -483,13 +483,13 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
-        publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new]).sink(receiveValue: handler)
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitialValue: Bool = false, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
+        publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new]).sink(receiveValue: handler)
     }
         
     /**
@@ -507,15 +507,15 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
-        publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitialValue: Bool = false, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
+        publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
             .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
             .sink(receiveValue: handler)
     }
@@ -535,21 +535,21 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitialValue: Bool = false, uniqueValues: Bool = true, throttle interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
         if uniqueValues {
-            return publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+            return publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
                 .removeDuplicates { $0 == $1 }
                 .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
                 .sink(receiveValue: handler)
         } else {
-            return publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+            return publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
                 .throttle(for: interval, scheduler: DispatchQueue.main, latest: true)
                 .sink(receiveValue: handler)
         }
@@ -570,15 +570,15 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
-        publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+    func onChanged<Value>(_ keypath: KeyPath<Self, Value>, sendInitialValue: Bool = false, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
+        publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
             .debounce(for: interval, scheduler: DispatchQueue.main)
             .sink(receiveValue: handler)
     }
@@ -598,21 +598,21 @@ public extension NSObjectProtocol where Self: NSObject {
 
      - Parameters:
         - keypath: The key path of the optional property to observe.
-        - sendInitalValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property. The default value is `false`.
         - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
         - interval: The time interval used for throttling.
         - handler: A closure that will be called when the property value changes. It takes the new value as a parameter.
 
      - Returns: An `AnyCancellable` object representing the observation. It can be used to cancel the observation.
      */
-    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitalValue: Bool = false, uniqueValues: Bool = true, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
+    func onChanged<Value: Equatable>(_ keypath: KeyPath<Self, Value>, sendInitialValue: Bool = false, uniqueValues: Bool = true, debounce interval: DispatchQueue.SchedulerTimeType.Stride, handler: @escaping ((Value) -> Void)) -> AnyCancellable {
         if uniqueValues {
-            return publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+            return publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
                 .removeDuplicates { $0 == $1 }
                 .debounce(for: interval, scheduler: DispatchQueue.main)
                 .sink(receiveValue: handler)
         } else {
-            return publisher(for: keypath, options: sendInitalValue ? [.new, .initial] : [.new])
+            return publisher(for: keypath, options: sendInitialValue ? [.new, .initial] : [.new])
                 .debounce(for: interval, scheduler: DispatchQueue.main)
                 .sink(receiveValue: handler)
         }
