@@ -33,10 +33,46 @@ public extension CGSize {
     #if os(macOS)
     /**
      A size indicating that both dimensions have no intrinsic value.
-     
+
      This constant is equivalent to a size whose width and height are both [NSView.noIntrinsicMetric](https://developer.apple.com/documentation/appkit/nsview/nointrinsicmetric).
      */
     static let noIntrinsicSize = CGSize(NSView.noIntrinsicMetric, NSView.noIntrinsicMetric)
+
+    /**
+     Returns a size with the specified ntrinsic width and height.
+
+     [NSView.noIntrinsicMetric](https://developer.apple.com/documentation/appkit/nsview/nointrinsicmetric) is used as value for a dimension with no intrinsic size.
+     
+     - Parameters:
+       - width: The intrinsic width, or `nil` to indicate that the width has no intrinsic value.
+       - height: The intrinsic height, or `nil` to indicate that the height has no intrinsic value.
+     */
+    static func noIntrinsicSize(width: CGFloat?, height: CGFloat?) -> CGSize {
+        CGSize(width ?? NSUIView.noIntrinsicMetric, height ?? NSUIView.noIntrinsicMetric)
+    }
+    
+    /**
+     Returns a size with the specified intrinsic width and no intrinsic height.
+
+     [NSView.noIntrinsicMetric](https://developer.apple.com/documentation/appkit/nsview/nointrinsicmetric) is used as value for a dimension with no intrinsic size.
+     
+     - Parameter width: The intrinsic width, or `nil` to indicate that the width has no intrinsic value.
+     */
+    static func noIntrinsicSize(width: CGFloat?) -> CGSize {
+        CGSize(width ?? NSUIView.noIntrinsicMetric, NSUIView.noIntrinsicMetric)
+    }
+    
+    /**
+     Returns a size with the specified intrinsic height and no intrinsic width.
+
+     [NSView.noIntrinsicMetric](https://developer.apple.com/documentation/appkit/nsview/nointrinsicmetric) is used as value for a dimension with no intrinsic size.
+     
+     - Parameter height: The intrinsic height, or `nil` to indicate that the height has no intrinsic value.
+     */
+    static func noIntrinsicSize(height: CGFloat?) -> CGSize {
+        CGSize(NSUIView.noIntrinsicMetric, height ?? NSUIView.noIntrinsicMetric)
+    }
+
     #elseif os(iOS) || os(tvOS) || os(visionOS)
     /**
      A size indicating that both dimensions have no intrinsic value.
@@ -44,6 +80,41 @@ public extension CGSize {
      This constant is equivalent to a size whose width and height are both [UIView.noIntrinsicMetric](https://developer.apple.com/documentation/uikit/uiview/nointrinsicmetric).
      */
     static let noIntrinsicSize = CGSize(UIView.noIntrinsicMetric, UIView.noIntrinsicMetric)
+
+    /**
+     Returns a size with the specified ntrinsic width and height.
+
+     [UIView.noIntrinsicMetric](https://developer.apple.com/documentation/uikit/uiview/nointrinsicmetric) is used as value for a dimension with no intrinsic size.
+     
+     - Parameters:
+       - width: The intrinsic width, or `nil` to indicate that the width has no intrinsic value.
+       - height: The intrinsic height, or `nil` to indicate that the height has no intrinsic value.
+     */
+    static func noIntrinsicSize(width: CGFloat?, height: CGFloat?) -> CGSize {
+        CGSize(width ?? NSUIView.noIntrinsicMetric, height ?? NSUIView.noIntrinsicMetric)
+    }
+    
+    /**
+     Returns a size with the specified intrinsic width and no intrinsic height.
+
+     [UIView.noIntrinsicMetric](https://developer.apple.com/documentation/uikit/uiview/nointrinsicmetric) is used as value for a dimension with no intrinsic size.
+
+     - Parameter width: The intrinsic width, or `nil` to indicate that the width has no intrinsic value.
+     */
+    static func noIntrinsicSize(width: CGFloat?) -> CGSize {
+        CGSize(width ?? NSUIView.noIntrinsicMetric, NSUIView.noIntrinsicMetric)
+    }
+    
+    /**
+     Returns a size with the specified intrinsic height and no intrinsic width.
+
+     [UIView.noIntrinsicMetric](https://developer.apple.com/documentation/uikit/uiview/nointrinsicmetric) is used as value for a dimension with no intrinsic size.
+
+     - Parameter height: The intrinsic height, or `nil` to indicate that the height has no intrinsic value.
+     */
+    static func noIntrinsicSize(height: CGFloat?) -> CGSize {
+        CGSize(NSUIView.noIntrinsicMetric, height ?? NSUIView.noIntrinsicMetric)
+    }
     #endif
 
     /**
