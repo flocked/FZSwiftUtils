@@ -73,6 +73,36 @@ public extension RangeReplaceableCollection where Element: Identifiable {
         removeLast(where: { $0.id == id })
     }
 }
+
+/// The ordered differences between two collections of identifiable elements.
+public struct IdentifiedDifference<ID: Hashable, Element: Equatable> {
+    /// The elements that are no longer present in the other collection.
+    public let removed: [Element]
+    /// The elements that are newly present in the other collection.
+    public let added: [Element]
+    /// The elements whose identifiers match but whose values changed.
+    public let changed: [(old: Element, new: Element)]
+}
+
+public extension Collection where Element: Identifiable & Equatable {
+    /// Returns the ordered differences between this collection and another collection by comparing element identifiers.
+    func differenceByID(to other: Self) -> IdentifiedDifference<Element.ID, Element> {
+        let oldByID = keyed(by: \.id)
+        let newByID = other.keyed(by: \.id)
+
+        let removed = filter { newByID[$0.id] == nil }
+        let added = other.filter { oldByID[$0.id] == nil }
+        let changed = compactMap { oldElement -> (old: Element, new: Element)? in
+            guard let newElement = newByID[oldElement.id], oldElement != newElement else {
+                return nil
+            }
+            return (old: oldElement, new: newElement)
+        }
+
+        return .init(removed: removed, added: added, changed: changed)
+    }
+}
+
 /*
  public extension Collection where Element: Identifiable {
      /*
