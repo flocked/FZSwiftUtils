@@ -188,24 +188,19 @@ public extension NSImage {
         guard let imageSource = ImageSource(image: self) else { return nil }
         func image(at index: Int? = nil) -> CGImage? {
             if let maxSize = maxSize {
-                return imageSource.thumbnail(at: index, options: .init(maxSize: maxSize, transformsIfNeeded: true))
+                return imageSource.thumbnail(at: index, options: .init(maxSize: maxSize, caches: false))
             }
-            return imageSource.image(at: index, options: .init(caches: true, decodesImmediately: true))
-            // return imageSource.thumbnail(at: index, options: .init(transformsIfNeeded: true))
+            return imageSource.image(at: index, options: .init(caches: false, decodesImmediately: true))
         }
-        let data = NSMutableData()
-        let imageCount = imageSource.count
-        if imageCount > 1, let identifer = imageSource.contentType?.identifier.cfString, let destination = CGImageDestinationCreateWithData(data as CFMutableData, identifer, imageCount, nil) {
-            if let properties = (CGImageSourceCopyProperties(imageSource.cgImageSource, nil) as? [CFString: Any] ?? [:]).loopProperties()?.cfDictionary {
-                CGImageDestinationSetProperties(destination, properties)
+        if imageSource.count > 1, let contentType = imageSource.contentType, let destination = ImageDestination(contentType: contentType) {
+            if let properties = (CGImageSourceCopyProperties(imageSource.cgImageSource, nil) as? [CFString: Any] ?? [:]).loopProperties() {
+                destination.imageProperties = properties
             }
-            for index in 0..<imageCount {
+            for index in 0..<imageSource.count {
                 guard let image = image(at: index) else { continue }
-                CGImageDestinationAddImage(destination, image, CGImageSourceCopyPropertiesAtIndex(imageSource.cgImageSource, index, nil))
-                // CGImageDestinationAddImageFromSource(destination, imageSource.cgImageSource, index, [kCGImageDestinationImageMaxPixelSize: maxSize as Any?].nonNil.cfDictionary)
+                destination.addImage(image, options: .init(maxPixelSize: maxSize))
             }
-            CGImageDestinationFinalize(destination)
-            return NSImage(data: data as Data)
+            return try? destination.createImage()
         }
         guard let image = image() else { return nil }
         return NSImage(cgImage: image, size: .init(image.width, image.height))
@@ -237,63 +232,42 @@ fileprivate extension CGImage {
 }
 
 fileprivate extension Dictionary where Key == CFString, Value == Any {
-    static let loopCandidates: [(dictionaryKey: CFString, loopKey: CFString, extraKeys: [CFString])] = [
-        (dictionaryKey: kCGImagePropertyGIFDictionary,
-         loopKey: kCGImagePropertyGIFLoopCount,
-        extraKeys: [kCGImagePropertyGIFHasGlobalColorMap]),
-        (dictionaryKey: kCGImagePropertyHEICSDictionary,
-         loopKey: kCGImagePropertyHEICSLoopCount,
-        extraKeys: []),
-        (dictionaryKey: kCGImagePropertyPNGDictionary,
-         loopKey: kCGImagePropertyAPNGLoopCount,
-        extraKeys: [])
-    ]
-    
-    static let candidates: [(dictionaryKey: CFString, delayKey: CFString, unclampedKey: CFString, extraKeys: [CFString])] = [
-        (dictionaryKey: kCGImagePropertyGIFDictionary,
-        delayKey: kCGImagePropertyGIFDelayTime,
-        unclampedKey: kCGImagePropertyGIFUnclampedDelayTime,
-        extraKeys: [kCGImagePropertyGIFHasGlobalColorMap]),
-        (dictionaryKey: kCGImagePropertyHEICSDictionary,
-        delayKey: kCGImagePropertyHEICSDelayTime,
-        unclampedKey: kCGImagePropertyHEICSUnclampedDelayTime,
-        extraKeys: []),
-        (dictionaryKey: kCGImagePropertyPNGDictionary,
-        delayKey: kCGImagePropertyAPNGDelayTime,
-        unclampedKey: kCGImagePropertyAPNGUnclampedDelayTime,
-        extraKeys: [])
-    ]
+    static let animateDictionaries = [kCGImagePropertyGIFDictionary, kCGImagePropertyPNGDictionary, kCGImagePropertyHEICSDictionary, kCGImagePropertyWebPDictionary]
+    static let loopKey = kCGImagePropertyGIFLoopCount
+    static let delayKey = kCGImagePropertyGIFDelayTime
+    static let unclampedKey = kCGImagePropertyGIFUnclampedDelayTime
+    static let gifDictionaryKey = kCGImagePropertyGIFDictionary
 
     func frameProperties() -> [CFString: Any]? {
-        for candidate in Self.candidates {
-            guard let nested = self[candidate.dictionaryKey] as? [CFString: Any] else {
+        for directory in Self.animateDictionaries {
+            guard let nested = self[directory] as? [CFString: Any] else {
                 continue
             }
             var filtered: [CFString: Any] = [:]
-            filtered[candidate.delayKey] = nested[candidate.delayKey]
-            filtered[candidate.unclampedKey] = nested[candidate.unclampedKey]
-            for key in candidate.extraKeys {
-                filtered[key] = nested[key]
+            filtered[Self.delayKey] = nested[Self.delayKey]
+            filtered[Self.unclampedKey] = nested[Self.unclampedKey]
+            if directory == Self.gifDictionaryKey {
+                filtered[kCGImagePropertyGIFHasGlobalColorMap] = nested[kCGImagePropertyGIFHasGlobalColorMap]
             }
             if !filtered.isEmpty {
-                return [candidate.dictionaryKey: filtered]
+                return [directory: filtered]
             }
         }
         return nil
     }
     
     func loopProperties() -> [CFString: Any]? {
-        for candidate in Self.loopCandidates {
-            guard let nested = self[candidate.dictionaryKey] as? [CFString: Any] else {
+        for directory in Self.animateDictionaries {
+            guard let nested = self[directory] as? [CFString: Any] else {
                 continue
             }
             var filtered: [CFString: Any] = [:]
-            filtered[candidate.loopKey] = nested[candidate.loopKey]
-            for key in candidate.extraKeys {
-                filtered[key] = nested[key]
+            filtered[Self.loopKey] = nested[Self.loopKey]
+            if directory == Self.gifDictionaryKey {
+                filtered[kCGImagePropertyGIFHasGlobalColorMap] = nested[kCGImagePropertyGIFHasGlobalColorMap]
             }
             if !filtered.isEmpty {
-                return [candidate.dictionaryKey: filtered]
+                return [directory: filtered]
             }
         }
         return nil

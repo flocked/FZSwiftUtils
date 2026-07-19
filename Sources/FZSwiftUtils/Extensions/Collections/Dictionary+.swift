@@ -7,6 +7,66 @@
 
 import Foundation
 
+/// The differences between two dictionaries.
+public struct KeyValueDifference<Key: Hashable, Value: Equatable> {
+    /// The key-value pairs that were removed.
+    public let removed: [Key: Value]
+    /// The key-value pairs that were added.
+    public let added: [Key: Value]
+    /// The key-value pairs whose values changed.
+    public let changed: [Key: Change]
+    
+    /// The old and new values of a changed key-value pair.
+    public struct Change {
+        /// The previous value.
+        public let oldValue: Value
+        /// The new value.
+        public let newValue: Value
+        
+        public init(oldValue: Value, newValue: Value) {
+            self.oldValue = oldValue
+            self.newValue = newValue
+        }
+    }
+    
+    /// A Boolean value indicating whether no differences were found.
+    public var isEmpty: Bool {
+        removed.isEmpty && added.isEmpty && changed.isEmpty
+    }
+    
+    public init(removed: [Key: Value], added: [Key: Value], changed: [Key: Change]) {
+        self.removed = removed
+        self.added = added
+        self.changed = changed
+    }
+}
+
+extension KeyValueDifference.Change: Equatable where Value: Equatable {}
+extension KeyValueDifference.Change: Hashable where Value: Hashable {}
+extension KeyValueDifference.Change: Codable where Value: Codable {}
+extension KeyValueDifference.Change: Sendable where Value: Sendable {}
+
+extension KeyValueDifference: Equatable where Value: Equatable {}
+extension KeyValueDifference: Hashable where Value: Hashable {}
+extension KeyValueDifference: Codable where Key: Codable, Value: Codable {}
+extension KeyValueDifference: Sendable where Key: Sendable, Value: Sendable {}
+
+extension KeyValueDifference.Change: CustomStringConvertible {
+    public var description: String {
+        "\(oldValue) -> \(newValue)"
+    }
+}
+
+extension KeyValueDifference: CustomStringConvertible {
+    public var description: String {
+        """
+        removed: \(removed)
+        added: \(added)
+        changed: \(changed)
+        """
+    }
+}
+
 public extension Dictionary {
     /// Edits each value in the dictionary.
     mutating func editEach(_ transform: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
@@ -225,19 +285,6 @@ public extension Dictionary {
         try .init(compactMap(transform), uniquingKeysWith: combine)
     }
     
-    /// The keys of the values that are different to the other dictionary.
-    func difference(to other: Self) -> (removed: [Key], added: [Key], changed: [Key])  {
-        let checkChanged = ((other.first?.value ?? first?.value) as? (any Equatable)) != nil
-        let added: [Key] = keys.filter({ other[$0] == nil })
-        let removed: [Key] = other.keys.filter({ self[$0] == nil })
-        let changed = checkChanged ? reduce(into: [Key]()) { partialResult, val in
-            if let old = other[val.key] as? (any Equatable), let new = val.value as? (any Equatable), !old.isEqual(new) {
-                partialResult.append(val.key)
-            }
-        } : []
-        return (removed, added, changed)
-    }
-    
     /**
      Sets the specified value for the keys.
      
@@ -340,15 +387,30 @@ public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable, 
 }
 
 public extension Dictionary where Value: Equatable {
-    /// The keys of the values that are different to the other dictionary.
-    func difference(to other: Self) -> (removed: [Key], added: [Key], changed: [Key]) {
-        let added: [Key] = keys.filter({ other[$0] == nil })
-        let removed: [Key] = other.keys.filter({ self[$0] == nil })
-        let changed = keys.compactMap { key -> Key? in
-            guard let otherValue = other[key] else { return nil }
-            return (self[key] != otherValue) ? key : nil
+    /**
+     Returns the differences needed to transform this dictionary into the specified dictionary.
+
+     - Parameter other: The dictionary to compare against.
+     - Returns: The removed, added, and changed key-value pairs.
+     */
+    func difference(to other: Self) -> KeyValueDifference<Key, Value> {
+        var removed: [Key: Value] = [:]
+        var added: [Key: Value] = [:]
+        var changed: [Key: KeyValueDifference<Key, Value>.Change] = [:]
+
+        for (key, oldValue) in self {
+            guard let newValue = other[key] else {
+                removed[key] = oldValue
+                continue
+            }
+            if oldValue != newValue {
+                changed[key] = .init(oldValue: oldValue, newValue: newValue)
+            }
         }
-        return (removed, added, changed)
+        for (key, newValue) in other where self[key] == nil {
+            added[key] = newValue
+        }
+        return .init(removed: removed, added: added, changed: changed)
     }
 }
 
