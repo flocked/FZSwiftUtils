@@ -32,11 +32,20 @@ public struct MeasureMemoryUsage {
         guard iterations > 0 else { return (.zero, .zero, .zero) }
 
         let measurements = (0..<iterations).map { _ in memoryUsage(block: block) }
-        let average = measurements.average().bytes
-        let varianceSum = measurements.reduce(0.0) { $0 + pow(Double($1.bytes - average), 2) }
-        let standardDeviation = DataSize(bytes: UInt64(sqrt(varianceSum / Double(iterations))))
+        
+        let byteValues = measurements.map { Double($0.bytes) }
+        let averageBytes = byteValues.reduce(0, +) / Double(iterations)
 
-        return (DataSize(bytes: average), standardDeviation, measurements.sum())
+        let variance = byteValues.reduce(0) {
+            let difference = $1 - averageBytes
+            return $0 + difference * difference
+        } / Double(iterations)
+        
+        return (
+            DataSize(bytes: UInt64(averageBytes.rounded())),
+            DataSize(bytes: UInt64(sqrt(variance).rounded())),
+            DataSize(bytes: measurements.reduce(0) { $0 + $1.bytes })
+        )
     }
 
     /**

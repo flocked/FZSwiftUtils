@@ -51,6 +51,26 @@ public enum ObjCHeader {
     public static var didCollect = false
     public private(set) static var isCollecting = false
     
+    /*
+    static func isMethodPublic(_ name: String, type: ObjCMethodInfo.MethodType) -> Bool {
+        let key = MethodKey(name: name, type: type)
+        if let isPublic = publicMethods[key] {
+            return isPublic
+        }
+        // handle
+        return false
+    }
+    
+    static var publicMethods: [MethodKey: Bool] = [:]
+    
+    struct MethodKey: Hashable {
+        let name: String
+        let type: ObjCMethodInfo.MethodType
+    }
+     */
+    
+   // static var
+    
     public static func getClass(named name: String, collectAllIfNeeded: Bool = true) -> Class? {
         if isCollecting {
             return nil

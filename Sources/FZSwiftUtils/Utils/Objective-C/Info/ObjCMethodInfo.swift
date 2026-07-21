@@ -18,26 +18,6 @@ public struct ObjCMethodInfo: Sendable, Equatable, Codable, Hashable {
     /// A Boolean value indicating whatever the method is a class method.
     public let isClassMethod: Bool
     
-    /*
-    var className: String?
-    
-    static var originCache: [String: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
-    
-    var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
-        guard let clsName = className else { return (nil,nil,nil)  }
-        let key = clsName+name
-        if let cache = Self.originCache[key] {
-            return cache
-        } else if let cls = NSClassFromString(clsName), let method = (isClassMethod ? class_getClassMethod(cls, .string(name)) : class_getInstanceMethod(cls, .string(name))) {
-            let origin = ObjCRuntime.origin(of: method)
-            Self.originCache[key] = origin
-            return origin
-        }
-        Self.originCache[key] = (nil, nil, nil)
-        return (nil, nil, nil)
-    }
-     */
-        
     /**
      Initializes a new instance of `ObjCMethodInfo`.
 
