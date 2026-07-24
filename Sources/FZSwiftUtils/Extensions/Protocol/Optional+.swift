@@ -10,9 +10,12 @@ import Foundation
 public extension Optional {
     /// Unwraps the optional value by throwing.
     func unwrap(_ messageOnFail: String? = nil, line: Int = #line, file: String = #file) throws -> Wrapped {
-        guard case .some(let wrapped) = self else {
-            throw OptionalError.nilValue(ofType: Wrapped.self,  message: messageOnFail, line: line, file: file)
-        }
+        try unwrap(or: OptionalError.nilValue(ofType: Wrapped.self,  message: messageOnFail, line: line, file: file))
+    }
+    
+    /// Unwraps the optional value by throwing.
+    func unwrap(or error: Error) throws -> Wrapped {
+        guard let wrapped = optional else { throw error }
         return wrapped
     }
 
@@ -26,11 +29,13 @@ public extension Optional {
 
     /// Unwraps and casts the optional value by throwing.
     func unwrapCast<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) throws -> T {
-        let unwrapped = try self.unwrap(message, line: line, file: file)
-        guard let unwrapped = (unwrapped as? T) else {
-            throw OptionalError.castFailed(type: Wrapped.self, message: message, line: line, file: file)
-        }
-        return unwrapped
+        try unwrapCast(or: OptionalError.castFailed(type: Wrapped.self, message: message, line: line, file: file))
+    }
+    
+    /// Unwraps and casts the optional value by throwing.
+    func unwrapCast<T>(as: T.Type = T.self, or error: Error) throws -> T {
+        guard let wrapped = optional as? T else { throw error }
+        return wrapped
     }
 
     /// Unwraps and casts the optional value by throwing a fatal error.
