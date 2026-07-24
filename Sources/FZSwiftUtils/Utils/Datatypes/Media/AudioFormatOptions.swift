@@ -8,7 +8,7 @@
 import Foundation
 import CoreMedia
 
-/// Options that describe the format of audio data.
+/// A set of flags describing an audio format.
 public struct AudioFormatOptions: OptionSet, Codable, Hashable, Sendable, CustomStringConvertible {
     // MARK: - Apple Lossless
     /// Apple Lossless data sourced from 16-bit native-endian signed integer data.
@@ -21,25 +21,25 @@ public struct AudioFormatOptions: OptionSet, Codable, Hashable, Sendable, Custom
     public static let appleLossless32BitSourceData = Self(kAppleLosslessFormatFlag_32BitSourceData)
     
     // MARK: - General
-    /// Sample bits are aligned high within each channel.
+    /// Indicates that sample bits are aligned high within each sample container.
     public static let isAlignedHigh = Self(kAudioFormatFlagIsAlignedHigh)
-    /// Data is stored in big-endian byte order.
+    /// Indicates that audio data uses big-endian byte order.
     public static let isBigEndian = Self(kAudioFormatFlagIsBigEndian)
-    /// Samples are floating-point values.
+    /// Indicates that samples are floating-point values.
     public static let isFloat = Self(kAudioFormatFlagIsFloat)
-    /// Audio data is stored in a non-interleaved layout.
+    /// Indicates that channels are stored in separate buffers.
     public static let isNonInterleaved = Self(kAudioFormatFlagIsNonInterleaved)
-    /// Format is nonmixable.
+    /// Indicates that the audio format is nonmixable.
     public static let isNonMixable = Self(kAudioFormatFlagIsNonMixable)
-    /// Sample bits occupy all available bits of each channel.
+    /// Indicates that sample bits occupy all available bits of each sample container.
     public static let isPacked = Self(kAudioFormatFlagIsPacked)
-    /// Samples are signed integers.
+    /// Indicates that samples are signed integer values.
     public static let isSignedInteger = Self(kAudioFormatFlagIsSignedInteger)
-    /// All format flags are clear.
+    /// An empty set of audio format flags.
     public static let allClear = Self(kAudioFormatFlagsAreAllClear)
-    /// Uses the processor's native endianness.
+    /// The flag indicating the processor's native byte order.
     public static let nativeEndian = Self(kAudioFormatFlagsNativeEndian)
-    /// Fully packed native-endian floating-point format.
+    /// The flags describing packed native-endian floating-point samples.
     public static let nativeFloatPacked = Self(kAudioFormatFlagsNativeFloatPacked)
     
     /// The flags for the canonical audio unit and processing sample type.
@@ -184,9 +184,7 @@ public extension AudioFormatOptions {
     
     /// The number of fractional bits used to represent each fixed-point sample.
     var fractionalBits: UInt32 {
-        get {
-            (rawValue & Self.linearPCMSampleFractionMask) >> Self.linearPCMSampleFractionShift
-        }
+        get { (rawValue & Self.linearPCMSampleFractionMask) >> Self.linearPCMSampleFractionShift }
         set {
             self = Self(rawValue: (rawValue & ~Self.linearPCMSampleFractionMask) | (min(newValue, Self.linearPCMSampleFractionMask >> Self.linearPCMSampleFractionShift) << Self.linearPCMSampleFractionShift))
         }

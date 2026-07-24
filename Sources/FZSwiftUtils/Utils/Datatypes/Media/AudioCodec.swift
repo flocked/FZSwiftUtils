@@ -34,12 +34,16 @@ public struct AudioCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
     public static let enhancedAC3 = Self(kAudioFormatEnhancedAC3)
     /// The Free Lossless Audio Codec format.
     public static let flac = Self(kAudioFormatFLAC)
+    /// The internet Low Bitrate Codec narrowband speech format.
+    public static let iLBC = Self(kAudioFormatiLBC)
     /// The linear PCM audio format.
     public static let linearPCM = Self(kAudioFormatLinearPCM)
     /// The MACE 3:1 audio format.
     public static let mace3 = Self(kAudioFormatMACE3)
     /// The MACE 6:1 audio format.
     public static let mace6 = Self(kAudioFormatMACE6)
+    /// The Microsoft GSM 6.10 audio format.
+    public static let microsoftGSM = Self(kAudioFormatMicrosoftGSM)
     /// The MIDI stream format.
     public static let midiStream = Self(kAudioFormatMIDIStream)
     /// The MPEG-4 AAC Low Complexity audio format.
@@ -59,11 +63,11 @@ public struct AudioCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
     /// The MPEG-4 Spatial Audio Coding format.
     public static let aacSpatial = Self(kAudioFormatMPEG4AAC_Spatial)
     /// The MPEG-4 Code-Excited Linear Prediction audio format.
-    public static let mpeg4CELP = Self(kAudioFormatMPEG4CELP)
+    public static let celp = Self(kAudioFormatMPEG4CELP)
     /// The MPEG-4 Harmonic Vector eXcitation Coding audio format.
-    public static let mpeg4HVXC = Self(kAudioFormatMPEG4HVXC)
+    public static let hvxc = Self(kAudioFormatMPEG4HVXC)
     /// The MPEG-4 TwinVQ audio format.
-    public static let mpeg4TwinVQ = Self(kAudioFormatMPEG4TwinVQ)
+    public static let twinVQ = Self(kAudioFormatMPEG4TwinVQ)
     /// The MPEG-D Unified Speech and Audio Coding format.
     public static let usac = Self(kAudioFormatMPEGD_USAC)
     /// The MPEG-1/2 Layer I audio format.
@@ -72,8 +76,6 @@ public struct AudioCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
     public static let mpegLayer2 = Self(kAudioFormatMPEGLayer2)
     /// The MPEG-1/2 Layer III audio format.
     public static let mpegLayer3 = Self(kAudioFormatMPEGLayer3)
-    /// The Microsoft GSM 6.10 audio format.
-    public static let microsoftGSM = Self(kAudioFormatMicrosoftGSM)
     /// The Opus audio format.
     public static let opus = Self(kAudioFormatOpus)
     /// The parameter-value stream format.
@@ -88,14 +90,8 @@ public struct AudioCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
     public static let timeCode = Self(kAudioFormatTimeCode)
     /// The μ-law 2:1 audio format.
     public static let uLaw = Self(kAudioFormatULaw)
-    /// The internet Low Bitrate Codec narrowband speech format.
-    public static let iLBC = Self(kAudioFormatiLBC)
 
     public let rawValue: AudioFormatID
-
-    public var description: String {
-        rawValue.string
-    }
 
     public init(rawValue: AudioFormatID) {
         self.rawValue = rawValue
@@ -103,5 +99,51 @@ public struct AudioCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
 
     public init(_ rawValue: AudioFormatID) {
         self.rawValue = rawValue
+    }
+    
+    public var description: String {
+        switch self {
+        case .ac3IEC60958: ".ac3IEC60958"
+        case .ac3: ".ac3"
+        case .aes3: ".aes3"
+        case .aLaw: ".aLaw"
+        case .amr: ".amr"
+        case .amrWideband: ".amrWideband"
+        case .appleIMA4: ".appleIMA4"
+        case .appleLossless: ".appleLossless"
+        case .audible: ".audible"
+        case .dviIntelIMA: ".dviIntelIMA"
+        case .enhancedAC3: ".enhancedAC3"
+        case .flac: ".flac"
+        case .iLBC: ".iLBC"
+        case .linearPCM: ".linearPCM"
+        case .mace3: ".mace3"
+        case .mace6: ".mace6"
+        case .microsoftGSM: ".microsoftGSM"
+        case .midiStream: ".midiStream"
+        case .aac: ".aac"
+        case .aacELD: ".aacELD"
+        case .aacELDSBR: ".aacELDSBR"
+        case .aacELDV2: ".aacELDV2"
+        case .heAAC: ".heAAC"
+        case .heAACV2: ".heAACV2"
+        case .aacLD: ".aacLD"
+        case .aacSpatial: ".aacSpatial"
+        case .celp: ".celp"
+        case .hvxc: ".hvxc"
+        case .twinVQ: ".twinVQ"
+        case .usac: ".usac"
+        case .mpegLayer1: ".mpegLayer1"
+        case .mpegLayer2: ".mpegLayer2"
+        case .mpegLayer3: ".mpegLayer3"
+        case .opus: ".opus"
+        case .parameterValueStream: ".parameterValueStream"
+        case .qDesign: ".qDesign"
+        case .qDesign2: ".qDesign2"
+        case .qualcomm: ".qualcomm"
+        case .timeCode: ".timeCode"
+        case .uLaw: ".uLaw"
+        default: "AudioCodec(rawValue: \(rawValue))"
+        }
     }
 }

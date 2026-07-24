@@ -15,21 +15,21 @@ public struct VideoCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
     /// The Apple Animation codec.
     public static let animation = Self(kCMVideoCodecType_Animation)
     /// The Apple ProRes 422 codec.
-    public static let appleProRes422 = Self(kCMVideoCodecType_AppleProRes422)
+    public static let proRes422 = Self(kCMVideoCodecType_AppleProRes422)
     /// The Apple ProRes 422 HQ codec.
-    public static let appleProRes422HQ = Self(kCMVideoCodecType_AppleProRes422HQ)
+    public static let proRes422HQ = Self(kCMVideoCodecType_AppleProRes422HQ)
     /// The Apple ProRes 422 LT codec.
-    public static let appleProRes422LT = Self(kCMVideoCodecType_AppleProRes422LT)
+    public static let proRes422LT = Self(kCMVideoCodecType_AppleProRes422LT)
     /// The Apple ProRes 422 Proxy codec.
-    public static let appleProRes422Proxy = Self(kCMVideoCodecType_AppleProRes422Proxy)
+    public static let proRes422Proxy = Self(kCMVideoCodecType_AppleProRes422Proxy)
     /// The Apple ProRes 4444 codec.
-    public static let appleProRes4444 = Self(kCMVideoCodecType_AppleProRes4444)
+    public static let proRes4444 = Self(kCMVideoCodecType_AppleProRes4444)
     /// The Apple ProRes 4444 XQ codec.
-    public static let appleProRes4444XQ = Self(kCMVideoCodecType_AppleProRes4444XQ)
+    public static let proRes4444XQ = Self(kCMVideoCodecType_AppleProRes4444XQ)
     /// The Apple ProRes RAW codec.
-    public static let appleProResRAW = Self(kCMVideoCodecType_AppleProResRAW)
+    public static let proResRAW = Self(kCMVideoCodecType_AppleProResRAW)
     /// The Apple ProRes RAW HQ codec.
-    public static let appleProResRAWHQ = Self(kCMVideoCodecType_AppleProResRAWHQ)
+    public static let proResRAWHQ = Self(kCMVideoCodecType_AppleProResRAWHQ)
     /// The AV1 codec.
     public static let av1 = Self(kCMVideoCodecType_AV1)
     /// The Cinepak codec.
@@ -70,36 +70,78 @@ public struct VideoCodec: RawRepresentable, Hashable, Sendable, Codable, CustomS
     public static let hevc = Self(kCMVideoCodecType_HEVC)
     /// The HEVC codec with alpha support.
     public static let hevcWithAlpha = Self(kCMVideoCodecType_HEVCWithAlpha)
+    /// The JPEG codec.
+    public static let jpeg = Self(kCMVideoCodecType_JPEG)
     /// The JPEG codec with OpenDML extensions.
     public static let jpegOpenDML = Self(kCMVideoCodecType_JPEG_OpenDML)
     /// The JPEG XL codec.
     public static let jpegXL = Self(kCMVideoCodecType_JPEG_XL)
-    /// The JPEG codec.
-    public static let jpeg = Self(kCMVideoCodecType_JPEG)
-    /// The MPEG-1 video codec.
-    public static let mpeg1Video = Self(kCMVideoCodecType_MPEG1Video)
-    /// The MPEG-2 video codec.
-    public static let mpeg2Video = Self(kCMVideoCodecType_MPEG2Video)
-    /// The MPEG-4 Part 2 video codec.
-    public static let mpeg4Video = Self(kCMVideoCodecType_MPEG4Video)
-    /// The Sorenson Video 3 codec.
-    public static let sorensonVideo3 = Self(kCMVideoCodecType_SorensonVideo3)
-    /// The Sorenson Video codec.
-    public static let sorensonVideo = Self(kCMVideoCodecType_SorensonVideo)
+    /// The MPEG-1 codec.
+    public static let mpeg1 = Self(kCMVideoCodecType_MPEG1Video)
+    /// The MPEG-2 codec.
+    public static let mpeg2 = Self(kCMVideoCodecType_MPEG2Video)
+    /// The MPEG-4 Part 2 codec.
+    public static let mpeg4 = Self(kCMVideoCodecType_MPEG4Video)
+    /// The Sorenson codec.
+    public static let sorenson = Self(kCMVideoCodecType_SorensonVideo)
+    /// The Sorenson 3 codec.
+    public static let sorenson3 = Self(kCMVideoCodecType_SorensonVideo3)
     /// The VP9 codec.
     public static let vp9 = Self(kCMVideoCodecType_VP9)
 
     public let rawValue: CMVideoCodecType
+    
+    public init(rawValue: CMVideoCodecType) {
+        self.rawValue = rawValue
+    }
 
+    public init(_ rawValue: CMVideoCodecType) {
+        self.rawValue = rawValue
+    }
+    
     public var description: String {
-        rawValue.string
+        switch self {
+        case .v422YpCbCr8: ".v422YpCbCr8"
+        case .animation: ".animation"
+        case .proRes422: ".proRes422"
+        case .proRes422HQ: ".proRes422HQ"
+        case .proRes422LT: ".proRes422LT"
+        case .proRes422Proxy: ".proRes422Proxy"
+        case .proRes4444: ".proRes4444"
+        case .proRes4444XQ: ".proRes4444XQ"
+        case .proResRAW: ".proResRAW"
+        case .proResRAWHQ: ".proResRAWHQ"
+        case .av1: ".av1"
+        case .cinepak: ".cinepak"
+        case .depthHEVC: ".depthHEVC"
+        case .disparityHEVC: ".disparityHEVC"
+        case .dolbyVisionHEVC: ".dolbyVisionHEVC"
+        case .dvcNTSC: ".dvcNTSC"
+        case .dvcPAL: ".dvcPAL"
+        case .dvcPro50NTSC: ".dvcPro50NTSC"
+        case .dvcPro50PAL: ".dvcPro50PAL"
+        case .dvcProHD1080i50: ".dvcProHD1080i50"
+        case .dvcProHD1080i60: ".dvcProHD1080i60"
+        case .dvcProHD1080p25: ".dvcProHD1080p25"
+        case .dvcProHD1080p30: ".dvcProHD1080p30"
+        case .dvcProHD720p50: ".dvcProHD720p50"
+        case .dvcProHD720p60: ".dvcProHD720p60"
+        case .dvcProPAL: ".dvcProPAL"
+        case .h263: ".h263"
+        case .h264: ".h264"
+        case .hevc: ".hevc"
+        case .hevcWithAlpha: ".hevcWithAlpha"
+        case .jpeg: ".jpeg"
+        case .jpegOpenDML: ".jpegOpenDML"
+        case .jpegXL: ".jpegXL"
+        case .mpeg1: ".mpeg1"
+        case .mpeg2: ".mpeg2"
+        case .mpeg4: ".mpeg4"
+        case .sorenson: ".sorenson"
+        case .sorenson3: ".sorenson3"
+        case .vp9: ".vp9"
+        default: "VideoCodec(rawValue: \(rawValue))"
+        }
     }
 
-    public init(rawValue: FourCharCode) {
-        self.rawValue = rawValue
-    }
-
-    public init(_ rawValue: FourCharCode) {
-        self.rawValue = rawValue
-    }
 }
