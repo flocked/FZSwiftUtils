@@ -140,6 +140,26 @@ public extension CGSize {
     var isEmpty: Bool {
         width <= 0 || height <= 0
     }
+    
+    /// The orientation of a size.
+    enum Orientation: String, Codable, Hashable, Sendable {
+        /// Vertical.
+        case vertical
+        /// Horizontal.
+        case horizontal
+        /// Square.
+        case square
+    }
+    
+    /// The orientation of the size.
+    var orientation: Orientation {
+        if width == height {
+            return .square
+        } else if width > height {
+            return .horizontal
+        }
+        return .vertical
+    }
 
     #if os(macOS)
     /**
