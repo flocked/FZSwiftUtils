@@ -22,7 +22,7 @@ public extension Decoder {
 
 public extension SingleValueDecodingContainer {
     /// Decodes a single value of the given type.
-    func decode<T: Decodable>() throws -> T {
+    func decode<T: Decodable>(_ type: T.Type = T.self) throws -> T {
         try decode(T.self)
     }
 }
@@ -33,7 +33,7 @@ public extension KeyedDecodingContainer {
      
      - Parameter key: The key that the decoded value is associated with.
      */
-    func decode<T: Decodable>(_ key: Key) throws -> T {
+    func decode<T: Decodable>(_ key: Key, as _: T.Type = T.self) throws -> T {
         try decode(T.self, forKey: key)
     }
     
@@ -42,7 +42,7 @@ public extension KeyedDecodingContainer {
      
      - Parameter key: The key that the decoded value is associated with.
      */
-    func decodeIfPresent<T: Decodable>(_ key: Key) throws -> T? {
+    func decodeIfPresent<T: Decodable>(_ key: Key, as _: T.Type = T.self) throws -> T? {
         try decodeIfPresent(T.self, forKey: key)
     }
 }
