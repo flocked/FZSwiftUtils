@@ -8,7 +8,7 @@
 import Foundation
 import CoreMedia
 
-/// A audio code.
+/// An audio code.
 public struct AudioCodec: RawRepresentable, Hashable, Sendable, Codable, CustomStringConvertible {
     /// The AC-3 format packaged for transport over an IEC 60958-compliant digital audio interface.
     public static let ac3IEC60958 = Self(kAudioFormat60958AC3)
