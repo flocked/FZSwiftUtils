@@ -8,6 +8,18 @@
 import Foundation
 
 public extension Comparable {
+    /// Replaces this value with the larger of this value and the specified other value.
+    mutating func formMax(_ other: Self) {
+        self = Swift.max(self, other)
+    }
+    
+    /// Replaces this value with the smaller of this value and the specified other value.
+    mutating func formMin(_ other: Self) {
+        self = Swift.min(self, other)
+    }
+}
+
+public extension Comparable {
     /**
      A Boolean value indicating whether the value is less than another value.
 

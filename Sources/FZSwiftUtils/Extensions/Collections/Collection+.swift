@@ -9,8 +9,13 @@ import Foundation
 
 public extension MutableCollection {
     /// Edits each elements in the collection.
-    mutating func editEach(_ transform: (inout Element) throws -> Void) rethrows {
+    mutating func editEach(_ transform: (_ element: inout Element) throws -> Void) rethrows {
         try indices.forEach({ try transform(&self[$0]) })
+    }
+    
+    /// Edits each elements in the collection.
+    mutating func editEach(_ transform: (_ index: Index, _ element: inout Element) throws -> Void) rethrows {
+        try indices.forEach({ try transform($0, &self[$0]) })
     }
 }
 

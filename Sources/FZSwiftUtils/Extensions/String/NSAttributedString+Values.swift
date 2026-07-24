@@ -157,7 +157,6 @@ extension NSAttributedString {
         }
         
         /// The amount to modify the default tracking.
-        @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
         public var tracking: CGFloat? {
             get { self[.tracking] }
             set { self[.tracking] = newValue }
@@ -521,14 +520,12 @@ extension NSAttributedString {
         // MARK: - Markdown Attributes
          
         /// An attribute that provides details for an inline Markdown element.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var inlinePresentationIntent: InlinePresentationIntent? {
             get { self[.inlinePresentationIntent] }
             set { self[.inlinePresentationIntent] = newValue }
         }
          
         /// An attribute that provides details for a block-level Markdown element.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var presentationIntentAttributeName: PresentationIntent? {
             get { self[.presentationIntentAttributeName] }
             set { self[.presentationIntentAttributeName] = newValue }
@@ -542,14 +539,12 @@ extension NSAttributedString {
         }
          
         /// An alternate description for a URL or image.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var alternateDescription: String? {
             get { self[.alternateDescription] }
             set { self[.alternateDescription] = newValue }
         }
          
         /// The URL for an image in Markdown text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var imageURL: URL? {
             get { self[.imageURL] }
             set { self[.imageURL] = newValue }
@@ -558,28 +553,24 @@ extension NSAttributedString {
         // MARK: - Translation Attributes
          
         /// The language identifier associated with the range of text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var languageIdentifier: String? {
             get { self[.languageIdentifier] }
             set { self[.languageIdentifier] = newValue }
         }
          
         /// An attribute that contains grammatical properties to apply to the text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var morphology: Morphology? {
             get { self[.morphology] }
             set { self[.morphology] = newValue }
         }
          
         /// An attribute that tells the system how to apply grammar rules and other modifiers to the range of text.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var inflect: InflectionRule? {
             get { self[.inflectionRule] }
             set { self[.inflectionRule] = newValue }
         }
          
         /// The alternative translation for a string when no suitable inflection exists.
-        @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
         public var inflectionAlternative: String? {
             get { self[.inflectionAlternative] }
             set { self[.inflectionAlternative] = newValue }
@@ -729,7 +720,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the amount to modify the default tracking.
-    @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, visionOS 1.0, *)
     @discardableResult
     public func tracking(_ tracking: CGFloat?) -> Self {
         self.tracking = tracking
@@ -1133,7 +1123,6 @@ extension NSAttributedString.AttributeValues {
     // MARK: - Markdown Attributes
 
     /// Sets the details for an inline Markdown element.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func inlinePresentationIntent(_ intent: InlinePresentationIntent?) -> Self {
         self.inlinePresentationIntent = intent
@@ -1141,7 +1130,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the details for a block-level Markdown element.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func presentationIntentAttributeName(_ intent: PresentationIntent?) -> Self {
         self.presentationIntentAttributeName = intent
@@ -1157,7 +1145,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets an alternate description for a URL or image.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func alternateDescription(_ description: String?) -> Self {
         self.alternateDescription = description
@@ -1165,7 +1152,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the URL for an image in Markdown text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func imageURL(_ url: URL?) -> Self {
         self.imageURL = url
@@ -1175,7 +1161,6 @@ extension NSAttributedString.AttributeValues {
     // MARK: - Translation Attributes
 
     /// Sets the language identifier associated with the range of text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func languageIdentifier(_ identifier: String?) -> Self {
         self.languageIdentifier = identifier
@@ -1183,7 +1168,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the grammatical properties to apply to the text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func morphology(_ morphology: Morphology?) -> Self {
         self.morphology = morphology
@@ -1191,7 +1175,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the grammar rules and other modifiers to apply to the text.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func inflect(_ rule: InflectionRule?) -> Self {
         self.inflect = rule
@@ -1199,7 +1182,6 @@ extension NSAttributedString.AttributeValues {
     }
 
     /// Sets the alternative translation for a string when no suitable inflection exists.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
     @discardableResult
     public func inflectionAlternative(_ alternative: String?) -> Self {
         self.inflectionAlternative = alternative
@@ -1321,13 +1303,8 @@ public struct ParagraphStyle: CustomStringConvertible {
     public var hyphenationFactor: Float
 
     /// A Boolean value that indicates whether the paragraph style uses the system hyphenation settings.
-    public var usesDefaultHyphenation: Bool {
-        get { _usesDefaultHyphenation as? Bool ?? false }
-        set { _usesDefaultHyphenation = newValue }
-    }
-    
-    private var _usesDefaultHyphenation: Any?
-        
+    public var usesDefaultHyphenation: Bool
+            
     /// A Boolean value that indicates whether the system tightens character spacing before truncating text.
     public var allowsDefaultTighteningForTruncation: Bool
                         
@@ -1379,9 +1356,7 @@ public struct ParagraphStyle: CustomStringConvertible {
         self.allowsDefaultTighteningForTruncation = style.allowsDefaultTighteningForTruncation
         self.headerLevel = headerLevel
         self.baseWritingDirection = style.baseWritingDirection
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
-            _usesDefaultHyphenation = style.usesDefaultHyphenation
-        }
+        self.usesDefaultHyphenation = style.usesDefaultHyphenation
         #if os(macOS)
         self.textBlocks = style.textBlocks
         self.tighteningFactorForTruncation = style.tighteningFactorForTruncation
@@ -1403,9 +1378,7 @@ public struct ParagraphStyle: CustomStringConvertible {
         paragraphStyle.lineBreakStrategy = lineBreakStrategy
         paragraphStyle.hyphenationFactor = hyphenationFactor
         paragraphStyle.allowsDefaultTighteningForTruncation = allowsDefaultTighteningForTruncation
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
-            paragraphStyle.usesDefaultHyphenation = usesDefaultHyphenation
-        }
+        paragraphStyle.usesDefaultHyphenation = usesDefaultHyphenation
         paragraphStyle.baseWritingDirection = baseWritingDirection
         #if os(macOS)
         paragraphStyle.headerLevel = headerLevel

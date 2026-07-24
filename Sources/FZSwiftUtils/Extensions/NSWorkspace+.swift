@@ -9,7 +9,6 @@
 import AppKit
 import UniformTypeIdentifiers
 
-@available(macOS 12.0, *)
 public extension NSWorkspace {
     /// Applications that can open the specified file extension.
     func applications(toOpen fileExtension: String) -> [Bundle] {

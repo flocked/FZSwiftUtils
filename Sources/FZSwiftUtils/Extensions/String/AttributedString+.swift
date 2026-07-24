@@ -7,7 +7,6 @@
 
 import Foundation
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension AttributedString {
     /**
      Initializes an AttributedString object with a string and custom attributes.
@@ -80,7 +79,6 @@ public extension AttributedString {
     }
 }
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension AttributedString {
     subscript(substring: StringLiteralType) -> AttributedString? {
         guard let range = range(of: substring) else { return self }
@@ -124,7 +122,6 @@ public extension AttributedString {
     }
 }
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension AttributeContainer {
     /**
      The URL associated with an underlined link attribute in the AttributeContainer.
@@ -145,7 +142,6 @@ public extension AttributeContainer {
     }
 }
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension AttributedStringProtocol {
     /**
      The URL associated with an underlined link attribute in an attributed string..
@@ -166,7 +162,6 @@ public extension AttributedStringProtocol {
     }
 }
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension AttributedSubstring {
     /// The substring as `AttributedString`.
     var full: AttributedString {
@@ -174,7 +169,6 @@ public extension AttributedSubstring {
     }
 }
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, visionOS 1.0, *)
 public extension Collection where Element == AttributedString {
     /**
      Returns a new attributed string by concatenating the elements of the sequence, adding the given separator between each element.

@@ -118,11 +118,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
           - order: The order of sorting.
      */
     mutating func sort<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) where Value: Comparable {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
-            sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
-        } else {
-            sort(by: { $0[keyPath: keyPath] }, order)
-        }
+        sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
     }
     
     /**
@@ -133,11 +129,7 @@ public extension MutableCollection where Self: RandomAccessCollection & RangeRep
           - order: The order of sorting.
      */
     mutating func sort<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) where Value: Comparable {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
-            sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
-        } else {
-            sort(by: { $0[keyPath: keyPath] }, order)
-        }
+        sort(using: KeyPathComparator(keyPath, order: order == .ascending ? .forward : .reverse))
     }
     
     /**

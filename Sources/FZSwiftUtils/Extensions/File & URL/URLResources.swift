@@ -34,7 +34,8 @@ public class URLResources {
     /// The url to the resource
     public private(set) var url: URL
     private var iteratorKey: String?
-    static var iteratorKeys: SynchronizedDictionary<String, Set<URLResourceKey>> = [:]
+    private static var iteratorKeys: [String: Set<URLResourceKey>] = [:]
+    private static let iteratorKeysLock = NSLock()
 
     /// Creates an object for accessing and modifying properties of the resource at the specified url.
     public init(url: URL) {
@@ -45,8 +46,9 @@ public class URLResources {
     
     private func value<V>(for resourceKey: URLResourceKey, _ keyPath: KeyPath<URLResourceValues, V?>) -> V? {
         if let iteratorKey = iteratorKey {
-            let keys = Self.iteratorKeys[iteratorKey] ?? [] + resourceKey
-            Self.iteratorKeys[iteratorKey] = keys
+            Self.iteratorKeysLock.lock()
+            defer { Self.iteratorKeysLock.unlock() }
+            Self.iteratorKeys[iteratorKey, default: []].insert(resourceKey)
             return nil
         }
         do {
@@ -58,6 +60,7 @@ public class URLResources {
     }
 
     private func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) {
+        guard iteratorKey == nil else { return }
         var urlResouceValues = URLResourceValues()
         urlResouceValues[keyPath: keyPath] = newValue
         do {
@@ -427,6 +430,19 @@ public extension URLResources {
         public var totalCapacity: DataSize? {
             resources.value(for: .volumeTotalCapacityKey, \.volumeTotalCapacity)?.dataSize
         }
+    }
+}
+
+extension URLResources {
+    static func prefetchedKeys(for predicate: ((URL, Int, inout Bool) -> Bool)?) -> [URLResourceKey] {
+        guard let predicate = predicate else { return [] }
+        let prefetchID = UUID().uuidString
+        var shouldStop = false
+        _ = predicate(.file("_prefetchCheck_\(prefetchID)"), 0, &shouldStop)
+        iteratorKeysLock.lock()
+        defer { iteratorKeysLock.unlock() }
+        iteratorKeys[prefetchID]!.asArray
+        return Array(iteratorKeys.removeValue(forKey: prefetchID) ?? [])
     }
 }
 

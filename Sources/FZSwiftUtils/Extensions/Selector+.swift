@@ -9,12 +9,11 @@ import Foundation
 
 extension Selector: Swift.Encodable, Swift.Decodable {
     public init(from decoder: any Decoder) throws {
-        self = .string(try decoder.singleValueContainer().decode())
+        self = .string(try decoder.decodeSingle())
     }
     
     public func encode(to encoder: any Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(string)
+        try encoder.encodeSingle(string)
     }
     
     /// `String` representation of the selector.

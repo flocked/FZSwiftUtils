@@ -130,7 +130,6 @@ public extension Bundle {
     }
         
     /// The supported file types for the specified content type.
-    @available(macOS 11.0, *)
     func fileTypeDefinitions(for type: UTType) -> [FileTypeDefinition] {
         supportedFileTypes.filter( { type.conforms(toAny: $0.contentTypes) })
     }

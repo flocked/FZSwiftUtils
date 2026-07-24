@@ -504,7 +504,7 @@ public extension BidirectionalCollection where Element: OptionalProtocol {
 
 public extension Sequence {
     var asArray: [Element] {
-        // The sequence as `Array`.
+        /// The sequence as `Array`.
         Array(self)
     }
 }
@@ -519,7 +519,7 @@ public extension Sequence where Element: Hashable {
 public extension Sequence where Element: RawRepresentable {
     /// The raw values of the elements in the sequence.
     var rawValues: [Element.RawValue] {
-        compactMap(\.rawValue)
+        map(\.rawValue)
     }
 }
 
@@ -594,6 +594,26 @@ extension Sequence {
      */
     public func sum<V:AdditiveArithmetic>(of keyPath: KeyPath<Element, V>) -> V {
         map({$0[keyPath: keyPath]}).sum()
+    }
+    
+    /**
+     The average value of all values found at the given key path among all elements in the sequence.
+     
+     - Parameter keyPath: A key path whose value will be extracted from each element.
+     - Returns: The average value of all values for the given key path, or `0` if no value is found for the specified key path.
+     */
+    public func average<V:BinaryInteger>(of keyPath: KeyPath<Element, V>) -> Double {
+        map({$0[keyPath: keyPath]}).average()
+    }
+    
+    /**
+     The average value of all values found at the given key path among all elements in the sequence.
+     
+     - Parameter keyPath: A key path whose value will be extracted from each element.
+     - Returns: The average value of all values for the given key path, or `zero` if no value is found for the specified key path.
+     */
+    public func average<V:BinaryFloatingPoint>(of keyPath: KeyPath<Element, V>) -> V {
+        map({$0[keyPath: keyPath]}).average()
     }
 }
 

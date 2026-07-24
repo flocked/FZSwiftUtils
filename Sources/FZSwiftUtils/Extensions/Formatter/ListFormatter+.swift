@@ -66,15 +66,12 @@ extension ListFormatter {
     
     /// Returns the localized `"or"` for the specified locale.
     public static func localizedOr(for locale: Locale = .current) -> String {
-        if #available(macOS 12.0, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *) {
-            if let value = localizedOrs[locale] {
-                return value
-            }
-            let value = ["Val1", "Val2"].formatted(.list(type: .or).locale(locale)).removingOccurrences(of: ["Val1 ", " Val2"])
-            localizedOrs[locale] = value
+        if let value = localizedOrs[locale] {
             return value
         }
-        return orTranslations[locale.languageCode ?? "-"] ?? "or"
+        let value = ["Val1", "Val2"].formatted(.list(type: .or).locale(locale)).removingOccurrences(of: ["Val1 ", " Val2"])
+        localizedOrs[locale] = value
+        return value
     }
         
     /**

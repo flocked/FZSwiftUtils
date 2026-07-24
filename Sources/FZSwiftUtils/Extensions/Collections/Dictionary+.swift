@@ -70,29 +70,28 @@ extension KeyValueDifference: CustomStringConvertible {
 public extension Dictionary {
     /// Edits each value in the dictionary.
     mutating func editEach(_ transform: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
-        for keyVal in self {
-            var value = keyVal.value
-            try transform(keyVal.key, &value)
-            self[keyVal.key] = value
+        for (key, var value) in self {
+            try transform(key, &value)
+            self[key] = value
         }
     }
     
     /// Accesses the value associated with the key for the given value identifier.
     subscript<KeyIdentifier: Identifiable>(key: KeyIdentifier) -> Value? where KeyIdentifier.ID == Dictionary.Key {
         get { self[key.id] }
-        set { self[key.id] = newValue  }
+        set { self[key.id] = newValue }
     }
     
     /// Accesses the value associated with the key containing the
     @_disfavoredOverload
     subscript(key: Key.ID) -> Value? where Key: Identifiable {
-        get { first(where: { $0.key.id == key })?.value }
+        first(where: { $0.key.id == key })?.value
     }
     
     /// Accesses the value associated with the key for the given raw value.
     subscript<KeyRawValue: RawRepresentable>(key: KeyRawValue) -> Value? where KeyRawValue.RawValue == Dictionary.Key {
         get { self[key.rawValue] }
-        set { self[key.rawValue] = newValue  }
+        set { self[key.rawValue] = newValue }
     }
     
     /// Accesses the value associated with the key for the given raw value.
@@ -175,18 +174,18 @@ public extension Dictionary {
     }
     
     /// Returns values for the specified keys.
-    func values<S>(for keys: S) -> [(key: Key, value: Value)] where S: Sequence<Key> {
-        keys.compactMap({ if let value = self[$0] { return ($0, value) } else { return nil } })
+    func values<S: Sequence<Key>>(for keys: S) -> [(key: Key, value: Value)] {
+        keys.compactMap { if let value = self[$0] { return ($0, value) } else { return nil } }
     }
     
     /// Returns keys for the specified values.
-    func keys<S>(with values: S) -> [Key] where S: Sequence<Value>, Value: Equatable {
-        filter({values.contains($0.value) }).compactMap({$0.key})
+    func keys<S: Sequence<Value>>(with values: S) -> [Key] where Value: Equatable {
+        filter { values.contains($0.value) }.compactMap { $0.key }
     }
     
     /// Returns keys for the specified values.
-    func keys<S>(with values: S) -> [Key] where S: Sequence<Value>, Value: Equatable, Key: Comparable {
-        filter({values.contains($0.value) }).compactMap({$0.key}).sorted()
+    func keys<S: Sequence<Value>>(with values: S) -> [Key] where Value: Equatable, Key: Comparable {
+        filter { values.contains($0.value) }.compactMap { $0.key }.sorted()
     }
 
     /**
@@ -210,7 +209,7 @@ public extension Dictionary {
      - Returns: A new dictionary with transformed keys and combined values for duplicates.
      */
     func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [Transformed: Value] {
-        try .init(map { try (transform($0.key), $0.value) }, uniquingKeysWith: combine )
+        try .init(map { try (transform($0.key), $0.value) }, uniquingKeysWith: combine)
     }
     
     /**
@@ -245,7 +244,7 @@ public extension Dictionary {
        - retainLastOccurences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
      - Returns: A new dictionary with transformed keys and values.
      */
-    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), retainLastOccurences: Bool = true) -> [K:V] {
+    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value)) -> ((K, V)), retainLastOccurences: Bool = true) -> [K: V] {
         mapKeyValues(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
@@ -257,7 +256,7 @@ public extension Dictionary {
        - combine: A closure that takes two values for a duplicate key and returns a single value.
      - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
      */
-    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K:V] {
+    func mapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value)) -> ((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K: V] {
         try .init(map(transform), uniquingKeysWith: combine)
     }
     
@@ -269,7 +268,7 @@ public extension Dictionary {
        - retainLastOccurences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
      - Returns: A new dictionary with transformed keys and values.
      */
-    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)?), retainLastOccurences: Bool = true) -> [K:V] {
+    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value)) -> ((K, V)?), retainLastOccurences: Bool = true) -> [K: V] {
         compactMapKeyValues(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
     }
     
@@ -281,7 +280,7 @@ public extension Dictionary {
        - combine: A closure that takes two values for a duplicate key and returns a single value.
      - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
      */
-    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value))->((K, V)?), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K:V] {
+    func compactMapKeyValues<K: Hashable, V>(_ transform: ((key: Key, value: Value)) -> ((K, V)?), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K: V] {
         try .init(compactMap(transform), uniquingKeysWith: combine)
     }
     
@@ -292,8 +291,8 @@ public extension Dictionary {
         - value: The new value.
         - keys: The keys for the new value
      */
-    mutating func setValue<S>(_ value: Value?, for keys: S) where S: Sequence<Key> {
-        keys.forEach({ self[$0] = value })
+    mutating func setValue<S: Sequence<Key>>(_ value: Value?, for keys: S) {
+        keys.forEach { self[$0] = value }
     }
     
     /**
@@ -303,7 +302,7 @@ public extension Dictionary {
      - Returns: The keys and values that were removed.
      */
     @discardableResult
-    mutating func remove<S>(_ keys: S) -> Self where S: Sequence<Key> {
+    mutating func remove<S: Sequence<Key>>(_ keys: S) -> Self {
         var removed = Self()
         for key in Set(keys) {
             removed[key] = removeValue(forKey: key)
@@ -318,7 +317,7 @@ public extension Dictionary {
         - values: A sequence of values to group into a dictionary.
         - keyForValue: A closure that returns a potential key for each element in `values`.
      */
-    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?) rethrows where Value == [S.Element], S : Sequence {
+    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?) rethrows where Value == [S.Element], S: Sequence {
         self = try values.reduce(into: [:]) {
             if let key = try keyForValue($1) {
                 $0[key, default: []].append($1)
@@ -328,7 +327,7 @@ public extension Dictionary {
 
     /// Returns an array with the elements of the dictionary.
     var elements: [Element] {
-        map({ $0 })
+        map { $0 }
     }
     
     /// Returns an array with the elements of the dictionary sorted by key.
@@ -337,7 +336,7 @@ public extension Dictionary {
     }
     
     /// Returns an array with the elements of the dictionary sorted by key.
-    func sorted<Wrapped>(_ sortOrder: SortOrder = .forward) -> [Element] where Key == Wrapped?, Wrapped: Comparable {
+    func sorted<Wrapped: Comparable>(_ sortOrder: SortOrder = .forward) -> [Element] where Key == Wrapped? {
         sorted(by: \.key, sortOrder)
     }
     
@@ -347,7 +346,7 @@ public extension Dictionary {
     }
     
     /// Returns an array with the elements of the dictionary sorted by key.
-    func sorted<Wrapped>(options: String.CompareOptions = [], range: Range<Wrapped.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .forward) -> [Element] where Key == Wrapped?, Wrapped: StringProtocol {
+    func sorted<Wrapped: StringProtocol>(options: String.CompareOptions = [], range: Range<Wrapped.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .forward) -> [Element] where Key == Wrapped? {
         sorted(by: \.key, options: options, range: range, locale: locale, order)
     }
     
@@ -362,12 +361,11 @@ public extension Dictionary {
     }
 }
 
-
 public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
     /// Returns the dictionary with non optional keys.
     @_disfavoredOverload
     var nonNil: [Key.Wrapped: Value] {
-        compactMapKeys({ $0.optional })
+        compactMapKeys { $0.optional }
     }
 }
 
@@ -375,14 +373,14 @@ public extension Dictionary where Value: OptionalProtocol {
     /// Returns the dictionary with non optional values.
     @_disfavoredOverload
     var nonNil: [Key: Value.Wrapped] {
-        compactMapValues({ $0.optional })
+        compactMapValues { $0.optional }
     }
 }
 
 public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable, Value: OptionalProtocol {
     /// Returns the dictionary with non optional keys and values
     var nonNil: [Key.Wrapped: Value.Wrapped] {
-        compactMapKeys({ $0.optional }).compactMapValues({ $0.optional })
+        compactMapKeys { $0.optional }.compactMapValues { $0.optional }
     }
 }
 

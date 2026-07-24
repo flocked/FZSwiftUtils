@@ -434,7 +434,6 @@ extension NSObject {
 #if canImport(Combine)
 import Combine
 
-@available(macOS 10.15.2, iOS 13.2, tvOS 13, watchOS 6, visionOS 1.0, *)
 public extension NSObjectProtocol where Self: NSObject {
     /**
      Observes changes to a property identified by the given key path using Combine publishers.

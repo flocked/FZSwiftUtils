@@ -14,14 +14,7 @@ public extension FileManager {
      - Throws: Throws if the temporary directory couldn't be created.
      */
     func createTemporaryDirectory() throws -> URL {
-        let temporaryDirectoryURL: URL
-        if #available(macOS 10.12, iOS 10.0, tvOS 10.0, visionOS 1.0, *) {
-            temporaryDirectoryURL = temporaryDirectory
-        } else {
-            temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
-        }
-        let folderName = ProcessInfo.processInfo.globallyUniqueString
-        let folderURL = temporaryDirectoryURL.appendingPathComponent(folderName, isDirectory: true)
+        let folderURL = temporaryDirectory.appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: true)
         try createDirectory(at: folderURL, withIntermediateDirectories: true)
         return folderURL
     }
@@ -509,5 +502,13 @@ public extension FileManager {
         deinit {
             fileManager?.delegate = delegate
         }
+    }
+}
+
+public extension FileManager.DirectoryEnumerator {
+    /// Returns the next enumerated URL, or `nil` if the enumeration has finished.
+    @inlinable
+    func next() -> URL? {
+        nextObject() as? URL
     }
 }

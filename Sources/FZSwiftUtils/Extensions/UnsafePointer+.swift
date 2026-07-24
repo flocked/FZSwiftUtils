@@ -48,7 +48,7 @@ public extension UnsafeMutablePointer {
      - Returns: An `UnsafeMutableBufferPointer` of length `count`.
      */
     func mutableBuffer<I: BinaryInteger>(count: I) -> UnsafeMutableBufferPointer<Pointee> {
-        UnsafeMutableBufferPointer(start: self, count: Int(count))
+        .init(start: self, count: Int(count))
     }
     
     /**

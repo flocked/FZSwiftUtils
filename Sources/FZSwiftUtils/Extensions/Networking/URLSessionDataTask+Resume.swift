@@ -8,7 +8,6 @@
 import Foundation
 
 /*
- @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
  public extension URLSession {
      /**
       Creates a resumable data task that retrieves the contents of a URL based on the specified URL request object.
@@ -129,7 +128,6 @@ import Foundation
      }
  }
 
- @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
  /// A resumable URL session task that returns downloaded data directly to the app in memory.
  public class URLSessionResumableDataTask: NSObject {
      /**
@@ -435,9 +433,7 @@ import Foundation
      internal var retryTimer: Timer? = nil
  }
 
- @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
  extension URLSessionResumableDataTask: URLSessionTaskDelegate {
-     @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
      public func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
          self.delegate?.urlSession?(session, didCreateTask: task)
      }
@@ -506,7 +502,6 @@ import Foundation
      }
  }
 
- @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
  extension URLSessionResumableDataTask: URLSessionDataDelegate {
      public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
 
@@ -555,7 +550,6 @@ import Foundation
 
  }
 
- @available(macOS 12, iOS 15.0, tvOS 15.0, watchOS 8.0, visionOS 1.0, *)
  public extension URLSessionResumableDataTask {
      struct ResumableData {
          public let data: Data

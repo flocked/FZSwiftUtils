@@ -61,7 +61,7 @@ public extension UTType {
      - Returns: `true` if the type directly or indirectly conforms to any of the types, or if it’s equal to.
      */
     func conforms<S: Sequence<UTType>>(toAny types: S) -> Bool {
-        types.contains(where: { conforms(to: $0) })
+        types.contains { conforms(to: $0) }
     }
 }
 

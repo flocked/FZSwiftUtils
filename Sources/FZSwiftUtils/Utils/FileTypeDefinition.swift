@@ -29,7 +29,6 @@ public struct FileTypeDefinition: Codable, Hashable {
     //public var isPackage: Bool?
     
     /// The content types of the file type definition.
-    @available(macOS 11.0, iOS 14.0, *)
     public var contentTypes: [UTType] {
         contentTypeIdentifiers.compactMap { UTType($0) }
     }

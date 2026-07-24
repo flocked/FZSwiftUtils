@@ -10,7 +10,6 @@ import Foundation
 import CoreSpotlight
 import UniformTypeIdentifiers
 
-@available(macOS 10.11, iOS 9.0, visionOS 1.0, *)
 extension CSSearchableItem {
     /**
      Adds or updates the item of the sequence to the specified searchable index.
@@ -24,7 +23,6 @@ extension CSSearchableItem {
     }
 }
 
-@available(macOS 10.11, iOS 9.0, visionOS 1.0, *)
 extension Sequence where Element == CSSearchableItem {
     /**
      Adds or updates the items of the sequence to the specified searchable index.
@@ -38,7 +36,6 @@ extension Sequence where Element == CSSearchableItem {
     }
 }
 
-@available(macOS 11.0, iOS 14.0, visionOS 1.0, *)
 extension CSSearchableItemAttributeSet {
     /**
      Creates an attribute set for the file at the specified URL.

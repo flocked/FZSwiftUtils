@@ -331,7 +331,7 @@ public extension Set {
     }
     
     /// Edits each element in the set.
-    mutating func editEach(_ transform: (inout Element) throws -> Void) rethrows {
+    mutating func editEach(_ transform: (_ element: inout Element) throws -> Void) rethrows {
         var elements = Array(self)
         try elements.editEach(transform)
         self = .init(elements)

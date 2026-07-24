@@ -20,7 +20,6 @@ public typealias NSUIColor = NSColor
 public typealias NSUIEdgeInsets = NSEdgeInsets
 public typealias NSUIFont = NSFont
 public typealias NSUIFontDescriptor = NSFontDescriptor
-@available(macOS 11.0, *)
 public typealias NSUIFontTextStyle = NSFont.TextStyle
 public typealias NSUIImage = NSImage
 public typealias NSUIImageFrame = NSImageFrame
@@ -31,11 +30,8 @@ public typealias NSUINib = NSNib
 public typealias NSUIViewController = NSViewController
 public typealias NSUIHostingController = NSHostingController
 public typealias NSUIStackView = NSStackView
-@available(macOS 11.0, *)
 public typealias NSUIImageSymbolConfiguration = NSImage.SymbolConfiguration
-@available(macOS 11.0, *)
 public typealias NSUIImageSymbolScale = NSImage.SymbolScale
-@available(macOS 11.0, *)
 public typealias NSUILayoutGuide = NSLayoutGuide
 public typealias NSUICollectionViewItem = NSCollectionViewItem
 public typealias NSUIRectEdge = RectEdge

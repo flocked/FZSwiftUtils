@@ -53,7 +53,7 @@ public extension Collection where Element: BinaryFloatingPoint {
     /**
      The average value of all values in the collection.
      
-     If the collection is empty, it returns `0`.
+     If the collection is empty, it returns `zero`.
      */
     func average() -> Element {
         guard !isEmpty else { return .zero }
