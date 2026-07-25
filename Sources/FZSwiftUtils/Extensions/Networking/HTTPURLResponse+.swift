@@ -14,28 +14,28 @@ public extension HTTPURLResponse {
     func value(forHTTPHeaderField httpHeaderField: HTTPHeaderField) -> String? {
         value(forHTTPHeaderField: httpHeaderField.rawValue)
     }
-    
-    ///The cookies set by the response, parsed from the `Set-Cookie` response header field.
+
+    /// The cookies set by the response, parsed from the `Set-Cookie` response header field.
     var cookies: [HTTPCookie] {
         guard let url else { return [] }
-        return HTTPCookie.cookies(withResponseHeaderFields: allHeaderFields.mapKeyValues({ (String(describing: $0), String(describing: $1)) }), for: url)
+        return HTTPCookie.cookies(withResponseHeaderFields: allHeaderFields.mapKeyValues { (String(describing: $0), String(describing: $1)) }, for: url)
     }
-    
+
     /// The response’s HTTP status code.
     var status: HTTPStatusCode {
         HTTPStatusCode(rawValue: statusCode)
     }
-    
+
     /// A localized string of the response’s HTTP status code.
     var localizedStatusCode: String {
         Self.localizedString(forStatusCode: statusCode)
     }
-    
+
     /// A Boolean value indicating whether the response’s HTTP status code is in the informational (`1xx`) range.
     var isInformational: Bool {
         statusCode / 100 == 1
     }
-    
+
     /// A Boolean value indicating whether the response’s HTTP status code is sucessful (`200`–`299`).
     var isSuccessful: Bool {
         statusCode / 200 == 1
@@ -62,28 +62,72 @@ public extension HTTPURLResponse {
     var contentTypeParameters: [String: String] {
         value(forHTTPHeaderField: "Content-Type")?.trimmingCharacters(in: .whitespacesAndNewlines).contentTypeParameters ?? [:]
     }
-    
+
     /// The validator which identifies the current state of the resource on the server.
     var validator: String? {
         guard statusCode == 200 || statusCode == 206, value(forHTTPHeaderField: "Accept-Ranges")?.localizedCaseInsensitiveContains("bytes") == true else { return nil }
         return value(forHTTPHeaderField: "ETag") ?? value(forHTTPHeaderField: "Etag") ?? value(forHTTPHeaderField: "Last-Modified")
     }
-    
+
     /// A Boolean value indicating whether the server advertises support for byte-range requests via the `Accept-Ranges: bytes` HTTP header.
     var acceptsByteRanges: Bool {
         value(forHTTPHeaderField: "Accept-Ranges")?.lowercased() == "bytes"
     }
-    
+
+    /// The content range of the response, parsed from the HTTP `Content-Range` header.
+    var contentRange: ContentRange? {
+        guard let string = value(forHTTPHeaderField: "Content-Range") else { return nil }
+        return ContentRange(string)
+    }
+
+    /// A parsed value of the HTTP `Content-Range` header.
+    struct ContentRange: Sendable, Hashable, CustomStringConvertible {
+        /// The range of bytes contained in the response.
+        public let range: ClosedRange<Int64>?
+        /// The total size of the resource in bytes.
+        public let total: Int64?
+        
+        public var rawValue: String {
+            "bytes \(range.map { "\($0.lowerBound)-\($0.upperBound)" } ?? "*")/\(total.map(String.init) ?? "*")"
+        }
+        
+        public var description: String {
+            rawValue
+        }
+        
+        init?(_ string: String) {
+            let value = string.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard value.hasPrefix("bytes ") else { return nil }
+            let parts = value.dropFirst(6).split(separator: "/", maxSplits: 1, omittingEmptySubsequences: false)
+            guard parts.count == 2 else { return nil }
+            if parts[1] == "*" {
+                total = nil
+            } else {
+                guard let total = Int64(parts[1]) else { return nil }
+                self.total = total
+            }
+            if parts[0] == "*" {
+                range = nil
+            } else {
+                let bounds = parts[0].split(separator: "-", maxSplits: 1, omittingEmptySubsequences: false)
+                guard bounds.count == 2, let lower = Int64(bounds[0]), let upper = Int64(bounds[1]), lower <= upper else {
+                    return nil
+                }
+                range = lower...upper
+            }
+        }
+    }
+
     /// All HTTP header fields of the response.
     var headerFields: [HTTPHeaderField: String] {
-        allHeaderFields.mapKeyValues({ (HTTPHeaderField(String(describing: $0)), String(describing: $1)) })
+        allHeaderFields.mapKeyValues { (HTTPHeaderField(String(describing: $0)), String(describing: $1)) }
     }
-    
+
     /// A representation of an HTTP response header field key.
     struct HTTPHeaderField: RawRepresentable, ExpressibleByStringLiteral, Hashable, Codable {
         /// The name of the HTTP header field as a string (e.g., `"Content-Type"`, `"User-Agent"`).
         public let rawValue: String
-        
+
         /// Creates a HTTP response header field key.
         public init(stringLiteral value: String) {
             self.rawValue = value
@@ -203,7 +247,7 @@ public extension HTTPURLResponse {
     var headers: Headers {
         .init(headerFields: headerFields)
     }
-    
+
     /// A strongly typed representation of HTTP response header fields.
     struct Headers {
         /// The value of the Accept-Ranges header.
@@ -308,10 +352,10 @@ public extension HTTPURLResponse {
         public let timingAllowOrigin: String?
         /// The Network Error Logging configuration for the client.
         public let nel: String?
-        
+
         init(headerFields: [HTTPURLResponse.HTTPHeaderField: String]) {
-            let headers = headerFields.mapValues({$0.trimmingCharacters(in: .whitespacesAndNewlines)})
-            
+            let headers = headerFields.mapValues { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
             acceptRanges = headers[.acceptRanges]
             acceptsByteRanges = headers[.acceptRanges]?.commaSeperated.contains { $0.lowercased() == "bytes" } ?? false
             age = headers[.age].flatMap(TimeInterval.init)
@@ -326,7 +370,7 @@ public extension HTTPURLResponse {
             contentDisposition = headers[.contentDisposition]
             contentRange = headers[.contentRange]
             contentSecurityPolicy = headers[.contentSecurityPolicy]
-            
+
             if let rawContentType = headers[.contentType] {
                 let parts = rawContentType.split(separator: ";", omittingEmptySubsequences: false)
                 let mimeType = parts.first?.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -336,7 +380,7 @@ public extension HTTPURLResponse {
                 contentType = nil
                 contentTypeParameters = [:]
             }
-            
+
             eTag = headers[.eTag]
             expires = headers[.expires]?.httpDate
             keepAlive = headers[.keepAlive]
@@ -376,17 +420,17 @@ public extension HTTPURLResponse {
     }
 }
 
-fileprivate extension String {
+private extension String {
     static let httpDateFormatter = DateFormatter("EEE',' dd MMM yyyy HH':'mm':'ss z").locale(.init(identifier: "en_US_POSIX")).timeZone(TimeZone(secondsFromGMT: 0))
-    
+
     var httpDate: Date? {
         Self.httpDateFormatter.date(from: self)
     }
-    
+
     var commaSeperated: [String] {
         split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
     }
-    
+
     var contentTypeParameters: [String: String] {
         var contentTypeParameters: [String: String] = [:]
         for match in matches(pattern: #";\s*([^=;]+)=("(?:\\.|[^"])*"|[^;]*)"#) {

@@ -94,7 +94,7 @@ public struct HTTPRequestHeaders {
             headers[.contentType] = value
         }
     }
-
+    
     /// The parameters associated with the Content-Type header.
     public var contentTypeParameters: [String: String] {
         get { headers[.contentType]?.contentTypeParameters ?? [:] }
