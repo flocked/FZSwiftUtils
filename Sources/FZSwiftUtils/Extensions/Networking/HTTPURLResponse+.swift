@@ -10,6 +10,17 @@ import UniformTypeIdentifiers
 
 public extension HTTPURLResponse {
     /// Returns the value that corresponds to the given header field.
+    subscript(field: String) -> String? {
+        value(forHTTPHeaderField: field)
+    }
+    
+    /// Returns the value that corresponds to the given header field.
+    @_disfavoredOverload
+    subscript(field: HTTPHeaderField) -> String? {
+        value(forHTTPHeaderField: field.rawValue)
+    }
+    
+    /// Returns the value that corresponds to the given header field.
     @_disfavoredOverload
     func value(forHTTPHeaderField httpHeaderField: HTTPHeaderField) -> String? {
         value(forHTTPHeaderField: httpHeaderField.rawValue)
