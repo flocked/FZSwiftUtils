@@ -399,7 +399,7 @@ public extension String {
     }
 }
 
-extension StringProtocol {
+public extension StringProtocol {
     /// The range of the specified prefix, or `nil` if it doesn't exist.
     func rangeOfPrefix<P: StringProtocol>(_ prefix: P) -> Range<Index>? {
         guard hasPrefix(prefix) else { return nil }
