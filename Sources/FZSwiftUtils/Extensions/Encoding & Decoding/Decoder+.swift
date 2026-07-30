@@ -5,6 +5,8 @@
 //  Created by Florian Zand on 16.07.25.
 //
 
+import Foundation
+
 public extension Decoder {
     /**
      Decodes a single value from the decoder's single value container.
@@ -17,6 +19,13 @@ public extension Decoder {
      */
     func decodeSingle<T: Decodable>(_ type: T.Type = T.self) throws -> T {
         try singleValueContainer().decode(type)
+    }
+    
+    /// Decodes a null value.
+    func decodeNil() throws {
+        guard try singleValueContainer().decodeNil() else {
+            throw DecodingError.typeMismatch(NSNull.self, DecodingError.Context(codingPath: codingPath, debugDescription: "Expected null"))
+        }
     }
 }
 
