@@ -75,7 +75,7 @@ public extension ImageSource {
             self.subsampleFactor = subsampleFactor
         }
         
-        var dictionary: CFDictionary {
+        var dictionary: [CFString: Any] {
             var options: [CFString: Any] = [:]
             options[kCGImageSourceShouldAllowFloat] = allowsFloat
             options[kCGImageSourceShouldCache] = caches
@@ -84,7 +84,7 @@ public extension ImageSource {
             if #available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *) {
                 options[kCGImageSourceDecodeRequest] = preferredDynamicRange?.value
             }
-            return options as CFDictionary
+            return options
         }
     }
 }

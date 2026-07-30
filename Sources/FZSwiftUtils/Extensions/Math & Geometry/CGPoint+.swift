@@ -29,6 +29,16 @@ public extension CGPoint {
     init(_ xY: Int) {
         self.init(x: xY, y: xY)
     }
+    
+    /// Returns a point with the specified x-coordinate and a y-coordinate of `0`.
+    static func x(_ x: CGFloat) -> Self {
+        CGPoint(x: x, y: 0)
+    }
+    
+    /// Returns a point with the specified y-coordinate and an x-coordinate of `0`.
+    static func y(_ y: CGFloat) -> Self {
+        CGPoint(x: 0, y: y)
+    }
 
     /**
      Returns a new CGPoint by offsetting the current point by the specified offset.
@@ -300,9 +310,55 @@ extension CGPoint: Swift.AdditiveArithmetic {
     }
 }
 
+/*
 public extension Collection where Element == CGPoint {
     /// Returns the point with the smallest distance to the specified point.
-    func closed(to point: CGPoint) -> CGPoint? {
-        map({ (point: $0, distance: $0.distance(to: point) )}).sorted(by: \.distance, .smallestFirst).first?.point
+    func closest(to point: CGPoint) -> CGPoint? {
+        map({ (point: $0, distance: $0.distance(to: point)) }).select({ $0.distance < $1.distance ? $0 : $1 })?.point
     }
 }
+ */
+
+public extension Sequence where Element == CGPoint {
+    /// Returns the point closest to the specified point.
+    @inlinable
+    func closest(to point: CGPoint) -> CGPoint? {
+        var iterator = makeIterator()
+        guard var closest = iterator.next() else { return nil }
+        var closestDistance = closest.distance(to: point)
+        while let candidate = iterator.next() {
+            let distance = candidate.distance(to: point)
+            if distance < closestDistance {
+                closest = candidate
+                closestDistance = distance
+            }
+        }
+        return closest
+    }
+}
+
+public extension Sequence {
+
+
+
+}
+
+
+
+
+/*
+ public extension Collection {
+     /// Returns the element produced by repeatedly selecting between the current result and each subsequent element.
+     @inlinable
+     func select<E: Error>(
+         _ selector: (_ lhs: Element, _ rhs: Element) throws(E) -> Element
+     ) throws(E) -> Element? {
+         var iterator = makeIterator()
+         guard var selected = iterator.next() else { return nil }
+         while let element = iterator.next() {
+             selected = try selector(selected, element)
+         }
+         return selected
+     }
+ }
+ */

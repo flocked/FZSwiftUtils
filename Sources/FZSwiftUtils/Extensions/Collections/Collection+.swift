@@ -116,7 +116,11 @@ public extension Collection where Index: Comparable {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: ClosedRange<Index>) -> [Element] {
-        !isEmpty ? Array(self[range.clamped(to: startIndex..<endIndex)]) : []
+        guard !isEmpty else { return [] }
+        let lower = Swift.max(range.lowerBound, startIndex)
+        let upper = Swift.min(range.upperBound, index(after: endIndex))
+        guard lower <= upper else { return [] }
+        return Array(self[lower...upper])
     }
     
     /**
@@ -251,8 +255,22 @@ public extension RangeReplaceableCollection {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: ClosedRange<Index>) -> [Element] {
-        get { Array(self[range.clamped(to: startIndex..<endIndex)]) }
-        set { replaceSubrange(range.clamped(to: startIndex..<endIndex), with: newValue) }
+        get {
+            guard let range = clamped(for: range) else { return [] }
+            return Array(self[range])
+        }
+        set {
+            guard let range = clamped(for: range) else { return }
+            replaceSubrange(range, with: newValue)
+        }
+    }
+    
+    private func clamped(for range: ClosedRange<Index>) -> ClosedRange<Index>? {
+        guard !isEmpty else { return nil }
+        let lower = Swift.max(range.lowerBound, startIndex)
+        let upper = Swift.min(range.upperBound, index(after: endIndex))
+        guard lower <= upper else { return nil }
+        return lower...upper
     }
     
     /**

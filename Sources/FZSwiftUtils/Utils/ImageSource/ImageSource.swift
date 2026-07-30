@@ -15,28 +15,27 @@ public class ImageSource {
 
     /// The content type of the image.
     public var contentType: UTType? {
-        guard let typeIdentifier = CGImageSourceGetType(cgImageSource) as String? else { return nil }
-        return UTType(typeIdentifier)
+        cgImageSource.typeIdentifier.flatMap(UTType.init)
     }
 
     /// The number of images (not including thumbnails) in the image source.
     public var count: Int {
-        CGImageSourceGetCount(cgImageSource)
+        cgImageSource.count
     }
 
     /// The current status of the image source.
     public var status: CGImageSourceStatus {
-        CGImageSourceGetStatus(cgImageSource)
+        cgImageSource.status
     }
 
     /// Returns the current status of an image at the specified index in the image source.
     public func status(at index: Int) -> CGImageSourceStatus {
-        CGImageSourceGetStatusAtIndex(cgImageSource, index)
+        cgImageSource.status(at: index)
     }
 
     /// Returns the index of the primary image for an HEIF image, or `0` for any other image format.
     public var primaryImageIndex: Int {
-        CGImageSourceGetPrimaryImageIndex(cgImageSource)
+        cgImageSource.primaryImageIndex
     }
 
     /**
@@ -45,41 +44,50 @@ public class ImageSource {
      These properties apply to the container in general but not necessarily to any individual image contained in the image source.
      */
     public func properties() -> ImageProperties? {
-        guard let properties = CGImageSourceCopyProperties(cgImageSource, nil) as? [CFString: Any] else { return nil }
-        return ImageProperties(rawValue: properties)
+        cachedProperties[-1, default: {
+            guard let rawValues = cgImageSource.properties() else { return nil }
+            return ImageProperties(rawValue: rawValues)
+        }()]
     }
 
     /**
-     Returns the properties of an image at the specified index in the image source.
+     Returns the properties of the image at the specified index in the image source.
+     
+     - Parameter index: The image of the index, or `nil` to use the primary index.
      */
-    public func properties(at index: Int) -> ImageProperties? {
-        guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [CFString: Any] else { return nil }
-        return ImageProperties(rawValue: properties)
+    public func imageProperties(at index: Int? = nil) -> ImageProperties? {
+        let index = index ?? primaryImageIndex
+        return cachedProperties[index, default: {
+            guard let rawValues = cgImageSource.imageProperties(at: index) else { return nil }
+            return ImageProperties(rawValue: rawValues)
+        }()]
     }
-    
+
+    private var cachedProperties: [Int: ImageProperties?] = [:]
+
     /// Returns the metadata of the image at the specified index.
     public func metadata(at index: Int? = nil) -> CGImageMetadata? {
-        CGImageSourceCopyMetadataAtIndex(cgImageSource, index ?? primaryImageIndex, nil)
+        cgImageSource.metadata(at: index)
     }
 
     /**
      Returns the image at the specified index in the image source.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil`.
+        - index: The image of the index, or `nil` to use the primary index.
         - options: Additional image creation options.
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
      */
     public func image(at index: Int? = nil, options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> CGImage? {
-        try? ObjCRuntime.catchException { CGImageSourceCreateImageAtIndex(cgImageSource, index ?? primaryImageIndex, options.dictionary) }
+        return cgImageSource.image(at: index ?? primaryImageIndex, options: options.dictionary)
     }
 
     /**
      Returns the image at the specified index in the image source asynchronously.
 
      - Parameters:
-        - index: The zero-based index of the image you want. If the index is invalid, this method returns `nil`.
+        - index: The image of the index, or `nil` to use the primary index.
         - options: Additional image creation options.
 
      - Returns: The image at the specified index, or `nil` if an error occurs.
@@ -116,7 +124,7 @@ public class ImageSource {
      - Returns: The thumbnail at the specified index, or `nil` if an error occurs.
      */
     public func thumbnail(at index: Int? = nil, options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> CGImage? {
-        try? ObjCRuntime.catchException { CGImageSourceCreateThumbnailAtIndex(cgImageSource, index ?? primaryImageIndex, options.dictionary(for: self, index: index)) }
+        cgImageSource.thumbnail(at: index, options: options.dictionary(for: self, index: index))
     }
 
     /**
@@ -149,14 +157,14 @@ public class ImageSource {
             completionHandler(self.thumbnail(at: index ?? self.primaryImageIndex, options: options))
         }
     }
-    
+
     /// The images of the image source asynchronously.
     public func images(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> ImageSequence {
         ImageSequence(count: count) { [self] index in
             await image(at: index, options: options)
         }
     }
-    
+
     /// The images of the image source.
     @_disfavoredOverload
     public func images(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> [CGImage] {
@@ -169,7 +177,7 @@ public class ImageSource {
             await thumbnail(at: index, options: options)
         }
     }
-    
+
     /// The thumbnails of the image source.
     @_disfavoredOverload
     public func thumbnails(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> [CGImage] {
@@ -183,7 +191,7 @@ public class ImageSource {
             return CGImageFrame(image, durations(at: index))
         }
     }
-    
+
     /// The image frames of the image source.
     @_disfavoredOverload
     public func imageFrames(options: ImageOptions = ImageOptions(caches: true, decodesImmediately: false, allowsFloat: false, subsampleFactor: nil)) -> [CGImageFrame] {
@@ -197,44 +205,52 @@ public class ImageSource {
             return CGImageFrame(image, durations(at: index))
         }
     }
-    
+
     /// The thumbnail frames of the image source.
     @_disfavoredOverload
     public func thumbnailFrames(options: ThumbnailOptions = ThumbnailOptions(create: .always, maxSize: nil, caches: true, decodesImmediately: true, allowsFloat: false, transformsIfNeeded: false, subsampling: .automatic)) -> [CGImageFrame] {
         (try? thumbnailFrames(options: options).collect()) ?? []
     }
-    
+
     /// Removes the cache for all images of the image data source.
     public func removeCache() {
-        (0..<count).forEach({ removeCache(at: $0) })
+        cgImageSource.removeCache()
     }
-    
+
     /// Removes any cache for the image at the specified index.
     public func removeCache(at index: Int) {
-        CGImageSourceRemoveCacheAtIndex(cgImageSource, index)
+        cgImageSource.removeCache(at: index)
     }
-    
+
     /**
      Updates the data in an incremental image source.
-     
+
      This method updates the state of the image source and its contained images. Call this method one or more times to update the contents of an incremental data source. Each time you call the method, you must specify all of the accumulated image data, not just the new data you received.
-     
+
      - Parameters:
         - data: The updated data for the image source. Each time you call this function, specify all of the accumulated image data so far.
         - isFinal: A Boolean value that indicates whether the data parameter represents the complete data set. Specify `true` if the data is complete or `false` if it isn’t.
      */
     public func updateData(_ data: Data, isFinal: Bool) {
-        CGImageSourceUpdateData(cgImageSource, data as CFData, isFinal)
+        cgImageSource.updateDate(data, isFinal: isFinal)
     }
-    
+
     /**
      Creates an empty image source that you can use to accumulate incremental image data.
-     
+
      This function creates an empty image source, which you use to accumulate data downloaded in chunks from the network. To add new chunks of data to the image source, call  ``updateData(_:isFinal:)``.
      */
     public init() {
-        self.cgImageSource = CGImageSourceCreateIncremental(nil)
+        self.cgImageSource = .incremental()
     }
+    
+    #if !os(watchOS)
+    /// Creates an image source for the specified image.
+    public init?(image: CGImage) {
+        guard let cgImageSource = image.cgImageSource else { return nil }
+        self.cgImageSource = cgImageSource
+    }
+    #endif
 
     /**
      Creates an image source that reads from a `CGImageSource`.
@@ -250,22 +266,11 @@ public class ImageSource {
 
      - Parameters:
         - url: The URL of the image.
-        - typeIdentifierHint: The uniform type identifier representing the most likely image type.
-     */
-    public init?(url: URL, typeIdentifierHint: String? = nil) {
-        guard let cgImageSource = CGImageSourceCreateWithURL(url as CFURL, typeIdentifierHint.map({ [kCGImageSourceTypeIdentifierHint: $0 as CFString] }) as CFDictionary?) else { return nil }
-        self.cgImageSource = cgImageSource
-    }
-    
-    /**
-     Creates an image source that reads from a location specified by a URL.
-
-     - Parameters:
-        - url: The URL of the image.
         - contentTypeHint: The content type representing the most likely image type.
      */
-    public convenience init?(url: URL, contentTypeHint: UTType) {
-        self.init(url: url, typeIdentifierHint: contentTypeHint.identifier)
+    public init?(url: URL, contentTypeHint: UTType? = nil) {
+        guard let cgImageSource = CGImageSource(url: url, typeIdentifierHint: contentTypeHint?.identifier) else { return nil}
+        self.cgImageSource = cgImageSource
     }
 
     /**
@@ -273,44 +278,16 @@ public class ImageSource {
 
      - Parameters:
         - data: The data of the image.
-        - typeIdentifierHint: The uniform type identifier representing the most likely image type.
-     */
-    public init?(data: Data, typeIdentifierHint: String? = nil) {
-        guard let cgImageSource = CGImageSourceCreateWithData(data as CFData, typeIdentifierHint.map({ [kCGImageSourceTypeIdentifierHint: $0 as CFString] }) as CFDictionary?) else { return nil }
-        self.cgImageSource = cgImageSource
-    }
-    
-    /**
-     Creates an image source that reads from data.
-
-     - Parameters:
-        - data: The data of the image.
         - contentTypeHint: The content type representing the most likely image type.
      */
-    public convenience init?(data: Data, contentTypeHint: UTType) {
-        self.init(data: data, typeIdentifierHint: contentTypeHint.identifier)
+    public init?(data: Data, contentTypeHint: UTType? = nil) {
+        guard let cgImageSource = CGImageSource(data: data, typeIdentifierHint: contentTypeHint?.identifier) else { return nil}
+        self.cgImageSource = cgImageSource
     }
-    
+
     /// The content types that are supported for image sources.
     public static var supportedContentTypes: Set<UTType> {
-        (CGImageSourceCopyTypeIdentifiers() as? [String] ?? []).compactMap({ UTType($0) }).asSet
-    }
-
-    /**
-     The content types that image source should be able to process.
-     
-     The default value is ``supportedContentTypes``.
-     */
-    @available(macOS 14.2, iOS 17.2, tvOS 17.2, watchOS 10.2, visionOS 1.0, *)
-    public static var allowedContentTypes: Set<UTType> {
-        get { getAssociatedValue("allowedTypeIdentifiers", object: self) ?? supportedContentTypes }
-        set {
-            let supported = supportedContentTypes
-            let newValue = newValue.filter({ supported.contains($0) })
-            guard newValue != allowedContentTypes else { return }
-            setAssociatedValue(newValue, key: "allowedTypeIdentifiers", object: self)
-            CGImageSourceSetAllowableTypes(newValue.map({$0.identifier}) as CFArray)
-        }
+        Set(CGImageSource.supportedTypeIdentifiers.compactMap(UTType.init))
     }
 }
 
@@ -319,7 +296,7 @@ extension ImageSource: CustomStringConvertible, Equatable {
     public var description: String {
         return "ImageSource[\(cgImageSource.hashValue)]"
     }
-    
+
     public static func == (lhs: ImageSource, rhs: ImageSource) -> Bool {
         CFEqual(lhs.cgImageSource, rhs.cgImageSource)
     }
@@ -328,7 +305,7 @@ extension ImageSource: CustomStringConvertible, Equatable {
 public extension ImageSource {
     /// Returns if the image source is animated (e.g. GIF)
     var isAnimated: Bool {
-        count > 1 && properties(at: 0)?.delayTime != nil
+        count > 1 && imageProperties()?.delayTime != nil
     }
 
     /// Returns if the image source is animatable (contains several images)
@@ -338,7 +315,7 @@ public extension ImageSource {
 
     /// The pixel size of the image source.
     var pixelSize: CGSize? {
-        properties(at: 0)?.pixelSize
+        imageProperties()?.pixelSize
     }
 
     private static let defaultFrameRate: Double = 15.0
@@ -353,7 +330,7 @@ public extension ImageSource {
      */
     var animationDuration: Double? {
         guard count > 1 else { return nil }
-        let totalDuration = properties()?.framesInfo?.compactMap({ $0.delayTime ?? $0.unclampedDelayTime }).sum()
+        let totalDuration = properties()?.framesInfo?.compactMap { $0.delayTime ?? $0.unclampedDelayTime }.sum()
         return (totalDuration != 0.0) ? totalDuration : nil
     }
 }
@@ -393,45 +370,44 @@ extension ImageSource {
             throw error!.takeRetainedValue()
         }
     }
-    
+
     public struct CopyOptions {
-        
         /// A Boolean value that indicates whether to exclude GPS metadata from EXIF data or the corresponding XMP tags.
         public var excludeGPS = false
-        
+
         /// A Boolean value that indicates whether to exclude XMP data from the destination.
         public var excludeXMP = false
-        
+
         /**
          The metadata tags to include with the image.
-         
+
          When you specify this key, all EXIF, IPTC, and XMP metadata is overwritten.
-         
+
          If you want to merge the new tags with the existing metadata, set ``mergeMetadata`` to true.
          */
         public var metadata: CGImageMetadata?
-        
+
         /**
          A Boolean value that indicates whether to merge new metadata with the image’s existing metadata.
-         
+
          If you set this property to `true`, the ``metadata`` is merged with the image’s existing metadata. Specifically, if a tag doesn’t exist in the image source, the destination adds it. If the tag exists in the source, the destination updates its value. To remove a tag, set the value of the appropriate key to `kCFNull`.
          */
         public var mergeMetadata = false
-        
+
         /**
          The date and time information to associate with the image.
-         
+
          This option is mutually exclusive with ``metadata``.
          */
         public var date: Date?
-        
+
         /**
          The orientation of the image.
-         
+
          This option is mutually exclusive with ``metadata``.
          */
         public var orientation: CGImagePropertyOrientation?
-        
+
         var dictionary: CFDictionary {
             var dict = [CFString: Any]()
             if let metadata = metadata {
@@ -452,7 +428,7 @@ extension ImageSource {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index ?? primaryImageIndex, nil) as? [CFString: Any], let width = properties[kCGImagePropertyPixelWidth] as? CGFloat, let height = properties[kCGImagePropertyPixelHeight] as? CGFloat else { return nil }
         return CGSize(width: width, height: height)
     }
-    
+
     func durations(at index: Int) -> (duration: TimeInterval, unclampedDuration: TimeInterval)? {
         guard let properties = CGImageSourceCopyPropertiesAtIndex(cgImageSource, index, nil) as? [CFString: Any] else { return nil }
         for key in [kCGImagePropertyGIFDictionary, kCGImagePropertyHEICSDictionary, kCGImagePropertyPNGDictionary, kCGImagePropertyWebPDictionary] {
@@ -465,3 +441,18 @@ extension ImageSource {
         return nil
     }
 }
+
+#if !os(watchOS)
+fileprivate extension CGImage {
+    var cgImageSource: CGImageSource? {
+        Self.imageSourceFunction?(self)?.takeUnretainedValue()
+    }
+    
+    static let imageSourceFunction: (@convention(c) (CGImage) -> Unmanaged<CGImageSource>?)? = {
+        guard let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CGImageGetImageSource") else {
+            return nil
+        }
+        return unsafeBitCast(symbol, to: (@convention(c) (CGImage) -> Unmanaged<CGImageSource>?).self)
+    }()
+}
+#endif

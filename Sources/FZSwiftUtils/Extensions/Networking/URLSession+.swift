@@ -95,21 +95,6 @@ public extension URLSession {
         task.resume()
         return task
     }
-    
-    /**
-     Loads the contents of the specified request.
-
-     - Parameter request: The request whose contents should be retrieved.
-     - Returns: The data returned by the server.
-     - Throws: An error if the request fails or no data is returned.
-     */
-    func data(for request: URLRequest) async throws -> Data {
-        try await withCheckedThrowingContinuation { continuation in
-            data(for: request) {
-                continuation.resume(with: $0)
-            }
-        }
-    }
 
     /**
      Creates a task that retrieves the string of a URL based on the specified URL request, and calls a handler upon completion.
@@ -145,11 +130,43 @@ public extension URLSession {
      - Throws: An error if the request fails or the data cannot be decoded as `String` using the specified encoding.
      */
     func string(for request: URLRequest, encoding: String.Encoding = .utf8) async throws -> String {
-        try await withCheckedThrowingContinuation { continuation in
-            string(for: request, encoding: encoding) {
-                continuation.resume(with: $0)
+        guard let string = try String(data: (await data(for: request)).0, encoding: .utf8) else {
+            throw URLSessionError.noString
+        }
+        return string
+    }
+    
+    /**
+     Creates a task that retrieves and parses the JSON object for the specified URL request, and calls a handler upon completion.
+
+     - Parameters:
+       - request: The URL request that provides the URL, cache policy, request method, body data or body stream, and related information.
+       - completion: The completion handler that is called with the JSON object, or an error if the request fails or the response cannot be parsed as JSON.
+     - Returns: The data task that retrieves and parses the JSON object.
+     */
+    func json(for request: URLRequest, completion: @escaping (_ result: Result<Any, Error>) -> ()) -> URLSessionDataTask {
+        data(for: request) { result in
+            guard let data = result.value else {
+                completion(.failure(result.error!))
+                return
+            }
+            do {
+                completion(.success(try JSONSerialization.jsonObject(with: data, options: [])))
+            } catch {
+                completion(.failure(error))
             }
         }
+    }
+    
+    /**
+     Retrieves and parses the JSON object for the specified URL request.
+
+     - Parameter request: The URL request to retrieve.
+     - Returns: The JSON object parsed from the response data.
+     - Throws: An error if the request fails or the response data cannot be parsed as JSON.
+     */
+    func json(for request: URLRequest) async throws -> Any {
+        try JSONSerialization.jsonObject(with: (await data(for: request)).0, options: [])
     }
 
     /**
@@ -187,11 +204,7 @@ public extension URLSession {
      - Throws: An error if the request fails or the response data cannot be decoded.
      */
     func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type = Value.self, decoder: JSONDecoder = JSONDecoder()) async throws -> Value {
-        try await withCheckedThrowingContinuation { continuation in
-            decodedObject(for: request, as: type, decoder: decoder) {
-                continuation.resume(with: $0)
-            }
-        }
+        try decoder.decode(Value.self, from: (await data(for: request)).0)
     }
 
     /**
@@ -223,11 +236,7 @@ public extension URLSession {
      - Throws: An error if the request fails or the response data cannot be decoded.
      */
     func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type = Value.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) async throws -> Value {
-        try await withCheckedThrowingContinuation { continuation in
-            decodedObject(for: request, as: type, dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy) {
-                continuation.resume(with: $0)
-            }
-        }
+        try await decodedObject(for: request, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy))
     }
     
     #if os(macOS) || canImport(UIKit)
@@ -262,11 +271,10 @@ public extension URLSession {
      - Throws: A ``URLSessionError`` if the response does not contain a valid image or returns an unsuccessful status code.
      */
     func image(for request: URLRequest) async throws -> NSUIImage {
-        try await withCheckedThrowingContinuation { continuation in
-            image(for: request) {
-                continuation.resume(with: $0)
-            }
+        guard let image = try NSUIImage(data: (await data(for: request)).0) else {
+            throw URLSessionError.invalidImageData
         }
+        return image
     }
 
     private enum URLSessionError: LocalizedError {

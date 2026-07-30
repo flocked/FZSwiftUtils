@@ -13,9 +13,19 @@ public extension StringProtocol {
         NSRange(range, in: self)
     }
     
+    /// Returns the `NSRange` corresponding to the specified range.
+    func nsRange(for range: Range<Index>) -> NSRange {
+        NSRange(range, in: self)
+    }
+    
     /// The range of the whole string.
     var range: Range<Index> {
         startIndex..<endIndex
+    }
+    
+    /// Returns the Swift range corresponding to the specified `NSRange`.
+    func range(for nsRange: NSRange) -> Range<Index>? {
+        Range(nsRange, in: self)
     }
 
     /**
@@ -183,6 +193,93 @@ public extension StringProtocol {
             .replacingOccurrences(of: "\r", with: "\\r")
             .replacingOccurrences(of: "\t", with: "\\t") + "\""
     }
+    
+    /**
+     Returns a new string in which all occurrences of the specified regular expression are replaced by another given string.
+
+     - Parameters:
+        - pattern: The regular expression to be removed.
+        - replacement: The replacement string.
+        - options: Options for replacing the string.
+
+     - Returns: A new string with occurrences of the regular expression replaced by the replacement string.
+     */
+    func replacingOccurrences<Pattern, Replacement>(ofPattern pattern: Pattern, with replacement: Replacement, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol, Replacement: StringProtocol {
+        replacingOccurrences(of: pattern, with: replacement, options: .regularExpression, range: range)
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by another given string.
+
+     - Parameters:
+        - strings: An array of target strings to be replaced.
+        - replacement: The replacement string.
+        - options: Options for replacing the string.
+
+     - Returns: A new string with occurrences of target strings replaced by the replacement string.
+     */
+    func replacingOccurrences<S, Replacement>(of strings: S, with replacement: Replacement, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol, Replacement: StringProtocol {
+        strings.reduce(into: String(self)) { $0 = $0.replacingOccurrences(of: $1, with: replacement, options: options) }
+    }
+
+    /**
+     Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
+
+     - Parameters:
+        - values: A dictionary mapping target strings to their replacement strings.
+        - options: Options for replacing the string.
+
+     - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
+     */
+    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
+        values.reduce(into: String(self)) { $0 = $0.replacingOccurrences(of: $1.key, with: $1.value, options: options) }
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target string are removed.
+
+     - Parameters:
+        - target: The string to be removed.
+        - options: Options for replacing the string.
+        - searchRange: The range of strings to be removed.
+
+     - Returns: A new string with occurrences of target are removed.
+     */
+    func removingOccurrences<Target>(of target: Target, options: String.CompareOptions = [], range searchRange: Range<Index>? = nil) -> String where Target: StringProtocol {
+        replacingOccurrences(of: target, with: "", range: searchRange)
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target regular expression are removed.
+
+     - Parameters:
+        - pattern: The regular expression to be removed.
+        - options: Options for replacing the string.
+        - searchRange: The range of strings to be removed.
+
+     - Returns: A new string with occurrences of pattern are removed.
+     */
+    func removingOccurrences<Pattern>(ofPattern pattern: Pattern, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol {
+        removingOccurrences(of: pattern, options: .regularExpression, range: range)
+    }
+    
+    /**
+     Returns a new string in which all occurrences of the target strings are removed.
+
+     - Parameters:
+        - strings: An array of target strings to be removed.
+        - options: Options for replacing the string.
+
+     - Returns: A new string with occurrences of target strings are removed.
+     */
+    func removingOccurrences<S>(of strings: S, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol {
+        replacingOccurrences(of: strings, with: "", options: options)
+    }
+
+    /// Replaces emoji representations of numbers (e.g. "4️⃣3️⃣" to "43").
+    func replaceEmojiNumbers() -> String {
+        replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
+    }
 }
 
 public extension String {
@@ -224,12 +321,6 @@ public extension String {
         }
     }
     
-    /// The range of the specified prefix, or `nil` if it doesn't exist.
-    func rangeOfPrefix(_ prefix: String) -> Range<Index>? {
-        guard hasPrefix(prefix) else { return nil }
-        return startIndex..<index(startIndex, offsetBy: prefix.count)
-    }
-    
     /**
      Replaces the specified prefix with a string.
      
@@ -237,9 +328,9 @@ public extension String {
         - prefix: The prefix to replace.
         - string: The replacement string.
      */
-    mutating func replacePrefix(_ prefix: String, with string: String) {
-        guard let range = rangeOfPrefix(prefix) else { return }
-        replaceSubrange(range, with: string)
+    mutating func replacePrefix<P: StringProtocol, R: StringProtocol>(_ prefix: P, with replacement: R) {
+        guard hasPrefix(prefix) else { return }
+        replaceSubrange(startIndex..<index(startIndex, offsetBy: prefix.count), with: replacement)
     }
     
     /**
@@ -247,36 +338,8 @@ public extension String {
      
      - Parameter prefix: The prefix to remove.
      */
-    mutating func removePrefix(_ prefix: String) {
+    mutating func removePrefix<P: StringProtocol>(_ prefix: P) {
         replacePrefix(prefix, with: "")
-    }
-    
-    /**
-     Returns the string where the specified prefix is replaced.
-     
-     - Parameters:
-        - prefix: The prefix to replace.
-        - string: The replacement string.
-     */
-    func replacingPrefix(_ prefix: String, with string: String) -> String {
-        var _string = self
-        _string.replacePrefix(prefix, with: string)
-        return _string
-    }
-    
-    /**
-     Returns the string with the specified prefix removed.
-     
-     - Parameter prefix: The prefix to remove.
-     */
-    func removingPrefix(_ prefix: String) -> String {
-        replacingPrefix(prefix, with: "")
-    }
-    
-    /// The range of the specified suffix, or `nil` if it doesn't exist.
-    func rangeOfSuffix(_ suffix: String) -> Range<Index>? {
-        guard hasSuffix(suffix) else { return nil }
-        return index(endIndex, offsetBy: -suffix.count)..<endIndex
     }
     
     /**
@@ -286,9 +349,9 @@ public extension String {
         - suffix: The suffix to replace.
         - string: The replacement string.
      */
-    mutating func replaceSuffix(_ suffix: String, with string: String) {
-        guard let range = rangeOfSuffix(suffix) else { return }
-        replaceSubrange(range, with: string)
+    mutating func replaceSuffix<S: StringProtocol, R: StringProtocol>(_ suffix: S, with string: R) {
+        guard hasSuffix(suffix) else { return }
+        replaceSubrange(index(endIndex, offsetBy: -suffix.count)..<endIndex, with: string)
     }
     
     /**
@@ -296,127 +359,13 @@ public extension String {
      
      - Parameter suffix: The suffix to remove.
      */
-    mutating func removeSuffix(_ suffix: String) {
+    mutating func removeSuffix<S: StringProtocol>(_ suffix: S) {
         replaceSuffix(suffix, with: "")
-    }
-    
-    /**
-     Returns the string where the specified suffix is replaced.
-     
-     - Parameters:
-        - suffix: The suffix to replace.
-        - string: The replacement string.
-     */
-    func replacingSuffix(_ suffix: String, with string: String) -> String {
-        var _string = self
-        _string.replaceSuffix(suffix, with: string)
-        return _string
-    }
-    
-    /**
-     Returns the string with the specified suffix removed.
-     
-     - Parameter suffix: The suffix to remove.
-     */
-    func removingSuffix(_ suffix: String) -> String {
-        replacingSuffix(suffix, with: "")
-    }
-    
-    /**
-     Returns a new string in which all occurrences of the specified regular expression are replaced by another given string.
-
-     - Parameters:
-        - pattern: The regular expression to be removed.
-        - replacement: The replacement string.
-        - options: Options for replacing the string.
-
-     - Returns: A new string with occurrences of the regular expression replaced by the replacement string.
-     */
-    func replacingOccurrences<Pattern, Replacement>(ofPattern pattern: Pattern, with replacement: Replacement, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol, Replacement: StringProtocol {
-        replacingOccurrences(of: pattern, with: replacement, options: .regularExpression, range: range)
-    }
-    
-    /**
-     Returns a new string in which all occurrences of the target strings are replaced by another given string.
-
-     - Parameters:
-        - strings: An array of target strings to be replaced.
-        - replacement: The replacement string.
-        - options: Options for replacing the string.
-
-     - Returns: A new string with occurrences of target strings replaced by the replacement string.
-     */
-    func replacingOccurrences<S, Replacement>(of strings: S, with replacement: Replacement, options: CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol, Replacement: StringProtocol {
-        strings.reduce(into: self) { $0 = $0.replacingOccurrences(of: $1, with: replacement, options: options) }
-    }
-
-    /**
-     Returns a new string in which all occurrences of the target strings are replaced by their replacement strings.
-
-     - Parameters:
-        - values: A dictionary mapping target strings to their replacement strings.
-        - options: Options for replacing the string.
-
-     - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
-     */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
-        values.reduce(into: self) { $0 = $0.replacingOccurrences(of: $1.key, with: $1.value, options: options) }
-    }
-    
-    /**
-     Returns a new string in which all occurrences of the target string are removed.
-
-     - Parameters:
-        - target: The string to be removed.
-        - options: Options for replacing the string.
-        - searchRange: The range of strings to be removed.
-
-     - Returns: A new string with occurrences of target are removed.
-     */
-    func removingOccurrences<Target>(of target: Target, options: CompareOptions = [], range searchRange: Range<Index>? = nil) -> String where Target: StringProtocol {
-        replacingOccurrences(of: target, with: "", range: searchRange)
-    }
-    
-    /**
-     Returns a new string in which all occurrences of the target regular expression are removed.
-
-     - Parameters:
-        - pattern: The regular expression to be removed.
-        - options: Options for replacing the string.
-        - searchRange: The range of strings to be removed.
-
-     - Returns: A new string with occurrences of pattern are removed.
-     */
-    func removingOccurrences<Pattern>(ofPattern pattern: Pattern, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol {
-        removingOccurrences(of: pattern, options: .regularExpression, range: range)
-    }
-    
-    /**
-     Returns a new string in which all occurrences of the target strings are removed.
-
-     - Parameters:
-        - strings: An array of target strings to be removed.
-        - options: Options for replacing the string.
-
-     - Returns: A new string with occurrences of target strings are removed.
-     */
-    func removingOccurrences<S>(of strings: S, options: CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol {
-        replacingOccurrences(of: strings, with: "", options: options)
-    }
-
-    /// Replaces emoji representations of numbers (e.g. "4️⃣3️⃣" to "43").
-    func replaceEmojiNumbers() -> String {
-        replacingOccurrences(["0️⃣": "0", "1️⃣": "1", "2️⃣": "2", "3️⃣": "3", "4️⃣": "4", "5️⃣": "5", "6️⃣": "6", "7️⃣": "7", "8️⃣": "8", "9️⃣": "9", "🔟": "10"])
     }
     
     /// The string as `CFString`.
     var cfString: CFString {
         self as CFString
-    }
-    
-    /// Replaces regular spaces with non-breaking spaces.
-    var nonBreakingSpaces: String {
-        replacingOccurrences(of: " ", with: "\u{00A0}")
     }
     
     /// Returns a new string containing only the characters in the specified character set.
@@ -444,14 +393,98 @@ public extension String {
         self = trimmingCharacters(in: set)
     }
     
+    /// Mutates the string by removing all emoji characters.
+    mutating func removeEmojis() {
+        self = removingEmojis()
+    }
+}
+
+extension StringProtocol {
+    /// The range of the specified prefix, or `nil` if it doesn't exist.
+    func rangeOfPrefix<P: StringProtocol>(_ prefix: P) -> Range<Index>? {
+        guard hasPrefix(prefix) else { return nil }
+        return startIndex..<index(startIndex, offsetBy: prefix.count)
+    }
+    
+    /**
+     Returns the string where the specified prefix is replaced.
+     
+     - Parameters:
+        - prefix: The prefix to replace.
+        - string: The replacement string.
+     */
+    func replacingPrefix<P: StringProtocol, R: StringProtocol>(_ prefix: P, with string: R) -> String {
+        guard let range = rangeOfPrefix(prefix) else { return String(self) }
+        return replacingCharacters(in: range, with: string)
+    }
+    
+    /**
+     Returns the string with the specified prefix removed.
+     
+     - Parameter prefix: The prefix to remove.
+     */
+    func removingPrefix<P: StringProtocol>(_ prefix: P) -> String {
+        replacingPrefix(prefix, with: "")
+    }
+    
+    /// The range of the specified suffix, or `nil` if it doesn't exist.
+    func rangeOfSuffix<S: StringProtocol>(_ suffix: S) -> Range<Index>? {
+        guard hasSuffix(suffix) else { return nil }
+        return index(endIndex, offsetBy: -suffix.count)..<endIndex
+    }
+    
+    /**
+     Returns the string where the specified suffix is replaced.
+     
+     - Parameters:
+        - suffix: The suffix to replace.
+        - string: The replacement string.
+     */
+    func replacingSuffix<S: StringProtocol, R: StringProtocol>(_ suffix: S, with string: R) -> String {
+        guard let range = rangeOfSuffix(suffix) else { return String(self) }
+        return replacingCharacters(in: range, with: string)
+    }
+    
+    /**
+     Returns the string with the specified suffix removed.
+     
+     - Parameter suffix: The suffix to remove.
+     */
+    func removingSuffix<S: StringProtocol>(_ suffix: S) -> String {
+        replacingSuffix(suffix, with: "")
+    }
+    
+    /// Replaces regular spaces with non-breaking spaces.
+    var nonBreakingSpaces: String {
+        replacingOccurrences(of: " ", with: "\u{00A0}")
+    }
+    
     /// Returns a new string made by removing all emoji characters.
     func removingEmojis() -> String {
         String(filter { !$0.isEmoji })
     }
     
-    /// Mutates the string by removing all emoji characters.
-    mutating func removeEmojis() {
-        self = removingEmojis()
+    /// Returns a new string containing only the characters in the specified character set.
+    func keepingCharacters(in set: CharacterSet) -> String {
+        var result = String()
+        result.reserveCapacity(utf8.count)
+        for scalar in unicodeScalars {
+            guard set.contains(scalar) else { continue }
+            result.unicodeScalars += scalar
+        }
+        return result
+    }
+    
+    /// Returns a new string with all characters in the specified character set removed.
+    func removingCharacters(in set: CharacterSet) -> String {
+        var result = String()
+        result.reserveCapacity(utf8.count)
+        for scalar in unicodeScalars {
+            if !set.contains(scalar) {
+                result.unicodeScalars.append(scalar)
+            }
+        }
+        return result
     }
 }
 
@@ -576,8 +609,8 @@ public extension String {
        - maxValues: The maximum number of values to include per collection. Additional values may be omitted if specified.
        - includeTypeInfo: A Boolean value indicating whether type information should be included in the output.
      */
-    init<Subject>(cleanDescribing instance: Subject, indent: String = "  ", formatting: CollectionFormatting = .singleLine, maxDepth: Int? = nil, maxValues: Int? = nil, includeTypeInfo: Bool = false) {
-        self = format(instance, depth: 0, indent: indent, formatting: formatting, includeType: includeTypeInfo, maxDepth: maxDepth, maxValues: maxValues)
+    init<Subject>(cleanDescribing instance: Subject, indent: String = "  ", formatting: CollectionFormatting = .singleLine, maxDepth: Int = .max, maxValues: Int = .max, includeTypeInfo: Bool = false) {
+        self = CleanDescribingFormatter.format(instance, depth: 0, indent: indent, formatting: formatting, includeType: includeTypeInfo, maxDepth: maxDepth, maxValues: maxValues)
     }
     
     /// Describes the formatting strategies available for rendering collections in string representations.
@@ -632,7 +665,7 @@ public extension String {
    - separator: A string to print between each item. The default is a single space (`" "`).
    - terminator: The string to print after all items have been printed. The default is a newline (`"\n"`).
 */
-public func cleanPrint(_ items: Any..., indent: String = "  ", formatting: String.CollectionFormatting = .singleLine, maxDepth: Int? = nil, maxValues: Int? = nil, includeTypeInfo: Bool = false, separator: String = " ", terminator: String = "\n") {
+public func cleanPrint(_ items: Any..., indent: String = "  ", formatting: String.CollectionFormatting = .singleLine, maxDepth: Int = .max, maxValues: Int = .max, includeTypeInfo: Bool = false, separator: String = " ", terminator: String = "\n") {
    print(items.map({ String(cleanDescribing: $0, indent: indent, formatting: formatting, maxDepth: maxDepth, maxValues: maxValues, includeTypeInfo: includeTypeInfo) }), separator: separator, terminator: terminator)
 }
 
@@ -917,108 +950,141 @@ public extension String {
 
 extension String.CompareOptions: Swift.Hashable {
     /// Compares `Strings` as compared by the Finder.
-    public static let localizedStandard: Self = [.caseInsensitive, .numeric,  .widthInsensitive, .forcedOrdering]
+    public static let localizedStandard: Self = [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering]
 }
 
-extension String {
-    /// Returns a sequence of substrings from the string separated by the specified seperator.
-    public func lazyComponents<T: StringProtocol>(separatedBy separator: T) -> ComponentSequence {
-        ComponentSequence(self, separatedBy: String(separator))
+extension StringProtocol {
+    /// Returns a sequence of substrings separated by the specified separator string.
+    public func lazyComponents<T: StringProtocol>(separatedBy separator: T) -> StringSplitSequence<Self> {
+        StringSplitSequence(self, separatedBy: String(separator))
     }
     
-    /// Returns the component at the specified index for the string seperated by the given seperator.
-    public func component<T: StringProtocol>(at index: Int, seperatedBy separator: T) -> String? {
+    /// Returns the component at the specified index separated by the specified separator.
+    public func component<T: StringProtocol>(at index: Int, seperatedBy separator: T) -> SubSequence? {
         guard index >= 0 else { return nil }
-        return lazyComponents(separatedBy: separator).lazy.compactMap({$0})[safe: index]
+        var iterator = lazyComponents(separatedBy: separator).makeIterator()
+        for _ in 0..<index {
+            guard iterator.next() != nil else { return nil }
+        }
+        return iterator.next()
+    }
+}
+
+/// A sequence of substrings separated by a separator string.
+public struct StringSplitSequence<Base: StringProtocol>: Sequence {
+    private let string: Base
+    private let separator: String
+
+    fileprivate init(_ string: Base, separatedBy separator: String) {
+        self.string = string
+        self.separator = separator
     }
     
-    /// A sequence of substrings from a string separated by a given seperator.
-    public struct ComponentSequence: Sequence, IteratorProtocol {
-        private let string: String
+    public func makeIterator() -> Iterator {
+        Iterator(string: string, separator: separator)
+    }
+    
+    public struct Iterator: IteratorProtocol {
+        private let string: Base
         private let separator: String
-        private var currentIndex: String.Index
+        private var currentIndex: Base.Index
+        private var isFinished = false
 
-        init(_ string: String, separatedBy separator: String) {
-            precondition(!separator.isEmpty, "Separator cannot be empty")
+        fileprivate init(string: Base, separator: String) {
             self.string = string
             self.separator = separator
             self.currentIndex = string.startIndex
         }
 
-        public mutating func next() -> String? {
-            guard currentIndex < string.endIndex else { return nil }
+        public mutating func next() -> Base.SubSequence? {
+            guard !isFinished else { return nil }
+            guard !separator.isEmpty else {
+                isFinished = true
+                return string[string.startIndex..<string.endIndex]
+            }
             if let range = string.range(of: separator, range: currentIndex..<string.endIndex) {
                 let component = string[currentIndex..<range.lowerBound]
                 currentIndex = range.upperBound
-                return String(component)
-            } else {
-                let component = string[currentIndex..<string.endIndex]
-                currentIndex = string.endIndex
-                return String(component)
+                return component
             }
+            let component = string[currentIndex..<string.endIndex]
+            isFinished = true
+            return component
         }
     }
 }
 
-extension String {
+public extension StringProtocol {
     /// Returns a sequence of substrings from the string separated by any character in the given character set.
-    public func lazyComponents(separatedBy characterSet: CharacterSet) -> CharacterSetComponentsSequence {
-        CharacterSetComponentsSequence(self, separatedBy: characterSet)
+    func lazyComponents(separatedBy characterSet: CharacterSet) -> CharacterSetSplitSequence<Self> {
+        CharacterSetSplitSequence(self, separatedBy: characterSet)
     }
     
-    /// Returns the component at the specified index for the string seperated by any character in the given character set.
-    public func component(at index: Int, separatedBy characterSet: CharacterSet) -> String? {
+    /// Returns the component at the specified index separated by the specified separator.
+    func component(at index: Int, seperatedBy characterSet: CharacterSet) -> SubSequence? {
         guard index >= 0 else { return nil }
-        return lazyComponents(separatedBy: characterSet).lazy.compactMap({$0})[safe: index]
+        var iterator = lazyComponents(separatedBy: characterSet).makeIterator()
+        for _ in 0..<index {
+            guard iterator.next() != nil else { return nil }
+        }
+        return iterator.next()
     }
+}
 
-    /// A sequence of substrings from a string separated by any character of a given character set.
-    public struct CharacterSetComponentsSequence: Sequence, IteratorProtocol {
-        private let string: String
+/// A sequence of substrings separated by any character in a character set.
+public struct CharacterSetSplitSequence<Base: StringProtocol>: Sequence {
+    private let string: Base
+    private let characterSet: CharacterSet
+
+    fileprivate init(_ string: Base, separatedBy characterSet: CharacterSet) {
+        self.string = string
+        self.characterSet = characterSet
+    }
+    
+    public func makeIterator() -> Iterator {
+        Iterator(string: string, characterSet: characterSet)
+    }
+    
+    public struct Iterator: IteratorProtocol {
+        private let string: Base
         private let characterSet: CharacterSet
-        private var currentIndex: String.Index
+        private var currentIndex: Base.Index
+        private var isFinished = false
 
-        init(_ string: String, separatedBy characterSet: CharacterSet) {
+        fileprivate init(string: Base, characterSet: CharacterSet) {
             self.string = string
             self.characterSet = characterSet
             self.currentIndex = string.startIndex
         }
 
-        public mutating func next() -> String? {
-            guard currentIndex < string.endIndex else { return nil }
-            var endIndex = currentIndex
-            while endIndex < string.endIndex, let scalar = string[endIndex].unicodeScalars.first, !characterSet.contains(scalar) {
-                endIndex = string.index(after: endIndex)
+        public mutating func next() -> Base.SubSequence? {
+            guard !isFinished else { return nil }
+            guard !characterSet.isEmpty else {
+                isFinished = true
+                return string[string.startIndex..<string.endIndex]
             }
-            let component = string[currentIndex..<endIndex]
-            currentIndex = endIndex
-            while currentIndex < string.endIndex, let scalar = string[currentIndex].unicodeScalars.first, characterSet.contains(scalar) {
+            var end = currentIndex
+            while end < string.endIndex {
+                let character = string[end]
+                if character.unicodeScalars.contains(where: characterSet.contains) {
+                    break
+                }
+                end = string.index(after: end)
+            }
+            let component = string[currentIndex..<end]
+            currentIndex = end
+            while currentIndex < string.endIndex {
+                let character = string[currentIndex]
+                guard character.unicodeScalars.contains(where: characterSet.contains) else {
+                    break
+                }
                 currentIndex = string.index(after: currentIndex)
             }
-            return String(component)
+            if currentIndex == string.endIndex {
+                isFinished = true
+            }
+            return component
         }
-    }
-}
-
-extension String {
-    /**
-     Returns the range of the specified substring within the receiver.
-     
-     - Parameters:
-        - string: The substring to search for.
-        - range: The range within the receiver to search, or `nil` to search the full string.
-        - options: The search options (e.g., case-insensitive, backwards, etc.).
-        - locale: The locale to use when comparing the receiver with the specified substring.
-     - Returns: The range of the first occurrence of the substring within the receiver. The range is relative to the start of the receivver. If the substring is not found or is empty (`""`), the returned range has a `location` equal to `NSNotFound`.
-     */
-    public func nsRange(of string: String, in range: NSRange? = nil, options: NSString.CompareOptions = [], locale: Locale? = nil) -> NSRange {
-        if let locale = locale {
-            return (self as NSString).range(of: string, options: options, range: range ?? nsRange, locale: locale)
-        } else if let range = range {
-           return (self as NSString).range(of: string, options: options, range: range)
-        }
-        return (self as NSString).range(of: string, options: options)
-
     }
 }
 
@@ -1063,110 +1129,112 @@ public extension String.StringInterpolation {
     }
 }
 
-fileprivate func format(_ value: Any, depth: Int, indent: String, formatting: String.CollectionFormatting, includeType: Bool, maxDepth: Int?, maxValues: Int?) -> String {
-    let value = unwrapAnyHashable(value)
+fileprivate enum CleanDescribingFormatter {
+    static func format(_ value: Any, depth: Int, indent: String, formatting: String.CollectionFormatting, includeType: Bool, maxDepth: Int, maxValues: Int) -> String {
+        let value = unwrapAnyHashable(value)
 
-    if let maxDepth, depth >= maxDepth {
-        if isCollection(value) {
-            return "[...]"
+        if depth >= maxDepth {
+            if isCollection(value) {
+                return "[...]"
+            }
+            return formatScalar(value, includeType: includeType)
         }
+
+        let indentation = String(repeating: indent, count: depth)
+        let childIndentation = String(repeating: indent, count: depth + 1)
+
+        if let dictionary = value as? [AnyHashable: Any] {
+            guard !dictionary.isEmpty else { return "[:]" }
+
+            let entries = Array(dictionary)
+            let limited = limit(entries, max: maxValues)
+            let isTruncated = limited.count < entries.count
+
+            let shouldSingleLine: Bool = {
+                switch formatting {
+                case .singleLine:
+                    return true
+                case .singleLineIfNonNested:
+                    return !containsNestedCollection(dictionary.values)
+                case .multiline:
+                    return false
+                }
+            }()
+
+            let lines = limited.map { key, value in
+                "\(shouldSingleLine ? "" : childIndentation)\(formatScalar(key, includeType: includeType)): \(format(value, depth: depth + 1, indent: indent, formatting: formatting, includeType: includeType, maxDepth: maxDepth, maxValues: maxValues))"
+            }
+            
+            return string(for: lines, isTruncated: isTruncated, shouldSingleLine: shouldSingleLine, childIndentation: childIndentation, indentation: indentation)
+        }
+
+        if let array = value as? [Any] ?? (value as? AnySet)?.asAnyArray() {
+            guard !array.isEmpty else { return "[]" }
+
+            let limited = limit(array, max: maxValues)
+            let isTruncated = limited.count < array.count
+
+            let shouldSingleLine: Bool = {
+                switch formatting {
+                case .singleLine:
+                    return true
+                case .singleLineIfNonNested:
+                    return !containsNestedCollection(array)
+                case .multiline:
+                    return false
+                }
+            }()
+
+            let lines = limited.map {
+                "\(shouldSingleLine ? "" : childIndentation)\(format($0, depth: depth + 1, indent: indent, formatting: formatting, includeType: includeType, maxDepth: maxDepth, maxValues: maxValues))"
+            }
+            
+            return string(for: lines, isTruncated: isTruncated, shouldSingleLine: shouldSingleLine, childIndentation: childIndentation, indentation: indentation)
+        }
+
         return formatScalar(value, includeType: includeType)
     }
 
-    let indentation = String(repeating: indent, count: depth)
-    let childIndentation = String(repeating: indent, count: depth + 1)
-
-    if let dictionary = value as? [AnyHashable: Any] {
-        guard !dictionary.isEmpty else { return "[:]" }
-
-        let entries = Array(dictionary)
-        let limited = limit(entries, max: maxValues)
-        let isTruncated = limited.count < entries.count
-
-        let shouldSingleLine: Bool = {
-            switch formatting {
-            case .singleLine:
-                return true
-            case .singleLineIfNonNested:
-                return !containsNestedCollection(dictionary.values)
-            case .multiline:
-                return false
-            }
-        }()
-
-        let lines = limited.map { key, value in
-            "\(shouldSingleLine ? "" : childIndentation)\(formatScalar(key, includeType: includeType)): \(format(value, depth: depth + 1, indent: indent, formatting: formatting, includeType: includeType, maxDepth: maxDepth, maxValues: maxValues))"
+    static func string(for lines: [String], isTruncated: Bool, shouldSingleLine: Bool, childIndentation: String, indentation: String) -> String {
+        var lines = lines
+        if isTruncated {
+            lines += "\(shouldSingleLine ? "" : childIndentation)..."
         }
-        
-        return string(for: lines, isTruncated: isTruncated, shouldSingleLine: shouldSingleLine, childIndentation: childIndentation, indentation: indentation)
+        return shouldSingleLine ? "[\(lines.joined(separator: ", "))]" : """
+        [
+        \(lines.joined(separator: ",\n"))
+        \(indentation)]
+        """
     }
 
-    if let array = value as? [Any] ?? (value as? AnySet)?.asAnyArray() {
-        guard !array.isEmpty else { return "[]" }
+    static func limit<T>(_ array: [T], max: Int) -> [T] {
+        guard max != .max else { return array }
+        return Array(array.prefix(max))
+    }
 
-        let limited = limit(array, max: maxValues)
-        let isTruncated = limited.count < array.count
-
-        let shouldSingleLine: Bool = {
-            switch formatting {
-            case .singleLine:
-                return true
-            case .singleLineIfNonNested:
-                return !containsNestedCollection(array)
-            case .multiline:
-                return false
-            }
-        }()
-
-        let lines = limited.map {
-            "\(shouldSingleLine ? "" : childIndentation)\(format($0, depth: depth + 1, indent: indent, formatting: formatting, includeType: includeType, maxDepth: maxDepth, maxValues: maxValues))"
+    static func formatScalar(_ value: Any, includeType: Bool) -> String {
+        let unwrapped = unwrapAnyHashable(value)
+        let formattedValue: String
+        if let string = unwrapped as? String {
+            formattedValue = "\"\(string)\""
+        } else {
+            formattedValue = String(describing: unwrapped).nonNil
         }
-        
-        return string(for: lines, isTruncated: isTruncated, shouldSingleLine: shouldSingleLine, childIndentation: childIndentation, indentation: indentation)
+        return !includeType ? formattedValue : "\(formattedValue) (\(type(of: unwrapped)))"
     }
 
-    return formatScalar(value, includeType: includeType)
-}
-
-fileprivate func string(for lines: [String], isTruncated: Bool, shouldSingleLine: Bool, childIndentation: String, indentation: String) -> String {
-    var lines = lines
-    if isTruncated {
-        lines += "\(shouldSingleLine ? "" : childIndentation)..."
+    static func unwrapAnyHashable(_ value: Any) -> Any {
+        (value as? AnyHashable) ?? value
     }
-    return shouldSingleLine ? "[\(lines.joined(separator: ", "))]" : """
-    [
-    \(lines.joined(separator: ",\n"))
-    \(indentation)]
-    """
-}
 
-fileprivate func limit<T>(_ array: [T], max: Int?) -> [T] {
-    guard let max else { return array }
-    return Array(array.prefix(max))
-}
-
-fileprivate func formatScalar(_ value: Any, includeType: Bool) -> String {
-    let unwrapped = unwrapAnyHashable(value)
-    let formattedValue: String
-    if let string = unwrapped as? String {
-        formattedValue = "\"\(string)\""
-    } else {
-        formattedValue = String(describing: unwrapped).nonNil
+    static func containsNestedCollection(_ values: some Sequence<Any>) -> Bool {
+        values.contains { isCollection(unwrapAnyHashable($0)) }
     }
-    return !includeType ? formattedValue : "\(formattedValue) (\(type(of: unwrapped)))"
-}
 
-fileprivate func unwrapAnyHashable(_ value: Any) -> Any {
-    (value as? AnyHashable) ?? value
-}
-
-fileprivate func containsNestedCollection(_ values: some Sequence<Any>) -> Bool {
-    values.contains { isCollection(unwrapAnyHashable($0)) }
-}
-
-fileprivate func isCollection(_ value: Any) -> Bool {
-    let value = unwrapAnyHashable(value)
-    return value is [AnyHashable: Any] || value is NSDictionary || value is [Any]  || value is NSArray || value is AnySet
+    static func isCollection(_ value: Any) -> Bool {
+        let value = unwrapAnyHashable(value)
+        return value is [AnyHashable: Any] || value is NSDictionary || value is [Any]  || value is NSArray || value is AnySet
+    }
 }
 
 protocol AnySet {

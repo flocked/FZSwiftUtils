@@ -10,6 +10,27 @@ import Foundation
 /// A json object.
 public struct JSONObject: Sequence, Collection, BidirectionalCollection, ExpressibleByStringLiteral, ExpressibleByFloatLiteral, ExpressibleByNilLiteral, ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral, ExpressibleByIntegerLiteral, ExpressibleByBooleanLiteral, RangeReplaceableCollection, Equatable {
     
+    public enum JSONKind {
+        case missing
+        case null
+        case bool
+        case number
+        case string
+        case array
+        case dictionary
+    }
+    
+    public var kind: JSONKind {
+        guard let value else { return .missing }
+          if value is NSNull { return .null }
+        if (value as? NSNumber)?.safeBoolValue != nil { return .bool }
+          if value is NSNumber || value is Int || value is Double { return .number }
+          if value is String { return .string }
+        if value is [String: Any] { return .dictionary }
+          if value is [Any] { return .array }
+          return .missing
+    }
+    
     public var value: Any?
     
     /// The current path of the json object.
@@ -45,18 +66,18 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     }
     
     public init(dictionaryLiteral elements: (String, (any JSONSerializable))...) {
-        value = Dictionary(uniqueKeysWithValues: elements)
-        codingPath = []
+        self.value = Dictionary(uniqueKeysWithValues: elements)
+        self.codingPath = []
     }
     
     public init(arrayLiteral elements: (any JSONSerializable)...) {
-        value = elements
-        codingPath = []
+        self.value = elements
+        self.codingPath = []
     }
     
     public init(booleanLiteral value: Bool) {
         self.value = value
-        codingPath = []
+        self.codingPath = []
     }
     
     public init(stringLiteral value: String) {
@@ -88,8 +109,19 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         }
         self.codingPath = []
     }
+    
+    private static func kind(for value: Any?) -> JSONKind {
+        guard let value else { return .missing }
+          if value is NSNull { return .null }
+        if (value as? NSNumber)?.safeBoolValue != nil { return .bool }
+          if value is NSNumber || value is Int || value is Double { return .number }
+          if value is String { return .string }
+        if value is [String: Any] { return .dictionary }
+          if value is [Any] { return .array }
+          return .missing
+    }
         
-    init(_ value: Any?, _ codingPath: [CodingKey]) {
+    private init(_ value: Any?, _ codingPath: [CodingKey]) {
         self.value = value
         self.codingPath = codingPath
     }
@@ -97,13 +129,18 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     /// The dictionary value of the json object.
     public var dictionary: [String: Self]? {
         get { (value as? [String: Any])?.mapKeyValues({ ($0, Self($1, codingPath + .key($0))) }) }
-        //  set { value = newValue ?? NSNull() }
+        set { setValue(newValue?.mapValues(\.value)) }
+    }
+    
+    private mutating func setValue(_ newValue: Any?) {
+        guard kind != .missing else { return }
+        value = newValue ?? NSNull()
     }
         
     /// The array value of the json object.
     public var array: [Self]? {
         get { value is [Any] ? collect() : nil }
-        //  set { value = newValue ?? NSNull() }
+        set { setValue(newValue?.map(\.value)) }
     }
         
     /// The string value of the json object.

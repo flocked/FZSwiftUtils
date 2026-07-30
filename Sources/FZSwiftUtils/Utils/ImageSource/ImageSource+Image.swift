@@ -7,16 +7,6 @@
 
 import Foundation
 
-#if !os(watchOS)
-public extension ImageSource {
-    /// Creates an image source for the specified image.
-    convenience init?(image: CGImage) {
-        guard let cgImageSource = image.cgImageSource else { return nil }
-        self.init(cgImageSource)
-    }
-}
-#endif
-
 #if os(macOS)
 import AppKit
 public extension ImageSource {
@@ -218,19 +208,6 @@ public extension ImageSource {
 #endif
 
 #if !os(watchOS)
-fileprivate extension CGImage {
-    var cgImageSource: CGImageSource? {
-        Self.imageSourceFunction?(self)?.takeUnretainedValue()
-    }
-    
-    static let imageSourceFunction: (@convention(c) (CGImage) -> Unmanaged<CGImageSource>?)? = {
-        guard let symbol = dlsym(UnsafeMutableRawPointer(bitPattern: -2), "CGImageGetImageSource") else {
-            return nil
-        }
-        return unsafeBitCast(symbol, to: (@convention(c) (CGImage) -> Unmanaged<CGImageSource>?).self)
-    }()
-}
-
 fileprivate extension Dictionary where Key == CFString, Value == Any {
     static let animateDictionaries = [kCGImagePropertyGIFDictionary, kCGImagePropertyPNGDictionary, kCGImagePropertyHEICSDictionary, kCGImagePropertyWebPDictionary]
     static let loopKey = kCGImagePropertyGIFLoopCount

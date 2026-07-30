@@ -35,22 +35,17 @@ extension NSRange: Swift.RandomAccessCollection, Swift.RangeExpression, Swift.Bi
 public extension NSRange {
     /// `ClosedRange` representation of the range.
     var closedRange: ClosedRange<Int> {
-        length > 0 ? location...(location + length - 1) : location...location
+        length > 0 ? lowerBound...(upperBound - 1) : lowerBound...lowerBound
     }
 
     /// `Range` representation of the range.
     var range: Range<Int> {
-        location..<(location + length)
+        lowerBound..<upperBound
     }
     
     /// `CFRange` representation of the range.
     var cfRange: CFRange {
         CFRange(location: location, length: length)
-    }
-    
-    /// The maximum value.
-    var max: Int {
-        NSMaxRange(self)
     }
 
     /// A Boolean value indicating whether the range is not found.
@@ -71,7 +66,8 @@ public extension NSRange {
      - Returns: A new NSRange.
      */
     func shifted(by offset: Int) -> NSRange {
-        NSRange(location: location + offset, length: length)
+        guard !isNotFound else { return self }
+        return NSRange(location: location + offset, length: length)
     }
 
     /// A Boolean value indicating whether this range and the given range contain an element in common.
@@ -89,8 +85,9 @@ public extension NSRange {
 public extension Sequence<NSRange> {
     /// The range that contains all ranges.
     var union: NSRange? {
-        guard let min = min, let max = max else { return nil }
-        return NSRange(min..<max)
+        reduce(nil) { result, range in
+            result.map { $0.union(range) } ?? range
+        }
     }
     
     /// Returns the minimum lower bound in the sequence.

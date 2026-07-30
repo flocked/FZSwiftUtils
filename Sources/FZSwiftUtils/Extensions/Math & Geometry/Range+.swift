@@ -21,16 +21,31 @@ public extension Range where Bound: BinaryInteger {
     }
 }
 
+public extension Range where Bound: Strideable {
+    /// `ClosedRange` representation of the range.
+    var closedRange: ClosedRange<Bound> {
+        lowerBound...Swift.max(lowerBound, upperBound.advanced(by: -1))
+    }
+}
+
+public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
+    /// `ClosedRange` representation of the range.
+    var closedRange: ClosedRange<Bound> {
+        ClosedRange(self)
+    }
+}
+
 public extension ClosedRange where Bound: Strideable {
     /// `Range` representation of the range.
-    var toRange: Range<Bound> {
+    var range: Range<Bound> {
         lowerBound..<upperBound.advanced(by: 1)
     }
 }
 
-public extension Range where Bound: Strideable {
-    var toClosedRange: ClosedRange<Bound> {
-        lowerBound...Swift.min(lowerBound, upperBound.advanced(by: -1))
+public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedInteger {
+    /// `Range` representation of the range.
+    var range: Range<Bound> {
+        Range(self)
     }
 }
 
@@ -41,6 +56,9 @@ public extension Range where Bound == String.Index {
     }
 }
 
+
+
+/*
 /// A type that represents a range.
 public protocol RangeRepresentable: RangeExpression {
     /// The range’s lower bound.
@@ -151,6 +169,7 @@ public extension RangeRepresentable {
      range.intersection(5...10) // 5...7
      ```
      */
+
     func intersection<R: RangeRepresentable>(_ other: R) -> Self? where R.Bound == Bound {
         let lower = Swift.max(lowerBound, other.lowerBound)
         let upper = Swift.min(upperBound, other.upperBound)
@@ -344,3 +363,308 @@ extension CFRange: Swift.Collection, Swift.BidirectionalCollection, Swift.Random
     
     public var upperBound: CFIndex { location + length }
 }
+*/
+
+extension Range {
+    /**
+     Creates a range from the specified bounds if the lower bound is less than or equal to the upper bound.
+     
+     - Parameter bounds: A tuple of the lower and upper bounds of the range.
+     */
+    init?(validating bounds: (lower: Bound, upper: Bound)) {
+        guard bounds.lower <= bounds.upper else { return nil }
+        self.init(uncheckedBounds: bounds)
+    }
+    
+    /**
+     Creates a range from the specified bounds by ordering them in ascending order if necessary.
+     
+     - Parameter bounds: A tuple of the lower and upper bounds of the range.
+     */
+    init(normalizing bounds: (lower: Bound, upper: Bound)) {
+        self = Self(uncheckedBounds: (Swift.min(bounds.lower, bounds.upper), Swift.max(bounds.lower, bounds.upper)))
+    }
+}
+
+extension ClosedRange {
+    /**
+     Creates a range from the specified bounds if the lower bound is less than or equal to the upper bound.
+     
+     - Parameter bounds: A tuple of the lower and upper bounds of the range.
+     */
+    init?(validating bounds: (lower: Bound, upper: Bound)) {
+        guard bounds.lower <= bounds.upper else { return nil }
+        self.init(uncheckedBounds: bounds)
+    }
+    
+    /**
+     Creates a closed range from the specified bounds by ordering them in ascending order if necessary.
+     
+     - Parameter bounds: A tuple of the lower and upper bounds of the range.
+     */
+    init(normalizing bounds: (lower: Bound, upper: Bound)) {
+        self = Self(uncheckedBounds: (Swift.min(bounds.lower, bounds.upper), Swift.max(bounds.lower, bounds.upper)))
+    }
+}
+
+extension Range {
+    /// A Boolean value indicating whether the other range is fully contained within the range.
+    func contains(_ range: Self) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns the intersection of this range with another range, or `nil` if they do not overlap.
+     
+     Example usage:
+     
+     ```swift
+     let range = 3...7
+     range.intersection(5...10) // 5...7
+     ```
+     */
+    func intersection(_ other: Self) -> Self? {
+        let lower = Swift.max(lowerBound, other.lowerBound)
+        let upper = Swift.min(upperBound, other.upperBound)
+        return lower < upper ? lower..<upper : nil
+    }
+    
+    /**
+     Returns the smallest range that fully contains both ranges.
+     
+     Example usage:
+     
+     ```swift
+     let range = 3...7
+     range.boundingUnion(5...10) // 3...10
+     ```
+     */
+    func boundingUnion(_ other: Self) -> Self {
+        Swift.min(lowerBound, other.lowerBound)..<Swift.max(upperBound, other.upperBound)
+    }
+    
+    /// Returns the range clamped to the specified minimum value.
+    func clamped(min minValue: Bound) -> Self {
+        Self(uncheckedBounds: (Swift.max(lowerBound, minValue), Swift.max(upperBound, minValue)))
+    }
+    
+    /// Returns the range clamped to the specified maximum value.
+    func clamped(max maxValue: Bound) -> Self {
+        Self(uncheckedBounds: (Swift.min(lowerBound, maxValue), Swift.min(upperBound, maxValue)))
+    }
+}
+
+extension ClosedRange {
+    /// A Boolean value indicating whether the other range is fully contained within the range.
+    func contains(_ range: Self) -> Bool {
+        range.lowerBound >= lowerBound && range.upperBound <= upperBound
+    }
+    
+    /**
+     Returns the intersection of this range with another range, or `nil` if they do not overlap.
+     
+     Example usage:
+     
+     ```swift
+     let range = 3...7
+     range.intersection(5...10) // 5...7
+     ```
+     */
+    func intersection(_ other: Self) -> Self? {
+        let lower = Swift.max(lowerBound, other.lowerBound)
+        let upper = Swift.min(upperBound, other.upperBound)
+        return lower <= upper ? lower...upper : nil
+
+    }
+    
+    /**
+     Returns the smallest range that fully contains both ranges.
+     
+     Example usage:
+     
+     ```swift
+     let range = 3...7
+     range.boundingUnion(5...10) // 3...10
+     ```
+     */
+    func boundingUnion(_ other: Self) -> Self {
+        Swift.min(lowerBound, other.lowerBound)...Swift.max(upperBound, other.upperBound)
+    }
+    
+    /// Returns the range clamped to the specified minimum value.
+    func clamped(min minValue: Bound) -> Self {
+        Self(uncheckedBounds: (Swift.max(lowerBound, minValue), Swift.max(upperBound, minValue)))
+    }
+    
+    /// Returns the range clamped to the specified maximum value.
+    func clamped(max maxValue: Bound) -> Self {
+        Self(uncheckedBounds: (Swift.min(lowerBound, maxValue), Swift.min(upperBound, maxValue)))
+    }
+}
+
+public extension Range where Bound: AdditiveArithmetic {
+    /**
+     Offsets the range by the specified value.
+
+     - Parameter offset: The offset to shift.
+     - Returns: The new range.
+     */
+    func shifted(by offset: Bound) -> Self {
+        Self(uncheckedBounds: (lowerBound + offset, upperBound + offset))
+    }
+}
+
+public extension ClosedRange where Bound: AdditiveArithmetic {
+    /**
+     Offsets the range by the specified value.
+
+     - Parameter offset: The offset to shift.
+     - Returns: The new range.
+     */
+    func shifted(by offset: Bound) -> Self {
+        Self(uncheckedBounds: (lowerBound + offset, upperBound + offset))
+    }
+}
+
+public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
+    var center: Bound {
+        lowerBound.advanced(by: lowerBound.distance(to: upperBound) / 2)
+    }
+}
+
+public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedInteger {
+    var center: Bound {
+        lowerBound.advanced(by: lowerBound.distance(to: upperBound) / 2)
+    }
+}
+
+public extension Range where Bound: BinaryInteger {
+    /// The midpoint value between the `lowerBound` and `upperBound`, using integer division.
+     var center: Bound {
+         lowerBound + (upperBound - lowerBound) / 2
+     }
+     
+    /// `NSRange` representation of the range.
+    var nsRange: NSRange {
+        guard lowerBound >= 0, let location = Int(exactly: lowerBound), let length = Int(exactly: upperBound - lowerBound) else {
+            return .notFound
+        }
+        return NSRange(location: location, length: length)
+    }
+}
+
+public extension ClosedRange where Bound: BinaryInteger {
+    /// The midpoint value between the `lowerBound` and `upperBound`, using integer division.
+     var center: Bound {
+         lowerBound + (upperBound - lowerBound) / 2
+     }
+
+    /// `NSRange` representation of the range.
+    var nsRange: NSRange {
+        guard lowerBound >= 0, let location = Int(exactly: lowerBound), let distance = Int(exactly: upperBound - lowerBound), distance < Int.max else {
+            return .notFound
+        }
+        return NSRange(location: location, length: distance + 1)
+    }
+}
+
+public extension Range where Bound: BinaryFloatingPoint {
+    /**
+     Splits the range into an array of evenly spaced values.
+
+     The returned array contains `amount` values starting at `lowerBound` and ending at `upperBound` (inclusive for the calculation).
+
+     - Parameter amount: The number of segments to divide the range into.
+     - Returns: An array of `Double` values evenly distributed across the range.
+
+     Example usage:
+     ```swift
+     let values = (0...1).split(by: 5)
+     // [0.0, 0.25, 0.5, 0.75, 1.0]
+     ```
+     */
+    func split(into amount: Int) -> [Bound] {
+        guard amount > 1 else { return amount == 1 ? [lowerBound] : [] }
+        let step = (upperBound - lowerBound) / Bound(amount - 1)
+        return (0..<amount).map { lowerBound + Bound($0) * step }
+    }
+    
+    /// The midpoint value between the `lowerBound` and `upperBound`, using integer division.
+     var center: Bound {
+         lowerBound + (upperBound - lowerBound) / 2.0
+     }
+}
+
+public extension ClosedRange where Bound: BinaryFloatingPoint {
+    /**
+     Splits the range into an array of evenly spaced values.
+
+     The returned array contains `amount` values starting at `lowerBound` and ending at `upperBound` (inclusive for the calculation).
+
+     - Parameter amount: The number of segments to divide the range into.
+     - Returns: An array of `Double` values evenly distributed across the range.
+
+     Example usage:
+     ```swift
+     let values = (0...1).split(by: 5)
+     // [0.0, 0.25, 0.5, 0.75, 1.0]
+     ```
+     */
+    func split(into amount: Int) -> [Bound] {
+        guard amount > 1 else { return amount == 1 ? [lowerBound] : [] }
+        let step = (upperBound - lowerBound) / Bound(amount - 1)
+        return (0..<amount).map { lowerBound + Bound($0) * step }
+    }
+    
+    /// The midpoint value between the `lowerBound` and `upperBound`, using integer division.
+     var center: Bound {
+         lowerBound + (upperBound - lowerBound) / 2.0
+     }
+}
+
+public extension Range where Bound: Strideable {
+    /// The distance between the lower bound and upper bound.
+    var length: Bound.Stride {
+        lowerBound.distance(to: upperBound)
+    }
+}
+
+public extension ClosedRange where Bound: Strideable {
+    /// The distance between the lower bound and upper bound.
+    var length: Bound.Stride {
+        lowerBound.distance(to: upperBound)
+    }
+}
+
+public extension NSRange {
+    /// Returns the range clamped to the specified minimum value.
+    func clamped(min minValue: Int) -> NSRange {
+        let lower = Swift.max(lowerBound, minValue)
+        let upper = Swift.max(upperBound, lower)
+        return NSRange(location: lower, length: upper - lower)
+    }
+    
+    /// Returns the range clamped to the specified maximum value.
+    func clamped(max maxValue: Int) -> NSRange {
+        let lower = Swift.min(lowerBound, maxValue)
+        let upper = Swift.min(upperBound, lower)
+        return NSRange(location: lower, length: upper - lower)
+    }
+    
+    /// Returns a copy of this range clamped to the given limiting range.
+    func clamped(to range: NSRange) -> NSRange {
+        NSRange(self.range.clamped(to: range.range))
+    }
+    
+    /// Returns a copy of this range clamped to the given limiting range.
+    func clamped(to range: Range<Int>) -> NSRange {
+        NSRange(self.range.clamped(to: range))
+    }
+}
+
+/*
+ union
+ intersection
+ overlaps
+ contains
+ */

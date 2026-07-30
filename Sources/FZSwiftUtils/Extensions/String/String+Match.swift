@@ -16,10 +16,18 @@ public extension String {
         - pattern: The regular expression pattern to search for.
         - options: The regular expression options that are applied to the expression during matching.
      
-     - Returns: An array of `StringMatch` objects representing the matches found. It returns an empty array, if the pattern is invalid.
+     - Returns: An array of ``RegexMatch``  representing the matches found. It returns an empty array, if the pattern is invalid.
      */
     func matches(pattern: String, options: NSRegularExpression.Options = []) -> [RegexMatch] {
-        results(for: pattern, options: options)
+        do {
+            let expression = try NSRegularExpression(pattern: pattern, options: options)
+            return expression.matches(in: self, range: nsRange).compactMap {
+                RegexMatch($0, regex: expression, string: self)
+            }
+        } catch {
+            Swift.debugPrint(error)
+            return []
+        }
     }
     
     /**
@@ -33,13 +41,7 @@ public extension String {
      */
     func numberOfMatches(pattern: String, options: NSRegularExpression.Options = []) -> Int {
         do {
-            let expression = try NSRegularExpression(pattern: pattern, options: options)
-
-            return expression.numberOfMatches(
-                in: self,
-                options: [],
-                range: nsRange
-            )
+        return try NSRegularExpression(pattern: pattern, options: options).numberOfMatches(in: self, options: [], range: nsRange)
         } catch {
             debugPrint(error)
             return 0
@@ -58,49 +60,37 @@ public extension String {
     func firstMatch(pattern: String, options: NSRegularExpression.Options = []) -> RegexMatch? {
         do {
             let expression = try NSRegularExpression(pattern: pattern, options: options)
-
             guard let result = expression.firstMatch(in: self, range: nsRange) else {
                 return nil
             }
-
-            return RegexMatch(result, string: self)
+            return RegexMatch(result, regex: expression, string: self)
         } catch {
             debugPrint(error)
             return nil
         }
-    }
+     }
     
     /**
-     Enumerates the matches for the specified string.
+     Enumerates the matches for the specified regular expression pattern in the string.
      
      - Parameters:
         - pattern: The regular expression pattern to search for.
         - options: The regular expression options that are applied to the expression during matching.
         - reportProgress: A Boolean value indicating whether to report the progress. If `true`, the update handler is periodically called during long-running match operations.
-        - update: The handler that is called whenever a new match is found with the following parameters:
-            - match: The match for the specified pattern.
-            - completed: A Boolean value indicating whether the enumeration completed.
-            - Return: `true` to end enumeration the string for matches, or `false` to keep enumerating it.
+        - block: The handler that is called whenever a new match is found with the following parameters:
+            - match: The match that was found, or `nil` for a progress or completion event.
+            - isCompleted: A Boolean value indicating whether matching has finished.
+            - stop: Set this value to `true` to stop enumerating matches.
      */
-    func enumerateMatches(pattern: String, options: NSRegularExpression.Options = [], reportProgress: Bool = false, update: (_ match: RegexMatch?, _ completed: Bool) -> Bool) {
+    func enumerateMatches(pattern: String, options: NSRegularExpression.Options = [], reportProgress: Bool = false, using block: (_ match: RegexMatch?, _ isFinished: Bool, _ stop: inout Bool) -> ()) {
         do {
             let expression = try NSRegularExpression(pattern: pattern, options: options)
-
-            expression.enumerateMatches(
-                in: self,
-                options: reportProgress ? [.reportProgress, .reportCompletion] : [.reportCompletion],
-                range: nsRange
-            ) { result, flags, stop in
+            expression.enumerateMatches(in: self, options: reportProgress ? [.reportProgress, .reportCompletion] : [.reportCompletion], range: nsRange) { result, flags, stop in
                 let completed = flags.contains(any: [.requiredEnd, .hitEnd, .internalError])
-
-                guard let result else {
-                    _ = update(nil, completed)
-                    return
-                }
-
-                let match = RegexMatch(result, string: self)
-
-                if update(match, completed), !completed {
+                let match = result.flatMap({ RegexMatch($0, regex: expression, string: self) })
+                var shouldStop = false
+                block(match, completed, &shouldStop)
+                if shouldStop, !completed {
                     stop.pointee = true
                 }
             }
@@ -134,56 +124,10 @@ public extension String {
      */
     func replace(pattern: String, with template: String, options: NSRegularExpression.Options = []) -> String? {
         do {
-            let expression = try NSRegularExpression(pattern: pattern, options: options)
-
-            return expression.stringByReplacingMatches(
-                in: self,
-                range: nsRange,
-                withTemplate: template
-            )
+            return try NSRegularExpression(pattern: pattern, options: options).stringByReplacingMatches(in: self, range: nsRange, withTemplate: template)
         } catch {
             debugPrint(error)
             return nil
-        }
-    }
-    
-    
-    /**
-     Finds all matches of substrings between the two specified strings.
-
-     - Parameters:
-        - fromString: The starting string to search for.
-        - toString: The ending string to search for.
-        - includingFromTo: A Boolean value indicating whether to include the starting and ending strings in the results.
-        - options: The regular expression options that are applied to the expression during matching.
-
-     - Returns: An array of `StringMatch` objects representing the matches found.
-     */
-    func matches(
-        between fromString: String,
-        and toString: String,
-        includingFromTo: Bool = false,
-        allowsNesting: Bool = false,
-        options: NSRegularExpression.Options = []
-    ) -> [RegexMatch] {
-        guard allowsNesting else {
-            return matches(
-                pattern: delimiterPattern(
-                    between: fromString,
-                    and: toString,
-                    includingFromTo: includingFromTo
-                ),
-                options: options
-            )
-        }
-
-        return nestedDelimiterRanges(
-            between: fromString,
-            and: toString,
-            includingFromTo: includingFromTo
-        )
-        .map {
-            RegexMatch(string: self, range: $0)
         }
     }
     
@@ -195,7 +139,7 @@ public extension String {
      */
     func matches(for option: StringMatchingOption) -> [StringMatch] {
         var matches: [StringMatch] = []
-
+        
         if let textCheckingType = option.textCheckingType {
             matches += results(for: textCheckingType)
         }
@@ -215,44 +159,33 @@ public extension String {
     
     /// Returns the individual words in the string.
     var words: [String] {
-        matches(for: .word).map(\.string)
+        matches(for: .word).map({ String($0.string) })
     }
 
     /// Returns an array of sentences in the string.
     var sentences: [String] {
-        matches(for: .sentence).map(\.string)
+        matches(for: .sentence).map({ String($0.string) })
     }
     
     /// All integer values inside the string.
     var integerValues: [Int] {
-        matches(pattern: "[-+]?\\d+.?\\d+").compactMap({Int($0.string)})
+        matches(pattern: "[-+]?\\d+.?\\d+").compactMap { Int($0.string) }
     }
     
     /// All double values inside the string.
     var doubleValues: [Double] {
-        matches(pattern: "[-+]?\\d+.?\\d+").compactMap({Double($0.string.replacingOccurrences(of: ",", with: "."))})
+        matches(pattern: "[-+]?\\d+.?\\d+").compactMap { Double($0.string.replacingOccurrences(of: ",", with: ".")) }
     }
     
     fileprivate var escapedPattern: String {
         NSRegularExpression.escapedPattern(for: self)
     }
     
-    private func results(for pattern: String, options: NSRegularExpression.Options = []) -> [RegexMatch] {
-        do {
-            let expression = try NSRegularExpression(pattern: pattern, options: options)
-            return expression.matches(in: self, range: nsRange).compactMap({
-                RegexMatch($0, string: self) }).uniqued()
-        } catch {
-            Swift.debugPrint(error)
-            return []
-        }
-    }
-    
-    fileprivate func results(for tags: [NLTag], tagScheme: NLTagScheme, range: Range<String.Index>? = nil) -> [StringMatch] {
+    fileprivate func results(for tags: [NLTag], tagScheme: NLTagScheme, range: Range<Index>? = nil) -> [StringMatch] {
         let tagger = NLTagger(tagSchemes: [tagScheme])
         tagger.string = self
-        let allTags = tagger.tags(in: range ?? startIndex..<endIndex, unit: .word, scheme: tagScheme, options: [.omitPunctuation,.omitWhitespace, .omitOther, .joinNames, .joinContractions])
-        return allTags.compactMap({if let tag = $0.0 { (tag, $0.1) } else { nil }}).filter({tags.contains($0.0)}).compactMap({StringMatch($0.0, string: self, range: $0.1)})
+        let allTags = tagger.tags(in: range ?? startIndex..<endIndex, unit: .word, scheme: tagScheme, options: [.omitPunctuation, .omitWhitespace, .omitOther, .joinNames, .joinContractions])
+        return allTags.compactMap { if let tag = $0.0 { (tag, $0.1) } else { nil }}.filter { tags.contains($0.0) }.compactMap { StringMatch($0.0, string: self, range: $0.1) }
     }
     
     fileprivate func results(for option: NSString.EnumerationOptions, range: Range<String.Index>? = nil) -> [StringMatch] {
@@ -274,7 +207,7 @@ public extension String {
             option.insert(.link)
         }
         guard let detector = try? NSDataDetector(types: option.rawValue) else { return [] }
-        return detector.matches(in: self, range: range?.nsRange(in: self) ?? nsRange).flatMap({ match in
+        return detector.matches(in: self, range: range?.nsRange(in: self) ?? nsRange).flatMap { match in
             (0..<match.numberOfRanges).compactMap {
                 guard let range = Range(match.range(at: $0), in: self) else { return nil }
                 if match.resultType == .link {
@@ -288,38 +221,39 @@ public extension String {
                 }
                 return StringMatch(match.resultType, string: self, range: range)
             }
-        })
+        }
     }
 }
 
 /// A value representing a regex string match.
 public struct RegexMatch: Hashable, CustomStringConvertible {
     /// The matched string.
-    public let string: String
+    public let string: Substring
     /// The range of the matched string within the source string.
     public let range: Range<String.Index>
     /// The matched groups .
     public let groups: [RegexMatch?]
+
+    private let regularExpression: NSRegularExpression?
     
-    let textCheckingResult: NSTextCheckingResult?
-    
-    init(string: String, range: Range<String.Index>, groups: [RegexMatch?] = [], result: NSTextCheckingResult? = nil) {
-        self.string = string
+    init?(_ result: NSTextCheckingResult, regex: NSRegularExpression, string: String) {
+        guard let range = Range(result.range, in: string) else { return nil }
+        self.string = string[range]
         self.range = range
-        self.groups = groups
-        self.textCheckingResult = result
+        self.regularExpression = regex
+        self.groups = (1..<result.numberOfRanges).compactMap({
+            if let range = Range(result.range(at: $0), in: string) { return RegexMatch(string, range: range)
+            } else { return nil }
+        })
     }
     
-    init?(_ result: NSTextCheckingResult, string: String) {
-        let matches: [RegexMatch?] = (0..<result.numberOfRanges).map {
-            guard let range = Range(result.range(at: $0), in: string) else { return nil }
-            return RegexMatch(string: string, range: range)
-        }
-        guard let first = matches.first?.optional else { return nil }
-        self.init(string: string, range: first.range, groups: Array(matches.dropFirst()), result: result)
+    init(_ string: String, range: Range<String.Index>) {
+        self.string = string[range]
+        self.range = range
+        self.groups = []
+        self.regularExpression = nil
     }
 
-    
     /// Returns the matched group at the specified index of a regular expression string match.
     public subscript(groupIndex: Int) -> RegexMatch? {
         groups[safe: groupIndex] ?? nil
@@ -330,32 +264,36 @@ public struct RegexMatch: Hashable, CustomStringConvertible {
         group(named: groupName)
     }
     
+    /// Returns the matched group at the specified index.
+    public func group(at index: Int) -> RegexMatch? {
+        groups[safe: index] ?? nil
+    }
+    
     /// The matched group with the specified name of a regular expression string match.
     public func group(named name: String) -> RegexMatch? {
-        guard let nsRange = textCheckingResult?.range(withName: name), let range = Range(nsRange, in: string) else { return nil }
-        if self.range == range {
-            return self
-        }
-        return groups.nonNil.first(where: { $0.range == range })
+        guard let index = regularExpression?.captureGroupIndex(withName: name) else { return nil }
+        return group(at: index + 1)
     }
     
     public var description: String {
-        strings().joined(separator: "\n")
-        // "StringMatch(\(type.rawValue): \"\(string)\")"
-    }
-    
-    private func strings(depth: Int = 0) -> [String] {
-        var strings: [String] = []
-        strings += "  ".repeating(amount: depth) + "[\(range), \(string)]"
-        strings += groups.flatMap({ $0?.strings(depth: depth + 1) ?? ["  ".repeating(amount: depth+1) + "-"] })
-        return strings
+        guard !groups.isEmpty else {
+            return "RegexMatch(\(range), \"\(string)\")"
+        }
+        var strings = ["RegexMatch(\(range), \"\(string)\","]
+        strings += groups.enumerated().map { index, group in
+            group.map {
+                "  \(index + 1): \($0.range), \"\($0.string)\""
+            } ?? "  \(index + 1): nil"
+        }
+        strings += ")"
+        return strings.joined(separator: "\n")
     }
 }
 
 /// A value representing a string match, such as a regular expression match.
 public struct StringMatch: Hashable, CustomStringConvertible {
     /// The matched string.
-    public let string: String
+    public let string: Substring
     /// The range of the matched string within the source string.
     public let range: Range<String.Index>
     /// The result type.
@@ -372,7 +310,7 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         /// Time zone.
         public let timeZone: TimeZone?
         /// Date Duration.
-        public let duration: TimeInterval
+        public let duration: TimeDuration
         /// Address.
         public let address: Address?
         /// Transit information, for example, flight information.
@@ -384,7 +322,7 @@ public struct StringMatch: Hashable, CustomStringConvertible {
             self.date = result?.date
             self.url = result?.url
             self.timeZone = result?.timeZone
-            self.duration = result?.duration ?? 0
+            self.duration = .seconds(result?.duration ?? 0)
         }
         
         /// A postal address detected within a string.
@@ -438,9 +376,16 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     
     init(_ type: ResultType, string: String, range: Range<String.Index>, result: NSTextCheckingResult? = nil) {
         self.type = type
-        self.string = String(string[range])
+        self.string = string[range]
         self.range = range
-        self.components = result.map({ Components($0) }) ?? Components()
+        self.components = result.map { Components($0) } ?? Components()
+    }
+    
+    init(_ type: ResultType, string: Substring, range: Range<String.Index>) {
+        self.type = type
+        self.string = string
+        self.range = range
+        self.components = .init()
     }
     
     init?(_ tag: NLTag, string: String, range: Range<String.Index>) {
@@ -515,6 +460,8 @@ public struct StringMatch: Hashable, CustomStringConvertible {
         case number
         /// Verb.
         case verb
+        /// Between
+        case between
             
         init?(enumerationOptions: NSString.EnumerationOptions) {
             switch enumerationOptions {
@@ -560,145 +507,147 @@ public struct StringMatch: Hashable, CustomStringConvertible {
     }
 }
 
-extension Collection where Element == StringMatch {
+public extension Collection where Element == StringMatch {
     /// The matched strings.
-    public var strings: [String] {
-        compactMap({$0.string})
+    var strings: [Substring] {
+        compactMap { $0.string }
     }
     
     /// The ranges of the matched strings.
-    public var ranges: [Range<String.Index>] {
-        compactMap({$0.range})
+    var ranges: [Range<String.Index>] {
+        compactMap { $0.range }
     }
 }
 
-    /// Option for finding matches in a string.
-    public struct StringMatchingOption: OptionSet, Codable {
-        /// Noun.
-        public static let noun = StringMatchingOption(rawValue: 1 << 0)
-        /// Verb.
-        public static let verb = StringMatchingOption(rawValue: 1 << 1)
-        /// Adjective.
-        public static let adjective = StringMatchingOption(rawValue: 1 << 2)
-        /// Adverb.
-        public static let adverb = StringMatchingOption(rawValue: 1 << 3)
-        /// Pronoun.
-        public static let pronoun = StringMatchingOption(rawValue: 1 << 4)
-        /// Determiner.
-        public static let determiner = StringMatchingOption(rawValue: 1 << 5)
-        /// Preposition.
-        public static let preposition = StringMatchingOption(rawValue: 1 << 6)
-        /// Conjunction.
-        public static let conjunction = StringMatchingOption(rawValue: 1 << 7)
-        /// interjection
-        public static let interjection = StringMatchingOption(rawValue: 1 << 8)
-        /// Number.
-        public static let number = StringMatchingOption(rawValue: 1 << 9)
-        /// All lexical matches.
-        public static var allLexical: StringMatchingOption = [.noun, .verb, .adjective, .adverb, .pronoun, .determiner, .preposition, .conjunction, .interjection, .number]
+/// Option for finding matches in a string.
+public struct StringMatchingOption: OptionSet, Codable {
+    /// Noun.
+    public static let noun = StringMatchingOption(rawValue: 1 << 0)
+    /// Verb.
+    public static let verb = StringMatchingOption(rawValue: 1 << 1)
+    /// Adjective.
+    public static let adjective = StringMatchingOption(rawValue: 1 << 2)
+    /// Adverb.
+    public static let adverb = StringMatchingOption(rawValue: 1 << 3)
+    /// Pronoun.
+    public static let pronoun = StringMatchingOption(rawValue: 1 << 4)
+    /// Determiner.
+    public static let determiner = StringMatchingOption(rawValue: 1 << 5)
+    /// Preposition.
+    public static let preposition = StringMatchingOption(rawValue: 1 << 6)
+    /// Conjunction.
+    public static let conjunction = StringMatchingOption(rawValue: 1 << 7)
+    /// interjection
+    public static let interjection = StringMatchingOption(rawValue: 1 << 8)
+    /// Number.
+    public static let number = StringMatchingOption(rawValue: 1 << 9)
+    /// All lexical matches.
+    public static var allLexical: StringMatchingOption = [.noun, .verb, .adjective, .adverb, .pronoun, .determiner, .preposition, .conjunction, .interjection, .number]
         
-        /// Characters.
-        public static let character = StringMatchingOption(rawValue: 1 << 10)
-        /// Word.
-        public static let word = StringMatchingOption(rawValue: 1 << 11)
-        /// Sentence.
-        public static let sentence = StringMatchingOption(rawValue: 1 << 12)
-        /// Line.
-        public static let line = StringMatchingOption(rawValue: 1 << 13)
-        /// Paragraph.
-        public static let paragraph = StringMatchingOption(rawValue: 1 << 14)
+    /// Characters.
+    public static let character = StringMatchingOption(rawValue: 1 << 10)
+    /// Word.
+    public static let word = StringMatchingOption(rawValue: 1 << 11)
+    /// Sentence.
+    public static let sentence = StringMatchingOption(rawValue: 1 << 12)
+    /// Line.
+    public static let line = StringMatchingOption(rawValue: 1 << 13)
+    /// Paragraph.
+    public static let paragraph = StringMatchingOption(rawValue: 1 << 14)
         
-        /// Date.
-        public static let date = StringMatchingOption(rawValue: 1 << 15)
-        /// URL.
-        public static let link = StringMatchingOption(rawValue: 1 << 16)
-        /// Personal name.
-        public static let personalName = StringMatchingOption(rawValue: 1 << 17)
-        /// Organization name.
-        public static let organizationName = StringMatchingOption(rawValue: 1 << 18)
-        /// Place name.
-        public static let placeName = StringMatchingOption(rawValue: 1 << 19)
-        /// Phone Number.
-        public static let phoneNumber = StringMatchingOption(rawValue: 1 << 20)
-        /// Email Address.
-        public static let emailAddress = StringMatchingOption(rawValue: 1 << 21)
-        /// Address.
-        public static let address = StringMatchingOption(rawValue: 1 << 22)
-        /// Transit information, e.g., flight information.
-        public static let transitInformation = StringMatchingOption(rawValue: 1 << 23)
-        /// Hashtag, e.g. "#hashtag".
-        public static let hashtag = StringMatchingOption(rawValue: 1 << 24)
-        /// Reply, e.g. "@username".
-        public static let reply = StringMatchingOption(rawValue: 1 << 25)
+    /// Date.
+    public static let date = StringMatchingOption(rawValue: 1 << 15)
+    /// URL.
+    public static let link = StringMatchingOption(rawValue: 1 << 16)
+    /// Personal name.
+    public static let personalName = StringMatchingOption(rawValue: 1 << 17)
+    /// Organization name.
+    public static let organizationName = StringMatchingOption(rawValue: 1 << 18)
+    /// Place name.
+    public static let placeName = StringMatchingOption(rawValue: 1 << 19)
+    /// Phone Number.
+    public static let phoneNumber = StringMatchingOption(rawValue: 1 << 20)
+    /// Email Address.
+    public static let emailAddress = StringMatchingOption(rawValue: 1 << 21)
+    /// Address.
+    public static let address = StringMatchingOption(rawValue: 1 << 22)
+    /// Transit information, e.g., flight information.
+    public static let transitInformation = StringMatchingOption(rawValue: 1 << 23)
+    /// Hashtag, e.g. "#hashtag".
+    public static let hashtag = StringMatchingOption(rawValue: 1 << 24)
+    /// Reply, e.g. "@username".
+    public static let reply = StringMatchingOption(rawValue: 1 << 25)
         
-        /// Regular Expression.
-        public static let regularExpression = StringMatchingOption(rawValue: 1 << 26)
+    /// Regular Expression.
+    public static let regularExpression = StringMatchingOption(rawValue: 1 << 26)
 
-        public let rawValue: Int32
-        public init(rawValue: Int32) { self.rawValue = rawValue }
-        
-        var nlTags: (tags: [NLTag], tagScheme: NLTagScheme) {
-            var tags: [NLTag] = []
-            if contains(.placeName) { tags.append(.placeName) }
-            if contains(.personalName) { tags.append(.personalName) }
-            if contains(.organizationName) { tags.append(.organizationName) }
-            let count = tags.count
-            if contains(.noun) { tags.append(.noun) }
-            if contains(.verb) { tags.append(.verb) }
-            if contains(.adjective) { tags.append(.adjective) }
-            if contains(.adverb) { tags.append(.adverb) }
-            if contains(.pronoun) { tags.append(.pronoun) }
-            if contains(.determiner) { tags.append(.determiner) }
-            if contains(.preposition) { tags.append(.preposition) }
-            if contains(.conjunction) { tags.append(.conjunction) }
-            if contains(.interjection) { tags.append(.interjection) }
-            return (tags, tags.count != count ? count == 0 ? .lexicalClass : .nameTypeOrLexicalClass : .nameType)
-        }
-        
-        /*
-         et personalName = StringMatchingOption(rawValue: 1 << 17)
-         /// Organization name.
-         public static let organizationName = StringMatchingOption(rawValue: 1 << 18)
-         /// Place name.
-         public static let placeName
-         */
-                        
-        var textCheckingType: NSTextCheckingResult.CheckingType? {
-            var checkingType: NSTextCheckingResult.CheckingType = []
-            if contains(.regularExpression) { checkingType.insert(.regularExpression) }
-            if contains(.date) { checkingType.insert(.date) }
-            if contains(.emailAddress) { checkingType.insert(.emailAddress) }
-            if contains(.link) { checkingType.insert(.link) }
-            if contains(.phoneNumber) { checkingType.insert(.phoneNumber) }
-            if contains(.address) { checkingType.insert(.address) }
-            if contains(.transitInformation) { checkingType.insert(.transitInformation) }
-            return checkingType.rawValue != 0 ? checkingType : nil
-        }
-        
-        var enumerationOptions: [NSString.EnumerationOptions] {
-            var options: [NSString.EnumerationOptions] = []
-            if contains(.word) { options.append(.byWords) }
-            if contains(.line) { options.append(.byLines) }
-            if contains(.character) { options.append(.byComposedCharacterSequences) }
-            if contains(.paragraph) { options.append(.byParagraphs) }
-            if contains(.sentence) { options.append(.bySentences) }
-            return options
-        }
-        
-        var regularExpressions: [(expression: String, type: StringMatch.ResultType)] {
-            var patterns: [(expression: String, type: StringMatch.ResultType)] = []
-            if contains(.hashtag) { patterns.append(("(#+[a-zA-Z0-9(_)]{1,})", .hashtag)) }
-            if contains(.reply) { patterns.append((#"(?<![\w])@[\S]*\b"#, .reply)) }
-            if contains(.number) { patterns.append((#"\d+(?:\.\d+)?"#, .number)) }
-            return patterns
-        }
+    public let rawValue: Int32
+    public init(rawValue: Int32) {
+        self.rawValue = rawValue
     }
+        
+    var nlTags: (tags: [NLTag], tagScheme: NLTagScheme) {
+        var tags: [NLTag] = []
+        if contains(.placeName) { tags.append(.placeName) }
+        if contains(.personalName) { tags.append(.personalName) }
+        if contains(.organizationName) { tags.append(.organizationName) }
+        let count = tags.count
+        if contains(.noun) { tags.append(.noun) }
+        if contains(.verb) { tags.append(.verb) }
+        if contains(.adjective) { tags.append(.adjective) }
+        if contains(.adverb) { tags.append(.adverb) }
+        if contains(.pronoun) { tags.append(.pronoun) }
+        if contains(.determiner) { tags.append(.determiner) }
+        if contains(.preposition) { tags.append(.preposition) }
+        if contains(.conjunction) { tags.append(.conjunction) }
+        if contains(.interjection) { tags.append(.interjection) }
+        return (tags, tags.count != count ? count == 0 ? .lexicalClass : .nameTypeOrLexicalClass : .nameType)
+    }
+        
+    /*
+     et personalName = StringMatchingOption(rawValue: 1 << 17)
+     /// Organization name.
+     public static let organizationName = StringMatchingOption(rawValue: 1 << 18)
+     /// Place name.
+     public static let placeName
+     */
+                        
+    var textCheckingType: NSTextCheckingResult.CheckingType? {
+        var checkingType: NSTextCheckingResult.CheckingType = []
+        if contains(.regularExpression) { checkingType.insert(.regularExpression) }
+        if contains(.date) { checkingType.insert(.date) }
+        if contains(.emailAddress) { checkingType.insert(.emailAddress) }
+        if contains(.link) { checkingType.insert(.link) }
+        if contains(.phoneNumber) { checkingType.insert(.phoneNumber) }
+        if contains(.address) { checkingType.insert(.address) }
+        if contains(.transitInformation) { checkingType.insert(.transitInformation) }
+        return checkingType.rawValue != 0 ? checkingType : nil
+    }
+        
+    var enumerationOptions: [NSString.EnumerationOptions] {
+        var options: [NSString.EnumerationOptions] = []
+        if contains(.word) { options.append(.byWords) }
+        if contains(.line) { options.append(.byLines) }
+        if contains(.character) { options.append(.byComposedCharacterSequences) }
+        if contains(.paragraph) { options.append(.byParagraphs) }
+        if contains(.sentence) { options.append(.bySentences) }
+        return options
+    }
+        
+    var regularExpressions: [(expression: String, type: StringMatch.ResultType)] {
+        var patterns: [(expression: String, type: StringMatch.ResultType)] = []
+        if contains(.hashtag) { patterns.append(("(#+[a-zA-Z0-9(_)]{1,})", .hashtag)) }
+        if contains(.reply) { patterns.append((#"(?<![\w])@[\S]*\b"#, .reply)) }
+        if contains(.number) { patterns.append((#"\d+(?:\.\d+)?"#, .number)) }
+        return patterns
+    }
+}
 
 public extension StringProtocol {
     /// Returns an array of lines in the string.
     var lines: [String] {
         var lines: [String] = []
-        enumerateLines { line, stop in
+        enumerateLines { line, _ in
             lines += line
         }
         if last?.isNewline == true {
@@ -721,14 +670,9 @@ public extension Substring {
     func matches(pattern: String, options: NSRegularExpression.Options = []) -> [RegexMatch] {
         do {
             let expression = try NSRegularExpression(pattern: pattern, options: options)
-
             let string = String(base)
             let range = NSRange(startIndex..<endIndex, in: string)
-
-            return expression
-                .matches(in: string, range: range)
-                .compactMap { RegexMatch($0, string: string) }
-                .uniqued()
+            return expression.matches(in: string, range: range).compactMap { RegexMatch($0, regex: expression, string: string) }
         } catch {
             Swift.debugPrint(error)
             return []
@@ -746,15 +690,10 @@ public extension Substring {
      */
     func numberOfMatches(pattern: String, options: NSRegularExpression.Options = []) -> Int {
         do {
-            let string = String(base)
             let expression = try NSRegularExpression(pattern: pattern, options: options)
+            let string = String(base)
             let range = NSRange(startIndex..<endIndex, in: string)
-
-            return expression.numberOfMatches(
-                in: string,
-                options: [],
-                range: range
-            )
+            return expression.numberOfMatches(in: string, options: [], range: range)
         } catch {
             debugPrint(error)
             return 0
@@ -780,7 +719,7 @@ public extension Substring {
                 return nil
             }
 
-            return RegexMatch(result, string: string)
+            return RegexMatch(result, regex: expression, string: string)
         } catch {
             debugPrint(error)
             return nil
@@ -788,38 +727,28 @@ public extension Substring {
     }
     
     /**
-     Enumerates the matches for the specified string.
+     Enumerates the matches for the specified regular expression pattern in the string.
      
      - Parameters:
         - pattern: The regular expression pattern to search for.
         - options: The regular expression options that are applied to the expression during matching.
         - reportProgress: A Boolean value indicating whether to report the progress. If `true`, the update handler is periodically called during long-running match operations.
-        - update: The handler that is called whenever a new match is found with the following parameters:
-            - match: The match for the specified pattern.
-            - completed: A Boolean value indicating whether the enumeration completed.
-            - Return: `true` to end enumeration the string for matches, or `false` to keep enumerating it.
+        - block: The handler that is called whenever a new match is found with the following parameters:
+            - match: The match that was found, or `nil` for a progress or completion event.
+            - isCompleted: A Boolean value indicating whether matching has finished.
+            - stop: Set this value to `true` to stop enumerating matches.
      */
-    func enumerateMatches(pattern: String, options: NSRegularExpression.Options = [], reportProgress: Bool = false, update: (_ match: RegexMatch?, _ completed: Bool) -> Bool) {
+    func enumerateMatches(pattern: String, options: NSRegularExpression.Options = [], reportProgress: Bool = false, using block: (_ match: RegexMatch?, _ isFinished: Bool, _ stop: inout Bool) -> ()) {
         do {
-            let string = String(base)
             let expression = try NSRegularExpression(pattern: pattern, options: options)
+            let string = String(base)
             let range = NSRange(startIndex..<endIndex, in: string)
-
-            expression.enumerateMatches(
-                in: string,
-                options: reportProgress ? [.reportProgress, .reportCompletion] : [.reportCompletion],
-                range: range
-            ) { result, flags, stop in
+            expression.enumerateMatches(in: string, options: reportProgress ? [.reportProgress, .reportCompletion] : [.reportCompletion], range: range) { result, flags, stop in
                 let completed = flags.contains(any: [.requiredEnd, .hitEnd, .internalError])
-
-                guard let result else {
-                    _ = update(nil, completed)
-                    return
-                }
-
-                let match = RegexMatch(result, string: string)
-
-                if update(match, completed), !completed {
+                let match = result.flatMap({ RegexMatch($0, regex: expression, string: string) })
+                var shouldStop = false
+                block(match, completed, &shouldStop)
+                if shouldStop, !completed {
                     stop.pointee = true
                 }
             }
@@ -857,35 +786,11 @@ public extension Substring {
             let string = String(base)
             let expression = try NSRegularExpression(pattern: pattern, options: options)
             let range = NSRange(startIndex..<endIndex, in: string)
-
-            return expression.stringByReplacingMatches(
-                in: string,
-                range: range,
-                withTemplate: template
-            )
+            return expression.stringByReplacingMatches(in: string, range: range, withTemplate: template)
         } catch {
             debugPrint(error)
             return nil
         }
-    }
-    
-    /**
-     Finds all matches of substrings between the two specified strings.
-
-     - Parameters:
-        - fromString: The starting string to search for.
-        - toString: The ending string to search for.
-        - includingFromTo: A Boolean value indicating whether to include the starting and ending strings in the results.
-        - options: The regular expression options that are applied to the expression during matching.
-
-     - Returns: An array of `StringMatch` objects representing the matches found.
-     */
-    func matches(between fromString: String, and toString: String, includingFromTo: Bool = false, allowsNesting: Bool = false, options: NSRegularExpression.Options = []) -> [RegexMatch] {
-        guard allowsNesting else {
-            return matches(pattern: delimiterPattern(between: fromString, and: toString, includingFromTo: includingFromTo), options: options)
-        }
-        let string = String(base)
-        return nestedDelimiterRanges(between: fromString, and: toString, includingFromTo: includingFromTo).map { RegexMatch(string: string, range: $0) }
     }
     
     /**
@@ -898,75 +803,135 @@ public extension Substring {
         var matches: [StringMatch] = []
         let string = String(base)
         let range = startIndex..<endIndex
+        
         if let textCheckingType = option.textCheckingType {
             matches += string.results(for: textCheckingType, range: range)
         }
+
         let (tags, tagScheme) = option.nlTags
+
         if !tags.isEmpty {
             matches += string.results(for: tags, tagScheme: tagScheme, range: range)
         }
+
         matches += option.enumerationOptions.flatMap {
             string.results(for: $0, range: range)
         }
+
         return matches.sorted(by: \.range.lowerBound)
     }
 }
 
-private extension StringProtocol where Index == String.Index {
-    func nestedDelimiterRanges(between fromString: String, and toString: String, includingFromTo: Bool) -> [Range<Index>] {
-        var ranges: [Range<Index>] = []
-        var depth = 0
-        var outerStart: Index?
-        var contentStart: Index?
-        var index = startIndex
+public extension StringProtocol where SubSequence == Substring {
+    /**
+     Finds the first substring delimited by the specified start and end delimiters.
 
-        while index < endIndex {
-            if self[index...].hasPrefix(fromString) {
-                if depth == 0 {
-                    outerStart = index
-                    contentStart = self.index(index, offsetBy: fromString.count)
-                }
+     - Parameters:
+        - startDelimiter: The string that marks the beginning of a match.
+        - endDelimiter: The string that marks the end of a match.
+        - includingDelimiters: A Boolean value indicating whether each match includes the start and end delimiters.
+        - allowsNesting: A Boolean value indicating whether nested delimiter pairs are treated as part of the same match.
+        - options: The String options to apply during matching.
+        - locale: The locale to use.
 
-                depth += 1
-                index = self.index(index, offsetBy: fromString.count)
-                continue
-            }
+     - Returns: A ``StringMatch`` representing the first match found.
+     */
+    func firstMatch<S1: StringProtocol, S2: StringProtocol>(between startDelimiter: S1, and endDelimiter: S2, includeDelimiters: Bool = false, options: String.CompareOptions = [], locale: Locale? = nil) -> StringMatch? {
+        guard !startDelimiter.isEmpty, !endDelimiter.isEmpty else { return nil }
+        guard let startRange = range(of: startDelimiter, options: options, locale: locale), let endRange = range(of: endDelimiter, options: options, range: startRange.upperBound..<endIndex, locale: locale) else { return nil }
+        let range = (includeDelimiters ? startRange.lowerBound : startRange.upperBound)..<(includeDelimiters ? endRange.upperBound : endRange.lowerBound)
+        return StringMatch(.between, string: self[range], range: range)
+    }
+    
+    /**
+     Finds all substrings delimited by the specified start and end delimiters.
 
-            if self[index...].hasPrefix(toString), depth > 0 {
-                depth -= 1
+     - Parameters:
+        - startDelimiter: The string that marks the beginning of a match.
+        - endDelimiter: The string that marks the end of a match.
+        - includingDelimiters: A Boolean value indicating whether each match includes the start and end delimiters.
+        - allowsNesting: A Boolean value indicating whether nested delimiter pairs are treated as part of the same match.
+        - options: The String options to apply during matching.
+        - locale: The locale to use.
 
-                let delimiterEnd = self.index(index, offsetBy: toString.count)
-
-                if depth == 0 {
-                    if includingFromTo {
-                        if let outerStart {
-                            ranges.append(outerStart..<delimiterEnd)
-                        }
-                    } else {
-                        if let contentStart {
-                            ranges.append(contentStart..<index)
-                        }
-                    }
-
-                    outerStart = nil
-                    contentStart = nil
-                }
-
-                index = delimiterEnd
-                continue
-            }
-
-            formIndex(after: &index)
+     - Returns: An array of ``StringMatch`` representing the matches found.
+     */
+    func matches<S1: StringProtocol, S2: StringProtocol>(between startDelimiter: S1, and endDelimiter: S2, includeDelimiters: Bool = false, allowsNesting: Bool = false, options: String.CompareOptions = [], locale: Locale? = nil) -> [StringMatch] {
+        guard !startDelimiter.isEmpty, !endDelimiter.isEmpty else { return [] }
+        if allowsNesting {
+            return nestedMatches(between: startDelimiter, and: endDelimiter, includeDelimiters: includeDelimiters, options: options, locale: locale)
         }
-
-        return ranges
+        var matches: [StringMatch] = []
+        var searchStart = startIndex
+        while let startRange = range(of: startDelimiter, options: options, range: searchStart..<endIndex, locale: locale), let endRange = range(of: endDelimiter, options: options, range: startRange.upperBound..<endIndex, locale: locale) {
+            let range = (includeDelimiters ? startRange.lowerBound : startRange.upperBound)..<(includeDelimiters ? endRange.upperBound : endRange.lowerBound)
+            matches += StringMatch(.between, string: self[range], range: range)
+            searchStart = endRange.upperBound
+        }
+        return matches
     }
+    
+    fileprivate func nestedMatches<S1: StringProtocol, S2: StringProtocol>(between startDelimiter: S1, and endDelimiter: S2, includeDelimiters: Bool, options: String.CompareOptions, locale: Locale?) -> [StringMatch] {
+        let options = options - [.backwards, .anchored]
 
-    func delimiterPattern(between fromString: String, and toString: String, includingFromTo: Bool) -> String {
-        let fromString = fromString.escapedPattern
-        let toString = toString.escapedPattern
-        return includingFromTo
-            ? "\(fromString)(.*?)\(toString)"
-            : "(?<=\(fromString))(.*?)(?=\(toString))"
+        let sameDelimiter = startDelimiter.elementsEqual(endDelimiter)
+
+        var matches: [StringMatch] = []
+        var startStack: [Range<Index>] = []
+        var searchStart = startIndex
+
+        while searchStart < endIndex {
+            let nextStart = range(of: startDelimiter, options: options, range: searchStart..<endIndex, locale: locale)
+            if sameDelimiter {
+                guard let delimiterRange = nextStart else { break }
+
+                if let openingRange = startStack.popLast() {
+                    let range = (includeDelimiters
+                               ? openingRange.lowerBound
+                               : openingRange.upperBound)..<(includeDelimiters
+                               ? delimiterRange.upperBound
+                               : delimiterRange.lowerBound)
+                    matches += StringMatch(.between, string: self[range], range: range)
+                } else {
+                    startStack += delimiterRange
+                }
+                searchStart = delimiterRange.upperBound
+                continue
+            }
+
+            let nextEnd = range(of: endDelimiter, options: options, range: searchStart..<endIndex, locale: locale)
+            switch (nextStart, nextEnd) {
+            case let (startRange?, endRange?)
+                where startRange.lowerBound <= endRange.lowerBound:
+                startStack += startRange
+                searchStart = startRange.upperBound
+            case let (_, endRange?):
+                if let startRange = startStack.popLast() {
+                    let range = (includeDelimiters
+                               ? startRange.lowerBound
+                               : startRange.upperBound)..<(includeDelimiters
+                               ? endRange.upperBound
+                               : endRange.lowerBound)
+                    matches += StringMatch(.between, string: self[range], range: range)
+                }
+                searchStart = endRange.upperBound
+            case let (startRange?, nil):
+                startStack += startRange
+                searchStart = startRange.upperBound
+            case (nil, nil):
+                return matches
+            }
+        }
+        return matches
     }
+}
+
+fileprivate extension NSRegularExpression {
+    func captureGroupIndex(withName name: String) -> Int? {
+        Self.captureGroupNumberMethod?(self, Self.groupNameSelector, name)
+    }
+    
+    static let captureGroupNumberMethod = instanceMethod(for: groupNameSelector, as: (@convention(c) (AnyObject, Selector, String) -> Int).self)
+    
+    static let groupNameSelector = NSSelectorFromString("_captureGroupNumberWithName:")
 }

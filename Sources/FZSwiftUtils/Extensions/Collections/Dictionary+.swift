@@ -413,69 +413,134 @@ public extension Dictionary where Value: Equatable {
 }
 
 public extension Dictionary where Value == Any {
-    /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
+    /// Returns the value for the specified key cast to the requested type.
     subscript<T>(typed key: Key) -> T? {
-        guard let value = self[key] else { return nil }
-        guard let value = value as? T else {
-            Swift.print("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
-            return nil
+        get {
+            guard let value = self[key] else { return nil }
+            guard let value = value as? T else {
+                log("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
+                return nil
+            }
+            return value
         }
-        return value
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Returns the value for the specified key after converting it using the specified strategy.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - strategy: A closure that converts the stored value to the requested type.
+     - Returns: The converted value, or `nil` if the key is missing or the conversion fails.
+     */
+    subscript<T>(typed key: Key, strategy strategy: (Any) -> T?) -> T? {
+        get { self[key].flatMap(strategy) }
+        set { self[key] = newValue }
     }
 
-    /// Returns the value casted to the requested type, or the specified default value if missing or of a different type.
+    /**
+     Returns the value for the specified key cast to the requested type, or the default value if the key is missing or is a different type.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the stored value cannot be cast to the requested type.
+     - Returns: The value cast to the requested type, or `defaultValue` if the key is missing or the cast fails.
+     */
     subscript<T>(typed key: Key, default defaultValue: @autoclosure () -> T) -> T {
-        (self[key] as? T) ?? defaultValue()
+        get { self[key] as? T ?? defaultValue() }
+        set { self[key] = newValue }
     }
     
-    /// Returns the value casted to the requested type, or the specified default value if missing or of a different type.
+    /**
+     Returns the value for the specified key after converting it using the specified strategy, or the default value if the key is missing or the conversion fails.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the conversion fails.
+       - strategy: A closure that attempts to convert the stored value to the requested type.
+     - Returns: The converted value, or `defaultValue` if the key is missing or the strategy returns `nil`.
+     */
+    subscript<T>(typed key: Key, default defaultValue: @autoclosure () -> T, strategy strategy: (Any) -> T?) -> T {
+        get { self[typed: key, strategy: strategy] ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Returns the value for the specified key cast to the requested type, or the default value if the key is missing or is a different type.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the stored value cannot be cast to the requested type.
+     - Returns: The value cast to the requested type, or `defaultValue` if the key is missing or the cast fails.
+     */
     subscript<T>(typed key: Key, default defaultValue: () -> T) -> T {
-        (self[key] as? T) ?? defaultValue()
+        get { (self[key] as? T) ?? defaultValue() }
+        set { self[key] = newValue }
     }
     
-    /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
+    /**
+     Returns the value for the specified key after converting it using the specified strategy, or the default value if the key is missing or the conversion fails.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the conversion fails.
+       - strategy: A closure that attempts to convert the stored value to the requested type.
+     - Returns: The converted value, or `defaultValue` if the key is missing or the strategy returns `nil`.
+     */
+    subscript<T>(typed key: Key, default defaultValue: () -> T, strategy strategy: (Any) -> T?) -> T {
+        get { self[typed: key, strategy: strategy] ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /// Returns the value for the specified key cast to the requested type.
     subscript<T>(typed key: Key) -> T? where T: RawRepresentable {
-        guard let value = self[key] else { return nil }
-        guard let rawValue = value as? T.RawValue, let value = T(rawValue: rawValue) else {
-            Swift.print("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
-            return nil
+        get {
+            guard let value = self[key] else { return nil }
+            if let value = value as? T { return value }
+            guard let rawValue = value as? T.RawValue, let value = T(rawValue: rawValue) else {
+                log("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
+                return nil
+            }
+            return value
         }
-        return value
     }
     
-    /// Returns the value casted to the requested type, or `nil` if the value is missing or is a different type.
+    /// Returns the value for the specified key as a date using the specified date formatter.
     subscript(typed key: Key, using dateFormatter: DateFormatter) -> Date? {
         guard let value = self[key] else { return nil }
         if let date = value as? Date { return date }
         guard let dateString = value as? String else {
-            Swift.print("Wrong type for key: \(key). Expected: \(Date.self), got: \(type(of: value)).", value as? NSString != nil, value as? String != nil)
+            log("Wrong type for key: \(key). Expected: \(Date.self), got: \(type(of: value)).")
             return nil
         }
         guard let date = dateFormatter.date(from: dateString) else {
-            Swift.print("Wrong date string for key: \(key). Got: \(dateString).")
+            log("Wrong date string for key: \(key). Got: \(dateString).")
             return nil
         }
         return date
     }
     
     /**
-     A Boolean value indicating whether the dictionary is equatable to another dictionary.
-     
-     - Parameter other: The dictionary to compare.
-     - Returns: Returns `true` if the dictionary is equal to the other dictionary; or `false` if it isn't equal.
+     Returns the value for the specified key decoded using the specified JSON decoder.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - jsonDecoder: The JSON decoder used to decode the stored data.
+     - Returns: The decoded value, or `nil` if the key is missing, the stored value is not `Data`, or decoding fails.
      */
-    func isEqual(to other: Self) -> Bool {
-        guard count == other.count, Set(keys) == Set(other.keys) else { return false }
-        for (key, val1) in self {
-            guard let val2 = other[key] else { return false }
-            if let val1 = val1 as? (any Equatable) {
-                guard let val2 = val2 as? (any Equatable), val1.isEqual(val2) else { return false }
-            } else if val1 as AnyObject !== val2 as AnyObject {
-                return false
-            }
-        }
-        return true
+    subscript<T: Decodable>(typed key: Key, using jsonDecoder: JSONDecoder) -> T? {
+        self[typed: key].flatMap( { try? jsonDecoder.decode($0) } )
     }
+    
+    private func log(_ message: String) {
+        guard DictionaryDebug.isEnabled else { return }
+        Swift.print(message)
+    }
+}
+
+enum DictionaryDebug {
+    static var isEnabled = false
 }
 
 public extension NSDictionary {
@@ -487,5 +552,89 @@ public extension NSDictionary {
     /// The dictionary as `CFDictionary`.
     var cfDictionary: CFDictionary {
         self as CFDictionary
+    }
+}
+
+
+extension Dictionary where Value == Any {
+    /// A Boolean value indicating whether the dictionary is equatable to another dictionary.
+    public func isEqual(to other: Self) -> Bool {
+        count == other.count && Set(keys) == Set(other.keys) && allSatisfy { key, value in
+            guard let otherValue = other[key] else { return false }
+            return FZSwiftUtils.isEqual(value, otherValue)
+        }
+    }
+    
+    fileprivate func isEqual(to other: Any) -> Bool {
+        guard let other = other as? Self else { return false }
+        return isEqual(to: other)
+    }
+}
+
+extension Array where Element == Any {
+    /// A Boolean value indicating whether the array is equatable to another array.
+    public func isEqual(to other: Self) -> Bool {
+        count == other.count &&  zip(self, other).allSatisfy(FZSwiftUtils.isEqual)
+    }
+    
+    fileprivate func isEqual(to other: Any) -> Bool {
+        guard let other = other as? Self else { return false }
+        return isEqual(to: other)
+    }
+}
+
+fileprivate func isEqual(_ val1: Any, _ val2: Any) -> Bool {
+    if let val1 = val1 as? (any Equatable) {
+        guard val1.isEqual(val2 as? (any Equatable)) else { return false }
+    } else if let val1 = val1 as? AnyEquatableContainer {
+        guard val1.isEqual(to: val2) else { return false }
+    } else if val1 as AnyObject !== val2 as AnyObject {
+        return false
+    }
+    return true
+}
+
+fileprivate protocol AnyEquatableContainer {
+    func isEqual(to other: Any) -> Bool
+}
+
+extension Dictionary: AnyEquatableContainer where Value == Any { }
+extension Array: AnyEquatableContainer where Element == Any { }
+
+public struct ValueStrategy<Output> {
+    public let transform: (Any) -> Output?
+
+    public init(_ transform: @escaping (Any) -> Output?) {
+        self.transform = transform
+    }
+
+    public func callAsFunction(_ value: Any) -> Output? {
+        transform(value)
+    }
+}
+
+public extension Dictionary where Value == Any {
+    subscript<V>(
+        typed key: Key,
+        as type: V.Type = V.self,
+        strategy: ValueStrategy<V>
+    ) -> V? {
+        self[key].flatMap { strategy($0) }
+    }
+}
+
+extension ValueStrategy where Output == Date {
+    public static func formatted(
+        _ format: String,
+        locale: Locale = .current
+    ) -> Self {
+        .init { value in
+            guard let string = value as? String else { return nil }
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = format
+            formatter.locale = locale
+            return formatter.date(from: string)
+        }
     }
 }

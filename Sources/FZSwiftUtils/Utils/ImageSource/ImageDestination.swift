@@ -109,23 +109,19 @@ public class ImageDestination {
     
     private func addImagesAndProperties(to destination: CGImageDestination) {
         if !imageProperties.isEmpty {
-            CGImageDestinationSetProperties(destination, imageProperties as CFDictionary)
+            destination.setProperties(imageProperties)
         }
         for entry in imageEntries {
             switch entry {
             case .image(let image, let metadata, let properties, let auxiliaryData):
-                if let metadata = metadata {
-                    CGImageDestinationAddImageAndMetadata(destination, image, metadata, properties as CFDictionary?)
-                } else {
-                    CGImageDestinationAddImage(destination, image, properties as CFDictionary?)
-                }
+                destination.addImage(image, metadata: metadata, properties: properties)
                 for data in auxiliaryData {
-                    CGImageDestinationAddAuxiliaryDataInfo(destination, data.type.rawValue, data.rawValue as CFDictionary)
+                    destination.addAuxiliaryDataInfo(data.rawValue, type: data.type.rawValue)
                 }
             case .sourceImage(let source, let index, let properties, let auxiliaryData):
-                CGImageDestinationAddImageFromSource(destination, source, index, properties as CFDictionary?)
+                destination.addImageFromSource(source, at: index, properties: properties)
                 for data in auxiliaryData {
-                    CGImageDestinationAddAuxiliaryDataInfo(destination, data.type.rawValue, data.rawValue as CFDictionary)
+                    destination.addAuxiliaryDataInfo(data.rawValue, type: data.type.rawValue)
                 }
             }
         }

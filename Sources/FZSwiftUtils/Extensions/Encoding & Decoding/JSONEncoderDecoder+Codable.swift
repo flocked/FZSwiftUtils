@@ -34,6 +34,7 @@ public extension JSONDecoder {
      - Returns: A model object of the specified type.
      - Throws: An error if decoding fails.
      */
+    @_disfavoredOverload
     func decode<T: Decodable>(_: T.Type, withJSONObject object: Any, options: JSONSerialization.WritingOptions = []) throws -> T {
         let data = try JSONSerialization.data(withJSONObject: object, options: options)
         return try decode(T.self, from: data)
@@ -48,7 +49,20 @@ public extension JSONDecoder {
      - Returns: A model object of the specified type.
      - Throws: An error if decoding fails.
      */
+    @_disfavoredOverload
     func decode<T: Decodable>(_ object: Any, options: JSONSerialization.WritingOptions = []) throws -> T {
         try decode(T.self, withJSONObject: object, options: options)
+    }
+    
+    /**
+     Returns a value of the type you specify, decoded from a `JSON` object.
+     
+     If the data isn’t valid `JSON`, this method throws the [DecodingError.dataCorrupted(_:)](https://developer.apple.com/documentation/swift/decodingerror/datacorrupted(_:)) error. If a value within the JSON fails to decode, this method throws the corresponding error.
+     
+     - Parameter data: The `JSON` object to decode.
+     - Returns: A value of the specified type.
+     */
+    func decode<T: Decodable>(_ data: Data) throws -> T {
+        try decode(T.self, from: data)
     }
 }

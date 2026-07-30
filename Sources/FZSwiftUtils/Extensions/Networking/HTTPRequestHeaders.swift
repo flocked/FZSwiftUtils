@@ -303,7 +303,7 @@ fileprivate extension String {
     var contentTypeParameters: [String: String] {
         var contentTypeParameters: [String: String] = [:]
         for match in matches(pattern: #";\s*([^=;]+)=("(?:\\.|[^"])*"|[^;]*)"#) {
-            guard let key = match.groups.nonNil[safe: 0]?.string.trimmingCharacters(in: .whitespaces).lowercased(), var value = match.groups.nonNil[safe: 1]?.string else { continue }
+            guard let key = match.groups.nonNil[safe: 0]?.string.trimmingCharacters(in: .whitespaces).lowercased(), var value = match.groups.nonNil[safe: 1].map({String($0.string)}) else { continue }
             if value.hasPrefix("\""), value.hasSuffix("\"") {
                 value.removeFirst()
                 value.removeLast()

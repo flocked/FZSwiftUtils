@@ -545,6 +545,18 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
 }
 
 extension Sequence {
+    /// Returns the element whose transformed value is the smallest.
+    @inlinable
+    public func min<Value: Comparable>(by value: (Element) -> Value) -> Element? {
+        extremum(by: value, using: <)
+    }
+    
+    /// Returns the element whose transformed value is the largest.
+    @inlinable
+    public func max<Value: Comparable>(by value: (Element) -> Value) -> Element? {
+        extremum(by: value, using: >)
+    }
+    
     /**
      Returns the minimum element in the sequence, using the given value of the key path as the comparison between elements.
      
@@ -552,7 +564,7 @@ extension Sequence {
      - Returns: The sequence’s minimum element. If the sequence has no elements, returns `nil`.
      */
     public func min<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
-        self.min(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
+        min(by: { $0[keyPath: keyPath] })
     }
     
     /**
@@ -562,7 +574,7 @@ extension Sequence {
      - Returns: The sequence’s maximum element. If the sequence has no elements, returns `nil`.
      */
     public func max<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
-        self.max(by: { $0[keyPath: keyPath] < $1[keyPath: keyPath] })
+        max(by: { $0[keyPath: keyPath] })
     }
 
     /**
@@ -572,7 +584,7 @@ extension Sequence {
      - Returns: The minimum value for the given key path, or `nil` if the sequence is empty.
      */
     public func min<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
-        map({$0[keyPath: keyPath]}).min()
+        min(by: keyPath)?[keyPath: keyPath]
     }
     
     
@@ -583,7 +595,7 @@ extension Sequence {
      - Returns: The maximum value for the given key path, or `nil` if the sequence is empty.
      */
     public func max<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
-        map({$0[keyPath: keyPath]}).max()
+        max(by: keyPath)?[keyPath: keyPath]
     }
     
     /**
@@ -615,11 +627,30 @@ extension Sequence {
     public func average<V:BinaryFloatingPoint>(of keyPath: KeyPath<Element, V>) -> V {
         map({$0[keyPath: keyPath]}).average()
     }
+    
+    @usableFromInline
+    internal func extremum<Value>(by value: (Element) -> Value, using areInIncreasingOrder: (Value, Value) -> Bool) -> Element? {
+        var iterator = makeIterator()
+        guard var selected = iterator.next() else { return nil }
+
+        var selectedValue = value(selected)
+
+        while let element = iterator.next() {
+            let elementValue = value(element)
+
+            if areInIncreasingOrder(elementValue, selectedValue) {
+                selected = element
+                selectedValue = elementValue
+            }
+        }
+
+        return selected
+    }
 }
 
 public extension Sequence {
     /// Returns the elements of the sequence, repeated by the specified amount.
-    func repeating(amount: Int) -> [Element] {
+    func repeated(_ amount: Int) -> [Element] {
         var result: [Element] = []
         for _ in 0..<amount {
             result.append(contentsOf: self)
@@ -628,11 +659,14 @@ public extension Sequence {
     }
 }
 
-extension MutableCollection where Self: RangeReplaceableCollection {
+extension RangeReplaceableCollection {
     /// Repeats the elements of the collection by the specified amount.
-    mutating func `repeat`(amount: Int) {
+    mutating func `repeat`(_ amount: Int) {
         guard amount > 1 else { return }
-        self += Array(repeating: self, count: amount - 1).flatMap { $0 }
+        var original = self
+        for _ in 0..<amount {
+            append(contentsOf: original)
+        }
     }
 }
 
@@ -735,5 +769,17 @@ public extension RangeReplaceableCollection {
     /// Truncates this collection to contain at most the last `maxLength` elements.
     mutating func truncate(toLast maxLength: Int) {
         self = Self(suffix(maxLength.clamped(min: 0)))
+    }
+}
+
+public extension Sequence {
+    /// Returns the element produced by repeatedly selecting between the current result and each subsequent element.
+    func select<E>(_ selector: (_ lhs: Element, _ rhs: Element) throws(E) -> Element) throws(E) -> Element? where E : Error {
+        var iterator = makeIterator()
+        guard var selected = iterator.next() else { return nil }
+        while let element = iterator.next() {
+            selected = try selector(selected, element)
+        }
+        return selected
     }
 }

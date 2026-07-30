@@ -29,6 +29,26 @@ public extension CGSize {
     init(_ widthHeight: Int) {
         self.init(width: widthHeight, height: widthHeight)
     }
+    
+    /// Returns a size with the specified width and a height of `0`.
+    static func width(_ width: CGFloat) -> CGSize {
+        CGSize(width: width, height: 0)
+    }
+    
+    /// Returns a size with the specified width and a height of `0`.
+    static func width(_ width: Int) -> CGSize {
+        CGSize(width: width, height: 0)
+    }
+    
+    /// Returns a size with the specified height and a width of `0`.
+    static func height(_ height: CGFloat) -> CGSize {
+        CGSize(width: 0, height: height)
+    }
+    
+    /// Returns a size with the specified height and a width of `0`.
+    static func height(_ height: Int) -> CGSize {
+        CGSize(width: 0, height: height)
+    }
 
     #if os(macOS)
     /**
@@ -126,41 +146,6 @@ public extension CGSize {
         CGSize(width: width.scaledIntegral, height: height.scaledIntegral)
     }
 
-    /// A Boolean value indicating whether both dimensions are finite.
-    var isFinite: Bool {
-        width.isFinite && height.isFinite
-    }
-
-    /// A Boolean value indicating whether both dimensions are greater than zero.
-    var isPositive: Bool {
-        width > 0 && height > 0
-    }
-
-    /// A Boolean value indicating whether either dimension is less than or equal to zero.
-    var isEmpty: Bool {
-        width <= 0 || height <= 0
-    }
-    
-    /// The orientation of a size.
-    enum Orientation: String, Codable, Hashable, Sendable {
-        /// Vertical.
-        case vertical
-        /// Horizontal.
-        case horizontal
-        /// Square.
-        case square
-    }
-    
-    /// The orientation of the size.
-    var orientation: Orientation {
-        if width == height {
-            return .square
-        } else if width > height {
-            return .horizontal
-        }
-        return .vertical
-    }
-
     #if os(macOS)
     /**
      Returns the scaled integral of the size for the specified screen.
@@ -218,6 +203,46 @@ public extension CGSize {
         CGSize(width: width.scaledIntegral(for: screen), height: height.scaledIntegral(for: screen))
     }
     #endif
+    
+    /// A Boolean value indicating whether both dimensions are finite.
+    var isFinite: Bool {
+        width.isFinite && height.isFinite
+    }
+
+    /// A Boolean value indicating whether both dimensions are greater than zero.
+    var isPositive: Bool {
+        width > 0 && height > 0
+    }
+
+    /// A Boolean value indicating whether either dimension is less than or equal to zero.
+    var isEmpty: Bool {
+        width <= 0 || height <= 0
+    }
+    
+    /// A Boolean value indicating whether the size is square (`width` == `height`).
+    var isSquare: Bool {
+        width == height
+    }
+    
+    /// The orientation of a size.
+    enum Orientation: String, Codable, Hashable, Sendable {
+        /// Vertical.
+        case vertical
+        /// Horizontal.
+        case horizontal
+        /// Square.
+        case square
+    }
+    
+    /// The orientation of the size.
+    var orientation: Orientation {
+        if width == height {
+            return .square
+        } else if width > height {
+            return .horizontal
+        }
+        return .vertical
+    }
 
     /// Returns the smaller of the `width` and `height` value..
     var min: CGFloat {
@@ -599,12 +624,18 @@ public extension CGSize {
         CGSize(width, height)
     }
 
-    var swapped: CGSize {
-        CGSize(height, width)
+    /// Returns a size whose width and height are the minimum of this size and the specified other size.
+    func min(_ other: CGSize) -> CGSize {
+        CGSize(Swift.min(width, other.width), Swift.min(height, other.height))
+    }
+    
+    /// Returns a size whose width and height are the maximum of this size and the specified other size.
+    func max(_ other: CGSize) -> CGSize {
+        CGSize(Swift.max(width, other.width), Swift.max(height, other.height))
     }
 
     /// Defines strategies for aligning sizes to device pixel boundaries.
-    enum PixelSnapRule {
+    enum PixelRoundingRule {
         /// Expands the size so it is at least as large as the original.
         case outward
         /// Shrinks the size so it is at most as large as the original.
@@ -620,7 +651,7 @@ public extension CGSize {
         - scale: The backing scale factor to align against.
         - rule: The edge alignment strategy.
      */
-    func snappedToPixels(scale: CGFloat, rule: PixelSnapRule = .nearest) -> CGSize {
+    func snappedToPixels(scale: CGFloat, rule: PixelRoundingRule = .nearest) -> CGSize {
         guard scale > 0 else { return self }
         let snapped: CGSize
         switch rule {
@@ -642,7 +673,7 @@ public extension CGSize {
         - window: The window whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
      */
-    func snappedToPixels(of window: NSWindow, rule: PixelSnapRule = .outward) -> CGSize {
+    func snappedToPixels(of window: NSWindow, rule: PixelRoundingRule = .outward) -> CGSize {
         snappedToPixels(scale: window.screen?.backingScaleFactor ?? window.backingScaleFactor, rule: rule)
     }
 
@@ -653,7 +684,7 @@ public extension CGSize {
         - screen: The screen whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
      */
-    func snappedToPixels(of screen: NSScreen, rule: PixelSnapRule = .outward) -> CGSize {
+    func snappedToPixels(of screen: NSScreen, rule: PixelRoundingRule = .outward) -> CGSize {
         snappedToPixels(scale: screen.backingScaleFactor, rule: rule)
     }
 
@@ -664,7 +695,7 @@ public extension CGSize {
         - voew: The voew whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
      */
-    func snappedToPixels(of view: NSView, rule: PixelSnapRule = .outward) -> CGSize {
+    func snappedToPixels(of view: NSView, rule: PixelRoundingRule = .outward) -> CGSize {
         snappedToPixels(scale: view.backingScaleFactor, rule: rule)
     }
 
@@ -675,7 +706,7 @@ public extension CGSize {
         - application: The application whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
      */
-    func snappedToPixels(of application: NSApplication, rule: PixelSnapRule = .outward) -> CGSize {
+    func snappedToPixels(of application: NSApplication, rule: PixelRoundingRule = .outward) -> CGSize {
         snappedToPixels(scale: application.backingScaleFactor, rule: rule)
     }
 
@@ -687,7 +718,7 @@ public extension CGSize {
         - screen: The screen whose backing scale factor defines the pixel grid.
         - rule: The edge alignment strategy.
      */
-    func snappedToPixels(of screen: UIScreen, rule: PixelSnapRule = .outward) -> CGSize {
+    func snappedToPixels(of screen: UIScreen, rule: PixelRoundingRule = .outward) -> CGSize {
         snappedToPixels(scale: screen.scale, rule: rule)
     }
     #endif
@@ -770,13 +801,8 @@ extension CGSize: Swift.Hashable {
 
 public extension Collection where Element == CGSize {
     /// The size to fit all sizes of the collection.
-    func totalSize() -> CGSize {
-        var totalSize: CGSize = .zero
-        for size in self {
-            totalSize.width = Swift.max(totalSize.width, size.width)
-            totalSize.height = Swift.max(totalSize.height, size.height)
-        }
-        return totalSize
+    func union() -> CGSize {
+        reduce(.zero) { $0.max($1) }
     }
 
     #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)

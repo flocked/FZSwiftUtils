@@ -69,7 +69,7 @@ public extension URLRequest {
      */
     mutating func addRangeHeader(for data: Data, validator: String? = nil) {
         bytesRange = .from(UInt64(data.count))
-        setValue(validator, forHTTPHeaderField: "If-Range")
+        self[.ifRange] = validator
     }
 
     /**
@@ -84,9 +84,9 @@ public extension URLRequest {
      - Note: The file must be a local file `URL` with a valid file size.. If the file doesn't exist or the size is 'zero', this method does nothing.
      */
     mutating func addRangeHeader(for file: URL, validator: String? = nil) {
-        guard let fileSize = file.resources.fileSize, fileSize != .zero else { return }
+        guard let fileSize = file.resources.fileSize, fileSize > .zero else { return }
         bytesRange = .from(fileSize.bytes)
-        setValue(validator, forHTTPHeaderField: "If-Range")
+        self[.ifRange] = validator
     }
     
     /**
@@ -406,6 +406,19 @@ public extension URLRequest {
         request.httpBody = nil
         request.httpBodyStream = nil
         return request
+    }
+    
+    /// The value of the specified `HTTP` field.
+    subscript(field: String) -> String? {
+        get { value(forHTTPHeaderField: field) }
+        set { setValue(newValue, forHTTPHeaderField: field) }
+    }
+    
+    /// The value of the specified `HTTP` field.
+    @_disfavoredOverload
+    subscript(field: HTTPRequestHeaderField) -> String? {
+        get { value(forHTTPHeaderField: field.rawValue) }
+        set { setValue(newValue, forHTTPHeaderField: field) }
     }
 }
 
