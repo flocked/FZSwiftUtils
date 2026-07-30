@@ -99,6 +99,11 @@ public extension StringProtocol {
     func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
         strings.contains { contains($0) }
     }
+    
+    /// Finds and returns the range of the first occurrence of a given string within a given range of the String, subject to given options, using the specified locale, if any.
+    func nsRange<S: StringProtocol>(of string: S, options: String.CompareOptions = [], range: Range<Self.Index>? = nil, locale: Locale? = nil) -> NSRange? {
+        self.range(of: string, options: options, range: range, locale: locale).map(nsRange(for:))
+    }
 }
 
 public extension StringProtocol {
