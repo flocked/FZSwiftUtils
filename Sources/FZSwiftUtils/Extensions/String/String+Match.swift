@@ -823,6 +823,7 @@ public extension Substring {
 }
 
 public extension StringProtocol where SubSequence == Substring {
+    
     /**
      Finds the first substring delimited by the specified start and end delimiters.
 
