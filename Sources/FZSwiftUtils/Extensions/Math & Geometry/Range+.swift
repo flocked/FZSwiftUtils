@@ -386,7 +386,7 @@ extension CFRange: Swift.Collection, Swift.BidirectionalCollection, Swift.Random
 }
 */
 
-extension Range {
+public extension Range {
     /**
      Creates a range from the specified bounds if the lower bound is less than or equal to the upper bound.
      
@@ -407,7 +407,7 @@ extension Range {
     }
 }
 
-extension ClosedRange {
+public extension ClosedRange {
     /**
      Creates a range from the specified bounds if the lower bound is less than or equal to the upper bound.
      
@@ -428,7 +428,7 @@ extension ClosedRange {
     }
 }
 
-extension Range {
+public extension Range {
     /// A Boolean value indicating whether the other range is fully contained within the range.
     func contains(_ range: Self) -> Bool {
         range.lowerBound >= lowerBound && range.upperBound <= upperBound
@@ -475,7 +475,7 @@ extension Range {
     }
 }
 
-extension ClosedRange {
+public extension ClosedRange {
     /// A Boolean value indicating whether the other range is fully contained within the range.
     func contains(_ range: Self) -> Bool {
         range.lowerBound >= lowerBound && range.upperBound <= upperBound
