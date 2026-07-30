@@ -21,14 +21,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     }
     
     public var kind: JSONKind {
-        guard let value else { return .missing }
-          if value is NSNull { return .null }
-        if (value as? NSNumber)?.safeBoolValue != nil { return .bool }
-          if value is NSNumber || value is Int || value is Double { return .number }
-          if value is String { return .string }
-        if value is [String: Any] { return .dictionary }
-          if value is [Any] { return .array }
-          return .missing
+        Self.kind(for: value)
     }
     
     public var value: Any?
@@ -112,13 +105,13 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     
     private static func kind(for value: Any?) -> JSONKind {
         guard let value else { return .missing }
-          if value is NSNull { return .null }
+        if value is NSNull { return .null }
         if (value as? NSNumber)?.safeBoolValue != nil { return .bool }
-          if value is NSNumber || value is Int || value is Double { return .number }
-          if value is String { return .string }
+        if value is NSNumber || value is Int || value is Double { return .number }
+        if value is String { return .string }
         if value is [String: Any] { return .dictionary }
-          if value is [Any] { return .array }
-          return .missing
+        if value is [Any] { return .array }
+        return .missing
     }
         
     private init(_ value: Any?, _ codingPath: [CodingKey]) {
@@ -129,7 +122,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     /// The dictionary value of the json object.
     public var dictionary: [String: Self]? {
         get { (value as? [String: Any])?.mapKeyValues({ ($0, Self($1, codingPath + .key($0))) }) }
-        set { setValue(newValue?.mapValues(\.value)) }
+        set { setValue(newValue?.compactMapValues { $0.value }) }
     }
     
     private mutating func setValue(_ newValue: Any?) {
@@ -139,8 +132,12 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         
     /// The array value of the json object.
     public var array: [Self]? {
-        get { value is [Any] ? collect() : nil }
-        set { setValue(newValue?.map(\.value)) }
+        get {
+            (value as? [Any])?.enumerated().map {
+                Self($0.element, codingPath + .index($0.offset))
+            }
+        }
+        set { setValue(newValue?.map { $0.value ?? NSNull() }) }
     }
         
     /// The string value of the json object.
@@ -180,24 +177,23 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     
     @_disfavoredOverload
     public subscript (index: Int) -> Self {
-        get { Self(array?[safe: index], codingPath + .index(index)) }
+        get { Self((value as? [Any])?[safe: index], codingPath + .index(index)) }
         set {
             guard var value = value as? [Any], index < value.count else {
                 return
             }
-            Swift.print("SET array", newValue.value ?? "nil")
             value[index] = newValue.value ?? NSNull()
             self.value = value
         }
     }
         
     public subscript (index: Int) -> Self? {
-        guard let value = array?[safe: index] else { return nil }
+        guard let value = (value as? [Any])?[safe: index] else { return nil }
         return Self(value, codingPath + .index(index))
     }
     
     public subscript<V: Decodable>(index: Int) -> V? {
-        guard let jsonObject = array?[safe: index] else { return nil }
+        guard let jsonObject = self[index] as Self? else { return nil }
         return jsonObject.value as? V ?? (try? jsonObject.decoded())
     }
     
@@ -207,22 +203,21 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         
     @_disfavoredOverload
     public subscript(key: String) -> Self {
-        get { Self(dictionary?[key], codingPath + .key(key)) }
+        get { Self((value as? [String: Any])?[key], codingPath + .key(key)) }
         set {
             guard var value = value as? [String:Any] else { return }
-            Swift.print("SET DIC", newValue.value ?? "nil")
             value[key] = newValue.value
             self.value = value
         }
     }
     
     public subscript (key: String) -> Self? {
-        guard let value = dictionary?[key] else { return nil }
+        guard let value = (value as? [String: Any])?[key] else { return nil }
         return Self(value, codingPath + .key(key))
     }
     
     public subscript<V: Decodable>(key: String) -> V? {
-        guard let jsonObject = dictionary?[key] else { return nil }
+        guard let jsonObject = self[key] as Self? else { return nil }
         return jsonObject.value as? V ?? (try? jsonObject.decoded())
     }
         
@@ -259,7 +254,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     public mutating func replaceSubrange<C>(_ subrange: Range<Int>, with newElements: C) where C : Collection, JSONObject == C.Element {
         guard var array = array else { return }
         array.replaceSubrange(subrange, with: newElements)
-        value = array
+        value = array.map { $0.value ?? NSNull() }
     }
           
     /// Decodes the json object to the specified type.
