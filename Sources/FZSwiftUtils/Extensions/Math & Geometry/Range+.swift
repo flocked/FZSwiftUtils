@@ -56,6 +56,27 @@ public extension Range where Bound == String.Index {
     }
 }
 
+public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
+    /// The values of the range.<
+    var values: [Bound] {
+        map({$0})
+    }
+}
+
+public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedInteger {
+    /// The values of the range.
+    var values: [Bound] {
+        map({$0})
+    }
+}
+
+public extension NSRange {
+    /// The values of the range.
+    var values: [Int] {
+        isNotFound ? [] : map({$0})
+    }
+}
+
 
 
 /*
