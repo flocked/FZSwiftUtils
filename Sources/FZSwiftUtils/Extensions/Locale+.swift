@@ -223,7 +223,7 @@ public extension Locale {
     }
     
     /// A type that represents a geographic subregion, for use in specifying a locale.
-    struct Subregion: RawRepresentable, Codable, Sendable, Hashable, CustomStringConvertible, ExpressibleByStringLiteral {
+    struct Subregion: RawRepresentable, Codable, Sendable, Hashable, CustomStringConvertible, ExpressibleByStringLiteral, CaseIterable {
         /// South America.
         public static let southAmerica: Self = "005"
         /// Western Africa.
@@ -268,6 +268,8 @@ public extension Locale {
         public static let northernEurope: Self = "154"
         /// Western Europe.
         public static let westernEurope: Self = "155"
+        
+        public static let allCases: [Self] = [.southAmerica, .westernAfrica, .centralAmerica, .easternAfrica, .northernAfrica, .middleAfrica, .southernAfrica, .northernAmerica, .caribbean, .easternAsia, .southernAsia, .southEasternAsia, .southernEurope, .australiaAndNewZealand, .melanesia, .micronesia, .polynesia, .centralAsia, .westernAsia, .easternEurope, .northernEurope, .westernEurope]
         
         public var description: String {
             switch self {
