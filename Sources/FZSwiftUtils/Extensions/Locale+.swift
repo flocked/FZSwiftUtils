@@ -159,28 +159,28 @@ public extension Locale {
     
     /// The continent that contains this locale.
     var continent: Continent {
-        region?.continent.map({ Continent(rawValue: $0.identifier) }) ?? .unknown
+        region?.continent.map({ Continent(rawValue: $0) }) ?? .unknown
     }
     
-    /// Returns a localized string for a specified continent.
-    func localizedString(forContient continent: Continent) -> String? {
-        localizedString(forRegionCode: continent.region.identifier)
+    /// Returns a localized string for the specified continent.
+    func localizedString(forContinent continent: Continent) -> String? {
+        localizedString(forRegionCode: continent.rawValue.identifier)
     }
     
     /// A type that represents a continent, for use in specifying a locale.
-    struct Continent: RawRepresentable, Hashable, Codable, Sendable, CustomStringConvertible, CaseIterable {
+    struct Continent: RawRepresentable, Hashable, Codable, Sendable, CustomStringConvertible, CaseIterable, ExpressibleByStringLiteral {
         /// Europe.
-        public static let europe = Self(rawValue: "150")
+        public static let europe: Self = "150"
         /// Americas.
-        public static let americas = Self(rawValue: "019")
+        public static let americas: Self = "019"
         /// Africa.
-        public static let africa = Self(rawValue: "002")
+        public static let africa: Self = "002"
         /// Oceania.
-        public static let oceania = Self(rawValue: "009")
+        public static let oceania: Self = "009"
         /// Asia.
-        public static let asia = Self(rawValue: "142")
+        public static let asia: Self = "142"
         /// Unknown.
-        public static let unknown = Self(rawValue: "ZZ")
+        public static let unknown: Self = "ZZ"
         
         public static let allCases: [Self] = [.africa, .americas, .asia, .europe, .oceania, .unknown]
         
@@ -192,26 +192,122 @@ public extension Locale {
             case .oceania: "oceania"
             case .asia: "asia"
             case .unknown: "unknown"
-            default: rawValue
+            default: rawValue.identifier
             }
         }
         
-        public var rawValue: String
+        public let rawValue: Region
         
-        public init(rawValue: String) {
+        public init(rawValue: Region) {
             self.rawValue = rawValue
+        }
+        
+        public init(stringLiteral value: String) {
+            self.rawValue = Region(value)
         }
         
         /// The locales whose regions are located in the continent.
         public var locales: [Locale] {
             Locale.available.filter({ $0.continent == self }).sorted(by: \.identifier)
         }
+    }
+    
+    /// The subregions containing the locale's region.
+    var subregions: [Subregion] {
+        region?.subRegions.map { Subregion(rawValue: $0) } ?? []
+    }
+    
+    /// Returns a localized string for the specified subregion.
+    func localizedString(forSubregion subregion: Subregion) -> String? {
+        localizedString(forRegionCode: subregion.rawValue.identifier)
+    }
+    
+    /// A type that represents a geographic subregion, for use in specifying a locale.
+    struct Subregion: RawRepresentable, Codable, Sendable, Hashable, CustomStringConvertible, ExpressibleByStringLiteral {
+        /// South America.
+        public static let southAmerica: Self = "005"
+        /// Western Africa.
+        public static let westernAfrica: Self = "011"
+        /// Central America.
+        public static let centralAmerica: Self = "013"
+        /// Eastern Africa.
+        public static let easternAfrica: Self = "014"
+        /// Northern Africa.
+        public static let northernAfrica: Self = "015"
+        /// Middle Africa.
+        public static let middleAfrica: Self = "017"
+        /// Southern Africa.
+        public static let southernAfrica: Self = "018"
+        /// Northern America.
+        public static let northernAmerica: Self = "021"
+        /// The Caribbean.
+        public static let caribbean: Self = "029"
+        /// Eastern Asia.
+        public static let easternAsia: Self = "030"
+        /// Southern Asia.
+        public static let southernAsia: Self = "034"
+        /// South-eastern Asia.
+        public static let southEasternAsia: Self = "035"
+        /// Southern Europe.
+        public static let southernEurope: Self = "039"
+        /// Australia and New Zealand.
+        public static let australiaAndNewZealand: Self = "053"
+        /// Melanesia.
+        public static let melanesia: Self = "054"
+        /// Micronesia.
+        public static let micronesia: Self = "057"
+        /// Polynesia.
+        public static let polynesia: Self = "061"
+        /// Central Asia.
+        public static let centralAsia: Self = "143"
+        /// Western Asia.
+        public static let westernAsia: Self = "145"
+        /// Eastern Europe.
+        public static let easternEurope: Self = "151"
+        /// Northern Europe.
+        public static let northernEurope: Self = "154"
+        /// Western Europe.
+        public static let westernEurope: Self = "155"
         
-        /// The region representing the continent.
-        public var region: Region {
-            Region(rawValue)
+        public var description: String {
+            switch self {
+            case .southAmerica: "southAmerica"
+            case .westernAfrica: "westernAfrica"
+            case .centralAmerica: "centralAmerica"
+            case .easternAfrica: "easternAfrica"
+            case .northernAfrica: "northernAfrica"
+            case .middleAfrica: "middleAfrica"
+            case .southernAfrica: "southernAfrica"
+            case .northernAmerica: "northernAmerica"
+            case .caribbean: "caribbean"
+            case .easternAsia: "easternAsia"
+            case .southernAsia: "southernAsia"
+            case .southEasternAsia: "southEasternAsia"
+            case .southernEurope: "southernEurope"
+            case .australiaAndNewZealand: "australiaAndNewZealand"
+            case .melanesia: "melanesia"
+            case .micronesia: "micronesia"
+            case .polynesia: "polynesia"
+            case .centralAsia: "centralAsia"
+            case .westernAsia: "westernAsia"
+            case .easternEurope: "easternEurope"
+            case .northernEurope: "northernEurope"
+            case .westernEurope: "westernEurope"
+            default: rawValue.identifier
+            }
+        }
+        
+        public var rawValue: Region
+
+        public init(rawValue: Region) {
+            self.rawValue = rawValue
+        }
+        
+        public init(stringLiteral value: String) {
+            self.rawValue = Region(value)
         }
     }
+   
 }
 
 extension Locale {
