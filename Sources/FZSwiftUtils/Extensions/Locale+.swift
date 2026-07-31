@@ -34,51 +34,6 @@ extension Locale {
         locale.localizedDisplayName(for: self)
     }
     
-    /// A type that represents a continent, for use in specifying a locale.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public enum Continent: String {
-        /// Europe.
-        case europe = "150"
-        /// America.
-        case america = "019"
-        /// Africa.
-        case africa = "002"
-        /// Oceania.
-        case oceania = "009"
-        /// Asia.
-        case asia = "142"
-        /// Unknown.
-        case unknown = "ZZ"
-        
-        /// The identifier of the continent.
-        public var identifier: String {
-            rawValue
-        }
-        
-        /// An array of all locales that the continent contains.
-        public var locales: [Locale] {
-            Locale.availableLocales.filter({ $0.continent == self }).sorted(by: \.identifier)
-        }
-        
-        /// The `Region` representing the continent.
-        public var region: Region {
-            Region(identifier)
-        }
-    }
-    
-    /// The continent that contains this locale.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public var continent: Continent {
-        guard let identifier = region?.continent?.identifier else { return .unknown }
-        return Continent(rawValue: identifier)!
-    }
-    
-    /// Returns a localized string for a specified continent.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forContient continent: Continent) -> String? {
-        localizedString(forRegionCode: continent.region.identifier)
-    }
-    
     /**
      Returns the localized string by localizing the specified locale to the receiver's locale.
      
@@ -114,102 +69,147 @@ extension Locale {
         localizedString(byLocalizingTo:.autoupdatingCurrent)
     }
     
-    /// Returns a localized string for a specified language code.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forLanguageCode languageCode: LanguageCode) -> String? {
-        localizedString(forLanguageCode: languageCode.identifier)
-    }
-    
-    /// Returns a localized string for a specified language.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forLanguage language: Language) -> String? {
-        guard let languageCode = language.languageCode else { return nil }
-        return localizedString(forLanguageCode: languageCode)
-    }
-    
-    /// Returns a localized string for a specified script.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forScript script: Script) -> String? {
-        localizedString(forScriptCode: script.identifier)
-    }
-    
-    /// Returns a localized string for a specified region.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forRegion region: Region) -> String? {
-        localizedString(forRegionCode: region.identifier)
-    }
-    
-    /// Returns a localized string for a specified currency.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forCurrency currency: Currency) -> String? {
-        localizedString(forCurrencyCode: currency.identifier)
-    }
-    
-    /// Returns a localized string for a specified variant.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forVariant variant: Variant) -> String? {
-        localizedString(forVariantCode: variant.identifier)
-    }
-    
-    /// Returns a localized string for a specified collation.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public func localizedString(forCollation collation: Collation) -> String? {
-        localizedString(forCollationIdentifier: collation.identifier)
-    }
-    
     /// A locale representing the user system's primary language.
     public static var system: Locale {
         return Locale(identifier: preferredLanguages.first ?? "en")
     }
     
-    /// An array of available `Locale`s.
-    public static let availableLocales = Locale.availableIdentifiers.compactMap({Locale(identifier: $0)})
-    
-    /// An array of `Locale`s of the user’s preferred languages.
-    public static let preferredLocales = Locale.preferredLanguages.compactMap({Locale(identifier: $0)})
-    
-    /**
-     Returns the base locale (language) for the current locale without any region information.
-     
-     For example, if the receiver locale is `en_US` or `en_GB`, it returns a locale with the identifier `en`.
-     */
-    public var baseLocale: Locale {
-        Locale(identifier: _languageCode)
+    /// An array of available locales.
+    public static var available: [Locale] {
+        availableIdentifiers.map(Locale.init(identifier:))
+    }
+
+    /// An array of locales for the user's preferred languages.
+    public static var preferred: [Locale] {
+        preferredLanguages.map(Locale.init(identifier:))
     }
     
-    /// Returns an array of regional variants for the locale.
+    /**
+     Returns the language locale for the current locale without any region information.
+
+     For example, `en_US` becomes `en` and `de_CH` becomes `de`.
+     */
+    public var base: Locale {
+        languageCode.map({ Locale(identifier: $0) }) ?? self
+    }
+    
+    /**
+     Returns the available regional variants for the locale's language.
+
+     For example, the `en` locale includes variants such as `en_US`, `en_GB`, and `en_AU`.
+     */
     public var regionalVariants: [Locale] {
-        let mappedRegions = Dictionary(grouping: Locale.availableLocales, by: \._languageCode).compactMapKeys({ Locale(identifier: $0) })
-        return (mappedRegions.first(where: { val in val.value.contains(where: { $0.identifier == identifier }) || val.key.identifier == identifier })?.value ?? []).filter({$0.regionCode != nil})
+        Locale.available.grouped(by: \._languageCode)[_languageCode]?.filter { $0.regionCode != nil } ?? []
     }
     
     private var _languageCode: String {
-        languageCode ?? identifier.components(separatedBy: "_").first ?? identifier
+        languageCode ?? identifier
+    }
+}
+
+@available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
+public extension Locale {
+    /// Creates a locale with the specified language code, script, and region identifier.
+    init(_ languageCode: Locale.LanguageCode?, script: Locale.Script? = nil, languageRegion: Locale.Region? = nil) {
+        self = Locale(languageCode: languageCode, script: script, languageRegion: languageRegion)
+    }
+    
+    /// Returns a localized string for a specified language code.
+    func localizedString(forLanguageCode languageCode: LanguageCode) -> String? {
+        localizedString(forLanguageCode: languageCode.identifier)
+    }
+    
+    /// Returns a localized string for a specified language.
+    func localizedString(forLanguage language: Language) -> String? {
+        language.languageCode.flatMap({ localizedString(forLanguageCode: $0) })
+    }
+    
+    /// Returns a localized string for a specified script.
+    func localizedString(forScript script: Script) -> String? {
+        localizedString(forScriptCode: script.identifier)
+    }
+    
+    /// Returns a localized string for a specified region.
+    func localizedString(forRegion region: Region) -> String? {
+        localizedString(forRegionCode: region.identifier)
+    }
+    
+    /// Returns a localized string for a specified currency.
+    func localizedString(forCurrency currency: Currency) -> String? {
+        localizedString(forCurrencyCode: currency.identifier)
+    }
+    
+    /// Returns a localized string for a specified variant.
+    func localizedString(forVariant variant: Variant) -> String? {
+        localizedString(forVariantCode: variant.identifier)
+    }
+    
+    /// Returns a localized string for a specified collation.
+    func localizedString(forCollation collation: Collation) -> String? {
+        localizedString(forCollationIdentifier: collation.identifier)
+    }
+    
+    /// The continent that contains this locale.
+    var continent: Continent {
+        region?.continent.map({ Continent(rawValue: $0.identifier) }) ?? .unknown
+    }
+    
+    /// Returns a localized string for a specified continent.
+    func localizedString(forContient continent: Continent) -> String? {
+        localizedString(forRegionCode: continent.region.identifier)
+    }
+    
+    /// A type that represents a continent, for use in specifying a locale.
+    struct Continent: RawRepresentable, Hashable, Codable, Sendable, CaseIterable {
+        /// Europe.
+        public static let europe = Self(rawValue: "150")
+        /// Americas.
+        public static let americas = Self(rawValue: "019")
+        /// Africa.
+        public static let africa = Self(rawValue: "002")
+        /// Oceania.
+        public static let oceania = Self(rawValue: "009")
+        /// Asia.
+        public static let asia = Self(rawValue: "142")
+        /// Unknown.
+        public static let unknown = Self(rawValue: "ZZ")
+        
+        public static let allCases: [Self] = [.africa, .americas, .asia, .europe, .oceania, .unknown]
+        
+        public var rawValue: String
+        
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+        
+        /// The locales whose regions are located in the continent.
+        public var locales: [Locale] {
+            Locale.available.filter({ $0.continent == self }).sorted(by: \.identifier)
+        }
+        
+        /// The region representing the continent.
+        public var region: Region {
+            Region(rawValue)
+        }
     }
 }
 
 extension Locale {
-    /// Creates a locale with the specified language code, script, and region identifier.
-    @available(macOS 13, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
-    public init(_ languageCode: Locale.LanguageCode?, script: Locale.Script? = nil, languageRegion: Locale.Region? = nil) {
-        self = Locale(languageCode: languageCode, script: script, languageRegion: languageRegion)
-    }
+    /// A fixed locale for consistent, locale-independent formatting and parsing.
+    public static let posix = Locale(identifier: "en_US_POSIX")
     
     /// English.
     public static let english = Locale(identifier: "en")
     /// English.
     public static let en = Locale(identifier: "en")
-    
     /// English (United States).
     public static let englishUS = Locale(identifier: "en-US")
     /// English (United States).
     public static let enUS = Locale(identifier: "en-US")
-    
     /// English (United Kingdom).
-    public static let englishUK = Locale(identifier: "en-GB")
+    public static let englishGB = Locale(identifier: "en-GB")
     /// English (United Kingdom).
     public static let enGB = Locale(identifier: "en-GB")
-        
     /// English (Canada).
     public static let englishCA = Locale(identifier: "en-CA")
     /// English (Canada).
@@ -219,7 +219,6 @@ extension Locale {
     public static let german = Locale(identifier: "de")
     /// German.
     public static let de = Locale(identifier: "de")
-    
     /// German (Germany).
     public static let germanDE = Locale(identifier: "de-DE")
     /// German (Germany).
@@ -229,7 +228,6 @@ extension Locale {
     public static let french = Locale(identifier: "fr")
     /// French.
     public static let fr = Locale(identifier: "fr")
-    
     /// French (France).
     public static let frenchFR = Locale(identifier: "fr-FR")
     /// French (France).
@@ -239,7 +237,6 @@ extension Locale {
     public static let spanish = Locale(identifier: "es")
     /// Spanish.
     public static let es = Locale(identifier: "es")
-    
     /// Spanish (Spain).
     public static let spanishES = Locale(identifier: "es-ES")
     /// Spanish (Spain).
@@ -249,7 +246,6 @@ extension Locale {
     public static let italian = Locale(identifier: "it")
     /// Italian.
     public static let it = Locale(identifier: "it")
-    
     /// Italian (Italy).
     public static let italianIT = Locale(identifier: "it-IT")
     /// Italian (Italy).
@@ -259,7 +255,6 @@ extension Locale {
     public static let japanese = Locale(identifier: "ja")
     /// Japanese.
     public static let ja = Locale(identifier: "ja")
-    
     /// Japanese (Japan).
     public static let japaneseJP = Locale(identifier: "ja-JP")
     /// Japanese (Japan).
@@ -269,12 +264,10 @@ extension Locale {
     public static let chinese = Locale(identifier: "zh")
     /// Chinese.
     public static let zh = Locale(identifier: "zh")
-    
     /// Chinese (Simplified, China).
     public static let chineseCN = Locale(identifier: "zh-CN")
     /// Chinese (Simplified, China).
     public static let zhCN = Locale(identifier: "zh-CN")
-    
     /// Chinese (Traditional, Taiwan).
     public static let chineseTW = Locale(identifier: "zh-TW")
     /// Chinese (Traditional, Taiwan).
@@ -284,14 +277,77 @@ extension Locale {
     public static let russian = Locale(identifier: "ru")
     /// Russian.
     public static let ru = Locale(identifier: "ru")
-    
     /// Russian (Russia).
     public static let russianRU = Locale(identifier: "ru-RU")
     /// Russian (Russia).
     public static let ruRU = Locale(identifier: "ru-RU")
     
-    /// A fixed locale for consistent, locale-independent formatting and parsing.
-    public static let posix = Locale(identifier: "en_US_POSIX")
+    /// Portuguese.
+    public static let portuguese = Locale(identifier: "pt")
+    /// Portuguese.
+    public static let pt = Locale(identifier: "pt")
+    /// Portuguese (Brazil).
+    public static let portugueseBR = Locale(identifier: "pt-BR")
+    /// Portuguese (Brazil).
+    public static let ptBR = Locale(identifier: "pt-BR")
+    /// Portuguese (Portugal).
+    public static let portuguesePT = Locale(identifier: "pt-PT")
+    /// Portuguese (Portugal).
+    public static let ptPT = Locale(identifier: "pt-PT")
+    
+    /// Korean.
+    public static let korean = Locale(identifier: "ko")
+    /// Korean.
+    public static let ko = Locale(identifier: "ko")
+    /// Korean (South Korea).
+    public static let koreanKR = Locale(identifier: "ko-KR")
+    /// Korean (South Korea).
+    public static let koKR = Locale(identifier: "ko-KR")
+    
+    /// Dutch.
+    public static let dutch = Locale(identifier: "nl")
+    /// Dutch.
+    public static let nl = Locale(identifier: "nl")
+    /// Dutch (Netherlands).
+    public static let dutchNL = Locale(identifier: "nl-NL")
+    /// Dutch (Netherlands).
+    public static let nlNL = Locale(identifier: "nl-NL")
+    
+    /// Arabic.
+    public static let arabic = Locale(identifier: "ar")
+    /// Arabic.
+    public static let ar = Locale(identifier: "ar")
+    /// Arabic (Saudi Arabia).
+    public static let arabicSA = Locale(identifier: "ar-SA")
+    /// Arabic (Saudi Arabia).
+    public static let arSA = Locale(identifier: "ar-SA")
+    
+    /// Hindi.
+    public static let hindi = Locale(identifier: "hi")
+    /// Hindi.
+    public static let hi = Locale(identifier: "hi")
+    /// Hindi (India).
+    public static let hindiIN = Locale(identifier: "hi-IN")
+    /// Hindi (India).
+    public static let hiIN = Locale(identifier: "hi-IN")
+    
+    /// Turkish.
+    public static let turkish = Locale(identifier: "tr")
+    /// Turkish.
+    public static let tr = Locale(identifier: "tr")
+    /// Turkish (Türkiye).
+    public static let turkishTR = Locale(identifier: "tr-TR")
+    /// Turkish (Türkiye).
+    public static let trTR = Locale(identifier: "tr-TR")
+    
+    /// Polish.
+    public static let polish = Locale(identifier: "pl")
+    /// Polish.
+    public static let pl = Locale(identifier: "pl")
+    /// Polish (Poland).
+    public static let polishPL = Locale(identifier: "pl-PL")
+    /// Polish (Poland).
+    public static let plPL = Locale(identifier: "pl-PL")
 }
 
 extension Sequence where Element == Locale {

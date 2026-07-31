@@ -329,12 +329,17 @@ extension ComparisonResult: Swift.ExpressibleByBooleanLiteral {
     }
     
     /// Returns the reversed result.
-    var reversed: ComparisonResult {
+    public var reversed: Self {
         switch self {
         case .orderedDescending: return .orderedAscending
         case .orderedAscending: return .orderedDescending
         case .orderedSame: return .orderedSame
         }
+    }
+    
+    /// A Boolean value indicating wheter the comparison result is [orderedSame](https://developer.apple.com/documentation/foundation/comparisonresult/orderedsame).
+    public var isEqual: Bool {
+        self == .orderedSame
     }
 }
 

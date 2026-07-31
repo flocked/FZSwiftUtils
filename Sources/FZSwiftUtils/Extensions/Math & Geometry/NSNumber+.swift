@@ -9,16 +9,24 @@ import Foundation
 
 public extension NSNumber {
     /// Creates a new `NSNumber` object initialized to contain the specified Boolean value.
-    convenience init(_ value: Bool) { self.init(value: value) }
+    convenience init(_ value: Bool) {
+        self.init(value: value)
+    }
     
     /// Creates a new `NSNumber` object initialized to contain the specified CChar value.
-    convenience init(_ value: CChar) { self.init(value: value) }
+    convenience init(_ value: CChar) {
+        self.init(value: value)
+    }
 
     /// Creates a new `NSNumber` object initialized to contain the specified binary floating point value.
-    convenience init<Value>(_ value: Value) where Value: BinaryFloatingPoint { self.init(value: Double(value)) }
+    convenience init<Value>(_ value: Value) where Value: BinaryFloatingPoint {
+        self.init(value: Double(value))
+    }
 
     /// Creates a new NSNumber object initialized to contain the specified `CGFloat` value.
-    convenience init(_ value: CGFloat) { self.init(value: value) }
+    convenience init(_ value: CGFloat) {
+        self.init(value: value)
+    }
     
     /// Creates a new `NSNumber` object initialized to contain the specified binary integer point value.
     convenience init<Value>(_ value: Value) where Value: BinaryInteger {
@@ -196,6 +204,7 @@ public extension NSNumber {
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
+        
         public let rawValue: String
     }
   
@@ -222,75 +231,24 @@ public extension NSNumber {
         }
     }
     
-    /**
-     Returns an `NSNumber` object initialized to contain the specified value of the string.
-
-     - Parameter value: The value of the string for the new number.
-     - Returns: An `NSNumber` object containing the value of the string, or `nil` if the string doesn't contain a value.
-     */
-    convenience init?(_ string: String) {
-        let formatter = NumberFormatter()
-        if let value: Float = formatter.value(from: string) {
-            self.init(value)
-        } else if let value: Int = formatter.value(from: string) {
-            self.init(value)
-        } else if let value: Bool = formatter.value(from: string) {
-            self.init(value)
+    /// Creates a `NSNumber`  object initialized to contain the specified value of the string.
+    convenience init?(_ string: String, locale: Locale = .current) {
+        if let value = Int64(string) {
+            self.init(value: value)
+        } else if let value = UInt64(string) {
+            self.init(value: value)
+        } else if let value = Bool(string) {
+            self.init(value: value)
+        } else if let number = NumberFormatter.decimal.locale(locale).number(from: string) {
+            if number.isFloatingPoint {
+                self.init(value: number.doubleValue)
+            } else {
+                self.init(value: number.int64Value)
+            }
         } else {
             return nil
         }
     }
 }
-extension NSNumber: Swift.Encodable, Swift.Decodable { }
-/*
-extension NSNumber: Swift.Encodable, Swift.Decodable {
-    public func encode(to encoder: any Encoder) throws {
-        var container = encoder.singleValueContainer()
-        if let value = safeBoolValue {
-            
-        } else if let value = (self as? NSDecimalNumber)?.decimalValue {
-            
-        }
-        if let value = safeBoolValue { try container.encode(value); return }
-        if let value = (self as? NSDecimalNumber)?.decimalValue { try container.encode(value); return }
-        switch String(cString: objCType) {
-        case "B": try container.encode(boolValue)
-        case "c":  try container.encode(int8Value)
-        case "C":  try container.encode(uint8Value)
-        case "s":  try container.encode(int16Value)
-        case "S":  try container.encode(uint16Value)
-        case "i":  try container.encode(int32Value)
-        case "I":  try container.encode(uint32Value)
-        case "l":  try container.encode(intValue)
-        case "L":  try container.encode(uintValue)
-        case "q":  try container.encode(int64Value)
-        case "Q":  try container.encode(uint64Value)
-        case "f":  try container.encode(floatValue)
-        case "d":  try container.encode(doubleValue)
-        default:
-            throw EncodingError.invalidValue(self, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "NSNumber uses an unsupported ObjC type: \(String(cString: objCType))"))
-        }
-    }
-}
 
-extension Decodable where Self: NSNumber {
-    public init(from decoder: any Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let value = try? container.decode(Int.self)        { self.init(value: value) }
-        else if let value = try? container.decode(Double.self){ self.init(value: value) }
-        else if let value = try? container.decode(Bool.self)  { self.init(value: value) }
-        else if let value = try? container.decode(Float.self) { self.init(value: value) }
-        else if let value = try? container.decode(Int8.self)  { self.init(value: value) }
-        else if let value = try? container.decode(UInt8.self) { self.init(value: value) }
-        else if let value = try? container.decode(Int16.self) { self.init(value: value) }
-        else if let value = try? container.decode(UInt16.self){ self.init(value: value) }
-        else if let value = try? container.decode(Int32.self) { self.init(value: value) }
-        else if let value = try? container.decode(UInt32.self){ self.init(value: value) }
-        else if let value = try? container.decode(Int64.self) { self.init(value: value) }
-        else if let value = try? container.decode(UInt64.self){ self.init(value: value) }
-        else {
-            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unsupported NSNumber type")
-        }
-    }
-}
-*/
+extension NSNumber: Swift.Encodable, Swift.Decodable { }

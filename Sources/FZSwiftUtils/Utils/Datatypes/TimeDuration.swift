@@ -78,9 +78,9 @@ public struct TimeDuration: Hashable, Sendable, Codable {
      */
     public init(nanoseconds: Double = 0, microseconds: Double = 0, milliseconds: Double = 0, seconds: Double = 0, minutes: Double = 0, hours: Double = 0, days: Double = 0, weeks: Double = 0, months: Double = 0, years: Double = 0) {
         self.seconds = seconds
-        self.seconds += (milliseconds / 1_000)
-        self.seconds += (microseconds / 1_000_000)
-        self.seconds += (nanoseconds / 1_000_000_000)
+        self.seconds += (milliseconds / 1000)
+        self.seconds += (microseconds / 1000000)
+        self.seconds += (nanoseconds / 1000000000)
         self.seconds += self.seconds(for: minutes, .minute)
         self.seconds += self.seconds(for: hours, .hour)
         self.seconds += self.seconds(for: days, .day)
@@ -99,19 +99,19 @@ public struct TimeDuration: Hashable, Sendable, Codable {
         seconds = dateInterval.start.timeIntervalSince(dateInterval.end)
         Self.swizzleFormatters()
     }
-    
+
     /// The duration in nanoseconds.
     public var nanoseconds: Double {
         get { value(for: .nanosecond) }
         set { seconds = seconds(for: newValue, .nanosecond) }
     }
-    
+
     /// The duration in microseconds.
     public var microseconds: Double {
         get { value(for: .microsecond) }
         set { seconds = seconds(for: newValue, .microsecond) }
     }
-    
+
     /// The duration in milliseconds.
     public var milliseconds: Double {
         get { value(for: .millisecond) }
@@ -193,34 +193,54 @@ public struct TimeDuration: Hashable, Sendable, Codable {
 
 public extension TimeDuration {
     /// Returns a time duration with the specified nanoseconds.
-    static func nanoseconds(_ value: Double) -> Self { Self(nanoseconds: value) }
-    
+    static func nanoseconds(_ value: Double) -> Self {
+        Self(nanoseconds: value)
+    }
+
     /// Returns a time duration with the specified microseconds.
-    static func microseconds(_ value: Double) -> Self { Self(microseconds: value) }
+    static func microseconds(_ value: Double) -> Self {
+        Self(microseconds: value)
+    }
 
     /// Returns a time duration with the specified milliseconds.
-    static func milliseconds(_ value: Double) -> Self { Self(milliseconds: value) }
+    static func milliseconds(_ value: Double) -> Self {
+        Self(milliseconds: value)
+    }
 
     /// Returns a time duration with the specified seconds.
-    static func seconds(_ value: Double) -> Self { Self(seconds: value) }
+    static func seconds(_ value: Double) -> Self {
+        Self(seconds: value)
+    }
 
     /// Returns a time duration with the specified minutes.
-    static func minutes(_ value: Double) -> Self { Self(minutes: value) }
+    static func minutes(_ value: Double) -> Self {
+        Self(minutes: value)
+    }
 
     /// Returns a time duration with the specified hours.
-    static func hours(_ value: Double) -> Self { Self(hours: value) }
+    static func hours(_ value: Double) -> Self {
+        Self(hours: value)
+    }
 
     /// Returns a time duration with the specified days.
-    static func days(_ value: Double) -> Self { Self(days: value) }
+    static func days(_ value: Double) -> Self {
+        Self(days: value)
+    }
 
     /// Returns a time duration with the specified weeks.
-    static func weeks(_ value: Double) -> Self { Self(weeks: value) }
+    static func weeks(_ value: Double) -> Self {
+        Self(weeks: value)
+    }
 
     /// Returns a time duration with the specified months, using the average length of a month (`~30.436875` days).
-    static func months(_ value: Double) -> Self { Self(months: value) }
+    static func months(_ value: Double) -> Self {
+        Self(months: value)
+    }
 
     /// Returns a time duration with the specified years, using the average length of a year (`~365.2425` days).
-    static func years(_ value: Double) -> Self { Self(years: value) }
+    static func years(_ value: Double) -> Self {
+        Self(years: value)
+    }
 }
 
 extension TimeDuration: RawRepresentable {
@@ -232,9 +252,11 @@ extension TimeDuration: RawRepresentable {
     public init(rawValue: Double) {
         self.seconds = rawValue
     }
-    
+
     /// The duration in seconds.
-    public var rawValue: Double { seconds }
+    public var rawValue: Double {
+        seconds
+    }
 }
 
 public extension DateInterval {
@@ -259,27 +281,27 @@ public extension Date {
     func timeDurationSince(_ another: Date) -> TimeDuration {
         TimeDuration(timeIntervalSince(another))
     }
-    
+
     /// The time interval between the date value and the current date and time.
     var timeDurationSincceNow: TimeDuration {
         .seconds(timeIntervalSinceNow)
     }
-    
+
     /// The interval between the date value and 00:00:00 UTC on 1 January 2001.
     var timeDurationSinceReferenceDate: TimeDuration {
         .seconds(timeIntervalSinceReferenceDate)
     }
-    
+
     /// The interval between the date value and 00:00:00 UTC on 1 January 1970.
     var timeDurationSincce1970: TimeDuration {
         .seconds(timeIntervalSince1970)
     }
-    
+
     /// Creates a new date value by adding the specified time duration to this date.
     func addingTimeDuration(_ duration: TimeDuration) -> Date {
         addingTimeInterval(duration.seconds)
     }
-    
+
     /// Adds the specified time interval to this date.
     mutating func addTimeDuration(_ duration: TimeDuration) {
         addTimeInterval(duration.seconds)
@@ -322,38 +344,38 @@ public extension TimeDuration {
     ///  Enumeration representing different duration time units.
     enum Unit: Int, CaseIterable {
         /// Nanosecond
-        case nanosecond
+        case nanosecond = 1
         /// Microsecond
-        case microsecond
+        case microsecond = 2
         /// Millisecond
-        case millisecond
+        case millisecond = 4
         /// Second
-        case second
+        case second = 8
         /// Minute
-        case minute
+        case minute = 16
         /// Hour
-        case hour
+        case hour = 32
         /// Day
-        case day
+        case day = 64
         /// Week
-        case week
+        case week = 128
         /// Month
-        case month
+        case month = 256
         /// Year
-        case year
+        case year = 512
 
         private var secondsPerUnit: Double {
             switch self {
-            case .nanosecond:   return 1e-9
-            case .microsecond:  return 1e-6
-            case .millisecond:  return 1e-3
-            case .second: return 1
-            case .minute: return 60
-            case .hour: return 3600
-            case .day: return 86400
-            case .week: return 604800
-            case .month: return 2629746
-            case .year: return 31557600
+            case .nanosecond: 1e-9
+            case .microsecond: 1e-6
+            case .millisecond: 1e-3
+            case .second: 1
+            case .minute: 60
+            case .hour: 3600
+            case .day: 86400
+            case .week: 604800
+            case .month: 2629746
+            case .year: 31557600
             }
         }
 
@@ -371,16 +393,16 @@ public extension TimeDuration {
 
         var calendarComponent: Calendar.Component {
             switch self {
-            case .nanosecond: return .second
-            case .microsecond: return .second
-            case .millisecond: return .second
-            case .second: return .second
-            case .minute: return .minute
-            case .hour: return .hour
-            case .day: return .day
-            case .week: return .weekOfMonth
-            case .month: return .month
-            case .year: return .year
+            case .nanosecond: .second
+            case .microsecond: .second
+            case .millisecond: .second
+            case .second: .second
+            case .minute: .minute
+            case .hour: .hour
+            case .day: .day
+            case .week: .weekOfMonth
+            case .month: .month
+            case .year: .year
             }
         }
     }
@@ -416,41 +438,39 @@ public extension TimeDuration {
         public static let allDetailed: Self = [.second, .minute, .hour, .day, .week, .month, .year]
 
         public let rawValue: Int
-        
+
         /// Creates a units structure with the specified raw value.
         public init(rawValue: Int) {
             self.rawValue = rawValue
         }
 
         /// Creates a units structure with the specified time duration unit.
-        public init(unit: Unit) {
-            rawValue = Self.allCases.first(where: { $0.unit == unit })?.rawValue ?? 1 << 2
+        fileprivate init(unit: Unit) {
+            rawValue = unit.rawValue
         }
-
-        static let allCases: [Self] = [.nanosecond, microsecond, .millisecond, .second, .minute, .hour, .day, .week, .month, .year]
-        var unit: Unit? {
-            switch self {
-            case .nanosecond: return .nanosecond
-            case .microsecond: return .microsecond
-            case .millisecond: return .millisecond
-            case .second: return .second
-            case .minute: return .minute
-            case .hour: return .hour
-            case .day: return .day
-            case .week: return .week
-            case .month: return .month
-            case .year: return .year
-            default: return nil
-            }
+        
+        func calendarUnits(for duration: TimeDuration) -> [Calendar.Component] {
+            units(for: duration).map(\.calendarComponent)
         }
 
         func units(for duration: TimeDuration) -> [TimeDuration.Unit] {
-            var units = Self.allCases.compactMap { contains($0) ? $0.unit : nil }
-            if self == .allDetailed { units += elements().compactMap(\.unit) }
-            if contains(.all) { units += duration.preferredUnits(compact: false) }
-            if contains(.allCompact) { units += duration.preferredUnits(compact: true) }
-            units = units.uniqued()
-            return units
+            elements().flatMap { element -> [TimeDuration.Unit] in
+                return switch element {
+                case .nanosecond: [.nanosecond]
+                case .microsecond: [.microsecond]
+                case .millisecond: [.millisecond]
+                case .second: [.second]
+                case .minute: [.minute]
+                case .hour: [.hour]
+                case .day: [.day]
+                case .week: [.week]
+                case .month: [.month]
+                case .year: [.year]
+                case .all: duration.preferredUnits(compact: false)
+                case .allCompact: duration.preferredUnits(compact: true)
+                default: []
+                }
+            }.uniqued()
         }
     }
 }
@@ -472,7 +492,7 @@ extension TimeDuration: CustomStringConvertible {
      ```
      */
     var string: String {
-        string(allowedUnits: .all)
+        string()
     }
 
     /**
@@ -524,7 +544,7 @@ extension TimeDuration: CustomStringConvertible {
      - Returns: A string representation of the time duration.
      */
     public func string(for unit: Unit, style: DateComponentsFormatter.UnitsStyle = .full, locale: Locale = .current) -> String {
-        string(allowedUnits: .init(unit: unit), style: style, locale: locale)
+        string(allowedUnits: Units(unit: unit), style: style, locale: locale)
     }
 
     /**
@@ -543,25 +563,18 @@ extension TimeDuration: CustomStringConvertible {
      ```
 
      - Parameters:
-        - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
-        - style: The formatting style. The default value is `full`.
+        - allowedUnits: The allowed units for formatting the time duration.
+        - style: The formatting style.
         - maximumUnitCount: The maximum number of time units to include in the output string.
-        - zeroFormattingBehavior: The formatting style for units whose value is 0.
+        - zeroFormattingBehavior: The formatting style for units whose value is `0`.
         - locale: The language of the string.
 
      - Returns: A string representation of the time duration.
      */
     public func string(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, locale: Locale = .current) -> String {
-        let allowedUnits = allowedUnits.units(for: self).compactMap(\.calendarComponent).uniqued()
-        let formatter = DateComponentsFormatter()
-        formatter.allowedComponents = allowedUnits
-        formatter.unitsStyle = style
-        formatter.locale = locale
-        formatter.maximumUnitCount = maximumUnitCount
-        formatter.zeroFormattingBehavior = zeroFormattingBehavior
-        return formatter.string(from: seconds) ?? "\(seconds)"
+        string(for: allowedUnits, style: style, maximumUnitCount: maximumUnitCount, zeroFormattingBehavior: zeroFormattingBehavior, locale: locale)
     }
-    
+
     /**
      Returns an  amount of time remaining string representation of the time duration using the specified allowed time units and style.
 
@@ -578,23 +591,28 @@ extension TimeDuration: CustomStringConvertible {
      ```
 
      - Parameters:
-        - allowedUnits: The allowed units for formatting the time duration. The default value is `all`.
-        - style: The formatting style. The default value is `full`.
+        - allowedUnits: The allowed units for formatting the time duration.
+        - style: The formatting style.
         - maximumUnitCount: The maximum number of time units to include in the output string.
-        - zeroFormattingBehavior: The formatting style for units whose value is 0.
+        - zeroFormattingBehavior: The formatting style for units whose value is `0`.
         - includesApproximationPhrase: A Boolean value indicating whether output strings reflect the amount of time remaining.
         - locale: The language of the string.
 
      - Returns: A string representation of the time duration.
      */
     public func timeRemainingString(allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, includesApproximationPhrase: Bool = false, locale: Locale = .current) -> String {
-        let allowedUnits = allowedUnits.units(for: self).compactMap(\.calendarComponent).uniqued()
+        string(for: allowedUnits, style: style, maximumUnitCount: maximumUnitCount, zeroFormattingBehavior: zeroFormattingBehavior, locale: locale, includesApproximationPhrase: includesApproximationPhrase, includesTimeRemaining: true)
+    }
+
+    private func string(for allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, locale: Locale = .current, includesApproximationPhrase: Bool = false, includesTimeRemaining: Bool = false) -> String {
         let formatter = DateComponentsFormatter()
-        formatter.allowedComponents = allowedUnits
+        formatter.allowedComponents = allowedUnits.calendarUnits(for: self)
         formatter.unitsStyle = style
         formatter.locale = locale
+        formatter.maximumUnitCount = maximumUnitCount
         formatter.zeroFormattingBehavior = zeroFormattingBehavior
-        formatter.includesTimeRemainingPhrase = true
+        formatter.includesApproximationPhrase = includesApproximationPhrase
+        formatter.includesTimeRemainingPhrase = includesTimeRemaining
         return formatter.string(from: seconds) ?? "\(seconds)"
     }
 
@@ -605,7 +623,7 @@ extension TimeDuration: CustomStringConvertible {
 
      ```swift
      let duration = TimeDuration.days(-1)
-     
+
      // "1 day ago"
      duration.relativeString()
 
@@ -620,14 +638,14 @@ extension TimeDuration: CustomStringConvertible {
 
      - Returns: A string representation of the time duration.
      */
-    public func relativeString(dateTimeStyle: RelativeDateTimeFormatter.DateTimeStyle = .numeric, unitsStyle: RelativeDateTimeFormatter.UnitsStyle  = .full, locale: Locale = .current) -> String {
+    public func relativeString(dateTimeStyle: RelativeDateTimeFormatter.DateTimeStyle = .numeric, unitsStyle: RelativeDateTimeFormatter.UnitsStyle = .full, locale: Locale = .current) -> String {
         let formatter = RelativeDateTimeFormatter()
         formatter.dateTimeStyle = dateTimeStyle
         formatter.unitsStyle = unitsStyle
         formatter.locale = locale
         return formatter.localizedString(fromTimeInterval: seconds)
     }
-    
+
     /// A formatting style describing which time components should be included in a timecode string.
     public enum TimeCodeFormat: Int, Hashable {
         /// Displays hours, minutes, and seconds (e.g. `3:23:45`).
@@ -655,7 +673,7 @@ extension TimeDuration: CustomStringConvertible {
         /// Never displays a sign.
         case never
     }
-    
+
     /**
      Returns a formatted timecode string representation of the duration.
 
@@ -667,9 +685,9 @@ extension TimeDuration: CustomStringConvertible {
        - subsecondSeparator: The string used to separate seconds and fractional seconds.
         - padsFirstUnit: A Boolean value indicating whether the first displayed time unit is padded to at least two digits.
      - Returns: A formatted timecode string representation of the duration.
-     
+
      Example usage:
-     
+
      ```
      var duration = TimeDuration.seconds(13832)
      duration.formattedTimecode()
@@ -680,30 +698,23 @@ extension TimeDuration: CustomStringConvertible {
      // "230:32"
      duration.formattedTimecode(subsecondsPrecision: 2)
      // "3:50:32.44"
-     
+
      duration = TimeDuration.seconds(-90)
      duration.formattedTimecode()
      // "-1:30"
-     
+
      duration = TimeDuration.seconds(90)
      duration.formattedTimecode(signDisplay: .always)
      // "+1:30"
      duration.formattedTimecode(signDisplay: .always)
      // "+1:30"
-     
+
      duration = TimeDuration.seconds(59.125)
      duration.formattedTimecode(subsecondsPrecision: 3, separator: ":", subsecondSeparator: ",")
      // "59,125"
      ```
      */
-    public func timecodeString(
-        format: TimeCodeFormat = .compact,
-        signDisplay: TimeCodeSignDisplay = .automatic,
-        subsecondsPrecision: Int = 0,
-        separator: String = ":",
-        subsecondSeparator: String = ".",
-        padsFirstUnit: Bool = false
-    ) -> String {
+    public func timecodeString(format: TimeCodeFormat = .compact, signDisplay: TimeCodeSignDisplay = .automatic, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ".", padsFirstUnit: Bool = false) -> String {
         let precision = max(0, subsecondsPrecision)
         let scale = Int(pow(10.0, Double(precision)))
 
@@ -773,13 +784,13 @@ extension TimeDuration: CustomStringConvertible {
 
     func allCurrentUnits() -> [Unit] {
         var units: [Unit] = []
-        if years >= 1 { units.append(.year) }
-        if months >= 1 { units.append(.month) }
-        if weeks >= 1 { units.append(.week) }
-        if days >= 1 { units.append(.day) }
-        if hours >= 1 { units.append(.hour) }
-        if minutes >= 1 { units.append(.minute) }
-        units.append(.second)
+        if years >= 1 { units += .year }
+        if months >= 1 { units += .month }
+        if weeks >= 1 { units += .week }
+        if days >= 1 { units += .day }
+        if hours >= 1 { units += .hour }
+        if minutes >= 1 { units += .minute }
+        units += .second
         return units
     }
 
@@ -830,7 +841,7 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
     public static func * <V: BinaryInteger>(lhs: TimeDuration, rhs: V) -> TimeDuration {
         TimeDuration(lhs.seconds * Double(rhs))
     }
-    
+
     /// Multiplies the time duration and produces their product, rounding to a representable value.
     public static func *= <V: BinaryInteger>(lhs: inout TimeDuration, rhs: V) {
         lhs.seconds = lhs.seconds * Double(rhs)
@@ -840,23 +851,22 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
     public static func / (lhs: TimeDuration, rhs: TimeDuration) -> Double {
         lhs.seconds / rhs.seconds
     }
-    
+
     /// Returns the quotient of dividing the first time duration by the second, rounded to a representable value.
     public static func /= (lhs: inout TimeDuration, rhs: TimeDuration) {
         lhs.seconds = lhs.seconds / rhs.seconds
     }
 }
 
-extension DispatchTime {
-    public static func + (lhs: Self, rhs: TimeDuration) -> Self {
+public extension DispatchTime {
+    static func + (lhs: Self, rhs: TimeDuration) -> Self {
         lhs + rhs.seconds
     }
 
-    public static func += (lhs: inout Self, rhs: TimeDuration) {
+    static func += (lhs: inout Self, rhs: TimeDuration) {
         lhs = lhs + rhs
     }
 }
-
 
 public extension Collection where Element == TimeDuration {
     /**
@@ -865,7 +875,7 @@ public extension Collection where Element == TimeDuration {
      - Returns: A `TimeDuration` instance representing the average duration. If the collection is empty, it returns `zerp`.
      */
     func average() -> TimeDuration {
-        TimeDuration(map({$0.seconds}).average())
+        TimeDuration(map { $0.seconds }.average())
     }
 }
 
@@ -1009,7 +1019,7 @@ public class __TimeDuration: NSObject, NSCopying, NSCoding {
     init(seconds: Double) {
         self.seconds = seconds
     }
-    
+
     public func encode(with coder: NSCoder) {
         coder.encode(seconds, forKey: "seconds")
     }
@@ -1021,61 +1031,113 @@ public class __TimeDuration: NSObject, NSCopying, NSCoding {
     public func copy(with zone: NSZone? = nil) -> Any {
         self
     }
-    
-    public override func isEqual(_ object: Any?) -> Bool {
+
+    override public func isEqual(_ object: Any?) -> Bool {
         guard let other = object as? Self else { return false }
         return self === other || seconds == other.seconds
     }
-    
-    public override var hash: Int {
+
+    override public var hash: Int {
         Hasher.hash(seconds)
     }
 }
 
 /*
-extension TimeDuration {
-    public enum TimeCodeFormatAlt {
-        /// Hours with at least two digits, minutes and seconds (`01:23:45` or `04:33:10`).
-        case full
-        /// Hours witho one or more digits,  minutes and seconds (`1:23:45` or `4:33:10`).
-        case fullUnpadded
-        /// Minutes and seconds, and hours only if non-zero; with at least two digits for the first unit (`03:45` or `4:33:10`).
-        case compact
-        /// Minutes and seconds, and hours only if non-zero; with one or more digits for the first unit (`3:45` or `4:33:10`).
-        case compactUnpadded
-        /// Uses only the necessary units (`44`, `23:45` or `4:33:10`).
-        case short
-    }
-    
-    public func timecodeString(format: TimeCodeFormatAlt = .compact, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
-        let totalSeconds = Int(seconds)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        
-        let showHours = format == .full || format == .fullUnpadded || ((format == .short || format == .compact || format == .compactUnpadded) && hours > 0)
-        let showMinutes = format != .short || (showHours || minutes > 0)
-        
-        return timecodeString(showHours: showHours, showMinutes: showMinutes, showSeconds: true, omitLeadingZeroInFirstUnit: format == .fullUnpadded || format == .compactUnpadded, subsecondsPrecision: subsecondsPrecision, separator: separator, subsecondSeparator: subsecondSeparator)
-    }
-}
-*/
+ extension TimeDuration {
+     public enum TimeCodeFormatAlt {
+         /// Hours with at least two digits, minutes and seconds (`01:23:45` or `04:33:10`).
+         case full
+         /// Hours witho one or more digits,  minutes and seconds (`1:23:45` or `4:33:10`).
+         case fullUnpadded
+         /// Minutes and seconds, and hours only if non-zero; with at least two digits for the first unit (`03:45` or `4:33:10`).
+         case compact
+         /// Minutes and seconds, and hours only if non-zero; with one or more digits for the first unit (`3:45` or `4:33:10`).
+         case compactUnpadded
+         /// Uses only the necessary units (`44`, `23:45` or `4:33:10`).
+         case short
+     }
 
-fileprivate extension TimeDuration {
+     public func timecodeString(format: TimeCodeFormatAlt = .compact, omitLeadingZeroInFirstUnit: Bool = true, subsecondsPrecision: Int = 0, separator: String = ":", subsecondSeparator: String = ",") -> String {
+         let totalSeconds = Int(seconds)
+         let hours = totalSeconds / 3600
+         let minutes = (totalSeconds % 3600) / 60
+
+         let showHours = format == .full || format == .fullUnpadded || ((format == .short || format == .compact || format == .compactUnpadded) && hours > 0)
+         let showMinutes = format != .short || (showHours || minutes > 0)
+
+         return timecodeString(showHours: showHours, showMinutes: showMinutes, showSeconds: true, omitLeadingZeroInFirstUnit: format == .fullUnpadded || format == .compactUnpadded, subsecondsPrecision: subsecondsPrecision, separator: separator, subsecondSeparator: subsecondSeparator)
+     }
+ }
+ */
+
+private extension TimeDuration {
     static func swizzleFormatters() {
         guard formatterHooks.isEmpty else { return }
         do {
             formatterHooks += try DateComponentsFormatter.hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
                 original, formatter, selector, object in
-                (object as? TimeDuration).map({ formatter.string(from: $0.seconds) }) ?? original(formatter, selector, object)
+                (object as? TimeDuration).map { formatter.string(from: $0.seconds) } ?? original(formatter, selector, object)
             } as @convention(block) ((DateComponentsFormatter, Selector, Any) -> String?, DateComponentsFormatter, Selector, Any) -> String?)
             formatterHooks += try RelativeDateTimeFormatter.hook(all: #selector(RelativeDateTimeFormatter.string(for:)), closure: {
                 original, formatter, selector, object in
-                (object as? TimeDuration).map({ formatter.localizedString(fromTimeInterval: $0.seconds) }) ?? original(formatter, selector, object)
+                (object as? TimeDuration).map { formatter.localizedString(fromTimeInterval: $0.seconds) } ?? original(formatter, selector, object)
             } as @convention(block) ((RelativeDateTimeFormatter, Selector, Any) -> String?, RelativeDateTimeFormatter, Selector, Any) -> String?)
         } catch {
             Swift.print(error)
         }
     }
-    
+
     static var formatterHooks: [Hook] = []
 }
+
+/*
+@available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 1.0, *)
+extension TimeDuration {
+    func allCurrentFields() -> [Date.RelativeFormatStyle.Field] {
+        var units: [Date.RelativeFormatStyle.Field] = []
+        if years >= 1 { units.append(.year) }
+        if months >= 1 { units.append(.month) }
+        if weeks >= 1 { units.append(.week) }
+        if days >= 1 { units.append(.day) }
+        if hours >= 1 { units.append(.hour) }
+        if minutes >= 1 { units.append(.minute) }
+        units.append(.second)
+        return units
+    }
+
+    func preferredFields(compact: Bool = true) -> [Date.RelativeFormatStyle.Field] {
+        let currentUnits = allCurrentFields()
+        if compact == false, currentUnits.count >= 3 {
+            return Array(currentUnits[0 ..< 3])
+        } else if currentUnits.count >= 2 {
+            return Array(currentUnits[0 ..< 2])
+        } else {
+            return [.second]
+        }
+    }
+}
+
+@available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 1.0, *)
+extension TimeDuration.Units {
+    var field: Date.RelativeFormatStyle.Field? {
+        switch self {
+        case .second: return .second
+        case .minute: return .minute
+        case .hour: return .hour
+        case .day: return .day
+        case .week: return .week
+        case .month: return .month
+        case .year: return .year
+        default: return nil
+        }
+    }
+
+    func fields(for duration: TimeDuration) -> Set<Date.RelativeFormatStyle.Field> {
+        var fields = Self.allCases.compactMap { contains($0) ? $0.field : nil }
+        if self == .allDetailed { fields += elements().compactMap(\.field) }
+        if contains(.all) { fields += duration.preferredFields(compact: false) }
+        if contains(.allCompact) { fields += duration.preferredFields(compact: true) }
+        return Set(fields.uniqued())
+    }
+}
+*/

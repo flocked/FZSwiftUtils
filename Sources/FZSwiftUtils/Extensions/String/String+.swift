@@ -104,6 +104,11 @@ public extension StringProtocol {
     func nsRange<S: StringProtocol>(of string: S, options: String.CompareOptions = [], range: Range<Self.Index>? = nil, locale: Locale? = nil) -> NSRange? {
         self.range(of: string, options: options, range: range, locale: locale).map(nsRange(for:))
     }
+    
+    /// A Boolean value indicating whether the string is equal to the specified string, comparing them using the specified options and locale.
+    func isEqual<S: StringProtocol>(to string: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
+        compare(string, options: options, locale: locale).isEqual
+    }
 }
 
 public extension StringProtocol {

@@ -7,6 +7,42 @@
 
 import Foundation
 
+public extension Calendar {
+    /// Sets the time zone of the calendar.
+    func timeZone(_ timeZone: TimeZone) -> Self {
+        var calendar = self
+        calendar.timeZone = timeZone
+        return calendar
+    }
+    
+    /// Sets the locale of the calendar.
+    func locale(_ locale: Locale?) -> Self {
+        var calendar = self
+        calendar.locale = locale
+        return calendar
+    }
+    
+    /// Sets the first day of the week for the calendar.
+    func firstWeekday(_ firstWeekday: Int) -> Self {
+        var calendar = self
+        calendar.firstWeekday = firstWeekday
+        return calendar
+    }
+    
+    
+    /// Sets the number of minimum days in the first week.
+    func minimumDaysInFirstWeek(_ minimumDays: Int) -> Self {
+        var calendar = self
+        calendar.minimumDaysInFirstWeek = minimumDays
+        return calendar
+    }
+    
+    /// The calendar as `NSCalendar`.
+    var nsCalendar: NSCalendar {
+        self as NSCalendar
+    }
+}
+
 extension Calendar.Component: Swift.CaseIterable {
     /// Returns an array containing all calendar components.
     public static var allCases: [Calendar.Component] {
@@ -80,12 +116,5 @@ public extension Calendar.Component {
         case .nanosecond: return 1e-9
         default: return nil
         }
-    }
-}
-
-public extension Calendar {
-    /// The calendar as `NSCalendar`.
-    var nsCalendar: NSCalendar {
-        self as NSCalendar
     }
 }

@@ -7,6 +7,93 @@
 
 import Foundation
 
+/// A type that can be initialized from a locale-formatted string.
+public protocol LocaleStringConvertible {
+    /**
+     Creates an instance by parsing the specified locale-formatted string.
+
+     - Parameters:
+        - string: The locale-formatted string to parse.
+        - locale: The locale used to parse the string.
+     */
+    init?(localized string: String, locale: Locale)
+    
+    /**
+     Returns a locale-formatted string representation of the value.
+
+     - Parameter locale: The locale used to format the string.
+     - Returns: A locale-formatted string representation of the value.
+     */
+    func localized(locale: Locale) -> String
+}
+
+public extension LocaleStringConvertible {
+    init?(localized string: String, locale: Locale = .current) {
+        guard let number = NumberFormatter.decimal.locale(locale).number(from: string), let value = (Self.self as? NSNumberConvertible.Type)?.init(truncating: number) as? Self else {  return nil }
+        self = value
+    }
+    
+    func localized(locale: Locale = .current) -> String {
+        NumberFormatter.decimal.locale(locale).string(for: self)!
+    }
+}
+
+public extension LocaleStringConvertible where Self: FloatingPoint {
+    init?(localized string: String, locale: Locale = .current) {
+        switch string.lowercased() {
+        case ".inf", "+.inf":
+            self = .infinity
+        case "-.inf":
+            self = -.infinity
+        case ".nan":
+            self = .nan
+        default:
+            guard let number = NumberFormatter.decimal.locale(locale).number(from: string), let value = (Self.self as? NSNumberConvertible.Type)?.init(truncating: number) as? Self else {  return nil }
+            self = value
+        }
+    }
+
+    func localized(locale: Locale = .current) -> String {
+        if isNaN {  return ".nan" }
+        if isInfinite { return sign == .minus ? "-.inf" : ".inf" }
+        return NumberFormatter.decimal.locale(locale).string(for: self)!
+    }
+}
+
+extension Int: LocaleStringConvertible { }
+extension Int8: LocaleStringConvertible {}
+extension Int16: LocaleStringConvertible {}
+extension Int32: LocaleStringConvertible {}
+extension Int64: LocaleStringConvertible {}
+extension UInt: LocaleStringConvertible {}
+extension UInt8: LocaleStringConvertible {}
+extension UInt16: LocaleStringConvertible {}
+extension UInt32: LocaleStringConvertible {}
+extension UInt64: LocaleStringConvertible {}
+extension Float: LocaleStringConvertible {}
+extension Double: LocaleStringConvertible {}
+extension CGFloat: LocaleStringConvertible {}
+extension Bool: LocaleStringConvertible {}
+
+fileprivate protocol NSNumberConvertible {
+    init(truncating: NSNumber)
+}
+
+extension Int: NSNumberConvertible {}
+extension Int8: NSNumberConvertible {}
+extension Int16: NSNumberConvertible {}
+extension Int32: NSNumberConvertible {}
+extension Int64: NSNumberConvertible {}
+extension UInt: NSNumberConvertible {}
+extension UInt8: NSNumberConvertible {}
+extension UInt16: NSNumberConvertible {}
+extension UInt32: NSNumberConvertible {}
+extension UInt64: NSNumberConvertible {}
+extension Float: NSNumberConvertible {}
+extension Double: NSNumberConvertible {}
+extension CGFloat: NSNumberConvertible {}
+extension Bool: NSNumberConvertible {}
+
 public extension NumberFormatter {
     /**
      Returns a value of a specified number type extracted from the given string.
