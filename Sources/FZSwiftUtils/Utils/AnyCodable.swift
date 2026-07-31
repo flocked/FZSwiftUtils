@@ -16,7 +16,7 @@ import Foundation
 @frozen public struct AnyCodable: Codable {
     public let value: Any
 
-    public init<T>(_ value: T?) {
+    public init(_ value: Any?) {
         self.value = value ?? ()
     }
 }
@@ -177,7 +177,7 @@ extension AnyCodable: Hashable {
 @frozen public struct AnyDecodable: Decodable {
     public let value: Any
 
-    public init<T>(_ value: T?) {
+    public init(_ value: Any?) {
         self.value = value ?? ()
     }
 }
@@ -185,7 +185,7 @@ extension AnyCodable: Hashable {
 @usableFromInline
 protocol _AnyDecodable {
     var value: Any { get }
-    init<T>(_ value: T?)
+    init(_ value: Any?)
 }
 
 extension AnyDecodable: _AnyDecodable {}
@@ -193,22 +193,13 @@ extension AnyDecodable: _AnyDecodable {}
 extension _AnyDecodable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
-
         if container.decodeNil() {
             self.init(NSNull())
-        } else if let bool = try? container.decode(Bool.self) {
-            self.init(bool)
-        } else if let int = try? container.decode(Int.self) {
-            self.init(int)
-        } else if let uint = try? container.decode(UInt.self) {
-            self.init(uint)
-        } else if let double = try? container.decode(Double.self) {
-            self.init(double)
-        } else if let string = try? container.decode(String.self) {
-            self.init(string)
+        } else if let value = try? container.decode(AnyDecodable.self) {
+            self.init(value.value)
         } else if let array = try? container.decode([AnyDecodable].self) {
             self.init(array.map { $0.value })
-        } else if let dictionary = try? container.decode([String: AnyDecodable].self) {
+        } else if let dictionary = try? container.decode([AnyDecodable: AnyDecodable].self) {
             self.init(dictionary.mapValues { $0.value })
         } else {
             throw DecodingError.dataCorruptedError(in: container, debugDescription: "AnyDecodable value cannot be decoded")
@@ -353,7 +344,7 @@ extension AnyDecodable: Hashable {
 @frozen public struct AnyEncodable: Encodable {
     public let value: Any
 
-    public init<T>(_ value: T?) {
+    public init(_ value: Any?) {
         self.value = value ?? ()
     }
 }
@@ -361,7 +352,7 @@ extension AnyDecodable: Hashable {
 @usableFromInline
 protocol _AnyEncodable {
     var value: Any { get }
-    init<T>(_ value: T?)
+    init(_ value: Any?)
 }
 
 extension AnyEncodable: _AnyEncodable {}
@@ -374,10 +365,6 @@ extension _AnyEncodable {
         switch value {
         case is Void, is NSNull:
             try container.encodeNil()
-        case let array as [Any?]:
-            try container.encode(array.map(AnyEncodable.init))
-        case let dictionary as [String: Any?]:
-            try container.encode(dictionary.mapValues(AnyEncodable.init))
         case let value as any Encodable:
             try container.encode(value)
         default:
@@ -385,10 +372,6 @@ extension _AnyEncodable {
         }
     }
 }
-
-fileprivate protocol AnyEncodableContainer: Encodable { }
-extension Array: AnyEncodableContainer where Element: Encodable { }
-extension Dictionary: AnyEncodableContainer where Key: Encodable, Value: Encodable { }
 
 extension AnyEncodable: Equatable {
     public static func == (lhs: AnyEncodable, rhs: AnyEncodable) -> Bool {
