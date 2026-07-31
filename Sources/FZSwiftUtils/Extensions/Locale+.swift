@@ -7,80 +7,88 @@
 
 import Foundation
 
+public extension Locale {
+    /**
+     Returns the localized display name for the specified locale.
 
-extension Locale {
-    /// The localized display name.
-    public var localizedDisplayName: String? {
-        if identifier.hasPrefix("zh-Han") {
-            guard let trimmed = localizedString(forIdentifier: identifier)?.replacingOccurrences(of: "[（）]", with: "", options: .regularExpression) else { return nil }
-            return String(trimmed.suffix(2) + trimmed.prefix(2))
-        } else {
-            return localizedString(forIdentifier: identifier)
+     For Chinese locales, the display name is adjusted by removing full-width parentheses and reordering its components.
+
+     - Parameter locale: The locale to localize.
+     - Returns: The localized display name, or `nil` if not available.
+     */
+    func localizedDisplayName(for locale: Locale) -> String? {
+        guard var displayName = localizedString(forIdentifier: locale.identifier) else { return nil }
+        if locale.scriptCode == "Hans" || locale.scriptCode == "Hant" {
+            displayName = displayName.removingOccurrences(ofPattern: "[（）]")
+            if displayName.count >= 4 {
+                displayName = String(displayName.suffix(2) + displayName.prefix(2))
+            }
         }
+        return displayName
     }
-    
-    /// Returns the localized display name for the specified locale.
-    public func localizedDisplayName(for locale: Locale) -> String? {
-        if locale.identifier.hasPrefix("zh-Han") {
-            guard let trimmed = localizedString(forIdentifier: locale.identifier)?.replacingOccurrences(of: "[（）]", with: "", options: .regularExpression) else { return nil }
-            return String(trimmed.suffix(2) + trimmed.prefix(2))
-        } else {
-            return localizedString(forIdentifier: locale.identifier)
-        }
-    }
-    
-    /// Returns the localized display name in the specified locale.
-    public func localizedDisplayName(in locale: Locale) -> String? {
+
+    /**
+     Returns the localized display name of the receiver in the specified locale.
+
+     - Parameter locale: The locale to use for localization.
+     - Returns: The localized display name, or `nil` if not available.
+     */
+    func localizedDisplayName(byLocalizingTo locale: Locale) -> String? {
         locale.localizedDisplayName(for: self)
     }
-    
-    /**
-     Returns the localized string by localizing the specified locale to the receiver's locale.
-     
-     For example, if the receiver is “en” locale:
-        - "es" locale returns "Spanish"
-        - "fr" locale returns "French"
-        - "ja" locale returns "Japanese"
 
-     - Parameter locale: The `Locale`
-     - Returns: A localized string for the specified locale, or `nil` if not available.
+    /// The localized display name of the receiver in the autoupdating current locale.
+    var localizedDisplayName: String? {
+        localizedDisplayName(byLocalizingTo: .autoupdatingCurrent)
+    }
+
+    /**
+     Returns the localized name for the specified locale in the receiver's locale.
+
+     For example, if the receiver is the English locale:
+     - The Spanish locale returns `"Spanish"`.
+     - The French locale returns `"French"`.
+     - The Japanese locale returns `"Japanese"`.
+
+     - Parameter locale: The locale to localize.
+     - Returns: The localized name, or `nil` if not available.
      */
-    public func localizedString(for locale: Locale) -> String? {
+    func localizedString(for locale: Locale) -> String? {
         localizedString(forIdentifier: locale.identifier)
     }
-    
-    /**
-     Returns the localized string by localizing the receiver's locale to the specified locale.
-          
-     For example, if the receiver is “en” locale:
-        - "es" locale returns "español"
-        - "fr" locale returns "français"
-        - "ja" locale returns "日本語"
 
-     - Parameter locale: The `Locale` to localize to.
-     - Returns: A localized string by localizing to the specified locale, or `nil` if not available.
+    /**
+     Returns the localized name of the receiver in the specified locale.
+
+     For example, if the receiver is the English locale:
+     - Localizing to the Spanish locale returns `"inglés"`.
+     - Localizing to the French locale returns `"anglais"`.
+     - Localizing to the Japanese locale returns `"英語"`.
+
+     - Parameter locale: The locale to use for localization.
+     - Returns: The localized name, or `nil` if not available.
      */
-    public func localizedString(byLocalizingTo locale: Locale) -> String? {
+    func localizedString(byLocalizingTo locale: Locale) -> String? {
         locale.localizedString(for: self)
     }
-    
-    /// Returns the localized string by localizing the receiver's locale to the `.current` locale.
-    public var localizedString: String? {
-        localizedString(byLocalizingTo:.autoupdatingCurrent)
+
+    /// The localized name of the receiver in the autoupdating current locale.
+    var localizedString: String? {
+        localizedString(byLocalizingTo: .autoupdatingCurrent)
     }
     
-    /// A locale representing the user system's primary language.
-    public static var system: Locale {
-        return Locale(identifier: preferredLanguages.first ?? "en")
+    /// A locale representing the user's preferred language.
+    static var system: Locale {
+        Locale(identifier: preferredLanguages.first ?? "en")
     }
     
     /// An array of available locales.
-    public static var available: [Locale] {
+    static var available: [Locale] {
         availableIdentifiers.map(Locale.init(identifier:))
     }
 
     /// An array of locales for the user's preferred languages.
-    public static var preferred: [Locale] {
+    static var preferred: [Locale] {
         preferredLanguages.map(Locale.init(identifier:))
     }
     
@@ -89,7 +97,7 @@ extension Locale {
 
      For example, `en_US` becomes `en` and `de_CH` becomes `de`.
      */
-    public var base: Locale {
+    var base: Locale {
         languageCode.map({ Locale(identifier: $0) }) ?? self
     }
     
@@ -98,7 +106,7 @@ extension Locale {
 
      For example, the `en` locale includes variants such as `en_US`, `en_GB`, and `en_AU`.
      */
-    public var regionalVariants: [Locale] {
+    var regionalVariants: [Locale] {
         Locale.available.grouped(by: \._languageCode)[_languageCode]?.filter { $0.regionCode != nil } ?? []
     }
     
@@ -110,7 +118,7 @@ extension Locale {
 @available(macOS 13.0, iOS 16.0, tvOS 16.0, watchOS 9.0, visionOS 1.0, *)
 public extension Locale {
     /// Creates a locale with the specified language code, script, and region identifier.
-    init(_ languageCode: Locale.LanguageCode?, script: Locale.Script? = nil, languageRegion: Locale.Region? = nil) {
+    init(_ languageCode: LanguageCode?, script: Script? = nil, languageRegion: Region? = nil) {
         self = Locale(languageCode: languageCode, script: script, languageRegion: languageRegion)
     }
     
@@ -160,7 +168,7 @@ public extension Locale {
     }
     
     /// A type that represents a continent, for use in specifying a locale.
-    struct Continent: RawRepresentable, Hashable, Codable, Sendable, CaseIterable {
+    struct Continent: RawRepresentable, Hashable, Codable, Sendable, CustomStringConvertible, CaseIterable {
         /// Europe.
         public static let europe = Self(rawValue: "150")
         /// Americas.
@@ -175,6 +183,18 @@ public extension Locale {
         public static let unknown = Self(rawValue: "ZZ")
         
         public static let allCases: [Self] = [.africa, .americas, .asia, .europe, .oceania, .unknown]
+        
+        public var description: String {
+            switch self {
+            case .europe: "europe"
+            case .americas: "americas"
+            case .africa: "africa"
+            case .oceania: "oceania"
+            case .asia: "asia"
+            case .unknown: "unknown"
+            default: rawValue
+            }
+        }
         
         public var rawValue: String
         
