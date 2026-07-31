@@ -412,6 +412,6 @@ extension Double: JSONSerializable {}
 extension Bool: JSONSerializable {}
 extension NSNull: JSONSerializable {}
 extension NSNumber: JSONSerializable {}
-extension Array: JSONSerializable where Element == (any JSONSerializable) {}
-extension Dictionary: JSONSerializable where Key == String, Value == (any JSONSerializable) {}
+extension [any JSONSerializable]: JSONSerializable {}
+extension [String: any JSONSerializable]: JSONSerializable {}
 extension Optional: JSONSerializable where Wrapped: JSONSerializable {}
