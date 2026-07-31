@@ -7,26 +7,6 @@
 
 import Foundation
 
-extension DecodingError.Context: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral, Swift.ExpressibleByUnicodeScalarLiteral {
-    public init(stringLiteral value: String) {
-        self.init(codingPath: [], debugDescription: value)
-    }
-    
-    public init(_ debugDescription: String) {
-        self.init(codingPath: [], debugDescription: debugDescription)
-    }
-}
-
-extension EncodingError.Context: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral, Swift.ExpressibleByUnicodeScalarLiteral {
-    public init(stringLiteral value: String) {
-        self.init(codingPath: [], debugDescription: value)
-    }
-    
-    public init(_ debugDescription: String) {
-        self.init(codingPath: [], debugDescription: debugDescription)
-    }
-}
-
 public extension DecodingError {
     /**
      An indication that the given value could not be decoded because it did not match the type of what was found in the encoded payload or is missing.
@@ -60,5 +40,66 @@ public extension DecodingError {
             let context = Context(codingPath: codingPath, debugDescription: "No value associated with key \(key.stringValue).")
             return .keyNotFound(key, context)
         }
+    }
+    
+    /// An indication that the data is corrupted or otherwise invalid.
+    static func dataCorrupted(at codingPath: [CodingKey], debugDescription: String, underlyingError: Error? = nil) -> Self {
+        dataCorrupted(.init(codingPath: codingPath, debugDescription: debugDescription, underlyingError: underlyingError))
+    }
+    
+    /// An indication that a keyed decoding container was asked for an entry for the given key, but did not contain one.
+    static func keyNotFound(_ key: CodingKey, at codingPath: [CodingKey], debugDescription: String, underlyingError: Error? = nil) -> Self {
+        keyNotFound(key, .init(codingPath: codingPath, debugDescription: debugDescription, underlyingError: underlyingError))
+    }
+    
+    /// An indication that a value of the given type could not be decoded because it did not match the type of what was found in the encoded payload.
+    static func typeMismatch(_ value: Any.Type, at codingPath: [CodingKey], debugDescription: String, underlyingError: Error? = nil) -> Self {
+        typeMismatch(value, .init(codingPath: codingPath, debugDescription: debugDescription, underlyingError: underlyingError))
+    }
+    
+    /// An indication that a non-optional value of the given type was expected, but a null value was found.
+    static func valueNotFound(_ value: Any.Type, at codingPath: [CodingKey], debugDescription: String, underlyingError: Error? = nil) -> Self {
+        valueNotFound(value, .init(codingPath: codingPath, debugDescription: debugDescription, underlyingError: underlyingError))
+    }
+}
+
+extension DecodingError.Context: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral, Swift.ExpressibleByUnicodeScalarLiteral {
+    public init(stringLiteral value: String) {
+        self.init(codingPath: [], debugDescription: value)
+    }
+    
+    /**
+     Creates a new context with the given description of what went wrong.
+     
+     - Parameters:
+        - debugDescription: A description of what went wrong, for debugging purposes.
+        - underlyingError: The underlying error which caused this error, if any.
+     */
+    public init(debugDescription: String, underlyingError: Error? = nil) {
+        self.init(codingPath: [], debugDescription: debugDescription, underlyingError: underlyingError)
+    }
+}
+
+public extension EncodingError {
+    /// An indication that an encoder or its containers could not encode the given value.
+    static func invalidValue(_ value: Any, at codingPath: [CodingKey], debugDescription: String, underlyingError: Error? = nil) -> Self {
+        invalidValue(value, .init(codingPath: codingPath, debugDescription: debugDescription, underlyingError: underlyingError))
+    }
+}
+
+extension EncodingError.Context: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByExtendedGraphemeClusterLiteral, Swift.ExpressibleByUnicodeScalarLiteral {
+    public init(stringLiteral value: String) {
+        self.init(codingPath: [], debugDescription: value)
+    }
+    
+    /**
+     Creates a new context with the given description of what went wrong.
+     
+     - Parameters:
+        - debugDescription: A description of what went wrong, for debugging purposes.
+        - underlyingError: The underlying error which caused this error, if any.
+     */
+    public init(debugDescription: String, underlyingError: Error? = nil) {
+        self.init(codingPath: [], debugDescription: debugDescription, underlyingError: underlyingError)
     }
 }
