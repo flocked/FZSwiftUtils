@@ -158,8 +158,8 @@ public extension Locale {
     }
     
     /// The continent that contains this locale.
-    var continent: Continent {
-        region?.continent.map({ Continent(rawValue: $0) }) ?? .unknown
+    var continent: Continent? {
+        region?.continent.map({ Continent(rawValue: $0) })
     }
     
     /// Returns a localized string for the specified continent.
@@ -179,10 +179,8 @@ public extension Locale {
         public static let oceania: Self = "009"
         /// Asia.
         public static let asia: Self = "142"
-        /// Unknown.
-        public static let unknown: Self = "ZZ"
         
-        public static let allCases: [Self] = [.africa, .americas, .asia, .europe, .oceania, .unknown]
+        public static let allCases: [Self] = [.africa, .americas, .asia, .europe, .oceania]
         
         public var description: String {
             switch self {
@@ -191,7 +189,6 @@ public extension Locale {
             case .africa: "africa"
             case .oceania: "oceania"
             case .asia: "asia"
-            case .unknown: "unknown"
             default: rawValue.identifier
             }
         }
@@ -302,8 +299,8 @@ public extension Locale {
         public var rawValue: Region
         
         /// The continent containing the subregion.
-        public var continent: Continent {
-            rawValue.continent.map { Continent(rawValue: $0) } ?? .unknown
+        public var continent: Continent? {
+            rawValue.continent.map { Continent(rawValue: $0) }
         }
 
         public init(rawValue: Region) {
@@ -312,6 +309,12 @@ public extension Locale {
         
         public init(stringLiteral value: String) {
             self.rawValue = Region(value)
+        }
+        
+        /// The locales whose regions are located in the subregion.
+        public var locales: [Locale] {
+            let regions = Set(rawValue.subRegions)
+            return Locale.available.filter { $0.region.map(regions.contains) ?? false }.uniqued().sorted(by: \.identifier)
         }
     }
    
