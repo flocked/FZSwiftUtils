@@ -373,10 +373,32 @@ extension _AnyEncodable {
         switch value {
         case is Void, is NSNull:
             try container.encodeNil()
+        case let value as [Any]:
+            try container.encode(value.map({ AnyCodable($0) }))
+        case let value as [AnyHashable: Any]:
+            try container.encode(value.mapKeys({$0.encodable}).mapValues({ AnyCodable($0) }))
         case let value as any Encodable:
             try container.encode(value)
         default:
             throw EncodingError.invalidValue(value, at: encoder.codingPath, debugDescription: "\(type(of: value)) cannot be encoded by AnyEncodable.")
+        }
+    }
+}
+
+fileprivate extension AnyHashable {
+    var encodable: EncodableValue {
+        EncodableValue(value: self)
+    }
+    
+    struct EncodableValue: Encodable, Hashable {
+        let value: AnyHashable
+        
+        func encode(to encoder: any Encoder) throws {
+            guard let value = value.base as? Encodable else {
+                throw EncodingError.invalidValue(value.base, at: [], debugDescription: "")
+            }
+            var container = encoder.singleValueContainer()
+            try container.encode(value)
         }
     }
 }
