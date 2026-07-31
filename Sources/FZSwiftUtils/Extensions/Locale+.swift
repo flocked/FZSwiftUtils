@@ -198,6 +198,11 @@ public extension Locale {
         
         public let rawValue: Region
         
+        /// The subregions of the continent.
+        public var subregions: [Subregion] {
+            rawValue.subRegions.map({ Subregion(rawValue: $0) })
+        }
+        
         public init(rawValue: Region) {
             self.rawValue = rawValue
         }
@@ -210,11 +215,6 @@ public extension Locale {
         public var locales: [Locale] {
             Locale.available.filter({ $0.continent == self }).sorted(by: \.identifier)
         }
-    }
-    
-    /// The subregions containing the locale's region.
-    var subregions: [Subregion] {
-        region?.subRegions.map { Subregion(rawValue: $0) } ?? []
     }
     
     /// Returns a localized string for the specified subregion.
@@ -298,6 +298,11 @@ public extension Locale {
         }
         
         public var rawValue: Region
+        
+        /// The continent containing the subregion.
+        public var continent: Continent {
+            rawValue.continent.map { Continent(rawValue: $0) } ?? .unknown
+        }
 
         public init(rawValue: Region) {
             self.rawValue = rawValue
