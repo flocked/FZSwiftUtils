@@ -46,11 +46,6 @@ public struct ObjCMethod {
         method_getTypeEncoding(method)?.string
     }
     
-    /// The method description.
-    public var description: objc_method_description {
-        method_getDescription(method).pointee
-    }
-    
     /**
      Returns runtime origin information for the method.
 
@@ -58,7 +53,7 @@ public struct ObjCMethod {
      The returned `symbolName` is the symbol name associated with the method.
      The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
      */
-    public func origin() -> (imagePath: String?, symbolName: String?, categoryName: String?) {
+    public func origin() -> (imagePath: String?, categoryName: String?, symbolName: String?) {
         ObjCRuntime.origin(of: method)
     }
 }
