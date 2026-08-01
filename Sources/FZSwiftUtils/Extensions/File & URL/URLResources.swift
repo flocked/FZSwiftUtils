@@ -441,7 +441,6 @@ extension URLResources {
         _ = predicate(.file("_prefetchCheck_\(prefetchID)"), 0, &shouldStop)
         iteratorKeysLock.lock()
         defer { iteratorKeysLock.unlock() }
-        iteratorKeys[prefetchID]!.asArray
         return Array(iteratorKeys.removeValue(forKey: prefetchID) ?? [])
     }
 }

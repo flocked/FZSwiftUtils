@@ -103,7 +103,7 @@ public extension PropertyListSerialization {
         var format = PropertyListFormat.binary
         let propertyList: Any = try propertyList(from: data, format: &format)
         guard let propertyList = propertyList as? T else {
-            throw DecodingError.typeMismatch(type(of: propertyList), .init(codingPath: [], debugDescription: "The property list has the wrong type."))
+            throw DecodingError.typeMismatch(type(of: propertyList), at: [], debugDescription: "The property list has the wrong type.")
         }
         return (propertyList, format)
     }

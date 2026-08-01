@@ -24,7 +24,7 @@ public extension Decoder {
     /// Decodes a null value.
     func decodeNil() throws {
         guard try singleValueContainer().decodeNil() else {
-            throw DecodingError.typeMismatch(NSNull.self, DecodingError.Context(codingPath: codingPath, debugDescription: "Expected null"))
+            throw DecodingError.typeMismatch(NSNull.self, at: codingPath)
         }
     }
 }

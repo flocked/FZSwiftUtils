@@ -49,7 +49,7 @@ public enum PropertyWrapperStrategies {
     public struct ISO8601: DateValueCodableStrategy {
         public static func decode(_ value: String) throws -> Date {
             guard let date = ISO8601DateFormatter().date(from: value) else {
-                throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid Date Format!"))
+                throw DecodingError.dataCorrupted(at: [], debugDescription: "Invalid Date Format!")
             }
             return date
         }
@@ -72,7 +72,7 @@ public enum PropertyWrapperStrategies {
             if let date = YearMonthDay.dateFormatter.date(from: value) {
                 return date
             } else {
-                throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Invalid Date Format!"))
+                throw DecodingError.dataCorrupted(at: [], debugDescription: "Invalid Date Format!")
             }
         }
 

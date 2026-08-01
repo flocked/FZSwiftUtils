@@ -1,5 +1,5 @@
 import Foundation
 
-internal protocol DictionaryComponentContainer {
+internal protocol DictionaryEncoderContainer {
     func resolveValue() -> Any?
 }

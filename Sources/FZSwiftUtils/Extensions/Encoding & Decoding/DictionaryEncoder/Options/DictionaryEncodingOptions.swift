@@ -1,11 +1,11 @@
 import Foundation
 
 extension DictionaryEncoder {
-    internal struct Options {
-        internal var dateEncodingStrategy: DateEncodingStrategy
-        internal var dataEncodingStrategy: DataEncodingStrategy
-        internal var nonConformingFloatEncodingStrategy: NonConformingFloatEncodingStrategy
-        internal var nilEncodingStrategy: NilEncodingStrategy
-        internal var keyEncodingStrategy: KeyEncodingStrategy
+    internal struct Strategies {
+        var date: DateEncodingStrategy
+        var data: DataEncodingStrategy
+        var nonConformingFloat: NonConformingFloatEncodingStrategy
+        var `nil`: NilEncodingStrategy
+        var key: KeyEncodingStrategy
     }
 }

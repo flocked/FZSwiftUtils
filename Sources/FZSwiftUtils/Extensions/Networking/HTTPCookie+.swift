@@ -50,7 +50,7 @@ extension HTTPCookie {
      */
     public static func cookies(fromJSONString jsonString: String) throws -> [HTTPCookie] {
         guard let data = jsonString.data(using: .utf8) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "Failed to create data from the string."))
+            throw DecodingError.dataCorrupted(at: [], debugDescription: "Failed to create data from the string.")
         }
         return try cookies(fromJsonData: data)
     }

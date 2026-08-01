@@ -47,11 +47,13 @@ public extension FileConvertible {
         - dateDecodingStrategy: The strategy to use for decoding `Date` values.
         - keyDecodingStrategy: The strategy to use for decoding keys.
         - dataDecodingStrategy: The strategy to use for decoding `Data` values.
+        - nonConformingFloatDecodingStrategy: The strategy used by a decoder when it encounters exceptional floating-point values.
+        - assumesTopLevelDictionary: A Boolean value that indicates whether the decoding assumes the top level of the `JSON` data is a dictionary, even if it doesn’t begin and end with braces.
 
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
-    init(contentsOf url: URL, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws {
-        try self.init(contentsOf: url, decoder: .init(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy))
+    init(contentsOf url: URL, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw, assumesTopLevelDictionary: Bool = false) throws {
+        try self.init(contentsOf: url, decoder: .init(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary))
     }
 
     /**
@@ -75,11 +77,13 @@ public extension FileConvertible {
         - dateDecodingStrategy: The strategy to use for decoding `Date` values.
         - keyDecodingStrategy: The strategy to use for decoding keys.
         - dataDecodingStrategy: The strategy to use for decoding `Data` values.
+        - nonConformingFloatDecodingStrategy: The strategy used by a decoder when it encounters exceptional floating-point values.
+        - assumesTopLevelDictionary: A Boolean value that indicates whether the decoding assumes the top level of the `JSON` data is a dictionary, even if it doesn’t begin and end with braces.
 
      - Throws: If the file doesn't exist, can't be accessed or isn't compatible.
      */
-    init(contentsOf path: String, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws {
-        try self.init(contentsOf: .file(path), dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy)
+    init(contentsOf path: String, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw, assumesTopLevelDictionary: Bool = false) throws {
+        try self.init(contentsOf: .file(path), dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary)
     }
     
     func write(to url: URL, encoder: JSONEncoder, options: Data.WritingOptions = []) throws {
@@ -99,13 +103,14 @@ public extension FileConvertible {
         - dateEncodingStrategy: The strategy to use for encoding `Date` values.
         - keyEncodingStrategy: The strategy to use for encoding keys.
         - dataEncodingStrategy: The strategy to use for encoding `Data` values.
+        - nonConformingFloatEncodingStrategy: The strategy used by an encoder when it encounters exceptional floating-point values.
         - outputFormatting: Formatting options for the encoded JSON.
         - options: Options for writing.
 
      - Throws: If the file couldn't be created.
      */
-    func write(to url: URL, dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, outputFormatting: JSONEncoder.OutputFormatting = [], options: Data.WritingOptions = []) throws {
-        try write(to: url, encoder: .init(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting), options: options)
+    func write(to url: URL, dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, nonConformingFloatEncodingStrategy: JSONEncoder.NonConformingFloatEncodingStrategy = .throw, outputFormatting: JSONEncoder.OutputFormatting = [], options: Data.WritingOptions = []) throws {
+        try write(to: url, encoder: .init(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, nonConformingFloatEncodingStrategy: nonConformingFloatEncodingStrategy, outputFormatting: outputFormatting), options: options)
     }
 
     /**
@@ -130,12 +135,13 @@ public extension FileConvertible {
         - dateEncodingStrategy: The strategy to use for encoding `Date` values.
         - keyEncodingStrategy: The strategy to use for encoding keys.
         - dataEncodingStrategy: The strategy to use for encoding `Data` values.
+        - nonConformingFloatEncodingStrategy: The strategy used by an encoder when it encounters exceptional floating-point values.
         - outputFormatting: Formatting options for the encoded JSON.
         - options: Options for writing.
 
      - Throws: If the file couldn't be created.
      */
-    func write(to path: String, dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, outputFormatting: JSONEncoder.OutputFormatting = [], options: Data.WritingOptions = []) throws {
-        try write(to: .file(path), encoder: .init(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting), options: options)
+    func write(to path: String, dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, nonConformingFloatEncodingStrategy: JSONEncoder.NonConformingFloatEncodingStrategy = .throw, outputFormatting: JSONEncoder.OutputFormatting = [], options: Data.WritingOptions = []) throws {
+        try write(to: .file(path), encoder: .init(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, nonConformingFloatEncodingStrategy: nonConformingFloatEncodingStrategy, outputFormatting: outputFormatting), options: options)
     }
 }

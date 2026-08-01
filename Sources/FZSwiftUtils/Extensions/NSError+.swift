@@ -23,22 +23,11 @@ public extension NSError {
      */
     @_disfavoredOverload
     convenience init(_ description: String? = nil, failureReason: String? = nil, recoverySuggestion: String? = nil, fileURL: URL? = nil, helpAnchor: String? = nil, domain: String? = nil, code: Int = 1, userInfo: [String: Any]? = nil) {
-        var userInfo: [String: Any] = userInfo ?? [:]
-        if let description = description {
-            userInfo[NSLocalizedDescriptionKey] = description
-        }
-        if let failureReason = failureReason {
-            userInfo[NSLocalizedFailureReasonErrorKey] = failureReason
-        }
-        if let recoverySuggestion = recoverySuggestion {
-            userInfo[NSLocalizedRecoverySuggestionErrorKey] = recoverySuggestion
-        }
-        if let filePath = fileURL?.path {
-            userInfo[NSFilePathErrorKey] = filePath
-        }
-        if let helpAnchor = helpAnchor {
-            userInfo[NSHelpAnchorErrorKey] = helpAnchor
-        }
+        let userInfo = [NSLocalizedDescriptionKey: description,
+            NSLocalizedFailureReasonErrorKey: failureReason,
+            NSLocalizedRecoverySuggestionErrorKey: recoverySuggestion,
+            NSFilePathErrorKey: fileURL?.path,
+            NSHelpAnchorErrorKey: helpAnchor].nonNil
         self.init(domain: domain ?? Bundle.main.bundleIdentifier ?? "NSError.GlobalDomain", code: code, userInfo: userInfo)
     }
     

@@ -663,7 +663,7 @@ extension RangeReplaceableCollection {
     /// Repeats the elements of the collection by the specified amount.
     mutating func `repeat`(_ amount: Int) {
         guard amount > 1 else { return }
-        var original = self
+        let original = self
         for _ in 0..<amount {
             append(contentsOf: original)
         }

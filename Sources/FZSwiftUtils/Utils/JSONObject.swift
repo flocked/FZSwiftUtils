@@ -65,7 +65,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     /// Creates a `JSON` object from the specified `JSON` string.
     public init(jsonString: String, using encoding: String.Encoding = .utf8, options: JSONSerialization.ReadingOptions = []) throws {
         guard let data = jsonString.data(using: encoding) else {
-            throw EncodingError.invalidValue(jsonString, .init(codingPath: [], debugDescription: "Couldn't encodde string."))
+            throw EncodingError.invalidValue(jsonString, at: [], debugDescription: "Couldn't encodde string.")
         }
         try self.init(data: data, options: options)
     }
@@ -110,13 +110,17 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         self.codingPath = []
     }
     
-    public init<V: Encodable>(_ value: V, dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, outputFormatting: JSONEncoder.OutputFormatting = []) throws {
+    public init<V: Encodable>(_ value: V, encoder: JSONEncoder) throws {
         if value is JSONSerializable {
             self.value = value
         } else {
-            self.value = try JSONSerialization.jsonObject(with: JSONEncoder(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting).encode(value))
+            self.value = try JSONSerialization.jsonObject(with: encoder.encode(value))
         }
         self.codingPath = []
+    }
+    
+    public init<V: Encodable>(_ value: V, dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, nonConformingFloatEncodingStrategy: JSONEncoder.NonConformingFloatEncodingStrategy = .throw, outputFormatting: JSONEncoder.OutputFormatting = []) throws {
+        try self.init(value, encoder: JSONEncoder(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, nonConformingFloatEncodingStrategy: nonConformingFloatEncodingStrategy, outputFormatting: outputFormatting))
     }
         
     private init(_ value: Any?, _ codingPath: [CodingKey]) {
@@ -229,7 +233,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         guard let jsonObject = self[key] as Self? else { return nil }
         return jsonObject.value as? V ?? (try? jsonObject.decoded())
     }
-        
+    
     @_disfavoredOverload
     public subscript(codingPath: [CodingKey]) -> Self {
         guard !codingPath.isEmpty else { return self }
@@ -268,26 +272,27 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
     
     public func decoded<T: Decodable>(as type: T.Type = T.self, decoder: JSONDecoder) throws -> T {
         guard let value = value else {
-            throw DecodingError.typeMismatch(NSNull.self, DecodingError.Context(codingPath: codingPath, debugDescription: "The value doesn't represent any json."))
+            throw DecodingError.typeMismatch(NSNull.self, at: codingPath, debugDescription: "The value doesn't represent any json.")
         }
         return try decoder.decode(T.self, from: JSONSerialization.data(withJSONObject: value))
     }
           
     /// Decodes the json object to the specified type.
-    public func decoded<T: Decodable>(as type: T.Type = T.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> T {
-        try decoded(decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy))
+    public func decoded<T: Decodable>(as type: T.Type = T.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw,
+    assumesTopLevelDictionary: Bool = false) throws -> T {
+        try decoded(decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary))
     }
     
     public func encoded(encoder: JSONEncoder) throws -> Data {
         guard let value = value else {
-            throw EncodingError.invalidValue(value as Any, .init(codingPath: codingPath, debugDescription: "Cannot encode nil as JSON"))
+            throw EncodingError.invalidValue(value as Any, at: codingPath, debugDescription: "Cannot encode nil as JSON")
         }
         return try encoder.encode(AnyEncodable(value))
     }
     
     /// Returns a JSON-encoded data representation of the object.
-    public func encoded(dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, outputFormatting: JSONEncoder.OutputFormatting = []) throws -> Data {
-        try encoded(encoder: JSONEncoder(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, outputFormatting: outputFormatting))
+    public func encoded(dateEncodingStrategy: JSONEncoder.DateEncodingStrategy = .deferredToDate, keyEncodingStrategy: JSONEncoder.KeyEncodingStrategy = .useDefaultKeys, dataEncodingStrategy: JSONEncoder.DataEncodingStrategy = .base64, nonConformingFloatEncodingStrategy: JSONEncoder.NonConformingFloatEncodingStrategy = .throw, outputFormatting: JSONEncoder.OutputFormatting = []) throws -> Data {
+        try encoded(encoder: JSONEncoder(dateEncodingStrategy: dateEncodingStrategy, keyEncodingStrategy: keyEncodingStrategy, dataEncodingStrategy: dataEncodingStrategy, nonConformingFloatEncodingStrategy: nonConformingFloatEncodingStrategy, outputFormatting: outputFormatting))
     }
         
     public func index(before i: Int) -> Int {
@@ -323,9 +328,9 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
         }
             
         public mutating func next() -> JSONObject? {
-            guard let item = objects[safe: index] else { return nil }
+            guard let object = objects[safe: index].map({ JSONObject($0, codingPath + .index(index)) }) else { return nil }
             index += 1
-            return JSONObject(item, codingPath + .index(index - 1))
+            return object
         }
     }
     
@@ -350,7 +355,7 @@ public struct JSONObject: Sequence, Collection, BidirectionalCollection, Express
 extension JSONObject: Codable {
     public func encode(to encoder: any Encoder) throws {
         guard let value = value else {
-            throw EncodingError.invalidValue(NSNull(), .init(codingPath: codingPath, debugDescription: "Cannot encode nil as JSON"))
+            throw EncodingError.invalidValue(NSNull(), at: codingPath, debugDescription: "Cannot encode nil as JSON")
         }
         var container = encoder.singleValueContainer()
         try container.encode(AnyEncodable(value))

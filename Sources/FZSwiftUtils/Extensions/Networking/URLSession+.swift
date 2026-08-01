@@ -51,7 +51,7 @@ public extension URLSession {
         task.resume()
         return task
     }
-    
+
     /**
      Loads the response headers for the specified request using an HTTP HEAD request.
 
@@ -66,7 +66,7 @@ public extension URLSession {
             }
         }
     }
-    
+
     /**
      Creates a task that retrieves the data of a URL based on the specified URL request, and calls a handler upon completion.
 
@@ -119,7 +119,7 @@ public extension URLSession {
             completion(.success(string))
         }
     }
-    
+
     /**
      Loads the contents of the specified request and decodes the result as a string.
 
@@ -135,7 +135,7 @@ public extension URLSession {
         }
         return string
     }
-    
+
     /**
      Creates a task that retrieves and parses the JSON object for the specified URL request, and calls a handler upon completion.
 
@@ -151,13 +151,13 @@ public extension URLSession {
                 return
             }
             do {
-                completion(.success(try JSONSerialization.jsonObject(with: data, options: [])))
+                try completion(.success(JSONSerialization.jsonObject(with: data, options: [])))
             } catch {
                 completion(.failure(error))
             }
         }
     }
-    
+
     /**
      Retrieves and parses the JSON object for the specified URL request.
 
@@ -192,7 +192,7 @@ public extension URLSession {
             }
         }
     }
-    
+
     /**
      Loads the contents of the specified request and decodes the result into the specified type.
 
@@ -215,30 +215,34 @@ public extension URLSession {
         - dateDecodingStrategy: The strategy that the JSON deooder should use to decode dates.
         - keyDecodingStrategy: The strategy that the JSON decoder should use to decode keys.
         - dataDecodingStrategy: The strategy that the JSON decoder should use to decode raw data.
+        - nonConformingFloatDecodingStrategy: The strategy used by a decoder when it encounters exceptional floating-point values.
+        - assumesTopLevelDictionary: A Boolean value that indicates whether the decoding assumes the top level of the `JSON` data is a dictionary, even if it doesn’t begin and end with braces.
         - completion: The completion handler that is called with the decodable type, or an error if the type couldn't be retrieved.
      - Returns: The data task that retrieves the decodable type.
      */
     @discardableResult
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
-        decodedObject(for: request, as: type, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy), completion: completion)
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw, assumesTopLevelDictionary: Bool = false, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
+        decodedObject(for: request, as: type, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary), completion: completion)
     }
-    
+
     /**
      Loads the contents of the specified request and decodes the result into the specified type.
 
      - Parameters:
-       - request: The request whose contents should be retrieved.
-       - type: The type to decode from the response data.
-       - dateDecodingStrategy: The strategy used to decode date values.
-       - keyDecodingStrategy: The strategy used to decode keyed values.
-       - dataDecodingStrategy: The strategy used to decode data values.
+        - request: The request whose contents should be retrieved.
+        - type: The type to decode from the response data.
+        - dateDecodingStrategy: The strategy used to decode date values.
+        - keyDecodingStrategy: The strategy used to decode keyed values.
+        - dataDecodingStrategy: The strategy used to decode data values.
+        - nonConformingFloatDecodingStrategy: The strategy used by a decoder when it encounters exceptional floating-point values.
+        - assumesTopLevelDictionary: A Boolean value that indicates whether the decoding assumes the top level of the `JSON` data is a dictionary, even if it doesn’t begin and end with braces.
      - Returns: An instance of the specified type.
      - Throws: An error if the request fails or the response data cannot be decoded.
      */
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type = Value.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) async throws -> Value {
-        try await decodedObject(for: request, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy))
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type = Value.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw, assumesTopLevelDictionary: Bool = false) async throws -> Value {
+        try await decodedObject(for: request, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary))
     }
-    
+
     #if os(macOS) || canImport(UIKit)
     /**
      Creates a task that retrieves the image of a URL based on the specified URL request, and calls a handler upon completion.
@@ -262,7 +266,7 @@ public extension URLSession {
             completion(.success(image))
         }
     }
-    
+
     /**
      Loads an image using the specified request.
 
@@ -283,7 +287,7 @@ public extension URLSession {
         case invalidImageData
         case invalidStatusCode(Int)
         case missingResponse
-        
+
         public var errorDescription: String? {
             switch self {
             case .noData:
@@ -301,7 +305,7 @@ public extension URLSession {
 
         public var failureReason: String? {
             switch self {
-            case .noData: 
+            case .noData:
                 "No response body was returned."
             case .noString:
                 "The data is not valid text."

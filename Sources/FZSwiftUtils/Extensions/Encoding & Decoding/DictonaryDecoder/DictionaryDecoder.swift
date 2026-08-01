@@ -55,20 +55,12 @@ public final class DictionaryDecoder: Sendable {
         - keyDecodingStrategy: A value that determines how to decode a type’s coding keys from dictionary keys.
         - userInfo: A dictionary you use to customize the decoding process by providing contextual information.
      */
-    public init(
-        dateDecodingStrategy: DateDecodingStrategy = .deferredToDate,
+    public init(dateDecodingStrategy: DateDecodingStrategy = .deferredToDate,
         dataDecodingStrategy: DataDecodingStrategy = .base64,
         nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy = .throw,
         keyDecodingStrategy: KeyDecodingStrategy = .useDefaultKeys,
-        userInfo: [CodingUserInfoKey: Sendable] = [:]
-    ) {
-        let options = Options(
-            dateDecodingStrategy: dateDecodingStrategy,
-            dataDecodingStrategy: dataDecodingStrategy,
-            nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy,
-            keyDecodingStrategy: keyDecodingStrategy
-        )
-
+        userInfo: [CodingUserInfoKey: Sendable] = [:]) {
+        let options = Options(dateDecodingStrategy: dateDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy)
         self.optionsMutex = Mutex(options)
         self.userInfoMutex = Mutex(userInfo)
     }
@@ -84,13 +76,7 @@ public final class DictionaryDecoder: Sendable {
      - Returns: A value of the specified type, if the decoder can parse the data.
      */
     public func decode<T: Decodable>(_ type: T.Type = T.self, from dictionary: [String: Any]) throws -> T {
-        let options = optionsMutex.withLock { $0 }
-        let decoder = SingleValueDecoder(
-            component: dictionary,
-            options: options,
-            userInfo: userInfo,
-            codingPath: []
-        )
+        let decoder = Single(component: dictionary, options: optionsMutex.withLock { $0 }, userInfo: userInfo,  codingPath: [])
         return try T(from: decoder)
     }
 
@@ -106,20 +92,8 @@ public final class DictionaryDecoder: Sendable {
         try decode(T.self, from: dictionary)
     }
 
-    public func decode<T: DecodableWithConfiguration>(
-        _ type: T.Type = T.self,
-        from dictionary: [String: Any],
-        configuration: T.DecodingConfiguration
-    ) throws -> T {
-        let options = optionsMutex.withLock { $0 }
-
-        let decoder = SingleValueDecoder(
-            component: dictionary,
-            options: options,
-            userInfo: userInfo,
-            codingPath: []
-        )
-
+    public func decode<T: DecodableWithConfiguration>(_ type: T.Type = T.self, from dictionary: [String: Any], configuration: T.DecodingConfiguration) throws -> T {
+        let decoder = Single(component: dictionary, options: optionsMutex.withLock { $0 }, userInfo: userInfo, codingPath: [])
         return try T(from: decoder, configuration: configuration)
     }
 }
