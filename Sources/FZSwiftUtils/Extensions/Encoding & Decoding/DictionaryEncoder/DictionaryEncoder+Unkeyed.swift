@@ -1,7 +1,14 @@
+//
+//  DictionaryEncoder+Unkeyed.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
 extension DictionaryEncoder {
-    final class Unkeyed: UnkeyedEncodingContainer, DictionaryEncoderContainer, DictionaryComponentEncoder {
+    final class Unkeyed: UnkeyedEncodingContainer, Container, ComponentEncoder {
         private var components: [Component] = []
         
         let strategies: Strategies

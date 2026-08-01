@@ -1,3 +1,10 @@
+//
+//  DictionaryDecoder+Strategies.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
 public extension DictionaryDecoder {
@@ -36,23 +43,43 @@ public extension DictionaryDecoder {
         /// The strategy that throws an error upon decoding an exceptional floating-point value.
         case `throw`
         /// The strategy that decodes exceptional floating-point values from a specified string representation.
-        case convertFromString(positiveInfinity: String,  negativeInfinity: String, nan: String)
+        case convertFromString(positiveInfinity: String, negativeInfinity: String, nan: String)
     }
     
     /// The values that determine how to decode a type’s coding keys from Dictionary keys.
     enum KeyDecodingStrategy: Sendable {
         /// A key decoding strategy that doesn’t change key names during decoding.
         case useDefaultKeys
+        /**
+          A key decoding strategy that converts snake-case keys to camel-case keys.
+         
+          Snake-case and camel-case are two common approaches for combining words when naming parts of an API. The Swift [API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/#general-conventions) recommend using camel-case names. Some `JSON` APIs adopt snake-case; use this strategy when you encounter such an API.
+         
+          This strategy uses [uppercaseLetters](https://developer.apple.com/documentation/foundation/characterset/uppercaseletters) and [lowercaseLetters](https://developer.apple.com/documentation/foundation/characterset/lowercaseletters) to determine the boundaries between words, and the [system](https://developer.apple.com/documentation/foundation/nslocale/system) locale when converting uppercase letters to lowercase letters.
+         
+          This strategy follows these steps to convert key names to camel-case:
+            1. Capitalize each word that follows an underscore.
+            2. Remove all underscores that aren’t at the very start or end of the string.
+            3. Combine the words into a single string.
+         
+          The following examples show the result of applying this strategy:
+          ```swift
+          "fee_fi_fo_fum" -> "feeFiFoFum"
+          "feeFiFoFum" -> "feeFiFoFum"
+          "base_uri" -> "baseUri"
+          ```
+          */
+        case convertFromSnakeCase
         /// A key decoding strategy defined by the closure you supply.
         case custom(@Sendable (_ codingPath: [CodingKey]) -> CodingKey)
     }
 }
 
-internal extension DictionaryDecoder {
-    struct Options {
-        var dateDecodingStrategy: DateDecodingStrategy
-        var dataDecodingStrategy: DataDecodingStrategy
-        var nonConformingFloatDecodingStrategy: NonConformingFloatDecodingStrategy
-        var keyDecodingStrategy: KeyDecodingStrategy
+extension DictionaryDecoder {
+    struct Strategies {
+        var date: DateDecodingStrategy
+        var data: DataDecodingStrategy
+        var nonConformingFloat: NonConformingFloatDecodingStrategy
+        var key: KeyDecodingStrategy
     }
 }

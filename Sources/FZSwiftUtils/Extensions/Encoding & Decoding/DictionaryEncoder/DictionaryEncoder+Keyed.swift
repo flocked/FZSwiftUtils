@@ -1,12 +1,14 @@
+//
+//  DictionaryEncoder+Keyed.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
 internal extension DictionaryEncoder {
-    final class Keyed<Key: CodingKey>: KeyedEncodingContainerProtocol, DictionaryComponentEncoder {
-        
-        var container: KeyedEncodingContainer<Key> {
-            .init(self)
-        }
-                
+    final class Keyed<Key: CodingKey>: KeyedEncodingContainerProtocol, ComponentEncoder {
         let storage: KeyedStorage
         
         var strategies: Strategies {
@@ -96,18 +98,6 @@ internal extension DictionaryEncoder {
         func nestedUnkeyedContainer(forKey key: Key) -> UnkeyedEncodingContainer {
             storage.nestedUnkeyedContainer(forKey: key)
         }
-        
-        /*
-         func nestedUnkeyedContainer<Key: CodingKey>(forKey key: Key) -> UnkeyedEncodingContainer {
-             let encodedKey = encodeKey(key)
-             if let container = components[encodedKey]?.container as? Unkeyed {
-                 return container
-             }
-             let container = Unkeyed(strategies: strategies, userInfo: userInfo, codingPath: codingPath + key)
-             components[encodedKey] = .container(container)
-             return container
-         }
-         */
         
         func superEncoder(forKey key: Key) -> Encoder {
             storage.superEncoder(forKey: key)

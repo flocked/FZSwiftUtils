@@ -1,7 +1,14 @@
+//
+//  DictionaryEncoder+KeyedStorage.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
 internal extension DictionaryEncoder {
-    final class KeyedStorage: DictionaryEncoderContainer {
+    final class KeyedStorage: Container {
                 
         private var components: [String: Component] = [:]
         
@@ -19,6 +26,8 @@ internal extension DictionaryEncoder {
             switch strategies.key {
             case .useDefaultKeys:
                 key.stringValue
+            case .convertToSnakeCase:
+                key.stringValue.snakeCased()
             case let .custom(closure):
                 closure(codingPath + key).stringValue
             }

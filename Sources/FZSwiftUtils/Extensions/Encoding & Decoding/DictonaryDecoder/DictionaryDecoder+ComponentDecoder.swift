@@ -1,27 +1,36 @@
+//
+//  DictionaryDecoder+ComponentDecoder.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
-protocol _DictionaryDecoder {
-    var options: DictionaryDecoder.Options { get }
-    var userInfo: [CodingUserInfoKey: Any] { get }
+extension DictionaryDecoder {
+    protocol ComponentDecoder {
+        var strategies: DictionaryDecoder.Strategies { get }
+        var userInfo: [CodingUserInfoKey: Any] { get }
+    }
 }
 
-extension _DictionaryDecoder {
-    private func decodePrimitive<T: Decodable>(_ component: Any?, at codingPath: [CodingKey], as type: T.Type = T.self) throws -> T {
+extension DictionaryDecoder.ComponentDecoder {
+    private func decodePrimitive<T: Decodable>(_ component: Any?, at codingPath: [CodingKey], as _: T.Type = T.self) throws -> T {
         guard let component = component else {
             throw DecodingError.valueNotFound(T.self, at: codingPath)
         }
         guard let value = component as? T else {
-            throw DecodingError.typeMismatch(Swift.type(of: component), expected: T.self, at: codingPath)
+            throw DecodingError.typeMismatch(type(of: component), expected: T.self, at: codingPath)
         }
         return value
     }
 
     private func decodeNonPrimitive<T: Decodable>(_ component: Any?, at codingPath: [CodingKey]) throws -> T {
-        try T(from: DictionaryDecoder.Single(component: component, options: options, userInfo: userInfo, codingPath: codingPath))
+        try T(from: DictionaryDecoder.Single(component: component, strategies: strategies, userInfo: userInfo, codingPath: codingPath))
     }
 
     private func decodeCustomized<T: Decodable>(_ component: Any?, at codingPath: [CodingKey], closure: (_ decoder: Decoder) throws -> T) throws -> T {
-        try closure(DictionaryDecoder.Single(component: component, options: options, userInfo: userInfo, codingPath: codingPath))
+        try closure(DictionaryDecoder.Single(component: component, strategies: strategies, userInfo: userInfo, codingPath: codingPath))
     }
     
     private func decodeFloatingPoint<T: FloatingPoint & Decodable>(_ component: Any?, at codingPath: [CodingKey]) throws -> T {
@@ -30,7 +39,7 @@ extension _DictionaryDecoder {
         }
         switch component {
         case let string as String:
-            switch options.nonConformingFloatDecodingStrategy {
+            switch strategies.nonConformingFloat {
             case let .convertFromString(positiveInfinity, _, _) where string == positiveInfinity:
                 return T.infinity
             case let .convertFromString(_, negativeInfinity, _) where string == negativeInfinity:
@@ -51,7 +60,7 @@ extension _DictionaryDecoder {
     }
 
     private func decodeDate(_ component: Any?, at codingPath: [CodingKey]) throws -> Date {
-        switch options.dateDecodingStrategy {
+        switch strategies.date {
         case .deferredToDate:
             try decodeNonPrimitive(component, at: codingPath)
         case .secondsSince1970:
@@ -68,7 +77,7 @@ extension _DictionaryDecoder {
     }
 
     private func decodeData(_ component: Any?, at codingPath: [CodingKey]) throws -> Data {
-        switch options.dataDecodingStrategy {
+        switch strategies.data {
         case .deferredToData:
             try decodeNonPrimitive(component, at: codingPath)
         case .base64:
@@ -83,7 +92,7 @@ extension _DictionaryDecoder {
     }
 }
 
-extension _DictionaryDecoder {
+extension DictionaryDecoder.ComponentDecoder {
     func decodeNil(_ component: Any?) -> Bool {
         component.isNil || component is NSNull
     }

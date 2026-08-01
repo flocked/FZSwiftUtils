@@ -1,7 +1,14 @@
+//
+//  DictionaryEncoder+Single.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
 internal extension DictionaryEncoder {
-    final class Single: Encoder, SingleValueEncodingContainer, DictionaryEncoderContainer, DictionaryComponentEncoder {
+    final class Single: Encoder, SingleValueEncodingContainer, Container, ComponentEncoder {
                 
         private var component: Component?
         

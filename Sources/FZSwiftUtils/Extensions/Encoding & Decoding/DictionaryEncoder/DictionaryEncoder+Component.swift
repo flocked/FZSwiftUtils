@@ -1,9 +1,16 @@
+//
+//  DictionaryEncoder+Component.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
-internal extension DictionaryEncoder {
+extension DictionaryEncoder {
     indirect enum Component {
         case value(Any?)
-        case container(DictionaryEncoderContainer)
+        case container(Container)
         
         func resolveValue() -> Any? {
             switch self {
@@ -14,7 +21,7 @@ internal extension DictionaryEncoder {
             }
         }
         
-        var container: DictionaryEncoderContainer? {
+        var container: Container? {
             switch self {
             case .container(let container): container
             default: nil

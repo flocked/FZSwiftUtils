@@ -77,9 +77,17 @@ public extension Locale {
         localizedString(byLocalizingTo: .autoupdatingCurrent)
     }
     
-    /// A locale representing the user's preferred language.
-    static var system: Locale {
-        Locale(identifier: preferredLanguages.first ?? "en")
+    /**
+     A locale representing the generic root values with little localization.
+     
+     Use the system locale when you don’t want any localizations. If you want localizations that match the user’s region settings, use the locale given by the [current](https://developer.apple.com/documentation/foundation/locale/current) or the [autoupdatingCurrent](https://developer.apple.com/documentation/foundation/locale/autoupdatingcurrent) property instead.
+     */
+    internal static var system: Locale {
+        NSLocale.system
+    }
+    
+    static func sdsd() -> Locale {
+        NSLocale.system
     }
     
     /// An array of available locales.

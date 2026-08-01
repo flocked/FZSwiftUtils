@@ -1,16 +1,23 @@
+//
+//  DictionaryDecoder+Single.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
-internal extension DictionaryDecoder {
-    final class Single: Decoder, SingleValueDecodingContainer, _DictionaryDecoder {
+extension DictionaryDecoder {
+    final class Single: Decoder, SingleValueDecodingContainer, ComponentDecoder {
         
         let component: Any?
-        let options: Options
+        let strategies: Strategies
         let userInfo: [CodingUserInfoKey: Any]
         let codingPath: [CodingKey]
                 
-        init(component: Any?, options: Options, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey]) {
+        init(component: Any?, strategies: Strategies, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey]) {
             self.component = component
-            self.options = options
+            self.strategies = strategies
             self.userInfo = userInfo
             self.codingPath = codingPath
         }
@@ -83,14 +90,14 @@ internal extension DictionaryDecoder {
             guard let components = component as? [String: Any] else {
                 throw DecodingError.keyedContainerTypeMismatch(at: codingPath, component: component)
             }
-            return KeyedDecodingContainer(Keyed(components: components, options: options, userInfo: userInfo, codingPath: codingPath))
+            return KeyedDecodingContainer(Keyed(components: components, strategies: strategies, userInfo: userInfo, codingPath: codingPath))
         }
         
         func unkeyedContainer() throws -> UnkeyedDecodingContainer {
             guard let components = component as? [Any?] else {
                 throw DecodingError.unkeyedContainerTypeMismatch(at: codingPath, component: component)
             }
-            return Unkeyed(components: components, options: options, userInfo: userInfo, codingPath: codingPath)
+            return Unkeyed(components: components, strategies: strategies, userInfo: userInfo, codingPath: codingPath)
         }
         
         func singleValueContainer() throws -> SingleValueDecodingContainer {

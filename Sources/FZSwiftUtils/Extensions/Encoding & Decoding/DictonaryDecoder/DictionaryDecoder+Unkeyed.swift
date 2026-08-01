@@ -1,26 +1,23 @@
+//
+//  DictionaryDecoder+Unkeyed.swift
+//
+//
+//  Created by Florian Zand on 17.05.25.
+//
+
 import Foundation
 
-extension [CodingKey] {
-    static func +(lhs: Self, rhs: String) -> Self {
-        lhs + AnyCodingKey.key(rhs)
-    }
-    
-    static func +(lhs: Self, rhs: Int) -> Self {
-        lhs + AnyCodingKey.index(rhs)
-    }
-}
-
-internal extension DictionaryDecoder {
-    final class Unkeyed: UnkeyedDecodingContainer, _DictionaryDecoder {
+extension DictionaryDecoder {
+    final class Unkeyed: UnkeyedDecodingContainer, ComponentDecoder {
                 
         let components: [Any?]
-        let options: Options
+        let strategies: Strategies
         let userInfo: [CodingUserInfoKey: Any]
         let codingPath: [CodingKey]
         private(set) var currentIndex = 0
         
         var currentCodingPath: [CodingKey] {
-            codingPath + currentIndex
+            codingPath + AnyCodingKey.index(currentIndex)
         }
         
         var count: Int? {
@@ -31,9 +28,9 @@ internal extension DictionaryDecoder {
             currentIndex == count
         }
                 
-        init(components: [Any?], options: Options, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey]) {
+        init(components: [Any?], strategies: Strategies, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey]) {
             self.components = components
-            self.options = options
+            self.strategies = strategies
             self.userInfo = userInfo
             self.codingPath = codingPath
         }
@@ -120,7 +117,7 @@ internal extension DictionaryDecoder {
         }
         
         func superDecoder() throws -> Decoder {
-            try decodeNext { Single(component: $0, options: options, userInfo: userInfo, codingPath: $1) }
+            try decodeNext { Single(component: $0, strategies: strategies, userInfo: userInfo, codingPath: $1) }
         }
     }
 }

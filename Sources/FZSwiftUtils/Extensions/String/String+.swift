@@ -1139,6 +1139,115 @@ public extension String.StringInterpolation {
     }
 }
 
+public extension StringProtocol {
+    /**
+     Converts a camel-case string to snake-case.
+
+     This method uses [uppercaseLetters](https://developer.apple.com/documentation/foundation/characterset/uppercaseletters) and [lowercaseLetters](https://developer.apple.com/documentation/foundation/characterset/lowercaseletters) to determine the boundaries between words, and the [system](https://developer.apple.com/documentation/foundation/nslocale/system) locale when converting uppercase letters to lowercase letters.
+
+     The method follows these steps to convert string names to snake-case:
+        1. Split the name into words, preserving leading or trailing underscores.
+        2. Insert an underscore between each word.
+        3. Convert the resulting string to lowercase.
+
+     Example usages:
+
+     ```swift
+     "feeFiFoFum".toSnakeCase() // "fee_fi_fo_fum"
+     "fee_fi_fo_fum".toSnakeCase() // "fee_fi_fo_fum"
+     "xmlContents".toSnakeCase() // "xml_contents"
+     ```
+     */
+    func snakeCased() -> String {
+        guard !isEmpty else { return String(self) }
+        var words: [Range<Index>] = []
+        var wordStart = startIndex
+        var searchRange = index(after: wordStart)..<endIndex
+
+        while let uppercaseRange = rangeOfCharacter(from: .uppercaseLetters, range: searchRange) {
+            words.append(wordStart..<uppercaseRange.lowerBound)
+            searchRange = uppercaseRange.lowerBound..<searchRange.upperBound
+            guard let lowercaseRange = rangeOfCharacter(from: .lowercaseLetters, range: searchRange) else {
+                wordStart = searchRange.lowerBound
+                break
+            }
+            let nextCharacterAfterCapital = index(after: uppercaseRange.lowerBound)
+            if lowercaseRange.lowerBound == nextCharacterAfterCapital {
+                wordStart = uppercaseRange.lowerBound
+            } else {
+                let beforeLowercase = index(before: lowercaseRange.lowerBound)
+                words += uppercaseRange.lowerBound..<beforeLowercase
+                wordStart = beforeLowercase
+            }
+            searchRange = lowercaseRange.upperBound..<searchRange.upperBound
+        }
+        words += wordStart..<searchRange.upperBound
+        return words.map { self[$0].lowercased(with: .system) }.joined(separator: "_")
+    }
+
+    /**
+     Converts a snake-case string to camel-case.
+
+     This method uses [uppercaseLetters](https://developer.apple.com/documentation/foundation/characterset/uppercaseletters) and [lowercaseLetters](https://developer.apple.com/documentation/foundation/characterset/lowercaseletters) to determine the boundaries between words, and the [system](https://developer.apple.com/documentation/foundation/nslocale/system) locale when capitalizing letters.
+
+     The method follows these steps to convert keys to camel-case:
+        1. Capitalize each word that follows an underscore.
+        2. Remove all underscores that aren’t at the very start or end of the string.
+        3. Combine the words into a single string.
+
+     Example usages:
+
+     ```swift
+     "fee_fi_fo_fum".fromSnakeCase() // "feeFiFoFum"
+     "feeFiFoFum".fromSnakeCase()    // "feeFiFoFum"
+     "base_uri".fromSnakeCase()     // "baseUri"
+     ```
+     */
+    func camelCased() -> String {
+        guard !isEmpty else { return String(self) }
+        guard let firstNonUnderscore = firstIndex(where: { $0 != "_" }) else { return String(self) }
+
+        var lastNonUnderscore = index(before: endIndex)
+        while lastNonUnderscore > firstNonUnderscore, self[lastNonUnderscore] == "_" {
+            formIndex(before: &lastNonUnderscore)
+        }
+        let keyRange = firstNonUnderscore ... lastNonUnderscore
+        let leadingRange = startIndex..<firstNonUnderscore
+        let trailingRange = index(after: lastNonUnderscore)..<endIndex
+        var result = String()
+        result.reserveCapacity(utf8.count)
+        result += self[leadingRange]
+        let components = self[keyRange].split(separator: "_")
+        if components.count == 1 {
+            result += self[keyRange]
+        } else if let first = components.first {
+            result += first.lowercased(with: .system)
+            for component in components.dropFirst() {
+                result += component.capitalized(with: .system)
+            }
+        }
+        result += self[trailingRange]
+        return result
+    }
+    
+    /**
+     Converts the string to pascal-case.
+
+     Example usages:
+
+     ```swift
+     "myProperty".pascalCased() // "MyProperty"
+     "my_property".pascalCased() // "MyProperty"
+     "myURLProperty".pascalCased() // "MyUrlProperty"
+     "xml_contents".pascalCased() // "XmlContents"
+     ```
+     */
+    func pascalCased() -> String {
+        snakeCased().split(separator: "_").map { $0.capitalized(with: .system) }.joined()
+    }
+}
+
+
 fileprivate enum CleanDescribingFormatter {
     static func format(_ value: Any, depth: Int, indent: String, formatting: String.CollectionFormatting, includeType: Bool, maxDepth: Int, maxValues: Int) -> String {
         let value = unwrapAnyHashable(value)

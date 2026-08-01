@@ -15,32 +15,32 @@ public final class DictionaryEncoder: Sendable {
 
     /// The strategy used when encoding dates as part of a dictionary.
     public var dateEncodingStrategy: DateEncodingStrategy {
-        get { strategiesMutex.withLock { $0.date } }
-        set { strategiesMutex.withLock { $0.date = newValue } }
+        get { strategies.date }
+        set { strategies.date = newValue }
     }
 
     /// The strategy that an encoder uses to encode raw data.
     public var dataEncodingStrategy: DataEncodingStrategy {
-        get { strategiesMutex.withLock { $0.data } }
-        set { strategiesMutex.withLock { $0.data = newValue } }
+        get { strategies.data }
+        set { strategies.data = newValue }
     }
 
     /// The strategy used by an encoder when it encounters exceptional floating-point values.
     public var nonConformingFloatEncodingStrategy: NonConformingFloatEncodingStrategy {
-        get { strategiesMutex.withLock { $0.nonConformingFloat } }
-        set { strategiesMutex.withLock { $0.nonConformingFloat = newValue } }
+        get { strategies.nonConformingFloat }
+        set { strategies.nonConformingFloat = newValue }
     }
 
     /// The strategy that an encoder uses to encode `nil` values.
     public var nilEncodingStrategy: NilEncodingStrategy {
-        get { strategiesMutex.withLock { $0.nil } }
-        set { strategiesMutex.withLock { $0.nil = newValue } }
+        get { strategies.nil }
+        set { strategies.nil = newValue }
     }
 
     /// A value that determines how to encode a type’s coding keys as dictionary keys.
     public var keyEncodingStrategy: KeyEncodingStrategy {
-        get { strategiesMutex.withLock { $0.key } }
-        set { strategiesMutex.withLock { $0.key = newValue } }
+        get { strategies.key }
+        set { strategies.key = newValue }
     }
 
     /// A dictionary you use to customize the encoding process by providing contextual information.
@@ -71,13 +71,12 @@ public final class DictionaryEncoder: Sendable {
                 nilEncodingStrategy: NilEncodingStrategy = .useNil,
                 keyEncodingStrategy: KeyEncodingStrategy = .useDefaultKeys,
                 userInfo: [CodingUserInfoKey: Sendable] = [:]) {
-        let strategies = Strategies(date: dateEncodingStrategy, data: dataEncodingStrategy, nonConformingFloat: nonConformingFloatEncodingStrategy, nil: nilEncodingStrategy, key: keyEncodingStrategy)
-        self.strategiesMutex = Mutex(strategies)
+        self.strategiesMutex = Mutex(Strategies(date: dateEncodingStrategy, data: dataEncodingStrategy, nonConformingFloat: nonConformingFloatEncodingStrategy, nil: nilEncodingStrategy, key: keyEncodingStrategy))
         self.userInfoMutex = Mutex(userInfo)
     }
 
     /**
-     Returns a dictionary representation of the value you supply.
+     Returns a dictionary representation of the specified value.
      
      - Parameter value: The value to encode as dictionary.
      - Returns: The encoded dictionary.
@@ -88,18 +87,32 @@ public final class DictionaryEncoder: Sendable {
     public func encode<T: Encodable>(_ value: T) throws -> [String: Sendable] {
         let encoder = Single(strategies: strategies, userInfo: userInfo, codingPath: [])
         try value.encode(to: encoder)
-        guard let dictionary = encoder.resolveValue() as? [String: Sendable] else {
-            throw EncodingError.invalidValue(value, at: [], debugDescription: "Root component cannot be encoded in Dictionary")
-        }
-        return dictionary
+        return try (encoder.resolveValue() as? [String: Sendable]).unwrap(or: EncodingError.invalidValue(value, at: [], debugDescription: "Root component cannot be encoded in Dictionary"))
     }
 
+    /**
+     Returns a dictionary representation of the specified value using the provided encoding configuration.
+     
+     - Parameters:
+        - value: The value to encode as dictionary.
+        - configuration: The configuration to use when encoding the value.
+     - Returns: The encoded dictionary.
+     */
     public func encode<T: EncodableWithConfiguration>(_ value: T, configuration: T.EncodingConfiguration) throws -> [String: Sendable] {
         let encoder = Single(strategies: strategies, userInfo: userInfo, codingPath: [])
         try value.encode(to: encoder, configuration: configuration)
-        guard let dictionary = encoder.resolveValue() as? [String: Sendable] else {
-            throw EncodingError.invalidValue(value, at: [], debugDescription: "Root component cannot be encoded in Dictionary")
-        }
-        return dictionary
+        return try (encoder.resolveValue() as? [String: Sendable]).unwrap(or: EncodingError.invalidValue(value, at: [], debugDescription: "Root component cannot be encoded in Dictionary"))
+    }
+    
+    /**
+     Returns a dictionary representation of the specified value using the provided encoding configuration.
+     
+     - Parameters:
+        - value: The value to encode as dictionary.
+        - configuration: The configuration to use when encoding the value.
+     - Returns: The encoded dictionary.
+     */
+    public func encode<T, C>(_ value: T, configuration: C.Type) throws -> [String: Sendable] where T: EncodableWithConfiguration, C: EncodingConfigurationProviding, T.EncodingConfiguration == C.EncodingConfiguration {
+        try encode(value, configuration: C.encodingConfiguration)
     }
 }

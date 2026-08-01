@@ -1,3 +1,10 @@
+//
+//  Mutex.swift
+//
+//
+//  Created by Florian Zand on 11.01.26.
+//
+
 import Foundation
 import struct os.os_unfair_lock_t
 import struct os.os_unfair_lock
@@ -15,7 +22,6 @@ import func os.os_unfair_lock_trylock
  class Manager {
    let cache = Mutex<[Key: Resource]>([:])
 
-
    func saveResource(_ resource: Resource, as key: Key) {
      cache.withLock {
        $0[key] = resource
@@ -24,7 +30,7 @@ import func os.os_unfair_lock_trylock
  }
  ```
  */
-public struct Mutex<Value>: @unchecked Sendable {
+public struct Mutex<Value: ~Copyable> {
     private let storage: Storage
 
     /**
@@ -32,8 +38,8 @@ public struct Mutex<Value>: @unchecked Sendable {
      
      - Parameter initalValue: The initial value to give to the mutex.
      */
-    public init(_ initalValue: Value) {
-        self.storage = Storage(value: initalValue)
+    public init(_ initialValue: consuming sending Value) {
+        self.storage = Storage(value: initialValue)
     }
 
     /**
@@ -53,9 +59,7 @@ public struct Mutex<Value>: @unchecked Sendable {
      
      - Warning: Recursive calls to `withLock` within the closure parameter has behavior that is platform dependent. Some platforms may choose to panic the process, deadlock, or leave this behavior unspecified. This will never reacquire the lock however.
     */
-    public borrowing func withLock<Result>(
-        _ body: (inout Value) throws -> Result
-    ) rethrows -> Result {
+    public borrowing func withLock<Result>(_ body: (inout Value) throws -> Result) rethrows -> Result {
         storage.lock()
         defer { storage.unlock() }
         return try body(&storage.value)
@@ -80,42 +84,47 @@ public struct Mutex<Value>: @unchecked Sendable {
      return try body(&value)
      ```
      */
-    public borrowing func withLockIfAvailable<Result>(
-        _ body: (inout Value) throws -> Result
-    ) rethrows -> Result? {
+    public borrowing func withLockIfAvailable<Result>(_ body: (inout Value) throws -> Result) rethrows -> Result? {
         guard storage.tryLock() else { return nil }
         defer { storage.unlock() }
         return try body(&storage.value)
     }
-}
 
-extension Mutex {
-    private final class Storage {
-        
-        private let unfairLock = os_unfair_lock_t.allocate(capacity: 1)
-        
+    private final class Storage: @unchecked Sendable {
+        private let unfairLock: UnsafeMutablePointer<os_unfair_lock>
         var value: Value
-        
+
         init(value: consuming Value) {
             self.value = value
-            unfairLock.initialize(to: os_unfair_lock())
+            self.unfairLock = .allocate(capacity: 1)
+            self.unfairLock.initialize(to: os_unfair_lock())
         }
-        
+
         deinit {
             unfairLock.deinitialize(count: 1)
             unfairLock.deallocate()
         }
-        
+
         func lock() {
             os_unfair_lock_lock(unfairLock)
         }
-        
+
         func unlock() {
             os_unfair_lock_unlock(unfairLock)
         }
-        
+
         func tryLock() -> Bool {
             os_unfair_lock_trylock(unfairLock)
         }
     }
 }
+
+extension Mutex: Sendable where Value: Escapable { }
+extension Mutex: SendableMetatype where Value: Escapable { }
+
+/*
+ Sendable
+ Conforms when Value conforms to Escapable.
+ SendableMetatype
+ Conforms when Value conforms to Escapable.
+ */

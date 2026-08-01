@@ -247,7 +247,7 @@ public enum ObjCRuntime {
         - `symbolName`: The symbol name associated with the method.
      */
     public static func origin(of method: Method) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
-        Cache.methodOrigins[ObjCMethodKey(method), initial: origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))]
+        Cache.methodOrigins[method, initial: origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))]
     }
     
     /*
@@ -423,7 +423,7 @@ fileprivate extension ObjCRuntime {
             return _classNodes
         }
         static var _classNodes: [ObjCClassNode] = []
-        static var methodOrigins: [ObjCMethodKey: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
+        static var methodOrigins: [Method: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
         static var classOrigins: [ObjectIdentifier: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
 
                 
