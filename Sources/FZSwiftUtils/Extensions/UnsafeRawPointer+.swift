@@ -37,6 +37,11 @@ public extension UnsafeRawPointer {
     func loadUnaligned<T>(fromByteOffset offset: Int = 0) -> T where T : BitwiseCopyable {
         loadUnaligned(fromByteOffset: offset, as: T.self)
     }
+    
+    /// Returns a new mutable raw pointer from this pointer.
+    var mutable: UnsafeMutableRawPointer {
+        UnsafeMutableRawPointer(mutating: self)
+    }
 }
 
 public extension UnsafeRawBufferPointer {
@@ -68,6 +73,11 @@ public extension UnsafeRawBufferPointer {
      */
     func loadUnaligned<T>(fromByteOffset offset: Int = 0) -> T where T : BitwiseCopyable {
         loadUnaligned(fromByteOffset: offset, as: T.self)
+    }
+    
+    /// Returns a new mutable buffer over the same memory as this buffer.
+    var mutable: UnsafeMutableRawBufferPointer {
+        UnsafeMutableRawBufferPointer(mutating: self)
     }
 }
 

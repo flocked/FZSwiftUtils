@@ -7,22 +7,90 @@
 
 import Foundation
 
-extension Decodable where Self: HTTPCookie {
-    public init(from decoder: any Decoder) throws {
-        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: decoder.decodeSingle())
-        guard let object = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
-            throw NSCodingArchiveError.missingRootObject
-        }
-        guard let cookie = object as? Self else {
-            throw NSCodingArchiveError.typeMismatch(expected: HTTPCookie.self, actual: type(of: object))
-        }
-        self = cookie
-    }
-}
+public extension HTTPCookie {
+    /**
+     Creates a new cookie using the specified name, value and domain.
 
-extension HTTPCookie: Swift.Decodable, Swift.Encodable {
-    public func encode(to encoder: any Encoder) throws {
-        try encoder.encodeSingle(NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false))
+     - Parameters:
+        - name: The cookie name.
+        - value: The cookie value.
+        - domain: The domain for which the cookie is valid.
+        - path: The path for which the cookie is valid.
+        - secure: A Boolean value indicating whether the cookie should only be sent over secure connections.
+        - discard: A Boolean value indicating whether the cookie should be discarded at the end of the current session.
+        - sameSitePolicy: The cookie's SameSite policy.
+        - expires: The date after which the cookie expires.
+        - comment: An optional comment describing the purpose of the cookie.
+        - commentURL: A URL providing additional information about the cookie.
+        - ports: The ports to which the cookie is restricted, or `nil` for any port.
+     */
+    convenience init?(name: String, value: String, domain: String, path: String = "/", secure: Bool = true, discard: Bool = false, sameSitePolicy: HTTPCookieStringPolicy? = nil, expires: Date? = nil, comment: String? = nil, commentURL: URL? = nil, ports: [Int]? = nil) {
+        self.init(properties: [.name: name, .value: value, .domain: domain, .path: path, .sameSitePolicy: sameSitePolicy?.rawValue, .comment: comment, .commentURL: commentURL, .secure: secure ? "TRUE" : nil, .discard: discard ? "TRUE" : "FALSE", .expires: expires, .port: Self.ports(for: ports)].nonNil)
+    }
+    
+    /**
+     Creates a new cookie using the specified name, value and domain.
+
+     - Parameters:
+        - name: The cookie name.
+        - value: The cookie value.
+        - domain: The domain for which the cookie is valid.
+        - path: The path for which the cookie is valid.
+        - secure: A Boolean value indicating whether the cookie should only be sent over secure connections.
+        - discard: A Boolean value indicating whether the cookie should be discarded at the end of the current session.
+        - sameSitePolicy: The cookie's SameSite policy.
+        - maximumAge: The maximum lifetime of the cookie, in seconds.
+        - comment: An optional comment describing the purpose of the cookie.
+        - commentURL: A URL providing additional information about the cookie.
+        - ports: The ports to which the cookie is restricted, or `nil` for any port.
+     */
+    convenience init?(name: String, value: String, domain: String, path: String = "/", secure: Bool = true, discard: Bool = false, sameSitePolicy: HTTPCookieStringPolicy? = nil, maximumAge: Int, comment: String? = nil, commentURL: URL? = nil, ports: [Int]? = nil) {
+        self.init(properties: [.name: name, .value: value, .domain: domain, .path: path, .sameSitePolicy: sameSitePolicy?.rawValue, .comment: comment, .commentURL: commentURL, .secure: secure ? "TRUE" : nil, .discard: discard ? "TRUE" : "FALSE", .maximumAge: "\(maximumAge)", .port: Self.ports(for: ports)].nonNil)
+    }
+    
+    /**
+     Creates a new cookie using the specified name, value and origin URL.
+
+     - Parameters:
+        - name: The cookie name.
+        - value: The cookie value.
+        - originURL: The URL from which the cookie originates.
+        - path: The path for which the cookie is valid.
+        - secure: A Boolean value indicating whether the cookie should only be sent over secure connections.
+        - discard: A Boolean value indicating whether the cookie should be discarded at the end of the current session.
+        - sameSitePolicy: The cookie's SameSite policy.
+        - expires: The date after which the cookie expires.
+        - comment: An optional comment describing the purpose of the cookie.
+        - commentURL: A URL providing additional information about the cookie.
+        - ports: The ports to which the cookie is restricted, or `nil` for any port.
+     */
+    convenience init?(name: String, value: String, originURL: URL, path: String = "/", secure: Bool = true, discard: Bool = false, sameSitePolicy: HTTPCookieStringPolicy? = nil, expires: Date? = nil, comment: String? = nil, commentURL: URL? = nil, ports: [Int]? = nil) {
+        self.init(properties: [.name: name, .value: value, .originURL: originURL, .path: path, .sameSitePolicy: sameSitePolicy?.rawValue, .comment: comment, .commentURL: commentURL, .secure: secure ? "TRUE" : nil, .discard: discard ? "TRUE" : "FALSE", .expires: expires, .port: Self.ports(for: ports)].nonNil)
+    }
+    
+    /**
+     Creates a new cookie using the specified name, value and origin URL.
+
+     - Parameters:
+        - name: The cookie name.
+        - value: The cookie value.
+        - originURL: The URL from which the cookie originates.
+        - path: The path for which the cookie is valid.
+        - secure: A Boolean value indicating whether the cookie should only be sent over secure connections.
+        - discard: A Boolean value indicating whether the cookie should be discarded at the end of the current session.
+        - sameSitePolicy: The cookie's SameSite policy.
+        - maximumAge: The maximum lifetime of the cookie, in seconds.
+        - comment: An optional comment describing the purpose of the cookie.
+        - commentURL: A URL providing additional information about the cookie.
+        - ports: The ports to which the cookie is restricted, or `nil` for any port.
+     */
+    convenience init?(name: String, value: String, originURL: URL, path: String = "/", secure: Bool = true, discard: Bool = false, sameSitePolicy: HTTPCookieStringPolicy? = nil, maximumAge: Int, comment: String? = nil, commentURL: URL? = nil, ports: [Int]? = nil) {
+        self.init(properties: [.name: name, .value: value, .originURL: originURL, .path: path, .sameSitePolicy: sameSitePolicy?.rawValue, .comment: comment, .commentURL: commentURL, .secure: secure ? "TRUE" : nil, .discard: discard ? "TRUE" : "FALSE", .maximumAge: "\(maximumAge)", .port: Self.ports(for: ports)].nonNil)
+    }
+    
+    private static func ports(for ports: [Int]?) -> String? {
+        let ports = (ports ?? []).sorted().uniqued()
+        return ports.isEmpty ? nil : ports.map(String.init).joined(separator: ",")
     }
 }
 
@@ -213,6 +281,25 @@ extension HTTPCookie {
         properties[.httpOnly] = httpOnly ? "TRUE" : nil
         properties[.sameSitePolicy] = fields[safe: 9]?.normalizedSameSitePolicy
         self.init(properties: properties)
+    }
+}
+
+extension Decodable where Self: HTTPCookie {
+    public init(from decoder: any Decoder) throws {
+        let unarchiver = try NSKeyedUnarchiver(forReadingFrom: decoder.decodeSingle())
+        guard let object = unarchiver.decodeObject(forKey: NSKeyedArchiveRootObjectKey) else {
+            throw NSCodingArchiveError.missingRootObject
+        }
+        guard let cookie = object as? Self else {
+            throw NSCodingArchiveError.typeMismatch(expected: HTTPCookie.self, actual: type(of: object))
+        }
+        self = cookie
+    }
+}
+
+extension HTTPCookie: Swift.Decodable, Swift.Encodable {
+    public func encode(to encoder: any Encoder) throws {
+        try encoder.encodeSingle(NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: false))
     }
 }
 

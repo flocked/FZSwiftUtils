@@ -18,7 +18,7 @@ public extension UnsafePointer {
         UnsafeBufferPointer(start: self, count: Int(count))
     }
     
-
+    
     /**
      Copies the specified amount of elements from the memory pointed to by this pointer into an array.
      
@@ -27,6 +27,18 @@ public extension UnsafePointer {
      */
     func array<I: BinaryInteger>(count: I) -> [Pointee] {
         Array(buffer(count: count))
+    }
+    
+    /// Returns a mutable pointer referencing the same memory as this pointer.
+    var mutable: UnsafeMutablePointer<Pointee> {
+        UnsafeMutablePointer(mutating: self)
+    }
+}
+
+public extension UnsafeBufferPointer {
+    /// Returns a mutable buffer pointer referencing the same memory as this pointer.
+    var mutable: UnsafeMutableBufferPointer<Element> {
+        UnsafeMutableBufferPointer(mutating: self)
     }
 }
 
