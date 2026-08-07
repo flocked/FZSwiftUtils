@@ -510,7 +510,6 @@ extension DataSize: CustomStringConvertible {
         formatter.includesActualByteCount = includesActualByteCount
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
         formatter.locale = locale
-        formatter.zeroPadsFractionDigits
         formatter.unitStyle = unitStyle.formatter
         return formatter.string(fromByteCount: Int64(bytes))
     }
