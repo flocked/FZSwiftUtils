@@ -514,47 +514,6 @@ extension DataSize: CustomStringConvertible {
         return formatter.string(fromByteCount: Int64(bytes))
     }
 
-    private static func ddefaultFormatter(for countStyle: CountStyle) -> ByteCountFormatter {
-        switch countStyle {
-        case .file: return defaultFileDescriptionFormatter
-        case .memory: return defaultMemoryDescriptionFormatter
-        case .decimal: return defaultDecimalDescriptionFormatter
-        case .binary: return defaultBinaryDescriptionFormatter
-        }
-    }
-
-    private static let defaultFileDescriptionFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .file)
-        formatter.includesUnit = true
-        formatter.includesActualByteCount = true
-        formatter.zeroPadsFractionDigits = false
-        return formatter
-    }()
-
-    private static let defaultBinaryDescriptionFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .binary)
-        formatter.includesUnit = true
-        formatter.includesActualByteCount = true
-        formatter.zeroPadsFractionDigits = false
-        return formatter
-    }()
-
-    private static let defaultMemoryDescriptionFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .memory)
-        formatter.includesUnit = true
-        formatter.includesActualByteCount = true
-        formatter.zeroPadsFractionDigits = false
-        return formatter
-    }()
-
-    private static let defaultDecimalDescriptionFormatter: ByteCountFormatter = {
-        let formatter = ByteCountFormatter(allowedUnits: .useAll, countStyle: .decimal)
-        formatter.includesUnit = true
-        formatter.includesActualByteCount = true
-        formatter.zeroPadsFractionDigits = false
-        return formatter
-    }()
-
     /// The unit style for a string representation of the data size.
     public enum UnitStyle: Int {
         /// No unit.
