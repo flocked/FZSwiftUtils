@@ -393,3 +393,30 @@ extension Set {
         union(elements())
     }
 }
+
+extension Sequence where Element: SetAlgebra {
+    /// The union of all elements in the sequence.
+    public var union: Element {
+        reduce(into: []) { $0.formUnion($1) }
+    }
+
+    /// The intersection of all elements in the sequence.
+    public var intersection: Element? {
+        var iterator = makeIterator()
+        guard var result = iterator.next() else { return nil }
+        while let element = iterator.next() {
+            result.formIntersection(element)
+        }
+        return result
+    }
+
+    /// Returns whether all elements are pairwise disjoint.
+    public var areDisjoint: Bool {
+        var accumulated: Element = []
+        for element in self {
+            guard accumulated.isDisjoint(with: element) else { return false }
+            accumulated.formUnion(element)
+        }
+        return true
+    }
+}

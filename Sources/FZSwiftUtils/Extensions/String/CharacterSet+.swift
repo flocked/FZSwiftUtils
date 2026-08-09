@@ -41,9 +41,3 @@ extension CharacterSet: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUni
         lhs.subtract(rhs)
     }
 }
-
-extension Array where Element == CharacterSet {
-    public var union: CharacterSet {
-        reduce(into: []) { $0.formUnion($1) }
-    }
-}

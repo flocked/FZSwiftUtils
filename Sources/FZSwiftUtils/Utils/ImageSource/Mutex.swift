@@ -30,7 +30,7 @@ import func os.os_unfair_lock_trylock
  }
  ```
  */
-public struct Mutex<Value: ~Copyable> {
+public struct Mutex<Value: ~Copyable>: ~Copyable {
     private let storage: Storage
 
     /**
@@ -59,7 +59,7 @@ public struct Mutex<Value: ~Copyable> {
      
      - Warning: Recursive calls to `withLock` within the closure parameter has behavior that is platform dependent. Some platforms may choose to panic the process, deadlock, or leave this behavior unspecified. This will never reacquire the lock however.
     */
-    public borrowing func withLock<Result>(_ body: (inout Value) throws -> Result) rethrows -> Result {
+    public borrowing func withLock<Result: ~Copyable, E: Error>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
         storage.lock()
         defer { storage.unlock() }
         return try body(&storage.value)
@@ -84,7 +84,7 @@ public struct Mutex<Value: ~Copyable> {
      return try body(&value)
      ```
      */
-    public borrowing func withLockIfAvailable<Result>(_ body: (inout Value) throws -> Result) rethrows -> Result? {
+    public borrowing func withLockIfAvailable<Result: ~Copyable, E: Error>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result? {
         guard storage.tryLock() else { return nil }
         defer { storage.unlock() }
         return try body(&storage.value)
@@ -122,9 +122,21 @@ public struct Mutex<Value: ~Copyable> {
 extension Mutex: Sendable where Value: Escapable { }
 extension Mutex: SendableMetatype where Value: Escapable { }
 
-/*
- Sendable
- Conforms when Value conforms to Escapable.
- SendableMetatype
- Conforms when Value conforms to Escapable.
- */
+extension Mutex where Value : Sendable {
+    private struct LockResult<T: ~Copyable, V: ~Copyable>: ~Copyable {
+        let bodyResult: T
+        let extendedValue: V
+    }
+
+    package func withLockExtendingLifetimeOfState<Result: ~Copyable, E>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
+        let result = try self.withLock { value throws(E) in
+            let copyToExtend = value
+            return LockResult(
+                bodyResult: try body(&value),
+                extendedValue: copyToExtend
+            )
+        }
+        _fixLifetime(result.extendedValue)
+        return result.bodyResult
+    }
+}
