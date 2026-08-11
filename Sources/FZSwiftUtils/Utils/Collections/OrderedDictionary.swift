@@ -100,10 +100,10 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
 
      - Parameters:
         - keysAndValues: A sequence of key-value pairs to use for the new ordered dictionary. Every key in `keysAndValues` must be unique.
-        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+        - retainLastOccurrences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
      */
-    public init<S: Sequence>(_ keysAndValues: S, retainLastOccurences: Bool) where S.Element == Element {
-        self = Self(keysAndValues) { val1, val2 in retainLastOccurences ? val2 : val1 }
+    public init<S: Sequence>(_ keysAndValues: S, retainLastOccurrences: Bool) where S.Element == Element {
+        self = Self(keysAndValues) { val1, val2 in retainLastOccurrences ? val2 : val1 }
     }
     
     private init<S: Sequence>(uniqueKeysWithValues keysAndValues: S, minimumCapacity: Int? = nil) where S.Element == Element {
@@ -776,10 +776,10 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
 
      - Parameters:
         - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+        - retainLastOccurrences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
      */
-    public func mapKeys<T>(_ transform: (Key) throws -> T, retainLastOccurences: Bool) rethrows -> OrderedDictionary<T, Value> {
-        try mapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
+    public func mapKeys<T>(_ transform: (Key) throws -> T, retainLastOccurrences: Bool) rethrows -> OrderedDictionary<T, Value> {
+        try mapKeys(transform) { val1, val2 in retainLastOccurrences ? val2 : val1 }
     }
     
     /**
@@ -819,10 +819,10 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
 
      - Parameters:
         - transform: A closure that accepts each key of the dictionary as its parameter and returns a transformed key of the same or of a different type.
-        - retainLastOccurences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
+        - retainLastOccurrences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
      */
-    public func compactMapKeys<T>(_ transform: (Key) throws -> T?, retainLastOccurences: Bool) rethrows -> OrderedDictionary<T, Value> {
-        try compactMapKeys(transform) { val1, val2 in retainLastOccurences ? val2 : val1 }
+    public func compactMapKeys<T>(_ transform: (Key) throws -> T?, retainLastOccurrences: Bool) rethrows -> OrderedDictionary<T, Value> {
+        try compactMapKeys(transform) { val1, val2 in retainLastOccurrences ? val2 : val1 }
     }
     
     /// Returns a new ordered dictionary container the key-value pairs that satisfy the given predicate while preserving the original order.

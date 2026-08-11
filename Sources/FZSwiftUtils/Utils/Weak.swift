@@ -8,27 +8,29 @@
 import Foundation
 
 /// A weak reference to an object.
-public class Weak<Object: AnyObject>: Hashable, WeakReference {
+public final class Weak<Object: AnyObject>: Hashable, WeakReference {
     /// The weakly stored object.
     public var object: Object? { weakObject }
     private weak var weakObject: Object?
     /// The identifier of the object.
-    public let id: ObjectIdentifier
+    public let objectID: ObjectIdentifier
     
     /// Creates a weak reference to the specified object.
-    required public init(_ object: Object) {
+    public init(_ object: Object) {
         self.weakObject = object
-        self.id = ObjectIdentifier(object)
+        self.objectID = ObjectIdentifier(object)
     }
 
     public static func == (lhs: Weak, rhs: Weak) -> Bool {
-        lhs.id == rhs.id
+        lhs.objectID == rhs.objectID
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
+        hasher.combine(objectID)
     }
 }
+
+extension Weak: @unchecked Sendable where Object: Sendable {}
 
 /// A weak reference to an object.
 public protocol WeakReference: Hashable {
@@ -37,7 +39,7 @@ public protocol WeakReference: Hashable {
     /// The weakly stored object.
     var object: Object? { get }
     /// The identifier of the object.
-    var id: ObjectIdentifier { get }
+    var objectID: ObjectIdentifier { get }
     /// Creates a weak reference to the specified object.
     init(_ object: Object)
 }
@@ -60,8 +62,8 @@ public extension RangeReplaceableCollection where Element: WeakReference {
      
      - Parameter elements: The sequence of elements to turn into an array.
      */
-    init<S>(_ elements: S) where S : Sequence, Element.Object == S.Element {
-        self = Self(elements.map({Element($0)}))
+    init<S: Sequence<Element.Object>>(_ elements: S) {
+        self.init(elements.lazy.map(Element.init))
     }
 }
 
@@ -76,17 +78,8 @@ public extension Set where Element: WeakReference {
      
      - Parameter elements: The sequence of elements to turn into a set.
      */
-    init<S>(_ elements: S) where S : Sequence, Element.Object == S.Element {
+    init<S: Sequence<Element.Object>>(_ elements: S) {
         self = Self(elements.map({Element($0)}))
-    }
-    
-    /**
-     Creates a set containing the elements of a sequence.
-     
-     - Parameter elements: The sequence of elements to turn into a set.
-     */
-    init<S>(_ elements: S) where S : Sequence, Element.Object == S.Element, Element.Object: Hashable {
-        self = Self(elements.uniqued().map({Element($0)}))
     }
     
     /**
@@ -98,7 +91,7 @@ public extension Set where Element: WeakReference {
     @discardableResult
     mutating func insert(_ newMember: Element.Object) -> (inserted: Bool, memberAfterInsert: Element.Object) {
         let id = ObjectIdentifier(newMember)
-        if let oldMember = first(where: {$0.id == id})?.object {
+        if let oldMember = first(where: {$0.objectID == id})?.object {
             return (false, oldMember)
         }
         insert(Element(newMember))
@@ -123,7 +116,11 @@ public extension Set where Element: WeakReference {
     @discardableResult
     mutating func remove(_ member: Element.Object) -> Element.Object? {
         let id = ObjectIdentifier(member)
-        return removeAll(where: { $0.id == id }).first?.object
+        guard let reference = first(where: { $0.objectID == id }) else {
+            return nil
+        }
+        remove(reference)
+        return reference.object
     }
     
     /**
@@ -223,29 +220,48 @@ public extension Dictionary where Key: WeakReference {
     }
 }
 
-public extension Dictionary where Key: WeakReference, Key.Object: Hashable {
+public extension Dictionary where Key: WeakReference {
     /// Removes all keys where the weak value is `nil`.
     mutating func reap() {
         self = filter { $0.key.object != nil }
     }
     
-    /// The dictionary with keys whose weak object isn't `nil`.
-    var nonNil: [Key.Object: Value] {
-        compactMapKeys( { $0.object } )
-    }
-    
     subscript(key: Key.Object) -> Value? {
         get {
             let id = ObjectIdentifier(key)
-            return first(where: {$0.key.id == id })?.value
+            return first(where: {$0.key.objectID == id })?.value
         }
         set {
             let id = ObjectIdentifier(key)
-            if let key = first(where: {$0.key.id == id })?.key {
+            if let key = first(where: {$0.key.objectID == id })?.key {
                 self[key] = newValue
             } else {
                 self[Key(key)] = newValue
             }
         }
+    }
+}
+
+public extension Dictionary where Key: WeakReference, Key.Object: Hashable {
+    /// The dictionary with keys whose weak object isn't `nil`.
+    var nonNil: [Key.Object: Value] {
+        compactMapKeys( { $0.object } )
+    }
+}
+
+public extension Dictionary where Key: WeakReference, Value: WeakReference {
+    /// Removes all keys where the weak value is `nil`.
+    mutating func reap() {
+        self = filter { $0.key.object != nil && $0.value.object != nil }
+    }
+}
+
+public extension Dictionary where Key: WeakReference, Key.Object: Hashable, Value: WeakReference {
+    /// The dictionary with keys and objects whose weak object isn't `nil`.
+    var nonNil: [Key.Object: Value.Object] {
+        compactMapKeyValues({
+            guard let key = $0.key.object, let value = $0.value.object else { return nil }
+            return (key, value)
+        })
     }
 }

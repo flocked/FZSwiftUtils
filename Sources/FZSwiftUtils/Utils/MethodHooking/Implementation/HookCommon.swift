@@ -8,7 +8,7 @@
 
 import Foundation
 
-let hookSerialQueue = DispatchQueue(label: "com.FZSwiftUtils.HookSerialQueue").registerDetection()
+let hookSerialQueue = DispatchQueue(label: "com.FZSwiftUtils.HookSerialQueue")
 
 extension Selector {
     static let dealloc = NSSelectorFromString("dealloc")

@@ -8,6 +8,18 @@
 import Foundation
 
 public extension DispatchQueue {
+    /// The global system queue for maintenance or cleanup tasks that you create.
+    static let background = DispatchQueue.global(qos: .background)
+    
+    /// The global system queue for tasks that the user does not track actively.
+    static let utility = DispatchQueue.global(qos: .utility)
+    
+    /// The global system queue for tasks that prevent the user from actively using your app.
+    static let userInitiated = DispatchQueue.global(qos: .userInitiated)
+    
+    /// The global system queue for user-interactive tasks, such as animations, event handling, or updating your app’s user interface.
+    static let userInteractive = DispatchQueue.global(qos: .userInteractive)
+    
     /**
      Schedules a work item for execution at the specified time interval, and returns immediately.
      
@@ -67,7 +79,7 @@ public extension DispatchQueue {
         - date: The date at which to schedule the work item for execution.
         - execute: The work item containing the task to execute.
      */
-    func async(at date: Date,  execute: DispatchWorkItem) {
+    func async(at date: Date, execute: DispatchWorkItem) {
         asyncAfter(wallDeadline: DispatchWallTime(date: date), execute: execute)
     }
     
@@ -80,37 +92,18 @@ public extension DispatchQueue {
         - flags: Additional attributes to apply when executing the block.
         - work: The block containing the work to perform. This block has no return value and no parameters.
      */
+    @preconcurrency
     func async(at date: Date, qos: DispatchQoS = .unspecified, flags: DispatchWorkItemFlags = [], execute work: @escaping @Sendable () -> Void) {
         asyncAfter(wallDeadline: DispatchWallTime(date: date), qos: qos, flags: flags, execute: work)
-    }
-    
-    /// The global system queue for maintenance or cleanup tasks that you create.
-    class var background: DispatchQueue {
-        .global(qos: .background)
-    }
-    
-    /// The global system queue for tasks that the user does not track actively.
-    class var utility: DispatchQueue {
-        .global(qos: .utility)
-    }
-    
-    /// The global system queue for tasks that prevent the user from actively using your app.
-    class var userInitiated: DispatchQueue {
-        .global(qos: .userInitiated)
-    }
-    
-    /// The global system queue for user-interactive tasks, such as animations, event handling, or updating your app’s user interface.
-    class var userInteractive: DispatchQueue {
-        .global(qos: .userInteractive)
     }
 }
 
 public extension DispatchWallTime {
-    /// Creates an absolute time for a specified date.
+    /// Creates an absolute time for the specified date.
     init(date: Date) {
-        let seconds = Int(date.timeIntervalSince1970)
-        let nanoseconds = Int((date.timeIntervalSince1970 - Double(seconds)) * 1_000_000_000)
-        self = DispatchWallTime(timespec: timespec(tv_sec: seconds, tv_nsec: nanoseconds))
+        let interval = date.timeIntervalSince1970
+        let seconds = floor(interval)
+        self.init(timespec: timespec(tv_sec: Int(seconds), tv_nsec: Int((interval - seconds) * 1_000_000_000)))
     }
 }
 
@@ -122,18 +115,16 @@ extension DispatchQueue {
      */
     @discardableResult
     public func registerDetection() -> Self {
+        guard getSpecific(key: DispatchQueue.key) == nil else { return self }
         setSpecific(key: DispatchQueue.key, value: Weak(self))
         return self
     }
     
     
-    /**
-     A Boolean value indicating whether the current code is executing on the dispatch queue.
-     
-     - Note: The dispatch queue must first be registered using ``registerDetection()`` in order to be detectable.
-     */
+    /// A Boolean value indicating whether the current code is executing on the dispatch queue.
     public var isCurrent: Bool {
-        DispatchQueue.current === self
+        registerDetection()
+        return DispatchQueue.current === self
     }
     
     /**
@@ -145,7 +136,9 @@ extension DispatchQueue {
           
      The system queue [main](https://developer.apple.com/documentation/dispatch/dispatchqueue/main), and all global QoS queues are automatically registered.
      */
-    public class var current: DispatchQueue? { getSpecific(key: key)?.object }
+    public class var current: DispatchQueue? {
+        getSpecific(key: key)?.object
+    }
         
     private static let key: DispatchSpecificKey<Weak<DispatchQueue>> = {
         let key = DispatchSpecificKey<Weak<DispatchQueue>>()
@@ -365,5 +358,22 @@ extension DispatchQueue {
             }
         }
     }
+}
+*/
+
+/*
+/**
+ Creates a new concurrent dispatch queue to which you can submit blocks.
+ - Parameters:
+    - label: A label to uniquely identify the queue in debugging tools such as Instruments, sample, stackshots, and crash reports.
+    
+        Because applications, libraries, and frameworks can all create their own dispatch queues, a reverse-DNS naming style (`com.example.myqueue`) is recommended.
+    - qos: The quality-of-service level of the queue, which determines the priority at which the system schedules tasks for execution.
+    - autoreleaseFrequency: The frequency with which to autorelease objects created by the blocks that the queue schedules.
+    - target: The target queue on which to execute blocks, or `nil` to let the system provide an appropriate target queue.
+    - initiallyInactive: A Boolean value indicating whether the queue is initially inactive.
+ */
+static func concurrent(_ label: String, qos: DispatchQoS = .unspecified, autoreleaseFrequency: AutoreleaseFrequency = .inherit, target: DispatchQueue? = nil, initiallyInactive: Bool = false) -> DispatchQueue {
+    DispatchQueue(label: label, qos: qos, attributes: initiallyInactive ? [.initiallyInactive, .concurrent] : [.concurrent], autoreleaseFrequency: autoreleaseFrequency, target: target)
 }
 */

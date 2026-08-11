@@ -7,39 +7,39 @@
 
 import Foundation
 
-extension Dictionary where Key == ObjectIdentifier {
-    public subscript(_ key: AnyObject) -> Value? {
-        get { self[ObjectIdentifier(key)] }
-        set { self[ObjectIdentifier(key)] = newValue }
+public extension Dictionary where Key == ObjectIdentifier {
+    subscript(_ object: AnyObject) -> Value? {
+        get { self[ObjectIdentifier(object)] }
+        set { self[ObjectIdentifier(object)] = newValue }
     }
 
-    public subscript(_ key: AnyObject, default defaultValue: @autoclosure () -> Value) -> Value {
-        get { self[ObjectIdentifier(key), default: defaultValue()] }
-        set { self[ObjectIdentifier(key)] = newValue }
+    subscript(_ object: AnyObject, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { self[ObjectIdentifier(object), default: defaultValue()] }
+        set { self[ObjectIdentifier(object)] = newValue }
     }
     
-    public subscript(_ cls: AnyClass) -> Value? {
-        get { self[ObjectIdentifier(cls)] }
-        set { self[ObjectIdentifier(cls)] = newValue }
+    subscript(_ type: AnyClass) -> Value? {
+        get { self[ObjectIdentifier(type)] }
+        set { self[ObjectIdentifier(type)] = newValue }
     }
 
-    public subscript(_ cls: AnyClass, default defaultValue: @autoclosure () -> Value) -> Value {
-        get { self[ObjectIdentifier(cls), default: defaultValue()] }
-        set { self[ObjectIdentifier(cls)] = newValue }
+    subscript(_ type: AnyClass, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { self[ObjectIdentifier(type), default: defaultValue()] }
+        set { self[ObjectIdentifier(type)] = newValue }
     }
 }
 
 public extension Set where Element == ObjectIdentifier {
     /// Inserts the identifier for the given object in the set if it is not already present.
     @discardableResult
-    mutating func insert(_ newMember: AnyObject) -> (inserted: Bool, memberAfterInsert: Element) {
-        insert(ObjectIdentifier(newMember))
+    mutating func insert(_ object: AnyObject) -> (inserted: Bool, memberAfterInsert: Element) {
+        insert(ObjectIdentifier(object))
     }
     
     /// Inserts the identifier for the given object in the set if it is not already present.
     @discardableResult
-    mutating func insert(_ newMember: AnyClass) -> (inserted: Bool, memberAfterInsert: Element) {
-        insert(ObjectIdentifier(newMember))
+    mutating func insert(_ type: AnyClass) -> (inserted: Bool, memberAfterInsert: Element) {
+        insert(ObjectIdentifier(type))
     }
     
     /// Inserts the identifiers for the given objects in the set.
@@ -59,7 +59,7 @@ public extension Set where Element == ObjectIdentifier {
     
     /// Removes the identifier for the specified object from the set.
     @discardableResult
-    mutating func remove(_ object: AnyClass) -> ObjectIdentifier? { remove(ObjectIdentifier(object))
+    mutating func remove(_ type: AnyClass) -> ObjectIdentifier? { remove(ObjectIdentifier(type))
     }
     
     /// Removes the identifiers for the specified objects from the set.
@@ -74,42 +74,42 @@ public extension Set where Element == ObjectIdentifier {
     
     /// Inserts the given element into the set unconditionally.
     @discardableResult
-    mutating func update(with newMember: AnyObject) -> Element? {
-        update(with: ObjectIdentifier(newMember))
+    mutating func update(with newObject: AnyObject) -> Element? {
+        update(with: ObjectIdentifier(newObject))
     }
     
     /// Inserts the given element into the set unconditionally.
     @discardableResult
-    mutating func update(with newMember: AnyClass) -> Element? {
-        update(with: ObjectIdentifier(newMember))
+    mutating func update(with newType: AnyClass) -> Element? {
+        update(with: ObjectIdentifier(newType))
     }
     
     /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
     @_disfavoredOverload
-    func contains(_ key: AnyObject) -> Bool { contains(ObjectIdentifier(key)) }
+    func contains(_ object: AnyObject) -> Bool { contains(ObjectIdentifier(object)) }
     
     /// Returns a Boolean value that indicates whether an identifier for the given object exists in the set.
     @_disfavoredOverload
-    func contains(_ key: AnyClass) -> Bool { contains(ObjectIdentifier(key)) }
+    func contains(_ type: AnyClass) -> Bool { contains(ObjectIdentifier(type)) }
     
-    subscript(_ key: AnyObject) -> Bool {
-        get { contains(key) }
+    subscript(_ object: AnyObject) -> Bool {
+        get { contains(object) }
         set {
             if newValue {
-                insert(key)
+                insert(object)
             } else {
-                remove(key)
+                remove(object)
             }
         }
     }
     
-    subscript(_ key: AnyClass) -> Bool {
-        get { contains(key) }
+    subscript(_ type: AnyClass) -> Bool {
+        get { contains(type) }
         set {
             if newValue {
-                insert(key)
+                insert(type)
             } else {
-                remove(key)
+                remove(type)
             }
         }
     }

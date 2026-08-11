@@ -64,7 +64,7 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
     
     /// Creates a new ordered set from a finite sequence of items.
     public init<S>(_ elements: S) where S : Sequence<Element> {
-        self.init(elements, retainLastOccurences: false)
+        self.init(elements, retainLastOccurrences: false)
     }
     
     /**
@@ -72,11 +72,11 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
      
      - Parameters:
         - sequence: The sequence.
-        - retainLastOccurences: A Boolean value indicating whether if an element occurs more than once in the sequence, only the last instance will be included.
+        - retainLastOccurrences: A Boolean value indicating whether if an element occurs more than once in the sequence, only the last instance will be included.
      */
-    public init<S>(_ sequence: S, retainLastOccurences: Bool) where Element == S.Element, S: Sequence {
+    public init<S>(_ sequence: S, retainLastOccurrences: Bool) where Element == S.Element, S: Sequence {
         var seen = Set<Element>()
-        _array = ContiguousArray(retainLastOccurences ? sequence.reversed().compactMap { seen.insert($0).inserted ? $0 : nil }.reversed() : sequence.compactMap { seen.insert($0).inserted ? $0 : nil })
+        _array = ContiguousArray(retainLastOccurrences ? sequence.reversed().compactMap { seen.insert($0).inserted ? $0 : nil }.reversed() : sequence.compactMap { seen.insert($0).inserted ? $0 : nil })
         _set = seen
         elementIndexes = _array.enumerated().reduce(into: [:]) { $0[$1.element] = $1.offset }
     }

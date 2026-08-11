@@ -23,12 +23,14 @@ extension DispatchWorkItem {
     }
     
     /// Executes the work item's block asynchronously on the main thread after the specified delay.
+    @_disfavoredOverload
     @discardableResult
     public func perform(after delay: TimeDuration) -> Self {
         perform(after: delay, on: .main)
     }
     
     /// Executes the work item's block asynchronously on the given thread after the specified delay.
+    @_disfavoredOverload
     @discardableResult
     public func perform(after delay: TimeDuration, on queue: DispatchQueue) -> Self {
         queue.async(after: delay, execute: self)
@@ -36,14 +38,12 @@ extension DispatchWorkItem {
     }
     
     /// Executes the work item's block asynchronously on the main thread after the specified delay.
-    @_disfavoredOverload
     @discardableResult
     public func perform(after delay: TimeInterval) -> Self {
         perform(after: delay, on: .main)
     }
     
     /// Executes the work item's block asynchronously on the given thread after the specified delay.
-    @_disfavoredOverload
     @discardableResult
     public func perform(after delay: TimeInterval, on queue: DispatchQueue) -> Self {
         queue.async(after: delay, execute: self)
@@ -51,29 +51,19 @@ extension DispatchWorkItem {
     }
     
     /// Executes the work item's block asynchronously on the main thread at the specified date.
-    @_disfavoredOverload
     @discardableResult
     public func perform(at date: Date) -> Self {
         perform(at: date, on: .main)
     }
     
     /// Executes the work item's block asynchronously on the given thread  at the specified date.
-    @_disfavoredOverload
     @discardableResult
     public func perform(at date: Date, on queue: DispatchQueue) -> Self {
         queue.async(at: date, execute: self)
         return self
     }
     
-    /// Executes the work item's block asynchronously on the given thread  at the specified time.
-    @discardableResult
-    public func perform(at time: DispatchTime) -> Self {
-        perform(at: time, on: .main)
-    }
-    
-    /// Executes the work item's block asynchronously on the given thread  at the specified time.
-    @discardableResult
-    public func perform(at time: DispatchTime, on queue: DispatchQueue) -> Self {
+    func perform(at time: DispatchTime, on queue: DispatchQueue) -> Self {
         queue.asyncAfter(deadline: time, execute: self)
         return self
     }

@@ -9,62 +9,52 @@ import Foundation
 
 public extension Sequence {
     /**
-     Returns an array containing the unique elements of the sequence.
+    Returns the elements of the sequence with duplicate elements removed.
 
-     By default, the first occurrence of each element is kept. If `keepLast` is `true`, the last occurrence becomes the one that is preserved.
-
-     - Parameter keepLast: If `false`, the first occurrence of each element is kept; otherwise the last occurrence is kept.
-     - Returns: An array containing the unique elements of the sequence in their original order.
+     - Parameter keepLast: A Boolean value indicating whether to keep the last occurrence of a duplicate element instead of the first.
      */
     func uniqued(keepLast: Bool = false) -> [Element] where Element: Equatable {
         uniqued(by: { $0 }, keepLast: keepLast)
     }
     
     /**
-     Returns an array containing the unique elements of the sequence.
+    Returns the elements of the sequence with duplicate elements removed.
 
-     By default, the first occurrence of each element is kept. If `keepLast` is `true`, the last occurrence becomes the one that is preserved.
-
-     - Parameter keepLast: If `false`, the first occurrence of each element is kept; otherwise the last occurrence is kept.
-     - Returns: An array containing the unique elements of the sequence in their original order.
+     - Parameter keepLast: A Boolean value indicating whether to keep the last occurrence of a duplicate element instead of the first.
      */
     func uniqued(keepLast: Bool = false) -> [Element] where Element: Hashable {
+        uniqued(by: { $0 }, keepLast: keepLast)
+    }
+    
+    /**
+     Returns the elements of the sequence with duplicate objects removed.
+
+     - Parameter keepLast: A Boolean value indicating whether to keep the last occurrence of a duplicate object instead of the first.
+     */
+    @_disfavoredOverload
+    func uniqued(keepLast: Bool = false) -> [Element] where Element: AnyObject {
         uniqued(by: { $0 }, keepLast: keepLast)
     }
 }
 
 public extension Sequence {
     /**
-     Returns an array of elements with duplicates removed based the property at the specified key path.
+     Returns the elements of the sequence with duplicate values for the specified key path removed.
 
      - Parameters:
-        - keyPath: The key path to the property used to determine uniqueness.
-        - keepLast: If `false`, the first occurrence of each property is kept; otherwise the last occurrence is kept.
-     - Returns: An array containing the elements of the sequence with unique values for the specified property in their original order.
+       - keyPath: The key path used to determine uniqueness.
+       - keepLast: A Boolean value indicating whether to keep the last occurrence instead of the first.
      */
     func uniqued<T: Equatable>(by keyPath: KeyPath<Element, T>, keepLast: Bool = false) -> [Element] {
         uniqued(by: { $0[keyPath: keyPath] }, keepLast: keepLast)
     }
     
     /**
-     Returns an array of elements with duplicates removed based the property at the specified key path.
+     Returns the elements of the sequence with duplicate values produced by the specified closure removed.
 
      - Parameters:
-        - keyPath: The key path to the property used to determine uniqueness.
-        - keepLast: If `false`, the first occurrence of each property is kept; otherwise the last occurrence is kept.
-     - Returns: An array containing the elements of the sequence with unique values for the specified property in their original order.
-     */
-    func uniqued<T: Hashable>(by keyPath: KeyPath<Element, T>, keepLast: Bool = false) -> [Element] {
-        uniqued(by: { $0[keyPath: keyPath] }, keepLast: keepLast)
-    }
-    
-    /**
-     Returns an array of elements with duplicates removed based the value returned by the specified closure.
-
-     - Parameters:
-        - keyPath: A closure returning the value used for uniqueness.
-        - keyForValue: If `false`, the first occurrence of each property is kept; otherwise the last occurrence is kept.
-     - Returns: An array containing the elements of the sequence with unique values returned by the specified closure in their original order.
+       - keyForValue: A closure that returns the value used to determine uniqueness for an element.
+       - keepLast: A Boolean value indicating whether to keep the last occurrence instead of the first.
      */
     func uniqued<T: Equatable>(by keyForValue: (Element) throws -> T, keepLast: Bool = false) rethrows -> [Element] {
         var uniqueElements: [T] = []
@@ -80,12 +70,22 @@ public extension Sequence {
     }
     
     /**
-     Returns an array of elements with duplicates removed based the value returned by the specified closure.
+     Returns the elements of the sequence with duplicate values for the specified key path removed.
 
      - Parameters:
-        - keyPath: A closure returning the value used for uniqueness.
-        - keyForValue: If `false`, the first occurrence of each property is kept; otherwise the last occurrence is kept.
-     - Returns: An array containing the elements of the sequence with unique values returned by the specified closure in their original order.
+       - keyPath: The key path used to determine uniqueness.
+       - keepLast: A Boolean value indicating whether to keep the last occurrence instead of the first.
+     */
+    func uniqued<T: Hashable>(by keyPath: KeyPath<Element, T>, keepLast: Bool = false) -> [Element] {
+        uniqued(by: { $0[keyPath: keyPath] }, keepLast: keepLast)
+    }
+    
+    /**
+     Returns the elements of the sequence with duplicate values produced by the specified closure removed.
+
+     - Parameters:
+       - keyForValue: A closure that returns the value used to determine uniqueness for an element.
+       - keepLast: A Boolean value indicating whether to keep the last occurrence instead of the first.
      */
     func uniqued<T: Hashable>(by keyForValue: (Element) throws -> T, keepLast: Bool = false) rethrows -> [Element] {
         var seen = Set<T>()
@@ -94,10 +94,39 @@ public extension Sequence {
         }
         return try reversed().filter { seen.insert(try keyForValue($0)).inserted }.reversed()
     }
+    
+    
+    /**
+     Returns the elements of the sequence with duplicate object identities for the specified key path removed.
+
+     - Parameters:
+       - keyPath: The key path to the object whose identity is used to determine uniqueness.
+       - keepLast: A Boolean value indicating whether to keep the last occurrence instead of the first.
+     */
+    @_disfavoredOverload
+    func uniqued<T: AnyObject>(by keyPath: KeyPath<Element, T>, keepLast: Bool = false) -> [Element] {
+        uniqued(by: { $0[keyPath: keyPath] }, keepLast: keepLast)
+    }
+    
+    /**
+     Returns the elements of the sequence with duplicate object identities produced by the specified closure removed.
+
+     - Parameters:
+       - keyForValue: A closure that returns the object whose identity is used to determine uniqueness for an element.
+       - keepLast: A Boolean value indicating whether to keep the last occurrence instead of the first.
+     */
+    @_disfavoredOverload
+    func uniqued<T: AnyObject>(by keyForValue: (Element) throws -> T, keepLast: Bool = false) rethrows -> [Element] {
+        var seen = Set<ObjectIdentifier>()
+        if !keepLast {
+            return try filter { seen.insert(ObjectIdentifier(try keyForValue($0))).inserted }
+        }
+        return try reversed().filter { seen.insert(ObjectIdentifier(try keyForValue($0))).inserted }.reversed()
+    }
 }
 
 public extension Sequence {
-    /// Returns the elements that appear more than once, in the order they appear.
+    /// Returns the elements that appear more than once, in the order they first appear as duplicates.
     func duplicates() -> [Element] where Element: Equatable {
         var seen: [Element] = []
         var duplicates: [Element] = []
@@ -111,15 +140,28 @@ public extension Sequence {
         return duplicates
     }
 
-    /// Returns the elements that appear more than once, in the order they appear.
+    /// Returns the elements that appear more than once, in the order they first appear as duplicates.
     func duplicates() -> [Element] where Element: Hashable {
         var seen = Set<Element>()
-        var duplicatesSet = Set<Element>()
+        var duplicates = Set<Element>()
         var result: [Element] = []
         for element in self {
-            if !seen.insert(element).inserted, duplicatesSet.insert(element).inserted {
-                result.append(element)
-            }
+            guard !seen.insert(element).inserted, duplicates.insert(element).inserted else { continue }
+            result.append(element)
+        }
+        return result
+    }
+    
+    /// Returns the elements that appear more than once, in the order they first appear as duplicates.
+    @_disfavoredOverload
+    func duplicates() -> [Element] where Element: AnyObject {
+        var seen = Set<ObjectIdentifier>()
+        var duplicates = Set<ObjectIdentifier>()
+        var result: [Element] = []
+        for element in self {
+            let id = ObjectIdentifier(element)
+            guard !seen.insert(id).inserted, duplicates.insert(id).inserted else { continue }
+            result.append(element)
         }
         return result
     }

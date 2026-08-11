@@ -859,12 +859,14 @@ extension TimeDuration: Comparable, AdditiveArithmetic {
 }
 
 public extension DispatchTime {
+    @_disfavoredOverload
     static func + (lhs: Self, rhs: TimeDuration) -> Self {
         lhs + rhs.seconds
     }
-
-    static func += (lhs: inout Self, rhs: TimeDuration) {
-        lhs = lhs + rhs
+    
+    @_disfavoredOverload
+    static func - (lhs: Self, rhs: TimeDuration) -> Self {
+        lhs - rhs.seconds
     }
 }
 
