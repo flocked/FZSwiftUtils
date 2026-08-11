@@ -126,6 +126,16 @@ extension DispatchQueue {
         return self
     }
     
+    
+    /**
+     A Boolean value indicating whether the current code is executing on the dispatch queue.
+     
+     - Note: The dispatch queue must first be registered using ``registerDetection()`` in order to be detectable.
+     */
+    public var isCurrent: Bool {
+        DispatchQueue.current === self
+    }
+    
     /**
      The dispatch queue currently executing.
      
@@ -136,15 +146,6 @@ extension DispatchQueue {
      The system queue [main](https://developer.apple.com/documentation/dispatch/dispatchqueue/main), and all global QoS queues are automatically registered.
      */
     public class var current: DispatchQueue? { getSpecific(key: key)?.object }
-    
-    /**
-     A Boolean value indicating whether the current code is executing on the specified dispatch queue.
-     
-     - Note: The dispatch queue must first be registered using ``registerDetection()`` in order to be detectable.
-     */
-    public class func isExecuting(in queue: DispatchQueue) -> Bool {
-        DispatchQueue.current == queue
-    }
         
     private static let key: DispatchSpecificKey<Weak<DispatchQueue>> = {
         let key = DispatchSpecificKey<Weak<DispatchQueue>>()
@@ -158,7 +159,7 @@ extension DispatchQueue {
      - Parameter workItem: The `DispatchWorkItem` to execute.
      */
     public func syncSafely(execute workItem: DispatchWorkItem) {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             workItem.perform()
         } else {
             sync(execute: workItem)
@@ -171,7 +172,7 @@ extension DispatchQueue {
      - Parameter block: The block that contains the work to perform.
      */
     public func syncSafely(execute block: () -> Void) {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             block()
         } else {
             sync(execute: block)
@@ -185,7 +186,7 @@ extension DispatchQueue {
      - Returns: The result of the closure.
      */
     public func syncSafely<T>(execute work: () throws -> T) rethrows -> T {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             return try work()
         } else {
             return try sync(execute: work)
@@ -201,7 +202,7 @@ extension DispatchQueue {
      - Returns: The result of the closure.
      */
     public func syncSafely<T>(flags: DispatchWorkItemFlags, execute work: () throws -> T) rethrows -> T {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             return try work()
         } else {
             return try sync(flags: flags, execute: work)
@@ -316,7 +317,7 @@ public extension DispatchQueue {
 /*
 extension DispatchQueue {
     public func asyncSafely(execute workItem: DispatchWorkItem) {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             workItem.perform()
         } else {
             async(execute: workItem)
@@ -324,7 +325,7 @@ extension DispatchQueue {
     }
     
     public func asyncSafely(execute block: @escaping () -> Void) {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             block()
         } else {
             async {
@@ -339,7 +340,7 @@ extension DispatchQueue {
      - Parameter work: The block to execute.
      */
     public func execOrAsync(execute work: @escaping @convention(block) () -> Void) {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             work()
         } else {
             async {
@@ -356,7 +357,7 @@ extension DispatchQueue {
      - Parameter work: The block to execute.
      */
     public func execOrSync(execute work: @convention(block) () -> Void) {
-        if DispatchQueue.isExecuting(in: self) {
+        if isCurrent {
             work()
         } else {
             sync {
