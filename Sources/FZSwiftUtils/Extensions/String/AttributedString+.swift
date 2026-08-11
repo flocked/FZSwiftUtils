@@ -25,7 +25,14 @@ public extension AttributedString {
 
     /// The character contents of the attributed string as a string.
     var string: String {
-        String(characters)
+        get { String(characters) }
+        set { characters.replaceSubrange(characters.range, with: newValue) }
+    }
+    
+    func withString(_ string: String) -> AttributedString {
+        var attributedString = self
+        attributedString.string = string
+        return attributedString
     }
 
     /// A `NSAttributedString` representation of the attributed string.
@@ -33,49 +40,29 @@ public extension AttributedString {
         NSAttributedString(self)
     }
 
-    /**
-     Returns a lowercase version of the attributed string.
-
-     - Returns: A lowercase copy of the attributed string.
-     */
-    func lowercased() -> AttributedString {
-        AttributedString(NSAttributedString(self).lowercased())
+    /// Returns a lowercase version of the attributed string.
+    func lowercased(with locale: Locale? = nil) -> AttributedString {
+        withString(string.lowercased(with: locale))
     }
 
-    /**
-     Returns a uppercase version of the attributed string.
-
-     - Returns: A uppercase copy of the attributed string.
-     */
-    func uppercased() -> AttributedString {
-        AttributedString(NSAttributedString(self).uppercased())
+    /// Returns a uppercase version of the attributed string.
+    func uppercased(with locale: Locale? = nil) -> AttributedString {
+        withString(string.uppercased(with: locale))
     }
 
-    /**
-     Returns a capitalized version of the attributed string.
-
-     - Returns: A capitalized copy of the attributed string.
-     */
-    func capitalized() -> AttributedString {
-        AttributedString(NSAttributedString(self).capitalized())
+    /// Returns a capitalized version of the attributed string.
+    func capitalized(with locale: Locale? = nil) -> AttributedString {
+        withString(string.capitalized(with: locale))
     }
     
-    /**
-     Returns a version of the attributed string where the first character is lowercased.
-
-     - Returns: A lowercase copy of the attributed string.
-     */
+    /// Returns a version of the attributed string where the first character is lowercased.
     func lowercasedFirst() -> AttributedString {
-        AttributedString(NSAttributedString(self).lowercasedFirst())
+        withString(string.lowercasedFirst())
     }
     
-    /**
-     Returns a version of the attributed string, where the first character is uppercased.
-
-     - Returns: A lowercase copy of the attributed string.
-     */
+    /// Returns a version of the attributed string, where the first character is uppercased.
     func uppercasedFirst() -> AttributedString {
-        AttributedString(NSAttributedString(self).uppercasedFirst())
+        withString(string.uppercasedFirst())
     }
 }
 
@@ -194,5 +181,11 @@ public extension Collection where Element == AttributedString {
             result.append(AttributedString(separator))
             result.append(element)
         }
+    }
+}
+
+extension AttributedString.CharacterView {
+    var range: Range<Index> {
+        startIndex..<endIndex
     }
 }

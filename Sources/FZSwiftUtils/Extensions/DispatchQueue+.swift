@@ -116,49 +116,41 @@ public extension DispatchWallTime {
 
 extension DispatchQueue {
     /**
-     Registers a queue so that it can later be detected as the current executing queue.
-
+     Registers the queue so that it can later be detected as the ``current`` executing queue.
+     
      By default, the system queues (`.main`, and all global QoS queues) are automatically registered. Use this method to register additional custom queues for detection.
-
-     - Parameter queue: The dispatch queue to register.
      */
-    public class func registerDetection(of queue: DispatchQueue) {
-        _registerDetection(of: [queue], key: key)
+    @discardableResult
+    public func registerDetection() -> Self {
+        setSpecific(key: DispatchQueue.key, value: Weak(self))
+        return self
     }
     
     /**
      The dispatch queue currently executing.
      
      Returns `nil` if the current queue has not been registered.
-     
-     A dispatch queues needs to be registered first using ``registerDetection(of:)`` in order to be detectable. By default, the system queues (`.main`, and all global QoS queues) are automatically registered.
+
+     A dispatch queue needs to be registered first using ``registerDetection()`` in order to be detectable.
+          
+     The system queue [main](https://developer.apple.com/documentation/dispatch/dispatchqueue/main), and all global QoS queues are automatically registered.
      */
-    public class var current: DispatchQueue? { getSpecific(key: key)?.queue }
+    public class var current: DispatchQueue? { getSpecific(key: key)?.object }
     
     /**
      A Boolean value indicating whether the current code is executing on the specified dispatch queue.
      
-     - Note: The dispatch queue must first be registered using ``registerDetection(of:)`` in order to be detectable.
+     - Note: The dispatch queue must first be registered using ``registerDetection()`` in order to be detectable.
      */
     public class func isExecuting(in queue: DispatchQueue) -> Bool {
         DispatchQueue.current == queue
     }
-    
-    private struct QueueReference { weak var queue: DispatchQueue? }
-    
-    private static let key: DispatchSpecificKey<QueueReference> = {
-        let key = DispatchSpecificKey<QueueReference>()
-        setupSystemQueuesDetection(key: key)
+        
+    private static let key: DispatchSpecificKey<Weak<DispatchQueue>> = {
+        let key = DispatchSpecificKey<Weak<DispatchQueue>>()
+        [DispatchQueue.main, .background, .global(qos: .default), .global(qos: .unspecified), .userInitiated, .userInteractive, .utility].forEach({ $0.setSpecific(key: key, value: Weak($0)) })
         return key
     }()
-    
-    private static func _registerDetection(of queues: [DispatchQueue], key: DispatchSpecificKey<QueueReference>) {
-        queues.forEach { $0.setSpecific(key: key, value: QueueReference(queue: $0)) }
-    }
-    
-    private static func setupSystemQueuesDetection(key: DispatchSpecificKey<QueueReference>) {
-        _registerDetection(of: [.main, .background, .global(qos: .default), .global(qos: .unspecified), .userInitiated, .userInteractive, .utility], key: key)
-    }
     
     /**
      Executes the provided `DispatchWorkItem` synchronously on the queue, but avoids deadlock by performing the work item directly if already on the queue.

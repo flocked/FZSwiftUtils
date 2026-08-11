@@ -49,13 +49,13 @@ extension NSAttributedString {
         
         /// The range of the attribute values.
         public var range: NSRange {
-            _range ?? attributedString?.fullRange ?? .zero
+            _range ?? attributedString?.range ?? .zero
         }
         
         init(for attributedString: NSAttributedString? = nil, range: NSRange? = nil) {
             self.attributedString = attributedString
             self._range = range
-            let range = _range ?? attributedString?.fullRange ?? .zero
+            let range = _range ?? attributedString?.range ?? .zero
             guard let paragraphStyle = attributedString?.attribute(.paragraphStyle, at: range.location, effectiveRange: nil) as? NSParagraphStyle else { return }
             self.paragraphStyle = ParagraphStyle(style: paragraphStyle)
         }

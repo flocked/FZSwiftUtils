@@ -22,7 +22,7 @@ public class Weak<Object: AnyObject>: Hashable, WeakReference {
     }
 
     public static func == (lhs: Weak, rhs: Weak) -> Bool {
-        lhs.hashValue == rhs.hashValue
+        lhs.id == rhs.id
     }
 
     public func hash(into hasher: inout Hasher) {

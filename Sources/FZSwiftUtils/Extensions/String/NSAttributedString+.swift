@@ -20,7 +20,7 @@ import UniformTypeIdentifiers
 
 public extension NSAttributedString {
     /// Returns the full range of the attributed string.
-    var fullRange: NSRange {
+    var range: NSRange {
         NSRange(location: 0, length: length)
     }
     
@@ -37,13 +37,9 @@ public extension NSAttributedString {
      */
     func attributeValues(for attributeName: Key, range: NSRange? = nil) -> [(range: NSRange, value: Any?)] {
         var result: [(range: NSRange, value: Any?)] = []
-        let fullRange = range ?? NSRange(location: 0, length: length)
-        var index = fullRange.lowerBound
-        while index < fullRange.upperBound {
-            var effectiveRange = NSRange()
-            let value = attribute(attributeName, at: index, longestEffectiveRange: &effectiveRange, in: fullRange)
-            result += (effectiveRange, value)
-            index = effectiveRange.upperBound
+
+        enumerateAttribute(attributeName, in: range ?? self.range) { value, range, _ in
+            result.append((range, value))
         }
         return result
     }
@@ -60,7 +56,7 @@ public extension NSAttributedString {
     func applyingAttributes(_ attributes: [Key: Any], at range: NSRange? = nil) -> NSAttributedString {
         guard !string.isEmpty else { return self }
         let copy = NSMutableAttributedString(attributedString: self)
-        copy.addAttributes(attributes, range: range ?? fullRange)
+        copy.addAttributes(attributes, range: range ?? self.range)
         return copy
     }
 
@@ -94,6 +90,13 @@ public extension NSAttributedString {
         let copy = NSMutableAttributedString(attributedString: self)
         copy.setAttribute(name, to: value, at: range)
         return copy
+    }
+    
+    /// Returns a copy of the attributed string with its string replaced by the specified string.
+    func withString(_ string: String) -> NSAttributedString {
+        let value = NSMutableAttributedString(attributedString: self)
+        value.replaceCharacters(in: value.range, with: string)
+        return value
     }
     
     /**
@@ -197,69 +200,29 @@ public extension NSAttributedString {
         settingAttribute(.strikethroughStyle, to: style?.rawValue)
     }
 
-    /**
-     Returns a lowercase version of the attributed string.
-
-     - Returns: A lowercase copy of the attributed string.
-     */
-    func lowercased() -> NSAttributedString {
-        let range = fullRange
-        let value = NSMutableAttributedString(attributedString: self)
-        let string = value.string.lowercased()
-        value.replaceCharacters(in: range, with: string)
-        return value.attributedSubstring(from: range)
+    /// Returns a lowercase version of the attributed string.
+    func lowercased(with locale: Locale? = nil) -> NSAttributedString {
+        withString(string.lowercased(with: locale))
     }
     
-    /**
-     Returns a version of the attributed string where the first character is lowercased.
-
-     - Returns: A lowercase copy of the attributed string.
-     */
+    /// Returns a version of the attributed string where the first character is lowercased.
     func lowercasedFirst() -> NSAttributedString {
-        let range = fullRange
-        let value = NSMutableAttributedString(attributedString: self)
-        let string = value.string.lowercasedFirst()
-        value.replaceCharacters(in: range, with: string)
-        return value.attributedSubstring(from: range)
+        withString(string.lowercasedFirst())
     }
 
-    /**
-     Returns a uppercase version of the attributed string.
-
-     - Returns: A uppercase copy of the attributed string.
-     */
-    func uppercased() -> NSAttributedString {
-        let range = fullRange
-        let value = NSMutableAttributedString(attributedString: self)
-        let string = value.string.uppercased()
-        value.replaceCharacters(in: range, with: string)
-        return value.attributedSubstring(from: range)
+    /// Returns a uppercase version of the attributed string.
+    func uppercased(with locale: Locale? = nil) -> NSAttributedString {
+        withString(string.uppercased(with: locale))
     }
     
-    /**
-     Returns a version of the attributed string, where the first character is uppercased.
-
-     - Returns: A lowercase copy of the attributed string.
-     */
+    /// Returns a version of the attributed string where the first character is uppercased.
     func uppercasedFirst() -> NSAttributedString {
-        let range = fullRange
-        let value = NSMutableAttributedString(attributedString: self)
-        let string = value.string.uppercasedFirst()
-        value.replaceCharacters(in: range, with: string)
-        return value.attributedSubstring(from: range)
+        withString(string.uppercasedFirst())
     }
-
-    /**
-     Returns a capitalized version of the attributed string.
-
-     - Returns: A capitalized copy of the attributed string.
-     */
-    func capitalized() -> NSAttributedString {
-        let range = fullRange
-        let value = NSMutableAttributedString(attributedString: self)
-        let string = value.string.capitalized
-        value.replaceCharacters(in: range, with: string)
-        return value.attributedSubstring(from: range)
+    
+    /// Returns a capitalized version of the attributed string.
+    func capitalized(with locale: Locale? = nil) -> NSAttributedString {
+        withString(string.capitalized(with: locale))
     }
 
     static func + (lhs: NSAttributedString, rhs: NSAttributedString) -> NSAttributedString {
@@ -630,7 +593,7 @@ public extension NSMutableAttributedString {
      - Parameter attributes: A dictionary containing the attributes to add.
      */
     func addAttributes(_ attributes: [Key : Any]) {
-        addAttributes(attributes, range: fullRange)
+        addAttributes(attributes, range: range)
     }
     
     /**
@@ -639,7 +602,7 @@ public extension NSMutableAttributedString {
      - Parameter name: The name of the attribute.
      */
     func removeAttribute(_ name: Key) {
-        removeAttribute(name, range: fullRange)
+        removeAttribute(name, range: range)
     }
     
     /**
@@ -650,7 +613,7 @@ public extension NSMutableAttributedString {
         - range: The range of characters, or `nil` to use the full range.
      */
     func removeAttributes<S: Sequence<Key>>(_ names: S, at range: NSRange? = nil) {
-        let range = range ?? fullRange
+        let range = range ?? self.range
         names.forEach({ removeAttribute($0, range: range) })
     }
     
@@ -664,9 +627,9 @@ public extension NSMutableAttributedString {
      */
     func setAttribute(_ name: Key, to value: Any?, at range: NSRange? = nil) {
         if let value = value {
-            addAttributes([name: value], range: range ?? fullRange)
+            addAttributes([name: value], range: range ?? self.range)
         } else {
-            removeAttribute(name, range: range ?? fullRange)
+            removeAttribute(name, range: range ?? self.range)
         }
     }
 }
@@ -682,7 +645,7 @@ extension NSAttributedString {
      */
     @_disfavoredOverload
     public func data(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> Data {
-        try data(from: range ?? fullRange, documentAttributes: documentAttributes)
+        try data(from: range ?? self.range, documentAttributes: documentAttributes)
     }
     
     /**
@@ -707,7 +670,7 @@ extension NSAttributedString {
      */
     @_disfavoredOverload
     public func fileWrapper(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) throws -> FileWrapper {
-        try fileWrapper(from: range ?? fullRange, documentAttributes: documentAttributes)
+        try fileWrapper(from: range ?? self.range, documentAttributes: documentAttributes)
     }
     
     /**
@@ -831,7 +794,7 @@ extension NSAttributedString {
      */
     @_disfavoredOverload
     public func rtfdFileWrapper(from range: NSRange? = nil, documentAttributes: [NSAttributedString.DocumentAttributeKey : Any] = [:]) -> FileWrapper? {
-        documentAttributes.isEmpty ? rtfdFileWrapper(from: range ?? fullRange) : rtfdFileWrapper(from: range ?? fullRange, documentAttributes: documentAttributes)
+        documentAttributes.isEmpty ? rtfdFileWrapper(from: range ?? self.range) : rtfdFileWrapper(from: range ?? self.range, documentAttributes: documentAttributes)
     }
     
     /**
