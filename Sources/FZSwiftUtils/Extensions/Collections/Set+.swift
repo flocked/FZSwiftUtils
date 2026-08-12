@@ -328,9 +328,11 @@ public extension Set {
 
     /// Edits each element in the set.
     mutating func editEach(_ transform: (_ element: inout Element) throws -> Void) rethrows {
-        var elements = Array(self)
-        try elements.editEach(transform)
-        self = .init(elements)
+        self = try Self(map({
+            var element = $0
+            try transform(&element)
+            return element
+        }))
     }
 }
 
@@ -338,53 +340,50 @@ public extension Set {
     /// A function builder type that produces a set.
     @resultBuilder
     enum Builder {
-        public typealias Component = [Element]
-
-        public static func buildExpression(_ expression: Element?) -> Component {
+        public static func buildExpression(_ expression: Element?) -> [Element] {
             expression.map { [$0] } ?? []
         }
 
-        public static func buildExpression(_ component: Component?) -> Component {
+        public static func buildExpression(_ component: [Element]?) -> [Element] {
             component ?? []
         }
 
-        public static func buildBlock(_ components: Component...) -> Component {
+        public static func buildBlock(_ components: [Element]...) -> [Element] {
             components.flatMap { $0 }
         }
 
-        public static func buildOptional(_ component: Component?) -> Component {
+        public static func buildOptional(_ component: [Element]?) -> [Element] {
             component ?? []
         }
 
-        public static func buildEither(first component: Component) -> Component {
+        public static func buildEither(first component: [Element]) -> [Element] {
             component
         }
 
-        public static func buildEither(second component: Component) -> Component {
+        public static func buildEither(second component: [Element]) -> [Element] {
             component
         }
 
-        public static func buildArray(_ components: [Component]) -> Component {
+        public static func buildArray(_ components: [[Element]]) -> [Element] {
             components.flatMap { $0 }
         }
-
-        public static func buildLimitedAvailability(_ component: Component) -> Component {
-            component
-        }
-
-        public static func buildFinalResult(_ component: Component) -> [Element] {
-            component
+        
+        public static func buildExpression<S: Sequence<Element>>(_ expression: S) -> [Element] {
+            Array(expression)
         }
     }
 
+    /// Creates a new set from the specified elements.
     init(@Builder elements: () -> Self) {
         self = elements()
     }
 
+    /// Inserts the specified elements into the set.
     mutating func insert(@Builder elements: () -> Self) {
         formUnion(elements())
     }
 
+    /// Returns a new set with the specified elements inserted.
     func inserting(@Builder elements: () -> Self) -> Self {
         union(elements())
     }
