@@ -33,7 +33,7 @@ public extension StringProtocol {
      - Parameter strings: The strings.
      - Returns: `true` if all strings exist in the string, or` false` if not.
      */
-    func contains<S>(all strings: S) -> Bool where S: Sequence<StringProtocol> {
+    func contains<S: Sequence<StringProtocol>>(all strings: S) -> Bool {
         strings.allSatisfy { contains($0) }
     }
 
@@ -91,23 +91,74 @@ public extension StringProtocol {
         utf16.count
     }
     
-    /**
-     A Boolean value indicating whether the string contains any of the specified strings.
-     - Parameter strings: The strings.
-     - Returns: `true` if any of the strings exists in the string, or` false` if non exist in the option set.
-     */
-    func contains<S>(any strings: S) -> Bool where S: Sequence<StringProtocol> {
+    /// A Boolean value indicating whether the string contains any of the specified strings.
+    func contains<S: Sequence<StringProtocol>>(any strings: S) -> Bool {
         strings.contains { contains($0) }
     }
     
-    /// Finds and returns the range of the first occurrence of a given string within a given range of the String, subject to given options, using the specified locale, if any.
-    func nsRange<S: StringProtocol>(of string: S, options: String.CompareOptions = [], range: Range<Self.Index>? = nil, locale: Locale? = nil) -> NSRange? {
-        self.range(of: string, options: options, range: range, locale: locale).map(nsRange(for:))
+    /**
+     A Boolean value indicating whether the string contains any of the specified strings using the given comparison options.
+
+     - Parameters:
+        - strings: The strings to search for.
+        - options: The options to use when comparing strings.
+        - locale: The locale to use when comparing strings, or `nil` to use the default locale.
+     - Returns: `true` if the string contains any of the specified strings, otherwise `false`.
+     */
+    @_disfavoredOverload
+    func contains<S: Sequence<StringProtocol>>(any strings: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
+        strings.contains { range(of: $0, options: options, locale: locale) != nil }
     }
     
     /// A Boolean value indicating whether the string is equal to the specified string, comparing them using the specified options and locale.
     func isEqual<S: StringProtocol>(to string: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
         compare(string, options: options, locale: locale).isEqual
+    }
+    
+    /// Finds and returns the range of the first occurrence of a given string within a given range of the String, subject to given options, using the specified locale, if any.
+    func nsRange<S: StringProtocol>(of string: S, options: String.CompareOptions = [], range searchRange: Range<Index>? = nil, locale: Locale? = nil) -> NSRange? {
+        range(of: string, options: options, range: searchRange, locale: locale).map(nsRange(for:))
+    }
+    
+    /**
+     Returns the ranges of all occurrences of the specified string.
+
+     - Parameters:
+        - string: The string to search for.
+        - options: The options to use when comparing strings.
+        - searchRange: The range of the string to search, or `nil` to search the entire string.
+        - locale: The locale to use when comparing strings, or `nil` to use the default locale.
+        - overlapping: A Boolean value indicating whether the returned ranges may overlap.
+     - Returns: The ranges of all occurrences of `string`.
+     */
+    @_disfavoredOverload
+    func ranges<T: StringProtocol>(of string: T, options: String.CompareOptions = [], range searchRange: Range<Index>? = nil, locale: Locale? = nil, overlapping: Bool = true) -> [Range<Index>] {
+        guard !string.isEmpty else { return [] }
+        var ranges: [Range<Index>] = []
+        var searchRange = searchRange ?? range
+        let upperBound = searchRange.upperBound
+        while let range = range(of: string, options: options, range: searchRange, locale: locale) {
+            ranges += range
+            let nextIndex = overlapping ? index(after: range.lowerBound) : range.upperBound
+            guard nextIndex < upperBound else { break }
+            searchRange = nextIndex..<upperBound
+        }
+        return ranges
+    }
+    
+    /**
+     Returns the ranges of all occurrences of the specified string as `NSRange` values.
+
+     - Parameters:
+        - string: The string to search for.
+        - options: The options to use when comparing strings.
+        - searchRange: The range of the string to search, or `nil` to search the entire string.
+        - locale: The locale to use when comparing strings, or `nil` to use the default locale.
+        - overlapping: A Boolean value indicating whether the returned ranges may overlap.
+     - Returns: The ranges of all occurrences of `string`.
+     */
+    func nsRanges<T: StringProtocol>(of string: T, options: String.CompareOptions = [], range searchRange: Range<Index>? = nil, locale: Locale? = nil, overlapping: Bool = true) -> [NSRange] {
+        ranges(of: string, options: options, range: searchRange, locale: locale, overlapping: overlapping).map { NSRange($0, in: self) }
     }
 }
 
@@ -119,7 +170,9 @@ public extension StringProtocol {
     }
     
     /// Returns the character at the specified offset.
-    subscript(offset: Int) -> Character { self[index(startIndex, offsetBy: offset)] }
+    subscript(offset: Int) -> Character {
+        self[index(startIndex, offsetBy: offset)]
+    }
     
     /// Returns the character at the specified offset, or `nil` if the offset couldn't be found.
     subscript(safe offset: Int) -> Character? {
@@ -136,24 +189,23 @@ public extension StringProtocol {
     
     /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: Range<Int>) -> SubSequence? {
-        guard let startIndex = index(startIndex, offsetBy: range.lowerBound, limitedBy: endIndex) else { return nil }
-        guard let endIndex = index(startIndex, offsetBy: range.count, limitedBy: endIndex) else { return nil }
-        return self[startIndex...endIndex]
+        guard range.lowerBound >= 0, let lower = index(startIndex, offsetBy: range.lowerBound, limitedBy: endIndex), let upper = index(lower, offsetBy: range.count, limitedBy: endIndex) else { return nil }
+        return self[lower..<upper]
     }
     
     /// Returns the substring for the specified range.
     subscript(range: ClosedRange<Int>) -> SubSequence {
-        self[range.lowerBound..<range.upperBound+1]
+        self[range.lowerBound..<range.upperBound + 1]
     }
     
     /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: ClosedRange<Int>) -> SubSequence? {
-        self[safe: range.lowerBound..<range.upperBound+1]
+        self[safe: range.lowerBound..<range.upperBound + 1]
     }
     
     /// Returns the substring for the specified `NSRange`.
     subscript(range: NSRange) -> SubSequence {
-        get { self[safe: range]! }
+        self[safe: range]!
     }
     
     /// Returns the substring for the specified `NSRange`, or `nil` if the range couldn't be found.
@@ -163,7 +215,9 @@ public extension StringProtocol {
     }
     
     /// Returns the substring for the specified range.
-    subscript(range: PartialRangeFrom<Int>) -> SubSequence { self[index(startIndex, offsetBy: range.lowerBound)...] }
+    subscript(range: PartialRangeFrom<Int>) -> SubSequence {
+        self[index(startIndex, offsetBy: range.lowerBound)...]
+    }
     
     /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: PartialRangeFrom<Int>) -> SubSequence? {
@@ -172,20 +226,24 @@ public extension StringProtocol {
     }
     
     /// Returns the substring for the specified range.
-    subscript(range: PartialRangeThrough<Int>) -> SubSequence { self[startIndex...index(startIndex, offsetBy: range.upperBound)] }
+    subscript(range: PartialRangeThrough<Int>) -> SubSequence {
+        self[startIndex...index(startIndex, offsetBy: range.upperBound)]
+    }
     
     /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: PartialRangeThrough<Int>) -> SubSequence? {
-        guard range.upperBound >= 0, let endIndex =  index(startIndex, offsetBy: range.upperBound, limitedBy: endIndex) else { return nil }
+        guard range.upperBound >= 0, let endIndex = index(startIndex, offsetBy: range.upperBound, limitedBy: endIndex) else { return nil }
         return self[startIndex...endIndex]
     }
     
     /// Returns the substring for the specified range.
-    subscript(range: PartialRangeUpTo<Int>) -> SubSequence { self[startIndex..<index(startIndex, offsetBy: range.upperBound)] }
+    subscript(range: PartialRangeUpTo<Int>) -> SubSequence {
+        self[startIndex..<index(startIndex, offsetBy: range.upperBound)]
+    }
     
     /// Returns the substring for the specified range, or `nil` if the range couldn't be found.
     subscript(safe range: PartialRangeUpTo<Int>) -> SubSequence? {
-        guard range.upperBound >= 0, let endIndex =  index(startIndex, offsetBy: range.upperBound, limitedBy: endIndex) else { return nil }
+        guard range.upperBound >= 0, let endIndex = index(startIndex, offsetBy: range.upperBound, limitedBy: endIndex) else { return nil }
         return self[startIndex..<endIndex]
     }
     
@@ -214,7 +272,7 @@ public extension StringProtocol {
 
      - Returns: A new string with occurrences of the regular expression replaced by the replacement string.
      */
-    func replacingOccurrences<Pattern, Replacement>(ofPattern pattern: Pattern, with replacement: Replacement, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Pattern: StringProtocol, Replacement: StringProtocol>(ofPattern pattern: Pattern, with replacement: Replacement, range searchRange: Range<Index>? = nil) -> String {
         replacingOccurrences(of: pattern, with: replacement, options: .regularExpression, range: range)
     }
     
@@ -228,7 +286,7 @@ public extension StringProtocol {
 
      - Returns: A new string with occurrences of target strings replaced by the replacement string.
      */
-    func replacingOccurrences<S, Replacement>(of strings: S, with replacement: Replacement, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<S: Sequence, Replacement: StringProtocol>(of strings: S, with replacement: Replacement, options: String.CompareOptions = []) -> String where S.Element: StringProtocol {
         strings.reduce(into: String(self)) { $0 = $0.replacingOccurrences(of: $1, with: replacement, options: options) }
     }
 
@@ -241,7 +299,7 @@ public extension StringProtocol {
 
      - Returns: A new string with occurrences of target strings replaced by the corresponding replacement strings.
      */
-    func replacingOccurrences<Target, Replacement>(_ values: [Target: Replacement], options: String.CompareOptions = []) -> String where Target: StringProtocol, Replacement: StringProtocol {
+    func replacingOccurrences<Target: StringProtocol, Replacement: StringProtocol>(_ values: [Target: Replacement], options: String.CompareOptions = []) -> String {
         values.reduce(into: String(self)) { $0 = $0.replacingOccurrences(of: $1.key, with: $1.value, options: options) }
     }
     
@@ -255,7 +313,7 @@ public extension StringProtocol {
 
      - Returns: A new string with occurrences of target are removed.
      */
-    func removingOccurrences<Target>(of target: Target, options: String.CompareOptions = [], range searchRange: Range<Index>? = nil) -> String where Target: StringProtocol {
+    func removingOccurrences<Target: StringProtocol>(of target: Target, options: String.CompareOptions = [], range searchRange: Range<Index>? = nil) -> String {
         replacingOccurrences(of: target, with: "", range: searchRange)
     }
     
@@ -269,7 +327,7 @@ public extension StringProtocol {
 
      - Returns: A new string with occurrences of pattern are removed.
      */
-    func removingOccurrences<Pattern>(ofPattern pattern: Pattern, range searchRange: Range<Index>? = nil) -> String where Pattern: StringProtocol {
+    func removingOccurrences<Pattern: StringProtocol>(ofPattern pattern: Pattern, range searchRange: Range<Index>? = nil) -> String {
         removingOccurrences(of: pattern, options: .regularExpression, range: range)
     }
     
@@ -282,7 +340,7 @@ public extension StringProtocol {
 
      - Returns: A new string with occurrences of target strings are removed.
      */
-    func removingOccurrences<S>(of strings: S, options: String.CompareOptions = []) -> String where S: Sequence, S.Element: StringProtocol {
+    func removingOccurrences<S: Sequence>(of strings: S, options: String.CompareOptions = []) -> String where S.Element: StringProtocol {
         replacingOccurrences(of: strings, with: "", options: options)
     }
 
@@ -554,7 +612,7 @@ public extension String {
      String(describing: array)
      ```
      */
-    init<Subject>(cleanDescribing instance: Subject) where Subject : TextOutputStreamable {
+    init<Subject>(cleanDescribing instance: Subject) where Subject: TextOutputStreamable {
         if let instance = instance as? String {
             self = "\"\(instance)\""
         } else {
@@ -576,7 +634,7 @@ public extension String {
      String(describing: array)
      ```
      */
-    init<Subject>(cleanDescribing instance: Subject) where Subject : CustomStringConvertible {
+    init<Subject>(cleanDescribing instance: Subject) where Subject: CustomStringConvertible {
         if let instance = instance as? String {
             self = "\"\(instance)\""
         } else {
@@ -598,7 +656,7 @@ public extension String {
      String(describing: array)
      ```
      */
-    init<Subject>(cleanDescribing instance: Subject) where Subject : CustomStringConvertible, Subject : TextOutputStreamable {
+    init<Subject>(cleanDescribing instance: Subject) where Subject: CustomStringConvertible, Subject: TextOutputStreamable {
         if let instance = instance as? String {
             self = "\"\(instance)\""
         } else {
@@ -674,9 +732,9 @@ public extension String {
     - includeTypeInfo: A Boolean value indicating whether type information should be included in the output.
    - separator: A string to print between each item. The default is a single space (`" "`).
    - terminator: The string to print after all items have been printed. The default is a newline (`"\n"`).
-*/
+ */
 public func cleanPrint(_ items: Any..., indent: String = "  ", formatting: String.CollectionFormatting = .singleLine, maxDepth: Int = .max, maxValues: Int = .max, includeTypeInfo: Bool = false, separator: String = " ", terminator: String = "\n") {
-   print(items.map({ String(cleanDescribing: $0, indent: indent, formatting: formatting, maxDepth: maxDepth, maxValues: maxValues, includeTypeInfo: includeTypeInfo) }), separator: separator, terminator: terminator)
+    print(items.map { String(cleanDescribing: $0, indent: indent, formatting: formatting, maxDepth: maxDepth, maxValues: maxValues, includeTypeInfo: includeTypeInfo) }, separator: separator, terminator: terminator)
 }
 
 public extension String {
@@ -699,7 +757,6 @@ public extension String {
                        value: "Book",
                        comment: "noun: A label attached to literary items in the library.")
 
-
      NSLocalizedString("book-button-title",
                        value: "Book",
                        comment: "verb: Title of the button that makes a reservation.")
@@ -710,7 +767,6 @@ public extension String {
      ```
      /* noun: A label attached to literary items in the library. */
      "book-tag-title" = "Livre";
-
 
      /* verb: Title of the button that makes a reservation. */
      "book-button-title" = "Réserver";
@@ -829,7 +885,6 @@ public extension String {
                        value: "Book",
                        comment: "noun: A label attached to literary items in the library.")
 
-
      NSLocalizedString("book-button-title",
                        value: "Book",
                        comment: "verb: Title of the button that makes a reservation.")
@@ -840,7 +895,6 @@ public extension String {
      ```
      /* noun: A label attached to literary items in the library. */
      "book-tag-title" = "Livre";
-
 
      /* verb: Title of the button that makes a reservation. */
      "book-button-title" = "Réserver";
@@ -948,13 +1002,13 @@ public extension String {
     }
     
     private static let escapeEntities: [Character: Character] = [
-        #"0"#: "\0",  // null character
-        #"t"#: "\t",  // horizontal tab
-        #"n"#: "\n",  // line feed
-        #"r"#: "\r",  // carriage return
-        #"""#: "\"",  // double quotation mark
-        #"'"#: "\'",  // single quotation mark
-        #"\"#: "\\",  // backslash
+        #"0"#: "\0", // null character
+        #"t"#: "\t", // horizontal tab
+        #"n"#: "\n", // line feed
+        #"r"#: "\r", // carriage return
+        #"""#: "\"", // double quotation mark
+        #"'"#: "\'", // single quotation mark
+        #"\"#: "\\", // backslash
     ]
 }
 
@@ -963,14 +1017,14 @@ extension String.CompareOptions: Swift.Hashable {
     public static let localizedStandard: Self = [.caseInsensitive, .numeric, .widthInsensitive, .forcedOrdering]
 }
 
-extension StringProtocol {
+public extension StringProtocol {
     /// Returns a sequence of substrings separated by the specified separator string.
-    public func lazyComponents<T: StringProtocol>(separatedBy separator: T) -> StringSplitSequence<Self> {
+    func lazyComponents<T: StringProtocol>(separatedBy separator: T) -> StringSplitSequence<Self> {
         StringSplitSequence(self, separatedBy: String(separator))
     }
     
     /// Returns the component at the specified index separated by the specified separator.
-    public func component<T: StringProtocol>(at index: Int, seperatedBy separator: T) -> SubSequence? {
+    func component<T: StringProtocol>(at index: Int, seperatedBy separator: T) -> SubSequence? {
         guard index >= 0 else { return nil }
         var iterator = lazyComponents(separatedBy: separator).makeIterator()
         for _ in 0..<index {
@@ -1098,7 +1152,7 @@ public struct CharacterSetSplitSequence<Base: StringProtocol>: Sequence {
     }
 }
 
-extension String {
+public extension String {
     /**
      Returns a new string where each line is indented by repeating `unit` `levels` times.
      
@@ -1107,7 +1161,7 @@ extension String {
         - unit: The string used for a single indentation level. Defaults to four spaces.
         - stripExistingIndentation: If `true`, removes leading spaces and tabs from each line before applying indentation.
      */
-    public func indent(by levels: Int = 1, using unit: String = "    ", stripExistingIndentation: Bool = false) -> String {
+    func indent(by levels: Int = 1, using unit: String = "    ", stripExistingIndentation: Bool = false) -> String {
         guard levels > 0, !isEmpty else { return self }
         let prefix = String(repeating: unit, count: levels)
         return self
@@ -1123,7 +1177,7 @@ public extension String.StringInterpolation {
     mutating func appendInterpolation<T>(_ value: T?, or ifnil: @autoclosure () -> String) {
         if let value = value {
             appendInterpolation(value)
-        }  else {
+        } else {
             appendLiteral(ifnil())
         }
     }
@@ -1211,7 +1265,7 @@ public extension StringProtocol {
         while lastNonUnderscore > firstNonUnderscore, self[lastNonUnderscore] == "_" {
             formIndex(before: &lastNonUnderscore)
         }
-        let keyRange = firstNonUnderscore ... lastNonUnderscore
+        let keyRange = firstNonUnderscore...lastNonUnderscore
         let leadingRange = startIndex..<firstNonUnderscore
         let trailingRange = index(after: lastNonUnderscore)..<endIndex
         var result = String()
@@ -1247,8 +1301,7 @@ public extension StringProtocol {
     }
 }
 
-
-fileprivate enum CleanDescribingFormatter {
+private enum CleanDescribingFormatter {
     static func format(_ value: Any, depth: Int, indent: String, formatting: String.CollectionFormatting, includeType: Bool, maxDepth: Int, maxValues: Int) -> String {
         let value = unwrapAnyHashable(value)
 
@@ -1352,7 +1405,7 @@ fileprivate enum CleanDescribingFormatter {
 
     static func isCollection(_ value: Any) -> Bool {
         let value = unwrapAnyHashable(value)
-        return value is [AnyHashable: Any] || value is NSDictionary || value is [Any]  || value is NSArray || value is AnySet
+        return value is [AnyHashable: Any] || value is NSDictionary || value is [Any] || value is NSArray || value is AnySet
     }
 }
 

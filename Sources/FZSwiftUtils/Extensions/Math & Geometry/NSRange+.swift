@@ -34,13 +34,14 @@ extension NSRange: Swift.RandomAccessCollection, Swift.RangeExpression, Swift.Bi
 
 public extension NSRange {
     /// `ClosedRange` representation of the range.
-    var closedRange: ClosedRange<Int> {
-        length > 0 ? lowerBound...(upperBound - 1) : lowerBound...lowerBound
+    var closedRange: ClosedRange<Int>? {
+        guard location != NSNotFound, length > 0 else { return nil }
+        return lowerBound...(upperBound - 1)
     }
 
     /// `Range` representation of the range.
     var range: Range<Int> {
-        lowerBound..<upperBound
+        location == NSNotFound ? NSNotFound..<NSNotFound : lowerBound..<upperBound
     }
     
     /// `CFRange` representation of the range.

@@ -266,52 +266,80 @@ public extension NSAttributedString {
 }
 
 public extension NSAttributedString {
-    subscript(substring: StringLiteralType) -> NSAttributedString? {
-        guard string.contains(substring) else { return nil }
-        let range = (string as NSString).range(of: substring)
-        return attributedSubstring(from: range)
+    subscript<S: StringProtocol>(substring: S) -> NSAttributedString? {
+        string.range(of: substring).map {
+            attributedSubstring(from: NSRange($0, in: string))
+        }
+    }
+    
+    subscript(range: Range<String.Index>) -> NSAttributedString {
+        attributedSubstring(from: NSRange(range, in: string))
+    }
+    
+    subscript(range: ClosedRange<String.Index>) -> NSAttributedString {
+        attributedSubstring(from: NSRange(range, in: string))
     }
 
     subscript(range: ClosedRange<Int>) -> NSAttributedString {
-        let string = String(string[range])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: NSRange(range))
     }
 
     subscript(offset: Int) -> NSAttributedString {
-        let string = String(string[offset])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: NSRange(location: offset, length: 1))
     }
 
     subscript(range: Range<Int>) -> NSAttributedString {
-        let string = String(string[range])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: NSRange(range))
     }
 
     subscript(range: PartialRangeFrom<Int>) -> NSAttributedString {
-        let string = String(string[range])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: NSRange(location: range.lowerBound, length: length - range.lowerBound))
     }
 
     subscript(range: PartialRangeThrough<Int>) -> NSAttributedString {
-        let string = String(string[range])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: NSRange(location: 0, length: range.upperBound + 1))
     }
 
     subscript(range: PartialRangeUpTo<Int>) -> NSAttributedString {
-        let string = String(string[range])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: NSRange(location: 0, length: range.upperBound))
     }
 
     subscript(range: NSRange) -> NSAttributedString {
-        let string = String(string[range.closedRange])
-        let range = (self.string as NSString).range(of: string)
-        return attributedSubstring(from: range)
+        attributedSubstring(from: range)
+    }
+
+    subscript(safe offset: Int) -> NSAttributedString? {
+        guard offset >= 0, offset < length else { return nil }
+        return self[offset]
+    }
+
+    subscript(safe range: ClosedRange<Int>) -> NSAttributedString? {
+        guard range.lowerBound >= 0, range.upperBound < length else { return nil }
+        return self[range]
+    }
+
+    subscript(safe range: Range<Int>) -> NSAttributedString? {
+        guard range.lowerBound >= 0, range.upperBound <= length else { return nil }
+        return self[range]
+    }
+
+    subscript(safe range: PartialRangeFrom<Int>) -> NSAttributedString? {
+        guard range.lowerBound >= 0, range.lowerBound <= length else { return nil }
+        return self[range]
+    }
+
+    subscript(safe range: PartialRangeThrough<Int>) -> NSAttributedString? {
+        guard range.upperBound >= 0, range.upperBound < length else { return nil }
+        return self[range]
+    }
+
+    subscript(safe range: PartialRangeUpTo<Int>) -> NSAttributedString? {
+        guard range.upperBound >= 0, range.upperBound <= length else { return nil }
+        return self[range]
+    }
+
+    subscript(safe range: NSRange) -> NSAttributedString? {
+        try? ObjCRuntime.catchException { self[range] }
     }
 }
 

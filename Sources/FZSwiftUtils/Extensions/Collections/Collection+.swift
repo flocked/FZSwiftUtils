@@ -152,7 +152,7 @@ public extension MutableCollection {
     subscript(safe index: Index) -> Element? {
         get {
             guard !isEmpty, index >= startIndex, index < endIndex else { return nil }
-            return self[index]
+            return !isEmpty && index >= startIndex && index < endIndex ? self[index] : nil
         }
         set {
             guard !isEmpty, index >= startIndex, index < endIndex, let newValue = newValue else { return }
@@ -178,7 +178,7 @@ public extension RangeReplaceableCollection where Self: MutableCollection {
     }
 }
 
-public extension Collection where Index: Comparable {
+public extension Collection {
     /**
      Accesses a contiguous subrange of the collection’s elements.
 
@@ -186,7 +186,7 @@ public extension Collection where Index: Comparable {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: Range<Index>) -> [Element] {
-        !isEmpty ? Array(self[range.clamped(to: startIndex..<endIndex)]) : []
+        Array(self[range.clamped(to: startIndex..<endIndex)])
     }
 
     /**
@@ -196,11 +196,8 @@ public extension Collection where Index: Comparable {
      - Returns: The available elements of the collection at the range.
      */
     subscript(safe range: ClosedRange<Index>) -> [Element] {
-        guard !isEmpty else { return [] }
-        let lower = Swift.max(range.lowerBound, startIndex)
-        let upper = Swift.min(range.upperBound, index(after: endIndex))
-        guard lower <= upper else { return [] }
-        return Array(self[lower...upper])
+        guard let range = clamped(for: range) else { return [] }
+        return Array(self[range])
     }
     
     /**
@@ -235,7 +232,15 @@ public extension Collection where Index: Comparable {
     
     /// Returns the elements of the collection upto the specified maximum count.
     subscript(max maximum: Index) -> [Element] {
-        return self[safe: startIndex..<maximum]
+        self[safe: startIndex..<maximum]
+    }
+    
+    fileprivate func clamped(for range: ClosedRange<Index>) -> Range<Index>? {
+        let lower = Swift.max(range.lowerBound, startIndex)
+        guard lower < endIndex else { return nil }
+        let upper = Swift.min(range.upperBound, endIndex)
+        let upperBound = upper < endIndex ? index(after: upper) : endIndex
+        return lower..<upperBound
     }
 }
 
@@ -343,14 +348,6 @@ public extension RangeReplaceableCollection {
             guard let range = clamped(for: range) else { return }
             replaceSubrange(range, with: newValue)
         }
-    }
-    
-    private func clamped(for range: ClosedRange<Index>) -> ClosedRange<Index>? {
-        guard !isEmpty else { return nil }
-        let lower = Swift.max(range.lowerBound, startIndex)
-        let upper = Swift.min(range.upperBound, index(after: endIndex))
-        guard lower <= upper else { return nil }
-        return lower...upper
     }
     
     /**

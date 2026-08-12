@@ -21,24 +21,10 @@ public extension Range where Bound: BinaryInteger {
     }
 }
 
-public extension Range where Bound: Strideable {
-    /// `ClosedRange` representation of the range.
-    var closedRange: ClosedRange<Bound> {
-        lowerBound...Swift.max(lowerBound, upperBound.advanced(by: -1))
-    }
-}
-
 public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
     /// `ClosedRange` representation of the range.
     var closedRange: ClosedRange<Bound> {
         ClosedRange(self)
-    }
-}
-
-public extension ClosedRange where Bound: Strideable {
-    /// `Range` representation of the range.
-    var range: Range<Bound> {
-        lowerBound..<upperBound.advanced(by: 1)
     }
 }
 
@@ -49,7 +35,14 @@ public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedIntege
     }
 }
 
-public extension Range where Bound == String.Index {
+public extension Range<String.Index> {
+    /// `NSRange` representation of the range.
+    func nsRange<S: StringProtocol>(in string: S) -> NSRange {
+        NSRange(self, in: string)
+    }
+}
+
+public extension ClosedRange<String.Index> {
     /// `NSRange` representation of the range.
     func nsRange<S: StringProtocol>(in string: S) -> NSRange {
         NSRange(self, in: string)
