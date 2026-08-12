@@ -7,84 +7,6 @@
 
 import Foundation
 
-public extension Array {
-    /**
-     Creates a new array containing the specified number of elements returned by a closure.
-     
-     Here’s an example of creating an array initialized with five random integers.
-     
-     ```swift
-     let numbers = Array(generate: { Int.random(in: 0..<10) }, count: 5)
-     print(numbers)
-     // Prints "[4, 7, 3, 2, 7]"
-     ```
-     
-     - Parameters:
-        - generate: The closure that returns an element.
-        - count: The number of times to repeat the closure's value passed in the `generate` parameter.
-     */
-    init(generate: ()->(Element), count: Int) {
-        self = count >= 0 ? (0..<count).map({ _ in generate() }) : []
-    }
-    
-    /**
-     Creates a new array containing the specified number of elements returned by a closure.
-     
-     Here’s an example of creating an array initialized with five random integers.
-     
-     ```swift
-     let numbers = Array(generate: { Int.random(in: 0..<10) }, count: 5)
-     print(numbers)
-     // Prints "[4, 7, 3, 2, 7]"
-     ```
-     
-     - Parameters:
-        - generate: The closure that returns an element.
-        - count: The number of times to repeat the closure's value passed in the `generate` parameter.
-     */
-    init(generate: @autoclosure ()->(Element), count: Int) {
-        self = count >= 0 ? (0..<count).map({ _ in generate() }) : []
-    }
-    
-    /**
-     Creates an array formed from `first` and repeated applications of `next`.
-     
-     The first element of the array is always `first`, and each successive element is the result of invoking `next` with the previous element. The array ends when next returns `nil`.
-          
-     - Parameters:
-        - first: The first element of the array.
-        - next: A closure that accepts the previous sequence element and returns the next element.
-     */
-    init(first: Element, next: @escaping (Element) -> Element?) {
-        self = Array(sequence(first: first, next: next))
-    }
-    
-    /**
-     Creates an array formed from `first` and repeated applications of `next`.
-     
-     The first element of the array is always `first`, and each successive element is the result of invoking `next` with the previous element. The array ends when next returns `nil`.
-          
-     - Parameters:
-        - first: The first element of the array.
-        - next: A closure that accepts the previous sequence element and returns the next element.
-     */
-    @_disfavoredOverload
-    init(first: Element?, next: @escaping (Element) -> Element?) {
-        if let first = first {
-            self = Array(sequence(first: first, next: next))
-        } else {
-            self = []
-        }
-    }
-}
-
-public extension ArraySlice {
-     /// The array slice as `Array`.
-    var asArray: [Element] {
-        Array(self)
-    }
-}
-
 public extension Array where Element: RandomAccessCollection, Element.Index == Int {
     subscript(indexPath: IndexPath) -> Element.Element {
         self[indexPath.section][indexPath.item]
@@ -92,6 +14,13 @@ public extension Array where Element: RandomAccessCollection, Element.Index == I
     
     subscript(safe indexPath: IndexPath) -> Element.Element? {
         self[safe: indexPath.section]?[safe: indexPath.item]
+    }
+}
+
+public extension ArraySlice {
+     /// The array slice as `Array`.
+    var asArray: [Element] {
+        Array(self)
     }
 }
 

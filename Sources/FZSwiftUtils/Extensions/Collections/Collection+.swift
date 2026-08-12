@@ -7,6 +7,93 @@
 
 import Foundation
 
+public extension RangeReplaceableCollection {
+    /// Creates an empty collection with preallocated space for at least the specified number of elements.
+    init(reserveCapacity minimumCapacity: Int) {
+        self.init()
+        reserveCapacity(minimumCapacity)
+    }
+
+    /**
+     Creates a new collection containing the specified number of generated elements.
+
+     Here’s an example of creating an array initialized with five random integers.
+
+     ```swift
+     let numbers = Array(generate: Int.random(in: 0..<10), count: 5)
+     print(numbers)
+     // Prints "[4, 7, 3, 2, 7]"
+     ```
+
+     - Parameters:
+        - generate: An expression that generates an element.
+        - count: The number of elements to generate.
+     */
+    init(generate: @autoclosure () -> Element, count: Int) {
+        self.init()
+        guard count > 0 else { return }
+        reserveCapacity(count)
+        for _ in 0..<count {
+            append(generate())
+        }
+    }
+
+    /**
+     Creates a new collection containing the specified number of elements returned by a closure.
+
+     Here’s an example of creating an array initialized with five random integers.
+
+     ```swift
+     let numbers = Array(generate: { Int.random(in: 0..<10) }, count: 5)
+     print(numbers)
+     // Prints "[4, 7, 3, 2, 7]"
+     ```
+
+     - Parameters:
+        - generate: A closure that returns an element.
+        - count: The number of times to invoke the closure.
+     */
+    init(generate: () -> Element, count: Int) {
+        self.init()
+        guard count > 0 else { return }
+        reserveCapacity(count)
+        for _ in 0..<count {
+            append(generate())
+        }
+    }
+
+    /**
+     Creates a collection formed from `first` and repeated applications of `next`.
+
+     The first element of the collection is always `first`, and each successive element is the result of invoking `next` with the previous element. The collection ends when `next` returns `nil`.
+
+     - Parameters:
+        - first: The first element of the collection.
+        - next: A closure that accepts the previous element and returns the next element.
+     */
+    init(first: Element, next: @escaping (Element) -> Element?) {
+        self.init(sequence(first: first, next: next))
+    }
+
+    /**
+     Creates a collection formed from `first` and repeated applications of `next`.
+
+     If `first` is `nil`, the collection is empty. Otherwise, each successive element is the result of invoking `next` with the previous element, and the collection ends when `next` returns `nil`.
+
+     - Parameters:
+        - first: The first element of the collection, or `nil` to create an empty collection.
+        - next: A closure that accepts the previous element and returns the next element.
+     */
+    @_disfavoredOverload
+    init(first: Element?, next: @escaping (Element) -> Element?) {
+        if let first {
+            self.init(sequence(first: first, next: next))
+        } else {
+            self.init()
+        }
+    }
+}
+
 public extension MutableCollection {
     /// Edits each elements in the collection.
     mutating func editEach(_ transform: (_ element: inout Element) throws -> Void) rethrows {
@@ -58,13 +145,6 @@ public extension Collection where Index == Int {
     /// Returns the available elements at the specified indexes.
     subscript(indexes: IndexSet) -> [Element] {
         indexes.compactMap { self[safe: $0] }
-    }
-}
-
-public extension Array {
-    init(reserveCapacity capacity: Int) {
-        self.init()
-        reserveCapacity(capacity)
     }
 }
 
