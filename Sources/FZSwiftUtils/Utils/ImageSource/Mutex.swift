@@ -6,17 +6,17 @@
 //
 
 import Foundation
-import struct os.os_unfair_lock_t
 import struct os.os_unfair_lock
 import func os.os_unfair_lock_lock
-import func os.os_unfair_lock_unlock
+import struct os.os_unfair_lock_t
 import func os.os_unfair_lock_trylock
+import func os.os_unfair_lock_unlock
 
 /**
  A synchronization primitive that protects shared mutable state via mutual exclusion.
- 
+
  The `Mutex` type offers non-recursive exclusive access to the state it is protecting by blocking threads attempting to acquire the lock. Only one execution context at a time has access to the value stored within the Mutex allowing for exclusive access.
- 
+
  An example use of Mutex in a class used simultaneously by many threads protecting a Dictionary value:
  ```swift
  class Manager {
@@ -35,7 +35,7 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
 
     /**
      Initializes a value of this mutex with the given initial state.
-     
+
      - Parameter initalValue: The initial value to give to the mutex.
      */
     public init(_ initialValue: consuming sending Value) {
@@ -43,22 +43,22 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
     }
 
     /**
-     Calls the given closure after acquiring the lock and then releases ownership.
-     
-     - Parameter body: A closure with a parameter of Value that has exclusive access to the value being stored within this mutex. This closure is considered the critical section as it will only be executed once the calling thread has acquired the lock.
-     - Returns: The return value, if any, of the body closure parameter.
-     
-     This method is equivalent to the following sequence of code:
-     ```swift
-     mutex.lock()
-     defer {
-       mutex.unlock()
-     }
-     return try body(&value)
-     ```
-     
-     - Warning: Recursive calls to `withLock` within the closure parameter has behavior that is platform dependent. Some platforms may choose to panic the process, deadlock, or leave this behavior unspecified. This will never reacquire the lock however.
-    */
+      Calls the given closure after acquiring the lock and then releases ownership.
+
+      - Parameter body: A closure with a parameter of Value that has exclusive access to the value being stored within this mutex. This closure is considered the critical section as it will only be executed once the calling thread has acquired the lock.
+      - Returns: The return value, if any, of the body closure parameter.
+
+      This method is equivalent to the following sequence of code:
+      ```swift
+      mutex.lock()
+      defer {
+        mutex.unlock()
+      }
+      return try body(&value)
+      ```
+
+      - Warning: Recursive calls to `withLock` within the closure parameter has behavior that is platform dependent. Some platforms may choose to panic the process, deadlock, or leave this behavior unspecified. This will never reacquire the lock however.
+     */
     public borrowing func withLock<Result: ~Copyable, E: Error>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
         storage.lock()
         defer { storage.unlock() }
@@ -67,12 +67,12 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
 
     /**
      Attempts to acquire the lock and then calls the given closure if successful.
-     
+
      - Parameter body: A closure with a parameter of Value that has exclusive access to the value being stored within this mutex. This closure is considered the critical section as it will only be executed if the calling thread acquires the lock.
      - Returns: The return value, if any, of the body closure parameter or nil if the lock couldn’t be acquired.
-     
+
      If the calling thread was successful in acquiring the lock, the closure will be executed and then immediately after it will release ownership of the lock. If we were unable to acquire the lock, this will return nil.
-     
+
      This method is equivalent to the following sequence of code:
      ```swift
      guard mutex.tryLock() else {
@@ -119,24 +119,85 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
     }
 }
 
-extension Mutex: Sendable where Value: Escapable { }
-extension Mutex: SendableMetatype where Value: Escapable { }
+extension Mutex: Sendable where Value: Escapable {}
+extension Mutex: SendableMetatype where Value: Escapable {}
 
-extension Mutex where Value : Sendable {
+extension Mutex where Value: Sendable {
     private struct LockResult<T: ~Copyable, V: ~Copyable>: ~Copyable {
         let bodyResult: T
         let extendedValue: V
     }
 
-    package func withLockExtendingLifetimeOfState<Result: ~Copyable, E>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
+    func withLockExtendingLifetimeOfState<Result: ~Copyable, E>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
         let result = try self.withLock { value throws(E) in
             let copyToExtend = value
-            return LockResult(
-                bodyResult: try body(&value),
-                extendedValue: copyToExtend
-            )
+            return try LockResult(bodyResult: body(&value), extendedValue: copyToExtend)
         }
         _fixLifetime(result.extendedValue)
         return result.bodyResult
+    }
+}
+
+private extension RelativeDateTimeFormatter {
+    func string(for seconds: TimeInterval, dateTimeStyle: DateTimeStyle, unitsStyle: UnitsStyle, locale: Locale) -> String {
+        Self.relativeFormatterCache.withLock({
+            $0[.init(dateTimeStyle: dateTimeStyle.rawValue, unitsStyle: unitsStyle.rawValue, locale: locale), default: {
+                let formatter = RelativeDateTimeFormatter()
+                formatter.dateTimeStyle = dateTimeStyle
+                formatter.unitsStyle = unitsStyle
+                formatter.locale = locale
+                return formatter
+            }()].localizedString(fromTimeInterval: seconds)
+         })
+    }
+
+    static let relativeFormatterCache = Mutex([RelativeFormatterKey: RelativeDateTimeFormatter]())
+
+    struct RelativeFormatterKey: Hashable {
+        let dateTimeStyle: Int
+        let unitsStyle: Int
+        let locale: Locale
+    }
+}
+
+/*
+ private func string(for allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, locale: Locale = .current, includesApproximationPhrase: Bool = false, includesTimeRemaining: Bool = false) -> String {
+     let formatter = DateComponentsFormatter()
+     formatter.allowedComponents = allowedUnits.calendarUnits(for: self)
+     formatter.unitsStyle = style
+     formatter.locale = locale
+     formatter.maximumUnitCount = maximumUnitCount
+     formatter.zeroFormattingBehavior = zeroFormattingBehavior
+     formatter.includesApproximationPhrase = includesApproximationPhrase
+     formatter.includesTimeRemainingPhrase = includesTimeRemaining
+     return formatter.string(from: seconds) ?? "\(seconds)"
+ }
+ */
+
+private extension DateComponentsFormatter {
+    func string(from seconds: TimeInterval, allowedUnits: NSCalendar.Unit, unitsStyle: UnitsStyle, locale: Locale, maximumUnitCount: Int, zeroFormattingBehavior: ZeroFormattingBehavior, includesApproximationPhrase: Bool, includesTimeRemainingPhrase: Bool) -> String {
+        Self.formatterCache.withLock({ $0[.init(allowedUnits: allowedUnits.rawValue, unitsStyle: unitsStyle.rawValue, locale: locale, maximumUnitCount: maximumUnitCount, zeroFormattingBehavior: zeroFormattingBehavior.rawValue, includesApproximationPhrase: includesApproximationPhrase, includesTimeRemainingPhrase: includesTimeRemainingPhrase), default: {
+            let formatter = DateComponentsFormatter()
+            formatter.allowedUnits = allowedUnits
+            formatter.unitsStyle = unitsStyle
+            formatter.locale = locale
+            formatter.maximumUnitCount = maximumUnitCount
+            formatter.zeroFormattingBehavior = zeroFormattingBehavior
+            formatter.includesApproximationPhrase = includesApproximationPhrase
+            formatter.includesTimeRemainingPhrase = includesTimeRemainingPhrase
+            return formatter
+        }()].string(from: seconds) ?? "\(seconds)" })
+    }
+
+    static let formatterCache = Mutex([FormatterKey: DateComponentsFormatter]())
+
+    struct FormatterKey: Hashable {
+        let allowedUnits: UInt
+        let unitsStyle: Int
+        let locale: Locale
+        let maximumUnitCount: Int
+        let zeroFormattingBehavior: UInt
+        let includesApproximationPhrase: Bool
+        let includesTimeRemainingPhrase: Bool
     }
 }

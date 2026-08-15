@@ -387,10 +387,6 @@ public extension TimeDuration {
             value * secondsPerUnit
         }
 
-        func convert(_ value: Double, to target: Unit) -> Double {
-            target.value(for: seconds(for: value))
-        }
-
         var calendarComponent: Calendar.Component {
             switch self {
             case .nanosecond: .second
@@ -448,29 +444,26 @@ public extension TimeDuration {
         fileprivate init(unit: Unit) {
             rawValue = unit.rawValue
         }
-        
-        func calendarUnits(for duration: TimeDuration) -> [Calendar.Component] {
-            units(for: duration).map(\.calendarComponent)
+
+        fileprivate func calendarUnits(for duration: TimeDuration) -> [Calendar.Component] {
+            var units = elements().compactMap { $0.calendarUnit }
+            if contains(.allCompact) { units += duration.preferredUnits(compact: true) }
+            if contains(.all) { units += duration.preferredUnits(compact: false) }
+            return units.uniqued()
         }
 
-        func units(for duration: TimeDuration) -> [TimeDuration.Unit] {
-            elements().flatMap { element -> [TimeDuration.Unit] in
-                return switch element {
-                case .nanosecond: [.nanosecond]
-                case .microsecond: [.microsecond]
-                case .millisecond: [.millisecond]
-                case .second: [.second]
-                case .minute: [.minute]
-                case .hour: [.hour]
-                case .day: [.day]
-                case .week: [.week]
-                case .month: [.month]
-                case .year: [.year]
-                case .all: duration.preferredUnits(compact: false)
-                case .allCompact: duration.preferredUnits(compact: true)
-                default: []
-                }
-            }.uniqued()
+        fileprivate var calendarUnit: Calendar.Component? {
+            switch self {
+            case .nanosecond: .nanosecond
+            case .microsecond, .millisecond, .second: .second
+            case .minute: .minute
+            case .hour: .hour
+            case .day: .day
+            case .week: .weekOfMonth
+            case .month: .month
+            case .year: .year
+            default: nil
+            }
         }
     }
 }
@@ -604,16 +597,21 @@ extension TimeDuration: CustomStringConvertible {
         string(for: allowedUnits, style: style, maximumUnitCount: maximumUnitCount, zeroFormattingBehavior: zeroFormattingBehavior, locale: locale, includesApproximationPhrase: includesApproximationPhrase, includesTimeRemaining: true)
     }
 
-    private func string(for allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, locale: Locale = .current, includesApproximationPhrase: Bool = false, includesTimeRemaining: Bool = false) -> String {
-        let formatter = DateComponentsFormatter()
-        formatter.allowedComponents = allowedUnits.calendarUnits(for: self)
-        formatter.unitsStyle = style
-        formatter.locale = locale
-        formatter.maximumUnitCount = maximumUnitCount
-        formatter.zeroFormattingBehavior = zeroFormattingBehavior
-        formatter.includesApproximationPhrase = includesApproximationPhrase
-        formatter.includesTimeRemainingPhrase = includesTimeRemaining
-        return formatter.string(from: seconds) ?? "\(seconds)"
+    private func string(for allowedUnits: Units = .all, style: DateComponentsFormatter.UnitsStyle = .full, maximumUnitCount: Int = 0, zeroFormattingBehavior: DateComponentsFormatter.ZeroFormattingBehavior = .default, locale: Locale, includesApproximationPhrase: Bool = false, includesTimeRemaining: Bool = false) -> String {
+        let allowedUnits = allowedUnits.calendarUnits(for: self)
+        return Self.formatterCache.withLock {
+            $0.components[.init(allowedUnits: allowedUnits, unitsStyle: style.rawValue, locale: locale, maximumUnitCount: maximumUnitCount, zeroFormattingBehavior: zeroFormattingBehavior.rawValue, includesApproximationPhrase: includesApproximationPhrase, includesTimeRemainingPhrase: includesTimeRemaining), default: {
+                let formatter = DateComponentsFormatter()
+                formatter.allowedComponents = allowedUnits
+                formatter.unitsStyle = style
+                formatter.locale = locale
+                formatter.maximumUnitCount = maximumUnitCount
+                formatter.zeroFormattingBehavior = zeroFormattingBehavior
+                formatter.includesApproximationPhrase = includesApproximationPhrase
+                formatter.includesTimeRemainingPhrase = includesTimeRemaining
+                return formatter
+            }()].string(from: seconds) ?? "\(seconds)"
+        }
     }
 
     /**
@@ -639,11 +637,38 @@ extension TimeDuration: CustomStringConvertible {
      - Returns: A string representation of the time duration.
      */
     public func relativeString(dateTimeStyle: RelativeDateTimeFormatter.DateTimeStyle = .numeric, unitsStyle: RelativeDateTimeFormatter.UnitsStyle = .full, locale: Locale = .current) -> String {
-        let formatter = RelativeDateTimeFormatter()
-        formatter.dateTimeStyle = dateTimeStyle
-        formatter.unitsStyle = unitsStyle
-        formatter.locale = locale
-        return formatter.localizedString(fromTimeInterval: seconds)
+        Self.formatterCache.withLock {
+            $0.relative[.init(dateTimeStyle: dateTimeStyle.rawValue, unitsStyle: unitsStyle.rawValue, locale: locale), default: {
+                let formatter = RelativeDateTimeFormatter()
+                formatter.dateTimeStyle = dateTimeStyle
+                formatter.unitsStyle = unitsStyle
+                formatter.locale = locale
+                return formatter
+            }()].localizedString(fromTimeInterval: seconds)
+        }
+    }
+
+    private static let formatterCache = Mutex(Cache())
+
+    private struct Cache {
+        var components: [ComponentsKey: DateComponentsFormatter] = [:]
+        var relative: [RelativeKey: RelativeDateTimeFormatter] = [:]
+
+        struct ComponentsKey: Hashable {
+            let allowedUnits: [Calendar.Component]
+            let unitsStyle: Int
+            let locale: Locale
+            let maximumUnitCount: Int
+            let zeroFormattingBehavior: UInt
+            let includesApproximationPhrase: Bool
+            let includesTimeRemainingPhrase: Bool
+        }
+
+        struct RelativeKey: Hashable {
+            let dateTimeStyle: Int
+            let unitsStyle: Int
+            let locale: Locale
+        }
     }
 
     /// A formatting style describing which time components should be included in a timecode string.
@@ -782,11 +807,11 @@ extension TimeDuration: CustomStringConvertible {
         return sign + body
     }
 
-    func allCurrentUnits() -> [Unit] {
-        var units: [Unit] = []
+    func allCurrentUnits() -> [Calendar.Component] {
+        var units: [Calendar.Component] = []
         if years >= 1 { units += .year }
         if months >= 1 { units += .month }
-        if weeks >= 1 { units += .week }
+        if weeks >= 1 { units += .weekOfMonth }
         if days >= 1 { units += .day }
         if hours >= 1 { units += .hour }
         if minutes >= 1 { units += .minute }
@@ -794,7 +819,7 @@ extension TimeDuration: CustomStringConvertible {
         return units
     }
 
-    func preferredUnits(compact: Bool = true) -> [Unit] {
+    func preferredUnits(compact: Bool = true) -> [Calendar.Component] {
         let currentUnits = allCurrentUnits()
         if compact == false, currentUnits.count >= 3 {
             return Array(currentUnits[0 ..< 3])
@@ -863,7 +888,7 @@ public extension DispatchTime {
     static func + (lhs: Self, rhs: TimeDuration) -> Self {
         lhs + rhs.seconds
     }
-    
+
     @_disfavoredOverload
     static func - (lhs: Self, rhs: TimeDuration) -> Self {
         lhs - rhs.seconds
@@ -992,19 +1017,19 @@ extension TimeDuration: ReferenceConvertible {
     }
 
     public func _bridgeToObjectiveC() -> __TimeDuration {
-        return __TimeDuration(seconds: seconds)
+        __TimeDuration(seconds: seconds)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: __TimeDuration, result: inout TimeDuration?) {
+    public static func _forceBridgeFromObjectiveC(_ source: __TimeDuration, result: inout Self?) {
         result = TimeDuration(source.seconds)
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: __TimeDuration, result: inout TimeDuration?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: __TimeDuration, result: inout Self?) -> Bool {
         _forceBridgeFromObjectiveC(source, result: &result)
-        return true
+        return result != nil
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: __TimeDuration?) -> TimeDuration {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: __TimeDuration?) -> Self {
         if let source = source {
             var result: TimeDuration?
             _forceBridgeFromObjectiveC(source, result: &result)
@@ -1044,6 +1069,79 @@ public class __TimeDuration: NSObject, NSCopying, NSCoding {
     }
 }
 
+
+private extension TimeDuration {
+    static func swizzleFormatters() {
+        guard formatterHooks.isEmpty else { return }
+        do {
+            formatterHooks += try DateComponentsFormatter.hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
+                original, formatter, selector, object in
+                (object as? TimeDuration).map { formatter.string(from: $0.seconds) } ?? original(formatter, selector, object)
+            } as @convention(block) ((DateComponentsFormatter, Selector, Any) -> String?, DateComponentsFormatter, Selector, Any) -> String?)
+            formatterHooks += try RelativeDateTimeFormatter.hook(all: #selector(RelativeDateTimeFormatter.string(for:)), closure: {
+                original, formatter, selector, object in
+                (object as? TimeDuration).map { formatter.localizedString(fromTimeInterval: $0.seconds) } ?? original(formatter, selector, object)
+            } as @convention(block) ((RelativeDateTimeFormatter, Selector, Any) -> String?, RelativeDateTimeFormatter, Selector, Any) -> String?)
+        } catch {
+            Swift.print(error)
+        }
+    }
+
+    static var formatterHooks: [Hook] = []
+}
+
+/*
+ @available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 1.0, *)
+ extension TimeDuration {
+     func allCurrentFields() -> [Date.RelativeFormatStyle.Field] {
+         var units: [Date.RelativeFormatStyle.Field] = []
+         if years >= 1 { units.append(.year) }
+         if months >= 1 { units.append(.month) }
+         if weeks >= 1 { units.append(.week) }
+         if days >= 1 { units.append(.day) }
+         if hours >= 1 { units.append(.hour) }
+         if minutes >= 1 { units.append(.minute) }
+         units.append(.second)
+         return units
+     }
+
+     func preferredFields(compact: Bool = true) -> [Date.RelativeFormatStyle.Field] {
+         let currentUnits = allCurrentFields()
+         if compact == false, currentUnits.count >= 3 {
+             return Array(currentUnits[0 ..< 3])
+         } else if currentUnits.count >= 2 {
+             return Array(currentUnits[0 ..< 2])
+         } else {
+             return [.second]
+         }
+     }
+ }
+
+ @available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 1.0, *)
+ extension TimeDuration.Units {
+     var field: Date.RelativeFormatStyle.Field? {
+         switch self {
+         case .second: return .second
+         case .minute: return .minute
+         case .hour: return .hour
+         case .day: return .day
+         case .week: return .week
+         case .month: return .month
+         case .year: return .year
+         default: return nil
+         }
+     }
+
+     func fields(for duration: TimeDuration) -> Set<Date.RelativeFormatStyle.Field> {
+         var fields = Self.allCases.compactMap { contains($0) ? $0.field : nil }
+         if self == .allDetailed { fields += elements().compactMap(\.field) }
+         if contains(.all) { fields += duration.preferredFields(compact: false) }
+         if contains(.allCompact) { fields += duration.preferredFields(compact: true) }
+         return Set(fields.uniqued())
+     }
+ }
+ */
+
 /*
  extension TimeDuration {
      public enum TimeCodeFormatAlt {
@@ -1071,75 +1169,3 @@ public class __TimeDuration: NSObject, NSCopying, NSCoding {
      }
  }
  */
-
-private extension TimeDuration {
-    static func swizzleFormatters() {
-        guard formatterHooks.isEmpty else { return }
-        do {
-            formatterHooks += try DateComponentsFormatter.hook(all: #selector(DateComponentsFormatter.string(for:)), closure: {
-                original, formatter, selector, object in
-                (object as? TimeDuration).map { formatter.string(from: $0.seconds) } ?? original(formatter, selector, object)
-            } as @convention(block) ((DateComponentsFormatter, Selector, Any) -> String?, DateComponentsFormatter, Selector, Any) -> String?)
-            formatterHooks += try RelativeDateTimeFormatter.hook(all: #selector(RelativeDateTimeFormatter.string(for:)), closure: {
-                original, formatter, selector, object in
-                (object as? TimeDuration).map { formatter.localizedString(fromTimeInterval: $0.seconds) } ?? original(formatter, selector, object)
-            } as @convention(block) ((RelativeDateTimeFormatter, Selector, Any) -> String?, RelativeDateTimeFormatter, Selector, Any) -> String?)
-        } catch {
-            Swift.print(error)
-        }
-    }
-
-    static var formatterHooks: [Hook] = []
-}
-
-/*
-@available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 1.0, *)
-extension TimeDuration {
-    func allCurrentFields() -> [Date.RelativeFormatStyle.Field] {
-        var units: [Date.RelativeFormatStyle.Field] = []
-        if years >= 1 { units.append(.year) }
-        if months >= 1 { units.append(.month) }
-        if weeks >= 1 { units.append(.week) }
-        if days >= 1 { units.append(.day) }
-        if hours >= 1 { units.append(.hour) }
-        if minutes >= 1 { units.append(.minute) }
-        units.append(.second)
-        return units
-    }
-
-    func preferredFields(compact: Bool = true) -> [Date.RelativeFormatStyle.Field] {
-        let currentUnits = allCurrentFields()
-        if compact == false, currentUnits.count >= 3 {
-            return Array(currentUnits[0 ..< 3])
-        } else if currentUnits.count >= 2 {
-            return Array(currentUnits[0 ..< 2])
-        } else {
-            return [.second]
-        }
-    }
-}
-
-@available(macOS 15, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 1.0, *)
-extension TimeDuration.Units {
-    var field: Date.RelativeFormatStyle.Field? {
-        switch self {
-        case .second: return .second
-        case .minute: return .minute
-        case .hour: return .hour
-        case .day: return .day
-        case .week: return .week
-        case .month: return .month
-        case .year: return .year
-        default: return nil
-        }
-    }
-
-    func fields(for duration: TimeDuration) -> Set<Date.RelativeFormatStyle.Field> {
-        var fields = Self.allCases.compactMap { contains($0) ? $0.field : nil }
-        if self == .allDetailed { fields += elements().compactMap(\.field) }
-        if contains(.all) { fields += duration.preferredFields(compact: false) }
-        if contains(.allCompact) { fields += duration.preferredFields(compact: true) }
-        return Set(fields.uniqued())
-    }
-}
-*/

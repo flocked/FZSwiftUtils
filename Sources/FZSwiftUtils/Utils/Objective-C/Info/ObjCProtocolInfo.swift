@@ -15,8 +15,6 @@ import UIKit
 
 /// Represents information about an Objective-C protocol.
 public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
-    /// A Boolean value indicating whether public headers should be parsed to enrich runtime information.
-    public static var parsePublicHeaderForDetails = false
 
     /// The name of the protocol.
     public let name: String
@@ -91,28 +89,17 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
      - Parameter protocol: The protocol of the target for which information is to be obtained.
      */
     public init(_ `protocol`: Protocol) {
-        let name = protocol_getName(`protocol`).string
-        var classMethods = Self.classMethods(of: `protocol`)
-        var methods = Self.methods(of: `protocol`)
-        var optionalClassMethods = Self.optionalClassMethods(of: `protocol`)
-        var optionalMethods = Self.optionalMethods(of: `protocol`)
-        if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getProtocol(named: name) {
-            classMethods = Self.enrich(classMethods, with: header.classMethods)
-            methods = Self.enrich(methods, with: header.methods)
-            optionalClassMethods = Self.enrich(optionalClassMethods, with: header.optionalClassMethods)
-            optionalMethods = Self.enrich(optionalMethods, with: header.optionalMethods)
-        }
         self.init(
-            name: name,
+            name: protocol_getName(`protocol`).string,
             protocols: Self.protocols(of: `protocol`),
             classProperties: Self.classProperties(of: `protocol`),
             properties: Self.properties(of: `protocol`),
-            classMethods: classMethods,
-            methods: methods,
+            classMethods: Self.classMethods(of: `protocol`),
+            methods: Self.methods(of: `protocol`),
             optionalClassProperties: Self.optionalClassProperties(of: `protocol`),
             optionalProperties: Self.optionalProperties(of: `protocol`),
-            optionalClassMethods: optionalClassMethods,
-            optionalMethods: optionalMethods
+            optionalClassMethods: Self.optionalClassMethods(of: `protocol`),
+            optionalMethods: Self.optionalMethods(of: `protocol`)
         )
     }
     
@@ -125,17 +112,6 @@ public struct ObjCProtocolInfo: Sendable, Equatable, Codable, Hashable {
     public init?(_ protocolName: String) {
         guard let proto = NSProtocolFromString(protocolName) else { return nil }
         self.init(proto)
-    }
-    
-    private static var cache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
-    private static var publicHeaderCache: SynchronizedDictionary<ObjectIdentifier, Self> = [:]
-
-    private static func enrich(_ methods: [ObjCMethodInfo], with headerMethods: [ObjCHeader.Method]) -> [ObjCMethodInfo] {
-        let details = Dictionary(headerMethods.map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
-        return methods.map { method in
-            guard let detail = details[method.name] else { return method }
-            return method.addingArgumentNames(detail.argumentTypes.map(\.name))
-        }
     }
 }
 

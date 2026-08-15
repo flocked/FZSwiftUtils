@@ -16,7 +16,7 @@ internal extension DictionaryEncoder {
         let userInfo: [CodingUserInfoKey: Any]
         let codingPath: [CodingKey]
                 
-        init(strategies: Strategies, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey]) {
+        init(strategies: Strategies, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey] = []) {
             self.strategies = strategies
             self.userInfo = userInfo
             self.codingPath = codingPath

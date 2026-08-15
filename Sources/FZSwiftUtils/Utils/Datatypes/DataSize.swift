@@ -505,13 +505,31 @@ extension DataSize: CustomStringConvertible {
      - Returns: A string representation of the data size.
      */
     public func string(allowedUnits: ByteCountFormatter.Units = .useAll, unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false, locale: Locale = .current) -> String {
-        let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: .init(rawValue: countStyle.rawValue)!)
-        formatter.includesUnit = unitStyle != .none
-        formatter.includesActualByteCount = includesActualByteCount
-        formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
-        formatter.locale = locale
-        formatter.unitStyle = unitStyle.formatter
-        return formatter.string(fromByteCount: Int64(bytes))
+        Self.formatterCache.withLock {
+            $0[FormatterKey(allowedUnits: allowedUnits.rawValue, countStyle: countStyle, includesUnit: unitStyle != .none, includesActualByteCount: includesActualByteCount, locale: locale, unitStyle: unitStyle.rawValue, zeroPadsFractionDigits: zeroPadsFractionDigits), default: {
+                let formatter = ByteCountFormatter()
+                formatter.allowedUnits = allowedUnits
+                formatter.countStyle = .init(rawValue: countStyle.rawValue)!
+                formatter.includesUnit = unitStyle != .none
+                formatter.includesActualByteCount = includesActualByteCount
+                formatter.locale = locale
+                formatter.unitStyle = unitStyle.formatter
+                formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
+                return formatter
+            }()].string(fromByteCount: Int64(bytes))
+        }
+    }
+    
+    private static let formatterCache = Mutex([FormatterKey: ByteCountFormatter]())
+
+    private struct FormatterKey: Hashable {
+        let allowedUnits: UInt
+        let countStyle: CountStyle
+        let includesUnit: Bool
+        let includesActualByteCount: Bool
+        let locale: Locale
+        let unitStyle: Int
+        let zeroPadsFractionDigits: Bool
     }
 
     /// The unit style for a string representation of the data size.
@@ -530,6 +548,18 @@ extension DataSize: CustomStringConvertible {
         }
     }
 }
+
+/*
+ public func string(allowedUnits: ByteCountFormatter.Units = .useAll, unitStyle: UnitStyle = .short, zeroPadsFractionDigits: Bool = false, includesActualByteCount: Bool = false, locale: Locale = .current) -> String {
+     let formatter = ByteCountFormatter(allowedUnits: allowedUnits, countStyle: .init(rawValue: countStyle.rawValue)!)
+     formatter.includesUnit = unitStyle != .none
+     formatter.includesActualByteCount = includesActualByteCount
+     formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
+     formatter.locale = locale
+     formatter.unitStyle = unitStyle.formatter
+     return formatter.string(fromByteCount: Int64(bytes))
+ }
+ */
 
 extension DataSize: LosslessStringConvertible {
     public init?(_ description: String) {

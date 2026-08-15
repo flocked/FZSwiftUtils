@@ -15,7 +15,7 @@ extension DictionaryDecoder {
         let userInfo: [CodingUserInfoKey: Any]
         let codingPath: [CodingKey]
                 
-        init(component: Any?, strategies: Strategies, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey]) {
+        init(component: Any?, strategies: Strategies, userInfo: [CodingUserInfoKey: Any], codingPath: [CodingKey] = []) {
             self.component = component
             self.strategies = strategies
             self.userInfo = userInfo

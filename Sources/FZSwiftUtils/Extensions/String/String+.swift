@@ -97,6 +97,20 @@ public extension StringProtocol {
     }
     
     /**
+     A Boolean value indicating whether the string contains the specified string using the given comparison options.
+
+     - Parameters:
+        - string: The string to search for.
+        - options: The options to use when comparing strings.
+        - locale: The locale to use when comparing strings, or `nil` to use the default locale.
+     - Returns: `true` if the string contains the specified string, otherwise `false`.
+     */
+    @_disfavoredOverload
+    func contains<S: StringProtocol>(_ string: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
+        range(of: string, options: options, locale: locale) != nil
+    }
+    
+    /**
      A Boolean value indicating whether the string contains any of the specified strings using the given comparison options.
 
      - Parameters:
@@ -107,12 +121,17 @@ public extension StringProtocol {
      */
     @_disfavoredOverload
     func contains<S: Sequence<StringProtocol>>(any strings: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
-        strings.contains { range(of: $0, options: options, locale: locale) != nil }
+        strings.contains { contains($0, options: options, locale: locale) }
     }
     
     /// A Boolean value indicating whether the string is equal to the specified string, comparing them using the specified options and locale.
     func isEqual<S: StringProtocol>(to string: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
         compare(string, options: options, locale: locale).isEqual
+    }
+    
+    /// A Boolean value indicating whether the string is equal to any of the specified strings, comparing them using the specified options and locale.
+    func isEqual<S: Sequence<StringProtocol>>(toAny strings: S, options: String.CompareOptions = [], locale: Locale? = nil) -> Bool {
+        strings.contains(where: { isEqual(to: $0, options: options, locale: locale) })
     }
     
     /// Finds and returns the range of the first occurrence of a given string within a given range of the String, subject to given options, using the specified locale, if any.

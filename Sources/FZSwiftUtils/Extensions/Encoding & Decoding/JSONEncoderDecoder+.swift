@@ -43,44 +43,38 @@ public extension JSONEncoder {
 
     /// Sets the dictionary you use to customize the encoding process by providing contextual information.
     func userInfo(_ userInfo:  [CodingUserInfoKey : any Sendable]) -> Self {
-        var encoder = self
-        encoder.userInfo = userInfo
-        return encoder
+        self.userInfo = userInfo
+        return self
     }
     
     /// Sets the strategy used when encoding dates as part of a JSON object.
     func dateStrategy(_ strategy: DateEncodingStrategy) -> Self {
-        var encoder = self
-        encoder.dateEncodingStrategy = strategy
-        return encoder
+        dateEncodingStrategy = strategy
+        return self
     }
     
     /// Sets the strategy used by an encoder when it encounters exceptional floating-point values.
     func nonConformingFloatStrategy(_ strategy: NonConformingFloatEncodingStrategy) -> Self {
-        var encoder = self
-        encoder.nonConformingFloatEncodingStrategy = strategy
-        return encoder
+        nonConformingFloatEncodingStrategy = strategy
+        return self
     }
     
     /// Sets the strategy that an encoder uses to encode raw data.
     func dataStrategy(_ strategy: DataEncodingStrategy) -> Self {
-        var encoder = self
-        encoder.dataEncodingStrategy = strategy
-        return encoder
+        dataEncodingStrategy = strategy
+        return self
     }
     
     /// Sets the strategy that determines how to encode a type’s coding keys as JSON keys.
     func keyStrategy(_ strategy: KeyEncodingStrategy) -> Self {
-        var encoder = self
-        encoder.keyEncodingStrategy = strategy
-        return encoder
+        keyEncodingStrategy = strategy
+        return self
     }
     
     /// Sets the value that determines the readability, size, and element order of the encoded JSON object.
     func outputFormatting(_ outputFormatting: OutputFormatting) -> Self {
-        var encoder = self
-        encoder.outputFormatting = outputFormatting
-        return encoder
+        self.outputFormatting = outputFormatting
+        return self
     }
 }
 
@@ -117,51 +111,51 @@ public extension JSONDecoder {
     }
     
     /// Sets the Boolean value indicating whether decoding assumes the top level of the JSON data is a dictionary, even if it doesn’t begin and end with braces.
+    @discardableResult
     func assumesTopLevelDictionary(_ assumes: Bool) -> Self {
-        var decoder = self
-        decoder.assumesTopLevelDictionary = assumes
-        return decoder
+        assumesTopLevelDictionary = assumes
+        return self
     }
     
     /// Sets the Boolean value indicating whether decoding supports the JSON5 syntax.
+    @discardableResult
     func allowsJSON5(_ allowsJSON5: Bool) -> Self {
-        var decoder = self
-        decoder.allowsJSON5 = allowsJSON5
-        return decoder
+        self.allowsJSON5 = allowsJSON5
+        return self
     }
     
     /// Sets the dictionary you use to customize the decoding process by providing contextual information.
+    @discardableResult
     func userInfo(_ userInfo:  [CodingUserInfoKey : any Sendable]) -> Self {
-        var decoder = self
-        decoder.userInfo = userInfo
-        return decoder
+        self.userInfo = userInfo
+        return self
     }
     
     /// Sets the strategy used when decoding dates from part of a JSON object.
+    @discardableResult
     func dateStrategy(_ strategy: DateDecodingStrategy) -> Self {
-        var decoder = self
-        decoder.dateDecodingStrategy = strategy
-        return decoder
+        dateDecodingStrategy = strategy
+        return self
     }
     
     /// Sets the strategy used by a decoder when it encounters exceptional floating-point values.
+    @discardableResult
     func nonConformingFloatStrategy(_ strategy: NonConformingFloatDecodingStrategy) -> Self {
-        var decoder = self
-        decoder.nonConformingFloatDecodingStrategy = strategy
-        return decoder
+        nonConformingFloatDecodingStrategy = strategy
+        return self
     }
     
     /// Sets the strategy that a decoder uses to decode raw data.
+    @discardableResult
     func dataStrategy(_ strategy: DataDecodingStrategy) -> Self {
-        var decoder = self
-        decoder.dataDecodingStrategy = strategy
-        return decoder
+        dataDecodingStrategy = strategy
+        return self
     }
     
     /// Sets the strategy that determines how to decode a type’s coding keys from JSON keys.
+    @discardableResult
     func keyStrategy(_ strategy: KeyDecodingStrategy) -> Self {
-        var decoder = self
-        decoder.keyDecodingStrategy = strategy
-        return decoder
+        keyDecodingStrategy = strategy
+        return self
     }
 }

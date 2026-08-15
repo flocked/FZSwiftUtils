@@ -85,7 +85,7 @@ public final class DictionaryEncoder: Sendable {
         - The value contains an exceptional floating-point number (such as [infinity](https://developer.apple.com/documentation/swift/floatingpoint/infinity) or [nan](https://developer.apple.com/documentation/swift/floatingpoint/nan)) and you’re using the default ``NonConformingFloatEncodingStrategy/throw`.
      */
     public func encode<T: Encodable>(_ value: T) throws -> [String: Sendable] {
-        let encoder = Single(strategies: strategies, userInfo: userInfo, codingPath: [])
+        let encoder = Single(strategies: strategies, userInfo: userInfo)
         try value.encode(to: encoder)
         return try (encoder.resolveValue() as? [String: Sendable]).unwrap(or: EncodingError.invalidValue(value, at: [], debugDescription: "Root component cannot be encoded in Dictionary"))
     }
@@ -99,7 +99,7 @@ public final class DictionaryEncoder: Sendable {
      - Returns: The encoded dictionary.
      */
     public func encode<T: EncodableWithConfiguration>(_ value: T, configuration: T.EncodingConfiguration) throws -> [String: Sendable] {
-        let encoder = Single(strategies: strategies, userInfo: userInfo, codingPath: [])
+        let encoder = Single(strategies: strategies, userInfo: userInfo)
         try value.encode(to: encoder, configuration: configuration)
         return try (encoder.resolveValue() as? [String: Sendable]).unwrap(or: EncodingError.invalidValue(value, at: [], debugDescription: "Root component cannot be encoded in Dictionary"))
     }

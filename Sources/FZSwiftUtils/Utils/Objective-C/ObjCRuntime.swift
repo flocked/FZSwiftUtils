@@ -5,8 +5,8 @@
 //  Created by Florian Zand on 05.12.25.
 //
 
-import Foundation
 import _FZSwiftUtilsObjC
+import Foundation
 
 /// Objective-C utilities.
 public enum ObjCRuntime {
@@ -17,23 +17,31 @@ public enum ObjCRuntime {
         }
         var count: UInt32 = 0
         guard let classList = objc_copyClassList(&count) else { return [] }
-        let allClasses = classList.buffer(count: count).filter({
-            !Self.classNamesToSkip.contains(class_getName($0).string)
-        })
         defer { free(UnsafeMutableRawPointer(classList)) }
+        var classNames: [String] = []
+        classNames.reserveCapacity(Int(count))
+        let allClasses = classList.buffer(count: count).filter {
+            let name = class_getName($0).string
+            if !Self.classNamesToSkip.contains(name) {
+                classNames.append(name)
+                return true
+            } else {
+                return false
+            }
+        }
         Cache.classes = allClasses
+        Cache.classNames = classNames
         return allClasses
     }
-    
+
     static func classNames() -> Set<String> {
         if let cached = Cache.classNames {
-            return cached
+            return Set(cached)
         }
-        let names = Set(classes().map({ class_getName($0).string }))
-        Cache.classNames = names
-        return names
+        _ = classes()
+        return Set(Cache.classNames ?? [])
     }
-    
+
     /// Returns all protocols.
     public static func protocols() -> [Protocol] {
         if let cachedProtocols = Cache.protocols {
@@ -46,29 +54,29 @@ public enum ObjCRuntime {
         Cache.protocols = allProtocols
         return allProtocols
     }
-    
+
     static func protocolNames() -> Set<String> {
         if let cached = Cache.protocolNames {
             return cached
         }
-        let names = Set(protocols().map({ protocol_getName($0).string }))
+        let names = Set(protocols().map { protocol_getName($0).string })
         Cache.protocolNames = names
         return names
     }
-    
+
     /// Returns all clases implementing the specified protocol.
     public static func classes(implementing _protocol: Protocol) -> [AnyClass] {
-        classes().filter({ class_conformsToProtocol($0, _protocol) })
+        classes().filter { class_conformsToProtocol($0, _protocol) }
     }
-    
+
     /// Returns all superclasses of the specified class.
     public static func superclasses(of cls: AnyClass) -> [AnyClass] {
         Array(first: class_getSuperclass(cls), next: { class_getSuperclass($0) }).nonNil
     }
-    
+
     /**
      Returns all subclasses for the specified class.
-     
+
      - Parameters:
         - baseClass: The class for which to return its subclasses.
         - includeNested: A Boolean value indicating whether to include nested subclasses.
@@ -90,10 +98,10 @@ public enum ObjCRuntime {
         }
         return subclasses.map { (type: $0, name: class_getName($0).string) }.sorted(by: \.name).map { $0.type }
     }
-    
+
     /**
      Returns all subclasses for the specified class.
-     
+
      - Parameters:
         - baseClass: The class for which to return its subclasses.
         - includeNested: A Boolean value indicating whether to include nested subclasses.
@@ -104,19 +112,19 @@ public enum ObjCRuntime {
             Unmanaged.passUnretained(object as AnyObject).toOpaque()
         }
         let basePtr = address(of: baseClass)
-        return classes().filter({
+        return classes().filter {
             var current: AnyClass? = $0
             while let superClass = class_getSuperclass(current) {
                 if address(of: superClass) == basePtr { return true }
                 current = includeNested ? superClass : nil
             }
             return false
-        }).map({(class: $0 as AnyClass, name: class_getName($0).string)}).sorted(by: \.name).map({$0.class})
+        }.map { (class: $0 as AnyClass, name: class_getName($0).string) }.sorted(by: \.name).map { $0.class }
     }
-    
+
     /**
      Returns all subclasses for the class with the specified name.
-     
+
      - Parameters:
         - className: The name of the class for which to return its subclasses.
         - includeNested: A Boolean value indicating whether to include nested subclasses.
@@ -125,7 +133,7 @@ public enum ObjCRuntime {
         guard let cls = NSClassFromString(className) else { return [] }
         return subclasses(of: cls, includeNested: includeNested)
     }
-    
+
     /**
       Executes the specified block that may throw an Objective-C `NSException` and catches it.
 
@@ -155,14 +163,14 @@ public enum ObjCRuntime {
         var result: Result<T, Error>!
         try NSObject._catchException {
             do {
-                result = .success(try tryBlock())
+                result = try .success(tryBlock())
             } catch {
                 result = .failure(error)
             }
         }
         return try result.get()
     }
-    
+
     /*
      public static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = true) -> [Protocol] {
          var visited = Set<ObjectIdentifier>()
@@ -191,7 +199,7 @@ public enum ObjCRuntime {
          return result
      }
      */
-    
+
     /**
       Executes the specified block that may throw an Objective-C `NSException` and catches it.
 
@@ -221,11 +229,11 @@ public enum ObjCRuntime {
     public static func catchException<T>(_ tryBlock: @autoclosure () throws -> T) throws -> T {
         try catchException(tryBlock)
     }
-    
+
     /// Returns the actual size and the aligned size of the specified encoded type.
     public static func sizeAndAlignment(for typeEncoding: String) -> (size: Int, alignment: Int)? {
         var alignment = 0
-        var size: Int = 0
+        var size = 0
         do {
             try ObjCRuntime.catchException {
                 NSGetSizeAndAlignment(typeEncoding, &size, &alignment)
@@ -236,33 +244,27 @@ public enum ObjCRuntime {
             return nil
         }
     }
-    
+
     /**
      Returns runtime origin information for the specified method.
-     
+
      - Parameter method: The method to retrive runtime origin information.
      - Returns:
         - `imagePath`: The path of the Mach-O image that contains the method.
         - `categoryName`: The Objective-C category name when the symbol represents a category method.
         - `symbolName`: The symbol name associated with the method.
      */
-    public static func origin(of method: Method) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
+    public static func origin(of method: Method) -> (image: URL?, categoryName: String?, symbolName: String?) {
         Cache.methodOrigins[method, initial: origin(of: unsafeBitCast(method_getImplementation(method), to: UnsafeRawPointer.self))]
     }
-    
-    /*
-    public static func origin(of class: AnyClass) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
-        Cache.classOrigins[ObjectIdentifier(`class`), initial: origin(of: unsafeBitCast(`class`, to: UnsafeRawPointer.self))]
-    }
-    */
-    
-    private static func origin(of pointer: UnsafeRawPointer) -> (imagePath: String?, categoryName: String?, symbolName: String?) {
+
+    private static func origin(of pointer: UnsafeRawPointer) -> (image: URL?, categoryName: String?, symbolName: String?) {
         var info = Dl_info()
         let result = dladdr(pointer, &info)
         guard result != 0 else {
             return (nil, nil, nil)
         }
-        let imagePath = info.dli_fname.map { $0.string }
+        let image = info.dli_fname.map { URL.file($0.string) }
         let symbolName = info.dli_sname.map { $0.string }
         let categoryName: String?
         if let symbolName, let start = symbolName.firstIndex(of: "("), let end = symbolName.firstIndex(of: ")"), start < end {
@@ -270,150 +272,126 @@ public enum ObjCRuntime {
         } else {
             categoryName = nil
         }
-        return (imagePath, categoryName, symbolName)
+        return (image, categoryName, symbolName)
     }
-    
+
     /// Returns the names of all the loaded Objective-C frameworks and dynamic libraries.
-    public static func imageNames() -> [String] {
+    public static func images() -> [URL] {
         var count: UInt32 = 0
         let list = objc_copyImageNames(&count)
         defer { free(list) }
-        return list.buffer(count: count).map({$0.string})
+        return list.buffer(count: count).map { .file($0.string) }
     }
-    
+
     /// Returns the names of all the classes within the specified library or framework.
-    public static func classNames(forImage image: String) -> [String]? {
+    public static func classNames(forImage image: URL) -> [String] {
         var count: UInt32 = 0
-        guard let list = objc_copyClassNamesForImage(image, &count) else { return nil }
+        guard let list = objc_copyClassNamesForImage(image.path, &count) else { return [] }
         defer { free(list) }
-        return list.buffer(count: count).map({$0.string})
+        return list.buffer(count: count).map { $0.string }
     }
-    
+
     static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object", "PKAppProtectionCoordinator"
     ])
-    
-    private static let classesToSkip = Set(classNamesToSkip.compactMap({NSClassFromString($0)}).map({ObjectIdentifier($0)}))
+
+    private static let classesToSkip = Set(classNamesToSkip.compactMap { NSClassFromString($0) }.map { ObjectIdentifier($0) })
 }
 
-extension ObjCRuntime {
+public extension ObjCRuntime {
     /**
      Returns the Objective-C classes whose name or members match the provided string.
-     
+
      `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns all known classes.
-     
+
      - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
      - Returns: An array of `ObjCClassInfo` values representing classes that match the search.
      */
-    public static func classes(containing searchString: String? = nil) -> [ObjCClassInfo] {
+    static func classes(containing searchString: String? = nil) -> [ObjCClassInfo] {
         guard let searchString = searchString?.lowercased(), !searchString.isEmpty else { return Cache.searchClasses.map(\.info) }
-        return Cache.searchClasses.filter({$0.containsSearchString(searchString)}).map(\.info)
+        return Cache.searchClasses.filter { $0.containsSearchString(searchString) }.map(\.info)
     }
-    
+
     /**
      Returns the Objective-C classes grouped by protocol whose name or members match the provided search string.
-     
+
      `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns all classes grouped by the protocols they adopt.
-     
+
      - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
      - Returns: An array of tuples where each element contains a protocol and the classes that adopt it and match the search.
      */
-    public static func classesByProtocol(containing searchString: String? = nil) -> [(protocol: ObjCProtocolInfo, classes: [ObjCClassInfo])] {
+    static func classesByProtocol(containing searchString: String? = nil) -> [(protocol: ObjCProtocolInfo, classes: [ObjCClassInfo])] {
         guard let searchString = searchString?.lowercased(), !searchString.isEmpty else {
-            return Cache.classesByProtocol.map({ ($0.key, $0.value.map(\.info)) })
+            return Cache.classesByProtocol.map { ($0.key, $0.value.map(\.info)) }
         }
         var result: [(protocol: ObjCProtocolInfo, classes: [ObjCClassInfo])] = []
         for val in Cache.classesByProtocol {
-            let filtered = val.value.filter({ $0.containsSearchString(searchString) })
+            let filtered = val.value.filter { $0.containsSearchString(searchString) }
             guard !filtered.isEmpty else { continue }
             result += (val.key, filtered.map(\.info))
         }
         return result
     }
-    
+
     /**
      Returns Objective-C classes grouped by the dynamic library image they originate from.
-     
+
      `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns all classes grouped by their originating dynamic library image.
-     
+
      - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
      - Returns: An array of tuples where each element contains a dynamic library image and the classes originating from that image that match the search. The image may be `nil` if it cannot be determined.
      */
-    public static func classesByImage(containing searchString: String? = nil) -> [(image: ObjcDynamicLibrary?, classes: [ObjCClassInfo])] {
+    static func classesByImage(containing searchString: String? = nil) -> [(image: ObjCDynamicLibrary?, classes: [ObjCClassInfo])] {
         guard let searchString = searchString?.lowercased(), !searchString.isEmpty else {
-            return Cache.classesByImage.map({ ($0.key, $0.value.map(\.info)) })
+            return Cache.classesByImage.map { ($0.key, $0.value.map(\.info)) }
         }
-        var result: [(image: ObjcDynamicLibrary?, classes: [ObjCClassInfo])] = []
+        var result: [(image: ObjCDynamicLibrary?, classes: [ObjCClassInfo])] = []
         for val in Cache.classesByImage {
-            let filtered = val.value.filter({ $0.containsSearchString(searchString) })
+            let filtered = val.value.filter { $0.containsSearchString(searchString) }
             guard !filtered.isEmpty else { continue }
             result += (val.key, filtered.map(\.info))
         }
         return result
     }
-    
-    /**
-     Returns class hierarchy nodes for Objective-C classes whose name or members match the provided search string.
-     
-     `searchString` examines the class name and the names of declared methods, properties, ivars, and adopted protocols. The default value is `nil` and returns the hierarchy includes all classes.
-     
-     - Parameter searchString: A string used to filter classes by name or by the names of their methods, properties, ivars, or adopted protocols.
-     - Returns: An array of `ObjCClassNode` values representing the hierarchy of matching classes.
-     */
-    public static func classNodes(containing searchString: String? = nil) -> [ObjCClassNode] {
-        Cache.classNodes.compactMap({ $0.node(containing: searchString) })
-    }
-    
-    /**
-     Parses all known Objective-C classes.
-     
-     - Parameter completion: The handler that is called after parsing has been finished.
-     */
-    public static func parseClasses(completion: (()->())? = nil) {
-        Cache.reset()
-        DispatchQueue.background.async {
-            Cache.parseIfNeeded()
-            completion?()
-        }
-    }
-    
-    /// Returns the bridged Objective-C type for the specified type.
-    public static func objcType(for swiftType: Any.Type) -> AnyClass? {
-        (swiftType as? (any _ObjectiveCBridgeable.Type))?._ObjectiveCClass ?? swiftType as? AnyClass
-    }
 }
 
-fileprivate extension ObjCRuntime {
+private extension ObjCRuntime {
     class Cache: NSObject {
         static var classes: [AnyClass]?
-        static var classNames: Set<String>?
+        static var classNames: [String]?
+
         static var protocolNames: Set<String>?
         static var protocols: [Protocol]?
-        
+
         static var searchClasses: [SearchClass] {
             if _searchClasses.isEmpty {
-                _searchClasses = ObjCRuntime.classes().map({ SearchClass($0) })
+                _searchClasses = ObjCRuntime.classes().map { SearchClass($0) }
             }
             return _searchClasses
         }
+
         static var _searchClasses: [SearchClass] = []
-        
-        static var classesByImage: OrderedDictionary<ObjcDynamicLibrary?, [SearchClass]> {
+
+        static var classesByImage: OrderedDictionary<ObjCDynamicLibrary?, [SearchClass]> {
             if _classesByImage.isEmpty {
-                let clsByImg = searchClasses.grouped(by: { ObjcDynamicLibrary($0.info.imagePath) })
-                _classesByImage = OrderedDictionary(uniqueKeysWithValues: clsByImg.keys.sorted().map({($0, clsByImg[$0]!)}))
+                let clsByImg = searchClasses.grouped(by: {
+                    $0.info.image.map(ObjCDynamicLibrary.init)
+                })
+                _classesByImage = OrderedDictionary(uniqueKeysWithValues: clsByImg.keys.sorted().map { ($0, clsByImg[$0]!) })
             }
             return _classesByImage
         }
-        static var _classesByImage: OrderedDictionary<ObjcDynamicLibrary?, [SearchClass]> = [:]
-        
+
+        static var _classesByImage: OrderedDictionary<ObjCDynamicLibrary?, [SearchClass]> = [:]
+
         static var classesByProtocol: OrderedDictionary<ObjCProtocolInfo, [SearchClass]> {
             if _classesByProtocol.isEmpty {
                 let proToCls = searchClasses.groupedByEach(by: \.info.allProtocols)
-                _classesByProtocol = OrderedDictionary(uniqueKeysWithValues: proToCls.keys.sorted(by: \.name).map({ ($0, proToCls[$0]!) }))
+                _classesByProtocol = OrderedDictionary(uniqueKeysWithValues: proToCls.keys.sorted(by: \.name).map { ($0, proToCls[$0]!) })
             }
             return _classesByProtocol
         }
+
         static var _classesByProtocol: OrderedDictionary<ObjCProtocolInfo, [SearchClass]> = [:]
 
         static var classNodes: [ObjCClassNode] {
@@ -422,18 +400,11 @@ fileprivate extension ObjCRuntime {
             }
             return _classNodes
         }
+
         static var _classNodes: [ObjCClassNode] = []
-        static var methodOrigins: [Method: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
+        static var methodOrigins: [Method: (image: URL?, categoryName: String?, symbolName: String?)] = [:]
         static var classOrigins: [ObjectIdentifier: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
 
-                
-        static func reset() {
-            _classNodes.removeAll()
-            _searchClasses.removeAll()
-            _classesByImage.removeAll()
-            _classesByProtocol.removeAll()
-        }
-        
         static func parseIfNeeded() {
             _ = searchClasses
             _ = classesByImage
@@ -444,7 +415,6 @@ fileprivate extension ObjCRuntime {
 }
 
 /*
-
 
  private func methodDescription(protocol proto: Protocol, selector: Selector, isInstanceMethod: Bool) -> objc_method_description? {
      if let description = methodDescriptionWithoutSearchingInheritedProtocols(protocol: proto, selector: selector, isInstanceMethod: isInstanceMethod) {
@@ -496,7 +466,7 @@ extension ObjCRuntime {
             }
         }
     }
-    
+
     /// Generic iterator for Objective-C runtime buffers.
     struct ObjCIterator<Element>: IteratorProtocol {
         private class BufferOwner {
@@ -506,6 +476,7 @@ extension ObjCRuntime {
                 self.pointer = pointer
                 self.count = count
             }
+
             deinit { if let ptr = pointer { free(ptr) } }
         }
 
@@ -518,7 +489,8 @@ extension ObjCRuntime {
         private var index: Int = 0
 
         init(cls: AnyClass, includeSuperclasses: Bool, isInstance: Bool,
-             bufferLoader: @escaping (AnyClass) -> (UnsafeMutablePointer<Element>?, Int)) {
+             bufferLoader: @escaping (AnyClass) -> (UnsafeMutablePointer<Element>?, Int))
+        {
             self.currentClass = isInstance ? cls : object_getClass(cls)
             self.includeSuperclasses = includeSuperclasses
             self.isInstance = isInstance
@@ -588,7 +560,7 @@ extension ObjCRuntime {
             }
         }
     }
-    
+
     /// Generic iterator over Objective-C protocol buffers (methods or properties)
     struct ObjCProtocolIterator<Element>: IteratorProtocol {
         /// Internal class to manage unsafe buffer memory
@@ -599,6 +571,7 @@ extension ObjCRuntime {
                 self.pointer = pointer
                 self.count = count
             }
+
             deinit { if let ptr = pointer { free(ptr) } }
         }
 
@@ -616,8 +589,8 @@ extension ObjCRuntime {
         init(startingProtocol: Protocol,
              includeInherentProtocols: Bool,
              includeSuperProtocols: Bool,
-             bufferLoader: @escaping (Protocol) -> (UnsafeMutablePointer<Element>?, Int)) {
-
+             bufferLoader: @escaping (Protocol) -> (UnsafeMutablePointer<Element>?, Int))
+        {
             self.bufferLoader = bufferLoader
             self.includeInherentProtocols = includeInherentProtocols
             self.includeSuperProtocols = includeSuperProtocols
@@ -671,5 +644,32 @@ extension ObjCRuntime {
             defer { index += 1 }
             return ptr[index]
         }
+    }
+}
+
+public extension ObjCRuntime {
+    /// Returns the bridged Objective-C type for the specified type.
+    static func objCType(for swiftType: Any.Type) -> AnyClass? {
+        (swiftType as? any _ObjectiveCBridgeable.Type)?.ObjCType
+    }
+
+    /// Returns the Objective-C type that the specified value bridges to.
+    static func objCType<V>(of value: V) -> AnyClass? {
+        objCType(for: V.self)
+    }
+
+    /// Returns the Objective-C representation of the specified value.
+    static func bridgeToObjC(_ value: Any) -> Any? {
+        (value as? any _ObjectiveCBridgeable)?.objCValue
+    }
+}
+
+private extension _ObjectiveCBridgeable {
+    var objCValue: Any {
+        _bridgeToObjectiveC()
+    }
+
+    static var ObjCType: AnyClass {
+        _ObjectiveCType.self
     }
 }

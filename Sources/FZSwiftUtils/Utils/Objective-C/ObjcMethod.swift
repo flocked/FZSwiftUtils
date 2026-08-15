@@ -53,7 +53,7 @@ public struct ObjCMethod {
      The returned `symbolName` is the symbol name associated with the method.
      The returned `categoryName` is the Objective-C category name when the symbol represents a category method.
      */
-    public func origin() -> (imagePath: String?, categoryName: String?, symbolName: String?) {
+    public func origin() -> (image: URL?, categoryName: String?, symbolName: String?) {
         ObjCRuntime.origin(of: method)
     }
 }

@@ -47,7 +47,7 @@ extension NSAttributedString {
 }
 
 extension NSAttributedString {
-    static let imageNames = Set(ObjCRuntime.imageNames())
+    static let imageNames = Set(ObjCRuntime.images().map(\.path))
     
     static func objCHeader(for headerString: String, font: NSUIFont? = nil) -> NSAttributedString {
         let font = XcodePresentationTheme.shared.font(for: .argument)

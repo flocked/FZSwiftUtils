@@ -78,8 +78,7 @@ public final class DictionaryDecoder: Sendable {
      - Returns: A value of the specified type.
      */
     public func decode<T: Decodable>(_ type: T.Type = T.self, from dictionary: [String: Any]) throws -> T {
-        let decoder = Single(component: dictionary, strategies: strategies, userInfo: userInfo,  codingPath: [])
-        return try T(from: decoder)
+        try T(from: Single(component: dictionary, strategies: strategies, userInfo: userInfo))
     }
 
     /**
@@ -94,8 +93,7 @@ public final class DictionaryDecoder: Sendable {
      - Returns: A value of the specified type.
      */
     public func decode<T: DecodableWithConfiguration>(_ type: T.Type = T.self, from dictionary: [String: Any], configuration: T.DecodingConfiguration) throws -> T {
-        let decoder = Single(component: dictionary, strategies: strategies, userInfo: userInfo, codingPath: [])
-        return try T(from: decoder, configuration: configuration)
+        try T(from: Single(component: dictionary, strategies: strategies, userInfo: userInfo), configuration: configuration)
     }
     
     /**

@@ -15,17 +15,14 @@ import UIKit
 
 /// Represents information about an Objective-C class.
 public struct ObjCClassInfo: Sendable, Equatable, Codable {
-    /// A Boolean value indicating whether public headers should be parsed to enrich runtime information.
-    public static var parsePublicHeaderForDetails = false
-
     /// The name of the class.
     public let name: String
     
     /// The version of the class.
     public let version: Int32
     
-    /// The path of the dynamic library the class originated from.
-    public let imagePath: String?
+    /// The URL of the dynamic library the class originated from.
+    public let image: URL?
 
     /// The size of instances of the class.
     public let instanceSize: Int
@@ -81,22 +78,22 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
      Initializes a new instance of `ObjCClassInfo`.
 
      - Parameters:
-       - name: Name of the class.
-       - version: Version of the class.
-       - imagePath: Path to the dynamic library the class originated from.
-       - instanceSize: Size of instances of the class.
+       - name: The name of the class.
+       - version: The version of the class.
+       - image: The URL to the dynamic library the class originated from.
+       - instanceSize: The size of instances of the class.
        - superclass: The superclass of the class.
-       - protocols: List of protocols to which the class conforms.
-       - ivars: List of instance variables held by the class.
-       - classProperties: List of class properties held by the class.
-       - properties: List of instance properties held by the class.
-       - classMethods: List of class methods held by the class.
-       - methods: List of instance methods held by the class.
+       - protocols: The protocols to which the class conforms.
+       - ivars: The instance variables held by the class.
+       - classProperties: The class properties held by the class.
+       - properties: The instance properties held by the class.
+       - classMethods: The class methods held by the class.
+       - methods: The instance methods held by the class.
      */
     public init(
         name: String,
         version: Int32,
-        imagePath: String?,
+        image: URL?,
         instanceSize: Int,
         superclass: AnyClass?,
         protocols: [ObjCProtocolInfo],
@@ -108,7 +105,7 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
     ) {
         self.name = name
         self.version = version
-        self.imagePath = imagePath
+        self.image = image
         self.instanceSize = instanceSize
         self.superclassName = superclass.map(NSStringFromClass)
         self.protocols = protocols
@@ -119,75 +116,26 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
         self.methods = methods
     }
 
-    /**
-     Initializes a new instance of `ObjCClassInfo` for the specified class.
-
-     - Parameters:
-        - class: The class of the target for which information is to be obtained.
-        - includeSuperclasses: A Boolean value indicating whether to include properties, methods, protocols and ivars for the superclasses of `cls`.
-        - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
-     */
+    /// Initializes a new instance of `ObjCClassInfo` for the specified class.
     public init(_ class: AnyClass) {
-        let name = class_getName(`class`).string
-        var classMethods = Self.classMethods(of: `class`)
-        var methods = Self.methods(of: `class`)
-        if Self.parsePublicHeaderForDetails, let header = ObjCHeader.getClass(named: name) {
-            let categories = ObjCHeader.categoriesByClass[name, default: []]
-            classMethods = Self.enrich(classMethods, with: header.classMethods + categories.flatMap(\.classMethods))
-            methods = Self.enrich(methods, with: header.methods + categories.flatMap(\.methods))
-        }
         self.init(
-            name: name,
+            name: class_getName(`class`).string,
             version: class_getVersion(`class`),
-            imagePath: class_getImageName(`class`).map({ $0.string }),
+            image: class_getImageName(`class`).map({ .file($0.string) }),
             instanceSize: class_getInstanceSize(`class`),
             superclass: class_getSuperclass(`class`),
             protocols: Self.protocols(of: `class`),
             ivars: Self.ivars(of: `class`),
             classProperties: Self.classProperties(of: `class`),
             properties: Self.properties(of: `class`),
-            classMethods: classMethods,
-            methods: methods)
+            classMethods: Self.classMethods(of: `class`),
+            methods: Self.methods(of: `class`))
     }
     
-    /**
-     Initializes a new instance of `ObjCClassInfo` for the class with the specified name.
-
-     - Parameters:
-        - className: The class name of the target for which information is to be obtained.
-        - includeSuperclasses: A Boolean value indicating whether to include properties, methods, protocols and ivars for the superclasses of the class.
-        - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of the class.
-     - Returns: The class info, or `nil` if there isn't a class with the specified name.
-     */
+    /// Initializes a new instance of `ObjCClassInfo` for the class with the specified name.
     public init?(_ className: String) {
         guard let cls = NSClassFromString(className) else { return nil }
         self.init(cls)
-    }
-    
-    
-    private static var methods: SynchronizedDictionary<String, [String: Method]> = [:]
-    private static var classMethods: SynchronizedDictionary<String, [String: Method]> = [:]
-    private static var cache: Dictionary<ObjectIdentifier, Self> = [:]
-    private static var publicHeaderCache: Dictionary<ObjectIdentifier, Self> = [:]
-
-    private static func enrich(_ methods: [ObjCMethodInfo], with headerMethods: [ObjCHeader.Method]) -> [ObjCMethodInfo] {
-        let details = Dictionary(headerMethods.map { ($0.name, $0) }, uniquingKeysWith: { first, _ in first })
-        return methods.map { method in
-            guard let detail = details[method.name] else { return method }
-            return method.addingArgumentNames(detail.argumentTypes.map(\.name))
-        }
-    }
-}
-extension ObjCClassInfo {
-    func addPublicInfoIfNeeded() -> ObjCClassInfo {
-        guard let header = ObjCHeader.getClass(named: name) else { return self }
-        let categories = ObjCHeader.categoriesByClass[name, default: []]
-        var classMethods = classMethods
-        var methods = methods
-        classMethods = Self.enrich(classMethods, with: header.classMethods + categories.flatMap(\.classMethods))
-        methods = Self.enrich(methods, with: header.methods + categories.flatMap(\.methods))
-
-        return self
     }
 }
 
@@ -197,7 +145,7 @@ extension ObjCClassInfo: CustomStringConvertible {
     }
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.name == rhs.name && lhs.version == rhs.version && lhs.imagePath == rhs.imagePath && lhs.instanceSize == rhs.instanceSize && lhs.protocols == rhs.protocols && lhs.ivars == rhs.ivars && lhs.classProperties == rhs.classProperties && lhs.properties == rhs.properties && lhs.classMethods == rhs.classMethods && lhs.methods == rhs.methods
+        lhs.name == rhs.name && lhs.version == rhs.version && lhs.image == rhs.image && lhs.instanceSize == rhs.instanceSize && lhs.protocols == rhs.protocols && lhs.ivars == rhs.ivars && lhs.classProperties == rhs.classProperties && lhs.properties == rhs.properties && lhs.classMethods == rhs.classMethods && lhs.methods == rhs.methods
     }
     
     func containsSearchString(_ searchString: String) -> Bool {

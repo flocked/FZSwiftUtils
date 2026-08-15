@@ -744,7 +744,7 @@ extension ObjCType {
             guard let pointerType = swiftType as? PointerType.Type else { return false }
             return type.matches(pointerType.pointeeType)
         case let .object(name):
-            guard let cls = ObjCRuntime.objcType(for: swiftType) else { return false }
+            guard let cls = ObjCRuntime.objCType(for: swiftType) ?? swiftType as? AnyClass else { return false }
             guard let name else { return true }
             return NSClassFromString(name)?.isSubclass(of: cls) == true
         case .block:
