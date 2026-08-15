@@ -3,7 +3,7 @@
 //
 //
 //  Created by p-x9 on 2024/06/24
-//  
+//
 //
 
 import Foundation
@@ -29,8 +29,9 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
     
     /// The superclass of the class.
     public var superclass: ObjCClassInfo? {
-        _superclass.map({ObjCClassInfo($0)})
+        _superclass.map { ObjCClassInfo($0) }
     }
+
     let superclassName: String?
     var _superclass: AnyClass? {
         superclassName.flatMap(NSClassFromString)
@@ -59,20 +60,20 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
     public let methods: [ObjCMethodInfo]
     
     /*
-    static var originCache: [String: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
+     static var originCache: [String: (imagePath: String?, categoryName: String?, symbolName: String?)] = [:]
     
-    public lazy var origin: (imagePath: String?, categoryName: String?, symbolName: String?) = {
-        if let cache = Self.originCache[name] {
-            return cache
-        } else if let cls = NSClassFromString(name) {
-            let origin = ObjCRuntime.origin(of: cls)
-            Self.originCache[name] = origin
-            return origin
-        }
-        Self.originCache[name] = (nil,nil,nil)
-        return (nil,nil,nil)
-    }()
-     */
+     public lazy var origin: (imagePath: String?, categoryName: String?, symbolName: String?) = {
+         if let cache = Self.originCache[name] {
+             return cache
+         } else if let cls = NSClassFromString(name) {
+             let origin = ObjCRuntime.origin(of: cls)
+             Self.originCache[name] = origin
+             return origin
+         }
+         Self.originCache[name] = (nil,nil,nil)
+         return (nil,nil,nil)
+     }()
+      */
 
     /**
      Initializes a new instance of `ObjCClassInfo`.
@@ -121,7 +122,7 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
         self.init(
             name: class_getName(`class`).string,
             version: class_getVersion(`class`),
-            image: class_getImageName(`class`).map({ .file($0.string) }),
+            image: class_getImageName(`class`).map { .file($0.string) },
             instanceSize: class_getInstanceSize(`class`),
             superclass: class_getSuperclass(`class`),
             protocols: Self.protocols(of: `class`),
@@ -136,6 +137,12 @@ public struct ObjCClassInfo: Sendable, Equatable, Codable {
     public init?(_ className: String) {
         guard let cls = NSClassFromString(className) else { return nil }
         self.init(cls)
+    }
+    
+    /// Creates class information for the Objective-C class represented by the specified value.
+    public init?<Value>(value: Value) {
+        guard let cls = ObjCRuntime.objCType(of: value) else { return nil }
+        self = Self(cls)
     }
 }
 
@@ -168,82 +175,82 @@ extension ObjCClassInfo: CustomStringConvertible {
     }
 }
 
-extension ObjCClassInfo {
+public extension ObjCClassInfo {
     /// Returns the instance property with the specified name.
-    public func property(named name: String) -> ObjCPropertyInfo? {
+    func property(named name: String) -> ObjCPropertyInfo? {
         properties.first(where: { $0.name == name }) ?? superclass?.property(named: name)
     }
     
     /// Returns the class property with the specified name.
-    public func classProperty(named name: String) -> ObjCPropertyInfo? {
+    func classProperty(named name: String) -> ObjCPropertyInfo? {
         classProperties.first(where: { $0.name == name }) ?? superclass?.classProperty(named: name)
     }
     
     /// Returns the instance property for the specified getter or setter selector.
-    public func property(for selector: Selector) -> ObjCPropertyInfo?  {
+    func property(for selector: Selector) -> ObjCPropertyInfo? {
         properties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superclass?.property(for: selector)
     }
     
     /// Returns the class property for the specified getter or setter selector.
-    public func classProperty(for selector: Selector) -> ObjCPropertyInfo?  {
+    func classProperty(for selector: Selector) -> ObjCPropertyInfo? {
         classProperties.first(where: { $0.getter == selector || $0.setter == selector }) ?? superclass?.classProperty(for: selector)
     }
     
     /// Returns the instance method with the specified name.
-    public func method(named name: String) -> ObjCMethodInfo? {
+    func method(named name: String) -> ObjCMethodInfo? {
         methods.first(where: { $0.name == name }) ?? superclass?.method(named: name)
     }
     
     /// Returns the class method with the specified name.
-    public func classMethod(named name: String) -> ObjCMethodInfo? {
+    func classMethod(named name: String) -> ObjCMethodInfo? {
         classMethods.first(where: { $0.name == name }) ?? superclass?.classMethod(named: name)
     }
     
     /// Returns the instance variable with the specified name.
-    public func ivar(named name: String) -> ObjCIvarInfo? {
+    func ivar(named name: String) -> ObjCIvarInfo? {
         ivars.first(where: { $0.name == name }) ?? superclass?.ivar(named: name)
     }
     
     /// Returns all instance properties held by the class and it's superclasses.
-    public var allProperties: [ObjCPropertyInfo] {
-        allClasses.flatMap({$0.properties}).uniqued(by: \.name)
+    var allProperties: [ObjCPropertyInfo] {
+        allClasses.flatMap { $0.properties }.uniqued(by: \.name)
     }
     
     /// Returns all class properties held by the class and it's superclasses.
-    public var allClassProperties: [ObjCPropertyInfo] {
-        allClasses.flatMap({$0.classProperties}).uniqued(by: \.name)
+    var allClassProperties: [ObjCPropertyInfo] {
+        allClasses.flatMap { $0.classProperties }.uniqued(by: \.name)
     }
     
     /// Returns all instance methods held by the class and it's superclasses.
-    public var allMethods: [ObjCMethodInfo] {
-        allClasses.flatMap({$0.methods}).uniqued(by: \.name)
+    var allMethods: [ObjCMethodInfo] {
+        allClasses.flatMap { $0.methods }.uniqued(by: \.name)
     }
     
     /// Returns all class methods held by the class and it's superclasses.
-    public var allClassMethods: [ObjCMethodInfo] {
-        allClasses.flatMap({$0.classMethods}).uniqued(by: \.name)
+    var allClassMethods: [ObjCMethodInfo] {
+        allClasses.flatMap { $0.classMethods }.uniqued(by: \.name)
     }
     
     /// Returns all protocols to which the class and it's superclasses conform to.
-    public var allProtocols: [ObjCProtocolInfo] {
+    var allProtocols: [ObjCProtocolInfo] {
         var seen: Set<String> = []
         var result: [ObjCProtocolInfo] = []
         func visit(_ proto: ObjCProtocolInfo) {
             guard seen.insert(proto.name).inserted else { return }
             result += proto
-            proto.protocols.forEach({ visit($0 )})
+            proto.protocols.forEach { visit($0) }
         }
-        protocols.forEach({ visit($0 )})
+        protocols.forEach { visit($0) }
         return result
     }
     
     /// Returns the Objective-C type of the instance prperty at the specified key path.
-    public func propertyType(at keyPath: String) -> ObjCType? {
+    func propertyType(at keyPath: String) -> ObjCType? {
         propertyType(for: keyPath.components(separatedBy: "."), isInstance: true)
     }
     
     /// Returns the Objective-C type of the class prperty at the specified key path.
-    public func classPropertyType(at keyPath: String) -> ObjCType? {
+    func classPropertyType(at keyPath: String) -> ObjCType? {
         propertyType(for: keyPath.components(separatedBy: "."), isInstance: false)
     }
 
@@ -289,7 +296,7 @@ extension ObjCClassInfo {
     }
 }
 
-extension ObjCClassInfo {
+public extension ObjCClassInfo {
     /**
      Returns information about tthe protocols adopted by the specified class.
 
@@ -299,7 +306,7 @@ extension ObjCClassInfo {
        - includeInheritedProtocols: A Boolean value indicating whether to include protocols adopted by the protocols of `cls`.
      - Returns: An array of `ObjCProtocolInfo` objects representing the protocols adopted by the class.
      */
-    public static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [ObjCProtocolInfo] {
+    static func protocols(of cls: AnyClass, includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [ObjCProtocolInfo] {
         var protocols: [ObjCProtocolInfo] = []
         do {
             return try ObjCRuntime.catchException {
@@ -337,7 +344,7 @@ extension ObjCClassInfo {
         - includeSuperclasses: A Boolean value indicating whether to include variables for the superclasses of `cls`.
      - Returns: An array of `ObjCIvarInfo` objects representing the instance variables of the class.
      */
-    public static func ivars(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
+    static func ivars(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCIvarInfo] {
         do {
             return try ObjCRuntime.catchException {
                 var ivars: [ObjCIvarInfo] = []
@@ -366,7 +373,7 @@ extension ObjCClassInfo {
         - includeSuperclasses: A Boolean value indicating whether to include properties for the superclasses of `cls`.
      - Returns: An array of `ObjCPropertyInfo` objects representing the instance properties of the class.
      */
-    public static func properties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
+    static func properties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
         properties(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
     }
     
@@ -378,7 +385,7 @@ extension ObjCClassInfo {
         - includeSuperclasses: A Boolean value indicating whether to include properties for the superclasses of `cls`.
      - Returns: An array of `ObjCPropertyInfo` objects representing the class properties of the class.
      */
-    public static func classProperties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
+    static func classProperties(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCPropertyInfo] {
         properties(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses)
     }
     
@@ -411,7 +418,7 @@ extension ObjCClassInfo {
         - includeSuperclasses: A Boolean value indicating whether to include methods for the superclasses of `cls`.
      - Returns: An array of `ObjCMethodInfo` objects representing the instance methods of the class.
      */
-    public static func methods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
+    static func methods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
         methods(of: cls, isInstance: true, includeSuperclasses: includeSuperclasses)
     }
     
@@ -423,7 +430,7 @@ extension ObjCClassInfo {
         - includeSuperclasses: A Boolean value indicating whether to include methods for the superclasses of `cls`.
      - Returns: An array of `ObjCMethodInfo` objects representing the class methods of the class.
      */
-    public static func classMethods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
+    static func classMethods(of cls: AnyClass, includeSuperclasses: Bool = false) -> [ObjCMethodInfo] {
         methods(of: cls, isInstance: false, includeSuperclasses: includeSuperclasses)
     }
     
@@ -456,7 +463,7 @@ extension ObjCClassInfo {
             cls = metaclass
         }
         guard includeSuperclasses else { return [cls] }
-        return Array(first: cls, next: { $0.superclass().flatMap({ $0 != NSObject.self ? $0 : nil }) })
+        return Array(first: cls, next: { $0.superclass().flatMap { $0 != NSObject.self ? $0 : nil } })
     }
     
     private static func classess(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
@@ -492,23 +499,23 @@ extension ObjCClassInfo {
             fields.insert(names.fields)
         }
         
-        properties.forEach({ addNames($0.type.names()) })
-        classProperties.forEach({ addNames($0.type.names()) })
+        properties.forEach { addNames($0.type.names()) }
+        classProperties.forEach { addNames($0.type.names()) }
         // methods.forEach({ addNames($0.typeNames()) })
-       // classMethods.forEach({ addNames($0.typeNames()) })
-        ivars.forEach({
-            if let names = $0.type?.names() {
+        // classMethods.forEach({ addNames($0.typeNames()) })
+        for ivar in ivars {
+            if let names = ivar.type?.names() {
                 addNames(names)
             }
-        })
+        }
         Self.cachedTypeNames[name] = (types, fields)
         return (types, fields)
     }
 }
 
-extension NSObjectProtocol where Self: NSObject {
+public extension NSObjectProtocol where Self: NSObject {
     /// Returns information about the class.
-    public static func classInfo() -> ObjCClassInfo {
+    static func classInfo() -> ObjCClassInfo {
         ObjCClassInfo(self)
     }
 }

@@ -655,7 +655,7 @@ public extension ObjCRuntime {
 
     /// Returns the Objective-C type that the specified value bridges to.
     static func objCType<V>(of value: V) -> AnyClass? {
-        objCType(for: V.self)
+        objCType(for: (V.self as? any OptionalProtocol.Type)?.wrappedType ?? V.self)
     }
 
     /// Returns the Objective-C representation of the specified value.
