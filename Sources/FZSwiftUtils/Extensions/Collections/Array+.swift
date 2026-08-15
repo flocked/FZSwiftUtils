@@ -7,13 +7,26 @@
 
 import Foundation
 
-public extension Array where Element: RandomAccessCollection, Element.Index == Int {
+public extension Array where Element: Collection, Element.Index == Int {
     subscript(indexPath: IndexPath) -> Element.Element {
         self[indexPath.section][indexPath.item]
     }
-    
+
     subscript(safe indexPath: IndexPath) -> Element.Element? {
         self[safe: indexPath.section]?[safe: indexPath.item]
+    }
+    
+    subscript(indexPath: IndexPath) -> Element.Element where Element: MutableCollection {
+        get { self[indexPath.section][indexPath.item] }
+        set { self[indexPath.section][indexPath.item] = newValue }
+    }
+    
+    subscript(safe indexPath: IndexPath) -> Element.Element? where Element: MutableCollection {
+        get { self[safe: indexPath.section]?[safe: indexPath.item] }
+        set {
+            guard let newValue else { return }
+            self[safe: indexPath.section]?[safe: indexPath.item] = newValue
+        }
     }
 }
 
