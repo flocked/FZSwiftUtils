@@ -34,17 +34,17 @@ public extension Optional {
     }
     
     /// Unwraps the optional value or triggers a fatal error.
-    func unwrapOrFatalError(message: String? = nil) -> Wrapped {
+    func unwrapOrFatalError(message: String? = nil, line: UInt = #line, file: StaticString = #file) -> Wrapped {
         guard let wrapped = self else {
-            fatalError("Optional value of type \(Wrapped.self) is nil" + (message.map { ". Debug description: \($0)" } ?? ""))
+            fatalError("Optional value of type \(Wrapped.self) is nil" + (message.map { ". Debug description: \($0)" } ?? ""), file: file, line: line)
         }
         return wrapped
     }
     
     /// Unwraps and casts the optional value or triggers a fatal error.
-    func unwrapOrFatalError<T>(as: T.Type = T.self, message: String? = nil) -> T {
-        guard let value = unwrapOrFatalError(message: message) as? T else {
-            fatalError("Optional value of type \(Wrapped.self) couldn't be cast to \(T.self)" + (message.map { ". Debug description: \($0)" } ?? ""))
+    func unwrapOrFatalError<T>(as: T.Type = T.self, message: String? = nil, line: UInt = #line, file: StaticString = #file) -> T {
+        guard let value = unwrapOrFatalError(message: message, line: line, file: file) as? T else {
+            fatalError("Optional value of type \(Wrapped.self) couldn't be cast to \(T.self)" + (message.map { ". Debug description: \($0)" } ?? ""), file: file, line: line)
         }
         return value
     }
