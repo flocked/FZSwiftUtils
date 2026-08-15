@@ -62,7 +62,7 @@ public func cast<X, T>(_ x: X) -> T {
 
  - Note: This function only recovers Swift types boxed as `__SwiftValue`. It does not reverse Foundation bridging, such as [String](https://developer.apple.com/documentation/swift/string) to [NSString](https://developer.apple.com/documentation/foundation/nsstring).
  */
-public func unbridgedType(of value: Any) -> Any.Type {
+public func unbridgedType<V>(of value: V) -> Any.Type {
     let type = type(of: value)
     guard type == swiftValueType, let value = value as? NSObject,
           let implementation = value.method(for: swiftTypeSelector) else {
