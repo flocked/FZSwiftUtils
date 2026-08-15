@@ -161,11 +161,6 @@ extension ObjCPropertyInfo {
         guard let string = _swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
         return FZSwiftUtils.swiftExtensionString(for: class_getName(`class`).string, string: string)
     }
-
-    @available(*, deprecated, renamed: "swiftExtensionString(for:handleUnknownType:)")
-    public func classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
-        swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType)
-    }
     
     fileprivate func _swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let baseType = type.resolvedSwiftType ?? (handleUnknownType ? "<#T##Any#>" : nil) else { return nil }
@@ -236,11 +231,6 @@ extension ObjCIvarInfo {
     public func swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
         guard let string = _swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType) else { return nil }
         return FZSwiftUtils.swiftExtensionString(for: class_getName(`class`).string, string: string)
-    }
-
-    @available(*, deprecated, renamed: "swiftExtensionString(for:handleUnknownType:)")
-    public func classExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
-        swiftExtensionString(for: `class`, handleUnknownType: handleUnknownType)
     }
     
     fileprivate func _swiftExtensionString(for class: AnyClass, handleUnknownType: Bool = false) -> String? {
