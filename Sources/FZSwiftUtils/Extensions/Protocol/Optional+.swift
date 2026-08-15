@@ -15,7 +15,7 @@ public extension Optional {
     
     /// Unwraps the optional value by throwing.
     func unwrap(or error: Error) throws -> Wrapped {
-        guard let wrapped = optional else { throw error }
+        guard let wrapped = self else { throw error }
         return wrapped
     }
 
@@ -26,20 +26,23 @@ public extension Optional {
         }
         return wrapped
     }
-
+    
     /// Unwraps and casts the optional value by throwing.
-    func unwrapCast<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) throws -> T {
-        try unwrapCast(or: OptionalError.castFailed(type: Wrapped.self, message: message, line: line, file: file))
+    func unwrap<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) throws -> T {
+        guard let value = try unwrap(message, line: line, file: file) as? T else {
+            throw OptionalError.castFailed(from: Wrapped.self, to: T.self, message: message, line: line, file: file)
+        }
+        return value
     }
     
     /// Unwraps and casts the optional value by throwing.
-    func unwrapCast<T>(as: T.Type = T.self, or error: Error) throws -> T {
-        guard let wrapped = optional as? T else { throw error }
-        return wrapped
+    func unwrap<T>(as: T.Type = T.self, or error: Error) throws -> T {
+        guard let wrapped = self, let value = wrapped as? T else { throw error }
+        return value
     }
 
     /// Unwraps and casts the optional value by throwing a fatal error.
-    func unwrapCastOrFatalError<T>(as: T.Type = T.self, message: String, line: Int = #line, file: String = #file) -> T {
+    func unwrapOrFatalError<T>(as: T.Type = T.self, message: String, line: Int = #line, file: String = #file) -> T {
         let unwrapped = self.unwrapOrFatalError(message: message, line: line, file: file)
         return (unwrapped as? T).unwrapOrFatalError(message: message, line: line, file: file)
     }
@@ -49,20 +52,16 @@ public extension Optional {
         /// The optional value is `nil`.
         case nilValue(ofType: Wrapped.Type, message: String?, line: Int, file: String)
         /// Casting the optional value failed.
-        case castFailed(type: Wrapped.Type, message: String?, line: Int, file: String)
+        case castFailed(from: Wrapped.Type, to: Any.Type, message: String?, line: Int, file: String)
         
         public var debugDescription: String {
             switch self {
-            case .nilValue(let type, let message, _, _):
-                guard let message else {
-                    return "OptionalError.nilValue of \(type)"
-                }
-                return  "OptionalError.nilValue of \(type) - \(message)"
-            case .castFailed(type: let type, message: let message, _, _):
-                guard let message else {
-                    return "OptionalError.castFailed of \(type)"
-                }
-                return  "OptionalError.castFailed of \(type) - \(message)"
+            case .nilValue(let type, let message, let line, let file):
+                let description = "Optional value of type \(type) is nil."
+                return "\(file):\(line) - \(description)" + (message.map { " - \($0)" } ?? "")
+            case .castFailed(let source, let target, let message, let line, let file):
+                let description = "Optional value of type \(source) couldn't be cast to \(target)."
+                return "\(file):\(line) - \(description)" + (message.map { " - \($0)" } ?? "")
             }
         }
     }
@@ -78,10 +77,7 @@ public protocol OptionalProtocol: ExpressibleByNilLiteral {
 }
 
 extension Optional: OptionalProtocol {
-    /// The optional value.
     public var optional: Self { self }
-    
-    /// The type of the wrapped value.
     public static var wrappedType: Any.Type { Wrapped.self }
     
     /// A Boolean value indicating whether the optional value is `nil`.
@@ -90,7 +86,7 @@ extension Optional: OptionalProtocol {
     }
 }
 
-extension Optional where Wrapped: Collection {
+public extension Optional where Wrapped: Collection {
     /// A Boolean value indicating whether the optional collection is either empty or `nil`.
     var isEmptyOrNil: Bool {
         self?.isEmpty ?? true
