@@ -34,15 +34,6 @@ public extension Optional {
     }
     
     /// Unwraps the optional value or triggers a fatal error.
-    func unwrapOrFatalError(message: String? = nil, line: Int = #line, file: String = #file) -> Wrapped {
-        guard let wrapped = self else {
-            let description = "Optional value of type \(Wrapped.self) is nil."
-            fatalError("\(file):\(line) - \(description)" + (message.map { " - \($0)" } ?? ""))
-        }
-        return wrapped
-    }
-    
-    /// Unwraps the optional value or triggers a fatal error.
     func unwrapOrFatalError(message: String? = nil) -> Wrapped {
         guard let wrapped = self else {
             fatalError("Optional value of type \(Wrapped.self) is nil" + (message.map { ". Debug description: \($0)" } ?? ""))
@@ -57,6 +48,16 @@ public extension Optional {
         }
         return value
     }
+    
+    /*
+    /// Unwraps the optional value or triggers a fatal error.
+    func unwrapOrFatalError(message: String? = nil, line: Int = #line, file: String = #file) -> Wrapped {
+        guard let wrapped = self else {
+            let description = "Optional value of type \(Wrapped.self) is nil."
+            fatalError("\(file):\(line) - \(description)" + (message.map { " - \($0)" } ?? ""))
+        }
+        return wrapped
+    }
 
     /// Unwraps and casts the optional value or triggers a fatal error.
     func unwrapOrFatalError<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) -> T {
@@ -66,6 +67,7 @@ public extension Optional {
         }
         return value
     }
+    */
     
     /// Error for unwrapping an optional.
     private enum OptionalError: Error, CustomDebugStringConvertible {
