@@ -9,8 +9,11 @@ import Foundation
 
 public extension Optional {
     /// Unwraps the optional value by throwing.
-    func unwrap(_ messageOnFail: String? = nil, line: Int = #line, file: String = #file) throws -> Wrapped {
-        try unwrap(or: OptionalError.nilValue(ofType: Wrapped.self, message: messageOnFail, line: line, file: file))
+    func unwrap(_ messageOnFail: @autoclosure () -> String? = nil) throws -> Wrapped {
+        guard let wrapped = self else {
+            throw  Errors.nilValue(type: Wrapped.self, message: messageOnFail())
+        }
+        return wrapped
     }
     
     /// Unwraps the optional value by throwing.
@@ -20,9 +23,12 @@ public extension Optional {
     }
     
     /// Unwraps and casts the optional value by throwing.
-    func unwrap<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) throws -> T {
-        guard let value = try unwrap(message, line: line, file: file) as? T else {
-            throw OptionalError.castFailed(from: Wrapped.self, to: T.self, message: message, line: line, file: file)
+    func unwrap<T>(as: T.Type = T.self, _ messageOnFail: @autoclosure () -> String? = nil) throws -> T {
+        guard let wrapped = self else {
+            throw  Errors.nilValue(type: Wrapped.self, message: messageOnFail())
+        }
+        guard let value = wrapped as? T else {
+            throw Errors.castFailed(from: Wrapped.self, to: T.self, message: messageOnFail())
         }
         return value
     }
@@ -34,62 +40,34 @@ public extension Optional {
     }
     
     /// Unwraps the optional value or triggers a fatal error.
-    func unwrapOrFatalError(message: String? = nil, line: UInt = #line, file: StaticString = #file) -> Wrapped {
+    func unwrapOrFatalError(_ message: @autoclosure () -> String? = nil, file: StaticString = #file, line: UInt = #line) -> Wrapped {
         guard let wrapped = self else {
-            fatalError("Optional value of type \(Wrapped.self) is nil" + (message.map { ". Debug description: \($0)" } ?? ""), file: file, line: line)
+            fatalError("Optional value of type \(Wrapped.self) is nil." + (message().map { " Debug description: \($0)" } ?? ""), file: file, line: line)
         }
         return wrapped
     }
     
     /// Unwraps and casts the optional value or triggers a fatal error.
-    func unwrapOrFatalError<T>(as: T.Type = T.self, message: String? = nil, line: UInt = #line, file: StaticString = #file) -> T {
-        guard let value = unwrapOrFatalError(message: message, line: line, file: file) as? T else {
-            fatalError("Optional value of type \(Wrapped.self) couldn't be cast to \(T.self)" + (message.map { ". Debug description: \($0)" } ?? ""), file: file, line: line)
-        }
-        return value
-    }
-    
-    /*
-    /// Unwraps the optional value or triggers a fatal error.
-    func unwrapOrFatalError(message: String? = nil, line: Int = #line, file: String = #file) -> Wrapped {
+    func unwrapOrFatalError<T>(as: T.Type = T.self, _ message: @autoclosure () -> String? = nil, file: StaticString = #file, line: UInt = #line) -> T {
         guard let wrapped = self else {
-            let description = "Optional value of type \(Wrapped.self) is nil."
-            fatalError("\(file):\(line) - \(description)" + (message.map { " - \($0)" } ?? ""))
+            fatalError("Optional value of type \(Wrapped.self) is nil." + (message().map { " Debug description: \($0)" } ?? ""), file: file, line: line)
         }
-        return wrapped
-    }
-
-    /// Unwraps and casts the optional value or triggers a fatal error.
-    func unwrapOrFatalError<T>(as: T.Type = T.self, message: String? = nil, line: Int = #line, file: String = #file) -> T {
-        guard let value = unwrapOrFatalError(message: message, line: line, file: file) as? T else {
-            let description = "Optional value of type \(Wrapped.self) couldn't be cast to \(T.self)."
-            fatalError("\(file):\(line) - \(description)" + (message.map { " - \($0)" } ?? ""))
+        guard let value = wrapped as? T else {
+            fatalError("Optional value of type \(Wrapped.self) couldn't be cast to \(T.self)." + (message().map { " Debug description: \($0)" } ?? ""), file: file, line: line)
         }
         return value
     }
-    */
     
-    /// Error for unwrapping an optional.
-    private enum OptionalError: Error, CustomDebugStringConvertible {
-        /// The optional value is `nil`.
-        case nilValue(ofType: Wrapped.Type, message: String?, line: Int, file: String)
-        /// Casting the optional value failed.
-        case castFailed(from: Wrapped.Type, to: Any.Type, message: String?, line: Int, file: String)
+    fileprivate enum Errors: Error, CustomDebugStringConvertible {
+        case nilValue(type: Wrapped.Type, message: String?)
+        case castFailed(from: Wrapped.Type, to: Any.Type, message: String?)
         
-        public var debugDescription: String {
+        var debugDescription: String {
             switch self {
-            case .nilValue(let type, let message, let line, let file):
-                return "Optional value of type \(type) is nil" + (message.map { ". Debug description: \($0)" } ?? "")
-            /*
-             let description = "Optional value of type \(type) is nil"
-             return "\(file):\(line) - \(description)" + (message.map { ". Debug description: \($0)" } ?? "")
-              */
-            case .castFailed(let source, let target, let message, let line, let file):
-                return "Optional value of type \(source) couldn't be cast to \(target)" + (message.map { ". Debug description: \($0)" } ?? "")
-                /*
-                 let description = "Optional value of type \(source) couldn't be cast to \(target)"
-                 return "\(file):\(line) - \(description)" + (message.map { ". Debug description: \($0)" } ?? "")
-                  */
+            case .nilValue(let type, let message):
+                "Optional value of type \(type) is nil" + (message.map { ". Debug description: \($0)" } ?? "")
+            case .castFailed(let type, let target, let message):
+                "Optional value of type \(type) couldn't be cast to \(target)" + (message.map { ". Debug description: \($0)" } ?? "")
             }
         }
     }
@@ -168,6 +146,46 @@ public extension Optional where Wrapped: Collection {
      
      public static func -= (lhs: inout Self, rhs: Self) {
          lhs = lhs - rhs
+     }
+ }
+ */
+
+/*
+ /// Unwraps the optional value by throwing.
+ func unwrap(_ messageOnFail: @autoclosure () -> String? = nil, line: Int = #line, file: String = #file) throws -> Wrapped {
+     guard let wrapped = self else {
+         throw  OptionalError.nilValue(ofType: Wrapped.self, message: messageOnFail(), line: line, file: file)
+     }
+     return wrapped
+ }
+ 
+ /// Unwraps and casts the optional value by throwing.
+ func unwrap<T>(as: T.Type = T.self, message: @autoclosure () -> String? = nil, line: Int = #line, file: String = #file) throws -> T {
+     guard let wrapped = self else {
+         throw  OptionalError.nilValue(ofType: Wrapped.self, message: message(), line: line, file: file)
+     }
+     guard let value = wrapped as? T else {
+         throw OptionalError.castFailed(from: Wrapped.self, to: T.self, message: message(), line: line, file: file)
+     }
+     return value
+ }
+ 
+ /// Error for unwrapping an optional.
+ private enum OptionalError: Error, CustomDebugStringConvertible {
+     /// The optional value is `nil`.
+     case nilValue(ofType: Wrapped.Type, message: String?, line: Int, file: String)
+     /// Casting the optional value failed.
+     case castFailed(from: Wrapped.Type, to: Any.Type, message: String?, line: Int, file: String)
+     
+     public var debugDescription: String {
+         switch self {
+         case .nilValue(let type, let message, let line, let file):
+          let description = "Optional value of type \(type) is nil"
+          return "\(file):\(line) - \(description)" + (message.map { ". Debug description: \($0)" } ?? "")
+         case .castFailed(let source, let target, let message, let line, let file):
+              let description = "Optional value of type \(source) couldn't be cast to \(target)"
+              return "\(file):\(line) - \(description)" + (message.map { ". Debug description: \($0)" } ?? "")
+         }
      }
  }
  */
