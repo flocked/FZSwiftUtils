@@ -650,12 +650,12 @@ extension ObjCRuntime {
 public extension ObjCRuntime {
     /// Returns the bridged Objective-C type for the specified type.
     static func objCType(for swiftType: Any.Type) -> AnyClass? {
-        (swiftType as? any _ObjectiveCBridgeable.Type)?.ObjCType
+        (swiftType as? any _ObjectiveCBridgeable.Type)?.ObjCType ?? swiftType as? NSObject.Type
     }
 
     /// Returns the Objective-C type that the specified value bridges to.
-    static func objCType<V>(of value: V) -> AnyClass? {
-        objCType(for: (V.self as? any OptionalProtocol.Type)?.wrappedType ?? V.self)
+    static func objCType<Value>(of value: Value) -> AnyClass? {
+        objCType(for: (Value.self as? any OptionalProtocol.Type)?.wrappedType ?? Value.self)
     }
 
     /// Returns the Objective-C representation of the specified value.
@@ -673,3 +673,4 @@ private extension _ObjectiveCBridgeable {
         _ObjectiveCType.self
     }
 }
+
