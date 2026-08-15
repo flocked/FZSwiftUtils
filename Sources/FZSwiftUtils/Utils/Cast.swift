@@ -51,29 +51,25 @@ public func cast<X, T>(_ x: X) -> T {
 }
 
 /**
- Returns the Swift runtime type of an object that may be bridged to Objective-C.
+ Returns the Swift runtime type of a value that may be bridged to Objective-C.
 
- Unlike `type(of:)`, this function attempts to recover the original Swift type for values that are bridged into Objective-C and appear as `__SwiftValue` at runtime.
+ Unlike [type(of:)](https://developer.apple.com/documentation/swift/type(of:)), this function attempts to recover the original Swift type for values that are bridged to Objective-C and appear as `__SwiftValue` at runtime.
 
- This is primarily useful when working with `AnyObject` values originating from Swift types (such as value types) that have been bridged through Objective-C APIs.
+ This is primarily useful when working with [AnyObject](https://developer.apple.com/documentation/swift/anyobject) values originating from Swift types, such as value types, that have been bridged through Objective-C APIs.
 
- - Parameter value: An object that may represent a bridged Swift value.
- - Returns: The Swift runtime type of the value if it can be determined; otherwise, the dynamic Objective-C type of the object.
- 
- - Note: This function only recovers the Swift type for values boxed as `__SwiftValue`. Foundation-bridged types (such as `String` → `NSString`) are already converted to Objective-C objects and cannot be unbridged.
+ - Parameter value: A value that may represent a bridged Swift value.
+ - Returns: The original Swift type of the value if it can be determined; otherwise, its dynamic type.
+
+ - Note: This function only recovers Swift types boxed as `__SwiftValue`. It does not reverse Foundation bridging, such as [String](https://developer.apple.com/documentation/swift/string) to [NSString](https://developer.apple.com/documentation/foundation/nsstring).
  */
 public func unbridgedType(of value: Any) -> Any.Type {
-    var type: Any.Type = type(of: value)
-    guard type == swiftValueType, let value = value as? NSObject else {
+    let type = type(of: value)
+    guard type == swiftValueType, let value = value as? NSObject,
+          let implementation = value.method(for: swiftTypeSelector) else {
         return type
     }
-    let pointer = unsafeBitCast(value.method(for: swiftTypeSelector)!, to: (@convention(c)(Any?,Selector)->OpaquePointer).self)(value, swiftTypeSelector)
-    withUnsafeMutablePointer(to: &type) {
-        let unsafePtr = UnsafeMutablePointer<OpaquePointer>.allocate(capacity: 1)
-        unsafePtr.pointee = pointer
-        $0.update(from: UnsafePointer<Any.Type>(OpaquePointer(unsafePtr)), count: 1)
-    }
-    return type
+    let metadata = unsafeBitCast(implementation, to: (@convention(c) (AnyObject, Selector) -> UnsafeRawPointer).self)(value, swiftTypeSelector)
+    return unsafeBitCast(metadata, to: Any.Type.self)
 }
 
 fileprivate let swiftValueType: AnyClass? = NSClassFromString("__SwiftValue")
