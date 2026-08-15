@@ -659,7 +659,7 @@ public extension ObjCRuntime {
     }
 
     /// Returns the Objective-C representation of the specified value.
-    static func bridgeToObjC<Value>(_ value: Value) -> Any? {
+    static func bridgeToObjC<V>(_ value: V) -> Any? {
         if let optional = value as? any OptionalProtocol {
             guard let value = optional.optional else { return nil }
             return bridgeToObjC(value)
