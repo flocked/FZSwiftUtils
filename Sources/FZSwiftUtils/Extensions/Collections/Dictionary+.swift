@@ -68,6 +68,22 @@ extension KeyValueDifference: CustomStringConvertible {
 }
 
 public extension Dictionary {
+    /**
+     Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.
+     
+     - Parameters:
+        - value: The new value to add to the dictionary, or `nil` to remove any current value for the key.
+        - key: The key to associate with `value`. If key already exists in the dictionary, `value` replaces the existing associated value. If `key` isn’t already a key of the dictionary, the `(key, value)` pair is added.
+     - Returns: The value that was replaced or removed, or `nil` if the key did not previously exist.
+     */
+    @_disfavoredOverload
+    mutating func updateValue(_ value: Value?, forKey key: Key) -> Value? {
+        if let value = value {
+            return updateValue(value, forKey: key)
+        }
+        return removeValue(forKey: key)
+    }
+    
     /// Edits each value in the dictionary.
     mutating func editEach(_ transform: (_ key: Key, _ value: inout Value) throws -> Void) rethrows {
         for (key, var value) in self {
