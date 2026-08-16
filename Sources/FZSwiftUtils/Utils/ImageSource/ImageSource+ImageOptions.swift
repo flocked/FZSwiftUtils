@@ -25,7 +25,7 @@ public extension ImageSource {
         public var allowsFloat: Bool = false
         
         /// The preferred dynamic range to use when decoding the image.
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, visionOS 1.0, *)
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         var preferredDynamicRange: DynamicRange? {
             get { DynamicRange(rawValue: _preferredDynamicRange ?? -1) }
             set { _preferredDynamicRange = newValue?.rawValue }
@@ -47,7 +47,7 @@ public extension ImageSource {
         }
         
         /// The dynamic range to prefer when decoding an image.
-        @available(macOS 14.0, iOS 17.0, tvOS 17.0, visionOS 1.0, *)
+        @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
         public enum DynamicRange: Int, Codable {
             /// Standard dynamic range.
             case standard

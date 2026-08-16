@@ -1,14 +1,16 @@
 //
 //  FinderTags.swift
-//  
+//
 //
 //  Created by Florian Zand on 02.05.26.
 //
 
 #if os(macOS)
 import AppKit
-#else
+#elseif !os(watchOS)
 import UIKit
+#else
+import SwiftUI
 #endif
 
 /// A representation of a macOS Finder tag.
@@ -98,16 +100,17 @@ public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
         
         public var description: String {
             switch self {
-            case .gray: "gray"
-            case .green: "green"
-            case .purple: "purple"
-            case .blue: "blue"
-            case .yellow: "yellow"
-            case .red: "red"
-            case .orange: "orange"
+                case .gray: "gray"
+                case .green: "green"
+                case .purple: "purple"
+                case .blue: "blue"
+                case .yellow: "yellow"
+                case .red: "red"
+                case .orange: "orange"
             }
         }
         
+        #if !os(watchOS)
         /// The represented color of the tag.
         public var color: NSUIColor {
             switch self {
@@ -120,5 +123,19 @@ public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
                 case .orange: .systemOrange
             }
         }
+        #else
+        /// The represented color of the tag.
+        public var color: SwiftUI.Color {
+            switch self {
+                case .gray: .gray
+                case .green: .green
+                case .purple: .purple
+                case .blue: .blue
+                case .yellow: .yellow
+                case .red: .red
+                case .orange: .orange
+            }
+        }
+        #endif
     }
 }
