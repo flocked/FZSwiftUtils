@@ -129,14 +129,6 @@ extension Collection {
 }
 
 public extension Collection {
-    /*
-    /// Returns the element at the index, or `nil` if the collection doesn't the index.
-    subscript(safe index: Index) -> Element? {
-        guard !isEmpty, index >= startIndex, index < endIndex else { return nil }
-        return self[index]
-    }
-    */
-
     /// Returns the available elements at the specified indexes.
     subscript(indexes: [Index]) -> [Element] {
         indexes.compactMap { self[safe: $0] }
@@ -149,104 +141,6 @@ public extension Collection where Index == Int {
         indexes.compactMap { self[safe: $0] }
     }
 }
-
-/*
-public extension MutableCollection {
-    subscript(safe index: Index) -> Element? {
-        get {
-            guard !isEmpty, index >= startIndex, index < endIndex else { return nil }
-            return !isEmpty && index >= startIndex && index < endIndex ? self[index] : nil
-        }
-        set {
-            guard !isEmpty, index >= startIndex, index < endIndex, let newValue = newValue else { return }
-            self[index] = newValue
-        }
-    }
-}
-
-public extension RangeReplaceableCollection where Self: MutableCollection {
-    subscript(safe index: Index) -> Element? {
-        get {
-            guard !isEmpty, index >= startIndex, index < endIndex else { return nil }
-            return self[index]
-        }
-        set {
-            guard !isEmpty, index >= startIndex, index < endIndex else { return }
-            if let newValue = newValue {
-                self[index] = newValue
-            } else {
-                self.remove(at: index)
-            }
-        }
-    }
-}
-
-public extension Collection {
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: Range<Index>) -> [Element] {
-        Array(self[range.clamped(to: startIndex..<endIndex)])
-    }
-
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: ClosedRange<Index>) -> [Element] {
-        guard let range = clamped(for: range) else { return [] }
-        return Array(self[range])
-    }
-    
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: PartialRangeFrom<Index>) -> [Element] {
-        self[safe: range.lowerBound..<endIndex]
-    }
-    
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: PartialRangeUpTo<Index>) -> [Element] {
-        self[safe: startIndex..<range.upperBound]
-    }
-    
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: PartialRangeThrough<Index>) -> [Element] {
-        get { self[safe: startIndex...range.upperBound] }
-    }
-    
-    /// Returns the elements of the collection upto the specified maximum count.
-    subscript(max maximum: Index) -> [Element] {
-        self[safe: startIndex..<maximum]
-    }
-    
-    fileprivate func clamped(for range: ClosedRange<Index>) -> Range<Index>? {
-        let lower = Swift.max(range.lowerBound, startIndex)
-        guard lower < endIndex else { return nil }
-        let upper = Swift.min(range.upperBound, endIndex)
-        let upperBound = upper < endIndex ? index(after: upper) : endIndex
-        return lower..<upperBound
-    }
-}
- */
 
 public extension RangeReplaceableCollection {
     /// Adds the specified optional `Element`.
@@ -324,71 +218,6 @@ public extension RangeReplaceableCollection {
         insert(contentsOf: newElements, at: startIndex)
     }
 }
-
-/*
-public extension RangeReplaceableCollection {
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: Range<Index>) -> [Element] {
-        get { Array(self[range.clamped(to: startIndex..<endIndex)]) }
-        set { replaceSubrange(range.clamped(to: startIndex..<endIndex), with: newValue) }
-    }
-
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: ClosedRange<Index>) -> [Element] {
-        get {
-            guard let range = clamped(for: range) else { return [] }
-            return Array(self[range])
-        }
-        set {
-            guard let range = clamped(for: range) else { return }
-            replaceSubrange(range, with: newValue)
-        }
-    }
-    
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: PartialRangeFrom<Index>) -> [Element] {
-        get { self[safe: range.lowerBound..<endIndex] }
-        set { self[safe: range.lowerBound..<endIndex] = newValue }
-    }
-    
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: PartialRangeUpTo<Index>) -> [Element] {
-        get { self[safe: startIndex..<range.upperBound] }
-        set { self[safe: startIndex..<range.upperBound] = newValue }
-    }
-    
-    /**
-     Accesses a contiguous subrange of the collection’s elements.
-
-     - Parameter range: A range of integers.
-     - Returns: The available elements of the collection at the range.
-     */
-    subscript(safe range: PartialRangeThrough<Index>) -> [Element] {
-        get { self[safe: startIndex...range.upperBound] }
-        set { self[safe: startIndex...range.upperBound] = newValue }
-    }
-}
- */
 
 public extension RangeReplaceableCollection {
 
