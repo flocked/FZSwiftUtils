@@ -1293,10 +1293,6 @@ public extension NSRange {
         Range(range).flatMap { clamped(to: $0) }
     }
     
-    func sdsds() {
-        let aaa: ClosedRange<Int> = 5...5
-    }
-    
     func clamped<I: FixedWidthInteger>(to range: Range<I>) -> NSRange? {
         Range<I>(self).map { NSRange($0.clamped(to: range)) }
     }
