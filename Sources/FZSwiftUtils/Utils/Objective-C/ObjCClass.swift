@@ -50,7 +50,7 @@ public struct ObjCClass {
     
     /// The superclass of the class.
     public var superclass: AnyClass? {
-        cls.superclass()
+        skipMetaClass ? nil : cls.superclass()
     }
     
     /// The root superclass of the class.
@@ -84,7 +84,7 @@ public struct ObjCClass {
     
     /// A Boolean value indicating whether the class is a meta class.
     public var isMetaClass: Bool {
-        class_isMetaClass(cls)
+        skipMetaClass ? false : class_isMetaClass(cls)
     }
     
     /// Returns the meta class for the class.
@@ -115,7 +115,11 @@ public struct ObjCClass {
      - Parameter includeSuperclasses: A Boolean value indicating whether to include class methods of the superclasses.
      */
     public func classMethods(includeSuperclasses: Bool = false) -> [Method] {
-        ObjCClass(metaClass).methods(includeSuperclasses: includeSuperclasses)
+        skipMetaClass ? [] : ObjCClass(metaClass).methods(includeSuperclasses: includeSuperclasses)
+    }
+    
+    private var skipMetaClass: Bool {
+        ObjCRuntime.classNamesToSkip.contains(name)
     }
     
     /**
@@ -141,7 +145,7 @@ public struct ObjCClass {
      - Parameter includeSuperclasses: A Boolean value indicating whether to include class properties of the superclasses.
      */
     public func classProperties(includeSuperclasses: Bool = false) -> [objc_property_t] {
-        ObjCClass(metaClass).properties(includeSuperclasses: includeSuperclasses)
+        skipMetaClass ? [] : ObjCClass(metaClass).properties(includeSuperclasses: includeSuperclasses)
     }
     
     /**
