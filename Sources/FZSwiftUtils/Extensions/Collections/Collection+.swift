@@ -630,67 +630,6 @@ public extension Collection where Element: AnyObject {
     }
 }
 
-
-public extension RangeReplaceableCollection {
-    mutating func removeSubrange(clamped bounds: Range<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(clamped bounds: ClosedRange<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(clamped bounds: PartialRangeFrom<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(clamped bounds: PartialRangeUpTo<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(clamped bounds: PartialRangeThrough<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: Range<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: ClosedRange<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: PartialRangeFrom<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: PartialRangeUpTo<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: PartialRangeThrough<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-    mutating func removeSubranges(safe subranges: RangeSet<Index>) {
-        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return }
-        removeSubranges(subranges)
-    }
-    
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-    mutating func removeSubranges(clamped subranges: RangeSet<Index>) {
-        removeSubranges(RangeSet(subranges.ranges.map { clamp($0) }))
-    }
-}
-
-// MARK: - Safe
-
 public extension Collection {
     subscript(safe index: Index) -> Element? {
         index >= startIndex && index < endIndex ? self[index] : nil
@@ -995,6 +934,64 @@ public extension Collection {
     }
 }
 
+public extension RangeReplaceableCollection {
+    mutating func removeSubrange(clamped bounds: Range<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: ClosedRange<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: PartialRangeFrom<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: PartialRangeUpTo<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: PartialRangeThrough<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: Range<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: ClosedRange<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: PartialRangeFrom<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: PartialRangeUpTo<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: PartialRangeThrough<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    mutating func removeSubranges(safe subranges: RangeSet<Index>) {
+        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return }
+        removeSubranges(subranges)
+    }
+    
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    mutating func removeSubranges(clamped subranges: RangeSet<Index>) {
+        removeSubranges(RangeSet(subranges.ranges.map { clamp($0) }))
+    }
+}
+
 private extension Collection {
     func clamp(_ range: PartialRangeFrom<Index>) -> Range<Index> {
         Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)..<endIndex
@@ -1046,96 +1043,6 @@ private extension Collection {
     
     func safe(_ index: Index) -> Index? {
         index >= startIndex && index < endIndex ? index : nil
-    }
-}
-
-public extension Range {
-    func clamped(to range: PartialRangeFrom<Bound>) -> Self {
-        Swift.min(Swift.max(lowerBound, range.lowerBound), upperBound)..<upperBound
-    }
-
-    func clamped(to range: PartialRangeUpTo<Bound>) -> Self {
-        lowerBound..<Swift.max(Swift.min(upperBound, range.upperBound), lowerBound)
-    }
-}
-
-public extension Range where Bound: BinaryInteger {
-    func clamped(to range: NSRange) -> Self? {
-        Range<Bound>(range).map { clamped(to: $0) }
-    }
-}
-
-public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
-    func clamped(to range: ClosedRange<Bound>) -> Self {
-        let lowerBound = Swift.min(Swift.max(lowerBound, range.lowerBound), upperBound)
-        let limit = range.upperBound >= upperBound ? upperBound : range.upperBound.advanced(by: 1)
-        let upperBound = Swift.max(Swift.min(upperBound, limit), lowerBound)
-        return lowerBound..<upperBound
-    }
-
-    func clamped(to range: PartialRangeThrough<Bound>) -> Self {
-        let limit = range.upperBound >= upperBound ? upperBound : range.upperBound.advanced(by: 1)
-        let upperBound = Swift.max(Swift.min(upperBound, limit), lowerBound)
-        return lowerBound..<upperBound
-    }
-}
-
-public extension ClosedRange {
-    func clamped(to range: PartialRangeFrom<Bound>) -> Self? {
-        let lowerBound = Swift.max(lowerBound, range.lowerBound)
-        guard lowerBound <= upperBound else { return nil }
-        return lowerBound...upperBound
-    }
-    
-    func clamped(to range: PartialRangeThrough<Bound>) -> Self? {
-        let upperBound = Swift.min(upperBound, range.upperBound)
-        guard lowerBound <= upperBound else { return nil }
-        return lowerBound...upperBound
-    }
-}
-
-public extension ClosedRange where Bound: BinaryInteger, Bound.Stride: SignedInteger {
-    func clamped(to range: NSRange) -> Self? {
-        Range<Bound>(range).flatMap { clamped(to: $0) }
-    }
-}
-
-public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedInteger {
-    func clamped(to range: Range<Bound>) -> Self? {
-        guard range.upperBound > lowerBound else { return nil }
-        let lowerBound = Swift.max(lowerBound, range.lowerBound)
-        let upperBound = range.upperBound > upperBound ? upperBound : range.upperBound.advanced(by: -1)
-        guard lowerBound <= upperBound else { return nil }
-        return lowerBound...upperBound
-    }
-    
-    func clamped(to range: PartialRangeUpTo<Bound>) -> Self? {
-        guard range.upperBound > lowerBound else { return nil }
-        let upperBound = range.upperBound > upperBound ? upperBound : range.upperBound.advanced(by: -1)
-        guard lowerBound <= upperBound else { return nil }
-        return lowerBound...upperBound
-    }
-}
-
-public extension NSRange {
-    func clamped(to range: NSRange) -> NSRange? {
-        Range(range).flatMap { clamped(to: $0) }
-    }
-    
-    func clamped<I: FixedWidthInteger>(to range: Range<I>) -> NSRange? {
-        Range<I>(self).map { NSRange($0.clamped(to: range)) }
-    }
-    
-    func clamped<I: FixedWidthInteger>(to range: PartialRangeFrom<I>) -> NSRange? {
-        Range<I>(self).map { NSRange($0.clamped(to: range)) }
-    }
-    
-    func clamped<I: FixedWidthInteger>(to range: PartialRangeUpTo<I>) -> NSRange? {
-        Range<I>(self).map { NSRange($0.clamped(to: range)) }
-    }
-    
-    func clamped<I: FixedWidthInteger>(to range: PartialRangeThrough<I>) -> NSRange? {
-        Range<I>(self).map { NSRange($0.clamped(to: range)) }
     }
 }
 

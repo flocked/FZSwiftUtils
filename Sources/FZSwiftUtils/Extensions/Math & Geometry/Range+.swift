@@ -677,8 +677,93 @@ public extension NSRange {
 }
 
 /*
- union
- intersection
- overlaps
- contains
+ public extension Range {
+     func clamped(to range: PartialRangeFrom<Bound>) -> Self {
+         Swift.min(Swift.max(lowerBound, range.lowerBound), upperBound)..<upperBound
+     }
+
+     func clamped(to range: PartialRangeUpTo<Bound>) -> Self {
+         lowerBound..<Swift.max(Swift.min(upperBound, range.upperBound), lowerBound)
+     }
+ }
+
+ public extension Range where Bound: BinaryInteger {
+     func clamped(to range: NSRange) -> Self? {
+         Range<Bound>(range).map { clamped(to: $0) }
+     }
+ }
+
+ public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
+     func clamped(to range: ClosedRange<Bound>) -> Self {
+         let lowerBound = Swift.min(Swift.max(lowerBound, range.lowerBound), upperBound)
+         let limit = range.upperBound >= upperBound ? upperBound : range.upperBound.advanced(by: 1)
+         let upperBound = Swift.max(Swift.min(upperBound, limit), lowerBound)
+         return lowerBound..<upperBound
+     }
+
+     func clamped(to range: PartialRangeThrough<Bound>) -> Self {
+         let limit = range.upperBound >= upperBound ? upperBound : range.upperBound.advanced(by: 1)
+         let upperBound = Swift.max(Swift.min(upperBound, limit), lowerBound)
+         return lowerBound..<upperBound
+     }
+ }
+
+ public extension ClosedRange {
+     func clamped(to range: PartialRangeFrom<Bound>) -> Self? {
+         let lowerBound = Swift.max(lowerBound, range.lowerBound)
+         guard lowerBound <= upperBound else { return nil }
+         return lowerBound...upperBound
+     }
+     
+     func clamped(to range: PartialRangeThrough<Bound>) -> Self? {
+         let upperBound = Swift.min(upperBound, range.upperBound)
+         guard lowerBound <= upperBound else { return nil }
+         return lowerBound...upperBound
+     }
+ }
+
+ public extension ClosedRange where Bound: BinaryInteger, Bound.Stride: SignedInteger {
+     func clamped(to range: NSRange) -> Self? {
+         Range<Bound>(range).flatMap { clamped(to: $0) }
+     }
+ }
+
+ public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedInteger {
+     func clamped(to range: Range<Bound>) -> Self? {
+         guard range.upperBound > lowerBound else { return nil }
+         let lowerBound = Swift.max(lowerBound, range.lowerBound)
+         let upperBound = range.upperBound > upperBound ? upperBound : range.upperBound.advanced(by: -1)
+         guard lowerBound <= upperBound else { return nil }
+         return lowerBound...upperBound
+     }
+     
+     func clamped(to range: PartialRangeUpTo<Bound>) -> Self? {
+         guard range.upperBound > lowerBound else { return nil }
+         let upperBound = range.upperBound > upperBound ? upperBound : range.upperBound.advanced(by: -1)
+         guard lowerBound <= upperBound else { return nil }
+         return lowerBound...upperBound
+     }
+ }
+
+ public extension NSRange {
+     func clamped(to range: NSRange) -> NSRange? {
+         Range(range).flatMap { clamped(to: $0) }
+     }
+     
+     func clamped<I: FixedWidthInteger>(to range: Range<I>) -> NSRange? {
+         Range<I>(self).map { NSRange($0.clamped(to: range)) }
+     }
+     
+     func clamped<I: FixedWidthInteger>(to range: PartialRangeFrom<I>) -> NSRange? {
+         Range<I>(self).map { NSRange($0.clamped(to: range)) }
+     }
+     
+     func clamped<I: FixedWidthInteger>(to range: PartialRangeUpTo<I>) -> NSRange? {
+         Range<I>(self).map { NSRange($0.clamped(to: range)) }
+     }
+     
+     func clamped<I: FixedWidthInteger>(to range: PartialRangeThrough<I>) -> NSRange? {
+         Range<I>(self).map { NSRange($0.clamped(to: range)) }
+     }
+ }
  */

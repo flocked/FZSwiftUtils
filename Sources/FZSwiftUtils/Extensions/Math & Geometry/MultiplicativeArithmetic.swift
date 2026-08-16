@@ -8,7 +8,7 @@
 import Foundation
 
 /// A type with values that support multiplication and division.
-public protocol MultiplicativeArithmetic: AdditiveArithmetic {
+public protocol MultiplicativeArithmetic {
     /// Divides two values and produces their division.
     static func / (lhs: Self, rhs: Self) -> Self
     /// Divides two values and stores the result in the left-hand-side variable.
