@@ -89,7 +89,7 @@ public struct ObjCClass {
     
     /// Returns the meta class for the class.
     public var metaClass: AnyClass {
-        isMetaClass ? cls : object_getClass(cls)!
+        isMetaClass || skipMetaClass ? cls : object_getClass(cls)!
     }
     
     /**
