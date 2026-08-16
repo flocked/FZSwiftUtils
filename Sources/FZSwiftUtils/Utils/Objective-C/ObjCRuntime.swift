@@ -296,6 +296,12 @@ public enum ObjCRuntime {
     static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "JSExport", "PKAppProtectionCoordinator", 
     ])
+    
+    static let isSubclassToSkip = Set(classNamesToSkip + "CKSQLiteUnsetPropertySentinel")
+    
+    /*
+     return ObjCRuntime.classNamesToSkip.contains(name) && name != "CKSQLiteUnsetPropertySentinel"
+     */
         
     /*
     static let classNamesToSkip = Set([

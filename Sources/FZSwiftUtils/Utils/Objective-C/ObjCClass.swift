@@ -72,16 +72,9 @@ public struct ObjCClass {
         ObjCRuntime.subclasses(of: cls, includeNested: includeNested)
     }
     
-    // CKSQLiteUnsetPropertySentinel
-    
-    private var skipMetaClassAlt: Bool {
-        let name = name
-        return ObjCRuntime.classNamesToSkip.contains(name) && name != "CKSQLiteUnsetPropertySentinel"
-    }
-    
     /// A Boolean value indicating whether the class is a subclass of the specified other class.
     public func isSubclass(of class: AnyClass) -> Bool {
-        skipMetaClass ? false : cls.isSubclass(of: `class`)
+        ObjCRuntime.isSubclassToSkip.contains(name) ? false : cls.isSubclass(of: `class`)
     }
     
     /// A Boolean value indicating whether the class is a superclass of the specified other class.
