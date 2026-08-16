@@ -294,7 +294,15 @@ public enum ObjCRuntime {
     static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "JSExport", "PKAppProtectionCoordinator"
     ])
-
+    
+    static let superclassNamesToSkip = Set(classNamesToSkip + "CKSQLiteUnsetPropertySentinel")
+    
+    /*
+    static let classNamesToSkip = Set([
+        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object", "PKAppProtectionCoordinator"
+    ])
+     */
+    
     private static let classesToSkip = Set(classNamesToSkip.compactMap { NSClassFromString($0) }.map { ObjectIdentifier($0) })
 }
 

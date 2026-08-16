@@ -50,7 +50,7 @@ public struct ObjCClass {
     
     /// The superclass of the class.
     public var superclass: AnyClass? {
-        skipMetaClass ? nil : cls.superclass()
+        ObjCRuntime.superclassNamesToSkip.contains(name) ? nil : cls.superclass()
     }
     
     /// The root superclass of the class.
