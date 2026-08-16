@@ -51,7 +51,7 @@ extension Mirror {
         let includeValue = options.contains(.value)
         var children = Array(children)
         if let maxChildren = maxChildren {
-            children = children[safe: 0..<maxChildren]
+            children = children[clamped: 0..<maxChildren]
         }
         for child in children {
             let value = options.contains(.value) ? " = \(child.value)" : ""

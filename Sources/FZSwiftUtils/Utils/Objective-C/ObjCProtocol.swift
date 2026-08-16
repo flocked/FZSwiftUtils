@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Protocol {
-    /// Returns a the protocol with the specfiiec name.
+    /// Returns a the protocol with the specified name.
     static func named(_ name: String) -> Protocol? {
         NSProtocolFromString(name)
     }

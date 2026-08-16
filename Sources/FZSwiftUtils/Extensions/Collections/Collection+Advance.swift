@@ -64,9 +64,9 @@ public extension Collection where Element: Equatable, Index == Int {
             case .previous:
                 return indices[0..<index].reversed().first(where: { !excluding.contains($0) })
             case .nextLooping:
-                return (indices[safe: index+1..<count] + indices[safe: 0..<index]).first(where: { !excluding.contains($0) })
+                return (indices[clamped: index+1..<count] + indices[clamped: 0..<index]).first(where: { !excluding.contains($0) })
             case .previousLooping:
-                return (indices[0..<index].reversed() + indices[safe: index+1..<count].reversed()).first(where: { !excluding.contains($0) })
+                return (indices[0..<index].reversed() + indices[clamped: index+1..<count].reversed()).first(where: { !excluding.contains($0) })
             case .first:
                 return indices.filter({ !excluding.contains($0) }).first
             case .last:

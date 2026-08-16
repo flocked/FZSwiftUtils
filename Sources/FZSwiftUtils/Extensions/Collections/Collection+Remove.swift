@@ -240,7 +240,7 @@ public extension RangeReplaceableCollection {
     @_disfavoredOverload
     mutating func remove(at range: Range<Index>) -> [Element] {
         let range = range.clamped(to: startIndex..<endIndex)
-        let removed = self[safe: range]
+        let removed = Array(self[range])
         removeSubrange(range)
         return removed
     }

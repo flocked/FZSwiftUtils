@@ -150,7 +150,7 @@ extension XMLNode {
         }
         
         if level+1 < maxLevel ?? .max {
-            let children = children?[safe: 0..<(maxCount ?? childCount).clamped(max: childCount)] ?? []
+            let children = children?[clamped: 0..<(maxCount ?? childCount).clamped(max: childCount)] ?? []
             lines += children.map({ $0.xmlKindString(at: level+1, includeAttributes: includeAttributes, maxLevel: maxLevel, maxCount: maxCount) })
         }
         return lines.joined(separator: "\n")

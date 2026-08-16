@@ -306,7 +306,7 @@ open class ElementOutlineItem<Element>: Hashable, CustomStringConvertible, Custo
         strings = [Array(repeating: " ", count: level).joined(separator: "") + string]
         if level+1 <= depth {
             if let maxChildren = maxChildren {
-                strings += children[safe: 0..<maxChildren].map({ $0.string(level: level+1, depth: depth, maxChildren: maxChildren) })
+                strings += children[clamped: 0..<maxChildren].map({ $0.string(level: level+1, depth: depth, maxChildren: maxChildren) })
             } else {
                 strings += children.map({ $0.string(level: level+1, depth: depth, maxChildren: maxChildren) })
             }

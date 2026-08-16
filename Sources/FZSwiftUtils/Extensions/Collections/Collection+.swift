@@ -129,11 +129,13 @@ extension Collection {
 }
 
 public extension Collection {
+    /*
     /// Returns the element at the index, or `nil` if the collection doesn't the index.
     subscript(safe index: Index) -> Element? {
         guard !isEmpty, index >= startIndex, index < endIndex else { return nil }
         return self[index]
     }
+    */
 
     /// Returns the available elements at the specified indexes.
     subscript(indexes: [Index]) -> [Element] {
@@ -148,6 +150,7 @@ public extension Collection where Index == Int {
     }
 }
 
+/*
 public extension MutableCollection {
     subscript(safe index: Index) -> Element? {
         get {
@@ -243,6 +246,7 @@ public extension Collection {
         return lower..<upperBound
     }
 }
+ */
 
 public extension RangeReplaceableCollection {
     /// Adds the specified optional `Element`.
@@ -321,6 +325,7 @@ public extension RangeReplaceableCollection {
     }
 }
 
+/*
 public extension RangeReplaceableCollection {
     /**
      Accesses a contiguous subrange of the collection’s elements.
@@ -383,6 +388,7 @@ public extension RangeReplaceableCollection {
         set { self[safe: startIndex...range.upperBound] = newValue }
     }
 }
+ */
 
 public extension RangeReplaceableCollection {
 
@@ -792,5 +798,544 @@ public extension Collection where Element: AnyObject {
             values.remove(at: index)
             $0 += index
         }
+    }
+}
+
+
+public extension RangeReplaceableCollection {
+    mutating func removeSubrange(clamped bounds: Range<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: ClosedRange<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: PartialRangeFrom<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: PartialRangeUpTo<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(clamped bounds: PartialRangeThrough<Index>) {
+        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: Range<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: ClosedRange<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: PartialRangeFrom<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: PartialRangeUpTo<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    mutating func removeSubrange(safe bounds: PartialRangeThrough<Index>) {
+        guard let bounds = safe(bounds) else { return }
+        replaceSubrange(bounds, with: EmptyCollection())
+    }
+    
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    mutating func removeSubranges(safe subranges: RangeSet<Index>) {
+        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return }
+        removeSubranges(subranges)
+    }
+    
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    mutating func removeSubranges(clamped subranges: RangeSet<Index>) {
+        removeSubranges(RangeSet(subranges.ranges.map { clamp($0) }))
+    }
+}
+
+// MARK: - Safe
+
+public extension Collection {
+    subscript(safe index: Index) -> Element? {
+        index >= startIndex && index < endIndex ? self[index] : nil
+    }
+    
+    subscript(safe range: Range<Index>) -> SubSequence? {
+        self[safe(range)]
+    }
+    
+    subscript(safe range: ClosedRange<Index>) -> SubSequence? {
+        self[safe(range)]
+    }
+    
+    subscript(safe range: PartialRangeFrom<Index>) -> SubSequence? {
+        self[safe(range)]
+    }
+    
+    subscript(safe range: PartialRangeUpTo<Index>) -> SubSequence? {
+        self[safe(range)]
+    }
+    
+    subscript(safe range: PartialRangeThrough<Index>) -> SubSequence? {
+        self[safe(range)]
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: Range<Index>) -> S? {
+        self[safe(range)]
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: ClosedRange<Index>) -> S? {
+        self[safe(range)]
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: PartialRangeFrom<Index>) -> S? {
+        self[safe(range)]
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: PartialRangeUpTo<Index>) -> S? {
+        self[safe(range)]
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: PartialRangeThrough<Index>) -> S? {
+        self[safe(range)]
+    }
+    
+    fileprivate subscript(range: Range<Index>?) -> SubSequence? {
+        range.map { self[$0] }
+    }
+    
+    fileprivate subscript<S: RangeReplaceableCollection<Element>>(range: Range<Index>?) -> S? {
+        range.map { S(self[$0]) }
+    }
+}
+
+public extension MutableCollection {
+    subscript(safe index: Index) -> Element? {
+        get { index >= startIndex && index < endIndex ? self[index] : nil }
+        set {
+            guard index >= startIndex, index < endIndex, let newValue else { return }
+            self[index] = newValue
+        }
+    }
+}
+
+public extension RangeReplaceableCollection {
+    @_disfavoredOverload
+    subscript(safe index: Index) -> Element? {
+        get { index >= startIndex && index < endIndex ? self[index] : nil }
+        set {
+            guard index >= startIndex, index < endIndex, let newValue else { return }
+            replaceSubrange(index..<self.index(after: index), with: CollectionOfOne(newValue))
+        }
+    }
+    
+    subscript(safe range: Range<Index>) -> SubSequence? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    subscript(safe range: ClosedRange<Index>) -> SubSequence? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    subscript(safe range: PartialRangeFrom<Index>) -> SubSequence? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    subscript(safe range: PartialRangeUpTo<Index>) -> SubSequence? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    subscript(safe range: PartialRangeThrough<Index>) -> SubSequence? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: Range<Index>) -> S? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: ClosedRange<Index>) -> S? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: PartialRangeFrom<Index>) -> S? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: PartialRangeUpTo<Index>) -> S? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(safe range: PartialRangeThrough<Index>) -> S? {
+        get { self[safe(range)] }
+        set { replace(safe(range), with: newValue) }
+    }
+    
+    fileprivate mutating func replace<S: RangeReplaceableCollection<Element>>(_ range: Range<Index>?, with newElements: S?) {
+        guard let range = range, let newElements else { return }
+        replaceSubrange(range, with: newElements)
+    }
+    
+    fileprivate subscript(range: Range<Index>?) -> SubSequence? {
+        range.map { self[$0] }
+    }
+    
+    fileprivate subscript<S: RangeReplaceableCollection<Element>>(range: Range<Index>?) -> S? {
+        range.map { S(self[$0]) }
+    }
+}
+
+// MARK: - Clamped
+
+public extension Collection {
+    subscript(clamped range: Range<Index>) -> SubSequence {
+        self[clamp(range)]
+    }
+    
+    subscript(clamped range: ClosedRange<Index>) -> SubSequence {
+        self[clamp(range)]
+    }
+    
+    subscript(clamped range: PartialRangeFrom<Index>) -> SubSequence {
+        self[clamp(range)]
+    }
+    
+    subscript(clamped range: PartialRangeUpTo<Index>) -> SubSequence {
+        self[clamp(range)]
+    }
+    
+    subscript(clamped range: PartialRangeThrough<Index>) -> SubSequence {
+        self[clamp(range)]
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: Range<Index>) -> S {
+        S(self[clamp(range)])
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: ClosedRange<Index>) -> S {
+        S(self[clamp(range)])
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: PartialRangeFrom<Index>) -> S {
+        S(self[clamp(range)])
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: PartialRangeUpTo<Index>) -> S {
+        S(self[clamp(range)])
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: PartialRangeThrough<Index>) -> S {
+        S(self[clamp(range)])
+    }
+}
+
+public extension RangeReplaceableCollection {
+    subscript(clamped range: Range<Index>) -> SubSequence {
+        get { self[clamp(range)] }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    subscript(clamped range: ClosedRange<Index>) -> SubSequence {
+        get { self[clamp(range)] }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    subscript(clamped range: PartialRangeFrom<Index>) -> SubSequence {
+        get { self[clamp(range)] }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    subscript(clamped range: PartialRangeUpTo<Index>) -> SubSequence {
+        get { self[clamp(range)] }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    subscript(clamped range: PartialRangeThrough<Index>) -> SubSequence {
+        get { self[clamp(range)] }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: Range<Index>) -> S {
+        get { S(self[clamp(range)]) }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: ClosedRange<Index>) -> S {
+        get { S(self[clamp(range)]) }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: PartialRangeFrom<Index>) -> S {
+        get { S(self[clamp(range)]) }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: PartialRangeUpTo<Index>) -> S {
+        get { S(self[clamp(range)]) }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+    
+    @_disfavoredOverload
+    subscript<S: RangeReplaceableCollection<Element>>(clamped range: PartialRangeThrough<Index>) -> S {
+        get { S(self[clamp(range)]) }
+        set { replaceSubrange(clamp(range), with: newValue) }
+    }
+}
+
+public extension Collection {
+    func range(for range: PartialRangeFrom<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.lowerBound <= endIndex else { return nil }
+        return range.lowerBound..<endIndex
+    }
+    
+    func range(for range: PartialRangeUpTo<Index>) -> Range<Index>? {
+        guard range.upperBound >= startIndex, range.upperBound <= endIndex else { return nil }
+        return startIndex..<range.upperBound
+    }
+    
+    func range(for range: PartialRangeThrough<Index>) -> Range<Index>? {
+        guard range.upperBound >= startIndex, range.upperBound < endIndex else { return nil }
+        return startIndex..<index(after: range.upperBound)
+    }
+    
+    func range(for range: ClosedRange<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.upperBound < endIndex else { return nil }
+        return range.lowerBound..<index(after: range.upperBound)
+    }
+    
+    func range(for range: Range<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.upperBound <= endIndex else { return nil }
+        return range
+    }
+    
+    func range(clamped range: PartialRangeFrom<Index>) -> Range<Index> {
+        Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)..<endIndex
+    }
+    
+    func range(clamped range: PartialRangeUpTo<Index>) -> Range<Index> {
+        startIndex..<Swift.min(Swift.max(range.upperBound, startIndex), endIndex)
+    }
+    
+    func range(clamped range: PartialRangeThrough<Index>) -> Range<Index> {
+        guard !isEmpty, range.upperBound >= startIndex else { return startIndex..<startIndex }
+        return startIndex..<(range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+    }
+    
+    func range(clamped range: ClosedRange<Index>) -> Range<Index> {
+        let lowerBound = Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)
+        guard lowerBound < endIndex, range.upperBound >= startIndex else { return lowerBound..<lowerBound }
+        return lowerBound..<Swift.max(lowerBound, range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+    }
+    
+    func range(clamped range: Range<Index>) -> Range<Index> {
+        range.clamped(to: startIndex..<endIndex)
+    }
+}
+
+private extension Collection {
+    func clamp(_ range: PartialRangeFrom<Index>) -> Range<Index> {
+        Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)..<endIndex
+    }
+    
+    func clamp(_ range: PartialRangeUpTo<Index>) -> Range<Index> {
+        startIndex..<Swift.min(Swift.max(range.upperBound, startIndex), endIndex)
+    }
+    
+    func clamp(_ range: PartialRangeThrough<Index>) -> Range<Index> {
+        guard !isEmpty, range.upperBound >= startIndex else { return startIndex..<startIndex }
+        return startIndex..<(range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+    }
+    
+    func clamp(_ range: ClosedRange<Index>) -> Range<Index> {
+        let lowerBound = Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)
+        guard lowerBound < endIndex, range.upperBound >= startIndex else { return lowerBound..<lowerBound }
+        return lowerBound..<Swift.max(lowerBound, range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+    }
+    
+    func clamp(_ range: Range<Index>) -> Range<Index> {
+        range.clamped(to: startIndex..<endIndex)
+    }
+    
+    func safe(_ range: PartialRangeFrom<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.lowerBound <= endIndex else { return nil }
+        return range.lowerBound..<endIndex
+    }
+    
+    func safe(_ range: PartialRangeUpTo<Index>) -> Range<Index>? {
+        guard range.upperBound >= startIndex, range.upperBound <= endIndex else { return nil }
+        return startIndex..<range.upperBound
+    }
+    
+    func safe(_ range: PartialRangeThrough<Index>) -> Range<Index>? {
+        guard range.upperBound >= startIndex, range.upperBound < endIndex else { return nil }
+        return startIndex..<index(after: range.upperBound)
+    }
+    
+    func safe(_ range: ClosedRange<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.upperBound < endIndex else { return nil }
+        return range.lowerBound..<index(after: range.upperBound)
+    }
+    
+    func safe(_ range: Range<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.upperBound <= endIndex else { return nil }
+        return range
+    }
+    
+    func safe(_ index: Index) -> Index? {
+        index >= startIndex && index < endIndex ? index : nil
+    }
+}
+
+public extension Range {
+    func clamped(to range: PartialRangeFrom<Bound>) -> Self {
+        Swift.min(Swift.max(lowerBound, range.lowerBound), upperBound)..<upperBound
+    }
+
+    func clamped(to range: PartialRangeUpTo<Bound>) -> Self {
+        lowerBound..<Swift.max(Swift.min(upperBound, range.upperBound), lowerBound)
+    }
+}
+
+public extension Range where Bound: BinaryInteger {
+    func clamped(to range: NSRange) -> Self? {
+        Range<Bound>(range).map { clamped(to: $0) }
+    }
+}
+
+public extension Range where Bound: Strideable, Bound.Stride: SignedInteger {
+    func clamped(to range: ClosedRange<Bound>) -> Self {
+        let lowerBound = Swift.min(Swift.max(lowerBound, range.lowerBound), upperBound)
+        let limit = range.upperBound >= upperBound ? upperBound : range.upperBound.advanced(by: 1)
+        let upperBound = Swift.max(Swift.min(upperBound, limit), lowerBound)
+        return lowerBound..<upperBound
+    }
+
+    func clamped(to range: PartialRangeThrough<Bound>) -> Self {
+        let limit = range.upperBound >= upperBound ? upperBound : range.upperBound.advanced(by: 1)
+        let upperBound = Swift.max(Swift.min(upperBound, limit), lowerBound)
+        return lowerBound..<upperBound
+    }
+}
+
+public extension ClosedRange {
+    func clamped(to range: PartialRangeFrom<Bound>) -> Self? {
+        let lowerBound = Swift.max(lowerBound, range.lowerBound)
+        guard lowerBound <= upperBound else { return nil }
+        return lowerBound...upperBound
+    }
+    
+    func clamped(to range: PartialRangeThrough<Bound>) -> Self? {
+        let upperBound = Swift.min(upperBound, range.upperBound)
+        guard lowerBound <= upperBound else { return nil }
+        return lowerBound...upperBound
+    }
+}
+
+public extension ClosedRange where Bound: BinaryInteger, Bound.Stride: SignedInteger {
+    func clamped(to range: NSRange) -> Self? {
+        Range<Bound>(range).flatMap { clamped(to: $0) }
+    }
+}
+
+public extension ClosedRange where Bound: Strideable, Bound.Stride: SignedInteger {
+    func clamped(to range: Range<Bound>) -> Self? {
+        guard range.upperBound > lowerBound else { return nil }
+        let lowerBound = Swift.max(lowerBound, range.lowerBound)
+        let upperBound = range.upperBound > upperBound ? upperBound : range.upperBound.advanced(by: -1)
+        guard lowerBound <= upperBound else { return nil }
+        return lowerBound...upperBound
+    }
+    
+    func clamped(to range: PartialRangeUpTo<Bound>) -> Self? {
+        guard range.upperBound > lowerBound else { return nil }
+        let upperBound = range.upperBound > upperBound ? upperBound : range.upperBound.advanced(by: -1)
+        guard lowerBound <= upperBound else { return nil }
+        return lowerBound...upperBound
+    }
+}
+
+public extension NSRange {
+    func clamped(to range: NSRange) -> NSRange? {
+        Range(range).flatMap { clamped(to: $0) }
+    }
+    
+    func sdsds() {
+        let aaa: ClosedRange<Int> = 5...5
+    }
+    
+    func clamped<I: FixedWidthInteger>(to range: Range<I>) -> NSRange? {
+        Range<I>(self).map { NSRange($0.clamped(to: range)) }
+    }
+    
+    func clamped<I: FixedWidthInteger>(to range: PartialRangeFrom<I>) -> NSRange? {
+        Range<I>(self).map { NSRange($0.clamped(to: range)) }
+    }
+    
+    func clamped<I: FixedWidthInteger>(to range: PartialRangeUpTo<I>) -> NSRange? {
+        Range<I>(self).map { NSRange($0.clamped(to: range)) }
+    }
+    
+    func clamped<I: FixedWidthInteger>(to range: PartialRangeThrough<I>) -> NSRange? {
+        Range<I>(self).map { NSRange($0.clamped(to: range)) }
+    }
+}
+
+private extension RangeReplaceableCollection {
+    func replace(_ range: Range<Index>) -> Range<Index>? {
+        if range.isEmpty {
+            guard range.lowerBound >= startIndex, range.lowerBound <= endIndex else { return nil }
+            return range
+        }
+        return range.lowerBound < endIndex && range.upperBound > startIndex ? clamp(range) : nil
+    }
+    
+    func replace(_ range: ClosedRange<Index>) -> Range<Index>? {
+        !isEmpty && range.lowerBound < endIndex && range.upperBound >= startIndex ? clamp(range) : nil
+    }
+    
+    func replace(_ range: PartialRangeFrom<Index>) -> Range<Index>? {
+        range.lowerBound < endIndex ? clamp(range) : nil
+    }
+    
+    func replace(_ range: PartialRangeUpTo<Index>) -> Range<Index>? {
+        range.upperBound > startIndex ? clamp(range) : nil
+    }
+    
+    func replace(_ range: PartialRangeThrough<Index>) -> Range<Index>? {
+        !isEmpty && range.upperBound >= startIndex ? clamp(range) : nil
     }
 }
