@@ -74,7 +74,7 @@ public struct ObjCClass {
     
     /// A Boolean value indicating whether the class is a subclass of the specified other class.
     public func isSubclass(of class: AnyClass) -> Bool {
-        ObjCRuntime.isSubclassToSkip.contains(name) ? false : cls.isSubclass(of: `class`)
+        ObjCRuntime.addressToSkip.contains(name) ? false : cls.isSubclass(of: `class`)
     }
     
     /// A Boolean value indicating whether the class is a superclass of the specified other class.

@@ -101,8 +101,6 @@ public enum ObjCRuntime {
         return Unmanaged.passUnretained(cls as AnyObject).toOpaque()
     }
     
-    private static let addressToSkip = Set(classNamesToSkip + ["CKSQLiteUnsetPropertySentinel", "Object"])
-    
     /**
      Returns all subclasses for the specified class.
 
@@ -296,8 +294,9 @@ public enum ObjCRuntime {
     static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "JSExport", "PKAppProtectionCoordinator", 
     ])
-    
-    static let isSubclassToSkip = Set(classNamesToSkip + "CKSQLiteUnsetPropertySentinel")
+        
+    static let addressToSkip = Set(classNamesToSkip + ["CKSQLiteUnsetPropertySentinel", "Object"])
+
     
     /*
      return ObjCRuntime.classNamesToSkip.contains(name) && name != "CKSQLiteUnsetPropertySentinel"
