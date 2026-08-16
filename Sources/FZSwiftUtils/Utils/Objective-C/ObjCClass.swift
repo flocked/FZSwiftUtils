@@ -1,6 +1,6 @@
 //
 //  ObjCClass.swift
-//  
+//
 //
 //  Created by Florian Zand on 20.02.26.
 //
@@ -42,11 +42,11 @@ public struct ObjCClass {
     }
     
     /*
-    /// The runtime origin of the class.
-    public var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
-        ObjCRuntime.origin(of: cls)
-    }
-    */
+     /// The runtime origin of the class.
+     public var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
+         ObjCRuntime.origin(of: cls)
+     }
+     */
     
     /// The superclass of the class.
     public var superclass: AnyClass? {
@@ -74,7 +74,7 @@ public struct ObjCClass {
     
     /// A Boolean value indicating whether the class is a subclass of the specified other class.
     public func isSubclass(of class: AnyClass) -> Bool {
-        cls.isSubclass(of: `class`)
+        skipMetaClass ? false : cls.isSubclass(of: `class`)
     }
     
     /// A Boolean value indicating whether the class is a superclass of the specified other class.
@@ -104,7 +104,7 @@ public struct ObjCClass {
         for cls in classes(includeSuperclasses) {
             guard let list = class_copyMethodList(cls, &count) else { continue }
             defer { free(list) }
-            methods += includeSuperclasses ? list.buffer(count: count).filter({ seen.insert(method_getName($0)).inserted }) : list.array(count: count)
+            methods += includeSuperclasses ? list.buffer(count: count).filter { seen.insert(method_getName($0)).inserted } : list.array(count: count)
         }
         return methods
     }
@@ -134,7 +134,7 @@ public struct ObjCClass {
         for cls in classes(includeSuperclasses) {
             guard let list = class_copyPropertyList(cls, &count) else { continue }
             defer { free(list) }
-            properties += includeSuperclasses ? list.buffer(count: count).filter({ seen.insert(property_getName($0).string).inserted }) : list.array(count: count)
+            properties += includeSuperclasses ? list.buffer(count: count).filter { seen.insert(property_getName($0).string).inserted } : list.array(count: count)
         }
         return properties
     }
@@ -181,12 +181,12 @@ public struct ObjCClass {
             guard includeInheritedProtocols else { return }
             guard let list = protocol_copyProtocolList(proto, &count) else { return }
             defer { free(UnsafeMutableRawPointer(list)) }
-            list.buffer(count: count).forEach({ visit($0) })
+            list.buffer(count: count).forEach { visit($0) }
         }
         for cls in classes(includeSuperclasses) {
             guard let list = class_copyProtocolList(cls, &count) else { continue }
             defer { free(UnsafeMutableRawPointer(list)) }
-            list.buffer(count: count).forEach({ visit($0) })
+            list.buffer(count: count).forEach { visit($0) }
         }
         return protocols
     }
