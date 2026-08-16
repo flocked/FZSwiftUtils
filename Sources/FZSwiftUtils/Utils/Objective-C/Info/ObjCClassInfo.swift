@@ -322,7 +322,7 @@ public extension ObjCClassInfo {
                         check(prot)
                     }
                 }
-                for cls in classes(for: cls, isInstance: true, includeSuperclasses: includeSuperclasses) {
+                for cls in classes(for: cls, skip: false, isInstance: true, includeSuperclasses: includeSuperclasses) {
                     guard let list = class_copyProtocolList(cls, &count) else { continue }
                     defer { free(UnsafeMutableRawPointer(list)) }
                     for proto in list.buffer(count: count) {
@@ -394,7 +394,7 @@ public extension ObjCClassInfo {
             return try ObjCRuntime.catchException {
                 var properties: [ObjCPropertyInfo] = []
                 var seen: Set<String> = []
-                for cls in classes(for: cls, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
+                for cls in classes(for: cls, skip: false, isInstance: isInstance, includeSuperclasses: includeSuperclasses) {
                     var count: UInt32 = 0
                     guard let list = class_copyPropertyList(cls, &count) else { continue }
                     defer { free(list) }
@@ -455,10 +455,10 @@ public extension ObjCClassInfo {
         }
     }
         
-    private static func classes(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
+    private static func classes(for cls: AnyClass, skip: Bool = true, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
         var cls: AnyClass = cls
         if !isInstance {
-            if ObjCRuntime.classNamesToSkip.contains(class_getName(cls).string) { return [] }
+            if skip, ObjCRuntime.classNamesToSkip.contains(class_getName(cls).string) { return [] }
             guard let metaclass = object_getClass(cls) else { return [] }
             cls = metaclass
         }
