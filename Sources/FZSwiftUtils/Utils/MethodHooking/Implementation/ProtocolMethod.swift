@@ -46,9 +46,7 @@ private class ProtocolMethodContext: Hashable {
     fileprivate let methodClosureContext: FFIClosureContext
         
     init(targetClass: AnyClass, selector: Selector, protocolType: Protocol, isInstanceMethod: Bool) throws {
-        guard let description = protocolType.methodDescription(for: selector, isInstanceMethod: isInstanceMethod), let types = description.types else {
-            throw HookError.noRespondSelector
-        }
+        let types = try protocolType.methodTypeEncoding(for: selector, isInstance: isInstanceMethod)
         let signature = try Signature(typeEncoding: types)
         self.targetClass = targetClass
         self.selector = selector
@@ -89,10 +87,7 @@ final class ProtocolMethodImplementation {
 }
 
 func makeProtocolMethodImplementation(protocolType: Protocol, selector: Selector, isInstanceMethod: Bool) throws -> ProtocolMethodImplementation {
-    guard let description = protocolType.methodDescription(for: selector, isInstanceMethod: isInstanceMethod),
-          let types = description.types else {
-        throw HookError.noRespondSelector
-    }
+    let types = try protocolType.methodTypeEncoding(for: selector, isInstance: isInstanceMethod)
     return try ProtocolMethodImplementation(typeEncoding: types)
 }
 

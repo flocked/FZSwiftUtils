@@ -51,7 +51,7 @@ extension Hook {
             guard let resolvedProtocol = try protocolType ?? ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: isInstanceMethod) else {
                 throw HookError.noRespondSelector
             }
-            methodSignature = try resolvedProtocol.methodSignature(for: selector, isInstanceMethod: isInstanceMethod)
+            methodSignature = try Signature(typeEncoding: resolvedProtocol.methodTypeEncoding(for: selector, isInstance: isInstanceMethod))
         }
 
         let closureSignature = try Signature(closure: closure)

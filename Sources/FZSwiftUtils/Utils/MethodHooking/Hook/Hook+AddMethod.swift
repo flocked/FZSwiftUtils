@@ -43,7 +43,7 @@ extension Hook {
                     guard let resolvedProtocol = try ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: true) else {
                         throw HookError.noRespondSelector
                     }
-                    guard let typeEncoding = resolvedProtocol.methodTypeEncoding(for: selector, isInstanceMethod: true) else { throw HookError.noRespondSelector }
+                    let typeEncoding = try resolvedProtocol.methodTypeEncoding(for: selector, isInstance: true)
                     try Self.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure)
                     inactiveImplementation = try makeProtocolMethodImplementation(protocolType: resolvedProtocol, selector: selector, isInstanceMethod: true)
                     guard class_addMethod(targetClass, selector, replacementIMP, typeEncoding) else {
@@ -102,7 +102,7 @@ extension Hook {
                     guard let resolvedProtocol = try ObjCClass(targetClass).protocol(for: selector, isInstanceMethod: isInstanceMethod) else {
                         throw HookError.noRespondSelector
                     }
-                    guard let typeEncoding = resolvedProtocol.methodTypeEncoding(for: selector, isInstanceMethod: isInstanceMethod) else { throw HookError.noRespondSelector }
+                    let typeEncoding = try  resolvedProtocol.methodTypeEncoding(for: selector, isInstance: isInstanceMethod)
                     try Self.parametersCheck(typeEncoding: typeEncoding, closure: hookClosure)
                     inactiveImplementation = try makeProtocolMethodImplementation(protocolType: resolvedProtocol, selector: selector, isInstanceMethod: isInstanceMethod)
                     guard class_addMethod(targetClass, selector, replacementIMP, typeEncoding) else {

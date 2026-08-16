@@ -273,7 +273,7 @@ fileprivate extension ObjCClassInfo {
         )
         
         func append(_ methodInfo: ObjCMethodInfo) {
-            let method = methodInfo.isClassMethod ? objcClass.classMethod(for: .string(methodInfo.name)) : objcClass.method(for: .string(methodInfo.name))
+            let method = (methodInfo.isClassMethod ? objcClass.classMethod(for: .string(methodInfo.name)) : objcClass.method(for: .string(methodInfo.name)))?.method
             let origin = method.map(ObjCRuntime.origin(of:))
             let imagePath = origin?.image?.path ?? primaryImagePath
             let categoryName = origin?.categoryName
@@ -281,7 +281,7 @@ fileprivate extension ObjCClassInfo {
         }
 
         func append(_ propertyInfo: ObjCPropertyInfo) {
-            let method = propertyInfo.isClassProperty ? objcClass.classMethod(for: propertyInfo.getter)  : objcClass.method(for: propertyInfo.getter)
+            let method = (propertyInfo.isClassProperty ? objcClass.classMethod(for: propertyInfo.getter)  : objcClass.method(for: propertyInfo.getter))?.method
             let origin = method.map(ObjCRuntime.origin(of:))
             let imagePath = origin?.image?.path ?? primaryImagePath
             let categoryName = origin?.categoryName

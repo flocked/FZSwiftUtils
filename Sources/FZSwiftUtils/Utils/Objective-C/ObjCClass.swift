@@ -41,13 +41,6 @@ public struct ObjCClass {
         class_getImageName(cls)?.string
     }
     
-    /*
-     /// The runtime origin of the class.
-     public var origin: (imagePath: String?, categoryName: String?, symbolName: String?) {
-         ObjCRuntime.origin(of: cls)
-     }
-     */
-    
     /// The superclass of the class.
     public var superclass: AnyClass? {
         class_getSuperclass(cls)
@@ -63,12 +56,17 @@ public struct ObjCClass {
         Array(first: superclass, next: { class_getSuperclass($0) })
     }
     
+    /// The subclasses of the class.
+    public var subclasses: [AnyClass] {
+        subclasses(includeNested: false)
+    }
+    
     /**
-     Returns all subclasses of the class.
+     Returns the subclasses of the class.
      
      - Parameter includeNested: A Boolean value indicating whether to include nested subclasses.
      */
-    public func subclasses(includeNested: Bool = false) -> [AnyClass] {
+    public func subclasses(includeNested: Bool) -> [AnyClass] {
         ObjCRuntime.subclasses(of: cls, includeNested: includeNested)
     }
     
@@ -87,17 +85,22 @@ public struct ObjCClass {
         skipMetaClass ? false : class_isMetaClass(cls)
     }
     
-    /// Returns the meta class for the class.
+    /// The meta class for the class.
     public var metaClass: AnyClass {
         isMetaClass || skipMetaClass ? cls : object_getClass(cls)!
     }
     
+    /// The instance methods of the class.
+    public var methods: [ObjCMethod] {
+        methods(includeSuperclasses: false)
+    }
+    
     /**
-     Returns all instance methods of the class.
+     Returns the instance methods of the class.
 
-     - Parameter includeSuperclasses: A Boolean value indicating whether to include instance methods of the superclasses.
+     - Parameter includeSuperclasses: A Boolean value indicating whether to include instance methods declared by the superclasses.
      */
-    public func methods(includeSuperclasses: Bool = false) -> [Method] {
+    public func methods(includeSuperclasses: Bool) -> [ObjCMethod] {
         var count: UInt32 = 0
         var methods: [Method] = []
         var seen: Set<Selector> = []
@@ -106,15 +109,20 @@ public struct ObjCClass {
             defer { free(list) }
             methods += includeSuperclasses ? list.buffer(count: count).filter { seen.insert(method_getName($0)).inserted } : list.array(count: count)
         }
-        return methods
+        return methods.map(ObjCMethod.init)
+    }
+    
+    /// The class methods of the class.
+    public var classMethods: [ObjCMethod] {
+        classMethods(includeSuperclasses: false)
     }
     
     /**
-     Returns all class methods of the class.
+     Returns the class methods of the class.
 
-     - Parameter includeSuperclasses: A Boolean value indicating whether to include class methods of the superclasses.
+     - Parameter includeSuperclasses: A Boolean value indicating whether to include class methods declared by the superclasses.
      */
-    public func classMethods(includeSuperclasses: Bool = false) -> [Method] {
+    public func classMethods(includeSuperclasses: Bool) -> [ObjCMethod] {
         skipMetaClass ? [] : ObjCClass(metaClass).methods(includeSuperclasses: includeSuperclasses)
     }
     
@@ -122,12 +130,17 @@ public struct ObjCClass {
         ObjCRuntime.classNamesToSkip.contains(name)
     }
     
+    /// The instance properties of the class.
+    public var properties: [ObjCProperty] {
+        properties(includeSuperclasses: false)
+    }
+    
     /**
-     Returns all instance properties of the class.
+     Returns the instance properties of the class.
 
-     - Parameter includeSuperclasses: A Boolean value indicating whether to include instance properties of the superclasses.
+     - Parameter includeSuperclasses: A Boolean value indicating whether to include instance properties declared by the superclasses.
      */
-    public func properties(includeSuperclasses: Bool = false) -> [objc_property_t] {
+    public func properties(includeSuperclasses: Bool) -> [ObjCProperty] {
         var count: UInt32 = 0
         var properties: [objc_property_t] = []
         var seen: Set<String> = []
@@ -136,42 +149,57 @@ public struct ObjCClass {
             defer { free(list) }
             properties += includeSuperclasses ? list.buffer(count: count).filter { seen.insert(property_getName($0).string).inserted } : list.array(count: count)
         }
-        return properties
+        return properties.map(ObjCProperty.init)
+    }
+    
+    /// The class properties of the class.
+    public var classProperties: [ObjCProperty] {
+        classProperties(includeSuperclasses: false)
     }
     
     /**
-     Returns all class properties of the class.
+     Returns the class properties of the class.
 
-     - Parameter includeSuperclasses: A Boolean value indicating whether to include class properties of the superclasses.
+     - Parameter includeSuperclasses: A Boolean value indicating whether to include class properties declared by the superclasses.
      */
-    public func classProperties(includeSuperclasses: Bool = false) -> [objc_property_t] {
+    public func classProperties(includeSuperclasses: Bool) -> [ObjCProperty] {
         skipMetaClass ? [] : ObjCClass(metaClass).properties(includeSuperclasses: includeSuperclasses)
     }
     
+    /// The instance variables of the class.
+    public var ivars: [ObjCIvar] {
+        ivars(includeSuperclasses: false)
+    }
+    
     /**
-     Returns all instance variables of the class.
+     Returns the instance variables of the class.
 
-     - Parameter includeSuperclasses: A Boolean value indicating whether to include instance variables of the superclasses.
+     - Parameter includeSuperclasses: A Boolean value indicating whether to include instance variables declared by the superclasses.
      */
-    public func ivars(includeSuperclasses: Bool = false) -> [Ivar] {
+    public func ivars(includeSuperclasses: Bool) -> [ObjCIvar] {
         var ivars: [Ivar] = []
         for cls in classes(includeSuperclasses) {
             var count: UInt32 = 0
             guard let list = class_copyIvarList(cls, &count) else { continue }
             defer { free(list) }
-            ivars += list.array(count: count)
+            ivars += list.buffer(count: count)
         }
-        return ivars
+        return ivars.map(ObjCIvar.init)
+    }
+    
+    /// The protocols the class conforms to.
+    public var protocols: [Protocol] {
+        protocols(includeSuperclasses: false)
     }
     
     /**
-     Returns all protocols the class conforms to.
+     Returns the protocols the class conforms to.
 
      - Parameters:
        - includeSuperclasses: A Boolean value indicating whether to include protocols that the superclasses are conforming to.
        - includeInheritedProtocols: A Boolean value indicating whether to include protocols inherited by each protocol recursively.
      */
-    public func protocols(includeSuperclasses: Bool = false, includeInheritedProtocols: Bool = false) -> [Protocol] {
+    public func protocols(includeSuperclasses: Bool, includeInheritedProtocols: Bool = false) -> [Protocol] {
         var visited = Set<ObjectIdentifier>()
         var protocols: [Protocol] = []
         var count: UInt32 = 0
@@ -211,18 +239,18 @@ public struct ObjCClass {
     }
     
     /// Returns the instance property of the class with the specified name.
-    public func property(named name: String) -> objc_property_t? {
-        class_getProperty(cls, name)
+    public func property(named name: String) -> ObjCProperty? {
+        class_getProperty(cls, name).map(ObjCProperty.init)
     }
     
     /// Returns the class property of the class with the specified name.
-    public func classProperty(named name: String) -> objc_property_t? {
-        class_getProperty(metaClass, name)
+    public func classProperty(named name: String) -> ObjCProperty? {
+        skipMetaClass ? nil : class_getProperty(metaClass, name).map(ObjCProperty.init)
     }
     
     /// Returns the instance variable of the class with the specified name.
-    public func variable(named name: String) -> Ivar? {
-        class_getInstanceVariable(cls, name)
+    public func variable(named name: String) -> ObjCIvar? {
+        class_getInstanceVariable(cls, name).map(ObjCIvar.init)
     }
     
     /**
@@ -233,8 +261,8 @@ public struct ObjCClass {
         - declaredOnly: If `true`, only methods declared directly by this class are considered; otherwise, methods declared by superclasses are also considered.
      - Returns: The matching instance method, or `nil` if no such method exists.
      */
-    public func method(for selector: Selector, declaredOnly: Bool = false) -> Method? {
-        declaredOnly ? declaredMethod(for: cls, selector) : class_getInstanceMethod(cls, selector)
+    public func method(for selector: Selector, declaredOnly: Bool = false) -> ObjCMethod? {
+        (declaredOnly ? declaredMethod(for: cls, selector) : class_getInstanceMethod(cls, selector)).map(ObjCMethod.init)
     }
     
     /**
@@ -245,8 +273,8 @@ public struct ObjCClass {
         - declaredOnly: If `true`, only methods declared directly by this class are considered; otherwise, methods declared by superclasses are also considered.
      - Returns: The matching class method, or `nil` if no such method exists.
      */
-    public func classMethod(for selector: Selector, declaredOnly: Bool = false) -> Method? {
-        declaredOnly ? declaredMethod(for: metaClass, selector) : class_getClassMethod(cls, selector)
+    public func classMethod(for selector: Selector, declaredOnly: Bool = false) -> ObjCMethod? {
+        (declaredOnly ? declaredMethod(for: metaClass, selector) : class_getClassMethod(cls, selector)).map(ObjCMethod.init)
     }
     
     private func declaredMethod(for cls: AnyClass, _ selector: Selector) -> Method? {
@@ -278,34 +306,20 @@ public struct ObjCClass {
     
     /// Returns a Boolean value indicating whether this class overrides the specified instance method.
     public func overrides(_ selector: Selector) -> Bool {
-        guard let method = method(for: selector) else { return false }
-        var currentClass: AnyClass? = superclass
-        while let superClass = currentClass {
-            if let superMethod = class_getInstanceMethod(superClass, selector), superMethod != method {
-                return true
-            }
-            currentClass = class_getSuperclass(superClass)
-        }
-        return false
+        guard declaredMethod(for: cls, selector) != nil, let superclass else { return false }
+        return class_getInstanceMethod(superclass, selector) != nil
     }
     
     /// Returns a Boolean value indicating whether this class overrides the specified class method.
     public func classOverrides(_ selector: Selector) -> Bool {
-        guard let method = classMethod(for: selector) else { return false }
-        var currentClass: AnyClass? = superclass
-        while let superClass = currentClass {
-            if let superMethod = class_getClassMethod(superClass, selector), superMethod != method {
-                return true
-            }
-            currentClass = class_getSuperclass(superClass)
-        }
-        return false
+        guard !skipMetaClass, declaredMethod(for: metaClass, selector) != nil, let superclass else { return false }
+        return class_getClassMethod(superclass, selector) != nil
     }
     
     func `protocol`(for selector: Selector, isInstanceMethod: Bool) throws -> Protocol? {
         var protocolBySignature: [String: Protocol] = [:]
         for proto in ObjCClass(isInstanceMethod ? cls : metaClass).protocols(includeSuperclasses: true, includeInheritedProtocols: true) {
-            guard let typeEncoding = proto.methodTypeEncoding(for: selector, isInstanceMethod: isInstanceMethod) else { continue }
+            guard let typeEncoding = try? proto.methodTypeEncoding(for: selector, isInstance: isInstanceMethod) else { continue }
             if protocolBySignature[typeEncoding] == nil {
                 protocolBySignature[typeEncoding] = proto
             }
