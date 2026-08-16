@@ -18,9 +18,19 @@ public enum ObjCRuntime {
         var count: UInt32 = 0
         guard let classList = objc_copyClassList(&count) else { return [] }
         defer { free(UnsafeMutableRawPointer(classList)) }
-        let allClasses = classList.array(count: count)
+        var classNames: [String] = []
+        classNames.reserveCapacity(Int(count))
+        let allClasses = classList.buffer(count: count).filter {
+            let name = class_getName($0).string
+            if !Self.classNamesToSkip.contains(name) {
+                classNames.append(name)
+                return true
+            } else {
+                return false
+            }
+        }
         Cache.classes = allClasses
-        Cache.classNames = allClasses.map({ class_getName($0).string })
+        Cache.classNames = classNames
         return allClasses
     }
 
@@ -72,14 +82,11 @@ public enum ObjCRuntime {
         - includeNested: A Boolean value indicating whether to include nested subclasses.
      */
     public static func subclasses<T: AnyObject>(of baseClass: T.Type, includeNested: Bool = false) -> [T.Type] {
-        func address(of object: Any?) -> UnsafeMutableRawPointer {
-            Unmanaged.passUnretained(object as AnyObject).toOpaque()
-        }
-        let basePtr = address(of: baseClass)
+        guard let basePtr = address(of: baseClass) else { return [] }
         let subclasses: [T.Type] = classes().compactMap { cls in
             var current: AnyClass? = cls
             while let superClass = class_getSuperclass(current) {
-                if address(of: superClass) == basePtr {
+                if let address = address(of: superClass), address == basePtr {
                     return cls as? T.Type
                 }
                 current = includeNested ? superClass : nil
@@ -88,7 +95,14 @@ public enum ObjCRuntime {
         }
         return subclasses.map { (type: $0, name: class_getName($0).string) }.sorted(by: \.name).map { $0.type }
     }
-
+    
+    private static func address(of cls: AnyClass) -> UnsafeMutableRawPointer? {
+        guard !addressToSkip.contains(class_getName(cls).string) else { return nil }
+        return Unmanaged.passUnretained(cls as AnyObject).toOpaque()
+    }
+    
+    private static let addressToSkip = Set(classNamesToSkip + ["CKSQLiteUnsetPropertySentinel", "Object"])
+    
     /**
      Returns all subclasses for the specified class.
 
@@ -98,14 +112,12 @@ public enum ObjCRuntime {
      */
     @_disfavoredOverload
     public static func subclasses(of baseClass: AnyClass, includeNested: Bool = false) -> [AnyClass] {
-        func address(of object: Any?) -> UnsafeMutableRawPointer {
-            Unmanaged.passUnretained(object as AnyObject).toOpaque()
-        }
-        let basePtr = address(of: baseClass)
+
+        guard let basePtr = address(of: baseClass) else { return [] }
         return classes().filter {
             var current: AnyClass? = $0
             while let superClass = class_getSuperclass(current) {
-                if address(of: superClass) == basePtr { return true }
+                if let address = address(of: superClass), address == basePtr { return true }
                 current = includeNested ? superClass : nil
             }
             return false
@@ -282,8 +294,14 @@ public enum ObjCRuntime {
     }
 
     static let classNamesToSkip = Set([
-        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "JSExport", "PKAppProtectionCoordinator"
+        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "JSExport", "PKAppProtectionCoordinator", 
     ])
+        
+    /*
+    static let classNamesToSkip = Set([
+        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object", "PKAppProtectionCoordinator"
+    ])
+     */
     
     private static let classesToSkip = Set(classNamesToSkip.compactMap { NSClassFromString($0) }.map { ObjectIdentifier($0) })
 }
