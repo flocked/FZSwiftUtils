@@ -18,19 +18,9 @@ public enum ObjCRuntime {
         var count: UInt32 = 0
         guard let classList = objc_copyClassList(&count) else { return [] }
         defer { free(UnsafeMutableRawPointer(classList)) }
-        var classNames: [String] = []
-        classNames.reserveCapacity(Int(count))
-        let allClasses = classList.buffer(count: count).filter {
-            let name = class_getName($0).string
-            if !Self.classNamesToSkip.contains(name) {
-                classNames.append(name)
-                return true
-            } else {
-                return false
-            }
-        }
+        let allClasses = classList.array(count: count)
         Cache.classes = allClasses
-        Cache.classNames = classNames
+        Cache.classNames = allClasses.map({ class_getName($0).string })
         return allClasses
     }
 
@@ -294,14 +284,6 @@ public enum ObjCRuntime {
     static let classNamesToSkip = Set([
         "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "JSExport", "PKAppProtectionCoordinator"
     ])
-    
-    static let superclassNamesToSkip = Set(classNamesToSkip + ["CKSQLiteUnsetPropertySentinel", "Object"])
-    
-    /*
-    static let classNamesToSkip = Set([
-        "__NSGenericDeallocHandler", "__NSAtom", "_NSZombie_", "__NSMessageBuilder", "CKSQLiteUnsetPropertySentinel", "JSExport", "Object", "PKAppProtectionCoordinator"
-    ])
-     */
     
     private static let classesToSkip = Set(classNamesToSkip.compactMap { NSClassFromString($0) }.map { ObjectIdentifier($0) })
 }
