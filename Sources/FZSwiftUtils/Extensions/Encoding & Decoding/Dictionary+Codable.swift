@@ -28,24 +28,7 @@ public extension Encodable {
     }
 }
 
-public extension Dictionary {
-    /**
-     Decodes the dictionary into the specified `Decodable` type.
-
-     This method converts the dictionary into JSON data using `JSONSerialization` and then attempts to decode it into the specified type using a configured `JSONDecoder`.
-
-     - Parameters:
-        - type: The concrete `Decodable` type to decode to.
-        - dateDecodingStrategy: The strategy used to decode `Date` values.
-        - keyDecodingStrategy: The strategy used to decode keys.
-        - dataDecodingStrategy: The strategy used to decode `Data` values.
-     - Returns: An instance of `T`.
-     */
-    func decode<T: Decodable>(as type: T.Type = T.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64) throws -> T {
-        let data = try JSONSerialization.data(withJSONObject: self, options: [])
-        return try JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy).decode(type, from: data)
-    }
-    
+public extension Dictionary {    
     /**
      Decodes the dictionary into the specified `Decodable` type using the specified JSON decoder.
 
@@ -56,7 +39,7 @@ public extension Dictionary {
         - decoder: The JSON decoder to use.
      - Returns: An instance of `T`.
      */
-    func decode<T: Decodable>(as type: T.Type = T.self, decoder: JSONDecoder) throws -> T {
+    func decode<T: Decodable>(as type: T.Type = T.self, decoder: JSONDecoder = .init()) throws -> T {
         try PropertyListDecoder().decode(T.self, from: PropertyListSerialization.data(fromPropertyList: self, format: .binary, options: 0))
         // return try decoder.decode(type, from: JSONSerialization.data(withJSONObject: self, options: []))
     }

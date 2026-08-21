@@ -14,12 +14,12 @@ import UIKit
 
 public extension URLSession {
     /**
-     Creates a download task to resume a previously canceled or failed download with the specified resume data and `URL` request object.
+     Creates a download task that resumes a canceled or failed download with custom request information.
 
      - Parameters:
-        - resumeData: The data necessary to resume a download.
-        - request: The custom request to set for the download task.
-     - Returns: The new session download task.
+       - resumeData: The resume data from a previously canceled or failed download.
+       - request: The request to associate with the download task.
+     - Returns: A new download task.
      */
     func downloadTask(withResumeData resumeData: Data, request: URLRequest) -> URLSessionDownloadTask {
         let downloadTask = downloadTask(withResumeData: resumeData)
@@ -28,14 +28,14 @@ public extension URLSession {
     }
 
     /**
-     Returns the response for the specified URL
+     Creates and starts a task that retrieves the response for the specified request using the HTTP `HEAD` method.
 
-     A HEAD request retrieves the same response headers that would be returned by a GET request, but does not include the response body. This allows callers to inspect metadata such as the content type, expected content length, and other headers without downloading the resource.
+     A `HEAD` request retrieves the same response headers that a `GET` request would return, without downloading the response body.
 
      - Parameters:
-        - request: The `URL` request of the remote resource whose response headers should be retrieved.
-        - completion: A closure called with the resulting response, or an error if the request fails.
-     - Returns: The data task that retrieves the response.
+       - request: The request for the resource whose response headers you want to retrieve.
+       - completion: The completion handler to call with the response, or an error if the request fails.
+     - Returns: The started data task.
      */
     @discardableResult
     func headResponse(for request: URLRequest, completion: @escaping (_ result: Result<URLResponse, Error>) -> ()) -> URLSessionDataTask {
@@ -53,9 +53,22 @@ public extension URLSession {
     }
 
     /**
-     Loads the response headers for the specified request using an HTTP HEAD request.
+     Creates and starts a task that retrieves the response for the specified URL using the HTTP `HEAD` method.
 
-     - Parameter request: The request whose response headers should be retrieved.
+     - Parameters:
+       - url: The URL for the resource whose response headers you want to retrieve.
+       - completion: The completion handler to call with the response, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
+    func headResponse(for url: URL, completion: @escaping (_ result: Result<URLResponse, Error>) -> ()) -> URLSessionDataTask {
+        headResponse(for: URLRequest(url: url), completion: completion)
+    }
+
+    /**
+     Retrieves the response for the specified request using the HTTP `HEAD` method.
+
+     - Parameter request: The request for the resource whose response headers you want to retrieve.
      - Returns: The response returned by the server.
      - Throws: An error if the request fails or no response is returned.
      */
@@ -68,12 +81,23 @@ public extension URLSession {
     }
 
     /**
-     Creates a task that retrieves the data of a URL based on the specified URL request, and calls a handler upon completion.
+     Retrieves the response for the specified URL using the HTTP `HEAD` method.
+
+     - Parameter url: The URL for the resource whose response headers you want to retrieve.
+     - Returns: The response returned by the server.
+     - Throws: An error if the request fails or no response is returned.
+     */
+    func headResponse(for url: URL) async throws -> URLResponse {
+        try await headResponse(for: URLRequest(url: url))
+    }
+
+    /**
+     Creates and starts a task that retrieves data for the specified request.
 
      - Parameters:
-        - request: An `URL` request that provides the URL, cache policy, request type, body data or body stream, and so on.
-        - completion: The completion handler that is called with the data, or an error if the image couldn't be retrieved.
-     - Returns: The data task that retrieves the data.
+       - request: The request that provides the URL, cache policy, HTTP method, and other loading information.
+       - completion: The completion handler to call with the retrieved data, or an error if the request fails.
+     - Returns: The started data task.
      */
     @discardableResult
     func data(for request: URLRequest, completion: @escaping (_ result: Result<Data, Error>) -> ()) -> URLSessionDataTask {
@@ -97,13 +121,26 @@ public extension URLSession {
     }
 
     /**
-     Creates a task that retrieves the string of a URL based on the specified URL request, and calls a handler upon completion.
+     Creates and starts a task that retrieves data from the specified URL.
 
      - Parameters:
-        - request: An `URL` request that provides the URL, cache policy, request type, body data or body stream, and so on.
-        - encoding: The encoding of the string.
-        - completion: The completion handler that is called with the html string, or an error if the string couldn't be retrieved.
-     - Returns: The data task that retrieves the string.
+       - url: The URL to retrieve.
+       - completion: The completion handler to call with the retrieved data, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
+    func data(for url: URL, completion: @escaping (_ result: Result<Data, Error>) -> ()) -> URLSessionDataTask {
+        data(for: URLRequest(url: url), completion: completion)
+    }
+
+    /**
+     Creates and starts a task that retrieves and decodes a string for the specified request.
+
+     - Parameters:
+       - request: The request that provides the URL, cache policy, HTTP method, and other loading information.
+       - encoding: The string encoding to use when decoding the response data.
+       - completion: The completion handler to call with the decoded string, or an error if the request fails.
+     - Returns: The started data task.
      */
     @discardableResult
     func string(for request: URLRequest, encoding: String.Encoding = .utf8, completion: @escaping (_ result: Result<String, Error>) -> ()) -> URLSessionDataTask {
@@ -121,13 +158,27 @@ public extension URLSession {
     }
 
     /**
-     Loads the contents of the specified request and decodes the result as a string.
+     Creates and starts a task that retrieves and decodes a string from the specified URL.
 
      - Parameters:
-       - request: The request whose contents should be retrieved.
-       - encoding: The encoding used to decode the response data.
+       - url: The URL to retrieve.
+       - encoding: The string encoding to use when decoding the response data.
+       - completion: The completion handler to call with the decoded string, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
+    func string(for url: URL, encoding: String.Encoding = .utf8, completion: @escaping (_ result: Result<String, Error>) -> ()) -> URLSessionDataTask {
+        string(for: URLRequest(url: url), encoding: encoding, completion: completion)
+    }
+
+    /**
+     Retrieves and decodes a string for the specified request.
+
+     - Parameters:
+       - request: The request to retrieve.
+       - encoding: The string encoding to use when decoding the response data.
      - Returns: A string created from the response data.
-     - Throws: An error if the request fails or the data cannot be decoded as `String` using the specified encoding.
+     - Throws: An error if the request fails or the data can't be decoded as a string.
      */
     func string(for request: URLRequest, encoding: String.Encoding = .utf8) async throws -> String {
         guard let string = try String(data: (await data(for: request)).0, encoding: .utf8) else {
@@ -137,13 +188,27 @@ public extension URLSession {
     }
 
     /**
-     Creates a task that retrieves and parses the JSON object for the specified URL request, and calls a handler upon completion.
+     Retrieves and decodes a string from the specified URL.
 
      - Parameters:
-       - request: The URL request that provides the URL, cache policy, request method, body data or body stream, and related information.
-       - completion: The completion handler that is called with the JSON object, or an error if the request fails or the response cannot be parsed as JSON.
-     - Returns: The data task that retrieves and parses the JSON object.
+       - url: The URL to retrieve.
+       - encoding: The string encoding to use when decoding the response data.
+     - Returns: A string created from the response data.
+     - Throws: An error if the request fails or the data can't be decoded as a string.
      */
+    func string(for url: URL, encoding: String.Encoding = .utf8) async throws -> String {
+        try await string(for: URLRequest(url: url), encoding: encoding)
+    }
+
+    /**
+     Creates and starts a task that retrieves and parses JSON for the specified request.
+
+     - Parameters:
+       - request: The request that provides the URL, cache policy, HTTP method, and other loading information.
+       - completion: The completion handler to call with the parsed JSON object, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
     func json(for request: URLRequest, completion: @escaping (_ result: Result<Any, Error>) -> ()) -> URLSessionDataTask {
         data(for: request) { result in
             guard let data = result.value else {
@@ -159,24 +224,49 @@ public extension URLSession {
     }
 
     /**
-     Retrieves and parses the JSON object for the specified URL request.
+     Creates and starts a task that retrieves and parses JSON from the specified URL.
 
-     - Parameter request: The URL request to retrieve.
-     - Returns: The JSON object parsed from the response data.
-     - Throws: An error if the request fails or the response data cannot be parsed as JSON.
+     - Parameters:
+       - url: The URL to retrieve.
+       - completion: The completion handler to call with the parsed JSON object, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
+    func json(for url: URL, completion: @escaping (_ result: Result<Any, Error>) -> ()) -> URLSessionDataTask {
+        json(for: URLRequest(url: url), completion: completion)
+    }
+
+    /**
+     Retrieves and parses JSON for the specified request.
+
+     - Parameter request: The request to retrieve.
+     - Returns: The parsed JSON object.
+     - Throws: An error if the request fails or the response data can't be parsed as JSON.
      */
     func json(for request: URLRequest) async throws -> Any {
         try JSONSerialization.jsonObject(with: (await data(for: request)).0, options: [])
     }
 
     /**
-     Creates a task that retrieves the decodable type from JSON of a URL based on the specified URL request, and calls a handler upon completion.
+     Retrieves and parses JSON from the specified URL.
+
+     - Parameter url: The URL to retrieve.
+     - Returns: The parsed JSON object.
+     - Throws: An error if the request fails or the response data can't be parsed as JSON.
+     */
+    func json(for url: URL) async throws -> Any {
+        try await json(for: URLRequest(url: url))
+    }
+
+    /**
+     Creates and starts a task that retrieves and decodes a value for the specified request.
 
      - Parameters:
-        - request: An `URL` request that provides the URL, cache policy, request type, body data or body stream, and so on.
-        - decoder: The JSON decoder that decodes the content of the URL.
-        - completion: The completion handler that is called with the decodable type, or an error if the type couldn't be retrieved.
-     - Returns: The data task that retrieves the decodable type.
+       - request: The request that provides the URL, cache policy, HTTP method, and other loading information.
+       - type: The type to decode from the response data.
+       - decoder: The decoder to use when decoding the response data.
+       - completion: The completion handler to call with the decoded value, or an error if the request fails.
+     - Returns: The started data task.
      */
     @discardableResult
     func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
@@ -194,63 +284,56 @@ public extension URLSession {
     }
 
     /**
-     Loads the contents of the specified request and decodes the result into the specified type.
+     Creates and starts a task that retrieves and decodes a value from the specified URL.
 
      - Parameters:
-       - request: The request whose contents should be retrieved.
+       - url: The URL to retrieve.
        - type: The type to decode from the response data.
-       - decoder: The decoder used to decode the response data.
-     - Returns: An instance of the specified type.
-     - Throws: An error if the request fails or the response data cannot be decoded.
+       - decoder: The decoder to use when decoding the response data.
+       - completion: The completion handler to call with the decoded value, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
+    func decodedObject<Value: Decodable>(for url: URL, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
+        decodedObject(for: URLRequest(url: url), as: type, decoder: decoder, completion: completion)
+    }
+
+    /**
+     Retrieves and decodes a value for the specified request.
+
+     - Parameters:
+       - request: The request to retrieve.
+       - type: The type to decode from the response data.
+       - decoder: The decoder to use when decoding the response data.
+     - Returns: A decoded value of the specified type.
+     - Throws: An error if the request fails or the response data can't be decoded.
      */
     func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type = Value.self, decoder: JSONDecoder = JSONDecoder()) async throws -> Value {
         try decoder.decode(Value.self, from: (await data(for: request)).0)
     }
 
     /**
-     Creates a task that retrieves the decodable type from JSON of a URL based on the specified URL request, and calls a handler upon completion.
+     Retrieves and decodes a value from the specified URL.
 
      - Parameters:
-        - request: An `URL` request that provides the URL, cache policy, request type, body data or body stream, and so on.
-        - dateDecodingStrategy: The strategy that the JSON deooder should use to decode dates.
-        - keyDecodingStrategy: The strategy that the JSON decoder should use to decode keys.
-        - dataDecodingStrategy: The strategy that the JSON decoder should use to decode raw data.
-        - nonConformingFloatDecodingStrategy: The strategy used by a decoder when it encounters exceptional floating-point values.
-        - assumesTopLevelDictionary: A Boolean value that indicates whether the decoding assumes the top level of the `JSON` data is a dictionary, even if it doesn’t begin and end with braces.
-        - completion: The completion handler that is called with the decodable type, or an error if the type couldn't be retrieved.
-     - Returns: The data task that retrieves the decodable type.
+       - url: The URL to retrieve.
+       - type: The type to decode from the response data.
+       - decoder: The decoder to use when decoding the response data.
+     - Returns: A decoded value of the specified type.
+     - Throws: An error if the request fails or the response data can't be decoded.
      */
-    @discardableResult
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw, assumesTopLevelDictionary: Bool = false, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
-        decodedObject(for: request, as: type, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary), completion: completion)
-    }
-
-    /**
-     Loads the contents of the specified request and decodes the result into the specified type.
-
-     - Parameters:
-        - request: The request whose contents should be retrieved.
-        - type: The type to decode from the response data.
-        - dateDecodingStrategy: The strategy used to decode date values.
-        - keyDecodingStrategy: The strategy used to decode keyed values.
-        - dataDecodingStrategy: The strategy used to decode data values.
-        - nonConformingFloatDecodingStrategy: The strategy used by a decoder when it encounters exceptional floating-point values.
-        - assumesTopLevelDictionary: A Boolean value that indicates whether the decoding assumes the top level of the `JSON` data is a dictionary, even if it doesn’t begin and end with braces.
-     - Returns: An instance of the specified type.
-     - Throws: An error if the request fails or the response data cannot be decoded.
-     */
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type = Value.self, dateDecodingStrategy: JSONDecoder.DateDecodingStrategy = .deferredToDate, keyDecodingStrategy: JSONDecoder.KeyDecodingStrategy = .useDefaultKeys, dataDecodingStrategy: JSONDecoder.DataDecodingStrategy = .base64, nonConformingFloatDecodingStrategy: JSONDecoder.NonConformingFloatDecodingStrategy = .throw, assumesTopLevelDictionary: Bool = false) async throws -> Value {
-        try await decodedObject(for: request, decoder: JSONDecoder(dateDecodingStrategy: dateDecodingStrategy, keyDecodingStrategy: keyDecodingStrategy, dataDecodingStrategy: dataDecodingStrategy, nonConformingFloatDecodingStrategy: nonConformingFloatDecodingStrategy, assumesTopLevelDictionary: assumesTopLevelDictionary))
+    func decodedObject<Value: Decodable>(for url: URL, as type: Value.Type = Value.self, decoder: JSONDecoder = JSONDecoder()) async throws -> Value {
+        try await decodedObject(for: URLRequest(url: url), as: type, decoder: decoder)
     }
 
     #if os(macOS) || canImport(UIKit)
     /**
-     Creates a task that retrieves the image of a URL based on the specified URL request, and calls a handler upon completion.
+     Creates and starts a task that retrieves and decodes an image for the specified request.
 
      - Parameters:
-        - request: An `URL` request that provides the URL, cache policy, request type, body data or body stream, and so on.
-        - completion: The completion handler that is called with the image, or an error if the image couldn't be retrieved.
-     - Returns: The data task that retrieves the image.
+       - request: The request that provides the URL, cache policy, HTTP method, and other loading information.
+       - completion: The completion handler to call with the decoded image, or an error if the request fails.
+     - Returns: The started data task.
      */
     @discardableResult
     func image(for request: URLRequest, completion: @escaping (_ result: Result<NSUIImage, Error>) -> ()) -> URLSessionDataTask {
@@ -268,17 +351,41 @@ public extension URLSession {
     }
 
     /**
-     Loads an image using the specified request.
+     Creates and starts a task that retrieves and decodes an image from the specified URL.
 
-     - Parameter request: The request used to retrieve the image.
-     - Returns: An image created from the downloaded data.
-     - Throws: A ``URLSessionError`` if the response does not contain a valid image or returns an unsuccessful status code.
+     - Parameters:
+       - url: The URL to retrieve.
+       - completion: The completion handler to call with the decoded image, or an error if the request fails.
+     - Returns: The started data task.
+     */
+    @discardableResult
+    func image(for url: URL, completion: @escaping (_ result: Result<NSUIImage, Error>) -> ()) -> URLSessionDataTask {
+        image(for: URLRequest(url: url), completion: completion)
+    }
+
+    /**
+     Retrieves and decodes an image for the specified request.
+
+     - Parameter request: The request to retrieve.
+     - Returns: An image created from the response data.
+     - Throws: An error if the request fails or the response data can't be decoded as an image.
      */
     func image(for request: URLRequest) async throws -> NSUIImage {
         guard let image = try NSUIImage(data: (await data(for: request)).0) else {
             throw URLSessionError.invalidImageData
         }
         return image
+    }
+
+    /**
+     Retrieves and decodes an image from the specified URL.
+
+     - Parameter url: The URL to retrieve.
+     - Returns: An image created from the response data.
+     - Throws: An error if the request fails or the response data can't be decoded as an image.
+     */
+    func image(for url: URL) async throws -> NSUIImage {
+        try await image(for: URLRequest(url: url))
     }
 
     private enum URLSessionError: LocalizedError {

@@ -150,21 +150,26 @@ private extension ByteCountFormatter {
         let isReplaced = isMethodHooked(#selector(ByteCountFormatter.string(fromByteCount:countStyle:)))
         if shouldSwizzle, !isReplaced {
             do {
-                try hook(#selector(ByteCountFormatter.string(for:)), closure: { original, object, sel, obj in
-                    (object as? ByteCountFormatter)?.localizedString(for: obj) ?? original(object, sel, obj)
+                try hook(#selector(ByteCountFormatter.string(for:)), closure: { original, formatter, sel, obj in
+                    Swift.print("for", formatter.needsLocalized)
+                    return formatter.localizedString(for: obj) ?? original(formatter, sel, obj)
                 } as @convention(block) (
-                    (AnyObject, Selector, Any?) -> String?,
-                    AnyObject, Selector, Any?) -> String?)
-                try hook(#selector(ByteCountFormatter.string(fromByteCount:)), closure: { original, object, sel, byteCount in
-                    (object as? ByteCountFormatter)?.localizedString(fromByteCount: byteCount) ?? original(object, sel, byteCount)
+                    (ByteCountFormatter, Selector, Any?) -> String?,
+                    ByteCountFormatter, Selector, Any?) -> String?)
+                try hook(#selector(ByteCountFormatter.string(fromByteCount:)), closure: { original, formatter, sel, byteCount in
+                    Swift.print("fromByteCount", formatter.needsLocalized)
+
+                    return formatter.localizedString(fromByteCount: byteCount) ?? original(formatter, sel, byteCount)
                 } as @convention(block) (
-                    (AnyObject, Selector, Int64) -> String,
-                    AnyObject, Selector, Int64) -> String)
-                try hook(#selector(ByteCountFormatter.string(from:)), closure: { original, object, sel, measurement in
-                    (object as? ByteCountFormatter)?.localizedString(from: measurement) ?? original(object, sel, measurement)
+                    (ByteCountFormatter, Selector, Int64) -> String,
+                    ByteCountFormatter, Selector, Int64) -> String)
+                try hook(#selector(ByteCountFormatter.string(from:)), closure: { original, formatter, sel, measurement in
+                    Swift.print("from", formatter.needsLocalized)
+
+                    return  formatter.localizedString(from: measurement) ?? original(formatter, sel, measurement)
                 } as @convention(block) (
-                    (AnyObject, Selector, Measurement<UnitInformationStorage>) -> String,
-                    AnyObject, Selector, Measurement<UnitInformationStorage>) -> String)
+                    (ByteCountFormatter, Selector, Measurement<UnitInformationStorage>) -> String,
+                    ByteCountFormatter, Selector, Measurement<UnitInformationStorage>) -> String)
             } catch {
                 debugPrint(error)
             }
@@ -177,7 +182,10 @@ private extension ByteCountFormatter {
     
     func localizedString(fromByteCount count: Int64) -> String? {
         guard needsLocalized else { return nil }
+        
         let split = split { self.string(fromByteCount: count)  }!
+        Swift.print(split, UnitInformationStorage.bytes.localized(to: .current, unitStyle: .long), UnitInformationStorage.kilobytes.localized(to: .current, unitStyle: .long))
+
         if let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) {
             return "\(split.count) \(unit)"
         }
@@ -185,6 +193,7 @@ private extension ByteCountFormatter {
     }
     
     func localizedString(for obj: Any?) -> String? {
+        Swift.print("LOCCC", needsLocalized, split(handler: { self.string(for: obj) }) != nil)
         guard needsLocalized, let split = split(handler: { self.string(for: obj) }), let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) else { return nil }
         return "\(split.count) \(unit)"
     }

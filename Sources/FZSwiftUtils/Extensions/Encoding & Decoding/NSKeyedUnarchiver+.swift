@@ -35,7 +35,7 @@ public extension NSKeyedUnarchiver {
      - Returns: The root object.
      - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
      */
-    func decodeRootObject<DecodedObjectType: NSCoding>(as objectType: DecodedObjectType.Type = DecodedObjectType.self) throws -> DecodedObjectType {
+    func decodeRootObject<DecodedObject: NSCoding>(as objectType: DecodedObject.Type = DecodedObject.self) throws -> DecodedObject {
         try decodeObject(forKey: NSKeyedArchiveRootObjectKey)
     }
     
@@ -46,12 +46,12 @@ public extension NSKeyedUnarchiver {
      - Returns: The object associated with the key.
      - Throws: If there isn't an object associated with the key of type `Object`.
      */
-    func decodeObject<DecodedObjectType: NSCoding>(forKey key: String, as objectType: DecodedObjectType.Type = DecodedObjectType.self) throws -> DecodedObjectType {
+    func decodeObject<DecodedObject: NSCoding>(forKey key: String, as objectType: DecodedObject.Type = DecodedObject.self) throws -> DecodedObject {
         guard let object = decodeObject(forKey: key) else {
-            throw key ==  NSKeyedArchiveRootObjectKey ? NSCodingArchiveError.missingRootObject : NSCodingArchiveError.missingObject(key: key)
+            throw key == NSKeyedArchiveRootObjectKey ? NSCodingArchiveError.missingRootObject : NSCodingArchiveError.missingObject(key: key)
         }
-        guard let object = object as? DecodedObjectType else {
-            throw NSCodingArchiveError.typeMismatch(expected: DecodedObjectType.self, actual: type(of: object))
+        guard let object = object as? DecodedObject else {
+            throw NSCodingArchiveError.typeMismatch(expected: DecodedObject.self, actual: type(of: object))
         }
         return object
     }
@@ -65,18 +65,26 @@ public extension NSKeyedUnarchiver {
      - Returns: The decoded root of the object graph.
      - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
      */
-    static func unarchive<DecodedObjectType: NSCoding>(_ data: Data, as objectType: DecodedObjectType.Type = DecodedObjectType.self, requiresSecureCoding: Bool = false) throws -> DecodedObjectType {
+    static func unarchive<DecodedObject: NSCoding>(_ data: Data, as objectType: DecodedObject.Type = DecodedObject.self, requiresSecureCoding: Bool = false) throws -> DecodedObject {
         try unarchiveObject(data, requiresSecureCoding: requiresSecureCoding)
     }
     
-    static func unarchive<DecodedObjectType: NSObject & NSSecureCoding>(_ data: Data, as objectType: DecodedObjectType.Type = DecodedObjectType.self) throws -> DecodedObjectType {
+    /**
+     Decodes a previously-archived object graph, and returns the root object as the specified type.
+     
+     - Parameters:
+        - data: The object graph previously encoded by NSKeyedArchiver.
+     - Returns: The decoded root of the object graph.
+     - Throws: If the data isn't an archive, doesn't contain a root object or the decoding failed.
+     */
+    static func unarchive<DecodedObject: NSObject & NSSecureCoding>(_ data: Data, as objectType: DecodedObject.Type = DecodedObject.self) throws -> DecodedObject {
         guard let object = try NSKeyedUnarchiver.unarchivedObject(ofClass: objectType, from: data) else {
             throw NSCodingArchiveError.missingRootObject
         }
         return object
     }
     
-    internal static func unarchiveObject<DecodedObjectType: NSCoding>(_ data: Data, as objectType: DecodedObjectType.Type = DecodedObjectType.self, requiresSecureCoding: Bool = false, replacingClassName className: String? = nil) throws -> DecodedObjectType {
+    internal static func unarchiveObject<DecodedObject: NSCoding>(_ data: Data, as objectType: DecodedObject.Type = DecodedObject.self, requiresSecureCoding: Bool = false, replacingClassName className: String? = nil) throws -> DecodedObject {
         let unarchiver = try NSKeyedUnarchiver(forReadingFrom: data)
         unarchiver.requiresSecureCoding = requiresSecureCoding
         defer { unarchiver.finishDecoding() }
@@ -98,7 +106,7 @@ enum NSCodingArchiveError: LocalizedError, CustomNSError {
             "No root object was found in the archive."
         case let .typeMismatch(expected, actual):
             "Expected an object of type \(expected), but found \(actual)."
-            case let .missingObject(key):
+        case let .missingObject(key):
             "No object found for key: \(key)"
         }
     }
@@ -137,8 +145,7 @@ enum NSCodingArchiveError: LocalizedError, CustomNSError {
 
     var errorUserInfo: [String: Any] {
         [NSLocalizedDescriptionKey: errorDescription ?? "",
-        NSLocalizedFailureReasonErrorKey: failureReason,
-        NSLocalizedRecoverySuggestionErrorKey: recoverySuggestion,
-        ].nonNil
+         NSLocalizedFailureReasonErrorKey: failureReason,
+         NSLocalizedRecoverySuggestionErrorKey: recoverySuggestion].nonNil
     }
 }

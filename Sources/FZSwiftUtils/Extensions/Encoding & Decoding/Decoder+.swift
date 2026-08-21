@@ -56,11 +56,11 @@ public extension KeyedDecodingContainer {
     }
 }
 
-struct _EmptyDecodable: Decodable { }
-
 public extension UnkeyedDecodingContainer {
-    /// Skips decoding.
+    /// Skips decoding the current element.
     mutating func skip() throws {
-        _ = try decode(_EmptyDecodable.self)
+        _ = try decode(EmptyDecodable.self)
     }
 }
+
+fileprivate struct EmptyDecodable: Decodable { }

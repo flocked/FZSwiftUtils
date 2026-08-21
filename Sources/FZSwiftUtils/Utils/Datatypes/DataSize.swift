@@ -887,7 +887,7 @@ public struct DataSizeFormatStyle: FormatStyle {
     }
 
     /// The unit to use when formatting a data size.
-    public enum Unit: UInt, Codable, Hashable {
+    public enum Unit: UInt, Codable, Hashable, CaseIterable {
         /// The bytes unit.
         case bytes = 1
         /// The kilobytes unit.
@@ -934,6 +934,10 @@ public struct DataSizeFormatStyle: FormatStyle {
         public static let ybOrHigher = Self(rawValue: 65_280)
 
         public let rawValue: UInt
+        
+        var smallestUnit: Unit {
+            Unit.allCases.first(where: { !intersection(.init(rawValue: $0.rawValue)).isEmpty }) ?? .pb
+        }
 
         public var description: String {
             if self == .default { return ".default" }
@@ -1161,4 +1165,54 @@ fileprivate extension Locale {
             languageCode?.lowercased()
         }
     }
+}
+
+extension DataSize.CountStyle {
+    var maxSizes: [UInt64] {
+        isDecimal ? Self.maxSizes.decimal : Self.maxSizes.binary
+    }
+    
+    var isDecimal: Bool {
+        switch self {
+        case .file, .decimal: true
+        default: false
+        }
+    }
+    
+    private static let maxSizes: (decimal: [UInt64], binary: [UInt64]) = (
+        [999, 999_499, 999_949_999, 999_994_999_999, 999_994_999_999_999, .max],
+        [1_023, 1_048_063, 1_073_689_395, 1_099_506_259_066, 1_125_894_409_284_485, .max])
+}
+
+extension DataSizeFormatStyle {
+    func bestUnit(for size: DataSize) -> Unit {
+        var bestUnit = allowedUnits.smallestUnit
+        for (index, maxSize) in size.countStyle.maxSizes.enumerated() {
+            let unit = Unit(rawValue: UInt(index))!
+            guard allowedUnits.contains(.init(rawValue: unit.rawValue)) else { continue }
+            bestUnit = unit
+            if size.bytes < maxSize {
+                break
+            }
+        }
+        return bestUnit
+    }
+}
+
+extension DataSizeFormatStyle.Unit {
+    private var index: Int {
+        Self.allCases.firstIndex(of: self)!
+    }
+    
+    var decimalSize: Int64 {
+        Self.decimalByteSizes[index]
+    }
+
+    var binarySize: Int64 {
+        Self.binaryByteSizes[index]
+    }
+    
+    private static let unitNames = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"]
+    private static let decimalByteSizes: [Int64] = [1, 1_000, 1_000_000, 1_000_000_000, 1_000_000_000_000, 1_000_000_000_000_000]
+    private static let binaryByteSizes: [Int64] = [1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624]
 }

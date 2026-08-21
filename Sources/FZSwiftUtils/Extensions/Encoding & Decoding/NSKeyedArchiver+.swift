@@ -15,20 +15,33 @@ public extension NSKeyedArchiver {
           
      - Parameters:
         - object: The root of the object graph to archive.
-        - requiresSecureCoding: A Boolean value indicating whether all encoded objects must conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
         - subclass: The subclass for the data that needs to be a subclass of `object`.
+        - requiresSecureCoding: A Boolean value indicating whether all encoded objects must conform to [NSSecureCoding](https://developer.apple.com/documentation/foundation/nssecurecoding).
      
      - Note: Enabling secure coding doesn’t change the output format of the archive. This means that you can encode archives with secure coding enabled, and decode them later with secure coding disabled.
      */
-    class func archivedData<Object: NSCoding, Subclass: NSCoding>(withRootObject object: Object, requiringSecureCoding: Bool = false, as subclass: Subclass.Type) throws -> Data {
+    class func archivedData<Object: NSCoding, Subclass: NSCoding>(withRootObject object: Object, as subclass: Subclass.Type, requiringSecureCoding: Bool = false) throws -> Data {
         guard Subclass.self is Object.Type else { throw Error.invalidSubclass(subclass: Subclass.self, superclass: Object.self) }
-        NSKeyedArchiver.setClassName(class_getName(Subclass.self).string, for: Object.self)
-        defer { NSKeyedArchiver.setClassName(nil, for: Object.self) }
-        return try NSKeyedArchiver.archivedData(withRootObject: object, requiringSecureCoding: requiringSecureCoding)
+        let archiver = NSKeyedArchiver(requiringSecureCoding: requiringSecureCoding)
+        archiver.setClassName(NSStringFromClass(Subclass.self), for: Object.self)
+        archiver.encodeRootObject(object)
+        archiver.encode(object, forKey: NSKeyedArchiveRootObjectKey)
+        return try archiver.archivedData()
+    }
+    
+    /// Encodes the specified object as the root object of the archive.
+    func encodeRoot(_ object: Any?) {
+        encode(object, forKey: NSKeyedArchiveRootObjectKey)
+    }
+    
+    /// Finishes encoding and returns the archived data.
+    func archivedData() throws -> Data {
+        if let error = error { throw error }
+        return encodedData
     }
 }
 
-fileprivate enum Error: LocalizedError {
+private enum Error: LocalizedError {
     case invalidSubclass(subclass: AnyClass, superclass: AnyClass)
     
     var errorDescription: String? {

@@ -107,6 +107,11 @@ public extension MutableCollection {
 }
 
 extension Collection {
+    /// Returns the collection, or `nil` if the collection is empty.
+    public var nilIfEmpty: Self? {
+        isEmpty ? nil : self
+    }
+    
     /**
      Returns a subsequence containing the first elements.
 

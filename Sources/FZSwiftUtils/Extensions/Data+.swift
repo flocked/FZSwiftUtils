@@ -12,4 +12,9 @@ extension Data {
     public func string(encoding: String.Encoding = .utf8) -> String? {
         String(data: self, encoding: encoding)
     }
+    
+    /// Decodes the data as the specified type.
+    public func decoded<V: Decodable>(as type: V.Type = V.self, decoder: JSONDecoder = .init()) throws -> V {
+        try decoder.decode(self)
+    }
 }
