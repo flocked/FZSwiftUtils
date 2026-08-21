@@ -14,24 +14,24 @@ public extension NSCalendar.Unit {
     }
 
     /// The calendar components represented by the unit.
-    var components: [Calendar.Component] {
-        var components: [Calendar.Component] = []
-        if contains(.era) { components += .era }
-        if contains(.year) { components += .year }
-        if contains(.month) { components += .month }
-        if contains(.day) { components += .day }
-        if contains(.hour) { components += .hour }
-        if contains(.minute) { components += .minute }
-        if contains(.second) { components += .second }
-        if contains(.weekday) { components += .weekday }
-        if contains(.weekdayOrdinal) { components += .weekdayOrdinal }
-        if contains(.quarter) { components += .quarter }
-        if contains(.weekOfMonth) { components += .weekOfMonth }
-        if contains(.weekOfYear) { components += .weekOfYear }
-        if contains(.yearForWeekOfYear) { components += .yearForWeekOfYear }
-        if contains(.nanosecond) { components += .nanosecond }
-        if contains(.calendar) { components += .calendar }
-        if contains(.timeZone) { components += .timeZone }
+    var components: Set<Calendar.Component> {
+        var components: Set<Calendar.Component> = []
+        if contains(.era) { components.insert(.era) }
+        if contains(.year) { components.insert(.year) }
+        if contains(.month) { components.insert(.month) }
+        if contains(.day) { components.insert(.day) }
+        if contains(.hour) { components.insert(.hour) }
+        if contains(.minute) { components.insert(.minute) }
+        if contains(.second) { components.insert(.second) }
+        if contains(.weekday) { components.insert(.weekday) }
+        if contains(.weekdayOrdinal) { components.insert(.weekdayOrdinal) }
+        if contains(.quarter) { components.insert(.quarter) }
+        if contains(.weekOfMonth) { components.insert(.weekOfMonth) }
+        if contains(.weekOfYear) { components.insert(.weekOfYear) }
+        if contains(.yearForWeekOfYear) { components.insert(.yearForWeekOfYear) }
+        if contains(.nanosecond) { components.insert(.nanosecond) }
+        if contains(.calendar) { components.insert(.calendar) }
+        if contains(.timeZone) { components.insert(.timeZone) }
         return components
     }
 }

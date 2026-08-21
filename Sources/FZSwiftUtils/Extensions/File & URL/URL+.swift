@@ -162,13 +162,15 @@ public extension URL {
         try URL(resolvingBookmarkData: data, options: options, relativeTo: url, bookmarkDataIsStale: &bookmarkDataIsStale)
     }
     
-    /// Returns a URL constructed by changing the path extension.
-    func pathExtension(_ pathExtension: String? = nil) -> URL {
-        deletingPathExtension().appendingPathExtension(pathExtension ?? "nil")
+    /// Returns the URL with the new specified path extension.
+    func pathExtension(_ pathExtension: String?) -> URL {
+        let url = deletingPathExtension()
+        guard let pathExtension else { return url }
+        return url.appendingPathExtension(pathExtension)
     }
     
-    /// Changes the path extension of the url
-    mutating func pathExtension(_ pathExtension: String? = nil) {
+    /// Changes the path extension of the URL
+    mutating func pathExtension(_ pathExtension: String?) {
         self = self.pathExtension(pathExtension)
     }
     
@@ -181,13 +183,12 @@ public extension URL {
      */
     @_disfavoredOverload
     func lastPathComponent(_ pathComponent: String, replacePathExtension: Bool = true) -> URL {
-        let pathExtension = pathExtension
         let url = deletingLastPathComponent().appendingPathComponent(pathComponent)
         return replacePathExtension ? url : url.appendingPathExtension(pathExtension)
     }
     
     /**
-     Changes the last path component of the url.
+     Changes the last path component of the URL.
      
      - Parameters:
         - pathComponent: The new path component.
@@ -398,8 +399,8 @@ public extension URL {
     /// A Boolean value indicating whether the file url is a parent of the other url.
     func isParent(of url: URL) -> Bool {
         guard isFileURL, url.isFileURL else { return false }
-        let selfPath = standardizedFileURL.path
-        return url.standardizedFileURL.path.hasPrefix(selfPath.hasSuffix("/") ? selfPath : selfPath + "/")
+        let path = standardizedFileURL.path
+        return url.standardizedFileURL.path.hasPrefix(path.hasSuffix("/") ? path : path + "/")
     }
     
     /// A Boolean value indicating whether the file url is a child of the other url.
@@ -1038,3 +1039,13 @@ fileprivate enum SingleResultError: Error, LocalizedError {
 }
 #endif
 */
+
+extension StringProtocol {
+    func addingPrefixIfNeeded<S: StringProtocol>(_ prefix: S) -> String {
+        hasPrefix(prefix) ? String(self) : String(prefix) + String(self)
+    }
+    
+    static func + (lhs: Self, rhs: Int) -> Self {
+        lhs
+    }
+}

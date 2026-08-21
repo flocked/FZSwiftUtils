@@ -86,8 +86,8 @@ public struct ObjCClass {
     }
     
     /// The meta class for the class.
-    public var metaClass: AnyClass {
-        isMetaClass || skipMetaClass ? cls : object_getClass(cls)!
+    public var metaClass: AnyClass? {
+        !skipMetaClass && !class_isMetaClass(cls) ? object_getClass(cls) : nil
     }
     
     /// The instance methods of the class.
@@ -123,7 +123,7 @@ public struct ObjCClass {
      - Parameter includeSuperclasses: A Boolean value indicating whether to include class methods declared by the superclasses.
      */
     public func classMethods(includeSuperclasses: Bool) -> [ObjCMethod] {
-        skipMetaClass ? [] : ObjCClass(metaClass).methods(includeSuperclasses: includeSuperclasses)
+        metaClass.map({ ObjCClass($0) })?.methods(includeSuperclasses: includeSuperclasses) ?? []
     }
     
     private var skipMetaClass: Bool {
@@ -163,7 +163,7 @@ public struct ObjCClass {
      - Parameter includeSuperclasses: A Boolean value indicating whether to include class properties declared by the superclasses.
      */
     public func classProperties(includeSuperclasses: Bool) -> [ObjCProperty] {
-        skipMetaClass ? [] : ObjCClass(metaClass).properties(includeSuperclasses: includeSuperclasses)
+        metaClass.map({ ObjCClass($0) })?.properties(includeSuperclasses: includeSuperclasses) ?? []
     }
     
     /// The instance variables of the class.
@@ -277,7 +277,8 @@ public struct ObjCClass {
         (declaredOnly ? declaredMethod(for: metaClass, selector) : class_getClassMethod(cls, selector)).map(ObjCMethod.init)
     }
     
-    private func declaredMethod(for cls: AnyClass, _ selector: Selector) -> Method? {
+    private func declaredMethod(for cls: AnyClass?, _ selector: Selector) -> Method? {
+        guard let cls = cls else { return nil }
         var count: UInt32 = 0
         guard let list = class_copyMethodList(cls, &count) else { return nil }
         defer { free(list) }
@@ -318,7 +319,7 @@ public struct ObjCClass {
     
     func `protocol`(for selector: Selector, isInstanceMethod: Bool) throws -> Protocol? {
         var protocolBySignature: [String: Protocol] = [:]
-        for proto in ObjCClass(isInstanceMethod ? cls : metaClass).protocols(includeSuperclasses: true, includeInheritedProtocols: true) {
+        for proto in  protocols(for: isInstanceMethod ? cls : metaClass) {
             guard let typeEncoding = try? proto.methodTypeEncoding(for: selector, isInstance: isInstanceMethod) else { continue }
             if protocolBySignature[typeEncoding] == nil {
                 protocolBySignature[typeEncoding] = proto
@@ -333,5 +334,10 @@ public struct ObjCClass {
         let signatures = protocolBySignature.map { "\"\($0.value.name)\" => \($0.key)"
         }.sorted().joined(separator: ", ")
         throw HookError.inferredProtocolMethodAmbiguous("Found multiple protocol signatures for selector `\(selector.string)`: \(signatures).")
+    }
+    
+    private func protocols(for cls: AnyClass?) -> [Protocol] {
+        guard let cls = cls else { return [] }
+        return (cls == self.cls ? self : ObjCClass(cls)).protocols(includeSuperclasses: true, includeInheritedProtocols: true)
     }
 }

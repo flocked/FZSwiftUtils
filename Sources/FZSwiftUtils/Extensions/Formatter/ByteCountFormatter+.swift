@@ -20,6 +20,24 @@ public extension ByteCountFormatter {
         self.countStyle = countStyle
     }
     
+    /**
+     A Boolean value that indicates whether the formatter should spell out zero-byte values as text.
+     
+     The default value is `true.`
+     */
+    var spellsOutZero: Bool {
+        get { allowsNonnumericFormatting }
+        set { allowsNonnumericFormatting = newValue }
+    }
+    
+    /// Sets the Boolean value that indicates whether the formatter should spell out zero-byte values as text.
+    @discardableResult
+    func spellsOutZero(_ spellsOutZero: Bool) -> Self {
+        self.spellsOutZero = spellsOutZero
+        return self
+    }
+    
+    
     /// Specify the units that can be used in the output.
     @discardableResult
     func allowedUnits(_ units: Units) -> Self {
@@ -212,10 +230,63 @@ public extension ByteCountFormatter.CountStyle {
     }
 }
 
-fileprivate extension String {
+fileprivate extension StringProtocol {
     var storageUnit: UnitInformationStorage? {
         switch self {
-        case "bytes", "B": return .bytes
+        case "bytes", "B", "byte": return .bytes
+        case "KB": return .kilobytes
+        case "MB": return .megabytes
+        case "GB": return .gigabytes
+        case "TB": return .terabytes
+        case "PB": return .petabytes
+        case "EB": return .exabytes
+        case "ZB": return .zettabytes
+        case "YB": return .yottabytes
+        default: return nil
+        }
+    }
+}
+
+
+extension ByteCountFormatter {
+    func localizedString(fromByteCount count: Int64) -> String {
+        let output = string(fromByteCount: count)
+        if includesUnit {
+            if includesCount {
+                includesCount = false
+                let unit = string(fromByteCount: count)
+                includesUnit = false
+                includesCount = true
+                let count = string(fromByteCount: count)
+                includesUnit = true
+                if let unit = unit.unit(for: locale, style: unitStyle), let count = count.count(for: locale) {
+                    return "\(count) \(unit)"
+                }
+            } else {
+                return output.unit(for: locale, style: unitStyle) ?? output
+            }
+        } else if includesCount {
+            return output.count(for: locale) ?? output
+        }
+        return output
+    }
+}
+
+fileprivate extension String {
+    static let numberFormatter = NumberFormatter.decimal
+    
+    func count(for locale: Locale) -> String? {
+        guard let value = Double(localized: self) else { return nil }
+        return Self.numberFormatter.locale(locale).string(for: value)
+    }
+    
+    func unit(for locale: Locale, style: Formatter.UnitStyle) -> String? {
+        unit?.localized(to: locale, unitStyle: style)
+    }
+    
+    var unit: UnitInformationStorage? {
+        switch self {
+        case "bytes", "B", "byte": return .bytes
         case "KB": return .kilobytes
         case "MB": return .megabytes
         case "GB": return .gigabytes

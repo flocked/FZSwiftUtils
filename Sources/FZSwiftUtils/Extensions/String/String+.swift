@@ -38,15 +38,15 @@ public extension StringProtocol {
     }
 
     /// A representation of the string where the first character is lowercased.
-    func lowercasedFirst() -> String {
+    func lowercasedFirst(with locale: Locale? = nil) -> String {
         if isEmpty { return String(self) }
-        return prefix(1).lowercased() + dropFirst()
+        return prefix(1).lowercased(with: locale) + dropFirst()
     }
 
     /// A representation of the string where the first character is uppercased.
-    func uppercasedFirst() -> String {
+    func uppercasedFirst(with locale: Locale? = nil) -> String {
         if isEmpty { return String(self) }
-        return prefix(1).uppercased() + dropFirst()
+        return prefix(1).uppercased(with: locale) + dropFirst()
     }
 
     /// A mangled representation of the string.

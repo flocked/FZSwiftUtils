@@ -694,3 +694,10 @@ private extension _ObjectiveCBridgeable {
     }
 }
 
+
+extension ObjCRuntime {
+    static func isNSObjectClass(_ cls: AnyClass) -> Bool {
+        ObjectIdentifier(cls) == nsObjectID
+    }
+    private static let nsObjectID = ObjectIdentifier(NSObject.self)
+}

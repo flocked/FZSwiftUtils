@@ -146,6 +146,13 @@ public extension NumberFormatter {
         return self
     }
     
+    /// Sets the capitalization formatting context used when formatting a number.
+    @discardableResult
+    func formattingContext(_ context: Formatter.Context) -> Self {
+        formattingContext = context
+        return self
+    }
+    
     /// Sets the rounding rule.
     @discardableResult
     func roundingRule(_ rule: RoundingMode) -> Self {

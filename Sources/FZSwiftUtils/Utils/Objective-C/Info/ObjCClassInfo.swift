@@ -469,19 +469,14 @@ public extension ObjCClassInfo {
     private static func classess(for cls: AnyClass, isInstance: Bool, includeSuperclasses: Bool) -> [AnyClass] {
         var start: AnyClass = cls
         if !isInstance {
-            if ObjCRuntime.classNamesToSkip.contains(class_getName(cls).string) { return [] }
-            guard let metaclass = object_getClass(cls) else { return [] }
+            guard let metaclass = ObjCClass(cls).metaClass else { return [] }
             start = metaclass
         }
         guard includeSuperclasses else { return [start] }
-        var result: [AnyClass] = []
-        var current: AnyClass? = start
-        var seen: Set<ObjectIdentifier> = [ObjectIdentifier(NSObject.self)]
-        while let cls = current, seen.insert(ObjectIdentifier(cls)).inserted {
-            result.append(cls)
-            current = class_getSuperclass(cls)
-        }
-        return result
+        return Array(first: start, next: { guard let cls = class_getSuperclass($0), !ObjCRuntime.isNSObjectClass(cls) else {
+                return nil
+            }
+            return cls })
     }
 }
 
