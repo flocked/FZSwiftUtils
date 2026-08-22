@@ -215,3 +215,43 @@ public extension JSONDecoder.DateDecodingStrategy {
         .formatted(DateFormatter(format))
     }
 }
+
+extension JSONDecoder {
+    /// The strategy to use when an element of a sequence fails to decode.
+    public enum InvalidElementDecodingStrategy {
+        /// Throws upon encountering an element that fails to decode. This is the default strategy.
+        case `throw`
+        /// Ignores elements that fail to decode.
+        case lenient
+    }
+    
+    public func decode<T>(_ type: T.Type, from data: Data, invalidElementDecodingStrategy: InvalidElementDecodingStrategy) throws -> T where T: Decodable & RangeReplaceableCollection, T.Element: Decodable {
+        switch invalidElementDecodingStrategy {
+        case .throw:
+            return try decode(type, from: data)
+        case .lenient:
+            return T(try decode([FailableDecodable<T.Element>].self, from: data).compactMap({$0.value}))
+        }
+    }
+}
+
+/// A container that stores a decoded value, or `nil` if the value fails to decode.
+public struct FailableDecodable<Value: Decodable>: Decodable {
+    /// The decoded value, or `nil` if decoding failed.
+    public let value: Value?
+
+    /// Creates a new instance by decoding a value, storing `nil` if the value fails to decode.
+    public init(from decoder: Decoder) throws {
+        value = try? decoder.decodeSingle()
+    }
+}
+
+extension FailableDecodable: Encodable where Value: Encodable {
+    public func encode(to encoder: Encoder) throws {
+       try encoder.encodeSingle(value)
+    }
+}
+
+extension FailableDecodable: Equatable where Value: Equatable { }
+extension FailableDecodable: Hashable where Value: Hashable { }
+extension FailableDecodable: Sendable where Value: Sendable { }

@@ -151,21 +151,16 @@ private extension ByteCountFormatter {
         if shouldSwizzle, !isReplaced {
             do {
                 try hook(#selector(ByteCountFormatter.string(for:)), closure: { original, formatter, sel, obj in
-                    Swift.print("for", formatter.needsLocalized)
                     return formatter.localizedString(for: obj) ?? original(formatter, sel, obj)
                 } as @convention(block) (
                     (ByteCountFormatter, Selector, Any?) -> String?,
                     ByteCountFormatter, Selector, Any?) -> String?)
                 try hook(#selector(ByteCountFormatter.string(fromByteCount:)), closure: { original, formatter, sel, byteCount in
-                    Swift.print("fromByteCount", formatter.needsLocalized)
-
                     return formatter.localizedString(fromByteCount: byteCount) ?? original(formatter, sel, byteCount)
                 } as @convention(block) (
                     (ByteCountFormatter, Selector, Int64) -> String,
                     ByteCountFormatter, Selector, Int64) -> String)
                 try hook(#selector(ByteCountFormatter.string(from:)), closure: { original, formatter, sel, measurement in
-                    Swift.print("from", formatter.needsLocalized)
-
                     return  formatter.localizedString(from: measurement) ?? original(formatter, sel, measurement)
                 } as @convention(block) (
                     (ByteCountFormatter, Selector, Measurement<UnitInformationStorage>) -> String,
@@ -182,10 +177,7 @@ private extension ByteCountFormatter {
     
     func localizedString(fromByteCount count: Int64) -> String? {
         guard needsLocalized else { return nil }
-        
         let split = split { self.string(fromByteCount: count)  }!
-        Swift.print(split, UnitInformationStorage.bytes.localized(to: .current, unitStyle: .long), UnitInformationStorage.kilobytes.localized(to: .current, unitStyle: .long))
-
         if let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) {
             return "\(split.count) \(unit)"
         }
@@ -193,7 +185,6 @@ private extension ByteCountFormatter {
     }
     
     func localizedString(for obj: Any?) -> String? {
-        Swift.print("LOCCC", needsLocalized, split(handler: { self.string(for: obj) }) != nil)
         guard needsLocalized, let split = split(handler: { self.string(for: obj) }), let unit = split.unit.storageUnit?.localized(to: locale, unitStyle: unitStyle) else { return nil }
         return "\(split.count) \(unit)"
     }
