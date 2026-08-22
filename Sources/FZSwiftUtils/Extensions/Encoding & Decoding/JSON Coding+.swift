@@ -216,8 +216,9 @@ public extension JSONDecoder.DateDecodingStrategy {
     }
 }
 
+/*
 public extension JSONDecoder {
-    enum InvalidElementDecodingStrategy<V: Decodable> {
+    enum InvalidElementDecodingStrategy<V> {
         /// Throws upon encountering an element that fails to decode. This is the default strategy.
         case `throw`
         /// Ignores elements that fail to decode.
@@ -251,8 +252,8 @@ public extension JSONDecoder {
         if invalidElementDecodingStrategy.isThrow {
             return try decode(type, from: data)
         }
-        userInfo["failedDecodingHandler"] = invalidElementDecodingStrategy.handler
-        defer { userInfo["failedDecodingHandler"] = nil }
+        userInfo[.failedValueDecodingHandler] = invalidElementDecodingStrategy.handler
+        defer { userInfo[.failedValueDecodingHandler] = nil }
         let defaultValue = invalidElementDecodingStrategy._defaultValue
         return try T(decode([FailableDecodable<T.Element>].self, from: data).compactMap { $0.value ?? defaultValue })
         /*
@@ -306,8 +307,8 @@ public extension JSONDecoder {
         if invalidElementDecodingStrategy.isThrow {
             return try decode(type, from: data)
         }
-        userInfo["failedDecodingHandler"] = invalidElementDecodingStrategy.handler
-        defer { userInfo["failedDecodingHandler"] = nil }
+        userInfo[.failedValueDecodingHandler] = invalidElementDecodingStrategy.handler
+        defer { userInfo[.failedValueDecodingHandler] = nil }
         let defaultValue = invalidElementDecodingStrategy._defaultValue
         return try Set(decode([FailableDecodable<T>].self, from: data).compactMap { $0.value ?? defaultValue })
         /*
@@ -327,6 +328,11 @@ public extension JSONDecoder {
     }
 }
 
+extension CodingUserInfoKey {
+    static let failedKeyDecodingHandler = Self(rawValue: "failedKeyDecodingHandler")!
+    static let failedValueDecodingHandler = Self(rawValue: "failedValueDecodingHandler")!
+}
+
 /// A container that stores a decoded value, or `nil` if the value fails to decode.
 public struct FailableDecodable<Value: Decodable>: Decodable {
     /// The decoded value, or `nil` if decoding failed.
@@ -336,7 +342,7 @@ public struct FailableDecodable<Value: Decodable>: Decodable {
     public init(from decoder: Decoder) throws {
         if let value: Value = try? decoder.decodeSingle() {
             self.value = value
-        } else if let handler = decoder.userInfo["failedDecodingHandler"] as? (@Sendable (any Decoder) throws -> Value) {
+        } else if let handler = decoder.userInfo[.failedValueDecodingHandler] as? (@Sendable (any Decoder) throws -> Value) {
             value = try handler(decoder)
         } else {
             value = nil
@@ -393,3 +399,35 @@ public extension Sequence where Element: Failable {
         compactMap { $0.value }
     }
 }
+
+private struct FailableDictionaryKey<Value: Decodable>: Decodable {
+    let value: Value?
+
+    init(from decoder: Decoder) throws {
+        do {
+            let container = try decoder.singleValueContainer()
+            value = try container.decode(Value.self)
+        } catch {
+            if decoder.userInfo[.failedDictionaryKeyDecodingShouldThrow] as? Bool == true {
+                throw error
+            }
+            if let handler = decoder.userInfo[.failedDictionaryKeyDecodingHandler] as? (@Sendable (any Decoder) throws -> Value) {
+                value = try handler(decoder)
+            } else {
+                value = nil
+            }
+        }
+    }
+}
+
+extension FailableDictionaryKey: Equatable where Value: Equatable {}
+extension FailableDictionaryKey: Hashable where Value: Hashable {}
+
+private extension CodingUserInfoKey {
+    static let failedDecodingHandler = Self(rawValue: "failedDecodingHandler")!
+    static let failedDecodingShouldThrow = Self(rawValue: "failedDecodingShouldThrow")!
+
+    static let failedDictionaryKeyDecodingHandler = Self(rawValue: "failedDictionaryKeyDecodingHandler")!
+    static let failedDictionaryKeyDecodingShouldThrow = Self(rawValue: "failedDictionaryKeyDecodingShouldThrow")!
+}
+*/
