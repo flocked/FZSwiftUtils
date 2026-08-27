@@ -28,6 +28,11 @@ struct TestOption: OptionSet {
 */
 
 public extension SetAlgebra {
+    /// Returns the set, or `nil` if the set is empty.
+    var nilIfEmpty: Self? {
+        isEmpty ? nil : self
+    }
+    
     /**
      Adds the elements of the given sequence to the set.
 

@@ -70,11 +70,7 @@ public extension JSONDecoder {
         case custom(@Sendable (any Decoder) throws -> Value)
     }
     
-    func decode<T>(
-        _ type: T.Type,
-        from data: Data,
-        invalidElementDecodingStrategy strategy: InvalidElementDecodingStrategy<T.Element>
-    ) throws -> T where T: Decodable & RangeReplaceableCollection, T.Element: Decodable {
+    func decode<T>(_ type: T.Type, from data: Data, invalidElementDecodingStrategy strategy: InvalidElementDecodingStrategy<T.Element>) throws -> T where T: Decodable & RangeReplaceableCollection, T.Element: Decodable {
         switch strategy {
         case .throw:
             return try decode(type, from: data)
@@ -92,23 +88,14 @@ public extension JSONDecoder {
         }
     }
 
-    func decode<T>(
-        _ type: Set<T>.Type,
-        from data: Data,
-        invalidElementDecodingStrategy strategy: InvalidElementDecodingStrategy<T>
-    ) throws -> Set<T> where T: Decodable & Hashable {
+    func decode<T>(_ type: Set<T>.Type, from data: Data, invalidElementDecodingStrategy strategy: InvalidElementDecodingStrategy<T>) throws -> Set<T> where T: Decodable & Hashable {
         if case .throw = strategy {
             return try decode(type, from: data)
         }
         return try Set(decode([T].self, from: data, invalidElementDecodingStrategy: strategy))
     }
 
-    func decode<Key, Value>(
-        _ type: [Key: Value].Type,
-        from data: Data,
-        invalidKeyDecodingStrategy keyStrategy: InvalidElementDecodingStrategy<Key> = .throw,
-        invalidValueDecodingStrategy valueStrategy: InvalidElementDecodingStrategy<Value> = .throw
-    ) throws -> [Key: Value] where Key: Codable & Hashable, Value: Decodable {
+    func decode<Key, Value>(_ type: [Key: Value].Type, from data: Data, invalidKeyDecodingStrategy keyStrategy: InvalidElementDecodingStrategy<Key> = .throw, invalidValueDecodingStrategy valueStrategy: InvalidElementDecodingStrategy<Value> = .throw) throws -> [Key: Value] where Key: Codable & Hashable, Value: Decodable {
         if case .throw = keyStrategy, case .throw = valueStrategy {
             return try decode(type, from: data)
         }

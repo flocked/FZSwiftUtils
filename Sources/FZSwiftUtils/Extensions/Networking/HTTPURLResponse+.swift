@@ -29,7 +29,7 @@ public extension HTTPURLResponse {
     /// The cookies set by the response, parsed from the `Set-Cookie` response header field.
     var cookies: [HTTPCookie] {
         guard let url else { return [] }
-        return HTTPCookie.cookies(withResponseHeaderFields: allHeaderFields.mapKeyValues { (String(describing: $0), String(describing: $1)) }, for: url)
+        return HTTPCookie.cookies(withResponseHeaderFields: allHeaderFields.mapKeyValues { ($0 as? String ?? String(describing: $0), $1 as? String ?? String(describing: $1)) }, for: url)
     }
 
     /// The response’s HTTP status code.

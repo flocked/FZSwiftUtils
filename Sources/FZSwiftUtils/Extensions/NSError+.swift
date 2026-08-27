@@ -7,7 +7,33 @@
 
 import Foundation
 
+public struct OSStatusError: CustomNSError, CustomDebugStringConvertible {
+    public let ossStatus: OSStatus
+    
+    public var errorUserInfo: [String : Any] = [:]
+    
+    public var errorCode: Int {
+        Int(ossStatus)
+    }
+    
+    public var debugDescription: String {
+        errorUserInfo[NSDebugDescriptionErrorKey] as? String ?? "\(ossStatus)"
+    }
+    
+    public init(status: OSStatus, underlyingError: NSError? = nil) {
+        self.ossStatus = status
+        self.errorUserInfo[NSDebugDescriptionErrorKey] = SecCopyErrorMessageString(status, nil) as String?
+        self.errorUserInfo[NSUnderlyingErrorKey] = underlyingError
+    }
+    
+    public static var errorDomain: String { NSOSStatusErrorDomain }
+}
+
 public extension NSError {
+    static func osStatus(_ status: OSStatus) -> NSError {
+        NSError(domain: .osStatus, code: Int(status))
+    }
+    
     /**
      Creates an error that can be used for throwing.
      
@@ -90,56 +116,79 @@ public extension NSError {
         NSError(domain: NSPOSIXErrorDomain, code: Int(errorCode), userInfo: [:])
     }
     
-    /// The file URL which produced this error, or `nil` if not applicable.
+    /// The file URL that produced this error.
     var fileURL: URL? {
-        (userInfo[NSFilePathErrorKey] as? String).flatMap(URL.init(fileURLWithPath:))
+        self[NSFilePathErrorKey].flatMap(URL.init(fileURLWithPath:))
+    }
+
+    /// The URL that produced this error.
+    var url: URL? {
+        self[NSURLErrorKey]
+    }
+
+    /// The string encoding associated with this error.
+    var stringEncoding: String.Encoding? {
+        (self[NSStringEncodingErrorKey] as UInt?).map(String.Encoding.init(rawValue:))
+    }
+
+    /// The debugging description associated with this error.
+    var errorDebugDescription: String? {
+        self[NSDebugDescriptionErrorKey]
+    }
+
+    /// Returns the value for the specified user info key.
+    subscript<Value>(key: String) -> Value? {
+        userInfo[key] as? Value
     }
     
-    /// The url which produced this error, or `nil` if not applicable.
-    var url: URL? {
-        userInfo[NSURLErrorKey] as? URL
+    /// The domain of the error.
+    var errorDomain: ErrorDomain {
+        ErrorDomain(rawValue: domain)
     }
     
     /// The error domain of a `NSError`.
-    struct ErrorDomain: Hashable, RawRepresentable, ExpressibleByStringLiteral {
-        /// The error domain.
+    struct ErrorDomain: Hashable, RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible, CustomDebugStringConvertible {
+        /// Cocoa error domain.
+        public static let cocoa = Self(rawValue: NSCocoaErrorDomain)
+        /// Mach error domain.
+        public static let mach = Self(rawValue: NSMachErrorDomain)
+        /// SOCKS error domain.
+        public static let streamSocks = Self(rawValue: NSStreamSOCKSErrorDomain)
+        /// SSL/TLS stream error domain.
+        public static let streamSocksSSL = Self(rawValue: NSStreamSocketSSLErrorDomain)
+        /// POSIX/BSD error domain.
+        public static let posix = Self(rawValue: NSPOSIXErrorDomain)
+        /// Mac OS 9/Carbon error domain.
+        public static let osStatus = Self(rawValue: NSOSStatusErrorDomain)
+        /// URL loading system error domain.
+        public static let url = Self(rawValue: NSURLErrorDomain)
+    
         public let rawValue: String
         
-        /// Creates an error domain.
+        public var description: String {
+            switch self {
+            case .cocoa: ".cocoa"
+            case .posix: ".posix"
+            case .mach: ".mach"
+            case .osStatus: ".osStatus"
+            case .streamSocks: ".streamSocks"
+            case .streamSocksSSL: ".streamSocksSSL"
+            case .url: ".url"
+            default: rawValue
+            }
+        }
+        
+        public var debugDescription: String {
+            rawValue
+        }
+        
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
         
-        /// Creates an error domain.
-        public init(_ rawValue: String) {
-            self.rawValue = rawValue
-        }
-        
-        /// Creates an error domain.
         public init(stringLiteral value: String) {
             self.rawValue = value
         }
-        
-        /// Cocoa error domain.
-        public static let cocoa = Self(NSCocoaErrorDomain)
-        
-        /// Mach error domain.
-        public static let mach = Self(NSMachErrorDomain)
-
-        /// SOCKS error domain.
-        public static let streamSocks = Self(NSStreamSOCKSErrorDomain)
-
-        /// SOCKS SSL error domain.
-        public static let streamSocksSSL = Self(NSStreamSocketSSLErrorDomain)
-        
-        /// POSIX/BSD error domain.
-        public static let posix = Self(NSPOSIXErrorDomain)
-        
-        /// Mac OS 9/Carbon error domain.
-        public static let osStatus = Self(NSOSStatusErrorDomain)
-        
-        /// URL loading system error domain.
-        public static let url = Self(NSURLErrorDomain)
     }
     
     /// The error code of a `NSError`.
