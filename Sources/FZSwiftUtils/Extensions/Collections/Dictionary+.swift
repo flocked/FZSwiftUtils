@@ -69,6 +69,20 @@ extension KeyValueDifference: CustomStringConvertible {
 
 public extension Dictionary {
     /**
+     Removes all key-value pairs that satisfy the given predicate.
+
+     - Parameter shouldBeRemoved: A closure that takes a key-value pair as its argument and returns `true` if the pair should be removed.
+     */
+    mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows {
+        self = try filter { try !shouldBeRemoved($0) }
+    }
+    
+    /// Removes all key-value pairs whose values are empty.
+    mutating func removeEmptyValues() where Value: Collection {
+        removeAll(where: { $0.value.isEmpty })
+    }
+    
+    /**
      Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.
      
      - Parameters:
@@ -376,6 +390,13 @@ public extension Dictionary {
     /// The dictionary as `NSDictionary`.
     var nsDictionary: NSDictionary {
         self as NSDictionary
+    }
+}
+
+public extension Dictionary where Value: Collection {
+    /// A dictionary containing only the key-value pairs whose values aren't empty.
+    var nonEmpty: Self {
+        filter({ !$0.value.isEmpty })
     }
 }
 

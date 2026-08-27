@@ -1076,3 +1076,10 @@ private extension RangeReplaceableCollection {
         !isEmpty && range.upperBound >= startIndex ? clamp(range) : nil
     }
 }
+
+public extension RangeReplaceableCollection where Element: Collection {
+    /// Removes all empty elements from the collection.
+    mutating func removeEmpty() {
+        removeAll(where: { $0.isEmpty })
+    }
+}

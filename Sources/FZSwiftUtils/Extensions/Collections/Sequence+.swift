@@ -783,3 +783,10 @@ public extension Sequence {
         return selected
     }
 }
+
+public extension Sequence where Element: Collection {
+    /// The nonempty elements of the sequence.
+    var nonEmpty: [Element] {
+        filter({ !$0.isEmpty })
+    }
+}
