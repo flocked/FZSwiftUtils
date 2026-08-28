@@ -1,147 +1,101 @@
 //
-//  OrderedDictionary.swift
+//  OrderedSet.swift
 //
 //  Created by Florian Zand on 23.07.23.
-//  Adopted from: Lukas Kubanek
-//  OrderedDictionary - https://github.com/frazer-rbsn/orderedset/
 //
 
 import Foundation
 
-/**
- An ordered collection of unique objects.
- 
- Example usage:
- 
- ```swift
- let ingredients: OrderedSet<String> = ["cocoa beans", "sugar", "cocoa butter", "salt"]
- for ingredient in ingredients {
-    print(ingredient)
- }
- // => cocoa beans
- // => sugar
- // => cocoa butter
- // => salt
- ```
- */
-public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplaceableCollection, MutableCollection, BidirectionalCollection, ExpressibleByArrayLiteral {
-    
-    // MARK: - Internal Storage
-    
-    private var _array: ContiguousArray<Element>
-    private var _set: Set<Element>
-    private var elementIndexes: [Element: Int]
-    
-    // MARK: - Public Stored Properties
-    
-    /// Returns the number of elements in this ordered set.
-    public var count: Int {
-        _array.count
-    }
-    
-    /// Returns `true` if this ordered set is empty.
-    public var isEmpty: Bool {
-        _array.isEmpty
-    }
-    
-    public var startIndex: Int { 0 }
-    
-    public var endIndex: Index { _array.endIndex }
-    
-    // MARK: - Public Initialisers
-    
-    /// Creates an empty ordered set.
+/// An ordered collection of unique elements.
+public struct OrderedSet<Element: Hashable>: RandomAccessCollection, BidirectionalCollection, ExpressibleByArrayLiteral {
+    private var elements: ContiguousArray<Element>
+    private var indexes: [Element: Int]
+
     public init() {
-        _array = []
-        _set = []
-        elementIndexes = [:]
+        elements = []
+        indexes = [:]
     }
-    
+
     public init(minimumCapacity: Int) {
         self.init()
         reserveCapacity(minimumCapacity)
     }
-    
-    /// Creates a new ordered set from a finite sequence of items.
-    public init<S>(_ elements: S) where S : Sequence<Element> {
+
+    public init<S: Sequence>(_ elements: S) where S.Element == Element {
         self.init(elements, retainLastOccurrences: false)
     }
-    
-    /**
-     Creates an ordered set with the contents of `sequence`.
-     
-     - Parameters:
-        - sequence: The sequence.
-        - retainLastOccurrences: A Boolean value indicating whether if an element occurs more than once in the sequence, only the last instance will be included.
-     */
-    public init<S>(_ sequence: S, retainLastOccurrences: Bool) where Element == S.Element, S: Sequence {
-        var seen = Set<Element>()
-        _array = ContiguousArray(retainLastOccurrences ? sequence.reversed().compactMap { seen.insert($0).inserted ? $0 : nil }.reversed() : sequence.compactMap { seen.insert($0).inserted ? $0 : nil })
-        _set = seen
-        elementIndexes = _array.enumerated().reduce(into: [:]) { $0[$1.element] = $1.offset }
+
+    public init<S: Sequence>(_ elements: S, retainLastOccurrences: Bool) where S.Element == Element {
+        self.init()
+        if retainLastOccurrences {
+            var result: [Element] = []
+            var seen = Set<Element>()
+            for element in Array(elements).reversed() where seen.insert(element).inserted {
+                result.append(element)
+            }
+            append(contentsOf: result.reversed())
+        } else {
+            append(contentsOf: elements)
+        }
     }
-    
-    /// Creates an ordered set with the contents of `set`, ordered by the given predicate.
+
     public init(_ set: Set<Element>, sortedBy areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
-        self._array = ContiguousArray(try set.sorted(by: areInIncreasingOrder))
-        self._set = set
-        self.elementIndexes = _array.enumerated().reduce(into: [:]) { $0[$1.element] = $1.offset }
-       // self.init(array: ContiguousArray(try set.sorted(by: areInIncreasingOrder)))
+        try self.init(set.sorted(by: areInIncreasingOrder))
     }
-    
+
     public init(arrayLiteral elements: Element...) {
         self.init(elements)
     }
-    
-    // MARK: - Computed Properties
-    
-    /// Returns the contents of this ordered set as an array.
-    public var array: [Element] { Array(_array) }
-    
-    /// Returns the contents of this ordered set as a `ContiguousArray`.
-    public var contiguousArray: ContiguousArray<Element> { _array }
-    
-    /// Returns the contents of this ordered set as an unordered set.
-    public var unorderedSet: Set<Element> { _set }
-    
-    public var capacity: Int  { _set.capacity }
-    
-    // MARK: - Metadata Functions
-    
-    public subscript(index: Int) -> Element {
-        get { _array[index] }
-        set {
-            guard let element = _array[safe: index], newValue != element else { return }
-            let removeIndex = firstIndex(of: newValue)
-            _set.insert(newValue)
-            _set.remove(element)
-            _array[index] = newValue
-            if let removeIndex = removeIndex {
-                _array.remove(at: removeIndex)
-            }
-            elementIndexes[element] = nil
-            elementIndexes[newValue] = index
-        }
+
+    public var startIndex: Int { elements.startIndex }
+    public var endIndex: Int { elements.endIndex }
+    public var count: Int { elements.count }
+    public var isEmpty: Bool { elements.isEmpty }
+
+    public subscript(position: Int) -> Element {
+        elements[position]
     }
-    
-    public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
-        try _array.sort(by: areInIncreasingOrder)
-        elementIndexes = _array.enumerated().reduce(into: [:]) { $0[$1.element] = $1.offset }
+
+    public func index(after i: Int) -> Int {
+        elements.index(after: i)
     }
-    
-    public func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> [Element] {
-        try _array.sorted(by: areInIncreasingOrder)
+
+    public func index(before i: Int) -> Int {
+        elements.index(before: i)
     }
-    
-    public mutating func reverse() {
-        _array.reverse()
-        elementIndexes = elementIndexes.mapValues { count - 1 - $0 }
+
+    public var array: [Element] {
+        Array(elements)
     }
-    
-    public func reversed() -> [Element] {
-        _array.reversed()
+
+    public var contiguousArray: ContiguousArray<Element> {
+        elements
     }
-    
+
+    public var unorderedSet: Set<Element> {
+        Set(elements)
+    }
+
+    public var capacity: Int {
+        Swift.min(elements.capacity, indexes.capacity)
+    }
+
+    public func contains(_ element: Element) -> Bool {
+        indexes[element] != nil
+    }
+
+    public func index(of element: Element) -> Int? {
+        indexes[element]
+    }
+
+    public func firstIndex(of element: Element) -> Int? {
+        indexes[element]
+    }
+
+    public func lastIndex(of element: Element) -> Int? {
+        indexes[element]
+    }
+
     public subscript(element: Element) -> Bool {
         get { contains(element) }
         set {
@@ -152,309 +106,345 @@ public struct OrderedSet<Element: Hashable>: RandomAccessCollection, RangeReplac
             }
         }
     }
-    
-    public func index(of element: Element) -> Int? {
-        elementIndexes[element]
-    }
-    
-    // MARK: Removing Elements
-    
-    /// Replaces the specified subrange of elements with the given collection.
-    public mutating func replaceSubrange<C>(_ subrange: Range<Index>, with newElements: C) where C : Collection, Element == C.Element {
-        _set.remove(array[subrange])
-        _set.insert(newElements)
-        _array.replaceSubrange(subrange, with: newElements)
-        (subrange.lowerBound..<array.endIndex).forEach { elementIndexes[_array[$0]] = $0 }
-    }
-    
-    /**
-     Returns a new ordered set with the elements filtered by the given predicate.
-     
-     - Parameters:
-        - isIncluded: A closure that takes an element of the sequence as its argument and returns a Boolean value indicating whether the element should be included in the returned array.
-        - retainOrder: A Boolean value indicating whether to keep the relative order of the  elements. Defaults to `true`.
-     */
-    public func filter(_ isIncluded: (Element) throws -> Bool, retainOrder: Bool = true) rethrows -> Self {
-        retainOrder ? Self(try _array.filter(isIncluded)) : Self(try _set.filter(isIncluded))
-    }
-    
-    // MARK: Transforming Elements
-    
-    /**
-     Returns a new ordered set with the results of mapping the given closure over the ordered set's elements.
-     
-     - Parameters:
-        - transform: A mapping closure. `transform` accepts an element of this ordered set as its parameter and returns a transformed value of the same or of a different type.
-        - retainOrder: The returned ordered set retains the relative order of the elements. Defaults to `true`. If retaining the order is not necessary, passing in `false` may yield a performance benefit.
-     
-     - note: To return a new ordered set instead of an array, the given closure must return a type that conforms to `Hashable`.
-     */
-    public func map<T>(_ transform: (Element) throws -> T, retainOrder: Bool = true) rethrows -> OrderedSet<T> where T: Hashable {
-        retainOrder ? OrderedSet<T>(try _array.map(transform)) : OrderedSet<T>(try _set.map(transform))
-    }
-    
-    /**
-     Returns a new ordered set with the non-nil results of mapping the given closure over the ordered set's elements.
-     
-     - Parameters:
-       - transform: A mapping closure. `transform` accepts an
-         element of this ordered set as its parameter and returns a transformed
-         value of the same or of a different type.
-       - retainOrder: The returned ordered set retains the relative order of the elements. Defaults to `true`.
-         If retaining the order is not necessary, passing in `false` may yield a performance benefit.
-     - note: To return a new ordered set instead of an array, the given closure must return a type that conforms to `Hashable`.
-     */
-    public func compactMap<T>(_ transform: (Element) throws -> T?, retainOrder: Bool = true) rethrows -> OrderedSet<T> where T: Hashable {
-        retainOrder ? OrderedSet<T>(try _array.compactMap(transform)) : OrderedSet<T>(try _set.compactMap(transform))
-    }
-    
-    public mutating func reserveCapacity(_ minimumCapacity: Int) {
-        _set.reserveCapacity(minimumCapacity)
-        _array.reserveCapacity(minimumCapacity)
-        elementIndexes.reserveCapacity(minimumCapacity)
-    }
-    
-    @discardableResult
-    public mutating func remove(at index: Int) -> Element {
-        let element = _array.remove(at: index)
-        _set.remove(element)
-        elementIndexes[element] = nil
-        return element
-    }
-    
-    public mutating func removeFirst() -> Element {
-        remove(at: 0)
-    }
-    
-    public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
-        _array.removeAll(keepingCapacity: keepCapacity)
-        _set.removeAll(keepingCapacity: keepCapacity)
-        elementIndexes.removeAll(keepingCapacity: keepCapacity)
-    }
-}
 
-extension OrderedSet: SetAlgebra {
-    @discardableResult
-    public mutating func insert(_ newMember: __owned Element) -> (inserted: Bool, memberAfterInsert: Element) {
-        let insertation = _set.insert(newMember)
-        if insertation.inserted {
-            _array.append(newMember)
-            elementIndexes[newMember] = endIndex - 1
-        }
-        return insertation
+    public mutating func reserveCapacity(_ minimumCapacity: Int) {
+        elements.reserveCapacity(minimumCapacity)
+        indexes.reserveCapacity(minimumCapacity)
     }
-    
+
     @discardableResult
-    public mutating func update(with newMember: __owned Element) -> Element? {
-        if let oldMember = _set.update(with: newMember) {
-            if let index = _array.firstIndex(of: oldMember) {
-                _array[index] = newMember
-                elementIndexes[oldMember] = nil
-                elementIndexes[newMember] = index
-            }
-            return oldMember
-        } else {
-            _array.append(newMember)
-            elementIndexes[newMember] = endIndex - 1
-            return nil
+    public mutating func append(_ element: Element) -> (inserted: Bool, index: Int) {
+        if let index = indexes[element] {
+            return (false, index)
+        }
+        let index = elements.endIndex
+        elements.append(element)
+        indexes[element] = index
+        _assertInvariant()
+        return (true, index)
+    }
+
+    public mutating func append<S: Sequence>(contentsOf newElements: S) where S.Element == Element {
+        for element in newElements {
+            append(element)
         }
     }
-    
+
+    @discardableResult
+    public mutating func insert(_ element: Element, at index: Int) -> (inserted: Bool, index: Int) {
+        precondition(index >= startIndex && index <= endIndex, "[OrderedSet] Index is out of bounds")
+        if let existingIndex = indexes[element] {
+            return (false, existingIndex)
+        }
+        elements.insert(element, at: index)
+        rebuildIndexes(from: index)
+        _assertInvariant()
+        return (true, index)
+    }
+
+    @discardableResult
+    public mutating func update(_ element: Element, at index: Int) -> Element {
+        precondition(indices.contains(index), "[OrderedSet] Index is out of bounds")
+        let oldElement = elements[index]
+        guard oldElement != element else { return oldElement }
+        precondition(indexes[element] == nil, "[OrderedSet] Cannot update with duplicate element")
+        elements[index] = element
+        indexes[oldElement] = nil
+        indexes[element] = index
+        _assertInvariant()
+        return oldElement
+    }
+
+    @discardableResult
+    public mutating func updateOrAppend(_ element: Element) -> Element? {
+        if let index = indexes[element] {
+            return update(element, at: index)
+        }
+        append(element)
+        return nil
+    }
+
     @discardableResult
     public mutating func remove(_ element: Element) -> Element? {
-        guard let index = elementIndexes[element] else { return nil }
-        _set.remove(element)
-        elementIndexes[element] = nil
-       return  _array.remove(at: index)
+        guard let index = indexes[element] else { return nil }
+        return remove(at: index)
     }
-    
-    public mutating func remove<S>(_ elements: S) where S: Sequence<Element> {
-        elements.forEach({ remove($0) })
-    }
-    
-    public func contains(_ element: Element) -> Bool {
-        _set.contains(element)
-    }
-    
-    /// Returns a Boolean value indicating whether this set is a subset of the given set.
-    public func isSubset(of other: Set<Element>) -> Bool {
-        _set.isSubset(of: other)
-    }
-    
-    /// Returns a Boolean value indicating whether this set is a subset of the given set.
-    public func isSubset(of other: Self) -> Bool {
-        _set.isSubset(of: other._set)
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a subset of the given sequence.
-    public func isSubset<S>(of possibleSuperset: S) -> Bool where Element == S.Element, S : Sequence {
-        isSubset(of: Self(possibleSuperset))
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a strict subset of the given set.
-    public func isStrictSubset(of other: Set<Element>) -> Bool {
-        _set.isStrictSubset(of: other)
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a strict subset of the given set.
-    public func isStrictSubset(of other: Self) -> Bool {
-        _set.isStrictSubset(of: other._set)
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a strict subset of the given sequence.
-    public func isStrictSubset<S>(of possibleSuperset: S) -> Bool where Element == S.Element, S : Sequence {
-        isStrictSubset(of: Self(possibleSuperset))
-    }
-    
-    /// Returns a Boolean value indicating whether this set is a superset of the given set.
-    public func isSuperset(of other: Set<Element>) -> Bool {
-        _set.isSuperset(of: other)
-    }
-    
-    /// Returns a Boolean value indicating whether this set is a superset of the given set.
-    public func isSuperset(of other: Self) -> Bool {
-        _set.isSuperset(of: other._set)
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a superset of the given sequence.
-    public func isSuperset<S>(of possibleSubset: S) -> Bool where S: Sequence<Element> {
-        isSuperset(of: Self(possibleSubset))
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a strict superset of the given set.
-    public func isStrictSuperset(of other: Set<Element>) -> Bool {
-        _set.isStrictSuperset(of: other)
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a strict superset of the given set.
-    public func isStrictSuperset(of other: Self) -> Bool {
-        _set.isStrictSuperset(of: other._set)
-    }
-    
-    /// Returns a Boolean value indicating whether the set is a strict superset of the given sequence.
-    public func isStrictSuperset<S>(of possibleSubset: S) -> Bool where Element == S.Element, S : Sequence {
-        isStrictSuperset(of: Self(possibleSubset))
-    }
-    
-    /// Returns `true` if this ordered set has elements in common with `otherSet`.
-    public func intersects(with otherSet: Set<Element>) -> Bool {
-        !_set.isDisjoint(with: otherSet)
-    }
-    
-    /// Returns `true` if this ordered set has elements in common with `otherSet`.
-    public func intersects(with otherSet: Self) -> Bool {
-        !_set.isDisjoint(with: otherSet._set)
-    }
-    
-    /// Returns a Boolean value indicating whether this set has no members in common with the given set.
-    public func isDisjoint(with other: Set<Element>) -> Bool {
-        _set.isDisjoint(with: other)
-    }
-    
-    /// Returns a Boolean value indicating whether this set has no members in common with the given set.
-    public func isDisjoint<S: Sequence<Element>>(with other: S) -> Bool {
-        _set.isDisjoint(with: other)
-    }
-    
-    /// Returns a Boolean value indicating whether this set has no members in common with the given set.
-    public func isDisjoint(with other: Self) -> Bool {
-        _set.isDisjoint(with: other._set)
-    }
-            
-    /// Returns a new set with the elements of both this set and the given sequence.
-    @inlinable public func union(_ other: Self) -> Self {
-        var copy = self
-        copy.formUnion(other)
-        return copy
-    }
-    
-    /// Adds the elements of the given set to the set.
-    public mutating func formUnion(_ other: Self) {
-        for element in other {
-            insert(element)
+
+    public mutating func remove<S: Sequence>(_ elements: S) where S.Element == Element {
+        for element in elements {
+            remove(element)
         }
     }
-        
-    /// Returns a new set with the elements that are common to both this set and the given set.
+
+    @discardableResult
+    public mutating func remove(at index: Int) -> Element {
+        precondition(indices.contains(index), "[OrderedSet] Index is out of bounds")
+        let element = elements.remove(at: index)
+        indexes[element] = nil
+        rebuildIndexes(from: index)
+        _assertInvariant()
+        return element
+    }
+
+    public mutating func removeFirst() -> Element {
+        precondition(!isEmpty, "[OrderedSet] Cannot remove first element from an empty set")
+        return remove(at: startIndex)
+    }
+
+    public mutating func removeLast() -> Element {
+        precondition(!isEmpty, "[OrderedSet] Cannot remove last element from an empty set")
+        return remove(at: index(before: endIndex))
+    }
+
+    public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
+        elements.removeAll(keepingCapacity: keepCapacity)
+        indexes.removeAll(keepingCapacity: keepCapacity)
+        _assertInvariant()
+    }
+
+    public mutating func removeSubrange(_ bounds: Range<Int>) {
+        precondition(bounds.lowerBound >= startIndex && bounds.upperBound <= endIndex, "[OrderedSet] Range is out of bounds")
+        for element in elements[bounds] {
+            indexes[element] = nil
+        }
+        elements.removeSubrange(bounds)
+        rebuildIndexes(from: bounds.lowerBound)
+        _assertInvariant()
+    }
+
+    public mutating func replaceSubrange<C: Collection>(_ subrange: Range<Int>, with newElements: C) where C.Element == Element {
+        precondition(subrange.lowerBound >= startIndex && subrange.upperBound <= endIndex, "[OrderedSet] Range is out of bounds")
+        let replacement = ContiguousArray(newElements)
+        let replacementSet = Set(replacement)
+        precondition(replacement.count == replacementSet.count, "[OrderedSet] Cannot replace subrange with duplicate elements")
+
+        var remaining = indexes
+        for element in elements[subrange] {
+            remaining[element] = nil
+        }
+        precondition(replacement.allSatisfy { remaining[$0] == nil }, "[OrderedSet] Cannot replace subrange with existing elements")
+
+        elements.replaceSubrange(subrange, with: replacement)
+        rebuildIndexes()
+        _assertInvariant()
+    }
+
+    public mutating func swapAt(_ i: Int, _ j: Int) {
+        guard i != j else { return }
+        elements.swapAt(i, j)
+        indexes[elements[i]] = i
+        indexes[elements[j]] = j
+        _assertInvariant()
+    }
+
+    public mutating func sort(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows {
+        try elements.sort(by: areInIncreasingOrder)
+        rebuildIndexes()
+        _assertInvariant()
+    }
+    
+    public mutating func sort(_ order: SortOrder = .ascending) where Element: Comparable {
+        sort(by: order == .ascending ? (<) : (>))
+    }
+
+    public func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> [Element] {
+        try elements.sorted(by: areInIncreasingOrder)
+    }
+
+    public mutating func reverse() {
+        elements.reverse()
+        rebuildIndexes()
+        _assertInvariant()
+    }
+
+    public func reversed() -> [Element] {
+        elements.reversed()
+    }
+
+    public mutating func shuffle<T: RandomNumberGenerator>(using generator: inout T) {
+        elements.shuffle(using: &generator)
+        rebuildIndexes()
+        _assertInvariant()
+    }
+
+    public mutating func shuffle() {
+        var generator = SystemRandomNumberGenerator()
+        shuffle(using: &generator)
+    }
+
+    @discardableResult
+    public mutating func partition(by belongsInSecondPartition: (Element) throws -> Bool) rethrows -> Int {
+        let index = try elements.partition(by: belongsInSecondPartition)
+        rebuildIndexes()
+        _assertInvariant()
+        return index
+    }
+
+    public func isSubset(of other: Set<Element>) -> Bool {
+        unorderedSet.isSubset(of: other)
+    }
+
+    public func isSubset(of other: Self) -> Bool {
+        unorderedSet.isSubset(of: other.unorderedSet)
+    }
+
+    public func isSubset<S: Sequence>(of possibleSuperset: S) -> Bool where S.Element == Element {
+        isSubset(of: Set(possibleSuperset))
+    }
+
+    public func isStrictSubset(of other: Set<Element>) -> Bool {
+        unorderedSet.isStrictSubset(of: other)
+    }
+
+    public func isStrictSubset(of other: Self) -> Bool {
+        unorderedSet.isStrictSubset(of: other.unorderedSet)
+    }
+
+    public func isStrictSubset<S: Sequence>(of possibleSuperset: S) -> Bool where S.Element == Element {
+        isStrictSubset(of: Set(possibleSuperset))
+    }
+
+    public func isSuperset(of other: Set<Element>) -> Bool {
+        unorderedSet.isSuperset(of: other)
+    }
+
+    public func isSuperset(of other: Self) -> Bool {
+        unorderedSet.isSuperset(of: other.unorderedSet)
+    }
+
+    public func isSuperset<S: Sequence>(of possibleSubset: S) -> Bool where S.Element == Element {
+        isSuperset(of: Set(possibleSubset))
+    }
+
+    public func isStrictSuperset(of other: Set<Element>) -> Bool {
+        unorderedSet.isStrictSuperset(of: other)
+    }
+
+    public func isStrictSuperset(of other: Self) -> Bool {
+        unorderedSet.isStrictSuperset(of: other.unorderedSet)
+    }
+
+    public func isStrictSuperset<S: Sequence>(of possibleSubset: S) -> Bool where S.Element == Element {
+        isStrictSuperset(of: Set(possibleSubset))
+    }
+
+    public func isDisjoint(with other: Set<Element>) -> Bool {
+        unorderedSet.isDisjoint(with: other)
+    }
+
+    public func isDisjoint(with other: Self) -> Bool {
+        unorderedSet.isDisjoint(with: other.elements)
+    }
+
+    public func isDisjoint<S: Sequence>(with other: S) -> Bool where S.Element == Element {
+        unorderedSet.isDisjoint(with: other)
+    }
+
+    public func union(_ other: Self) -> Self {
+        var result = self
+        result.formUnion(other)
+        return result
+    }
+
+    public mutating func formUnion(_ other: Self) {
+        append(contentsOf: other)
+    }
+
     public func intersection(_ other: Self) -> Self {
-        var copy = self
-        copy.formIntersection(other)
-        return copy
+        OrderedSet(elements.filter { other.contains($0) })
     }
-    
-    /// Removes the elements of this set that aren’t also in the given set.
+
     public mutating func formIntersection(_ other: Self) {
-        _set.formIntersection(other)
-        _array.removeAll(where: { !_set.contains($0) })
-        elementIndexes = array.enumerated().reduce(into: [:]) { $0[$1.element] = $1.offset }
+        self = intersection(other)
     }
-    
-    /// Returns a new set with the elements that are either in this set or in the given set, but not in both.
+
     public func symmetricDifference(_ other: Self) -> Self {
-        var copy = self
-        copy.formSymmetricDifference(other)
-        return copy
+        var result = self
+        result.formSymmetricDifference(other)
+        return result
     }
-    
+
     public mutating func formSymmetricDifference(_ other: Self) {
         for element in other {
-            if _set.contains(element) {
+            if contains(element) {
                 remove(element)
             } else {
-                insert(element)
+                append(element)
             }
         }
     }
-    
-    /**
-     Returns a new ordered set containing the elements of this ordered set that do not occur in the given sequence.
-     
-     Retains the relative order of the elements in this ordered set.
-     */
-    public func subtracting<S>(_ sequence: S) -> Self where Element == S.Element, S: Sequence {
-        Self(_array.filter { !sequence.contains($0) })
+
+    public func subtracting<S: Sequence>(_ sequence: S) -> Self where S.Element == Element {
+        let excluded = Set(sequence)
+        return OrderedSet(elements.filter { !excluded.contains($0) })
     }
-    
-    /**
-     Returns a new ordered set containing the elements of this ordered set that do not occur in the given set.
-     
-     - parameter retainOrder: The returned ordered set retains the relative order of the elements. Defaults to `true`. If retaining the order is not necessary, passing in `false` may yield a performance benefit.
-     */
+
     public func subtracting(_ set: Set<Element>, retainOrder: Bool = true) -> Self {
-        retainOrder ? Self(_array.filter { !set.contains($0) }) : Self(_set.subtracting(set))
+        retainOrder ? OrderedSet(elements.filter { !set.contains($0) }) : OrderedSet(unorderedSet.subtracting(set))
     }
-    
-    /**
-     Returns a new ordered set containing the elements of this ordered set that also occur in the given sequence.
-     
-     Retains the relative order of the elements in this ordered set.
-     */
-    public func intersection<S>(_ sequence: S) -> Self where Element == S.Element, S: Sequence {
-        Self(_array.filter { sequence.contains($0) })
+
+    public func intersection<S: Sequence>(_ sequence: S) -> Self where S.Element == Element {
+        let included = Set(sequence)
+        return OrderedSet(elements.filter { included.contains($0) })
     }
-    
-    /**
-     Returns a new ordered set containing the elements of this ordered set that also occur in the given set.
-     
-     - parameter retainOrder: The returned ordered set retains the relative order of the elements. Defaults to `true`. If retaining the order is not necessary, passing in `false` may yield a performance benefit.
-     */
+
     public func intersection(_ set: Set<Element>, retainOrder: Bool = true) -> Self {
-        retainOrder ? Self(_array.filter { set.contains($0) }) : Self(_set.intersection(set))
+        retainOrder ? OrderedSet(elements.filter { set.contains($0) }) : OrderedSet(unorderedSet.intersection(set))
+    }
+
+    public func filter(_ isIncluded: (Element) throws -> Bool, retainOrder: Bool = true) rethrows -> Self {
+        retainOrder ? OrderedSet(try elements.filter(isIncluded)) : OrderedSet(try unorderedSet.filter(isIncluded))
+    }
+
+    public func map<T: Hashable>(_ transform: (Element) throws -> T, retainOrder: Bool = true) rethrows -> OrderedSet<T> {
+        retainOrder ? OrderedSet<T>(try elements.map(transform)) : OrderedSet<T>(try unorderedSet.map(transform))
+    }
+
+    public func compactMap<T: Hashable>(_ transform: (Element) throws -> T?, retainOrder: Bool = true) rethrows -> OrderedSet<T> {
+        retainOrder ? OrderedSet<T>(try elements.compactMap(transform)) : OrderedSet<T>(try unorderedSet.compactMap(transform))
+    }
+
+    private mutating func rebuildIndexes(from start: Int = 0) {
+        guard start < elements.endIndex else { return }
+        for index in start..<elements.endIndex {
+            indexes[elements[index]] = index
+        }
+    }
+
+    private mutating func rebuildIndexes() {
+        indexes = elements.enumerated().reduce(into: [:]) { $0[$1.element] = $1.offset }
+    }
+
+    private func _assertInvariant() {
+        assert(_computeInvariant(), "[OrderedSet] Broken invariant: elements=\(elements), indexes=\(indexes)")
+    }
+
+    private func _computeInvariant() -> Bool {
+        guard elements.count == indexes.count else { return false }
+        for (index, element) in elements.enumerated() {
+            guard indexes[element] == index else { return false }
+        }
+        return true
     }
 }
 
-// MARK: - Extensions
+extension OrderedSet: Equatable {
+    public static func == (lhs: OrderedSet, rhs: OrderedSet) -> Bool {
+        lhs.elements == rhs.elements
+    }
+
+    public static func == <C: Collection>(lhs: OrderedSet, rhs: C) -> Bool where C.Element == Element {
+        lhs.elements == ContiguousArray(rhs)
+    }
+}
 
 extension OrderedSet: Hashable { }
 extension OrderedSet: Sendable where Element: Sendable { }
 
-extension OrderedSet: Equatable {
-    static public func == (lhs: OrderedSet, rhs: OrderedSet) -> Bool {
-        lhs._array == rhs._array
-    }
-    
-    static public func == <C: Collection>(lhs: OrderedSet, rhs: C) -> Bool where C.Element == Element {
-        lhs._array == ContiguousArray(rhs)
+extension OrderedSet: Encodable where Element: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(elements)
     }
 }
 
@@ -465,29 +455,22 @@ extension OrderedSet: Decodable where Element: Decodable {
     }
 }
 
-extension OrderedSet: Encodable where Element: Encodable {
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(_array)
-    }
-}
-
 extension OrderedSet: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     public var description: String {
-        _array.description
+        elements.description
     }
-    
+
     public var debugDescription: String {
-        _array.description.debugDescription
+        elements.debugDescription
     }
-    
+
     public var customMirror: Mirror {
-        _array.customMirror
+        elements.customMirror
     }
 }
 
 extension OrderedSet: CVarArg {
     public var _cVarArgEncoding: [Int] {
-        Array(_array)._cVarArgEncoding
+        Array(elements)._cVarArgEncoding
     }
 }
