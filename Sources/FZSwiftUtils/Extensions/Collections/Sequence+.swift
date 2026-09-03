@@ -790,3 +790,12 @@ public extension Sequence where Element: Collection {
         filter({ !$0.isEmpty })
     }
 }
+
+extension RangeReplaceableCollection {
+
+    
+    func sdsd() {
+        var array = [3]
+        array += [4, 6, 3][0..<3]
+    }
+}
