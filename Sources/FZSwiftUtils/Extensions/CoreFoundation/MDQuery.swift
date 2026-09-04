@@ -47,18 +47,18 @@ public extension MDQuery {
     The property must be set before the query is started.
     */
     var maxCount: Int {
-        get { getAssociatedValue("maxCount", object: self) ?? 0 }
+        get { getAssociatedValue("maxCount") ?? 0 }
         set {
-            setAssociatedValue(newValue, key: "maxCount", object: self)
+            setAssociatedValue(newValue, for: "maxCount")
             MDQuerySetMaxCount(self, newValue)
         }
     }
    
     /// The dispatch queue on which query results will be delivered by MDQueryExecute.
     var dispatchQueue: DispatchQueue? {
-        get { getAssociatedValue("dispatchQueue", object: self) }
+        get { getAssociatedValue("dispatchQueue") }
         set {
-            setAssociatedValue(newValue, key: "dispatchQueue", object: self)
+            setAssociatedValue(newValue, for: "dispatchQueue")
             MDQuerySetDispatchQueue(self, newValue)
         }
     }
@@ -158,8 +158,8 @@ public extension MDQuery {
      This property contains true when the receiver has executed the startQuery method; otherwise, false.
      */
     private(set) var isStarted: Bool {
-        get { getAssociatedValue("isStarted", object: self) ?? false }
-        set { setAssociatedValue(newValue, key: "isStarted", object: self) }
+        get { getAssociatedValue("isStarted") ?? false }
+        set { setAssociatedValue(newValue, for: "isStarted") }
     }
    
     /**
@@ -177,8 +177,8 @@ public extension MDQuery {
      This property contains true when the receiver has stopped the query; otherwise, false.
      */
     private(set) var isStopped: Bool {
-        get { getAssociatedValue("isStopped", object: self) ?? true }
-        set { setAssociatedValue(newValue, key: "isStopped", object: self) }
+        get { getAssociatedValue("isStopped") ?? true }
+        set { setAssociatedValue(newValue, for: "isStopped") }
     }
    
     /// Enables updates to the query results.
@@ -303,10 +303,10 @@ public extension MDQuery {
      - Note: Setting this property while a query is running stops the query, discards the current results and immediately starts a new query.
      */
     var searchScopes: [SearchScope] {
-        get { getAssociatedValue("searchScopes", object: self) ?? [] }
+        get { getAssociatedValue("searchScopes") ?? [] }
         set {
-            setAssociatedValue([URL](), key: "searchLocations", object: self)
-            setAssociatedValue(newValue, key: "searchScopes", object: self)
+            setAssociatedValue([URL](), for: "searchLocations")
+            setAssociatedValue(newValue, for: "searchScopes")
             runWithOperationQueue {
                 MDQuerySetSearchScope(self, newValue.map({$0.rawValue}) as CFArray, 0)
             }
@@ -323,10 +323,10 @@ public extension MDQuery {
      - Note: Setting this property while a query is running stops the query, discards the current results and immediately starts a new query.
      */
     var searchLocations: [URL] {
-        get { getAssociatedValue("searchLocations", object: self) ?? [] }
+        get { getAssociatedValue("searchLocations") ?? [] }
         set {
-            setAssociatedValue([String](), key: "searchScopes", object: self)
-            setAssociatedValue(newValue, key: "searchLocations", object: self)
+            setAssociatedValue([String](), for: "searchScopes")
+            setAssociatedValue(newValue, for: "searchLocations")
             runWithOperationQueue {
                 MDQuerySetSearchScope(self, newValue as [CFURL] as CFArray, 0)
             }
@@ -358,9 +358,9 @@ public extension MDQuery {
      ```
      */
     var monitorResults: Bool {
-        get { getAssociatedValue("monitorResults", object: self) ?? false }
+        get { getAssociatedValue("monitorResults") ?? false }
         set {
-            setAssociatedValue(newValue, key: "monitorResults", object: self)
+            setAssociatedValue(newValue, for: "monitorResults")
         }
     }
     
@@ -380,8 +380,8 @@ public extension MDQuery {
     }
     
     private var options: Options {
-        get { getAssociatedValue("options", object: self) ?? [] }
-        set { setAssociatedValue(newValue, key: "options", object: self) }
+        get { getAssociatedValue("options") ?? [] }
+        set { setAssociatedValue(newValue, for: "options") }
     }
     
     /// Posted when the receiver begins with the initial result-gathering phase of the query.
@@ -395,9 +395,9 @@ public extension MDQuery {
    
     /// The handlers of the metadata query.
     var handlers: Handlers {
-        get { getAssociatedValue("handlers", object: self) ?? Handlers() }
+        get { getAssociatedValue("handlers") ?? Handlers() }
         set {
-            setAssociatedValue(newValue, key: "handlers", object: self)
+            setAssociatedValue(newValue, for: "handlers")
             setupHandlers(newValue)
         }
     }
@@ -455,8 +455,8 @@ public extension MDQuery {
     }
    
     private var replacementObjectWrapper: ReplacementObjectWrapper? {
-        get { getAssociatedValue("replacementObjectWrapper", object: self) }
-        set { setAssociatedValue(newValue, key: "replacementObjectWrapper", object: self) }
+        get { getAssociatedValue("replacementObjectWrapper") }
+        set { setAssociatedValue(newValue, for: "replacementObjectWrapper") }
     }
    
     private class ReplacementObjectWrapper {
@@ -467,8 +467,8 @@ public extension MDQuery {
     }
    
     private var replacementValueWrapper: ReplacementValueWrapper? {
-        get { getAssociatedValue("replacementValueWrapper", object: self) }
-        set { setAssociatedValue(newValue, key: "replacementValueWrapper", object: self) }
+        get { getAssociatedValue("replacementValueWrapper") }
+        set { setAssociatedValue(newValue, for: "replacementValueWrapper") }
     }
    
     private class ReplacementValueWrapper {
@@ -479,8 +479,8 @@ public extension MDQuery {
     }
     
     private var isDisabled: Bool {
-        get { getAssociatedValue("isDisabled", object: self) ?? false }
-        set { setAssociatedValue(newValue, key: "isDisabled", object: self) }
+        get { getAssociatedValue("isDisabled") ?? false }
+        set { setAssociatedValue(newValue, for: "isDisabled") }
     }
     
     private func runWithOperationQueue<T>(_ block: ()->(T)) -> T {
@@ -505,8 +505,8 @@ public extension MDQuery {
     }
     
     private var notificationTokens: [NotificationToken] {
-        get { getAssociatedValue("notificationTokens", object: self) ?? [] }
-        set { setAssociatedValue(newValue, key: "notificationTokens", object: self)}
+        get { getAssociatedValue("notificationTokens") ?? [] }
+        set { setAssociatedValue(newValue, for: "notificationTokens")}
     }
 }
 

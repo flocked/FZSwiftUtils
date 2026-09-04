@@ -40,7 +40,7 @@ public extension NSFilePromiseProvider {
     convenience init(fileType: String, filename: String, operationQueue: OperationQueue = .main, writeHandler: @escaping (_ destionationURL: URL, _ completionHandler: @escaping @Sendable ((any Error)?) -> Void) -> Void) {
         let delegate = Delegate(fileName: filename, operationQueue: operationQueue, writeHandler: writeHandler)
         self.init(fileType: fileType, delegate: delegate)
-        setAssociatedValue(delegate, key: "filePromiseDelegate")
+        setAssociatedValue(delegate, for: "filePromiseDelegate")
     }
     
     /**

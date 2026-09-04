@@ -386,7 +386,7 @@ public extension NSObjectProtocol where Self: NSObject {
     }
     
     fileprivate var deinitCallback: DeinitCallback {
-        get { getAssociatedValue("deinitCallback", initialValue: DeinitCallback()) }
+        get { getAssociatedValue("deinitCallback", initial: DeinitCallback()) }
     }
 }
 

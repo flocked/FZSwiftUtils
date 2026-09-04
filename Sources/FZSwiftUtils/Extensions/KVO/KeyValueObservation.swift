@@ -793,15 +793,15 @@ private extension NSObject {
 #if os(macOS)
 fileprivate extension NSWindow {
     var _isOnActiveSpace: Bool {
-        get { getAssociatedValue("isOnActiveSpace", initialValue: isOnActiveSpace) }
-        set { setAssociatedValue(newValue, key: "isOnActiveSpace") }
+        get { getAssociatedValue("isOnActiveSpace", initial: isOnActiveSpace) }
+        set { setAssociatedValue(newValue, for: "isOnActiveSpace") }
     }
 }
 
 fileprivate extension NSApplication {
     var _occlusionState: OcclusionState {
-        get { getAssociatedValue("_occlusionState", initialValue: occlusionState) }
-        set { setAssociatedValue(newValue, key: "_occlusionState") }
+        get { getAssociatedValue("_occlusionState", initial: occlusionState) }
+        set { setAssociatedValue(newValue, for: "_occlusionState") }
     }
 }
 
@@ -825,9 +825,9 @@ fileprivate extension NSUIView {
         didSwizzleSubviews = true
         do {
             try hook(set: \.subviews) { view, subviews, setter in
-                view.setAssociatedValue(true, key: "isSettingSubviews")
+                view.setAssociatedValue(true, for: "isSettingSubviews")
                 setter(subviews)
-                view.setAssociatedValue(false, key: "isSettingSubviews")
+                view.setAssociatedValue(false, for: "isSettingSubviews")
             }
             try hook(#selector(NSView.addSubview(_:positioned:relativeTo:)), closure: { original, view, selector, newSubview, position, relative in
                 let isSettingSubviews = view.isSettingSubviews
@@ -898,7 +898,7 @@ fileprivate extension NSUIView {
     
     var didSwizzleSubviews: Bool {
         get { getAssociatedValue("didSwizzleSubviews") ?? false }
-        set { setAssociatedValue(newValue, key: "didSwizzleSubviews") }
+        set { setAssociatedValue(newValue, for: "didSwizzleSubviews") }
     }
     
     var isSettingSubviews: Bool {
@@ -906,7 +906,7 @@ fileprivate extension NSUIView {
         set {
             guard newValue != isSettingSubviews else { return }
             newValue ? willChangeValue(for: \.subviews) : didChangeValue(for: \.subviews)
-            setAssociatedValue(newValue, key: "isSettingSubviews")
+            setAssociatedValue(newValue, for: "isSettingSubviews")
         }
     }
 }

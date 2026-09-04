@@ -23,8 +23,8 @@ extension Hook {
         }
         
         private var hooks: [Selector: [HookMode: Set<Hook>]] {
-            get { FZSwiftUtils.getAssociatedValue("\(hooksKey)hooks", object: object) ?? [:] }
-            set { FZSwiftUtils.setAssociatedValue(newValue, key: "\(hooksKey)hooks", object: object) }
+            get { FZSwiftUtils.getAssociatedValue("\(hooksKey)hooks", of: object) ?? [:] }
+            set { FZSwiftUtils.setAssociatedValue(newValue, for: "\(hooksKey)hooks", of: object) }
         }
         
         func revertHooks(for selector: Selector, type: HookMode? = nil) {
@@ -77,9 +77,9 @@ extension Hook {
         }
         
         var addedMethods: Set<Selector> {
-            get { FZSwiftUtils.getAssociatedValue("\(hooksKey)addedMethods", object: object) ?? [] }
+            get { FZSwiftUtils.getAssociatedValue("\(hooksKey)addedMethods", of: object) ?? [] }
             set {
-                FZSwiftUtils.setAssociatedValue(newValue, key: "\(hooksKey)addedMethods", object: object)
+                FZSwiftUtils.setAssociatedValue(newValue, for: "\(hooksKey)addedMethods", of: object)
                 if newValue.isEmpty {
                     try? addedMethodsHook?.revert()
                     addedMethodsHook = nil
@@ -89,7 +89,7 @@ extension Hook {
                         if let targetClass = object as? NSObject.Type {
                             let closure = { original, object, sel, selector in
                                 if let selector = selector,
-                                   (FZSwiftUtils.getAssociatedValue(key, object: targetClass) as Set<Selector>?)?.contains(selector) == true {
+                                   (FZSwiftUtils.getAssociatedValue(key, of: targetClass) as Set<Selector>?)?.contains(selector) == true {
                                     return true
                                 }
                                 return original(object, sel, selector)
@@ -98,7 +98,7 @@ extension Hook {
                         } else if let object = object as? NSObject {
                             let closure = { original, object, sel, selector in
                                 if let selector = selector,
-                                   (FZSwiftUtils.getAssociatedValue(key, object: object) as Set<Selector>?)?.contains(selector) == true {
+                                   (FZSwiftUtils.getAssociatedValue(key, of: object) as Set<Selector>?)?.contains(selector) == true {
                                     return true
                                 }
                                 return original(object, sel, selector)
@@ -113,9 +113,8 @@ extension Hook {
         }
         
         private var addedMethodsHook: Hook? {
-            get { FZSwiftUtils.getAssociatedValue("\(hooksKey)addedMethodsHook", object: object) }
-            set { FZSwiftUtils.setAssociatedValue(newValue, key: "\(hooksKey)addedMethodsHook", object: object) }
+            get { FZSwiftUtils.getAssociatedValue("\(hooksKey)addedMethodsHook", of: object) }
+            set { FZSwiftUtils.setAssociatedValue(newValue, for: "\(hooksKey)addedMethodsHook", of: object) }
         }
     }
 }
-

@@ -182,12 +182,12 @@ extension Process {
 
 fileprivate extension Pipe {
     var fileHandleStream: FileHandleStream {
-        getAssociatedValue("fileHandleStream", initialValue: .init(fileHandleForReading))
+        getAssociatedValue("fileHandleStream", initial: .init(fileHandleForReading))
     }
     
     var onOutput: ((Process)->())? {
         get { getAssociatedValue("onOutput") }
-        set { setAssociatedValue(newValue, key: "onOutput") }
+        set { setAssociatedValue(newValue, for: "onOutput") }
     }
 }
 

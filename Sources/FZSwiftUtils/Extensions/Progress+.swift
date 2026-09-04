@@ -14,7 +14,7 @@ extension Progress {
     /// The identifier of the progress.
     public var identifier: Any? {
         get { getAssociatedValue("identifier") }
-        set { setAssociatedValue(newValue, key: "identifier") }
+        set { setAssociatedValue(newValue, for: "identifier") }
     }
     
     /// The estimate time remaining.
@@ -102,8 +102,8 @@ extension Progress {
     }
     
     var eta: ETA {
-        get { getAssociatedValue("ETA", initialValue: ETA()) }
-        set { setAssociatedValue(newValue, key: "ETA") }
+        get { getAssociatedValue("ETA", initial: ETA()) }
+        set { setAssociatedValue(newValue, for: "ETA") }
     }
     
     struct ETA {
@@ -160,8 +160,8 @@ extension Progress {
     }
     
     private var isPublished: Bool {
-        get { getAssociatedValue("isPublished", initialValue: false) }
-        set { setAssociatedValue(newValue, key: "isPublished") }
+        get { getAssociatedValue("isPublished", initial: false) }
+        set { setAssociatedValue(newValue, for: "isPublished") }
     }
     
     /**

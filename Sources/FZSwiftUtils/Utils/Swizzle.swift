@@ -138,10 +138,6 @@ extension NSObjectProtocol where Self: NSObject {
     public static func swizzle<Value>(classSet keyPath: ReferenceWritableKeyPath<Self.Type, Value>, with newKeyPath: WritableKeyPath<Self.Type, Value>) throws {
         try swizzle { SelectorPair(set: keyPath, newKeyPath) }
     }
-    
-    public static func add(_ selector: Selector) {
-        
-    }
 }
 
 extension NSObjectProtocol where Self: NSObject {
@@ -350,12 +346,12 @@ extension NSObjectProtocol where Self: NSObject {
     
     static var originalIMPs: [Selector: IMP] {
         get { getAssociatedValue("originalIMPs") ?? [:] }
-        set { setAssociatedValue(newValue, key: "originalIMPs") }
+        set { setAssociatedValue(newValue, for: "originalIMPs") }
     }
     
     static var originalClassIMPs: [Selector: IMP] {
         get { getAssociatedValue("originalClassIMPs") ?? [:] }
-        set { setAssociatedValue(newValue, key: "originalClassIMPs") }
+        set { setAssociatedValue(newValue, for: "originalClassIMPs") }
     }
 }
 
@@ -743,35 +739,16 @@ public extension String {
 }
 
 fileprivate extension NSObject {
-    static var swizzledRespondsTo: Hook? {
-        get { getAssociatedValue("swizzledRespondsTo") }
-        set { setAssociatedValue(newValue, key: "swizzledRespondsTo") }
-    }
+    static var swizzledRespondsTo: Hook?
     
-    static var swizzledStaticRespondsTo: Hook? {
-        get { getAssociatedValue("swizzledStaticRespondsTo") }
-        set { setAssociatedValue(newValue, key: "swizzledStaticRespondsTo") }
-    }
+    static var swizzledStaticRespondsTo: Hook?
     
-    static var swizzledOptionals: Set<Selector> {
-        get { getAssociatedValue("swizzledOptionals") ?? [] }
-        set { setAssociatedValue(newValue, key: "swizzledOptionals") }
-    }
+    static var swizzledOptionals: Set<Selector> = []
     
-    static var swizzledOptionalsReset: Set<Selector> {
-        get { getAssociatedValue("swizzledOptionalsReset") ?? [] }
-        set { setAssociatedValue(newValue, key: "swizzledOptionalsReset") }
-    }
+    static var swizzledOptionalsReset: Set<Selector> = []
     
-    static var swizzledStaticOptionals: Set<Selector> {
-        get { getAssociatedValue("swizzledStaticOptionals") ?? [] }
-        set { setAssociatedValue(newValue, key: "swizzledStaticOptionals") }
-    }
+    static var swizzledStaticOptionals: Set<Selector> = []
     
-    static var swizzledStaticOptionalsReset: Set<Selector> {
-        get { getAssociatedValue("swizzledStaticOptionalsReset") ?? [] }
-        set { setAssociatedValue(newValue, key: "swizzledStaticOptionalsReset") }
-    }
+    static var swizzledStaticOptionalsReset: Set<Selector> = []
 }
-
 

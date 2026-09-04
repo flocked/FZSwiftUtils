@@ -82,7 +82,7 @@ extension ReadableStream {
     public var onOutput: ((Self) -> Void)? {
         get { filehandle.getAssociatedValue("onOutput") }
         set {
-            filehandle.setAssociatedValue(newValue, key: "onOutput")
+            filehandle.setAssociatedValue(newValue, for: "onOutput")
             if let newValue = newValue {
                 filehandle.readabilityHandler = { [weak self] _ in
                     self.map(newValue)
@@ -112,7 +112,7 @@ extension ReadableStream {
     public var onStringOutput: ((String) -> Void)? {
         get { filehandle.getAssociatedValue("onStringOutput") }
         set {
-            filehandle.setAssociatedValue(newValue, key: "onStringOutput")
+            filehandle.setAssociatedValue(newValue, for: "onStringOutput")
             if let newValue = newValue {
                 onOutput = { stream in
                     if let output = stream.readSome() {

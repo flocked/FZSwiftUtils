@@ -20,7 +20,8 @@ public extension PartialKeyPath {
             return keyPath
         }
         let keyPath = String(describing: self)
-        return keyPath.hasPrefix("\\") ? keyPath.components(separatedBy: ".")[clamped: 1...].joined(separator: ".") : keyPath
+        guard keyPath.hasPrefix("\\") else { return keyPath }
+        return keyPath.split(separator: ".", maxSplits: 1).dropFirst().first.map(String.init) ?? keyPath
     }
     #else
     /// The name of the key path if it's a `ObjC` property, else the hash value.

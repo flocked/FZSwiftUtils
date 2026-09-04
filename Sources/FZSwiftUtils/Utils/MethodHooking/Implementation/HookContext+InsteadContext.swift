@@ -25,11 +25,11 @@ func createInsteadClosure(targetIMP: IMP, objectPointer: UnsafeMutableRawPointer
     let insteadClosure: (@convention(block) () -> Void) = { }
     sh_setBlockInvoke(insteadClosure, targetIMP)
     let insteadContext = InsteadContext(objectPointer: objectPointer, selectorPointer: selectorPointer, currentHookClosure: currentHookClosure)
-    setAssociatedValue(insteadContext, key: "associatedInsteadContextHandle", object: insteadClosure as AnyObject)
+    setAssociatedValue(insteadContext, for: "associatedInsteadContextHandle", of: insteadClosure as AnyObject)
     return insteadClosure as AnyObject
 }
 
 func getInsteadContext(insteadClosure: AnyObject) -> InsteadContext? {
-    getAssociatedValue("associatedInsteadContextHandle", object: insteadClosure)
+    getAssociatedValue("associatedInsteadContextHandle", of: insteadClosure)
 }
 

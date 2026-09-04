@@ -25,7 +25,7 @@ extension Hook {
         override func apply() throws {
             guard !isActive else { return }
             guard let object = object else { return }
-            let delegate = getAssociatedValue("deinitDelegate", object: object, initialValue: DeallocDelegate())
+            let delegate = getAssociatedValue("deinitDelegate", of: object, initial: DeallocDelegate())
             delegate.hookClosures.append(hookClosure)
             self.delegate = delegate
             Storage(object).addHook(self)
@@ -51,4 +51,3 @@ extension Hook {
         }
     }
 }
-

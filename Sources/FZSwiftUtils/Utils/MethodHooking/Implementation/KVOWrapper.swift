@@ -35,7 +35,7 @@ extension NSObject {
     }
     
     fileprivate func isSupportedKVO() throws -> Bool {
-        if let isSupportedKVO: Bool = FZSwiftUtils.getAssociatedValue("isSupportedKVO", object: self) {
+        if let isSupportedKVO: Bool = FZSwiftUtils.getAssociatedValue("isSupportedKVO", of: self) {
             return isSupportedKVO
         }
         guard let isaClass = object_getClass(self) else {
@@ -60,7 +60,7 @@ extension NSObject {
                 result = false
             }
         }
-        FZSwiftUtils.setAssociatedValue(result, key: "isSupportedKVO", object: self)
+        FZSwiftUtils.setAssociatedValue(result, for: "isSupportedKVO", of: self)
         return result
     }
     
@@ -114,8 +114,8 @@ extension NSObject {
     }
     
     private var hookObserver: Observer? {
-        get { FZSwiftUtils.getAssociatedValue("hookObserver", object: self) }
-        set { FZSwiftUtils.setAssociatedValue(newValue, key: "hookObserver", object: self) }
+        get { FZSwiftUtils.getAssociatedValue("hookObserver", of: self) }
+        set { FZSwiftUtils.setAssociatedValue(newValue, for: "hookObserver", of: self) }
     }
 }
 

@@ -103,7 +103,7 @@ public extension ByteCountFormatter {
         get { getAssociatedValue("locale") ?? .current }
         set {
             guard newValue != locale else { return }
-            setAssociatedValue(newValue, key: "locale")
+            setAssociatedValue(newValue, for: "locale")
             swizzle(!(locale == .current && unitStyle == .short))
         }
     }
@@ -128,7 +128,7 @@ public extension ByteCountFormatter {
         get { getAssociatedValue("unitStyle") ?? .short }
         set {
             guard newValue != unitStyle else { return }
-            setAssociatedValue(newValue, key: "unitStyle")
+            setAssociatedValue(newValue, for: "unitStyle")
             swizzle(!(locale == .current && unitStyle == .short))
         }
     }
@@ -204,7 +204,7 @@ private extension ByteCountFormatter {
     
     var isFetching: Bool {
         get { getAssociatedValue("isFetching") ?? false }
-        set { setAssociatedValue(newValue, key: "isFetching") }
+        set { setAssociatedValue(newValue, for: "isFetching") }
     }
     
     func split(handler: @escaping (()->(String?))) -> (count: String, unit: String)? {

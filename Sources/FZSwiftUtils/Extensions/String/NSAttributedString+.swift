@@ -858,7 +858,7 @@ extension NSAttributedString {
      */
     public private(set) var documentAttributes: DocumentAttributes? {
         get { getAssociatedValue("readDocumentAttributes") }
-        set { setAssociatedValue(newValue, key: "readDocumentAttributes") }
+        set { setAssociatedValue(newValue, for: "readDocumentAttributes") }
     }
     
     /**

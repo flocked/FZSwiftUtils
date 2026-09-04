@@ -13,7 +13,7 @@ func hookClosures(for object: AnyObject, selector: Selector) -> (before: [AnyObj
 }
 
 func appendHookClosure(_ hookClosure: AnyObject, selector: Selector, mode: HookMode, to object: AnyObject) throws {
-    var context = getAssociatedValue("closuresContext", object: object, initialValue: ClosuresContext())
+    var context = getAssociatedValue("closuresContext", of: object, initial: ClosuresContext())
     
     func append(to keyPath: WritableKeyPath<ClosuresContext, [Selector: [ObjectIdentifier: AnyObject]]>) throws {
         guard context[keyPath: keyPath][selector, default: [:]].updateValue(hookClosure, forKey: .init(hookClosure)) == nil else {
@@ -70,6 +70,5 @@ fileprivate class ClosuresContext {
 }
 
 fileprivate func closuresContext(for object: AnyObject) -> ClosuresContext? {
-    getAssociatedValue("closuresContext", object: object)
+    getAssociatedValue("closuresContext", of: object)
 }
-

@@ -11,18 +11,18 @@ import _FZSwiftUtilsObjC
 /// An object proxy.
 open class NSObjectProxy<Object: NSObject>: ObjectProxy {
     /// Creates a proxy for the specified object.
-    public init(object: Object) {
+    public init(of object: Object) {
         super.init(targetObject: object)
     }
             
     /// The object of the proxy.
-    public var object: Object {
+    public var of: Object {
         _target as! Object
     }
     
     /// Returns the proxy as it's object.
     public func asObject() -> Object {
-        object._map(to: self)
+        of._map(to: self)
     }
     
     override init(targetObject: NSObject) {
@@ -32,14 +32,14 @@ open class NSObjectProxy<Object: NSObject>: ObjectProxy {
 
 extension NSObjectProtocol where Self: NSObject {
     /**
-     A proxy  of the object that can perform methods that might hrow an Objective-C `NSException` and crash.
+     A proxy  of the object that can perform methods that might hrow an Objective-C [NSException](https://developer.apple.com/documentation/foundation/nsexception) and crash.
      
      This property allows safer bridging of Objective-C code into Swift, where exceptions cannot be caught and crash the application.
      
-     It's a convient way of using `ObjCRunTime.catchException(_:)`.
+     It's a convient way of using `ObjCRuntime's` ``ObjCRuntime/catchException(_:)-93ggk``.
      */
     public var safe: Self {
-        SafeObjectProxy(object: self).asObject()
+        SafeObjectProxy(of: self).asObject()
     }
 }
 
@@ -66,14 +66,14 @@ extension NSObjectProtocol where Self: NSObject {
      - Parameter handler: The handler that provides the inovcation whenever a method of the object is called.
      */
     public func invocationProxy(_ handler: @escaping (_ invocation: Invocation)->()) -> Self {
-        InvocationProxy(object: self, handler: handler).asObject()
+        InvocationProxy(of: self, handler: handler).asObject()
     }
 }
 
 fileprivate class InvocationProxy<Object: NSObject>: NSObjectProxy<Object> {
     let handler: ((Invocation)->())
     
-    init(object: Object, handler: @escaping ((Invocation)->())) {
+    init(of object: Object, handler: @escaping ((Invocation)->())) {
         self.handler = handler
         super.init(targetObject: object)
     }

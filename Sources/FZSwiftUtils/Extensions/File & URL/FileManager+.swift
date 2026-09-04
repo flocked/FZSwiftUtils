@@ -417,7 +417,7 @@ public extension FileManager {
     var handlers: Handlers {
         get { getAssociatedValue("handlers") ?? Handlers() }
         set {
-            setAssociatedValue(newValue, key: "handlers")
+            setAssociatedValue(newValue, for: "handlers")
             handlerDelegate = newValue.needsDelegate ? Delegate(for: self) : nil
         }
     }
@@ -448,7 +448,7 @@ public extension FileManager {
     
     private var handlerDelegate: Delegate? {
         get { getAssociatedValue("handlerDelegate") }
-        set { setAssociatedValue(newValue, key: "handlerDelegate")  }
+        set { setAssociatedValue(newValue, for: "handlerDelegate")  }
     }
     
     private class Delegate: NSObject, FileManagerDelegate {

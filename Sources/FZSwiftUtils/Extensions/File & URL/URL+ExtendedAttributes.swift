@@ -34,20 +34,20 @@ public extension URL {
         }
         
         /// Returns the value for the specified extended attribute.
-        public subscript<T>(key: String, flags flags: Flags = []) -> T? {
+        public subscript<T>(_ key: String, flags flags: Flags = []) -> T? {
             get { try? get(key) }
             set { try? set(newValue, for: key, flags: flags) }
         }
         
         /// Returns the value for the specified extended attribute.
-        public subscript<T>(key: String, strategy: CodingStrategy = .json, flags flags: Flags = []) -> T? where T: Codable {
+        public subscript<T>(_ key: String, strategy: CodingStrategy = .json, flags flags: Flags = []) -> T? where T: Codable {
             get { try? get(key, using: strategy) }
             set { try? set(newValue, for: key, using: strategy, flags: flags) }
         }
         
         /// Returns the data for the specified extended attribute.
         @_disfavoredOverload
-        public subscript(key: String, flags flags: Flags = []) -> Data? {
+        public subscript(_ key: String, flags flags: Flags = []) -> Data? {
             get { try? getData(for: key) }
             set { try? setData(newValue, for: key, flags: flags) }
         }
@@ -65,7 +65,7 @@ public extension URL {
          
          The attribute is decoded using the supplied coding strategy.
          
-         - Parameter key: The name of the extended attribute.
+         - Parameter for: The name of the extended attribute.
          - Returns: The decoded value.
          - Throws: An error if the file doesn't exist or the attribute cannot be read or decoded.
          */
@@ -79,7 +79,7 @@ public extension URL {
          The attribute is decoded using the supplied coding strategy.
          
          - Parameters:
-            - key: The name of the extended attribute.
+            - for: The name of the extended attribute.
             - strategy: The strategy used to decode the stored value.
         - Returns: The decoded value.
         - Throws: An error if the file doesn't exist or the attribute cannot be read or decoded.
@@ -91,7 +91,7 @@ public extension URL {
         private func getPropertyList<T>(_ key: String) throws -> T {
             let propertyListValue = try PropertyListSerialization.propertyList(from: getData(for: key), format: nil)
             guard let value = propertyListValue as? T else {
-                throw Errors.propertyListTypeMismatch(key: key, expected: T.self, actual: type(of: propertyListValue))
+                throw Errors.propertyListTypeMismatch(for: key, expected: T.self, actual: type(of: propertyListValue))
             }
             return value
         }
@@ -105,7 +105,7 @@ public extension URL {
          
          - Parameters:
             - value: The value to encode and store, or `nil` to remove the attribute.
-            - key: The name of the attribute.
+            - for: The name of the attribute.
             - flags: The flags describing how the attribute should be handled by the file system.
          - Throws: Throws if the file doesn't exist or the attribute couldn't written.
          */
@@ -118,7 +118,7 @@ public extension URL {
          
          - Parameters:
             - value: The value to encode and store, or `nil` to remove the attribute.
-            - key: The name of the attribute.
+            - for: The name of the attribute.
             - strategy: The strategy used to encode the value.
             - flags: The flags describing how the attribute should be handled by the file system.
          
@@ -135,7 +135,7 @@ public extension URL {
         private func setPropertyList<T>(_ value: T?, for key: String, flags: Flags) throws {
             if let value = value {
                 guard PropertyListSerialization.propertyList(value, isValidFor: .binary) else {
-                    throw Errors.valueNotPropertyListSerializable(key: key, type: type(of: value))
+                    throw Errors.valueNotPropertyListSerializable(for: key, type: type(of: value))
                 }
                 try setData(PropertyListSerialization.data(fromPropertyList: value, format: .binary), for: key, flags: flags)
             } else {
@@ -154,20 +154,20 @@ public extension URL {
         /**
          Removes the specified extended attribute.
          
-         - Parameter key: The name of the extended attribute to remove.
+         - Parameter for: The name of the extended attribute to remove.
          - Throws: An error if the file doesn't exist or if the value couldn't be removed.
          */
         public func remove(_ key: String) throws {
             try url.withUnsafeFileSystemRepresentation { fileSystemPath in
                 let result = removexattr(fileSystemPath, key, 0)
-                guard result >= 0 else { throw NSError.posix(errno) }
+                guard result >= 0 else { throw POSIXError._current }
             }
         }
         
         /**
          Returns the raw data of the specified extended attribute.
          
-         - Parameter key: The name of the extended attribute.
+         - Parameter for: The name of the extended attribute.
          - Returns: The attribute data.
          - Throws: An error if the file doesn't exist or the attribute cannot be read.
          */
@@ -175,12 +175,12 @@ public extension URL {
             return try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath -> Data in
                 let length = getxattr(fileSystemPath, key, nil, 0, 0, 0)
-                guard length >= 0 else { throw NSError.posix(errno) }
+                guard length >= 0 else { throw POSIXError._current }
                 var data = Data(count: length)
                 let result = data.withUnsafeMutableBytes {
                     getxattr(fileSystemPath, key, $0.baseAddress, length, 0, 0)
                 }
-                guard result >= 0 else { throw NSError.posix(errno) }
+                guard result >= 0 else { throw POSIXError._current }
                 return data
             }
         }
@@ -190,7 +190,7 @@ public extension URL {
          
          - Parameters:
             - data: The data to store, or `nil` to remove the attribute.
-            - key: The name of the extended attribute.
+            - for: The name of the extended attribute.
             - flags: The attribute flags describing how the attribute should be handled by the file system.
          - Throws: An error if the file doesn't exist or the attribute cannot be written or removed.
          */
@@ -201,7 +201,7 @@ public extension URL {
                     let result = data.withUnsafeBytes {
                         setxattr(fileSystemPath, key, $0.baseAddress, $0.count, 0, 0)
                     }
-                    guard result >= 0 else { throw NSError.posix(errno) }
+                    guard result >= 0 else { throw POSIXError._current }
                 }
             } else {
                 try remove(key)
@@ -211,7 +211,7 @@ public extension URL {
         /**
          A Boolean value indicating whether the attribute with an name exists.
          
-         - Parameter key: The name of the extended attribute.
+         - Parameter for: The name of the extended attribute.
          - Returns: A Boolean value indicating whether the attribute exists.
          - Throws: An error if the file doesn't exist.
          */
@@ -224,7 +224,7 @@ public extension URL {
                 } else if errno == 93 {
                     return false
                 }
-                throw NSError.posix(errno)
+                throw POSIXError._current
             }
         }
         
@@ -250,13 +250,13 @@ public extension URL {
             try url.withUnsafeFileSystemRepresentation {
                 fileSystemPath in
                 let length = listxattr(fileSystemPath, nil, 0, 0)
-                guard length >= 0 else { throw NSError.posix(errno) }
+                guard length >= 0 else { throw POSIXError._current }
                 var data = Data(count: length)
                 let count = data.count
                 try data.withUnsafeMutableBytes {
                     let bytes = $0.baseAddress?.bindMemory(to: CChar.self, capacity: count)
                     let result = listxattr(fileSystemPath, bytes, count, 0)
-                    if result < 0 { throw NSError.posix(errno) }
+                    if result < 0 { throw POSIXError._current }
                 }
                 return data.split(separator: 0).compactMap { String(data: Data($0), encoding: .utf8) }
             }
@@ -323,7 +323,7 @@ public extension URL {
             
             static func nameWithoutFlags(_ name: String) throws -> String {
                 guard let newName = xattr_name_without_flags(name) else {
-                    throw NSError.posix(errno)
+                    throw POSIXError._current
                 }
                 defer { newName.deallocate() }
                 return String(cString: newName)
@@ -332,7 +332,7 @@ public extension URL {
             public func nameWithFlags(_ name: String) throws -> String {
                 if isEmpty { return name }
                 guard let newName = xattr_name_with_flags(name, rawValue) else {
-                    throw NSError.posix(errno)
+                    throw POSIXError._current
                 }
                 defer { newName.deallocate() }
                 return String(cString: newName)
@@ -344,8 +344,8 @@ public extension URL {
         }
         
         private enum Errors: LocalizedError {
-            case propertyListTypeMismatch(key: String, expected: Any.Type, actual: Any.Type)
-            case valueNotPropertyListSerializable(key: String, type: Any.Type)
+            case propertyListTypeMismatch(for: String, expected: Any.Type, actual: Any.Type)
+            case valueNotPropertyListSerializable(for: String, type: Any.Type)
 
             var errorDescription: String? {
                 switch self {
@@ -371,5 +371,11 @@ public extension URL {
                 }
             }
         }
+    }
+}
+
+fileprivate extension POSIXError {
+    static var _current: any Error {
+        POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: [:])
     }
 }

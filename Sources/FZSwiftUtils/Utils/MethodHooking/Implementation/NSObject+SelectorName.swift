@@ -83,10 +83,7 @@ fileprivate extension NSObject {
         return nil
     }
     
-    static var setterNames: SynchronizedDictionary<ObjectIdentifier, [String: String?]> {
-        get { getAssociatedValue("setterNames", initialValue: [:]) }
-        set { setAssociatedValue(newValue, key: "setterNames") }
-    }
+    static var setterNames = SynchronizedDictionary<ObjectIdentifier, [String: String?]>()
 }
 
 fileprivate extension objc_property_t {
@@ -94,4 +91,3 @@ fileprivate extension objc_property_t {
         property_copyAttributeValue(self, key)?.stringAndFree()
     }
 }
-

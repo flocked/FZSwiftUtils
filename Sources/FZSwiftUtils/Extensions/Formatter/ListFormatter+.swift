@@ -91,7 +91,7 @@ extension ListFormatter {
     
     private var orHook: Hook? {
         get { getAssociatedValue("orHook") }
-        set { setAssociatedValue(newValue, key: "orHook") }
+        set { setAssociatedValue(newValue, for: "orHook") }
     }
     
     private static let shared = ListFormatter()
