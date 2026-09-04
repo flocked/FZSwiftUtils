@@ -81,7 +81,7 @@ public extension NSNumber {
     
     /// A typed view of the number that exposes its underlying Objective-C numeric representation.
     var typed: TypedValue {
-        getAssociatedValue("typed", initial: TypedValue(self))
+        associatedValue(for: "typed", initial: TypedValue(self))
     }
     
     /// A typed view of an `NSNumber` that exposes its underlying Objective-C numeric representation.

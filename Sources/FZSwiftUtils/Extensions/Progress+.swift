@@ -13,7 +13,7 @@ import AppKit
 extension Progress {
     /// The identifier of the progress.
     public var identifier: Any? {
-        get { getAssociatedValue("identifier") }
+        get { associatedValue(for: "identifier") }
         set { setAssociatedValue(newValue, for: "identifier") }
     }
     
@@ -102,7 +102,7 @@ extension Progress {
     }
     
     var eta: ETA {
-        get { getAssociatedValue("ETA", initial: ETA()) }
+        get { associatedValue(for: "ETA", initial: ETA()) }
         set { setAssociatedValue(newValue, for: "ETA") }
     }
     
@@ -160,7 +160,7 @@ extension Progress {
     }
     
     private var isPublished: Bool {
-        get { getAssociatedValue("isPublished", initial: false) }
+        get { associatedValue(for: "isPublished", initial: false) }
         set { setAssociatedValue(newValue, for: "isPublished") }
     }
     

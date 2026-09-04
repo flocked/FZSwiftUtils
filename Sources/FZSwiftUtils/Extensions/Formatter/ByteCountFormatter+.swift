@@ -100,7 +100,7 @@ public extension ByteCountFormatter {
      The default value is `current`.
      */
     var locale: Locale {
-        get { getAssociatedValue("locale") ?? .current }
+        get { associatedValue(for: "locale") ?? .current }
         set {
             guard newValue != locale else { return }
             setAssociatedValue(newValue, for: "locale")
@@ -125,7 +125,7 @@ public extension ByteCountFormatter {
      The default value is `short`.
      */
     var unitStyle: Formatter.UnitStyle {
-        get { getAssociatedValue("unitStyle") ?? .short }
+        get { associatedValue(for: "unitStyle") ?? .short }
         set {
             guard newValue != unitStyle else { return }
             setAssociatedValue(newValue, for: "unitStyle")
@@ -203,7 +203,7 @@ private extension ByteCountFormatter {
     }
     
     var isFetching: Bool {
-        get { getAssociatedValue("isFetching") ?? false }
+        get { associatedValue(for: "isFetching") ?? false }
         set { setAssociatedValue(newValue, for: "isFetching") }
     }
     

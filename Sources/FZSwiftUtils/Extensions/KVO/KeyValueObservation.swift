@@ -793,14 +793,14 @@ private extension NSObject {
 #if os(macOS)
 fileprivate extension NSWindow {
     var _isOnActiveSpace: Bool {
-        get { getAssociatedValue("isOnActiveSpace", initial: isOnActiveSpace) }
+        get { associatedValue(for: "isOnActiveSpace", initial: isOnActiveSpace) }
         set { setAssociatedValue(newValue, for: "isOnActiveSpace") }
     }
 }
 
 fileprivate extension NSApplication {
     var _occlusionState: OcclusionState {
-        get { getAssociatedValue("_occlusionState", initial: occlusionState) }
+        get { associatedValue(for: "_occlusionState", initial: occlusionState) }
         set { setAssociatedValue(newValue, for: "_occlusionState") }
     }
 }
@@ -897,12 +897,12 @@ fileprivate extension NSUIView {
     #endif
     
     var didSwizzleSubviews: Bool {
-        get { getAssociatedValue("didSwizzleSubviews") ?? false }
+        get { associatedValue(for: "didSwizzleSubviews") ?? false }
         set { setAssociatedValue(newValue, for: "didSwizzleSubviews") }
     }
     
     var isSettingSubviews: Bool {
-        get { getAssociatedValue("isSettingSubviews") ?? false }
+        get { associatedValue(for: "isSettingSubviews") ?? false }
         set {
             guard newValue != isSettingSubviews else { return }
             newValue ? willChangeValue(for: \.subviews) : didChangeValue(for: \.subviews)

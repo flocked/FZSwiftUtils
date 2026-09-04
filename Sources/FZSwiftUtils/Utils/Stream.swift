@@ -80,7 +80,7 @@ extension ReadableStream {
      - Note: If the stream is read from outside of `handler`, or more than once inside it, it may be called once when stream is closed and empty.
      */
     public var onOutput: ((Self) -> Void)? {
-        get { filehandle.getAssociatedValue("onOutput") }
+        get { filehandle.associatedValue(for: "onOutput") }
         set {
             filehandle.setAssociatedValue(newValue, for: "onOutput")
             if let newValue = newValue {
@@ -110,7 +110,7 @@ extension ReadableStream {
      - Note: If the stream is read from outside of `handler`, or more than once inside it, it may be called once when stream is closed and empty.
      */
     public var onStringOutput: ((String) -> Void)? {
-        get { filehandle.getAssociatedValue("onStringOutput") }
+        get { filehandle.associatedValue(for: "onStringOutput") }
         set {
             filehandle.setAssociatedValue(newValue, for: "onStringOutput")
             if let newValue = newValue {

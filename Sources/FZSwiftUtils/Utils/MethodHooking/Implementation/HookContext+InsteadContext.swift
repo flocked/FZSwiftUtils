@@ -32,4 +32,3 @@ func createInsteadClosure(targetIMP: IMP, objectPointer: UnsafeMutableRawPointer
 func getInsteadContext(insteadClosure: AnyObject) -> InsteadContext? {
     getAssociatedValue("associatedInsteadContextHandle", of: insteadClosure)
 }
-

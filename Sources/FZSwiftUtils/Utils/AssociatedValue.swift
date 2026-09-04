@@ -115,47 +115,47 @@ private func setAndReturn<V: AnyObject>(_ key: String, of object: AnyObject, wea
 
 public extension NSObjectProtocol where Self: NSObject {
     /// Returns the associated value for the specified key.
-    func getAssociatedValue<V>(_ key: String, as type: V.Type = V.self) -> V? {
+    func associatedValue<V>(for key: String, as type: V.Type = V.self) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V) -> V {
+    func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V?) -> V? {
+    func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
+    func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+    func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
 
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V) -> V {
+    func associatedValue<V>(for key: String, initial initialValue: () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V?) -> V? {
+    func associatedValue<V>(for key: String, initial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
 
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V) -> V? {
+    func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V?) -> V? {
+    func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
     
@@ -184,47 +184,47 @@ public extension NSObjectProtocol where Self: NSObject {
     }
     
     /// Returns the associated value for the specified key.
-    static func getAssociatedValue<V>(_ key: String, as type: V.Type = V.self) -> V? {
+    static func associatedValue<V>(for key: String, as type: V.Type = V.self) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    static func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V) -> V {
+    static func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    static func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V?) -> V? {
+    static func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    static func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
+    static func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    static func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+    static func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
 
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    static func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V) -> V {
+    static func associatedValue<V>(for key: String, initial initialValue: () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    static func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V?) -> V? {
+    static func associatedValue<V>(for key: String, initial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
     }
 
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    static func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V) -> V? {
+    static func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    static func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V?) -> V? {
+    static func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
     }
     
@@ -256,169 +256,169 @@ public extension NSObjectProtocol where Self: NSObject {
 public extension NSObjectProtocol where Self: NSObject {
     /// Returns or sets the associated value for the specified key.
     subscript<V>(associated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+        get { associatedValue(for: key) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     subscript<V>(associated key: String, initial initialValue: () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     subscript<V>(associated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns or sets the weakly associated value for the specified key.
     subscript<V: AnyObject>(weakAssociated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+        get { associatedValue(for: key) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns or sets the associated value for the specified key.
     static subscript<V>(associated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+        get { associatedValue(for: key) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     static subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     static subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     static subscript<V>(associated key: String, initial initialValue: () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     static subscript<V>(associated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns or sets the weakly associated value for the specified key.
     static subscript<V: AnyObject>(weakAssociated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+        get { associatedValue(for: key) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     static subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     static subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     static subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     static subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
 }
 
 public extension NSObjectProtocol where Self: NSObject {
     /// Returns the associated value for the specified key.
-    func getAssociatedValue<V>(_ keyPath: KeyPath<Self, V?>) -> V? {
-        getAssociatedValue(keyPath.stringValue)
+    func associatedValue<V>(for keyPath: KeyPath<Self, V?>) -> V? {
+        associatedValue(for: keyPath.stringValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    func getAssociatedValue<V>(_ keyPath: KeyPath<Self, V>, initial initialValue: @autoclosure () -> V) -> V {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    func associatedValue<V>(for keyPath: KeyPath<Self, V>, initial initialValue: @autoclosure () -> V) -> V {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    func getAssociatedValue<V>(_ keyPath: KeyPath<Self, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    func associatedValue<V>(for keyPath: KeyPath<Self, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self, V?>, weakInitial initialValue: @autoclosure () -> V) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self, V?>, weakInitial initialValue: @autoclosure () -> V) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self, V?>, weakInitial initialValue: @autoclosure () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self, V?>, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
 
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    func getAssociatedValue<V>(_ keyPath: KeyPath<Self, V>, initial initialValue: () -> V) -> V {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    func associatedValue<V>(for keyPath: KeyPath<Self, V>, initial initialValue: () -> V) -> V {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    func getAssociatedValue<V>(_ keyPath: KeyPath<Self, V?>, initial initialValue: () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    func associatedValue<V>(for keyPath: KeyPath<Self, V?>, initial initialValue: () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
 
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self, V?>, weakInitial initialValue: () -> V) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self, V?>, weakInitial initialValue: () -> V) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self, V?>, weakInitial initialValue: () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self, V?>, weakInitial initialValue: () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
     
     /// Sets the associated value for the specified key to the given value and returns the previous value.
@@ -434,48 +434,48 @@ public extension NSObjectProtocol where Self: NSObject {
     }
     
     /// Returns the associated value for the specified key.
-    static func getAssociatedValue<V>(_ keyPath: KeyPath<Self.Type, V?>) -> V? {
-        getAssociatedValue(keyPath.stringValue)
+    static func associatedValue<V>(for keyPath: KeyPath<Self.Type, V?>) -> V? {
+        associatedValue(for: keyPath.stringValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    static func getAssociatedValue<V>(_ keyPath: KeyPath<Self.Type, V>, initial initialValue: @autoclosure () -> V) -> V {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    static func associatedValue<V>(for keyPath: KeyPath<Self.Type, V>, initial initialValue: @autoclosure () -> V) -> V {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    static func getAssociatedValue<V>(_ keyPath: KeyPath<Self.Type, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    static func associatedValue<V>(for keyPath: KeyPath<Self.Type, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    static func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: @autoclosure () -> V) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    static func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: @autoclosure () -> V) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    static func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: @autoclosure () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    static func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
 
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    static func getAssociatedValue<V>(_ keyPath: KeyPath<Self.Type, V>, initial initialValue: () -> V) -> V {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    static func associatedValue<V>(for keyPath: KeyPath<Self.Type, V>, initial initialValue: () -> V) -> V {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    static func getAssociatedValue<V>(_ keyPath: KeyPath<Self.Type, V?>, initial initialValue: () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, initial: initialValue)
+    static func associatedValue<V>(for keyPath: KeyPath<Self.Type, V?>, initial initialValue: () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, initial: initialValue)
     }
 
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    static func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: () -> V) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    static func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: () -> V) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    static func getAssociatedValue<V: AnyObject>(_ keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: () -> V?) -> V? {
-        getAssociatedValue(keyPath.stringValue, weakInitial: initialValue)
+    static func associatedValue<V: AnyObject>(for keyPath: KeyPath<Self.Type, V?>, weakInitial initialValue: () -> V?) -> V? {
+        associatedValue(for: keyPath.stringValue, weakInitial: initialValue)
     }
     
     /// Sets the associated value for the specified key to the given value and returns the previous value.
@@ -494,121 +494,121 @@ public extension NSObjectProtocol where Self: NSObject {
 public extension NSObjectProtocol where Self: NSObject {
     /// Returns or sets the associated value for the specified key.
     subscript<V>(associated keyPath: KeyPath<Self, V?>) -> V? {
-        get { getAssociatedValue(keyPath) }
+        get { associatedValue(for: keyPath) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     subscript<V>(associated keyPath: KeyPath<Self, V>, initial initialValue: @autoclosure () -> V) -> V {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     subscript<V>(associated keyPath: KeyPath<Self, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     subscript<V>(associated keyPath: KeyPath<Self, V>, initial initialValue: () -> V) -> V {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     subscript<V>(associated keyPath: KeyPath<Self, V?>, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns or sets the weakly associated value for the specified key.
     subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self, V?>) -> V? {
-        get { getAssociatedValue(keyPath) }
+        get { associatedValue(for: keyPath) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self, V?>, initial initialValue: @autoclosure () -> V) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self, V?>, initial initialValue: () -> V) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self, V?>, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns or sets the associated value for the specified key.
     static subscript<V>(associated keyPath: KeyPath<Self.Type, V?>) -> V? {
-        get { getAssociatedValue(keyPath) }
+        get { associatedValue(for: keyPath) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     static subscript<V>(associated keyPath: KeyPath<Self.Type, V>, initial initialValue: @autoclosure () -> V) -> V {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     static subscript<V>(associated keyPath: KeyPath<Self.Type, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     static subscript<V>(associated keyPath: KeyPath<Self.Type, V>, initial initialValue: () -> V) -> V {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     static subscript<V>(associated keyPath: KeyPath<Self.Type, V?>, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, initial: initialValue) }
+        get { associatedValue(for: keyPath, initial: initialValue) }
         set { setAssociatedValue(newValue, for: keyPath) }
     }
     
     /// Returns or sets the weakly associated value for the specified key.
     static subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self.Type, V?>) -> V? {
-        get { getAssociatedValue(keyPath) }
+        get { associatedValue(for: keyPath) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     static subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self.Type, V?>, initial initialValue: @autoclosure () -> V) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     static subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self.Type, V?>, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     static subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self.Type, V?>, initial initialValue: () -> V) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     static subscript<V: AnyObject>(weakAssociated keyPath: KeyPath<Self.Type, V?>, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(keyPath, weakInitial: initialValue) }
+        get { associatedValue(for: keyPath, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: keyPath) }
     }
 }

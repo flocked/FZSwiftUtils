@@ -415,7 +415,7 @@ public extension FileManager {
     
     /// The handlers for the file manager.
     var handlers: Handlers {
-        get { getAssociatedValue("handlers") ?? Handlers() }
+        get { associatedValue(for: "handlers") ?? Handlers() }
         set {
             setAssociatedValue(newValue, for: "handlers")
             handlerDelegate = newValue.needsDelegate ? Delegate(for: self) : nil
@@ -447,7 +447,7 @@ public extension FileManager {
     }
     
     private var handlerDelegate: Delegate? {
-        get { getAssociatedValue("handlerDelegate") }
+        get { associatedValue(for: "handlerDelegate") }
         set { setAssociatedValue(newValue, for: "handlerDelegate")  }
     }
     

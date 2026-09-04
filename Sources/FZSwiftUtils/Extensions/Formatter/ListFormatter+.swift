@@ -90,7 +90,7 @@ extension ListFormatter {
     }
     
     private var orHook: Hook? {
-        get { getAssociatedValue("orHook") }
+        get { associatedValue(for: "orHook") }
         set { setAssociatedValue(newValue, for: "orHook") }
     }
     

@@ -345,13 +345,13 @@ extension NSObjectProtocol where Self: NSObject {
     }
     
     static var originalIMPs: [Selector: IMP] {
-        get { getAssociatedValue("originalIMPs") ?? [:] }
-        set { setAssociatedValue(newValue, for: "originalIMPs") }
+        get { FZSwiftUtils.getAssociatedValue("originalIMPs", of: self) ?? [:] }
+        set { FZSwiftUtils.setAssociatedValue(newValue, for: "originalIMPs", of: self) }
     }
     
     static var originalClassIMPs: [Selector: IMP] {
-        get { getAssociatedValue("originalClassIMPs") ?? [:] }
-        set { setAssociatedValue(newValue, for: "originalClassIMPs") }
+        get { FZSwiftUtils.getAssociatedValue("originalClassIMPs", of: self) ?? [:] }
+        set { FZSwiftUtils.setAssociatedValue(newValue, for: "originalClassIMPs", of: self) }
     }
 }
 
@@ -751,4 +751,3 @@ fileprivate extension NSObject {
     
     static var swizzledStaticOptionalsReset: Set<Selector> = []
 }
-

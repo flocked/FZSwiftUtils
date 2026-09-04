@@ -47,7 +47,7 @@ public extension MDQuery {
     The property must be set before the query is started.
     */
     var maxCount: Int {
-        get { getAssociatedValue("maxCount") ?? 0 }
+        get { associatedValue(for: "maxCount") ?? 0 }
         set {
             setAssociatedValue(newValue, for: "maxCount")
             MDQuerySetMaxCount(self, newValue)
@@ -56,7 +56,7 @@ public extension MDQuery {
    
     /// The dispatch queue on which query results will be delivered by MDQueryExecute.
     var dispatchQueue: DispatchQueue? {
-        get { getAssociatedValue("dispatchQueue") }
+        get { associatedValue(for: "dispatchQueue") }
         set {
             setAssociatedValue(newValue, for: "dispatchQueue")
             MDQuerySetDispatchQueue(self, newValue)
@@ -158,7 +158,7 @@ public extension MDQuery {
      This property contains true when the receiver has executed the startQuery method; otherwise, false.
      */
     private(set) var isStarted: Bool {
-        get { getAssociatedValue("isStarted") ?? false }
+        get { associatedValue(for: "isStarted") ?? false }
         set { setAssociatedValue(newValue, for: "isStarted") }
     }
    
@@ -177,7 +177,7 @@ public extension MDQuery {
      This property contains true when the receiver has stopped the query; otherwise, false.
      */
     private(set) var isStopped: Bool {
-        get { getAssociatedValue("isStopped") ?? true }
+        get { associatedValue(for: "isStopped") ?? true }
         set { setAssociatedValue(newValue, for: "isStopped") }
     }
    
@@ -303,7 +303,7 @@ public extension MDQuery {
      - Note: Setting this property while a query is running stops the query, discards the current results and immediately starts a new query.
      */
     var searchScopes: [SearchScope] {
-        get { getAssociatedValue("searchScopes") ?? [] }
+        get { associatedValue(for: "searchScopes") ?? [] }
         set {
             setAssociatedValue([URL](), for: "searchLocations")
             setAssociatedValue(newValue, for: "searchScopes")
@@ -323,7 +323,7 @@ public extension MDQuery {
      - Note: Setting this property while a query is running stops the query, discards the current results and immediately starts a new query.
      */
     var searchLocations: [URL] {
-        get { getAssociatedValue("searchLocations") ?? [] }
+        get { associatedValue(for: "searchLocations") ?? [] }
         set {
             setAssociatedValue([String](), for: "searchScopes")
             setAssociatedValue(newValue, for: "searchLocations")
@@ -358,7 +358,7 @@ public extension MDQuery {
      ```
      */
     var monitorResults: Bool {
-        get { getAssociatedValue("monitorResults") ?? false }
+        get { associatedValue(for: "monitorResults") ?? false }
         set {
             setAssociatedValue(newValue, for: "monitorResults")
         }
@@ -380,7 +380,7 @@ public extension MDQuery {
     }
     
     private var options: Options {
-        get { getAssociatedValue("options") ?? [] }
+        get { associatedValue(for: "options") ?? [] }
         set { setAssociatedValue(newValue, for: "options") }
     }
     
@@ -395,7 +395,7 @@ public extension MDQuery {
    
     /// The handlers of the metadata query.
     var handlers: Handlers {
-        get { getAssociatedValue("handlers") ?? Handlers() }
+        get { associatedValue(for: "handlers") ?? Handlers() }
         set {
             setAssociatedValue(newValue, for: "handlers")
             setupHandlers(newValue)
@@ -455,7 +455,7 @@ public extension MDQuery {
     }
    
     private var replacementObjectWrapper: ReplacementObjectWrapper? {
-        get { getAssociatedValue("replacementObjectWrapper") }
+        get { associatedValue(for: "replacementObjectWrapper") }
         set { setAssociatedValue(newValue, for: "replacementObjectWrapper") }
     }
    
@@ -467,7 +467,7 @@ public extension MDQuery {
     }
    
     private var replacementValueWrapper: ReplacementValueWrapper? {
-        get { getAssociatedValue("replacementValueWrapper") }
+        get { associatedValue(for: "replacementValueWrapper") }
         set { setAssociatedValue(newValue, for: "replacementValueWrapper") }
     }
    
@@ -479,7 +479,7 @@ public extension MDQuery {
     }
     
     private var isDisabled: Bool {
-        get { getAssociatedValue("isDisabled") ?? false }
+        get { associatedValue(for: "isDisabled") ?? false }
         set { setAssociatedValue(newValue, for: "isDisabled") }
     }
     
@@ -505,7 +505,7 @@ public extension MDQuery {
     }
     
     private var notificationTokens: [NotificationToken] {
-        get { getAssociatedValue("notificationTokens") ?? [] }
+        get { associatedValue(for: "notificationTokens") ?? [] }
         set { setAssociatedValue(newValue, for: "notificationTokens")}
     }
 }
