@@ -530,6 +530,18 @@ extension Collection where Self: RandomAccessCollection, Element: BinaryFloating
     }
 }
 
+extension Collection {
+    public func index(_ index: Index, offsetBy distance: Int = 1, loop: Bool) -> Index {
+        guard !isEmpty else { return startIndex }
+        let count = count
+        var pos = self.distance(from: startIndex, to: index) + distance
+        pos = loop
+            ? (pos % count + count) % count
+        : Swift.min(Swift.max(pos, 0), count - 1)
+        return self.index(startIndex, offsetBy: pos)
+    }
+}
+
 extension BidirectionalCollection {
     /**
      Returns an index that is the specified distance from the given index.
@@ -889,111 +901,342 @@ public extension RangeReplaceableCollection {
     }
 }
 
+public extension RangeReplaceableCollection {
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: ClosedRange<Index>, with newElements: C) {
+        replaceSubrange(safe(subrange)!, with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: PartialRangeFrom<Index>, with newElements: C) {
+        replaceSubrange(safe(subrange)!, with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: PartialRangeThrough<Index>, with newElements: C) {
+        replaceSubrange(safe(subrange)!, with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: PartialRangeUpTo<Index>, with newElements: C) {
+        replaceSubrange(safe(subrange)!, with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    @discardableResult
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: Range<Index>, with newElements: C) -> Bool {
+        guard let range = safe(subrange) else { return false }
+        replaceSubrange(range, with: newElements)
+        return true
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    @discardableResult
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: ClosedRange<Index>, with newElements: C) -> Bool {
+        guard let range = safe(subrange) else { return false }
+        replaceSubrange(range, with: newElements)
+        return true
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    @discardableResult
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: PartialRangeFrom<Index>, with newElements: C) -> Bool {
+        guard let range = safe(subrange) else { return false }
+        replaceSubrange(range, with: newElements)
+        return true
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    @discardableResult
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: PartialRangeThrough<Index>, with newElements: C) -> Bool {
+        guard let range = safe(subrange) else { return false }
+        replaceSubrange(range, with: newElements)
+        return true
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    @discardableResult
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: PartialRangeUpTo<Index>, with newElements: C) -> Bool {
+        guard let range = safe(subrange) else { return false }
+        replaceSubrange(range, with: newElements)
+        return true
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: Range<Index>, with newElements: C) {
+        replaceSubrange(clamp(subrange), with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: ClosedRange<Index>, with newElements: C) {
+        replaceSubrange(clamp(subrange), with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: PartialRangeFrom<Index>, with newElements: C) {
+        replaceSubrange(clamp(subrange), with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: PartialRangeThrough<Index>, with newElements: C) {
+        replaceSubrange(clamp(subrange), with: newElements)
+    }
+    
+    /// Replaces the specified subrange of elements with the given collection.
+    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: PartialRangeUpTo<Index>, with newElements: C) {
+        replaceSubrange(clamp(subrange), with: newElements)
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(_ bounds: ClosedRange<Index>) {
+        removeSubrange(safe(bounds)!)
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(_ bounds: PartialRangeFrom<Index>) {
+        removeSubrange(safe(bounds)!)
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(_ bounds: PartialRangeThrough<Index>) {
+        removeSubrange(safe(bounds)!)
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(_ bounds: PartialRangeUpTo<Index>) {
+        removeSubrange(safe(bounds)!)
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(clamped bounds: Range<Index>) {
+        removeSubrange(clamp(bounds))
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(clamped bounds: ClosedRange<Index>) {
+        removeSubrange(clamp(bounds))
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(clamped bounds: PartialRangeFrom<Index>) {
+        removeSubrange(clamp(bounds))
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(clamped bounds: PartialRangeThrough<Index>) {
+        removeSubrange(clamp(bounds))
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    mutating func removeSubrange(clamped bounds: PartialRangeUpTo<Index>) {
+        removeSubrange(clamp(bounds))
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    @discardableResult
+    mutating func removeSubrange(safe bounds: Range<Index>) -> Bool {
+        guard let bounds = safe(bounds) else { return false }
+        removeSubrange(bounds)
+        return true
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    @discardableResult
+    mutating func removeSubrange(safe bounds: ClosedRange<Index>) -> Bool {
+        guard let bounds = safe(bounds) else { return false }
+        removeSubrange(bounds)
+        return true
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    @discardableResult
+    mutating func removeSubrange(safe bounds: PartialRangeFrom<Index>) -> Bool {
+        guard let bounds = safe(bounds) else { return false }
+        removeSubrange(bounds)
+        return true
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    @discardableResult
+    mutating func removeSubrange(safe bounds: PartialRangeThrough<Index>) -> Bool {
+        guard let bounds = safe(bounds) else { return false }
+        removeSubrange(bounds)
+        return true
+    }
+    
+    /// Removes the specified subrange of elements from the collection.
+    @discardableResult
+    mutating func removeSubrange(safe bounds: PartialRangeUpTo<Index>) -> Bool {
+        guard let bounds = safe(bounds) else { return false }
+        removeSubrange(bounds)
+        return true
+    }
+    
+    /// Removes the elements at the given indices.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    @discardableResult
+    mutating func removeSubranges(safe subranges: RangeSet<Index>) -> Bool {
+        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return false }
+        removeSubranges(subranges)
+        return true
+    }
+    
+    /// Removes the elements at the given indices.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    mutating func removeSubranges(clamped subranges: RangeSet<Index>) {
+        removeSubranges(RangeSet(subranges.ranges.map { clamp($0) }))
+    }
+    
+    /// Replaces the element at the specified index and returns it.
+    @discardableResult
+    mutating func replace(at index: Index, with newElement: Element?) -> Element {
+        if let newElement {
+           return replace(at: index, with: CollectionOfOne(newElement))
+        } else {
+            return replace(at: index, with: EmptyCollection())
+        }
+    }
+    
+    /// Replaces the element at the specified index and returns it.
+    mutating func replace<S: Collection<Element>>(at index: Index, with newElements: S) -> Element {
+        let oldElement = self[index]
+        replaceSubrange(index..<self.index(after: index), with: newElements)
+        return oldElement
+    }
+    
+    /// Replaces the element at the specified index and returns it.
+    @discardableResult
+    mutating func replace(safe index: Index, with newElement: Element?) -> Element? {
+        if let newElement {
+           return replace(safe: index, with: CollectionOfOne(newElement))
+        } else {
+            return replace(safe: index, with: EmptyCollection())
+        }
+    }
+    
+    /// Replaces the element at the specified index and returns it.
+    mutating func replace<S: Collection<Element>>(safe index: Index, with newElements: S) -> Element? {
+        guard let oldElement = self[safe: index] else { return nil }
+        replaceSubrange(index..<self.index(after: index), with: newElements)
+        return oldElement
+    }
+    
+    /// Removes and returns the element at the specified position.
+    @discardableResult
+    mutating func remove(safe index: Index) -> Element? {
+        guard indices.contains(index) else { return nil }
+        return remove(at: index)
+    }
+}
+
 public extension Collection {
-    func range(for range: PartialRangeFrom<Index>) -> Range<Index>? {
-        guard range.lowerBound >= startIndex, range.lowerBound <= endIndex else { return nil }
-        return range.lowerBound..<endIndex
+    /// Returns the range containing the element at the specified index, or `nil` if the index is outside the collection's bounds.
+    func range(for index: Index) -> Range<Index>? {
+        guard index >= startIndex, index < endIndex else { return nil }
+        return index..<self.index(after: index)
     }
     
-    func range(for range: PartialRangeUpTo<Index>) -> Range<Index>? {
-        guard range.upperBound >= startIndex, range.upperBound <= endIndex else { return nil }
-        return startIndex..<range.upperBound
-    }
-    
-    func range(for range: PartialRangeThrough<Index>) -> Range<Index>? {
-        guard range.upperBound >= startIndex, range.upperBound < endIndex else { return nil }
-        return startIndex..<index(after: range.upperBound)
-    }
-    
-    func range(for range: ClosedRange<Index>) -> Range<Index>? {
-        guard range.lowerBound >= startIndex, range.upperBound < endIndex else { return nil }
-        return range.lowerBound..<index(after: range.upperBound)
-    }
-    
+    /// Returns the specified range, or `nil` if it extends outside the collection's bounds.
     func range(for range: Range<Index>) -> Range<Index>? {
         guard range.lowerBound >= startIndex, range.upperBound <= endIndex else { return nil }
         return range
     }
     
-    func range(clamped range: PartialRangeFrom<Index>) -> Range<Index> {
-        Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)..<endIndex
+    /// Returns the specified closed range as a half-open range, or `nil` if it extends outside the collection's bounds.
+    func range(for range: ClosedRange<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.upperBound < endIndex else { return nil }
+        return range.lowerBound..<index(after: range.upperBound)
     }
     
-    func range(clamped range: PartialRangeUpTo<Index>) -> Range<Index> {
-        startIndex..<Swift.min(Swift.max(range.upperBound, startIndex), endIndex)
+    /// Returns the specified partial range as a range bounded by the collection's end index, or `nil` if its lower bound is outside the collection's bounds.
+    func range(for range: PartialRangeFrom<Index>) -> Range<Index>? {
+        guard range.lowerBound >= startIndex, range.lowerBound <= endIndex else { return nil }
+        return range.lowerBound..<endIndex
     }
     
-    func range(clamped range: PartialRangeThrough<Index>) -> Range<Index> {
-        guard !isEmpty, range.upperBound >= startIndex else { return startIndex..<startIndex }
-        return startIndex..<(range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+    /// Returns the specified partial range as a range bounded by the collection's start index, or `nil` if its upper bound is outside the collection's bounds.
+    func range(for range: PartialRangeUpTo<Index>) -> Range<Index>? {
+        guard range.upperBound >= startIndex, range.upperBound <= endIndex else { return nil }
+        return startIndex..<range.upperBound
     }
     
+    /// Returns the specified partial range as a half-open range bounded by the collection's start index, or `nil` if its upper bound is outside the collection's bounds.
+    func range(for range: PartialRangeThrough<Index>) -> Range<Index>? {
+        guard range.upperBound >= startIndex, range.upperBound < endIndex else { return nil }
+        return startIndex..<index(after: range.upperBound)
+    }
+    /// Returns the range containing the element at the specified index, or an empty range if the index is outside the collection's bounds.
+    func range(clamped index: Index) -> Range<Index> {
+        guard index >= startIndex, index < endIndex else { return startIndex..<startIndex }
+        return index..<self.index(after: index)
+    }
+    
+    /// Returns the specified range clamped to the collection's bounds.
+    func range(clamped range: Range<Index>) -> Range<Index> {
+        range.clamped(to: startIndex..<endIndex)
+    }
+    
+    /// Returns the specified closed range as a half-open range clamped to the collection's bounds.
     func range(clamped range: ClosedRange<Index>) -> Range<Index> {
         let lowerBound = Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)
         guard lowerBound < endIndex, range.upperBound >= startIndex else { return lowerBound..<lowerBound }
         return lowerBound..<Swift.max(lowerBound, range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
     }
     
-    func range(clamped range: Range<Index>) -> Range<Index> {
-        range.clamped(to: startIndex..<endIndex)
+    /// Returns the specified partial range as a range clamped to the collection's bounds.
+    func range(clamped range: PartialRangeFrom<Index>) -> Range<Index> {
+        Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)..<endIndex
     }
-}
+    
+    /// Returns the specified partial range as a range clamped to the collection's bounds.
+    func range(clamped range: PartialRangeUpTo<Index>) -> Range<Index> {
+        startIndex..<Swift.min(Swift.max(range.upperBound, startIndex), endIndex)
+    }
+    
+    /// Returns the specified partial range as a half-open range clamped to the collection's bounds.
+    func range(clamped range: PartialRangeThrough<Index>) -> Range<Index> {
+        guard !isEmpty, range.upperBound >= startIndex else { return startIndex..<startIndex }
+        return startIndex..<(range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+    }
+    
+    /// Returns the index at the specified offset from the given index, or the limiting index if the offset would pass it.
+    func index(_ i: Index, offsetBy distance: Int, clampedBy limit: Index) -> Index {
+        index(i, offsetBy: distance, limitedBy: limit) ?? limit
+    }
+    
+    /// Offsets the specified index by the given distance, clamping it to the specified limit if the offset would pass it.
+    func formIndex(_ i: inout Index, offsetBy distance: Int, clampedBy limit: Index) {
+        i = index(i, offsetBy: distance, clampedBy: limit)
+    }
+    
+    /// Returns an index that is the specified distance from the the collection's start index ([startIndex](https://developer.apple.com/documentation/swift/collection/startindex)).
+    func startIndex(offsetBy distance: Int) -> Index {
+        index(startIndex, offsetBy: distance)
+    }
+    
+    /// Returns an index that is the specified distance from the collection's start index ([startIndex](https://developer.apple.com/documentation/swift/collection/startindex)), unless that distance is beyond a given limiting index.
+    func startIndex(offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+        index(startIndex, offsetBy: distance, limitedBy: limit)
+    }
 
-public extension RangeReplaceableCollection {
-    mutating func removeSubrange(clamped bounds: Range<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
+    /// Returns the index that is the specified distance from the collection's start index ([startIndex](https://developer.apple.com/documentation/swift/collection/startindex)), clamping it to the specified limit if the offset would pass it.
+    func startIndex(offsetBy distance: Int, clampedBy limit: Index) -> Index {
+        index(startIndex, offsetBy: distance, clampedBy: limit)
     }
-    
-    mutating func removeSubrange(clamped bounds: ClosedRange<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
+
+    /// Returns the index that is the specified distance from the collection's end index ([endIndex](https://developer.apple.com/documentation/swift/collection/endindex)).
+    func endIndex(offsetBy distance: Int) -> Index {
+        index(endIndex, offsetBy: distance)
     }
-    
-    mutating func removeSubrange(clamped bounds: PartialRangeFrom<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
+
+    /// Returns the index that is the specified distance from the collection's end index ([endIndex](https://developer.apple.com/documentation/swift/collection/endindex)), unless that distance is beyond the specified limit.
+    func endIndex(offsetBy distance: Int, limitedBy limit: Index) -> Index? {
+        index(endIndex, offsetBy: distance, limitedBy: limit)
     }
-    
-    mutating func removeSubrange(clamped bounds: PartialRangeUpTo<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(clamped bounds: PartialRangeThrough<Index>) {
-        replaceSubrange(clamp(bounds), with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: Range<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: ClosedRange<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: PartialRangeFrom<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: PartialRangeUpTo<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    mutating func removeSubrange(safe bounds: PartialRangeThrough<Index>) {
-        guard let bounds = safe(bounds) else { return }
-        replaceSubrange(bounds, with: EmptyCollection())
-    }
-    
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-    mutating func removeSubranges(safe subranges: RangeSet<Index>) {
-        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return }
-        removeSubranges(subranges)
-    }
-    
-    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-    mutating func removeSubranges(clamped subranges: RangeSet<Index>) {
-        removeSubranges(RangeSet(subranges.ranges.map { clamp($0) }))
+
+    /// Returns the index that is the specified distance from the collection's end index ([endIndex](https://developer.apple.com/documentation/swift/collection/endindex)), clamping it to the specified limit if the offset would pass it.
+    func endIndex(offsetBy distance: Int, clampedBy limit: Index) -> Index {
+        index(endIndex, offsetBy: distance, clampedBy: limit)
     }
 }
 
@@ -1049,6 +1292,24 @@ private extension Collection {
     func safe(_ index: Index) -> Index? {
         index >= startIndex && index < endIndex ? index : nil
     }
+    
+    func clamp<R: RangeExpression<Index>>(_ range: R) -> Range<Index> {
+        if let range = range as? Range<Index> { return clamp(range) }
+        if let range = range as? ClosedRange<Index> { return clamp(range) }
+        if let range = range as? PartialRangeThrough<Index> { return clamp(range) }
+        if let range = range as? PartialRangeFrom<Index> { return clamp(range) }
+        if let range = range as? PartialRangeUpTo<Index> { return clamp(range) }
+        return startIndex..<startIndex
+    }
+    
+    func safe<R: RangeExpression<Index>>(_ range: R) -> Range<Index>? {
+        if let range = range as? Range<Index> { return safe(range) }
+        if let range = range as? ClosedRange<Index> { return safe(range) }
+        if let range = range as? PartialRangeThrough<Index> { return safe(range) }
+        if let range = range as? PartialRangeFrom<Index> { return safe(range) }
+        if let range = range as? PartialRangeUpTo<Index> { return safe(range) }
+        return nil
+    }
 }
 
 private extension RangeReplaceableCollection {
@@ -1081,5 +1342,48 @@ public extension RangeReplaceableCollection where Element: Collection {
     /// Removes all empty elements from the collection.
     mutating func removeEmpty() {
         removeAll(where: { $0.isEmpty })
+    }
+}
+
+public extension Collection {
+    /// Returns all combinations of the elements.
+    func combinations(minCount: Int = 1, maxCount: Int = .max) -> [[Element]] {
+        let elements = Array(self)
+        let count = elements.count
+        let minCount = Swift.max(0, minCount)
+        let maxCount = Swift.min(maxCount, count)
+
+        guard minCount <= maxCount else { return [] }
+
+        var result: [[Element]] = []
+        var combination: [Element] = []
+        combination.reserveCapacity(maxCount)
+
+        func generate(
+            from startIndex: Int,
+            targetCount: Int
+        ) {
+            if combination.count == targetCount {
+                result.append(combination)
+                return
+            }
+
+            let needed = targetCount - combination.count
+            let lastStartIndex = count - needed
+
+            guard startIndex <= lastStartIndex else { return }
+
+            for index in startIndex...lastStartIndex {
+                combination.append(elements[index])
+                generate(from: index + 1, targetCount: targetCount)
+                combination.removeLast()
+            }
+        }
+
+        for targetCount in minCount...maxCount {
+            generate(from: 0, targetCount: targetCount)
+        }
+
+        return result
     }
 }

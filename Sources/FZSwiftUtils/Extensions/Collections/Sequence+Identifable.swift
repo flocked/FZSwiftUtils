@@ -23,6 +23,12 @@ public extension Sequence where Element: Identifiable {
         let ids = Set(ids)
         return filter { ids.contains($0.id) }
     }
+    
+    /// Returns a Boolean value indicating whether the sequence contains an object with the specified identifier.
+    @_disfavoredOverload
+    func contains(_ id: Element.ID) -> Bool {
+        contains { $0.id == id }
+    }
 }
 
 public extension RangeReplaceableCollection where Element: Identifiable {
@@ -48,6 +54,7 @@ public extension RangeReplaceableCollection where Element: Identifiable {
     
     /// Removes all elements with the specified element identifiers.
     mutating func remove<S: Sequence<Element.ID>>(ids: S) {
+        let ids = Set(ids)
         removeAll(where: { ids.contains($0.id) })
     }
     
@@ -103,46 +110,76 @@ public extension Collection where Element: Identifiable & Equatable {
     }
 }
 
-/*
- public extension Collection where Element: Identifiable {
-     /*
-      Returns the first index of the specified element.
-
-      - Parameter element: The element for returning the index.
-      - Returns: The first index of the element, or `nil` if the collection doesn't contain the element.
-      */
-     func firstIndex(of element: Element) -> Index? {
-         firstIndex(where: { $0.id == element.id })
-     }
+public extension Sequence where Element: AnyObject {
+    /// The identifiers of the objects in the sequence.
+    @_disfavoredOverload
+    var ids: [ObjectIdentifier] {
+        map(ObjectIdentifier.init)
+    }
     
-     /*
-      Returns the first index of the specified element identifier.
-
-      - Parameter id: The element identifier for returning the index.
-      - Returns: The first index of the elemen identifiert, or `nil` if the collection doesn't contain any element with the identifier.
-      */
-     func firstIndex(of id: Element.ID) -> Index? {
-         firstIndex(where: { $0.id == id })
-     }
-
-     /*
-      Returns the indexes of the specified elements.
-
-      - Parameter elements: The elements for returning the indexes.
-      - Returns: An array of indexes for the specified elements.
-      */
-     func indexes<S: Sequence<Element>>(of elements: S) -> [Index] {
-         elements.compactMap { firstIndex(of: $0) }
-     }
+    /// Returns the object with the specified identifier, or `nil` if no matching object exists.
+    subscript(id id: ObjectIdentifier) -> Element? {
+        first { ObjectIdentifier($0) == id }
+    }
     
-     /*
-      Returns the indexes of the specified element identifiers.
+    /// The elements with the specified identifiers.
+    subscript<S: Sequence<ObjectIdentifier>>(ids ids: S) -> [Element] {
+        let ids = Set(ids)
+        return filter { ids.contains(ObjectIdentifier($0)) }
+    }
+    
+    /// Returns a Boolean value indicating whether the sequence contains an object with the specified identifier.
+    @_disfavoredOverload
+    func contains(_ id: ObjectIdentifier) -> Bool {
+        contains { ObjectIdentifier($0) == id }
+    }
+}
 
-      - Parameter ids: The element identifiers for returning the indexes.
-      - Returns: An array of indexes for the specified element identifiers.
-      */
-     func indexes<S: Sequence<Element.ID>>(of ids: S) -> [Index] {
-         ids.compactMap { firstIndex(of: $0) }
-     }
- }
- */
+public extension RangeReplaceableCollection where Element: AnyObject {
+    /// The element with the specified identifier, or `nil` if the collection doesn't contain an element with the identifier.
+    subscript(id id: ObjectIdentifier) -> Element? {
+        get { first(where: { ObjectIdentifier($0) == id }) }
+        set {
+            if let index = firstIndex(where: { ObjectIdentifier($0) == id }) {
+                remove(at: index)
+                guard let newValue = newValue else { return }
+                insert(newValue, at: index)
+            } else if let newValue = newValue {
+                append(newValue)
+            }
+        }
+    }
+    
+    /// Removes all elements with the specified element identifier.
+    mutating func remove(id: ObjectIdentifier) {
+        removeAll(where: { ObjectIdentifier($0) == id })
+    }
+    
+    /// Removes all elements with the specified element identifiers.
+    mutating func remove<S: Sequence<ObjectIdentifier>>(ids: S) {
+        let ids = Set(ids)
+        removeAll(where: { ids.contains(ObjectIdentifier($0)) })
+    }
+    
+    /**
+     Removes the first element with the specified element identifier.
+     
+     - Parameter id: The element identifier.
+     
+     - Returns: The removed element, or `nil` if there isn't any element with the specified identifier in the collection.
+     */
+    mutating func removeFirst(id: ObjectIdentifier) -> Element? {
+        removeFirst(where: { ObjectIdentifier($0) == id })
+    }
+    
+    /**
+     Removes the last element with the specified element identifier.
+     
+     - Parameter id: The element identifier.
+     
+     - Returns: The removed element, or `nil` if there isn't any element with the specified identifier in the collection.
+     */
+    mutating func removeLast(id: ObjectIdentifier) -> Element? where Self: BidirectionalCollection {
+        removeLast(where: { ObjectIdentifier($0) == id })
+    }
+}

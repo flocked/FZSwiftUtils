@@ -16,11 +16,21 @@ extension Notification.Name: Swift.ExpressibleByStringLiteral, Swift.Expressible
     }
 }
 
-
 extension Notification {
     /// Values of this notification.
     public var values: Info {
         Info(for: self)
+    }
+    
+    /// Returns the value for the specified key in the notification's [userInfo](https://developer.apple.com/documentation/foundation/notification/userinfo) dictionary.
+    @_disfavoredOverload
+    public subscript(key: AnyHashable) -> Any? {
+        userInfo?[key]
+    }
+    
+    /// Returns the value for the specified key in the notification's [userInfo](https://developer.apple.com/documentation/foundation/notification/userinfo) dictionary.
+    public subscript<V>(key: AnyHashable, as type: V.Type = V.self) -> V? {
+        userInfo?[key] as? V
     }
   
     /// Values of a notification.

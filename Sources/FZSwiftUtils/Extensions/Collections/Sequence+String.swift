@@ -127,63 +127,43 @@ public extension Sequence where Element: OptionalProtocol, Element.Wrapped: Stri
 }
 
 
-public extension Sequence where Element == String {
+public extension Sequence where Element: StringProtocol {
     #if os(macOS) || os(iOS)
     /**
-     Returns a new string by concatenating the elements of the sequence, adding a separator for the option.
+     Returns a new string by concatenating the elements of the sequence using the specified joining option.
 
      - Parameters:
-        - option: The option how to join the strings.
-        - locale: The locale to use (for options like ``Swift/String/JoinOption/and``, ``Swift/String/JoinOption/or``, …)
-     - Returns: A single, concatenated string.
+        - option: The option specifying how to join the strings.
+        - locale: The locale to use for localized joining options.
+     - Returns: A single concatenated string.
      */
     func joined(by option: String.JoinOption, locale: Locale = .current) -> String {
-        var strings = Array(self)
-        if let prefix = option.prefix {
-            strings = strings.compactMap { prefix + $0 }
-        }
-        if option.isNumeric {
-            strings = strings.indexed().compactMap { "\($0.index + 1)\($0.element)" }
-        }
-        if let lastSeperator = option.lastSeperator(for: locale), strings.count >= 2 {
-            let lastString = strings.removeLast()
-            var string = strings.joined(separator: option.seperator(for: locale))
-            string = [string, lastString].joined(separator: lastSeperator)
-            return string
-        }
-        return strings.joined(separator: option.seperator(for: locale))
+        joined(separator: option.separator(for: locale), lastSeparator: option.lastSeparator(for: locale), transform: option.format)
     }
     #else
     /**
-     Returns a new string by concatenating the elements of the sequence, adding a separator for the option.
+     Returns a new string by concatenating the elements of the sequence using the specified joining option.
 
-     - Parameter option: The option how to join the strings.
-     - Returns: A single, concatenated string.
+     - Parameter option: The option specifying how to join the strings.
+     - Returns: A single concatenated string.
      */
     func joined(by option: String.JoinOption) -> String {
-        var strings = Array(self)
-        if let prefix = option.prefix {
-            strings = strings.compactMap { prefix + $0 }
-        }
-        if option.isNumeric {
-            strings = strings.indexed().compactMap { "\($0.index + 1)\($0.element)" }
-        }
-        if let lastSeperator = option.lastSeperator, strings.count >= 2 {
-            let lastString = strings.removeLast()
-            var string = strings.joined(separator: option.seperator)
-            string = [string, lastString].joined(separator: lastSeperator)
-            return string
-        }
-        return strings.joined(separator: option.seperator)
+        joined(separator: option.separator, lastSeparator: option.lastSeparator, transform: option.format)
     }
     #endif
+
+    private func joined(separator: String, lastSeparator: String?, transform: (_ string: String, _ index: Int) -> String) -> String {
+        let strings = enumerated().map { transform(String($0.element), $0.offset) }
+        guard let lastSeparator, strings.count >= 2 else { return strings.joined(separator: separator) }
+        return strings.dropLast().joined(separator: separator) + lastSeparator + strings[strings.count - 1]
+    }
 }
 
 public extension String {
     /// Options for joining string sequences.
     enum JoinOption: Int {
         /**
-         Joined by adding lines.
+         Joins strings using new lines.
 
          ```
          Apple
@@ -192,72 +172,81 @@ public extension String {
          ```
          */
         case line
+
         /**
-         Joined by adding comma's.
+         Joins strings using commas.
 
          ```
          Apple, Orange, Strawberry, Banana
          ```
          */
         case comma
+
         /**
-         Joined by adding comma's and `and` to join the last string.
+         Joins strings using commas and a localized `and` before the last string.
 
          ```
          Apple, Orange, Strawberry and Banana
          ```
          */
         case commaAnd
+
         /**
-         Joined by adding comma's and `or` to join the last string.
+         Joins strings using commas and a localized `or` before the last string.
 
          ```
          Apple, Orange, Strawberry or Banana
          ```
          */
         case commaOr
+
         /**
-         Joined by adding comma's and `&` to join the last string.
+         Joins strings using commas and `&` before the last string.
 
          ```
          Apple, Orange, Strawberry & Banana
          ```
          */
         case commaAmpersand
+
         /**
-         Joined by adding `and`.
+         Joins strings using a localized `and`.
 
          ```
          Apple and Orange and Banana
          ```
          */
         case and
+
         /**
-         Joined by adding `or`.
+         Joins strings using a localized `or`.
 
          ```
          Apple or Orange or Banana
          ```
          */
         case or
+
         /**
-         Joined by adding `/`.
+         Joins strings using `/`.
 
          ```
          Apple / Orange / Banana
          ```
          */
         case slash
+
         /**
-         Joined by adding `\`.
+         Joins strings using `\`.
 
          ```
          Apple \ Orange \ Banana
          ```
          */
         case backslash
+
         /**
-         Joined by adding new lines and `-`.
+         Joins strings as a dashed list.
 
          ```
           - Apple
@@ -266,8 +255,9 @@ public extension String {
          ```
          */
         case list
+
         /**
-         Joined by adding new lines and `*`.
+         Joins strings as a starred list.
 
          ```
           * Apple
@@ -276,9 +266,9 @@ public extension String {
          ```
          */
         case listStars
-        /// Joined by adding new lines and numbers.
+
         /**
-         Joined by adding new lines and numbers.
+         Joins strings as a numbered list.
 
          ```
          1 Apple
@@ -287,8 +277,9 @@ public extension String {
          ```
          */
         case listNumeric
+
         /**
-         Joined by adding new lines and numbers with dots.
+         Joins strings as a numbered list using dots.
 
          ```
          1. Apple
@@ -297,8 +288,9 @@ public extension String {
          ```
          */
         case listNumericDot
+
         /**
-         Joined by adding new lines and numbers with colons.
+         Joins strings as a numbered list using colons.
 
          ```
          1: Apple
@@ -307,8 +299,9 @@ public extension String {
          ```
          */
         case listNumericColon
+
         /**
-         Joined by adding new lines and numbers with dashes.
+         Joins strings as a numbered list using dashes.
 
          ```
          1 - Apple
@@ -317,65 +310,77 @@ public extension String {
          ```
          */
         case listNumericDash
-        
-        var isNumeric: Bool {
+
+        fileprivate func format(_ string: String, at index: Int) -> String {
             switch self {
-            case .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return true
-            default: return false
+            case .list: return " - \(string)"
+            case .listStars: return " * \(string)"
+            case .listNumeric: return "\(index + 1) \(string)"
+            case .listNumericDot: return "\(index + 1). \(string)"
+            case .listNumericColon: return "\(index + 1): \(string)"
+            case .listNumericDash: return "\(index + 1) - \(string)"
+            default: return string
             }
         }
 
-        var prefix: String? {
-            switch self {
-            case .list, .listNumericDash: return " - "
-            case .listStars: return " * "
-            case .listNumericDot: return ". "
-            case .listNumericColon: return ": "
-            case .listNumeric: return " "
-            default: return nil
-            }
-        }
-        
         #if os(macOS) || os(iOS)
-        func seperator(for locale: Locale) -> String {
+        fileprivate func separator(for locale: Locale) -> String {
             switch self {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
             case .and: return " \(ListFormatter.localizedAnd(for: locale)) "
+            case .or: return " \(ListFormatter.localizedOr(for: locale)) "
             case .slash: return " / "
             case .backslash: return " \\ "
-            case .or: return " \(ListFormatter.localizedOr(for: locale)) "
             }
         }
-        
-        func lastSeperator(for locale: Locale) -> String? {
+
+        fileprivate func lastSeparator(for locale: Locale) -> String? {
             switch self {
-            case .commaAnd: return JoinOption.and.seperator(for: locale)
-            case .commaOr: return JoinOption.or.seperator(for: locale)
+            case .commaAnd: return JoinOption.and.separator(for: locale)
+            case .commaOr: return JoinOption.or.separator(for: locale)
             case .commaAmpersand: return " & "
             default: return nil
             }
         }
         #else
-        var seperator: String {
+        fileprivate var separator: String {
             switch self {
             case .line, .list, .listStars, .listNumeric, .listNumericDot, .listNumericColon, .listNumericDash: return "\n"
             case .comma, .commaAnd, .commaOr, .commaAmpersand: return ", "
-            case .and: return  " and "
+            case .and: return " and "
+            case .or: return " or "
             case .slash: return " / "
             case .backslash: return " \\ "
-            case .or: return " or "
             }
         }
-        
-        var lastSeperator: String? {
+
+        fileprivate var lastSeparator: String? {
             switch self {
-            case .commaAnd: return JoinOption.and.seperator
-            case .commaOr: return JoinOption.or.seperator
+            case .commaAnd: return JoinOption.and.separator
+            case .commaOr: return JoinOption.or.separator
             case .commaAmpersand: return " & "
             default: return nil
             }
         }
         #endif
+    }
+}
+
+struct StringJoinFormat<Input: Sequence>: FormatStyle where Input.Element: StringProtocol {
+    var locale: Locale
+    
+    init(locale: Locale = .autoupdatingCurrent) {
+        self.locale = locale
+    }
+    
+    func locale(_ locale: Locale) -> Self {
+        var copy = self
+        copy.locale = locale
+        return copy
+    }
+    
+    func format(_ value: Input) -> String {
+        value.joined()
     }
 }

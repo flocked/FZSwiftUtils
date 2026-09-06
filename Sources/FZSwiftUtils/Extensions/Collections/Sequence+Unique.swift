@@ -125,6 +125,71 @@ public extension Sequence {
     }
 }
 
+public extension Sequence where Element: Equatable {
+    /// A Boolean value indicating whether the sequence contains duplicate elements.
+    var hasDuplicates: Bool {
+        var seen: [Element] = []
+        for element in self {
+            if seen.contains(element) {
+                return true
+            }
+            seen.append(element)
+        }
+        return false
+    }
+}
+
+public extension Sequence where Element: Hashable {
+    /// A Boolean value indicating whether the sequence contains duplicate elements.
+    var hasDuplicates: Bool {
+        var seen = Set<Element>()
+        return contains { !seen.insert($0).inserted }
+    }
+}
+
+public extension Sequence where Element: AnyObject {
+    /// A Boolean value indicating whether the sequence contains duplicate objects.
+    @_disfavoredOverload
+    var hasDuplicates: Bool {
+        var seen = Set<ObjectIdentifier>()
+        return contains { !seen.insert(ObjectIdentifier($0)).inserted }
+    }
+}
+
+public extension Collection where Element: Equatable {
+    /// A Boolean value indicating whether the collection contains duplicate elements.
+    var hasDuplicates: Bool {
+        var seen: [Element] = []
+        seen.reserveCapacity(count)
+        for element in self {
+            if seen.contains(element) {
+                return true
+            }
+            seen.append(element)
+        }
+        return false
+    }
+}
+
+public extension Collection where Element: Hashable {
+    /// A Boolean value indicating whether the collection contains duplicate elements.
+    var hasDuplicates: Bool {
+        var seen = Set<Element>()
+        seen.reserveCapacity(count)
+        return contains { !seen.insert($0).inserted }
+    }
+}
+
+public extension Collection where Element: AnyObject {
+    /// A Boolean value indicating whether the collection contains duplicate objects.
+    @_disfavoredOverload
+    var hasDuplicates: Bool {
+        var seen = Set<ObjectIdentifier>()
+        seen.reserveCapacity(count)
+        return contains { !seen.insert(ObjectIdentifier($0)).inserted }
+    }
+}
+
 public extension Sequence {
     /// Returns the elements that appear more than once, in the order they first appear as duplicates.
     func duplicates() -> [Element] where Element: Equatable {

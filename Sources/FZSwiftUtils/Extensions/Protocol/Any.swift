@@ -9,6 +9,7 @@ import Foundation
 
 /// A type that provides methods and properties for `AnyObject`.
 public struct _AnyObject: Identifiable, CustomStringConvertible {
+    /// The object represents by this type.
     public let object: AnyObject
     
     public init(_ object: AnyObject) {
@@ -28,124 +29,142 @@ public struct _AnyObject: Identifiable, CustomStringConvertible {
     }
     
     /// Returns the associated value for the specified key.
-    public func getAssociatedValue<V>(_ key: String, as type: V.Type = V.self) -> V? {
+    public func associatedValue<V>(for key: String, as _: V.Type = V.self) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V) -> V {
+    public func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: object, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V?) -> V? {
+    public func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object, initial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object, weakInitial: initialValue)
     }
 
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V) -> V {
+    public func associatedValue<V>(for key: String, initial initialValue: () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: object, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V?) -> V? {
+    public func associatedValue<V>(for key: String, initial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object, initial: initialValue)
     }
 
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V?) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: object, weakInitial: initialValue)
     }
     
-    /// Sets the associated value for the specified key to the given value.
-    public func setAssociatedValue(_ value: Any?, for key: String) {
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    public func setAssociatedValue<V>(_ value: V?, for key: String) -> V? {
         FZSwiftUtils.setAssociatedValue(value, for: key, of: object)
     }
     
-    /// Sets the associated value for the specified key to the given value using a weak reference.
-    public func setAssociatedValue(weak value: AnyObject?, for key: String) {
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    public func setAssociatedValue(_ value: Any?, for key: String) -> Any? {
+        FZSwiftUtils.setAssociatedValue(value, for: key, of: object)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    public func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String) -> V? {
+        FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: object)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    public func setAssociatedValue(weak value: AnyObject?, for key: String) -> AnyObject? {
         FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: object)
     }
     
     /// Returns or sets the associated value for the specified key.
-    public subscript<V>(associated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+    public subscript<V>(associated key: String, as _: V.Type = V.self) -> V? {
+        get { associatedValue(for: key) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     public subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     public subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     public subscript<V>(associated key: String, initial initialValue: () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     public subscript<V>(associated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns or sets the weakly associated value for the specified key.
-    public subscript<V: AnyObject>(weakAssociated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+    public subscript<V: AnyObject>(weakAssociated key: String, as _: V.Type = V.self) -> V? {
+        get { associatedValue(for: key) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
 }
 
 /// A type that provides methods and properties for `AnyClass`.
 public struct _AnyClass: Identifiable, CustomStringConvertible, Equatable, Codable, Hashable {
+    /// The class represents by this type.
     public let cls: AnyClass
+    
     public init(_ cls: AnyClass) {
         self.cls = cls
     }
@@ -159,7 +178,7 @@ public struct _AnyClass: Identifiable, CustomStringConvertible, Equatable, Codab
     }
     
     public func encode(to encoder: any Encoder) throws {
-       try encoder.encodeSingle(class_getName(cls).string)
+        try encoder.encodeSingle(class_getName(cls).string)
     }
     
     public init(from decoder: any Decoder) throws {
@@ -210,123 +229,140 @@ public struct _AnyClass: Identifiable, CustomStringConvertible, Equatable, Codab
     }
     
     /// Returns the associated value for the specified key.
-    public func getAssociatedValue<V>(_ key: String, as type: V.Type = V.self) -> V? {
+    public func associatedValue<V>(for key: String, as _: V.Type = V.self) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V) -> V {
+    public func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: cls, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: @autoclosure () -> V?) -> V? {
+    public func associatedValue<V>(for key: String, initial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls, initial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: @autoclosure () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls, weakInitial: initialValue)
     }
 
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V) -> V {
+    public func associatedValue<V>(for key: String, initial initialValue: () -> V) -> V {
         FZSwiftUtils.getAssociatedValue(key, of: cls, initial: initialValue)
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    public func getAssociatedValue<V>(_ key: String, initial initialValue: () -> V?) -> V? {
+    public func associatedValue<V>(for key: String, initial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls, initial: initialValue)
     }
 
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls, weakInitial: initialValue)
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
-    public func getAssociatedValue<V: AnyObject>(_ key: String, weakInitial initialValue: () -> V?) -> V? {
+    public func associatedValue<V: AnyObject>(for key: String, weakInitial initialValue: () -> V?) -> V? {
         FZSwiftUtils.getAssociatedValue(key, of: cls, weakInitial: initialValue)
     }
     
-    /// Sets the associated value for the specified key to the given value.
-    public func setAssociatedValue(_ value: Any?, for key: String) {
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    public func setAssociatedValue<V>(_ value: V?, for key: String) -> V? {
         FZSwiftUtils.setAssociatedValue(value, for: key, of: cls)
     }
     
-    /// Sets the associated value for the specified key to the given value using a weak reference.
-    public func setAssociatedValue(weak value: AnyObject?, for key: String) {
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    public func setAssociatedValue(_ value: Any?, for key: String) -> Any? {
+        FZSwiftUtils.setAssociatedValue(value, for: key, of: cls)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    public func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String) -> V? {
+        FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: cls)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    public func setAssociatedValue(weak value: AnyObject?, for key: String) -> AnyObject? {
         FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: cls)
     }
     
     /// Returns or sets the associated value for the specified key.
-    public subscript<V>(associated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+    public subscript<V>(associated key: String, as _: V.Type = V.self) -> V? {
+        get { associatedValue(for: key) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     public subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     public subscript<V>(associated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     public subscript<V>(associated key: String, initial initialValue: () -> V) -> V {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns the associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     public subscript<V>(associated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, initial: initialValue) }
+        get { associatedValue(for: key, initial: initialValue) }
         set { setAssociatedValue(newValue, for: key) }
     }
     
     /// Returns or sets the weakly associated value for the specified key.
-    public subscript<V: AnyObject>(weakAssociated key: String, as type: V.Type = V.self) -> V? {
-        get { getAssociatedValue(key) }
+    public subscript<V: AnyObject>(weakAssociated key: String, as _: V.Type = V.self) -> V? {
+        get { associatedValue(for: key) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if no associated value exists.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the given initial value if it hasn't previously been initialized.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: @autoclosure () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if no associated value exists.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
     
     /// Returns the weakly associated value for the specified key, or sets and returns the value produced by the initial value closure if it hasn't previously been initialized.
     public subscript<V: AnyObject>(weakAssociated key: String, initial initialValue: () -> V?) -> V? {
-        get { getAssociatedValue(key, weakInitial: initialValue) }
+        get { associatedValue(for: key, weakInitial: initialValue) }
         set { setAssociatedValue(weak: newValue, for: key) }
     }
 }
 
 /// A type to access additional methods for any value.
 public struct _Any {
+    /// The value represents by this type.
     public let value: Any
     
     public init(_ value: Any) {
@@ -365,16 +401,7 @@ public struct _Any {
     
     /// The display style of the value (e.g. `class`, `struct`, `tuple` or `enum`).
     public var displayStyle: Mirror.DisplayStyle? {
-        let mirror = mirror
-        if mirror.displayStyle == .optional {
-            if let firstChild = mirror.children.first {
-                return Mirror(reflecting: firstChild.value).displayStyle
-            } else {
-                return nil
-            }
-        } else {
-            return mirror.displayStyle
-        }
+        mirror.unwrappedDisplayStyle
     }
     
     /// Checks if the value type is matching the specified ObjC type encoding.
@@ -425,5 +452,17 @@ public struct _Any {
         default:
             return true
         }
+    }
+}
+
+fileprivate extension Mirror {
+    var unwrappedDisplayStyle: DisplayStyle? {
+        guard displayStyle == .optional else {
+            return displayStyle
+        }
+        guard let value = children.first?.value else {
+            return nil
+        }
+        return Mirror(reflecting: value).displayStyle
     }
 }

@@ -7,33 +7,7 @@
 
 import Foundation
 
-public struct OSStatusError: CustomNSError, CustomDebugStringConvertible {
-    public let ossStatus: OSStatus
-    
-    public var errorUserInfo: [String : Any] = [:]
-    
-    public var errorCode: Int {
-        Int(ossStatus)
-    }
-    
-    public var debugDescription: String {
-        errorUserInfo[NSDebugDescriptionErrorKey] as? String ?? "\(ossStatus)"
-    }
-    
-    public init(status: OSStatus, underlyingError: NSError? = nil) {
-        self.ossStatus = status
-        self.errorUserInfo[NSDebugDescriptionErrorKey] = SecCopyErrorMessageString(status, nil) as String?
-        self.errorUserInfo[NSUnderlyingErrorKey] = underlyingError
-    }
-    
-    public static var errorDomain: String { NSOSStatusErrorDomain }
-}
-
 public extension NSError {
-    static func osStatus(_ status: OSStatus) -> NSError {
-        NSError(domain: .osStatus, code: Int(status))
-    }
-    
     /**
      Creates an error that can be used for throwing.
      
@@ -74,6 +48,10 @@ public extension NSError {
         self.init(description, failureReason: failureReason, recoverySuggestion: recoverySuggestion, fileURL: fileURL, helpAnchor: helpAnchor, domain: domain.rawValue, code: code, userInfo: userInfo)
     }
     
+    static func osStatus(_ status: OSStatus) -> NSError {
+        NSError(domain: .osStatus, code: Int(status))
+    }
+    
     /*
     /// Creates an `NSError` object for the specified POSIX error code.
     static func posix(_ errorCode: Int32) -> NSError {
@@ -100,10 +78,16 @@ public extension NSError {
     var errorDebugDescription: String? {
         self[NSDebugDescriptionErrorKey]
     }
-
-    /// Returns the value for the specified user info key.
-    subscript<Value>(_ key: String) -> Value? {
-        userInfo[key] as? Value
+    
+    /// Returns the value for the specified key in the error's [userInfo](https://developer.apple.com/documentation/foundation/nserror/userinfo) dictionary.
+    @_disfavoredOverload
+    subscript(key: String) -> Any? {
+        userInfo[key]
+    }
+    
+    /// Returns the value for the specified key in the error's [userInfo](https://developer.apple.com/documentation/foundation/nserror/userinfo) dictionary.
+    subscript<V>(key: String, as type: V.Type = V.self) -> V? {
+        userInfo[key] as? V
     }
     
     /// The domain of the error.
@@ -188,4 +172,29 @@ public extension POSIXError.Code {
         guard value != 0 else { return nil }
         return Self(rawValue: value)
     }
+}
+
+public struct OSStatusError: CustomNSError, CustomDebugStringConvertible {
+    public let ossStatus: OSStatus
+    
+    public let errorUserInfo: [String : Any]
+    
+    public var errorCode: Int {
+        Int(ossStatus)
+    }
+    
+    public var debugDescription: String {
+        errorUserInfo[NSDebugDescriptionErrorKey] as? String ?? "\(ossStatus)"
+    }
+    
+    public init(status: OSStatus, userInfo: [String : Any] = [:]) {
+        errorUserInfo = userInfo.merging([NSDebugDescriptionErrorKey: SecCopyErrorMessageString(status, nil) as String?].nonNil)
+        ossStatus = status
+    }
+    
+    public static var errorDomain: String { NSOSStatusErrorDomain }
+}
+
+extension Dictionary {
+ 
 }

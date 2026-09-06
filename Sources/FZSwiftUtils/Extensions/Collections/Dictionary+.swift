@@ -90,6 +90,7 @@ public extension Dictionary {
         - key: The key to associate with `value`. If key already exists in the dictionary, `value` replaces the existing associated value. If `key` isn’t already a key of the dictionary, the `(key, value)` pair is added.
      - Returns: The value that was replaced or removed, or `nil` if the key did not previously exist.
      */
+    @discardableResult
     @_disfavoredOverload
     mutating func updateValue(_ value: Value?, forKey key: Key) -> Value? {
         if let value = value {
@@ -160,8 +161,8 @@ public extension Dictionary {
         self = Self(keysAndValues) { val1, val2 in retainLastOccurrences ? val2 : val1 }
     }
         
-    /// Returns values for the specified keys.
-    subscript<S>(keys: S) -> [(key: Key, value: Value)] where S: Sequence<Key> {
+    /// Returns the values for the specified keys.
+    subscript<S: Sequence<Key>>(keys: S) -> [Value] {
         values(for: keys)
     }
     
@@ -203,19 +204,56 @@ public extension Dictionary {
         }
     }
     
-    /// Returns values for the specified keys.
-    func values<S: Sequence<Key>>(for keys: S) -> [(key: Key, value: Value)] {
-        keys.compactMap { if let value = self[$0] { return ($0, value) } else { return nil } }
+    /// Returns the values for the specified keys.
+    func values<S: Sequence<Key>>(for keys: S) -> [Value] {
+        keys.uniqued().compactMap { self[$0] }
+    }
+    
+    /// Returns the key-value pairs for the specified keys.
+    func elements<S: Sequence<Key>>(for keys: S) -> [Element] {
+        keys.uniqued().compactMap { key in self[key].map { (key, $0) } }
+    }
+    
+    func elements<S: Sequence<Value>>(for values: S) -> [Element] where Value: Equatable {
+        let values = Array(values)
+        return compactMap { values.contains($0.value) ? $0 : nil }
+    }
+    
+    func elements<S: Sequence<Value>>(for values: S) -> [Element] where Value: Hashable {
+        let values = Set(values)
+        return compactMap { values.contains($0.value) ? $0 : nil }
     }
     
     /// Returns keys for the specified values.
-    func keys<S: Sequence<Value>>(with values: S) -> [Key] where Value: Equatable {
-        filter { values.contains($0.value) }.compactMap { $0.key }
+    @_disfavoredOverload
+    func keys<S: Sequence<Value>>(for values: S) -> [Key] where Value: Equatable {
+        let values = Array(values)
+        return compactMap { values.contains($0.value) ? $0.key : nil }
     }
     
     /// Returns keys for the specified values.
-    func keys<S: Sequence<Value>>(with values: S) -> [Key] where Value: Equatable, Key: Comparable {
-        filter { values.contains($0.value) }.compactMap { $0.key }.sorted()
+    func keys<S: Sequence<Value>>(for values: S) -> [Key] where Value: Hashable {
+        let values = Set(values)
+        return compactMap { values.contains($0.value) ? $0.key : nil }
+    }
+    
+    /// Returns keys for the specified values.
+    func keys<S: Sequence<Value>>(for values: S) -> [Key] where Value: AnyObject {
+        let values = Set(values.map({ ObjectIdentifier($0) }))
+        return compactMap { values.contains(ObjectIdentifier($0.value)) ? $0.key : nil }
+    }
+    
+    /// Returns keys for the specified values.
+    @_disfavoredOverload
+    func keys<S: Sequence<Value>>(for values: S) -> [Key] where Value: Equatable, Key: Comparable {
+        let values = Array(values)
+        return compactMap { values.contains($0.value) ? $0.key : nil }.sorted()
+    }
+    
+    /// Returns keys for the specified values.
+    func keys<S: Sequence<Value>>(for values: S) -> [Key] where Value: Hashable, Key: Comparable {
+        let values = Set(values)
+        return compactMap { values.contains($0.value) ? $0.key : nil }.sorted()
     }
 
     /**
@@ -342,6 +380,13 @@ public extension Dictionary {
         return removed
     }
     
+    /// Returns the dictionary with the specified keys removed.
+    func removing<S: Sequence<Key>>(_ keys: S) -> Self {
+        var copy = self
+        keys.forEach({ copy.removeValue(forKey: $0) })
+        return copy
+    }
+    
     /**
      Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
      
@@ -390,6 +435,86 @@ public extension Dictionary {
     /// The dictionary as `NSDictionary`.
     var nsDictionary: NSDictionary {
         self as NSDictionary
+    }
+}
+
+public extension Dictionary {
+    /**
+     Updates the value for the specified key, optionally skipping the update when both the current and new value are `nil`.
+
+     - Parameters:
+        - value: The value to set, or `nil` to remove the value for the key.
+        - key: The key whose value to update.
+        - ifDifferent: A Boolean value indicating whether to update the value only when the presence of a value changes.
+     - Returns: A tuple containing whether the value differs and the previous value for the key.
+     */
+    @discardableResult
+    mutating func updateValue(_ value: Value?, forKey key: Key, ifDifferent: Bool) -> (didChange: Bool, oldValue: Value?) {
+        let oldValue = self[key]
+        let differs = oldValue != nil || value != nil
+        if !ifDifferent || differs {
+            self[key] = value
+        }
+        return (differs, oldValue)
+    }
+
+    /**
+     Updates the value for the specified key, optionally skipping the update when the current and new values are equal.
+
+     - Parameters:
+        - value: The value to set, or `nil` to remove the value for the key.
+        - key: The key whose value to update.
+        - ifDifferent: A Boolean value indicating whether to update the value only when it differs from the current value.
+     - Returns: A tuple containing whether the values differ and the previous value for the key.
+     */
+    @discardableResult
+    mutating func updateValue(_ value: Value?, forKey key: Key, ifDifferent: Bool) -> (didChange: Bool, oldValue: Value?) where Value: Equatable {
+        let oldValue = self[key]
+        let differs = oldValue != value
+        if !ifDifferent || differs {
+            self[key] = value
+        }
+        return (differs, oldValue)
+    }
+
+    /**
+     Updates the value for the specified key, optionally skipping the update when the current and new values are identical.
+
+     - Parameters:
+        - value: The value to set, or `nil` to remove the value for the key.
+        - key: The key whose value to update.
+        - ifDifferent: A Boolean value indicating whether to update the value only when it isn't identical to the current value.
+     - Returns: A tuple containing whether the values are different instances and the previous value for the key.
+     */
+    @discardableResult
+    @_disfavoredOverload
+    mutating func updateValue(_ value: Value?, forKey key: Key, ifDifferent: Bool) -> (didChange: Bool, oldValue: Value?) where Value: AnyObject {
+        let oldValue = self[key]
+        let differs = oldValue !== value
+        if !ifDifferent || differs {
+            self[key] = value
+        }
+        return (differs, oldValue)
+    }
+
+    /**
+     Updates the value for the specified key, optionally skipping the update when the current and new values have the same identifier.
+
+     - Parameters:
+        - value: The value to set, or `nil` to remove the value for the key.
+        - key: The key whose value to update.
+        - ifDifferent: A Boolean value indicating whether to update the value only when its identifier differs from the current value's identifier.
+     - Returns: A tuple containing whether the identifiers differ and the previous value for the key.
+     */
+    @discardableResult
+    @_disfavoredOverload
+    mutating func updateValue(_ value: Value?, forKey key: Key, ifDifferent: Bool) -> (didChange: Bool, oldValue: Value?) where Value: Identifiable {
+        let oldValue = self[key]
+        let differs = oldValue?.id != value?.id
+        if !ifDifferent || differs {
+            self[key] = value
+        }
+        return (differs, oldValue)
     }
 }
 

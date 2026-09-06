@@ -57,32 +57,32 @@ public func getAssociatedValue<V: AnyObject>(_ key: String, of object: AnyObject
 
 /// Sets the associated value for the specified key to the given value and returns the previous value.
 @discardableResult
+@_disfavoredOverload
 public func setAssociatedValue(_ value: Any?, for key: String, of object: AnyObject) -> Any? {
-    let oldValue = (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value
-    objc_setAssociatedObject(object, key.address, value.map({ AssociatedValue($0) }), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
-    return oldValue
+    setAssociatedValue(value, for: key, of: object)
 }
 
 /// Sets the associated value for the specified key to the given value and returns the previous value.
 @discardableResult
-@_disfavoredOverload
 public func setAssociatedValue<V>(_ value: V?, for key: String, of object: AnyObject) -> V? {
-    setAssociatedValue(value, for: key, of: object) as? V
-}
-
-/// Sets the associated value for the specified key using a weak reference and returns the previous value.
-@discardableResult
-public func setAssociatedValue(weak value: AnyObject?, for key: String, of object: AnyObject) -> AnyObject? {
-    let oldValue = (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value as? AnyObject
-    objc_setAssociatedObject(object, key.address, value.map({ AssociatedValue(weak: $0) }), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    let oldValue = (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value as? V
+    objc_setAssociatedObject(object, key.address, value.map({ AssociatedValue($0) }), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     return oldValue
 }
 
 /// Sets the associated value for the specified key using a weak reference and returns the previous value.
 @discardableResult
 @_disfavoredOverload
+public func setAssociatedValue(weak value: AnyObject?, for key: String, of object: AnyObject) -> AnyObject? {
+    setAssociatedValue(weak: value, for: key, of: object)
+}
+
+/// Sets the associated value for the specified key using a weak reference and returns the previous value.
+@discardableResult
 public func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String, of object: AnyObject) -> V? {
-    setAssociatedValue(weak: value, for: key, of: object) as? V
+    let oldValue = (objc_getAssociatedObject(object, key.address) as? AssociatedValue)?.value as? V
+    objc_setAssociatedObject(object, key.address, value.map({ AssociatedValue(weak: $0) }), .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+    return oldValue
 }
 
 private func setAndReturn<T>(_ value: T, for key: String, of object: AnyObject) -> T {
@@ -167,19 +167,21 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /// Sets the associated value for the specified key to the given value and returns the previous value.
     @discardableResult
+    @_disfavoredOverload
     func setAssociatedValue(_ value: Any?, for key: String) -> Any? {
         FZSwiftUtils.setAssociatedValue(value, for: key, of: self)
     }
     
     /// Sets the associated value for the specified key using a weak reference and returns the previous value.
     @discardableResult
-    func setAssociatedValue(weak value: AnyObject?, for key: String) -> AnyObject? {
+    func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String) -> V? {
         FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
     }
     
     /// Sets the associated value for the specified key using a weak reference and returns the previous value.
     @discardableResult
-    func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String) -> V? {
+    @_disfavoredOverload
+    func setAssociatedValue(weak value: AnyObject?, for key: String) -> AnyObject? {
         FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
     }
     
@@ -236,19 +238,21 @@ public extension NSObjectProtocol where Self: NSObject {
     
     /// Sets the associated value for the specified key to the given value and returns the previous value.
     @discardableResult
+    @_disfavoredOverload
     static func setAssociatedValue(_ value: Any?, for key: String) -> Any? {
         FZSwiftUtils.setAssociatedValue(value, for: key, of: self)
     }
     
     /// Sets the associated value for the specified key using a weak reference and returns the previous value.
     @discardableResult
-    static func setAssociatedValue(weak value: AnyObject?, for key: String) -> AnyObject? {
+    static func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String) -> V? {
         FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
     }
     
     /// Sets the associated value for the specified key using a weak reference and returns the previous value.
     @discardableResult
-    static func setAssociatedValue<V: AnyObject>(weak value: V?, for key: String) -> V? {
+    @_disfavoredOverload
+    static func setAssociatedValue(weak value: AnyObject?, for key: String) -> AnyObject? {
         FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
     }
 }

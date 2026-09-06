@@ -82,6 +82,10 @@ public class NotificationToken: NSObject {
         guard !(token is [NotificationToken]) else { return }
         notificationCenter.removeObserver(token)
     }
+    
+    public static func +(lhs: NotificationToken, rhs: NotificationToken) -> NotificationToken {
+        NotificationToken(tokens: lhs.token  as? [NotificationToken] ?? [lhs] + rhs.token as? [NotificationToken] ?? [rhs])
+    }
 }
 
 public extension NotificationCenter {
