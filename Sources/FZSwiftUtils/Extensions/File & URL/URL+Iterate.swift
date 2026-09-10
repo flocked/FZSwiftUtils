@@ -262,7 +262,7 @@ public extension URL.URLSequence {
     /// Returns relative URLs.
     var relativeURLs: Self {
         var sequence = self
-        sequence.options.remove(.producesRelativePathURLs)
+        sequence.options.insert(.producesRelativePathURLs)
         return sequence
     }
     
@@ -505,7 +505,7 @@ public extension URL.FileURLSequence {
     /// Returns relative URLs.
     var relativeURLs: Self {
         var sequence = self
-        sequence.options.remove(.producesRelativePathURLs)
+        sequence.options.insert(.producesRelativePathURLs)
         return sequence
     }
     
