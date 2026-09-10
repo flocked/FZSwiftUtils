@@ -259,7 +259,11 @@ public extension URL.URLSequence {
         prefetching(keys)
     }
     
-    /// Returns relative URLs.
+    /**
+     Returns relative URLs.
+     
+     To get the relative path of each URL, use [relativePath](https://developer.apple.com/documentation/foundation/url/relativepath).
+     */
     var relativeURLs: Self {
         var sequence = self
         sequence.options.insert(.producesRelativePathURLs)
@@ -502,7 +506,11 @@ public extension URL.FileURLSequence {
         extensions(fileExtensions)
     }
     
-    /// Returns relative URLs.
+    /**
+     Returns relative URLs.
+     
+     To get the relative path of each URL, use [relativePath](https://developer.apple.com/documentation/foundation/url/relativepath).
+     */
     var relativeURLs: Self {
         var sequence = self
         sequence.options.insert(.producesRelativePathURLs)
