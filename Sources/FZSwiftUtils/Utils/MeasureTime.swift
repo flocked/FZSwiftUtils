@@ -46,10 +46,10 @@ public struct MeasureTime {
      - Returns: The duration of executing the block.
      */
     @discardableResult
-    public static func printTimeElapsed(_ title: String? = nil, block: () -> Void) -> TimeDuration {
+    public static func printTimeElapsed<V>(_ title: String? = nil, block: () -> V) -> TimeDuration {
         start(title)
-        block()
-        return stopPrinted()
+        let result = String(describing: block())
+        return stopPrinted(!result.isEmpty ? "Result: \(result)" : nil)
     }
     
     /**

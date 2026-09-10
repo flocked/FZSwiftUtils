@@ -46,55 +46,127 @@ public extension Notification {
 }
 
 fileprivate extension Notification.Observer {
+    func observe(_ name: Notification.Name, _ handler: @escaping ()->()) -> NotificationToken {
+        observe(name) { _ in handler() }
+    }
+    
+    @_disfavoredOverload
+    func observe(_ name: Notification.Name, _ handler: @escaping (_ userInfo: [AnyHashable: Any]) -> ()) -> NotificationToken {
+        NotificationCenter.default.observe(name, postedBy: object) {
+            handler($0.userInfo ?? [:])
+        }
+    }
+    
+    func observe(_ name: Notification.Name, _ handler: @escaping (_ object: Object)->()) -> NotificationToken {
+        NotificationCenter.default.observe(name, postedBy: object) {
+            guard let object = $0.object as? Object else { return }
+            handler(object)
+        }
+    }
+    
+    func observe(_ name: Notification.Name, _ handler: @escaping (_ object: Object, _ userInfo: [AnyHashable: Any]) -> ()) -> NotificationToken {
+        NotificationCenter.default.observe(name, postedBy: object) {
+            guard let object = $0.object as? Object else { return }
+            handler(object, $0.userInfo ?? [:])
+        }
+    }
+    
+    func observe<V1>(_ name: Notification.Name, _ key1: AnyHashable, _ handler: @escaping (_ object: Object, V1)->()) -> NotificationToken {
+        NotificationCenter.default.observe(name, postedBy: object) {
+            guard let object = $0.object as? Object, let v1 = $0.userInfo?[key1] as? V1 else { return }
+            handler(object, v1)
+        }
+    }
+    
+    func observe<V1, V2>(_ name: Notification.Name, _ key1: AnyHashable, _ key2: AnyHashable, _ handler: @escaping (_ object: Object, V1, V2)->()) -> NotificationToken {
+        NotificationCenter.default.observe(name, postedBy: object) {
+            guard let object = $0.object as? Object, let v1 = $0.userInfo?[key1] as? V1, let v2 = $0.userInfo?[key2] as? V2 else { return }
+            handler(object, v1, v2)
+        }
+    }
+    
+    func observe(_ name1: Notification.Name, _ name2: Notification.Name, _ handler: @escaping (Object, Bool) -> ()) -> NotificationToken {
+      NotificationCenter.default.observe(name1, postedBy: object) {
+            guard let object = $0.object as? Object else { return }
+            handler(object, true)
+        } + NotificationCenter.default.observe(name2, postedBy: object) {
+            guard let object = $0.object as? Object else { return }
+            handler(object, false)
+        }
+    }
+    
     func observe(_ keyPath: KeyPath<Object.Type, Notification.Name>, _ handler: @escaping ()->()) -> NotificationToken {
         observe(keyPath) { _ in handler() }
     }
     
     @_disfavoredOverload
     func observe(_ keyPath: KeyPath<Object.Type, Notification.Name>, _ handler: @escaping (_ userInfo: [AnyHashable: Any]) -> ()) -> NotificationToken {
-        NotificationCenter.default.observe(Object.self[keyPath: keyPath], postedBy: object) {
-            handler($0.userInfo ?? [:])
-        }
+        observe(Object.self[keyPath: keyPath], handler)
     }
     
     func observe(_ keyPath: KeyPath<Object.Type, Notification.Name>, _ handler: @escaping (_ object: Object)->()) -> NotificationToken {
-        NotificationCenter.default.observe(Object.self[keyPath: keyPath], postedBy: object) {
-            guard let object = $0.object as? Object else { return }
-            handler(object)
-        }
+        observe(Object.self[keyPath: keyPath], handler)
     }
     
     func observe(_ keyPath: KeyPath<Object.Type, Notification.Name>, _ handler: @escaping (_ object: Object, _ userInfo: [AnyHashable: Any]) -> ()) -> NotificationToken {
-        NotificationCenter.default.observe(Object.self[keyPath: keyPath], postedBy: object) {
-            guard let object = $0.object as? Object else { return }
-            handler(object, $0.userInfo ?? [:])
-        }
+        observe(Object.self[keyPath: keyPath], handler)
     }
     
     func observe<V1>(_ keyPath: KeyPath<Object.Type, Notification.Name>, _ key1: AnyHashable, _ handler: @escaping (_ object: Object, V1)->()) -> NotificationToken {
-        NotificationCenter.default.observe(Object.self[keyPath: keyPath], postedBy: object) {
-            guard let object = $0.object as? Object, let v1 = $0.userInfo?[key1] as? V1 else { return }
-            handler(object, v1)
-        }
+        observe(Object.self[keyPath: keyPath], key1, handler)
     }
     
     func observe<V1, V2>(_ keyPath: KeyPath<Object.Type, Notification.Name>, _ key1: AnyHashable, _ key2: AnyHashable, _ handler: @escaping (_ object: Object, V1, V2)->()) -> NotificationToken {
-        NotificationCenter.default.observe(Object.self[keyPath: keyPath], postedBy: object) {
-            guard let object = $0.object as? Object, let v1 = $0.userInfo?[key1] as? V1, let v2 = $0.userInfo?[key2] as? V2 else { return }
-            handler(object, v1, v2)
-        }
+        observe(Object.self[keyPath: keyPath], key1, key2, handler)
     }
     
     func observe(_ keyPath1: KeyPath<Object.Type, Notification.Name>, _ keyPath2: KeyPath<Object.Type, Notification.Name>, _ handler: @escaping (Object, Bool) -> ()) -> NotificationToken {
-      NotificationCenter.default.observe(Object.self[keyPath: keyPath1], postedBy: object) {
-            guard let object = $0.object as? Object else { return }
-            handler(object, true)
-        } + NotificationCenter.default.observe(Object.self[keyPath: keyPath2], postedBy: object) {
-            guard let object = $0.object as? Object else { return }
-            handler(object, false)
+      observe(Object.self[keyPath: keyPath1], Object.self[keyPath: keyPath2], handler)
+    }
+}
+
+public extension NSObjectProtocol where Self: Bundle {
+    /// Provides observations of notifications posted by the bundle.
+    var observe: Notification.Observer<Self> {
+        .init(self)
+    }
+}
+
+public extension Notification.Observer where Object: Bundle {
+    func didLoad(handler: @escaping (_ bundle: Object, _ classes: [String]) -> ()) -> NotificationToken {
+        return observe(\.didLoadNotification) {
+            guard let classes = $1[NSLoadedClasses] as? [String] else { return }
+            handler($0, classes)
         }
     }
 }
+
+public extension Calendar {
+    /// Provides observations of global calendar notifications.
+    static var observer: Notification.Observer<Calendar.Type> {
+        .init(nil)
+    }
+}
+
+public extension Notification.Observer where Object == Calendar.Type {
+    func calendarDayChanged(handler: @escaping () -> ()) -> NotificationToken {
+        NotificationCenter.default.observe(.NSCalendarDayChanged) { _ in handler() }
+    }
+}
+
+public extension TimeZone {
+    /// Provides observations of global time zone notifications.
+    static var observer: Notification.Observer<TimeZone.Type> {
+        .init(nil)
+    }
+}
+
+public extension Notification.Observer where Object == TimeZone.Type {
+    func systemTimeZoneDidChange(handler: @escaping (_ timeZone: TimeZone) -> ()) -> NotificationToken {
+        NotificationCenter.default.observe(.NSSystemTimeZoneDidChange) { _ in handler(.current) }
+    }
+}
+
 
 #if os(macOS)
 import AppKit
@@ -1035,6 +1107,80 @@ public extension Notification.Observer where Object == NSTextInputContext.Type {
         NotificationCenter.default.observe(NSTextInputContext.keyboardSelectionDidChangeNotification) { _ in
             handler()
         }
+    }
+}
+
+public extension NSObjectProtocol where Self: NSColorPanel {
+    /// Provides observations of notifications posted by text input contexts.
+    var observe: Notification.Observer<Self> {
+        .init(self)
+    }
+}
+
+public extension Notification.Observer where Object: NSColorPanel {
+    func colorDidChange(handler: @escaping (_ colorPanel: Object) -> ()) -> NotificationToken {
+        observe(\.colorDidChangeNotification, handler)
+    }
+}
+
+public extension Notification.Observer where Object: FileHandle {
+    /*
+     NSFileHandleNotificationDataItem
+     An NSData object containing the available data read from a socket connection.
+     @"NSFileHandleError"
+     An NSNumber object containing an integer representing the UNIX-type error which occurred.
+     */
+    func readCompletion(handler: @escaping (_ fileHandle: Object) -> ()) -> NotificationToken {
+        observe(\.readCompletionNotification, handler)
+    }
+    
+    func dataAvailable(handler: @escaping (_ fileHandle: Object) -> ()) -> NotificationToken {
+        observe(.NSFileHandleDataAvailable, handler)
+    }
+    
+    /*
+     NSFileHandleNotificationFileHandleItem
+     The NSFileHandle object representing the “near” end of a socket connection.
+     @"NSFileHandleError"
+     An NSNumber object containing an integer representing the UNIX-type error which occurred.
+     */
+    func connectionAccepted(handler: @escaping (_ fileHandle: Object) -> ()) -> NotificationToken {
+        observe(.NSFileHandleConnectionAccepted, handler)
+    }
+    
+    /*
+     NSFileHandleNotificationDataItem
+     An NSData object containing the available data read from a socket connection.
+     @"NSFileHandleError"
+     An NSNumber object containing an integer representing the UNIX-type error which occurred.
+     */
+    func readToEndOfFileCompletion(handler: @escaping (_ fileHandle: Object) -> ()) -> NotificationToken {
+        observe(.NSFileHandleReadToEndOfFileCompletion, handler)
+    }
+}
+
+
+#endif
+
+#if canImport(AVKit)
+import AVKit
+
+@available(macOS 14.0, *)
+public extension Notification.Observer where Object: AVAudioApplication {
+    func inputMuteStateChanged(handler: @escaping (_ audioApplication: Object) -> ()) -> NotificationToken {
+        observe(\.inputMuteStateChangeNotification, handler)
+    }
+}
+
+
+
+public extension Notification.Observer where Object: AVCaptureDevice {
+    func wasConnected(handler: @escaping (_ captureDevice: Object) -> ()) -> NotificationToken {
+        observe(\.wasConnectedNotification, handler)
+    }
+    
+    func wasDisconnected(handler: @escaping (_ captureDevice: Object) -> ()) -> NotificationToken {
+        observe(\.wasDisconnectedNotification, handler)
     }
 }
 #endif

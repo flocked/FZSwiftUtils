@@ -86,6 +86,29 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     
     /**
      Adds an observer for the property at the specified key path.
+
+     - Parameters:
+        - keyPath: The key path to the value to observe.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - handler: The handler to be called whenever the key path value changes.
+     - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
+     */
+    @discardableResult
+    open func add<Value: RawRepresentable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+        guard let keyPath = keyPath._kvcKeyPathString else { return false }
+        add(keyPath, initial: sendInitialValue) { old, new, initial in
+            if let oldRaw = old as? Value.RawValue, let newRaw = new as? Value.RawValue {
+                guard let old = Value(rawValue: oldRaw), let new = Value(rawValue: newRaw) else { return }
+                handler(old, new)
+            } else if let old = old as? Value, let new = new as? Value {
+                handler(old, new)
+            }
+        }
+        return true
+    }
+    
+    /**
+     Adds an observer for the property at the specified key path.
      
      The handler is called whenever the value of the property changes to a new value that isn't equal to it's previous. 
      
@@ -125,6 +148,46 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
     }
     
     /**
+     Adds an observer for the property at the specified key path.
+     
+     The handler is called whenever the value of the property changes to a new value that isn't equal to it's previous.
+     
+     If you want the handler to be called on all changes, use ``add(_:sendInitialValue:uniqueValues:handler:)`` and set `uniqueValues` to `false`.
+
+     - Parameters:
+        - keyPath: The key path to the value to observe.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - handler: The handler to be called.
+     - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
+     */
+    @discardableResult
+    open func add<Value: Equatable & RawRepresentable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+        add(keyPath, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
+    }
+    
+    /**
+     Adds an observer for the property at the specified key path.
+
+     - Parameters:
+        - keyPath: The key path to the value to observe.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed property.
+        - uniqueValues: A Boolean value indicating whether the handler should only be called if the new value isn't equal to the previous value.
+        - handler: The handler to be called whenever the key path value changes.
+     - Returns: `true` when the property is observed, or `false` if the property couldn't be observed.
+     */
+    @discardableResult
+    open func add<Value: Equatable & RawRepresentable>(_ keyPath: KeyPath<Object, Value>, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping ((_ oldValue: Value, _ newValue: Value) -> Void)) -> Bool {
+        if let observation = KeyValueObservation(observedObject, keyPath: keyPath, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, fallbackToKeyPathObserver: false, handler: handler) {
+            add(keyPath.stringValue, observation: observation)
+            return true
+        } else {
+            guard let keyPath = keyPath._kvcKeyPathString else { return false }
+            add(keyPath, type: Value.self, sendInitialValue: sendInitialValue, uniqueValues: uniqueValues, handler: handler)
+            return true
+        }
+    }
+    
+    /**
      Observes changes for a property identified by the given key path.
 
      - Parameters:
@@ -137,6 +200,26 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
         add(keyPath, initial: sendInitialValue) { old, new, _ in
             guard let old = old as? Value, let new = new as? Value else { return }
             handler(old, new)
+        }
+    }
+    
+    /**
+     Observes changes for a property identified by the given key path.
+
+     - Parameters:
+        - keyPath: The key path to observe.
+        - type: The value type of the key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
+     */
+    open func add<Value: RawRepresentable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        add(keyPath, initial: sendInitialValue) { old, new, _ in
+            if let oldRaw = old as? Value.RawValue, let newRaw = new as? Value.RawValue {
+                guard let old = Value(rawValue: oldRaw), let new = Value(rawValue: newRaw) else { return }
+                handler(old, new)
+            } else if let old = old as? Value, let new = new as? Value {
+                handler(old, new)
+            }
         }
     }
     
@@ -177,6 +260,55 @@ open class KeyValueObserver<Object>: NSObject where Object: NSObject {
             add(keyPath, initial: sendInitialValue) { old, new, initial in
                 guard let old = old as? Value, let new = new as? Value, old != new || initial else { return }
                 handler(old, new)
+            }
+        }
+    }
+    
+    /**
+     Observes changes for a property identified by the given key path.
+
+     - Parameters:
+        - keyPath: The key path to observe.
+        - type: The value type of the key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
+     */
+    open func add<Value: Equatable & RawRepresentable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        add(keyPath, type: type, sendInitialValue: sendInitialValue, uniqueValues: true, handler: handler)
+    }
+    
+    /**
+     Observes changes for a property identified by the given key path.
+
+     - Parameters:
+        - keyPath: The key path to observe.
+        - type: The value type of the key path.
+        - sendInitialValue: A Boolean value indicating whether the handler should get called with the initial value of the observed key path.
+        - uniqueValues: A Boolean value indicating whether the handler should only get called when a value changes compared to it's previous value.
+        - handler: A closure that will be called when the key path value changes. It takes the old value, and the new value as parameters.
+     */
+    open func add<Value: Equatable & RawRepresentable>(_ keyPath: String, type: Value.Type, sendInitialValue: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        if let observation = KeyValueObservation(observedObject, keyPath: keyPath, initial: sendInitialValue, uniqueValues: uniqueValues, fallbackToKeyPathStringObserver: false, handler: handler) {
+            add(keyPath, observation: observation)
+            return
+        }
+        if !uniqueValues {
+            add(keyPath, initial: sendInitialValue) { old, new, _ in
+                if let oldRaw = old as? Value.RawValue, let newRaw = new as? Value.RawValue {
+                    guard let old = Value(rawValue: oldRaw), let new = Value(rawValue: newRaw) else { return }
+                    handler(old, new)
+                } else if let old = old as? Value, let new = new as? Value {
+                    handler(old, new)
+                }
+            }
+        } else {
+            add(keyPath, initial: sendInitialValue) { old, new, initial in
+                if let oldRaw = old as? Value.RawValue, let newRaw = new as? Value.RawValue {
+                    guard let old = Value(rawValue: oldRaw), let new = Value(rawValue: newRaw), old != new || initial else { return }
+                    handler(old, new)
+                } else if let old = old as? Value, let new = new as? Value, old != new || initial {
+                    handler(old, new)
+                }
             }
         }
     }

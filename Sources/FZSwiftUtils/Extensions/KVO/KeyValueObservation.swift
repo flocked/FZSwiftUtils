@@ -128,13 +128,7 @@ public class KeyValueObservation: NSObject {
         }
     }
     
-    private static func observer<Object: NSObject, Value: Equatable>(
-        for object: Object?,
-        keyPath: KeyPath<Object, Value>,
-        uniqueValues: Bool,
-        fallbackToKeyPathObserver: Bool = true,
-        handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void
-    ) -> KVObserver? {
+    private static func observer<Object: NSObject, Value: Equatable>(for object: Object?, keyPath: KeyPath<Object, Value>, uniqueValues: Bool, fallbackToKeyPathObserver: Bool = true, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> KVObserver? {
         let keyPathString = keyPath.stringValue
         #if os(macOS)
         if ((keyPathString == "inLiveScroll" || keyPathString == "inLiveMagnify") && object is NSScrollView) || (keyPathString == "isFullscreen" && object is NSWindow) {
@@ -752,6 +746,156 @@ private extension KeyValueObservation {
         }
     }
     #endif
+}
+
+private extension KeyValueObservation {
+    class TTT<Object: NSObject>: NSObject, KVObserver {
+        let keyPathString: String
+        weak var object: Object?
+        private var context = 0
+        private var _isActive = false
+        let handler: (Any, Any, Bool)->()
+        let options: NSKeyValueObservingOptions
+        
+        var isActive: Bool {
+            get { object != nil && _isActive }
+            set {
+                guard newValue != isActive, let object else { return }
+                _isActive.toggle()
+                if newValue {
+                    object.addObserver(self, forKeyPath: keyPathString, options: options, context: &context)
+                } else {
+                    object.removeObserver(self, forKeyPath: keyPathString, context: &context)
+                }
+            }
+        }
+        
+        deinit {
+            isActive = false
+        }
+        
+        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+            guard context == &self.context, object != nil, keyPath == keyPathString, let change = change else { return }
+            if change.isPrior, let oldValue = change.oldValue {
+                handler(oldValue, oldValue, true)
+            } else if let newValue = change.newValue {
+                handler(change.oldValue ?? newValue, newValue, false)
+            }
+        }
+        
+        func setObject(_ object: NSObject?, activate: Bool = false) {
+            let object = object as? Object
+            guard object !== self.object else {
+                isActive = activate
+                return
+            }
+            isActive = false
+            self.object = object
+            isActive = activate
+        }
+        
+        init<V>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V)->()) {
+            self.object = object
+            self.keyPathString = keyPath
+            self.options = initial ? [.old, .prior, .initial] : [.old, .prior]
+            self.handler = { old, new,_ in
+                guard let old = old as? V else { return }
+                handler(old)
+            }
+            super.init()
+            isActive = true
+        }
+        
+        init<V: RawRepresentable>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V)->()) {
+            self.object = object
+            self.keyPathString = keyPath
+            self.options = initial ? [.old, .prior, .initial] : [.old, .prior]
+            self.handler = { old, new,_ in
+                if let old = old as? V.RawValue {
+                    guard let old = V(rawValue: old) else { return }
+                    handler(old)
+                } else if let old = old as? V {
+                    handler(old)
+                }
+            }
+            super.init()
+            isActive = true
+        }
+        
+        init<V>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V, V)->()) {
+            self.object = object
+            self.keyPathString = keyPath
+            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
+            self.handler = { old, new,_ in
+                guard let old = old as? V, let new = new as? V else { return }
+                handler(old, new)
+            }
+            super.init()
+            isActive = true
+        }
+        
+        init<V: RawRepresentable>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V, V)->()) {
+            self.object = object
+            self.keyPathString = keyPath
+            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
+            self.handler = { old, new,_ in
+                if let old = old as? V.RawValue, let new = new as? V.RawValue {
+                    guard let old = V(rawValue: old), let new = V(rawValue: new) else { return }
+                    handler(old, new)
+                } else if let old = old as? V, let new = new as? V {
+                    handler(old, new)
+                }
+            }
+            super.init()
+            isActive = true
+        }
+        
+        init<V: Equatable>(_ object: Object?, keyPath: String, initial: Bool, uniqueValues: Bool, handler: @escaping (V, V)->()) {
+            self.object = object
+            self.keyPathString = keyPath
+            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
+            if uniqueValues {
+                self.handler = { old, new, inital in
+                    guard let old = old as? V, let new = new as? V, old != new || inital else { return }
+                    handler(old, new)
+                }
+            } else {
+                self.handler = { old, new,_ in
+                    guard let old = old as? V, let new = new as? V else { return }
+                    handler(old, new)
+                }
+            }
+            super.init()
+            isActive = true
+        }
+        
+        init<V: Equatable & RawRepresentable>(_ object: Object?, keyPath: String, initial: Bool, uniqueValues: Bool, handler: @escaping (V, V)->()) {
+            self.object = object
+            self.keyPathString = keyPath
+            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
+            if uniqueValues {
+                self.handler = { old, new, inital in
+                    if let old = old as? V.RawValue, let new = new as? V.RawValue {
+                        guard let old = V(rawValue: old), let new = V(rawValue: new), old != new || inital else { return }
+                        handler(old, new)
+                    } else if let old = old as? V, let new = new as? V, old != new || inital {
+                        handler(old, new)
+                    }
+                }
+            } else {
+                self.handler = { old, new,_ in
+                    if let old = old as? V.RawValue, let new = new as? V.RawValue {
+                        guard let old = V(rawValue: old), let new = V(rawValue: new) else { return }
+                        handler(old, new)
+                    } else if let old = old as? V, let new = new as? V {
+                        handler(old, new)
+                    }
+                }
+            }
+            super.init()
+            isActive = true
+        }
+    }
 }
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)

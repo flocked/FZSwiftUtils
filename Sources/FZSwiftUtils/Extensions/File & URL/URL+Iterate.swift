@@ -264,19 +264,20 @@ public extension URL.URLSequence {
      
      To get the relative path of each URL, use [relativePath](https://developer.apple.com/documentation/foundation/url/relativepath).
      */
-    var relativeURLs: Self {
+    var relative: Self {
         var sequence = self
         sequence.options.insert(.producesRelativePathURLs)
         return sequence
     }
-    
-    /// Includes directories after their descendants have been enumerated.
-    var directoriesPostOrder: Self {
+
+    /*
+    /// Includes directories again after their descendants have been enumerated.
+    var includingDirectoriesPostOrder: Self {
         var sequence = self
         sequence.options.insert(.includesDirectoriesPostOrder)
         return sequence
     }
-
+     */
         
     /// The number of URLs in the sequence.
     var count: Int {
@@ -511,7 +512,7 @@ public extension URL.FileURLSequence {
      
      To get the relative path of each URL, use [relativePath](https://developer.apple.com/documentation/foundation/url/relativepath).
      */
-    var relativeURLs: Self {
+    var relative: Self {
         var sequence = self
         sequence.options.insert(.producesRelativePathURLs)
         return sequence
