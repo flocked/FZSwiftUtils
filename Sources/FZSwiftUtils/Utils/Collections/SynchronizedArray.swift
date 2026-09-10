@@ -11,12 +11,19 @@
 import Foundation
 
 /// A thread-safe, synchronized array.
-public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection, ExpressibleByArrayLiteral {
+public final class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection, ExpressibleByArrayLiteral {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedArray", attributes: .concurrent)
-    private var array = [Element]()
+    private var array: [Element]
 
     /// Creates a new, empty synchronized array.
-    public required init() {}
+    public required init() {
+        array = []
+    }
+    
+    /// Creates a synchronized array from the specified array.
+    public init(_ elements: [Element]) {
+        self.array = elements
+    }
     
     /**
      Creates an synchronized array containing the elements of a sequence.
@@ -47,6 +54,7 @@ public class SynchronizedArray<Element>: BidirectionalCollection, RandomAccessCo
         array = elements
     }
     
+    /// Creates a new synchronized array by decoding from the given decoder.
     public required init(from decoder: Decoder) throws where Element: Decodable {
         array = try Array(from: decoder)
     }
@@ -1116,16 +1124,43 @@ extension SynchronizedArray: CustomStringConvertible, CustomDebugStringConvertib
 
 extension SynchronizedArray: @unchecked Sendable where Element: Sendable {}
 
+extension SynchronizedArray: Decodable where Element: Decodable { }
 extension SynchronizedArray: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
         try synchronized.encode(to: encoder)
     }
 }
 
-extension SynchronizedArray: Decodable where Element: Decodable { }
-
 extension SynchronizedArray: CVarArg {
     public var _cVarArgEncoding: [Int] {
         synchronized._cVarArgEncoding
+    }
+}
+
+extension SynchronizedArray: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSArray {
+        array._bridgeToObjectiveC()
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: NSArray, result: inout SynchronizedArray?) {
+        var array: [Element]?
+        [Element]._forceBridgeFromObjectiveC(source, result: &array)
+        result = array.map({ .init($0) })
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSArray, result: inout SynchronizedArray?) -> Bool {
+        var array: [Element]?
+        guard [Element]._conditionallyBridgeFromObjectiveC(source, result: &array),
+              let array else {
+            result = nil
+            return false
+        }
+
+        result = .init(array)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSArray?) -> SynchronizedArray {
+        Self([Element]._unconditionallyBridgeFromObjectiveC(source))
     }
 }

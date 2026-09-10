@@ -411,46 +411,6 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
         return copy
     }
 
-    /// Sorts the ordered dictionary in place by key.
-    public mutating func sortByKey(_ order: SortOrder = .ascending) where Key: Comparable {
-        sort(by: order == .ascending ? { $0.key < $1.key } : { $0.key > $1.key })
-    }
-
-    /// Sorts the ordered dictionary in place by value.
-    public mutating func sortByValue(_ order: SortOrder = .ascending) where Value: Comparable {
-        sort(by: order == .ascending ? { $0.value < $1.value } : { $0.value > $1.value })
-    }
-
-    /// Sorts the ordered dictionary in place by a comparable key property.
-    public mutating func sortByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortOrder = .ascending) {
-        sort(by: order == .ascending ? { $0.key[keyPath: keyPath] < $1.key[keyPath: keyPath] } : { $0.key[keyPath: keyPath] > $1.key[keyPath: keyPath] })
-    }
-
-    /// Sorts the ordered dictionary in place by a comparable value property.
-    public mutating func sortByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortOrder = .ascending) {
-        sort(by: order == .ascending ? { $0.value[keyPath: keyPath] < $1.value[keyPath: keyPath] } : { $0.value[keyPath: keyPath] > $1.value[keyPath: keyPath] })
-    }
-
-    /// Returns an ordered dictionary sorted by key.
-    public func sortedByKey(_ order: SortOrder = .ascending) -> Self where Key: Comparable {
-        sorted(by: order == .ascending ? { $0.key < $1.key } : { $0.key > $1.key })
-    }
-
-    /// Returns an ordered dictionary sorted by value.
-    public func sortedByValue(_ order: SortOrder = .ascending) -> Self where Value: Comparable {
-        sorted(by: order == .ascending ? { $0.value < $1.value } : { $0.value > $1.value })
-    }
-
-    /// Returns an ordered dictionary sorted by a comparable key property.
-    public func sortedByKey<V: Comparable>(_ keyPath: KeyPath<Key, V>, _ order: SortOrder = .ascending) -> Self {
-        sorted(by: order == .ascending ? { $0.key[keyPath: keyPath] < $1.key[keyPath: keyPath] } : { $0.key[keyPath: keyPath] > $1.key[keyPath: keyPath] })
-    }
-
-    /// Returns an ordered dictionary sorted by a comparable value property.
-    public func sortedByValue<V: Comparable>(_ keyPath: KeyPath<Value, V>, _ order: SortOrder = .ascending) -> Self {
-        sorted(by: order == .ascending ? { $0.value[keyPath: keyPath] < $1.value[keyPath: keyPath] } : { $0.value[keyPath: keyPath] > $1.value[keyPath: keyPath] })
-    }
-
     /// Reverses the order of the key-value pairs in place.
     public mutating func reverse() {
         orderedKeys.reverse()
@@ -600,22 +560,26 @@ extension OrderedDictionary: Sendable where Key: Sendable, Value: Sendable {}
 extension OrderedDictionary: Encodable where Key: Encodable, Value: Encodable {
     /// Encodes the ordered dictionary as an ordered sequence of key-value pairs.
     public func encode(to encoder: Encoder) throws {
-        var elements = ContiguousArray<KeyValuePair<Key, Value>>()
-        elements.reserveCapacity(count)
+        var container = encoder.unkeyedContainer()
         for (key, value) in self {
-            elements.append(KeyValuePair(key: key, value: value))
+            try container.encode(KeyValuePair(key: key, value: value))
         }
-        var container = encoder.singleValueContainer()
-        try container.encode(elements)
     }
 }
 
 extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
     /// Decodes an ordered dictionary from an ordered sequence of key-value pairs.
     public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let elements = try container.decode(ContiguousArray<KeyValuePair<Key, Value>>.self)
-        self.init(uniqueKeysWithValues: elements.map { ($0.key, $0.value) })
+        var container = try decoder.unkeyedContainer()
+        self.init(minimumCapacity: container.count ?? 0)
+        while !container.isAtEnd {
+            let element = try container.decode(KeyValuePair<Key, Value>.self)
+            guard !orderedKeys.contains(element.key) else {
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "OrderedDictionary contains duplicate key \(String(reflecting: element.key)).")
+            }
+            orderedKeys.append(element.key)
+            orderedValues.append(element.value)
+        }
     }
 }
 
@@ -847,9 +811,7 @@ extension OrderedDictionary.Values: Hashable where Value: Hashable {
   }
 }
 
-private func _arrayDescription<C: Collection>(
-  for elements: C
-) -> String {
+private func _arrayDescription<C: Collection>(for elements: C) -> String {
   var result = "["
   var first = true
   for item in elements {
@@ -864,4 +826,114 @@ private func _arrayDescription<C: Collection>(
   return result
 }
 
+extension OrderedDictionary: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> _OrderedDictionary<Key, Value> {
+        _OrderedDictionary(self)
+    }
 
+    public static func _forceBridgeFromObjectiveC(_ source: _OrderedDictionary<Key, Value>, result: inout Self?) {
+        result = source.value
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _OrderedDictionary<Key, Value>, result: inout Self?) -> Bool {
+        result = source.value
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _OrderedDictionary<Key, Value>?) -> Self {
+        guard let source else { return Self() }
+        var result: Self?
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return result!
+    }
+}
+
+/// The Objective-C class for ``OrderedDictionary``.
+public final class _OrderedDictionary<Key: Hashable, Value>: NSObject, NSCopying {
+    let value: OrderedDictionary<Key, Value>
+
+    init(_ value: OrderedDictionary<Key, Value>) {
+        self.value = value
+    }
+
+    public func copy(with zone: NSZone? = nil) -> Any {
+        self
+    }
+}
+
+public extension OrderedDictionary {
+    func sorted<V>(by compare: (Element) throws -> V, _ order: SortOrder = .ascending) rethrows -> Self where V: Comparable {
+        try sorted { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) }
+    }
+
+    func sorted<V>(by compare: (Element) throws -> V?, _ order: SortOrder = .ascending) rethrows -> Self where V: Comparable {
+        try sorted {
+            switch (try compare($0), try compare($1)) {
+            case let (x?, y?): return order == .ascending ? x < y : x > y
+            case (nil, nil): return false
+            case (nil, _): return false
+            case (_, nil): return true
+            }
+        }
+    }
+    
+    mutating func sort<V>(by compare: (Element) throws -> V, _ order: SortOrder = .ascending) rethrows where V: Comparable {
+        try sort { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) }
+    }
+    
+    mutating func sort<V>(by compare: (Element) throws -> V?, _ order: SortOrder = .ascending) rethrows where V: Comparable {
+        try sort {
+            switch (try compare($0), try compare($1)) {
+            case let (x?, y?): return order == .ascending ? x < y : x > y
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+}
+
+public extension OrderedDictionary {
+    func sorted<V>(by keyPath: KeyPath<Element, V>, _ order: SortOrder = .ascending) -> Self where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, _ order: SortOrder = .ascending) -> Self where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    func sorted<V>(by keyPath: KeyPath<Element, V>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> Self where V: StringProtocol {
+        sorted { $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order }
+    }
+
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> Self where V: StringProtocol {
+        sorted {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V>, _ order: SortOrder = .ascending) where V: Comparable {
+        sort(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V?>, _ order: SortOrder = .ascending) where V: Comparable {
+        sort(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) where V: StringProtocol {
+        sort { $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order }
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V?>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) where V: StringProtocol {
+        sort {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+}

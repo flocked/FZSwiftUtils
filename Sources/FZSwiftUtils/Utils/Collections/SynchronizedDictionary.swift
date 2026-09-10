@@ -8,20 +8,26 @@
 import Foundation
 
 /// A thread-safe, synchronized dictionary.
-public class SynchronizedDictionary<Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
+public final class SynchronizedDictionary<Key: Hashable, Value>: Collection, ExpressibleByDictionaryLiteral {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedDictionary", attributes: .concurrent)
-    private var dictionary: [Key: Value] = [:]
+    private var dictionary: [Key: Value]
 
-    public init() {  }
-
-    public init(dict: [Key: Value] = [Key: Value]()) {
-        dictionary = dict
+    /// Creates a synchronized dictionary.
+    public init() {
+        dictionary = [:]
     }
 
+    /// Creates a synchronized dictionary from the specified dictionary.
+    public init(_ dictionary: [Key: Value]) {
+        self.dictionary = dictionary
+    }
+
+    /// Creates an empty dictionary with preallocated space for at least the specified number of elements.
     public init(minimumCapacity: Int) {
         dictionary = .init(minimumCapacity: minimumCapacity)
     }
 
+    /// Creates a new dictionary from the key-value pairs in the given sequence.
     public init<S>(uniqueKeysWithValues keysAndValues: S) where S: Sequence, S.Element == (Key, Value) {
         dictionary = .init(uniqueKeysWithValues: keysAndValues)
     }
@@ -30,12 +36,19 @@ public class SynchronizedDictionary<Key: Hashable, Value>: Collection, Expressib
         dictionary = try .init(keysAndValues, uniquingKeysWith: combine)
     }
 
+    /// Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
     public init<S>(grouping values: S, by keyForValue: (S.Element) throws -> Key) rethrows where Value == [S.Element], S: Sequence {
         dictionary = try .init(grouping: values, by: keyForValue)
     }
     
+    /// Creates a new dictionary from the key-value pairs in the given sequence.
     public required init(dictionaryLiteral elements: (Key, Value)...) {
-        dictionary = Dictionary(uniqueKeysWithValues: elements)
+        dictionary = .init(uniqueKeysWithValues: elements)
+    }
+    
+    /// Creates a new synchronized array by decoding from the given decoder.
+    public required init(from decoder: Decoder) throws where Key: Decodable, Value: Decodable {
+        dictionary = try .init(from: decoder)
     }
 }
 
@@ -177,5 +190,39 @@ extension SynchronizedDictionary: CustomStringConvertible, CustomDebugStringConv
 extension SynchronizedDictionary: CVarArg {
     public var _cVarArgEncoding: [Int] {
         synchronized._cVarArgEncoding
+    }
+}
+
+extension SynchronizedDictionary: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSDictionary {
+        dictionary._bridgeToObjectiveC()
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: NSDictionary, result: inout SynchronizedDictionary?) {
+        var dictionary: [Key: Value]?
+        [Key: Value]._forceBridgeFromObjectiveC(source, result: &dictionary)
+        result = dictionary.map { .init($0) }
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSDictionary, result: inout SynchronizedDictionary?) -> Bool {
+        var dictionary: [Key: Value]?
+        guard [Key: Value]._conditionallyBridgeFromObjectiveC(source, result: &dictionary),
+              let dictionary else {
+            result = nil
+            return false
+        }
+        result = .init(dictionary)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSDictionary?) -> SynchronizedDictionary {
+        .init([Key: Value]._unconditionallyBridgeFromObjectiveC(source))
+    }
+}
+
+extension SynchronizedDictionary: Decodable where Key: Decodable, Value: Decodable { }
+extension SynchronizedDictionary: Encodable where Key: Encodable, Value: Encodable {
+    public func encode(to encoder: Encoder) throws {
+        try synchronized.encode(to: encoder)
     }
 }

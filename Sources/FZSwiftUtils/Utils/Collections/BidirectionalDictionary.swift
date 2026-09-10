@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: ExpressibleByDictionaryLiteral {
+public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: ExpressibleByDictionaryLiteral, CustomStringConvertible, CustomDebugStringConvertible {
     @usableFromInline internal var _ltr: [Left: Right]
     @usableFromInline internal var _rtl: [Right: Left]
 
@@ -248,6 +248,14 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
     @inlinable public var rightLeft: [Right: Left] {
         _rtl
     }
+    
+    public var description: String {
+        _ltr.description
+    }
+    
+    public var debugDescription: String {
+        _ltr.debugDescription
+    }
 }
 
 
@@ -430,54 +438,36 @@ extension BidirectionalDictionary: CustomReflectable {
 
 // MARK: - Objective-C bridging
 
-extension BidirectionalDictionary: ReferenceConvertible {
-    /// The Objective-C type for the bidirectional dictionary.
-    public typealias ReferenceType = _BidirectionalDictionaryObjC
-
-    public func _bridgeToObjectiveC() -> ReferenceType {
-        _BidirectionalDictionaryObjC(self)
+extension BidirectionalDictionary: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> _BidirectionalDictionary<Left, Right> {
+        _BidirectionalDictionary(self)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) {
-        guard let value = source.value.base as? Self else {
-            fatalError("Unable to bridge \(ReferenceType.self) to \(Self.self).")
-        }
-        result = value
+    public static func _forceBridgeFromObjectiveC(_ source: _BidirectionalDictionary<Left, Right>, result: inout Self?) {
+        result = source.value
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: ReferenceType, result: inout Self?) -> Bool {
-        guard let value = source.value.base as? Self else {
-            result = nil
-            return false
-        }
-        result = value
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _BidirectionalDictionary<Left, Right>, result: inout Self?) -> Bool {
+        result = source.value
         return true
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: ReferenceType?) -> Self {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _BidirectionalDictionary<Left, Right>?) -> Self {
         guard let source else { return Self() }
         var result: Self?
         _forceBridgeFromObjectiveC(source, result: &result)
         return result!
     }
-
-    public var description: String {
-        _ltr.description
-    }
-
-    public var debugDescription: String {
-        _ltr.debugDescription
-    }
 }
 
 /// The Objective-C class for ``BidirectionalDictionary``.
-public final class _BidirectionalDictionaryObjC: NSObject, NSCopying {
-    fileprivate let value: AnyHashable
-
-    fileprivate init<Value: Hashable>(_ value: Value) {
-        self.value = AnyHashable(value)
+public final class _BidirectionalDictionary<Left: Hashable, Right: Hashable>: NSObject, NSCopying {
+    let value: BidirectionalDictionary<Left, Right>
+    
+    init(_ value: BidirectionalDictionary<Left, Right>) {
+        self.value = value
     }
-
+    
     public func copy(with zone: NSZone? = nil) -> Any {
         self
     }

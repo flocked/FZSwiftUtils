@@ -31,8 +31,102 @@ public enum ObjCHeader {
 
         public static let all: Self = [.classes, .categories, .protocols, .enums, .optionSets, .bridgedTypedefs, .exportedConstants, .structTypedefs, .blockTypedefs, .apiDeprecations, .apiAvailabilities]
     }
+    
+    /// An Apple platform.
+    public enum Platform: CustomStringConvertible {
+        /// macOS.
+        case macOS
+        /// iOS.
+        case iOS(Environment)
+        /// tvOS.
+        case tvOS(Environment)
+        /// watchOS.
+        case watchOS(Environment)
+        /// visionOS.
+        case visionOS(Environment)
+        
+        /// iOS.
+        public static let iOS: Self = .iOS(.device)
+        /// tvOS.
+        public static let tvOS: Self = .tvOS(.device)
+        /// watchOS.
+        public static let watchOS: Self = .watchOS(.device)
+        /// visionOS.
+        public static let visionOS: Self = .visionOS(.device)
+        
+        /// All platforms, including simulator platforms.
+        public static let all: [Self] = [.macOS, .iOS(.device), .iOS(.simulator), tvOS(.device), .tvOS(.simulator), .watchOS(.device), .watchOS(.simulator), .visionOS(.device), .visionOS(.simulator)]
+        
+        /// All platforms, excluding simulator platforms.
+        public static let allDevices: [Self] = [.macOS, .iOS(.device), tvOS(.device), .watchOS(.device), .visionOS(.device)]
+        
+        /// All simulator platforms.
+        public static let allSimulators: [Self] = [.iOS(.simulator), tvOS(.simulator), .watchOS(.simulator), .visionOS(.simulator)]
 
-    static let frameworksFolder = URL.file("/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks")
+        /// The environment in which a platform runs.
+        public enum Environment: String {
+            /// Device.
+            case device = "OS"
+            /// Simulator.
+            case simulator = "Simulator"
+        }
+
+        /// The name of the platform.
+        public var name: String {
+            switch self {
+            case .macOS:
+                "MacOSX"
+            case .iOS(let environment):
+                "iPhone" + environment.rawValue
+            case .tvOS(let environment):
+                "AppleTV" + environment.rawValue
+            case .watchOS(let environment):
+                "Watch" + environment.rawValue
+            case .visionOS(let environment):
+                "XR" + environment.rawValue
+            }
+        }
+
+        public var description: String {
+            name
+        }
+        
+        /// Returns the platform directory URL in the specified Xcode application.
+        public func url(in xcodeURL: URL = URL(filePath: "/Applications/Xcode.app")) -> URL {
+            xcodeURL.appendingPathComponent("Contents/Developer/Platforms").appendingPathComponent("\(name).platform")
+        }
+
+        /// Returns the SDK directory URL for the platform in the specified Xcode application.
+        public func sdkURL(in xcodeURL: URL = URL(filePath: "/Applications/Xcode.app")) -> URL {
+            url(in: xcodeURL).appendingPathComponent("Developer/SDKs/\(name).sdk")
+        }
+        
+        /// Returns the frameworks directory URL for the platform in the specified Xcode application.
+        public func frameworksURL(in xcodeURL: URL = URL(filePath: "/Applications/Xcode.app")) -> URL {
+            sdkURL(in: xcodeURL).appendingPathComponent(Self.frameworkPath)
+        }
+        
+        public func headerURLs(in xcodeURL: URL = URL(filePath: "/Applications/Xcode.app")) -> [String: [URL]] {
+            urls(in: xcodeURL).mapValues({ $0.iterateFiles().recursive.includingPackageContents.extensions("h").filter { !$0.pathComponents.contains("__impl") }.collect() })
+        }
+        
+        public func urls(in xcodeURL: URL = URL(filePath: "/Applications/Xcode.app")) -> [String: URL] {
+            var urls = Dictionary(uniqueKeysWithValues: frameworksURL(in: xcodeURL).iterateFolders().map { ($0.deletingPathExtension().lastPathComponent, $0) })
+            for url in sdkURL(in: xcodeURL).appendingPathComponent(Self.includePath).iterateFolders() {
+                guard let name = Self.includeDirectoryNames[url.lastPathComponent] else { continue }
+                urls[name] = url
+            }            
+            return urls
+        }
+            
+        private static let frameworkPath = "System/Library/Frameworks"
+        private static let includePath = "usr/include"
+        private static let includeDirectoryNames = ["CommonCrypto": "CommonCrypto", "dispatch": "Dispatch", "objc": "Objective-C", "os": "os", "xpc": "XPC"]
+     //   private static let includeFrameworks: Set<String> = ["CommonCrypto", "dispatch", "objc", "os", "xpc"]
+    }
+
+
+    static let frameworksFolder = Platform.macOS.url()
     static var publicHeaderURLs = frameworksFolder.iterateFiles()
         .includingPackageContents
         .extensions("h")
@@ -50,26 +144,6 @@ public enum ObjCHeader {
     public static var bridgedTypedefsByName: [String: BridgedTypedef] = [:]
     public static var didCollect = false
     public private(set) static var isCollecting = false
-    
-    /*
-    static func isMethodPublic(_ name: String, type: ObjCMethodInfo.MethodType) -> Bool {
-        let key = MethodKey(name: name, type: type)
-        if let isPublic = publicMethods[key] {
-            return isPublic
-        }
-        // handle
-        return false
-    }
-    
-    static var publicMethods: [MethodKey: Bool] = [:]
-    
-    struct MethodKey: Hashable {
-        let name: String
-        let type: ObjCMethodInfo.MethodType
-    }
-     */
-    
-   // static var
     
     public static func getClass(named name: String, collectAllIfNeeded: Bool = true) -> Class? {
         if isCollecting {

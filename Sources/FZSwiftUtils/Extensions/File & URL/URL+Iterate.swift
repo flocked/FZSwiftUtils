@@ -90,7 +90,7 @@ public extension URL {
     /// A sequence of URLs.
     struct URLSequence: Sequence {
         private let url: URL
-        private var shouldSkip: ((URL)->Bool)?
+        private var shouldSkip: ((URL) -> Bool)?
         private var predicate: ((URL, Int, inout Bool) -> Bool)?
         private var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         private var maxDepth: Int?
@@ -258,6 +258,21 @@ public extension URL.URLSequence {
     func prefetching(_ keys: URLResources.Keys...) -> Self {
         prefetching(keys)
     }
+    
+    /// Returns relative URLs.
+    var relativeURLs: Self {
+        var sequence = self
+        sequence.options.remove(.producesRelativePathURLs)
+        return sequence
+    }
+    
+    /// Includes directories after their descendants have been enumerated.
+    var directoriesPostOrder: Self {
+        var sequence = self
+        sequence.options.insert(.includesDirectoriesPostOrder)
+        return sequence
+    }
+
         
     /// The number of URLs in the sequence.
     var count: Int {
@@ -277,7 +292,7 @@ public extension URL {
     struct FileURLSequence: Sequence {
         private let url: URL
         private var predicate: ((URL, Int, inout Bool) -> Bool)?
-        private var shouldSkip: ((URL)->Bool)?
+        private var shouldSkip: ((URL) -> Bool)?
         private var options: FileManager.DirectoryEnumerationOptions = [.skipsSubdirectoryDescendants, .skipsPackageDescendants, .skipsHiddenFiles]
         private var maxDepth: Int?
         private var requiredKeys: Set<URLResourceKey> = [.isRegularFileKey]
@@ -451,7 +466,8 @@ public extension URL.FileURLSequence {
         let contentTypes = contentTypes.uniqued()
         copy.requiredKeys[.contentTypeKey] = !contentTypes.isEmpty
         copy.filters["contentType"] = contentTypes.isEmpty ? nil : {
-            $0.contentType?.conforms(toAny: contentTypes) == true }
+            $0.contentType?.conforms(toAny: contentTypes) == true
+        }
         return copy
     }
     
@@ -464,7 +480,7 @@ public extension URL.FileURLSequence {
     func types(_ fileTypes: [FileType]) -> Self {
         var copy = self
         let fileTypes = Set(fileTypes.uniqued())
-        copy.filters["types"] = fileTypes.isEmpty ? nil : { $0.fileType.map({ fileTypes.contains($0) }) ?? false }
+        copy.filters["types"] = fileTypes.isEmpty ? nil : { $0.fileType.map { fileTypes.contains($0) } ?? false }
         return copy
     }
     
@@ -486,6 +502,13 @@ public extension URL.FileURLSequence {
         extensions(fileExtensions)
     }
     
+    /// Returns relative URLs.
+    var relativeURLs: Self {
+        var sequence = self
+        sequence.options.remove(.producesRelativePathURLs)
+        return sequence
+    }
+    
     /// The number of URLs in the sequence.
     var count: Int {
         reduce(0) { count, _ in count + 1 }
@@ -494,20 +517,20 @@ public extension URL.FileURLSequence {
     /// The maximum enumeration depth of the found URLs.
     var depth: Int {
         var iterator = makeIterator()
-        while iterator.next() != nil { }
+        while iterator.next() != nil {}
         return iterator.core.maximumLevel
     }
 }
 
-fileprivate struct URLSequenceIterator: IteratorProtocol {
-    private let predicate: (((URL, Int, inout Bool) -> Bool))?
+private struct URLSequenceIterator: IteratorProtocol {
+    private let predicate: ((URL, Int, inout Bool) -> Bool)?
     private let includeURL: ((URL) -> Bool)?
     private let shouldSkip: ((URL) -> Bool)?
     private let enumerator: FileManager.DirectoryEnumerator?
     private let maxLevel: Int?
     var maximumLevel = 0
     
-    init(url: URL, keys: [URLResourceKey], options: FileManager.DirectoryEnumerationOptions, maxLevel: Int?, predicate:  (((URL, Int, inout Bool) -> Bool))?, shouldSkip: (((URL) -> Bool))?,  includeURL: (((URL) -> Bool))?) {
+    init(url: URL, keys: [URLResourceKey], options: FileManager.DirectoryEnumerationOptions, maxLevel: Int?, predicate: ((URL, Int, inout Bool) -> Bool)?, shouldSkip: ((URL) -> Bool)?, includeURL: ((URL) -> Bool)?) {
         self.predicate = predicate
         self.shouldSkip = shouldSkip
         self.includeURL = includeURL

@@ -45,3 +45,31 @@ public struct Queue<Element> {
         return elements.first
     }
 }
+
+extension Queue: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSArray {
+        elements._bridgeToObjectiveC()
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: NSArray, result: inout Self?) {
+        var elements: [Element]?
+        [Element]._forceBridgeFromObjectiveC(source, result: &elements)
+        result = elements.map { .init(elements: $0) }
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSArray, result: inout Self?) -> Bool {
+        var elements: [Element]?
+        guard [Element]._conditionallyBridgeFromObjectiveC(source, result: &elements),
+              let elements else {
+            result = nil
+            return false
+        }
+
+        result = .init(elements: elements)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSArray?) -> Self {
+        Queue(elements: [Element]._unconditionallyBridgeFromObjectiveC(source))
+    }
+}

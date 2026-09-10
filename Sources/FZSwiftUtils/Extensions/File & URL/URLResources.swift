@@ -321,6 +321,27 @@ public class URLResources {
         }
     }
     #endif
+    
+    /**
+     The persistent identifier of the resource.
+        
+     The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource.
+     
+     Compard  to ``identifier`` all volumes support this property and its unique accross several volumes.
+     */
+    var persistentIdentifier: UUID? {
+        if let data = try? url.extendedAttributes.getData(for: "FZSwiftUtils.uniqueFileID"), data.count == 16 {
+            return UUID(uuid: data.withUnsafeBytes { $0.load(as: uuid_t.self) })
+        }
+        let id = UUID()
+        var bytes = id.uuid
+        do {
+            try url.extendedAttributes.setData(Data(bytes: &bytes, count: 16), for: "FZSwiftUtils.uniqueFileID", flags: .syncable)
+            return id
+        } catch {
+            return nil
+        }
+    }
 }
 
 #if os(macOS)
@@ -360,7 +381,7 @@ public extension URLResources {
     struct VolumeURLResources {
         private let resources: URLResources
 
-        public init(_ resources: URLResources) {
+        init(_ resources: URLResources) {
             self.resources = resources
         }
 
@@ -459,13 +480,13 @@ public extension URLResources {
          - Note: The origin URL should not be set to the data URL, or the quarantining app may start downloading the file again if the user choses to view the origin URL while resolving a quarantine warning.
          */
         public var originURL: URL? {
-            get { rawValue[kLSQuarantineOriginURLKey as String] as? URL }
+            get { rawValue[typed: kLSQuarantineOriginURLKey as String] }
             set { rawValue[kLSQuarantineOriginURLKey as String] = newValue }
         }
 
         /// The actual URL of the quarantined item.
         public var dataURL: URL? {
-            get { rawValue[kLSQuarantineDataURLKey as String] as? URL }
+            get { rawValue[typed: kLSQuarantineDataURLKey as String] }
             set { rawValue[kLSQuarantineDataURLKey as String] = newValue }
         }
 
@@ -475,7 +496,7 @@ public extension URLResources {
          When applying the quarantine properties to an item and this value is `nil`, the value is set automatically to the main bundle identifier of the current process.
          */
         public var agentBundleIdentifier: String? {
-            get { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] as? String }
+            get { rawValue[typed: kLSQuarantineAgentBundleIdentifierKey as String] }
             set { rawValue[kLSQuarantineAgentBundleIdentifierKey as String] = newValue }
         }
 
@@ -485,7 +506,7 @@ public extension URLResources {
          When applying the quarantine properties to an item and this value is `nil`, the value is set automatically to the current process name.
          */
         public var agentName: String? {
-            get { rawValue[kLSQuarantineAgentNameKey as String] as? String }
+            get { rawValue[typed: kLSQuarantineAgentNameKey as String] }
             set { rawValue[kLSQuarantineAgentNameKey as String] = newValue }
         }
 
@@ -495,27 +516,24 @@ public extension URLResources {
          When applying the quarantine properties to an item and this value is `nil`, the value is set automaticallyto the current date and time.
          */
         public var timestamp: Date? {
-            get { rawValue[kLSQuarantineTimeStampKey as String] as? Date }
+            get { rawValue[typed: kLSQuarantineTimeStampKey as String] }
             set { rawValue[kLSQuarantineTimeStampKey as String] = newValue }
         }
 
         /// The reason for the item's quarantine, such as a web download or email attachment.
         public var type: QuarantineType? {
-            get {
-                guard let rawValue = rawValue[kLSQuarantineTypeKey as String] as? String else { return nil }
-                return QuarantineType(rawValue)
-            }
+            get { rawValue[typed: kLSQuarantineTypeKey as String] }
             set { rawValue[kLSQuarantineTypeKey as String] = newValue?.rawValue }
         }
 
         /// A Boolean value indicating whether the quarantined item was created by the current user.
         public var isOwnedByCurrentUser: Bool? {
-            get { rawValue["LSQuarantineIsOwnedByCurrentUser"] as? Bool }
+            get { rawValue[typed: "LSQuarantineIsOwnedByCurrentUser"] }
         }
 
         /// The identifier for the quarantine event.
         public var eventIdentifier: String? {
-            get { rawValue["LSQuarantineEventIdentifier"] as? String }
+            get { rawValue[typed: "LSQuarantineEventIdentifier"] }
         }
 
         /// The raw representation of the qurantine properties.

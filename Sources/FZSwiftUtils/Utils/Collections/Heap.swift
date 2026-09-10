@@ -190,6 +190,40 @@ public struct Heap<Element>: Sequence, Collection {
 extension Heap: Equatable where Element: Equatable { }
 extension Heap: Hashable where Element: Hashable { }
 
+extension Heap: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> _Heap<Element> {
+        _Heap(self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: _Heap<Element>, result: inout Self?) {
+        result = source.value
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _Heap<Element>, result: inout Self?) -> Bool {
+        result = source.value
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _Heap<Element>?) -> Self {
+        var result: Self?
+        _forceBridgeFromObjectiveC(source!, result: &result)
+        return result!
+    }
+}
+
+/// The Objective-C class for ``Heap``.
+public final class _Heap<Element>: NSObject, NSCopying {
+    let value: Heap<Element>
+
+    init(_ value: Heap<Element>) {
+        self.value = value
+    }
+
+    public func copy(with zone: NSZone? = nil) -> Any {
+        self
+    }
+}
+
 /*
  
  /**

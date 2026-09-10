@@ -87,7 +87,7 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         return member
     }
 
-    public mutating func formUnion(_ other: CountedSet<Element>) {
+    public mutating func formUnion(_ other: Self) {
         for (key, value) in other.storage {
             if let existingValue = storage[key] {
                 storage[key] = existingValue + value
@@ -97,13 +97,13 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         }
     }
 
-    public func union(_ other: CountedSet<Element>) -> CountedSet<Element> {
+    public func union(_ other: Self) -> Self {
         var unionized = self
         unionized.formUnion(other)
         return unionized
     }
 
-    public mutating func formIntersection(_ other: CountedSet<Element>) {
+    public mutating func formIntersection(_ other: Self) {
         for (key, value) in storage {
             if let existingValue = other.storage[key] {
                 storage[key] = existingValue + value
@@ -113,7 +113,7 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         }
     }
 
-    public func intersectsSet(_ other: CountedSet<Element>) -> Bool {
+    public func intersectsSet(_ other: Self) -> Bool {
         for (key, _) in other.storage {
             if let _ = storage[key] {
                 return true
@@ -122,13 +122,13 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         return false
     }
 
-    public func intersection(_ other: CountedSet<Element>) -> CountedSet<Element> {
+    public func intersection(_ other: Self) -> Self {
         var intersected = self
         intersected.formIntersection(other)
         return intersected
     }
 
-    public mutating func formSymmetricDifference(_ other: CountedSet<Element>) {
+    public mutating func formSymmetricDifference(_ other: Self) {
         for (key, value) in other.storage {
             if let _ = storage[key] {
                 storage.removeValue(forKey: key)
@@ -138,13 +138,13 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         }
     }
     
-    public func symmetricDifference(_ other: CountedSet<Element>) -> CountedSet<Element> {
+    public func symmetricDifference(_ other: Self) -> Self {
         var xored = self
         xored.formSymmetricDifference(other)
         return xored
     }
 
-    public mutating func subtract(_ other: CountedSet<Element>) {
+    public mutating func subtract(_ other: Self) {
         for (key, value) in other.storage {
             guard let existingValue = storage[key] else { continue }
             if value >= existingValue {
@@ -155,13 +155,13 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         }
     }
 
-    public func subtracting(_ other: CountedSet<Element>) -> CountedSet<Element> {
+    public func subtracting(_ other: Self) -> Self {
         var subtracted = self
         subtracted.subtract(other)
         return subtracted
     }
 
-    public func isSubset(of other: CountedSet<Element>) -> Bool {
+    public func isSubset(of other: Self) -> Bool {
         for (key, _) in storage {
             if !other.storage.keys.contains(key) {
                 return false
@@ -170,11 +170,11 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         return true
     }
 
-    public func isDisjoint(with other: CountedSet<Element>) -> Bool {
+    public func isDisjoint(with other: Self) -> Bool {
         intersection(other).isEmpty
     }
 
-    public func isSuperset(of other: CountedSet<Element>) -> Bool {
+    public func isSuperset(of other: Self) -> Bool {
         for (key, _) in other.storage {
             if !storage.keys.contains(key) {
                 return false
@@ -183,11 +183,11 @@ public struct CountedSet<Element: Hashable>: SetAlgebra, ExpressibleByArrayLiter
         return true
     }
 
-    public func isStrictSupersetOf(_ other: CountedSet<Element>) -> Bool {
+    public func isStrictSupersetOf(_ other: Self) -> Bool {
         isSuperset(of: other) && count > other.count
     }
 
-    public func isStrictSubsetOf(_ other: CountedSet<Element>) -> Bool {
+    public func isStrictSubsetOf(_ other: Self) -> Bool {
         isSubset(of: other) && count < other.count
     }
 

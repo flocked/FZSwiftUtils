@@ -632,16 +632,14 @@ extension OrderedSet: Sendable where Element: Sendable { }
 extension OrderedSet: Encodable where Element: Encodable {
     /// Encodes the ordered set as an ordered sequence of elements.
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(_elements)
+        try _elements.encode(to: encoder)
     }
 }
 
 extension OrderedSet: Decodable where Element: Decodable {
     /// Decodes an ordered set from an ordered sequence of elements.
     public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        self.init(try container.decode(ContiguousArray<Element>.self))
+        self.init(try ContiguousArray<Element>(from: decoder))
     }
 }
 
@@ -666,5 +664,128 @@ extension OrderedSet: CVarArg {
     /// The C variadic argument encoding for the ordered set's elements.
     public var _cVarArgEncoding: [Int] {
         Array(_elements)._cVarArgEncoding
+    }
+}
+
+// MARK: - Objective-C bridging
+
+extension OrderedSet: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> _OrderedSet<Element> {
+        _OrderedSet(self)
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: _OrderedSet<Element>, result: inout Self?) {
+        result = source.value
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _OrderedSet<Element>, result: inout Self?) -> Bool {
+        result = source.value
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _OrderedSet<Element>?) -> Self {
+        guard let source else { return Self() }
+        var result: Self?
+        _forceBridgeFromObjectiveC(source, result: &result)
+        return result!
+    }
+}
+
+/// The Objective-C class for ``OrderedSet``.
+public final class _OrderedSet<Element: Hashable>: NSObject, NSCopying {
+    let value: OrderedSet<Element>
+
+    init(_ value: OrderedSet<Element>) {
+        self.value = value
+    }
+
+    public func copy(with zone: NSZone? = nil) -> Any {
+        self
+    }
+
+    public override func isEqual(_ object: Any?) -> Bool {
+        guard let other = object as? Self else { return false }
+        return self === other || value == other.value
+    }
+
+    public override var hash: Int {
+        value.hashValue
+    }
+}
+
+public extension OrderedSet {
+    func sorted<V>(by compare: (Element) throws -> V, _ order: SortOrder = .ascending) rethrows -> Self where V: Comparable {
+        try sorted { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) }
+    }
+
+    func sorted<V>(by compare: (Element) throws -> V?, _ order: SortOrder = .ascending) rethrows -> Self where V: Comparable {
+        try sorted {
+            switch (try compare($0), try compare($1)) {
+            case let (x?, y?): return order == .ascending ? x < y : x > y
+            case (nil, nil): return false
+            case (nil, _): return false
+            case (_, nil): return true
+            }
+        }
+    }
+    
+    mutating func sort<V>(by compare: (Element) throws -> V, _ order: SortOrder = .ascending) rethrows where V: Comparable {
+        try sort { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) }
+    }
+    
+    mutating func sort<V>(by compare: (Element) throws -> V?, _ order: SortOrder = .ascending) rethrows where V: Comparable {
+        try sort {
+            switch (try compare($0), try compare($1)) {
+            case let (x?, y?): return order == .ascending ? x < y : x > y
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+}
+
+public extension OrderedSet {
+    func sorted<V>(by keyPath: KeyPath<Element, V>, _ order: SortOrder = .ascending) -> Self where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, _ order: SortOrder = .ascending) -> Self where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    func sorted<V>(by keyPath: KeyPath<Element, V>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> Self where V: StringProtocol {
+        sorted { $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order }
+    }
+
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> Self where V: StringProtocol {
+        sorted {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V>, _ order: SortOrder = .ascending) where V: Comparable {
+        sort(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V?>, _ order: SortOrder = .ascending) where V: Comparable {
+        sort(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) where V: StringProtocol {
+        sort { $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order }
+    }
+    
+    mutating func sort<V>(by keyPath: KeyPath<Element, V?>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) where V: StringProtocol {
+        sort {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
     }
 }

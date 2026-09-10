@@ -11,14 +11,21 @@
 import Foundation
 
 /// A thread-safe, synchronized set.
-public class SynchronizedSet<Element: Hashable>: Collection, ExpressibleByArrayLiteral {
+public final class SynchronizedSet<Element: Hashable>: Collection, ExpressibleByArrayLiteral {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedSet", attributes: .concurrent)
-    private var storage: Set<Element> = []
+    private var storage: Set<Element>
     
     public typealias Index = Set<Element>.Index
 
     /// Creates a new, empty synchronized set.
-    public required init() { }
+    public required init() {
+        storage = []
+    }
+    
+    /// Creates a synchronized set from the specified set.
+    public init(_ set: Set<Element>) {
+        storage = set
+    }
     
     /**
      Creates an synchronized set containing the elements of a sequence.
@@ -39,8 +46,7 @@ public class SynchronizedSet<Element: Hashable>: Collection, ExpressibleByArrayL
     }
     
     public required init(from decoder: Decoder) throws where Element: Decodable {
-        var container = try decoder.unkeyedContainer()
-        storage = try container.decode(Set<Element>.self)
+        storage = try .init(from: decoder)
     }
 }
 
@@ -542,17 +548,42 @@ extension SynchronizedSet: CustomStringConvertible, CustomDebugStringConvertible
 
 extension SynchronizedSet: @unchecked Sendable where Element: Sendable { }
 
+extension SynchronizedSet: Decodable where Element: Decodable { }
 extension SynchronizedSet: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.unkeyedContainer()
-        try container.encode(contentsOf: synchronized)
+        try synchronized.encode(to: encoder)
     }
 }
-
-extension SynchronizedSet: Decodable where Element: Decodable { }
 
 extension SynchronizedSet: CVarArg {
     public var _cVarArgEncoding: [Int] {
         synchronized._cVarArgEncoding
+    }
+}
+
+extension SynchronizedSet: _ObjectiveCBridgeable {
+    public func _bridgeToObjectiveC() -> NSSet {
+        storage._bridgeToObjectiveC()
+    }
+
+    public static func _forceBridgeFromObjectiveC(_ source: NSSet, result: inout SynchronizedSet?) {
+        var set: Set<Element>?
+        Set<Element>._forceBridgeFromObjectiveC(source, result: &set)
+        result = set.map { .init($0) }
+    }
+
+    public static func _conditionallyBridgeFromObjectiveC(_ source: NSSet, result: inout SynchronizedSet?) -> Bool {
+        var set: Set<Element>?
+        guard Set<Element>._conditionallyBridgeFromObjectiveC(source, result: &set),
+              let set else {
+            result = nil
+            return false
+        }
+        result = .init(set)
+        return true
+    }
+
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: NSSet?) -> SynchronizedSet {
+        .init(Set<Element>._unconditionallyBridgeFromObjectiveC(source))
     }
 }

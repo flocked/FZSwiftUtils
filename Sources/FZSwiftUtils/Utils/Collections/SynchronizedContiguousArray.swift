@@ -13,10 +13,16 @@ import Foundation
 /// A thread-safe, synchronized contiguously stored array.
 public class SynchronizedContiguousArray<Element>: BidirectionalCollection, RandomAccessCollection, RangeReplaceableCollection, MutableCollection, ExpressibleByArrayLiteral {
     private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedContiguousArray", attributes: .concurrent)
-    private var array: ContiguousArray<Element> = []
+    private var array: ContiguousArray<Element>
 
     /// Creates a new, empty synchronized contiguously stored array.
-    public required init() {}
+    public required init() {
+        array = []
+    }
+    /// Creates a synchronized contiguously array from the specified array.
+    public init(_ array: ContiguousArray<Element>) {
+        self.array = array
+    }
     
     /**
      Creates an synchronized contiguously stored array containing the elements of a sequence.
@@ -47,6 +53,7 @@ public class SynchronizedContiguousArray<Element>: BidirectionalCollection, Rand
         array = ContiguousArray(elements)
     }
     
+    /// Creates a new synchronized contiguous array by decoding from the given decoder.
     public required init(from decoder: Decoder) throws where Element: Decodable {
         array = try ContiguousArray(from: decoder)
     }
@@ -1099,10 +1106,9 @@ extension SynchronizedContiguousArray: CustomStringConvertible, CustomDebugStrin
 
 extension SynchronizedContiguousArray: @unchecked Sendable where Element: Sendable {}
 
+extension SynchronizedContiguousArray: Decodable where Element: Decodable { }
 extension SynchronizedContiguousArray: Encodable where Element: Encodable {
     public func encode(to encoder: Encoder) throws {
         try synchronized.encode(to: encoder)
     }
 }
-
-extension SynchronizedContiguousArray: Decodable where Element: Decodable { }
