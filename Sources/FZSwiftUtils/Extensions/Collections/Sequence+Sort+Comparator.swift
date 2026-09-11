@@ -250,6 +250,31 @@ public struct SortingComparator<Compared>: Hashable {
     }
     
     /// A comparator that uses the specified sort comparator to provide the comparison of values at the specified key path.
+    public static func ascending(_ keyPath: KeyPath<Compared, Bool>) -> Self {
+        .compare {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case (false, true): return .orderedAscending
+            case (true, false): return .orderedDescending
+            default: return .orderedSame
+            }
+        }
+    }
+    
+    /// A comparator that uses the specified sort comparator to provide the comparison of values at the specified key path.
+    public static func ascending(_ keyPath: KeyPath<Compared, Bool?>) -> Self {
+        .compare {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case (nil, nil): return .orderedSame
+            case (nil, _): return .orderedAscending
+            case (_, nil): return .orderedDescending
+            case (false, true): return .orderedAscending
+            case (true, false): return .orderedDescending
+            default: return .orderedSame
+            }
+        }
+    }
+    
+    /// A comparator that uses the specified sort comparator to provide the comparison of values at the specified key path.
     public static func descending<Value, Comparator: SortComparator<Value>>(_ keyPath: KeyPath<Compared, Value>, comparator: Comparator) -> Self {
         .init(KeyPathComparator(keyPath, comparator: comparator, order: .reverse))
     }
@@ -267,6 +292,18 @@ public struct SortingComparator<Compared>: Hashable {
     /// A comparator that uses the specified sort comparator to provide the comparison of values at the specified key path.
     public static func descending<Value: Comparable>(_ keyPath: KeyPath<Compared, Value?>) -> Self {
         .init(KeyPathComparator(keyPath, order: .reverse))
+    }
+    
+    /// A comparator that uses the specified sort comparator to provide the comparison of values at the specified key path.
+    public static func descending(_ keyPath: KeyPath<Compared, Bool>) -> Self {
+        let comparator = ascending(keyPath)
+        return .compare { comparator.compare($1, $0) }
+    }
+
+    /// A comparator that uses the specified sort comparator to provide the comparison of values at the specified key path.
+    public static func descending(_ keyPath: KeyPath<Compared, Bool?>) -> Self {
+        let comparator = ascending(keyPath)
+        return .compare { comparator.compare($1, $0) }
     }
     
     // MARK: - Comparing using String properties
@@ -322,6 +359,47 @@ public struct SortingComparator<Compared>: Hashable {
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.hashValue  == rhs.hashValue
+    }
+}
+
+extension SortingComparator where Compared == Bool {
+    /// A comparator that places `true` values before `false` values.
+    public static var ascending: Self {
+        .compare {
+            switch ($0, $1) {
+            case (true, false): return .orderedAscending
+            case (false, true): return .orderedDescending
+            default: return .orderedSame
+            }
+        }
+    }
+
+    /// A comparator that places `false` values before `true` values.
+    public static var descending: Self {
+        let comparator = ascending
+        return .compare { comparator.compare($1, $0) }
+    }
+}
+
+extension SortingComparator where Compared == Optional<Bool> {
+    /// A comparator that places `true` values before `false` values and `nil` values last.
+    public static var ascending: Self {
+        .compare {
+            switch ($0, $1) {
+            case (nil, nil): return .orderedSame
+            case (nil, _): return .orderedDescending
+            case (_, nil): return .orderedAscending
+            case (true, false): return .orderedAscending
+            case (false, true): return .orderedDescending
+            default: return .orderedSame
+            }
+        }
+    }
+
+    /// A comparator that places `nil` values first, followed by `false` and then `true`.
+    public static var descending: Self {
+        let comparator = ascending
+        return .compare { comparator.compare($1, $0) }
     }
 }
 
