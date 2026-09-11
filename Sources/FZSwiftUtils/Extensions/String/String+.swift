@@ -1437,3 +1437,90 @@ extension Set: AnySet {
         map { $0 }
     }
 }
+
+public extension String {
+    /// A pair of strings for wrapping a string with a prefix and suffix.
+    struct Wrapper: Hashable, Sendable, ExpressibleByStringLiteral {
+        /// The string prepended to the wrapped string.
+        public let prefix: String
+        /// The string appended to the wrapped string.
+        public let suffix: String
+
+        /// Creates a wrapper with the specified prefix and suffix.
+        public init(_ prefix: String, _ suffix: String) {
+            self.prefix = prefix
+            self.suffix = suffix
+        }
+
+        /// Creates a wrapper that uses the specified string as both its prefix and suffix.
+        public init(_ string: String) {
+            self.init(string, string)
+        }
+        
+        /// Creates a wrapper that uses the specified string as both its prefix and suffix.
+        public init(stringLiteral value: String) {
+            self.init(value)
+        }
+
+        /// Parentheses (`()`), e.g. `(Apple Juice)`.
+        public static let parentheses = Self("(", ")")
+        /// Square brackets (`[]`), e.g. `[Apple Juice]`.
+        public static let squareBrackets = Self("[", "]")
+        /// Curly brackets (`{}`), e.g. `{Apple Juice}`.
+        public static let curlyBrackets = Self("{", "}")
+        /// Angle brackets (`<>`), e.g. `<Apple Juice>`.
+        public static let angleBrackets = Self("<", ">")
+        /// Single quotes (`'`), e.g. `'Apple Juice'`.
+        public static let singleQuotes = Self("'")
+        /// Double quotes (`"`), e.g. `"Apple Juice"`.
+        public static let doubleQuotes = Self("\"")
+        /// Backticks (`` ` ``), e.g. `` `Apple Juice` ``.
+        public static let backticks = Self("`")
+    }
+}
+
+public extension StringProtocol {
+    /**
+     Returns the string wrapped in the specified wrapper, optionally leaving it unchanged if it is already wrapped.
+     
+     ```swift
+     "Hello".wrapped(in: .parentheses)
+     // "(Hello)"
+
+     "(Hello)".wrapped(in: .parentheses, ifNeeded: true)
+     // "(Hello)"
+     ```
+     
+     - Parameters:
+        - wrapper: The wrapper to apply to the string.
+        - ifNeeded: A Boolean value indicating whether to apply the wrapper only if the string is not already wrapped.
+     */
+    func wrapped(in wrapper: String.Wrapper, ifNeeded: Bool = false) -> String {
+        if ifNeeded, isWrapped(in: wrapper) { return String(self) }
+        return wrapper.prefix + self + wrapper.suffix
+    }
+    
+    /**
+     Returns the string with the specified wrapper removed if present.
+     
+     ```swift
+     "(Hello)".unwrapped(from: .parentheses)
+     // "Hello"
+     
+     "Hello".unwrapped(from: .parentheses)
+     // "Hello"
+     ```
+          
+     - Parameter wrapper: The wrapper to remove from the string.
+     */
+    func unwrapped(from wrapper: String.Wrapper) -> String {
+        guard isWrapped(in: wrapper) else { return String(self) }
+        return String(dropFirst(wrapper.prefix.count).dropLast(wrapper.suffix.count))
+    }
+    
+    /// Returns a Boolean value indicating whether the string is wrapped in the specified wrapper.
+    func isWrapped(in wrapper: String.Wrapper) -> Bool {
+        count >= wrapper.prefix.count + wrapper.suffix.count
+        && hasPrefix(wrapper.prefix) && hasSuffix(wrapper.suffix)
+    }
+}

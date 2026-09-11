@@ -112,7 +112,7 @@ public struct MeasureTime {
     
     private static var measurements = [(startTime: Double, title:String?)]()
     
-    private static func current(remove: Bool, print: Bool, details: String?) -> TimeDuration {
+    private static func current(remove: Bool, print: Bool, details: String?, addBracket: Bool = true) -> TimeDuration {
         guard !measurements.isEmpty else { return .zero }
         let beginning = remove ? measurements.removeLast() : measurements.last!
         let timeElapsed = CFAbsoluteTimeGetCurrent() - beginning.startTime
