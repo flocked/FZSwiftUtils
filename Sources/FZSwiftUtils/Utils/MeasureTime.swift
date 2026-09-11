@@ -120,7 +120,7 @@ public struct MeasureTime {
             let indent = String(repeating: "\t", count: remove ? measurements.count : measurements.count-1)
             let title = beginning.title == nil ? "" : " for \(beginning.title!)"
             let details = details == nil ? "" : " \(includeParentheses ? details!.wrapped(in: .parentheses) : details!)"
-            Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s. \(details)")
+            Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s.\(details)")
         }
         return TimeDuration(timeElapsed)
     }
