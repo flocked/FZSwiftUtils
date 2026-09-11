@@ -271,13 +271,10 @@ public extension URL {
              */
             public static let noExport = Self(rawValue: XATTR_FLAG_NO_EXPORT)
             
-            
             /**
-             Ties the life cycle of the attribute directly to the raw data contents of the file.
+             Declares the attribute to be tied to the contents of the file, such that it needs to be re-created when the contents of the file change. Examples might include cryptographic keys, checksums, saved position or search information, and text encoding.
              
-             This flag is ideal for metadata that becomes invalid if the file changes, such as cryptographic checksums, hashes, window/scroll positions, or text encodings.
-             
-             - Note: The attribute is preserved during standard copies and shares, but it is **omitted during a "safe save"** (`XATTR_OPERATION_INTENT_SAVE`), meaning it must be re-calculated and re-written when the file data is updated.
+             The attribute is preserved for copy and share, but not for safe save.
              */
             public static let contentDependent = Self(rawValue: XATTR_FLAG_CONTENT_DEPENDENT)
             
@@ -377,5 +374,42 @@ public extension URL {
 fileprivate extension POSIXError {
     static var _current: any Error {
         POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno), userInfo: [:])
+    }
+}
+
+public extension URL {
+    var _extendedAttributes: _ExtendedAttributes {
+        .init(self)
+    }
+    func _extendedAttributes(_ namespace: _ExtendedAttributes.Namespace) -> _ExtendedAttributes {
+        .init(self)
+    }
+    
+    struct _ExtendedAttributes {
+        public let url: URL
+
+        public init(_ url: URL) {
+            self.url = url
+        }
+        
+        public struct Namespace: RawRepresentable, ExpressibleByStringLiteral {
+            public let rawValue: String
+            
+            public static let bundleIdentifier: Self? = Bundle.main.bundleIdentifier.map({ Self($0) })
+            
+            public init(rawValue: String) {
+                self.rawValue = rawValue
+            }
+            
+            public init(_ rawValue: String) {
+                self.rawValue = rawValue
+            }
+            
+            public init(stringLiteral value: String) {
+                self.rawValue = value
+            }
+            
+            //  public static let bundle = Self.init( Bundle.main.bundleIdentifier)
+        }
     }
 }

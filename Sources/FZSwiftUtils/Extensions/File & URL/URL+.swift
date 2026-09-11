@@ -1049,3 +1049,14 @@ extension StringProtocol {
         lhs
     }
 }
+
+public extension URL {
+    /// Returns a unique file URL in the system's temporary directory.
+    static func temporaryFile(withExtension pathExtension: String? = nil) -> URL {
+        var url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        if let pathExtension, !pathExtension.isEmpty {
+            url.appendPathExtension(pathExtension)
+        }
+        return url
+    }
+}

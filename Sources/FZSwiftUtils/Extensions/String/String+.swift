@@ -1524,3 +1524,41 @@ public extension StringProtocol {
         && hasPrefix(wrapper.prefix) && hasSuffix(wrapper.suffix)
     }
 }
+
+public extension StringProtocol {
+    func rangeOfWrappedContent(in wrapper: String.Wrapper, from index: Index) -> Range<Index>? {
+        guard self[index...].hasPrefix(wrapper.prefix) else { return nil }
+
+        var index = self.index(index, offsetBy: wrapper.prefix.count)
+        let start = index
+        var depth = 1
+
+        while index < endIndex {
+            if self[index...].hasPrefix(wrapper.prefix) {
+                depth += 1
+                index = self.index(index, offsetBy: wrapper.prefix.count)
+                continue
+            }
+
+            if self[index...].hasPrefix(wrapper.suffix) {
+                depth -= 1
+
+                if depth == 0 {
+                    return start..<index
+                }
+
+                index = self.index(index, offsetBy: wrapper.suffix.count)
+                continue
+            }
+
+            index = self.index(after: index)
+        }
+
+        return nil
+    }
+
+    func readWrappedContent(in wrapper: String.Wrapper, from index: Index) -> String? {
+        guard let range = rangeOfWrappedContent(in: wrapper, from: index) else { return nil }
+        return String(self[range])
+    }
+}

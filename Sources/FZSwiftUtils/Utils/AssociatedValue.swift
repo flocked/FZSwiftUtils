@@ -636,12 +636,12 @@ fileprivate class AssociatedValue {
     static let none = AssociatedValue(nil)
 }
 
-fileprivate var associatedKeys: [AnyHashable: NSObject] = [:]
+fileprivate var associatedKeys = Mutex([AnyHashable: NSObject]())
 
 fileprivate extension Hashable {
     var address: UnsafeRawPointer {
-        .unretained(associatedKeys[self, default: NSObject()])
+        associatedKeys.withLock {
+            .unretained($0[AnyHashable(self), initial: NSObject()])
+        }
     }
 }
-
-

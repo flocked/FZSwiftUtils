@@ -1,5 +1,5 @@
 //
-//  Notification+Observer.swift
+//  Notification+Observations.swift
 //  
 //
 //  Created by Florian Zand on 04.09.26.
@@ -9,7 +9,7 @@ import Foundation
 
 public extension Notification {
     /// Provides notification observations for an object.
-    struct Observer<Object> {
+    struct Observations<Object> {
         private let object: Object?
         
         init(_ object: Object?) {
@@ -45,7 +45,7 @@ public extension Notification {
     }
 }
 
-fileprivate extension Notification.Observer {
+fileprivate extension Notification.Observations {
     func observe(_ name: Notification.Name, _ handler: @escaping ()->()) -> NotificationToken {
         observe(name) { _ in handler() }
     }
@@ -126,13 +126,18 @@ fileprivate extension Notification.Observer {
 }
 
 public extension NSObjectProtocol where Self: Bundle {
-    /// Provides observations of notifications posted by the bundle.
-    var observe: Notification.Observer<Self> {
+    /// Observes notifications posted by the bundle.
+    var observe: Notification.Observations<Self> {
         .init(self)
+    }
+    
+    /// Observes notifications posted by bundles.
+    static var observe: Notification.Observations<Self> {
+        .init(nil)
     }
 }
 
-public extension Notification.Observer where Object: Bundle {
+public extension Notification.Observations where Object: Bundle {
     func didLoad(handler: @escaping (_ bundle: Object, _ classes: [String]) -> ()) -> NotificationToken {
         return observe(\.didLoadNotification) {
             guard let classes = $1[NSLoadedClasses] as? [String] else { return }
@@ -143,12 +148,12 @@ public extension Notification.Observer where Object: Bundle {
 
 public extension Calendar {
     /// Provides observations of global calendar notifications.
-    static var observer: Notification.Observer<Calendar.Type> {
+    static var observer: Notification.Observations<Calendar.Type> {
         .init(nil)
     }
 }
 
-public extension Notification.Observer where Object == Calendar.Type {
+public extension Notification.Observations where Object == Calendar.Type {
     func calendarDayChanged(handler: @escaping () -> ()) -> NotificationToken {
         NotificationCenter.default.observe(.NSCalendarDayChanged) { _ in handler() }
     }
@@ -156,29 +161,52 @@ public extension Notification.Observer where Object == Calendar.Type {
 
 public extension TimeZone {
     /// Provides observations of global time zone notifications.
-    static var observer: Notification.Observer<TimeZone.Type> {
+    static var observer: Notification.Observations<TimeZone.Type> {
         .init(nil)
     }
 }
 
-public extension Notification.Observer where Object == TimeZone.Type {
+public extension Notification.Observations where Object == TimeZone.Type {
     func systemTimeZoneDidChange(handler: @escaping (_ timeZone: TimeZone) -> ()) -> NotificationToken {
         NotificationCenter.default.observe(.NSSystemTimeZoneDidChange) { _ in handler(.current) }
     }
 }
 
+public extension NSObjectProtocol where Self: UserDefaults {
+    /// Observes notifications posted by the ser’s defaults database.
+    var observer: Notification.Observations<Self> {
+        .init(self)
+    }
+}
+
+public extension Notification.Observations where Object: UserDefaults {
+    func didChange(handler: @escaping (_ view: Object)->()) -> NotificationToken {
+        return observe(\.didChangeNotification, handler)
+    }
+    
+    #if !os(macOS)
+    func sizeLimitExceeded(handler: @escaping (_ view: Object)->()) -> NotificationToken {
+        return observe(\.sizeLimitExceededNotification, handler)
+    }
+    #endif
+}
 
 #if os(macOS)
 import AppKit
 
 public extension NSObjectProtocol where Self: NSView {
-    /// Provides observations of notifications posted by the view.
-    var observe: Notification.Observer<Self> {
+    /// Observes notifications posted by the view.
+    var observe: Notification.Observations<Self> {
         .init(self)
+    }
+    
+    /// Observes notifications posted by any view.
+    static var observe: Notification.Observations<Self> {
+        .init(nil)
     }
 }
 
-public extension Notification.Observer where Object: NSView {
+public extension Notification.Observations where Object: NSView {
     func boundsDidChange(handler: @escaping (_ view: Object)->()) -> NotificationToken {
         object!.postsBoundsChangedNotifications = true
         return observe(\.boundsDidChangeNotification, handler)
@@ -196,12 +224,12 @@ public extension Notification.Observer where Object: NSView {
 
 public extension NSObjectProtocol where Self: NSScrollView {
     /// Provides observations of notifications posted by the scroll view.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSScrollView {
+public extension Notification.Observations where Object: NSScrollView {
     func willStartLiveScroll(handler: @escaping (_ scrollView: Object)->()) -> NotificationToken {
         observe(\.willStartLiveScrollNotification, handler)
     }
@@ -225,12 +253,12 @@ public extension Notification.Observer where Object: NSScrollView {
 
 public extension NSObjectProtocol where Self: NSSplitView {
     /// Provides observations of notifications posted by the split view.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSSplitView {
+public extension Notification.Observations where Object: NSSplitView {
     func willResizeSubviews(handler: @escaping (_ splitView: Object, _ dividerIndex: Int, _ byUser: Bool)->()) -> NotificationToken {
         observe(\.willResizeSubviewsNotification) {
             guard let dividerIndex = $1["NSSplitViewDividerIndex"] as? Int else { return }
@@ -248,12 +276,12 @@ public extension Notification.Observer where Object: NSSplitView {
 
 public extension NSObjectProtocol where Self: NSMenu {
     /// Provides observations of notifications posted by the menu.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSMenu {
+public extension Notification.Observations where Object: NSMenu {
     func didAddItem(handler: @escaping (_ menu: Object, _ item: NSMenuItem) -> ()) -> NotificationToken {
         observe(\.didAddItemNotification) {
             guard let index = $1["NSMenuItemIndex"] as? Int, let item = $0.item(at: index) else { return }
@@ -300,12 +328,12 @@ public extension Notification.Observer where Object: NSMenu {
 
 public extension NSObjectProtocol where Self: NSPopover {
     /// Provides observations of notifications posted by the popover.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSPopover {
+public extension Notification.Observations where Object: NSPopover {
     func willShow(handler: @escaping (_ popover: Object) -> ()) -> NotificationToken {
         observe(\.willShowNotification, handler)
     }
@@ -329,12 +357,12 @@ public extension Notification.Observer where Object: NSPopover {
 
 public extension NSObjectProtocol where Self: NSTableView {
     /// Provides observations of notifications posted by the table view.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSTableView {
+public extension Notification.Observations where Object: NSTableView {
     func columnDidMove(handler: @escaping (_ tableView: Object, _ column: NSTableColumn, _ oldIndex: Int, _ newIndex: Int) -> ()) -> NotificationToken {
         observe(\.columnDidMoveNotification) {
             guard let oldIndex = $1["NSOldColumn"] as? Int, let newIndex = $1["NSNewColumn"] as? Int, let column = $0.tableColumns[safe: newIndex] else { return }
@@ -357,12 +385,12 @@ public extension Notification.Observer where Object: NSTableView {
 
 public extension NSObjectProtocol where Self: NSControl {
     /// Provides observations of notifications posted by the control.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSControl {
+public extension Notification.Observations where Object: NSControl {
     func textDidChange(handler: @escaping (_ control: Object, _ fieldEditor: NSText) -> ()) -> NotificationToken {
         observe(\.textDidChangeNotification, "NSFieldEditor", handler)
     }
@@ -378,12 +406,12 @@ public extension Notification.Observer where Object: NSControl {
 
 public extension NSObjectProtocol where Self: NSWindow {
     /// Provides observations of notifications posted by the window.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSWindow {
+public extension Notification.Observations where Object: NSWindow {
     func didBecomeKey(handler: @escaping (_ window: Object) -> ()) -> NotificationToken {
         observe(\.didBecomeKeyNotification, handler)
     }
@@ -503,12 +531,12 @@ public extension Notification.Observer where Object: NSWindow {
 
 public extension NSObjectProtocol where Self: NSWorkspace {
     /// Provides observations of notifications posted by the workspace.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSWorkspace {
+public extension Notification.Observations where Object: NSWorkspace {
     func willLaunchApplication(handler: @escaping (_ application: NSRunningApplication) -> ()) -> NotificationToken {
         observe(\.willLaunchApplicationNotification, handler)
     }
@@ -612,12 +640,12 @@ public extension Notification.Observer where Object: NSWorkspace {
 
 public extension NSObjectProtocol where Self: NSApplication {
     /// Provides observations of notifications posted by the application.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSApplication {
+public extension Notification.Observations where Object: NSApplication {
     func willHide(handler: @escaping (_ application: Object) -> ()) -> NotificationToken {
         observe(\.willHideNotification, handler)
     }
@@ -685,12 +713,12 @@ public extension Notification.Observer where Object: NSApplication {
 
 public extension NSObjectProtocol where Self: NSComboBox {
     /// Provides observations of notifications posted by the combobox.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSComboBox {
+public extension Notification.Observations where Object: NSComboBox {
     func willDismiss(handler: @escaping (_ comboBox: Object) -> ()) -> NotificationToken {
         observe(\.willDismissNotification, handler)
     }
@@ -710,12 +738,12 @@ public extension Notification.Observer where Object: NSComboBox {
 
 public extension NSObjectProtocol where Self: NSHelpManager {
     /// Provides observations of notifications posted by the help manager.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSHelpManager {
+public extension Notification.Observations where Object: NSHelpManager {
     func contextHelpModeDidActivate(handler: @escaping (_ helpManager: Object) -> ()) -> NotificationToken {
         observe(\.contextHelpModeDidActivateNotification, handler)
     }
@@ -727,19 +755,19 @@ public extension Notification.Observer where Object: NSHelpManager {
 
 public extension NSObjectProtocol where Self: NSTextView {
     /// Provides observations of notifications posted by the text view.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
 public extension NSTextView {
     /// Provides observations of notifications posted by the text view.
-    static var observe: Notification.Observer<NSTextView.Type> {
+    static var observe: Notification.Observations<NSTextView.Type> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object == NSTextView.Type {
+public extension Notification.Observations where Object == NSTextView.Type {
     func willChangeNotifyingTextView(handler: @escaping (_ old: NSTextView?, _ new: NSTextView?) -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSTextView.willChangeNotifyingTextViewNotification) {
             handler($0.userInfo?[typed: "NSOldNotifyingTextView"], $0.userInfo?[typed: "NSNewNotifyingTextView"])
@@ -751,7 +779,7 @@ public extension Notification.Observer where Object == NSTextView.Type {
  NSTextView.willChangeNotifyingTextViewNotification
  */
 
-public extension Notification.Observer where Object: NSTextView {
+public extension Notification.Observations where Object: NSTextView {
     func didChangeTypingAttributes(handler: @escaping (_ textView: Object) -> ()) -> NotificationToken {
         observe(\.didChangeTypingAttributesNotification, handler)
     }
@@ -774,12 +802,12 @@ public extension Notification.Observer where Object: NSTextView {
 
 public extension NSObjectProtocol where Self: NSText {
     /// Provides observations of notifications posted by the text.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSText {
+public extension Notification.Observations where Object: NSText {
     func didChange(handler: @escaping (_ text: Object) -> ()) -> NotificationToken {
         observe(\.didChangeNotification, handler)
     }
@@ -798,12 +826,12 @@ public extension Notification.Observer where Object: NSText {
 
 public extension NSObjectProtocol where Self: NSToolbar {
     /// Provides observations of notifications posted by the toolbar.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSToolbar {
+public extension Notification.Observations where Object: NSToolbar {
     func willAddItem(handler: @escaping (_ toolbar: Object, _ item: NSToolbarItem, _ index: Int) -> ()) -> NotificationToken {
         observe(\.willAddItemNotification) {
             guard let item = $1["item"] as? NSToolbarItem, let index = $1["newIndex"] as? Int else { return }
@@ -821,12 +849,12 @@ public extension Notification.Observer where Object: NSToolbar {
 
 public extension NSObjectProtocol where Self: NSFontCollection {
     /// Provides observations of notifications posted by the font collection.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSFontCollection {
+public extension Notification.Observations where Object: NSFontCollection {
     func didChange(handler: @escaping (_ fontCollection: Object, _ action: NSFontCollection.ActionTypeKey,  _ name: NSFontCollection.Name, _ oldName: NSFontCollection.Name?, _ visibility: NSFontCollection.Visibility) -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSFontCollection.didChangeNotification, postedBy: nil) { [weak object] notification in
             let userInfo = notification.userInfo ?? [:]
@@ -838,12 +866,12 @@ public extension Notification.Observer where Object: NSFontCollection {
 
 public extension NSColor {
     /// Provides observations of `NSColor`.
-    static var observe: Notification.Observer<NSColor.Type> {
+    static var observe: Notification.Observations<NSColor.Type> {
         .init(nil)
     }
 }
 
-public extension Notification.Observer where Object == NSColor.Type {
+public extension Notification.Observations where Object == NSColor.Type {
     func systemColorsDidChange(handler: @escaping () -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSColor.systemColorsDidChangeNotification) { _ in
             handler()
@@ -853,12 +881,12 @@ public extension Notification.Observer where Object == NSColor.Type {
 
 public extension NSObjectProtocol where Self: NSAnimation {
     /// Provides observations of notifications posted by the animation.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSAnimation {
+public extension Notification.Observations where Object: NSAnimation {
     func didReachProgressMark(handler: @escaping (_ animation: Object, _ progressMark: NSAnimation.Progress) -> ()) -> NotificationToken {
         observe(\.progressMarkNotification) {
             guard let progressMark = $1[NSAnimation.progressMarkUserInfoKey] as? NSAnimation.Progress else { return }
@@ -869,12 +897,12 @@ public extension Notification.Observer where Object: NSAnimation {
 
 public extension NSObjectProtocol where Self: NSPopUpButton {
     /// Provides observations of notifications posted by the popUp button.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSPopUpButton {
+public extension Notification.Observations where Object: NSPopUpButton {
     func willPopUp(handler: @escaping (_ popUpButton: Object) -> ()) -> NotificationToken {
         observe(\.willPopUpNotification, handler)
     }
@@ -882,12 +910,12 @@ public extension Notification.Observer where Object: NSPopUpButton {
 
 public extension NSObjectProtocol where Self: NSOutlineView {
     /// Provides observations of notifications posted by the outline view.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSOutlineView {
+public extension Notification.Observations where Object: NSOutlineView {
     func itemWillCollapse(handler: @escaping (_ outlineView: Object, _ item: Any) -> ()) -> NotificationToken {
         observe(\.itemWillCollapseNotification, handler)
     }
@@ -914,12 +942,12 @@ public extension Notification.Observer where Object: NSOutlineView {
 
 public extension NSObjectProtocol where Self: NSRuleEditor {
     /// Provides observations of notifications posted by the rule editor.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSRuleEditor {
+public extension Notification.Observations where Object: NSRuleEditor {
     func rowsDidChange(handler: @escaping (_ ruleEditor: Object) -> ()) -> NotificationToken {
         observe(\.rowsDidChangeNotification, handler)
     }
@@ -927,12 +955,12 @@ public extension Notification.Observer where Object: NSRuleEditor {
 
 public extension NSScroller {
     /// Provides observations of notifications related to scrollers globally.
-    static var observe: Notification.Observer<NSScroller.Type> {
+    static var observe: Notification.Observations<NSScroller.Type> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object == NSScroller.Type {
+public extension Notification.Observations where Object == NSScroller.Type {
     func preferredScrollerStyleDidChange(handler: @escaping (_ preferredScrollerStyle: NSScroller.Style) -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSScroller.preferredScrollerStyleDidChangeNotification) { _ in
             handler(NSScroller.preferredScrollerStyle)
@@ -942,12 +970,12 @@ public extension Notification.Observer where Object == NSScroller.Type {
 
 public extension NSObjectProtocol where Self: NSScreen {
     /// Provides observations of notifications posted by the screen.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSScreen {
+public extension Notification.Observations where Object: NSScreen {
     func colorSpaceDidChange(handler: @escaping (_ scroller: Object) -> ()) -> NotificationToken {
         observe(\.colorSpaceDidChangeNotification, handler)
     }
@@ -955,12 +983,12 @@ public extension Notification.Observer where Object: NSScreen {
 
 public extension NSSpellChecker {
     /// Provides observations of notifications posted by the spell checker.
-    static var observe: Notification.Observer<NSSpellChecker.Type> {
+    static var observe: Notification.Observations<NSSpellChecker.Type> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object == NSSpellChecker.Type {
+public extension Notification.Observations where Object == NSSpellChecker.Type {
     func didChangeAutomaticCapitalization(handler: @escaping (_ isEnabled: Bool) -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSSpellChecker.didChangeAutomaticCapitalizationNotification) { _ in
             handler(NSSpellChecker.isAutomaticCapitalizationEnabled)
@@ -1012,12 +1040,12 @@ public extension Notification.Observer where Object == NSSpellChecker.Type {
 
 public extension NSObjectProtocol where Self: NSTextAlternatives {
     /// Provides observations of notifications posted by the text alternatives object.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSTextAlternatives {
+public extension Notification.Observations where Object: NSTextAlternatives {
     func didsSelectedAlternativeString(handler: @escaping (_ textAlternatives: Object, _ alternativeString: String) -> ()) -> NotificationToken {
         observe(\.selectedAlternativeStringNotification) {
             guard let alternativeString = $1["NSAlternativeString"] as? String else { return }
@@ -1026,7 +1054,7 @@ public extension Notification.Observer where Object: NSTextAlternatives {
     }
 }
 
-public extension Notification.Observer where Object: NSTextStorage {
+public extension Notification.Observations where Object: NSTextStorage {
     func willProcessEditing(handler: @escaping (_ textStorage: Object) -> ()) -> NotificationToken {
         observe(\.willProcessEditingNotification, handler)
     }
@@ -1038,12 +1066,12 @@ public extension Notification.Observer where Object: NSTextStorage {
 
 public extension NSFont {
     /// Provides observations of notifications posted by the text alternatives object.
-    static var observe: Notification.Observer<NSFont.Type> {
+    static var observe: Notification.Observations<NSFont.Type> {
         .init(nil)
     }
 }
 
-public extension Notification.Observer where Object == NSFont.Type {
+public extension Notification.Observations where Object == NSFont.Type {
     func fontSetChanged(handler: @escaping () -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSFont.fontSetChangedNotification, postedBy: object) { _ in
             handler()
@@ -1059,12 +1087,12 @@ public extension Notification.Observer where Object == NSFont.Type {
 
 public extension NSObjectProtocol where Self: NSBrowser {
     /// Provides observations of notifications posted by the browser.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSBrowser {
+public extension Notification.Observations where Object: NSBrowser {
     func columnConfigurationDidChange(handler: @escaping (_ browser: Object) -> ()) -> NotificationToken {
         observe(\.columnConfigurationDidChangeNotification, handler)
     }
@@ -1079,7 +1107,7 @@ extension NSImageRep {
         case removed
     }
 }
-public extension Notification.Observer where Object == NSImageRep.Type {
+public extension Notification.Observations where Object == NSImageRep.Type {
     func registryDidChange(handler: @escaping (_ imageRepClass: NSImageRep.Type, _ change: NSImageRep.RegistryChange) -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSImageRep.registryDidChangeNotification, postedBy: nil) {
             guard let imageRepClass = $0.object as? NSImageRep.Type else { return }
@@ -1090,19 +1118,19 @@ public extension Notification.Observer where Object == NSImageRep.Type {
 
 public extension NSObjectProtocol where Self: NSTextInputContext {
     /// Provides observations of notifications posted by the text input context.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
 public extension NSTextInputContext {
     /// Provides observations of notifications posted by text input contexts.
-    static var observe: Notification.Observer<NSTextInputContext.Type> {
+    static var observe: Notification.Observations<NSTextInputContext.Type> {
         .init(nil)
     }
 }
 
-public extension Notification.Observer where Object == NSTextInputContext.Type {
+public extension Notification.Observations where Object == NSTextInputContext.Type {
     func keyboardSelectionDidChange(handler: @escaping () -> ()) -> NotificationToken {
         NotificationCenter.default.observe(NSTextInputContext.keyboardSelectionDidChangeNotification) { _ in
             handler()
@@ -1112,18 +1140,18 @@ public extension Notification.Observer where Object == NSTextInputContext.Type {
 
 public extension NSObjectProtocol where Self: NSColorPanel {
     /// Provides observations of notifications posted by text input contexts.
-    var observe: Notification.Observer<Self> {
+    var observe: Notification.Observations<Self> {
         .init(self)
     }
 }
 
-public extension Notification.Observer where Object: NSColorPanel {
+public extension Notification.Observations where Object: NSColorPanel {
     func colorDidChange(handler: @escaping (_ colorPanel: Object) -> ()) -> NotificationToken {
         observe(\.colorDidChangeNotification, handler)
     }
 }
 
-public extension Notification.Observer where Object: FileHandle {
+public extension Notification.Observations where Object: FileHandle {
     /*
      NSFileHandleNotificationDataItem
      An NSData object containing the available data read from a socket connection.
@@ -1166,7 +1194,7 @@ public extension Notification.Observer where Object: FileHandle {
 import AVKit
 
 @available(macOS 14.0, *)
-public extension Notification.Observer where Object: AVAudioApplication {
+public extension Notification.Observations where Object: AVAudioApplication {
     func inputMuteStateChanged(handler: @escaping (_ audioApplication: Object) -> ()) -> NotificationToken {
         observe(\.inputMuteStateChangeNotification, handler)
     }
@@ -1174,7 +1202,7 @@ public extension Notification.Observer where Object: AVAudioApplication {
 
 
 
-public extension Notification.Observer where Object: AVCaptureDevice {
+public extension Notification.Observations where Object: AVCaptureDevice {
     func wasConnected(handler: @escaping (_ captureDevice: Object) -> ()) -> NotificationToken {
         observe(\.wasConnectedNotification, handler)
     }

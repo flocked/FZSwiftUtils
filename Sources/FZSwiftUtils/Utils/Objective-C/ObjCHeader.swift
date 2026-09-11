@@ -33,7 +33,7 @@ public enum ObjCHeader {
     }
     
     /// An Apple platform.
-    public enum Platform: CustomStringConvertible {
+    public enum Platform: CustomStringConvertible, Hashable {
         /// macOS.
         case macOS
         /// iOS.
@@ -64,7 +64,7 @@ public enum ObjCHeader {
         public static let allSimulators: [Self] = [.iOS(.simulator), tvOS(.simulator), .watchOS(.simulator), .visionOS(.simulator)]
 
         /// The environment in which a platform runs.
-        public enum Environment: String {
+        public enum Environment: String, Hashable {
             /// Device.
             case device = "OS"
             /// Simulator.
@@ -144,6 +144,7 @@ public enum ObjCHeader {
     public static var bridgedTypedefsByName: [String: BridgedTypedef] = [:]
     public static var didCollect = false
     public private(set) static var isCollecting = false
+    static var notificationNames: [Platform: [String]] = [:]
     
     public static func getClass(named name: String, collectAllIfNeeded: Bool = true) -> Class? {
         if isCollecting {
@@ -308,7 +309,7 @@ public enum ObjCHeader {
             if (options.contains(.classes) || options.contains(.categories)),
                line.hasPrefix("@interface "),
                let declaration = Declaration.parseInterface(line) {
-                ivarBlockDepth = line._countOccurrences(of: "{") - line._countOccurrences(of: "}")
+                ivarBlockDepth = line.count(where: { $0 == "{" }) - line.count(where: { $0 == "}" })
                 switch declaration.kind {
                 case .class:
                     guard options.contains(.classes) else { continue }
@@ -395,15 +396,15 @@ public enum ObjCHeader {
             }
 
             guard let currentContext else { continue }
-
-            ivarBlockDepth += line._countOccurrences(of: "{")
-            ivarBlockDepth -= line._countOccurrences(of: "}")
+            ivarBlockDepth += line.count(where: { $0 == "{" })
+            ivarBlockDepth -= line.count(where: { $0 == "}" })
             if ivarBlockDepth > 0 {
                 continue
             }
 
             if line.hasPrefix("@property"),
                let property = Property.parse(line, parseAPIDeprecation: options.contains(.apiDeprecations), parseAPIAvailability: options.contains(.apiAvailabilities)) {
+                
                 switch currentContext {
                 case .class(let index):
                     if property.isClassProperty {
@@ -1040,16 +1041,16 @@ fileprivate extension ObjCHeader {
 
             if let openBrace = line.firstIndex(of: "{") {
                 didEnterBody = true
-                braceDepth += line._countOccurrences(of: "{")
-                braceDepth -= line._countOccurrences(of: "}")
+                braceDepth += line.count(where: { $0 == "{" })
+                braceDepth -= line.count(where: { $0 == "}" })
 
                 let afterBrace = String(line[line.index(after: openBrace)...]).trimmingCharacters(in: .whitespacesAndNewlines)
                 if !afterBrace.isEmpty {
                     consumeBody(afterBrace)
                 }
             } else if didEnterBody {
-                braceDepth += line._countOccurrences(of: "{")
-                braceDepth -= line._countOccurrences(of: "}")
+                braceDepth += line.count(where: { $0 == "{" })
+                braceDepth -= line.count(where: { $0 == "}" })
                 consumeBody(line)
             } else {
                 return
@@ -1117,7 +1118,7 @@ fileprivate extension ObjCHeader {
 
         init(text: String) {
             self.text = text
-            self.braceDepth = text._countOccurrences(of: "{") - text._countOccurrences(of: "}")
+            self.braceDepth = text.count(where: { $0 == "{" }) - text.count(where: { $0 == "}" })
         }
 
         static func starting(with line: String, options: ParseOptions) -> Self? {
@@ -1128,7 +1129,7 @@ fileprivate extension ObjCHeader {
 
         mutating func consume(_ line: String) {
             text += " " + line.trimmingCharacters(in: .whitespacesAndNewlines)
-            braceDepth += line._countOccurrences(of: "{") - line._countOccurrences(of: "}")
+            braceDepth += line.count(where: { $0 == "{" }) - line.count(where: { $0 == "}" })
         }
 
         mutating func appendParsedResults(to headerInfo: inout HeaderInfo, options: ParseOptions) {
@@ -1304,14 +1305,6 @@ fileprivate extension String {
             lines.append(current)
         }
         return lines
-    }
-
-    func _countOccurrences(of character: Character) -> Int {
-        reduce(into: 0) { result, next in
-            if next == character {
-                result += 1
-            }
-        }
     }
 
     func _propertyAttributes() -> [String] {
@@ -1879,5 +1872,91 @@ fileprivate extension Array where Element == String {
     mutating func appendIfNeeded(_ element: String) {
         guard !contains(element) else { return }
         append(element)
+    }
+}
+
+public extension ObjCHeader {
+    private static let notificationNameRegex = try! NSRegularExpression(pattern: #"NSNotificationName\s+(?:(?:const|__nonnull|__nullable|_Nonnull|_Nullable)\s+)*([A-Za-z_][A-Za-z0-9_]*)"#)
+    
+    /// Returns all Objective-C notification names for the specified platform.
+    static func notificationNames(for platform: Platform, xcodeURL: URL = URL(filePath: "/Applications/Xcode.app")) -> [String] {
+        if let names = notificationNames[platform] { return names }
+        guard let enumerator = FileManager.default.enumerator(at: platform.frameworksURL(in: xcodeURL), includingPropertiesForKeys: nil, options: [.skipsHiddenFiles]) else { return [] }
+        var names: Set<String> = []
+        for case let headerURL as URL in enumerator {
+            guard headerURL.pathExtension == "h", let contents = try? String(contentsOf: headerURL, encoding: .utf8) else { continue }
+            contents.enumerateLines { line, _ in
+                let trimmed = line.trimmingCharacters(in: .whitespaces)
+                guard !trimmed.hasPrefix("-"), !trimmed.hasPrefix("+"),  !trimmed.hasPrefix("@property") else { return }
+                guard let match = notificationNameRegex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)), let nameRange = Range(match.range(at: 1), in: line) else { return }
+                names.insert(String(line[nameRange]))
+            }
+        }
+        let sortedNames = names.sorted()
+        notificationNames[platform] = sortedNames
+        return sortedNames
+    }
+}
+
+protocol ParseType {
+    mutating func add(_ method: ObjCHeader.Method, isOptional: Bool)
+    mutating func add(_ property: ObjCHeader.Property, isOptional: Bool)
+    var classProperties: [ObjCHeader.Property] { get set }
+    var properties: [ObjCHeader.Property] { get set }
+    var classMethods: [ObjCHeader.Method] { get set }
+    var methods: [ObjCHeader.Method] { get set }
+}
+
+extension ParseType {
+    mutating func add(_ method: ObjCHeader.Method, isOptional: Bool = false) {
+        if method.isClassMethod {
+            classMethods += method
+        } else {
+            methods += method
+        }
+    }
+    
+    mutating func add(_ property: ObjCHeader.Property, isOptional: Bool = false) {
+        if property.isClassProperty {
+            classProperties += property
+        } else {
+            properties += property
+        }
+    }
+}
+
+extension ObjCHeader.Class: ParseType { }
+extension ObjCHeader.Category: ParseType { }
+extension ObjCHeader.ProtocolInfo: ParseType {
+    mutating func add(_ property: ObjCHeader.Property, isOptional: Bool = false) {
+        if property.isClassProperty {
+            if isOptional {
+                optionalClassProperties += property
+            } else {
+                classProperties += property
+            }
+        } else {
+            if isOptional {
+                optionalProperties += property
+            } else {
+                properties += property
+            }
+        }
+    }
+    
+    mutating func add(_ method: ObjCHeader.Method, isOptional: Bool = false) {
+        if method.isClassMethod {
+            if isOptional {
+                optionalClassMethods += method
+            } else {
+                classMethods += method
+            }
+        } else {
+            if isOptional {
+                optionalMethods += method
+            } else {
+                methods += method
+            }
+        }
     }
 }
