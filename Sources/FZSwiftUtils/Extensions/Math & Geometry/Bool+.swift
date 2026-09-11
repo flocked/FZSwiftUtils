@@ -10,6 +10,11 @@ import RegexBuilder
 
 
 public extension Bool {
+    /// Returns a random Boolean value that is `true` with the specified probability in the range `[0.0, 1.0]`.
+    static func random(chance: Double) -> Bool {
+        Double.random(in: 0..<1) < chance
+    }
+    
     /// Formats the Boolean value with the specified format.
     func formatted<F: FormatStyle>(_ style: F) -> F.FormatOutput where F.FormatInput == Bool {
         style.format(self)
