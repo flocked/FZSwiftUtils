@@ -93,7 +93,7 @@ public struct MeasureTime {
      */
     @discardableResult
     public static func stopPrinted(_ details: String? = nil) -> TimeDuration {
-        current(remove: true, print: true, details: details)
+        current(remove: true, print: true, details: details, includeParentheses: false)
     }
     
     /// Returns the duration of the current measurement.
@@ -112,14 +112,14 @@ public struct MeasureTime {
     
     private static var measurements = [(startTime: Double, title:String?)]()
     
-    private static func current(remove: Bool, print: Bool, details: String?, addBracket: Bool = true) -> TimeDuration {
+    private static func current(remove: Bool, print: Bool, details: String?, includeParentheses: Bool = true) -> TimeDuration {
         guard !measurements.isEmpty else { return .zero }
         let beginning = remove ? measurements.removeLast() : measurements.last!
         let timeElapsed = CFAbsoluteTimeGetCurrent() - beginning.startTime
         if print {
             let indent = String(repeating: "\t", count: remove ? measurements.count : measurements.count-1)
             let title = beginning.title == nil ? "" : " for \(beginning.title!)"
-            let details = details == nil ? "" : " (\(details!))"
+            let details = details == nil ? "" : " \(includeParentheses ? details!.wrapped(in: .parentheses) : details!)"
             Swift.print("\(indent)Time elapsed\(title): \(timeElapsed) s. \(details)")
         }
         return TimeDuration(timeElapsed)
