@@ -269,7 +269,7 @@ public extension URLSession {
      - Returns: The started data task.
      */
     @discardableResult
-    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
+    func decodedObject<Value: Decodable>(for request: URLRequest, as type: Value.Type, decoder: JSONDecoder = JSONDecoder(), completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
         data(for: request) { result in
             guard let data = result.value else {
                 completion(.failure(result.error!))
@@ -294,7 +294,7 @@ public extension URLSession {
      - Returns: The started data task.
      */
     @discardableResult
-    func decodedObject<Value: Decodable>(for url: URL, as type: Value.Type, decoder: JSONDecoder, completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
+    func decodedObject<Value: Decodable>(for url: URL, as type: Value.Type, decoder: JSONDecoder = JSONDecoder(), completion: @escaping (_ result: Result<Value, Error>) -> ()) -> URLSessionDataTask {
         decodedObject(for: URLRequest(url: url), as: type, decoder: decoder, completion: completion)
     }
 
