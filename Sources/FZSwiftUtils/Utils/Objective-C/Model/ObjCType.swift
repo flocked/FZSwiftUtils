@@ -69,7 +69,7 @@ public struct ObjCType: Sendable, Hashable, Codable {
         case unknown
         
         /// Pointer to char (`char *`).
-        case charPtr
+        case charPointer
         /// Pointer to another type.
         case pointer(type: ObjCType)
         /// Function pointer.
@@ -90,9 +90,9 @@ public struct ObjCType: Sendable, Hashable, Codable {
         case bitField(width: Int)
         
         /// Union.
-        case union(name: String?, fields: [ObjCField]?)
+        case union(name: String?, fields: [Field]?)
         /// Struct.
-        case `struct`(name: String?, fields: [ObjCField]?)
+        case `struct`(name: String?, fields: [Field]?)
         
         /// Any other type.
         case other(String)
@@ -110,20 +110,30 @@ public struct ObjCType: Sendable, Hashable, Codable {
             typeEncoding = modifiers.map(\.rawValue).joined() + kind.typeEncoding
         }
     }
-
+    
     /// Creates a new instance from the specified type encoding.
     public init?(_ typeEncoding: String) {
-        if let type = Self.cache[typeEncoding] {
+        if Self.usingCache {
+            guard let type = Self.cache.withLock({ $0[typeEncoding, initial: Self.decode(typeEncoding)?.decoded] }) else { return nil }
             self = type
         } else if let type = Self.decode(typeEncoding)?.decoded {
             self = type
-            Self.cache[typeEncoding] = type
         } else {
             return nil
         }
     }
-
-    static var cache: [String: Self] = [:]
+    
+    @discardableResult
+    public static func checkCache() -> DataSize {
+        cache.withLock {
+            let size = $0.estimatedMemoryFootprint
+            Swift.print("ObjcType", $0.count, $0.nonNil.count, size)
+        return size
+        }
+    }
+    
+    public static var usingCache = false
+    private static let cache = Mutex([String: Self?]())
 }
 
 private extension ObjCType.Kind {
@@ -149,7 +159,7 @@ private extension ObjCType.Kind {
         case .bool: return "B"
         case .void: return "v"
         case .unknown: return "?"
-        case .charPtr: return "*"
+        case .charPointer: return "*"
         case .functionPointer: return "^?"
         case .atom: return "%"
         case .object(let name):
@@ -218,7 +228,7 @@ public extension ObjCType {
     /// An unknown type.
     static let unknown = ObjCType(kind: .unknown)
     /// A C string pointer type.
-    static let charPtr = ObjCType(kind: .charPtr)
+    static let charPointer = ObjCType(kind: .charPointer)
     /// A function pointer type.
     static let functionPointer = ObjCType(kind: .functionPointer)
     /// An atomic type.
@@ -250,12 +260,12 @@ public extension ObjCType {
     }
 
     /// Creates a union type with an optional name and fields.
-    static func union(name: String?, fields: [ObjCField]?) -> ObjCType {
+    static func union(name: String?, fields: [Field]?) -> ObjCType {
         ObjCType(kind: .union(name: name, fields: fields))
     }
 
     /// Creates a struct type with an optional name and fields.
-    static func `struct`(name: String?, fields: [ObjCField]?) -> ObjCType {
+    static func `struct`(name: String?, fields: [Field]?) -> ObjCType {
         ObjCType(kind: .struct(name: name, fields: fields))
     }
 
@@ -265,75 +275,69 @@ public extension ObjCType {
     }
 }
 
-
 public extension ObjCType {
     /// A Boolean value indicating whether the type is ``void``.
     var isVoid: Bool {
-        switch resolved.kind {
-        case .void: return true
-        default: return false
+        switch kind {
+        case .void: true
+        default: false
         }
     }
     
     /// A Boolean value indicating whether the type is an object.
     var isObject: Bool {
-        switch resolved.kind {
-        case .object: return true
-        default: return false
+        switch kind {
+        case .object: true
+        default: false
         }
     }
     
     /// A Boolean value indicating whether the type is a block.
     var isBlock: Bool {
-        switch resolved.kind {
-        case .block: return true
-        default: return false
+        switch kind {
+        case .block: true
+        default: false
         }
     }
     
     /// A Boolean value indicating whether the type is a pointer.
     var isPointer: Bool {
-        switch resolved.kind {
-        case .pointer, .charPtr: return true
-        default: return false
+        switch kind {
+        case .pointer, .charPointer: true
+        default: false
         }
     }
 
     /// A Boolean value indicating whether the type is an array.
     var isArray: Bool {
-        switch resolved.kind {
-        case .array: return true
-        default: return false
+        switch kind {
+        case .array: true
+        default: false
         }
     }
     
     /// A Boolean value indicating whether the type is an union.
     var isUnion: Bool {
-        switch resolved.kind {
-        case .union: return true
-        default: return false
+        switch kind {
+        case .union: true
+        default: false
         }
     }
     
     /// A Boolean value indicating whether the type is a structure.
     var isStruct: Bool {
-        switch resolved.kind {
-        case .struct: return true
-        default: return false
+        switch kind {
+        case .struct: true
+        default: false
         }
     }
             
     /// A Boolean value indicating whether the type is a bit field.
     var isBitField: Bool {
-        switch resolved.kind {
-        case .bitField: return true
-        default: return false
+        switch kind {
+        case .bitField: true
+        default: false
         }
-    }
-    
-    /// The resolved type.
-    var resolved: ObjCType {
-        self
     }
 }
 
@@ -361,7 +365,7 @@ extension ObjCType: CustomStringConvertible {
         case .bool: return "BOOL"
         case .void: return "void"
         case .unknown: return "unknown"
-        case .charPtr: return "char *"
+        case .charPointer: return "char *"
         case .atom: return "atom"
         case .object(let name):
             guard let name = name else { return "id" }
@@ -443,7 +447,7 @@ extension ObjCType: CustomStringConvertible {
         case .bool: return "Bool"
         case .void: return "Void"
         case .unknown: return "unknown"
-        case .charPtr: return "UnsafePointer<CChar>"
+        case .charPointer: return "UnsafePointer<CChar>"
         case .atom: return "Int" // assuming atomic integer type
         case .object(let name): return swiftTypeName ?? name ?? "AnyObject"
         case .block(let returnType, let args):
@@ -571,7 +575,7 @@ extension ObjCType {
     }
 
     // MARK: - Bit Field b
-    private static func decodeBitField(_ type: String, name: String?) -> (field: ObjCField, trailing: String?)? {
+    private static func decodeBitField(_ type: String, name: String?) -> (field: Field, trailing: String?)? {
         let content = type.removingFirst()
         guard let _length = content.readInitialDigits(), let length = Int(_length) else { return nil }
         let endInex = content.index(content.startIndex, offsetBy: _length.count)
@@ -612,7 +616,7 @@ extension ObjCType {
         var open: Character { self == .union ? "(" : "{" }
         var close: Character { self == .union ?  ")" : "}" }
         
-        func type(name: String?, fields: [ObjCField]?) -> ObjCType {
+        func type(name: String?, fields: [Field]?) -> ObjCType {
             self == .union ? .union(name: name, fields: fields) :  .struct(name: name, fields: fields)
         }
     }
@@ -629,7 +633,7 @@ extension ObjCType {
         if typeName == "?" { typeName = nil }
 
         var _fields = String(content[content.index(equalIndex, offsetBy: 1) ..< content.endIndex])
-        var fields: [ObjCField] = []
+        var fields: [Field] = []
         while !_fields.isEmpty {
             guard let (field, trailing) = decodeField(_fields) else { break }
             fields.append(field)
@@ -639,7 +643,7 @@ extension ObjCType {
         return (kind.type(name: typeName, fields: fields), trailing)
     }
 
-    private static func decodeField(_ type: String) -> (field: ObjCField, trailing: String?)? {
+    private static func decodeField(_ type: String) -> (field: Field, trailing: String?)? {
         guard let first = type.first else { return nil }
         switch first {
         case "b":
@@ -738,7 +742,7 @@ extension ObjCType {
         case .longDouble: return swiftType == Double.self
         case .bool: return swiftType == Bool.self || swiftType == ObjCBool.self
         case .void: return swiftType == Void.self
-        case .charPtr:
+        case .charPointer:
             return swiftType == UnsafePointer<CChar>.self || swiftType == UnsafeMutablePointer<CChar>.self || swiftType == UnsafePointer<Int8>.self || swiftType == UnsafeMutablePointer<Int8>.self
         case .pointer(let type):
             guard let pointerType = swiftType as? PointerType.Type else { return false }
@@ -807,7 +811,7 @@ fileprivate let simpleTypes: [Character: ObjCType] = [
     "B": .bool,
     "v": .void,
     "?": .unknown,
-    "*": .charPtr,
+    "*": .charPointer,
     "%": .atom // FIXME: ?????
 ]
 
@@ -871,5 +875,26 @@ fileprivate extension String {
     
     func trailing(after index: Index) -> String? {
         distance(from: index, to: endIndex) > 0 ? String(self[self.index(after: index) ..< endIndex]) : nil
+    }
+}
+
+public extension Array {
+    /// Returns the approximate memory usage based on [capacity](https://developer.apple.com/documentation/swift/array/capacity).
+    var estimatedMemoryFootprint: DataSize {
+        .bytes(MemoryLayout<Self>.size + capacity * MemoryLayout<Element>.stride)
+    }
+}
+
+public extension Set {
+    /// Returns the approximate memory usage based on [capacity](https://developer.apple.com/documentation/swift/set/capacity).
+    var estimatedMemoryFootprint: DataSize {
+        .bytes(MemoryLayout<Self>.size + capacity * MemoryLayout<Element>.stride)
+    }
+}
+
+public extension Dictionary {
+    /// Returns the approximate memory usage based on [capacity](https://developer.apple.com/documentation/swift/dictionary/capacity).
+    var estimatedMemoryFootprint: DataSize {
+        .bytes(MemoryLayout<Self>.size + capacity * (MemoryLayout<Key>.stride + MemoryLayout<Value>.stride))
     }
 }

@@ -48,8 +48,8 @@ public struct MeasureTime {
     @discardableResult
     public static func printTimeElapsed<V>(_ title: String? = nil, block: () -> V) -> TimeDuration {
         start(title)
-        let result = String(describing: block())
-        return stopPrinted(!result.isEmpty ? "Result: \(result)" : nil)
+        let result = block()
+        return stopPrinted(V.self == Void.self ? nil : "Result: \(result)")
     }
     
     /**

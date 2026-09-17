@@ -9,9 +9,8 @@
 import AppKit
 #elseif !os(watchOS)
 import UIKit
-#else
-import SwiftUI
 #endif
+import SwiftUI
 
 /// A representation of a macOS Finder tag.
 public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
@@ -110,9 +109,9 @@ public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
             }
         }
         
-        #if !os(watchOS)
-        /// The represented color of the tag.
-        public var color: NSUIColor {
+        #if os(macOS)
+        /// The represented [NSColor](https://developer.apple.com/documentation/appkit/nscolor).
+        public var color: NSColor {
             switch self {
                 case .gray: .systemGray
                 case .green: .systemGreen
@@ -123,9 +122,23 @@ public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
                 case .orange: .systemOrange
             }
         }
-        #else
-        /// The represented color of the tag.
-        public var color: SwiftUI.Color {
+        #elseif !os(watchOS)
+        /// The represented [UIColor](https://developer.apple.com/documentation/uikit/uicolor).
+        public var color: UIColor {
+            switch self {
+                case .gray: .systemGray
+                case .green: .systemGreen
+                case .purple: .systemPurple
+                case .blue: .systemBlue
+                case .yellow: .systemYellow
+                case .red: .systemRed
+                case .orange: .systemOrange
+            }
+        }
+        #endif
+        
+        /// The represented `SwiftUI` [Color](https://developer.apple.com/documentation/swiftui/color).
+        public var swiftUI: SwiftUI.Color {
             switch self {
                 case .gray: .gray
                 case .green: .green
@@ -136,6 +149,5 @@ public struct FinderTag: Hashable, Codable, CustomStringConvertible, Sendable {
                 case .orange: .orange
             }
         }
-        #endif
     }
 }

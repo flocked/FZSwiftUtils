@@ -59,7 +59,7 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
 
       - Warning: Recursive calls to `withLock` within the closure parameter has behavior that is platform dependent. Some platforms may choose to panic the process, deadlock, or leave this behavior unspecified. This will never reacquire the lock however.
      */
-    public borrowing func withLock<Result: ~Copyable, E: Error>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
+    public borrowing func withLock<Result: ~Copyable, E: Error>(_ body: (_ value: inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
         storage.lock()
         defer { storage.unlock() }
         return try body(&storage.value)
@@ -84,7 +84,7 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
      return try body(&value)
      ```
      */
-    public borrowing func withLockIfAvailable<Result: ~Copyable, E: Error>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result? {
+    public borrowing func withLockIfAvailable<Result: ~Copyable, E: Error>(_ body: (_ value: inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result? {
         guard storage.tryLock() else { return nil }
         defer { storage.unlock() }
         return try body(&storage.value)

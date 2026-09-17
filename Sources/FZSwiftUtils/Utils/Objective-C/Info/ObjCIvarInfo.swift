@@ -76,7 +76,7 @@ extension ObjCIvarInfo: CustomStringConvertible {
     
     public func headerString(includeFields: Bool = false, includeTypeModifiers: Bool = false) -> String {
         if let type, case let .bitField(width) = type.kind {
-            let field = ObjCField(type: .int, name: name, bitWidth: width)
+            let field = ObjCType.Field(type: .int, name: name, bitWidth: width)
             return field.decodedForHeader(fallbackName: name, includeModifiers: includeTypeModifiers)
         }
         if [.char, .uchar].contains(type) {

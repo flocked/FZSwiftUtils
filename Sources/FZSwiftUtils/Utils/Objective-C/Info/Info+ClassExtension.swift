@@ -507,7 +507,7 @@ extension ObjCType {
         case .longDouble: return "Float80"
         case .bool: return "Bool"
         case .void: return "Void"
-        case .charPtr:
+        case .charPointer:
             return modifiers.contains(.const) ? "UnsafePointer<CChar>" : "UnsafeMutablePointer<CChar>"
         case .object(let name):
             return swiftTypeName ?? name ?? "AnyObject"

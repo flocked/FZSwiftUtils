@@ -295,12 +295,11 @@ public class URLResources {
 
     /// The macOS Finder tags of the resource.
     public var finderTags: [FinderTag] {
-        get {
-           return (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) })
-        }
+        get { (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) }) }
         set {
             let newValue = newValue.uniqued()
-            url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] = newValue.isEmpty ? nil : newValue.map(\.rawValue)
+            newValue.uniqued().map({$0.rawValue}).nilIfEmpty
+            url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] = newValue.uniqued().map({$0.rawValue}).nilIfEmpty
         }
     }
     
