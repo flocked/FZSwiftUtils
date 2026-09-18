@@ -59,6 +59,7 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
 
       - Warning: Recursive calls to `withLock` within the closure parameter has behavior that is platform dependent. Some platforms may choose to panic the process, deadlock, or leave this behavior unspecified. This will never reacquire the lock however.
      */
+    @discardableResult
     public borrowing func withLock<Result: ~Copyable, E: Error>(_ body: (_ value: inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
         storage.lock()
         defer { storage.unlock() }
@@ -84,6 +85,7 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
      return try body(&value)
      ```
      */
+    @discardableResult
     public borrowing func withLockIfAvailable<Result: ~Copyable, E: Error>(_ body: (_ value: inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result? {
         guard storage.tryLock() else { return nil }
         defer { storage.unlock() }
@@ -112,7 +114,7 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
         func unlock() {
             os_unfair_lock_unlock(unfairLock)
         }
-
+        
         func tryLock() -> Bool {
             os_unfair_lock_trylock(unfairLock)
         }
@@ -122,12 +124,44 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
 extension Mutex: Sendable where Value: Escapable {}
 extension Mutex: SendableMetatype where Value: Escapable {}
 
-extension Mutex where Value: Sendable {
-    private struct LockResult<T: ~Copyable, V: ~Copyable>: ~Copyable {
-        let bodyResult: T
-        let extendedValue: V
+public extension Mutex where Value: Sendable {
+    /// The value protected by the mutex.
+    var value: Value {
+        get { withLock { $0 } }
+        set { withLock { $0 = newValue } }
     }
 
+    /**
+     Updates the value protected by the mutex.
+
+     - Parameter body: A closure that updates the value.
+     - Returns: The updated value.
+     */
+    @discardableResult
+    func updateValue(_ body: (inout Value) throws -> Void) rethrows -> Value {
+        try withLock {
+            try body(&$0)
+            return $0
+        }
+    }
+
+    /**
+     Sets the value protected by the mutex.
+
+     - Parameter newValue: The new value.
+     - Returns: The previous value.
+     */
+    @discardableResult
+    func setValue(_ newValue: Value) -> Value {
+        withLock {
+            let old = $0
+            $0 = newValue
+            return old
+        }
+    }
+}
+
+extension Mutex where Value: Sendable {
     func withLockExtendingLifetimeOfState<Result: ~Copyable, E>(_ body: (inout sending Value) throws(E) -> sending Result) throws(E) -> sending Result {
         let result = try self.withLock { value throws(E) in
             let copyToExtend = value
@@ -135,5 +169,10 @@ extension Mutex where Value: Sendable {
         }
         _fixLifetime(result.extendedValue)
         return result.bodyResult
+    }
+    
+    private struct LockResult<T: ~Copyable, V: ~Copyable>: ~Copyable {
+        let bodyResult: T
+        let extendedValue: V
     }
 }

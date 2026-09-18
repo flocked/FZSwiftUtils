@@ -503,4 +503,16 @@ public extension Date {
         }
         return lhs.isBetween(from, to)
     }
+    
+    /// Creates a date from the specified POSIX time specification.
+    init(timespec: Darwin.timespec) {
+        self.init(timeIntervalSince1970: TimeInterval(timespec.tv_sec) + TimeInterval(timespec.tv_nsec) / 1_000_000_000)
+    }
+
+    /// The POSIX time specification representing the date.
+    var timespec: Darwin.timespec {
+        let interval = timeIntervalSince1970
+        let seconds = floor(interval)
+        return Darwin.timespec(tv_sec: Int(seconds), tv_nsec: Int((interval - seconds) * 1_000_000_000))
+    }
 }

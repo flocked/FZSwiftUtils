@@ -162,6 +162,12 @@ public extension URL {
         try URL(resolvingBookmarkData: data, options: options, relativeTo: url, bookmarkDataIsStale: &bookmarkDataIsStale)
     }
     
+    /// Returns a unique file URL in the system's temporary directory.
+    static func temporaryFile(withExtension pathExtension: String? = nil) -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        return pathExtension.map { url.appendingPathExtension($0) } ?? url
+    }
+    
     /// Returns the URL with the new specified path extension.
     func pathExtension(_ pathExtension: String?) -> URL {
         let url = deletingPathExtension()
@@ -1039,24 +1045,3 @@ fileprivate enum SingleResultError: Error, LocalizedError {
 }
 #endif
 */
-
-extension StringProtocol {
-    func addingPrefixIfNeeded<S: StringProtocol>(_ prefix: S) -> String {
-        hasPrefix(prefix) ? String(self) : String(prefix) + String(self)
-    }
-    
-    static func + (lhs: Self, rhs: Int) -> Self {
-        lhs
-    }
-}
-
-public extension URL {
-    /// Returns a unique file URL in the system's temporary directory.
-    static func temporaryFile(withExtension pathExtension: String? = nil) -> URL {
-        var url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        if let pathExtension, !pathExtension.isEmpty {
-            url.appendPathExtension(pathExtension)
-        }
-        return url
-    }
-}

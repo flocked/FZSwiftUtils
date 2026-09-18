@@ -31,43 +31,22 @@ public extension URL {
  Some of the properties can be modified. Changing them attempts  to modify the represented file or folder.
  */
 public class URLResources {
-    /// The url to the resource
+    /// The URL to the resource.
     public private(set) var url: URL
-    private var iteratorKey: String?
-    private static var iteratorKeys: [String: Set<URLResourceKey>] = [:]
-    private static let iteratorKeysLock = NSLock()
+    private var accessedResourceKeyIdentifier: String?
+    private var cacheValues = true
 
-    /// Creates an object for accessing and modifying properties of the resource at the specified url.
+    /// Creates an object for accessing and modifying properties of the resource at the specified URL.
     public init(url: URL) {
         self.url = url
         guard url.path.hasPrefix("/_prefetchCheck_") else { return }
-        iteratorKey = url.path.removingPrefix("/_prefetchCheck_")
+        accessedResourceKeyIdentifier = url.path.removingPrefix("/_prefetchCheck_")
     }
     
-    private func value<V>(for resourceKey: URLResourceKey, _ keyPath: KeyPath<URLResourceValues, V?>) -> V? {
-        if let iteratorKey = iteratorKey {
-            Self.iteratorKeysLock.lock()
-            defer { Self.iteratorKeysLock.unlock() }
-            Self.iteratorKeys[iteratorKey, default: []].insert(resourceKey)
-            return nil
-        }
-        do {
-            return try url.resourceValues(forKeys: [resourceKey])[keyPath: keyPath]
-        } catch {
-            Swift.print(error)
-            return nil
-        }
-    }
-
-    private func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) {
-        guard iteratorKey == nil else { return }
-        var urlResouceValues = URLResourceValues()
-        urlResouceValues[keyPath: keyPath] = newValue
-        do {
-            try url.setResourceValues(urlResouceValues)
-        } catch {
-            Swift.print(error)
-        }
+    /// Returns updated resource values instead of using cached values.
+    public var updating: URLResources {
+        cacheValues = false
+        return self
     }
 
     /// Name of the resource in the file system.
@@ -141,12 +120,15 @@ public class URLResources {
 
     /// Creation date of the resource.
     public var creationDate: Date? {
-        get { value(for:  .creationDateKey, \.creationDate) }
+        get { value(for: .creationDateKey, \.creationDate) }
         set { setValue(newValue, for: \.creationDate) }
     }
 
     /// Date the resource was created, or renamed into or within its parent directory.
-    public var addedToDirectoryDate: Date? { value(for: .addedToDirectoryDateKey, \.addedToDirectoryDate) }
+    public var addedToDirectoryDate: Date? {
+        get { value(for: .addedToDirectoryDateKey, \.addedToDirectoryDate) }
+        set { url.setDate(newValue, addedToDirectoryDate, ATTR_CMN_ADDEDTIME) }
+    }
 
     /// Date the resource content was last accessed.
     public var contentAccessDate: Date? {
@@ -161,7 +143,10 @@ public class URLResources {
     }
 
     /// Date the resource’s attributes were last modified.
-    public var attributeModificationDate: Date? { value(for: .attributeModificationDateKey, \.attributeModificationDate) }
+    public var attributeModificationDate: Date? {
+        get { value(for: .attributeModificationDateKey, \.attributeModificationDate) }
+        set { url.setDate(newValue, attributeModificationDate, ATTR_CMN_CHGTIME) }
+    }
 
     /// Number of hard links to the resource.
     public var linkCount: Int? { value(for: .linkCountKey, \.linkCount) }
@@ -295,10 +280,10 @@ public class URLResources {
 
     /// The macOS Finder tags of the resource.
     public var finderTags: [FinderTag] {
-        get { (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) }) }
+        get {
+            (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) })
+        }
         set {
-            let newValue = newValue.uniqued()
-            newValue.uniqued().map({$0.rawValue}).nilIfEmpty
             url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] = newValue.uniqued().map({$0.rawValue}).nilIfEmpty
         }
     }
@@ -315,7 +300,7 @@ public class URLResources {
             do {
                 try (url as NSURL).setResourceValue(newValue.uniqued(), forKey: .tagNamesKey)
             } catch {
-                Swift.print(error)
+                Self.log(error)
             }
         }
     }
@@ -450,18 +435,6 @@ public extension URLResources {
         public var totalCapacity: DataSize? {
             resources.value(for: .volumeTotalCapacityKey, \.volumeTotalCapacity)?.dataSize
         }
-    }
-}
-
-extension URLResources {
-    static func prefetchedKeys(for predicate: ((URL, Int, inout Bool) -> Bool)?) -> [URLResourceKey] {
-        guard let predicate = predicate else { return [] }
-        let prefetchID = UUID().uuidString
-        var shouldStop = false
-        _ = predicate(.file("_prefetchCheck_\(prefetchID)"), 0, &shouldStop)
-        iteratorKeysLock.lock()
-        defer { iteratorKeysLock.unlock() }
-        return Array(iteratorKeys.removeValue(forKey: prefetchID) ?? [])
     }
 }
 
@@ -614,52 +587,52 @@ extension URLResources {
         var description: String {
             switch self {
             case .emoji(let string):
-                return "Emoji: \(string)"
+                "Emoji: \(string)"
             case .symbolImage(let string):
-                return "SymbolImage: \(string)"
+                "SymbolImage: \(string)"
             }
         }
 
         var dict: [String: String]? {
             switch self {
             case .emoji(let string):
-                guard string.allSatisfy({$0.isEmoji}) else { return nil }
+                guard string.count == 1, string.allSatisfy({$0.isEmoji}) else { return nil }
                 return ["emoji": string]
-            case .symbolImage(let string):
-                // guard NSImage(systemSymbolName: string) != nil else { return nil}
-                return ["sym": string]
+            case .symbolImage(let name):
+                guard Self.symbolNames.withLock ({ $0[name, initial: NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil] }) else { return nil }
+                return ["sym": name]
             }
         }
+        
+        private static var symbolNames = Mutex([String: Bool]())
     }
 
     /// The icon of the folder.
     var folderIcon: FolderIcon? {
         get {
             do {
-                let data = try url.extendedAttributes.getData(for: "com.apple.icon.folder#S")
-                guard let dict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] else { return nil }
+                let dict = try JSONSerialization.jsonObject(with: url.extendedAttributes.getData(for: "com.apple.icon.folder#S")) as? [String: Any] ?? [:]
                 if let symbolName = dict["sym"] as? String {
                     return .symbolImage(symbolName)
                 } else if let emoji = dict["emoji"] as? String {
                     return .emoji(emoji)
                 }
             } catch {
-                Swift.print(error)
+                Self.log(error)
             }
             return nil
         }
         set {
+            guard newValue != folderIcon else { return }
             do {
                 if let newValue = newValue {
                     guard let dict = newValue.dict else { return }
-                    let jsonData = try JSONSerialization.data(withJSONObject: dict, options: [])
-                    guard let data = String(data: jsonData, encoding: .utf8)?.data(using: .utf8) else { return }
-                    try url.extendedAttributes.setData(data, for: "com.apple.icon.folder#S")
+                    try url.extendedAttributes.setData(JSONSerialization.data(withJSONObject: dict, options: []), for: "com.apple.icon.folder#S")
                 } else {
                     try url.extendedAttributes.remove("com.apple.icon.folder#S")
                 }
             } catch {
-                Swift.print(error)
+                Self.log(error)
             }
         }
     }
@@ -947,8 +920,76 @@ extension URLResources {
     }
 }
 
+
 fileprivate extension BinaryInteger {
     var dataSize: DataSize {
         DataSize(self)
     }
+}
+
+fileprivate extension URL {
+    func setDate(_ date: Date?, _ old: Date?,  _ attribute: Int32) {
+        guard date != old, isFileURL else { return }
+        do {
+            var attributes = attrlist()
+            attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
+            attributes.commonattr = attrgroup_t(attribute)
+            var value = date?.timespec ?? timespec()
+            guard withUnsafeMutablePointer(to: &value, { value in
+                withUnsafeFileSystemRepresentation {
+                    setattrlist($0!, &attributes, value, MemoryLayout<timespec>.size, 0)
+                }
+            }) == 0 else {
+                throw (POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno))) as any Error
+            }
+        } catch {
+            URLResources.log(error)
+        }
+    }
+}
+
+extension URLResources {
+    private func value<V>(for resourceKey: URLResourceKey, _ keyPath: KeyPath<URLResourceValues, V?>) -> V? {
+        if let identifier = accessedResourceKeyIdentifier {
+            Self.accessedResourceKeys.withLock({ $0[identifier, default: []].insert(resourceKey) })
+            return nil
+        }
+        if !cacheValues {
+            url.removeCachedResourceValue(forKey: resourceKey)
+        }
+        do {
+            return try url.resourceValues(forKeys: [resourceKey])[keyPath: keyPath]
+        } catch {
+            Self.log(error)
+            return nil
+        }
+    }
+
+    private func setValue<V>(_ newValue: V?, for keyPath: WritableKeyPath<URLResourceValues, V?>) {
+        guard accessedResourceKeyIdentifier == nil else { return }
+        var urlResouceValues = URLResourceValues()
+        urlResouceValues[keyPath: keyPath] = newValue
+        do {
+            try url.setResourceValues(urlResouceValues)
+        } catch {
+            Self.log(error)
+        }
+    }
+    
+    fileprivate static func log(_ error: any Error) {
+        guard printErrors else { return }
+        Swift.print(error)
+    }
+    
+    static var printErrors = true
+    
+    static func prefetchedKeys(for predicate: ((URL, Int, inout Bool) -> Bool)?) -> [URLResourceKey] {
+        guard let predicate = predicate else { return [] }
+        let prefetchID = UUID().uuidString
+        var shouldStop = false
+        _ = predicate(.file("_prefetchCheck_\(prefetchID)"), 0, &shouldStop)
+        return Array(accessedResourceKeys.withLock({ $0.removeValue(forKey: prefetchID) ?? [] }))
+    }
+    
+    private static var accessedResourceKeys = Mutex([String: Set<URLResourceKey>]())
 }
