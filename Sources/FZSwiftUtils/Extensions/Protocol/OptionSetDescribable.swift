@@ -8,12 +8,12 @@
 import Foundation
 
 /// An `OptionSet` that provides description listing all elements.
-public protocol OptionSetDescribable: OptionSet, CustomStringConvertible where RawValue: BinaryInteger {
-    static var allCases: [(Element, String)] { get }
+public protocol OptionSetDescribable: OptionSet, CustomStringConvertible {
+    static var descriptions: [(Element, String)] { get }
 }
 
 extension OptionSetDescribable {
     public var description: String {
-        "[\(Self.allCases.compactMap { contains($0.0) ? $0.1 : nil }.joined(separator: ", "))]"
+        "[\(Self.descriptions.compactMap { contains($0.0) ? $0.1 : nil }.joined(separator: ", "))]"
     }
 }

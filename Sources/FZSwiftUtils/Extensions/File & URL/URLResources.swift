@@ -118,11 +118,19 @@ public class URLResources {
         set { setValue(newValue, for: \.hasHiddenExtension) }
     }
 
+    #if DEBUG
     /// Creation date of the resource.
     public var creationDate: Date? {
         get { value(for: .creationDateKey, \.creationDate) }
         set { setValue(newValue, for: \.creationDate) }
     }
+    
+    /// Date the resource content was last modified.
+    public var contentModificationDate: Date? {
+        get { value(for: .contentModificationDateKey, \.contentModificationDate) }
+        set { setValue(newValue, for: \.contentModificationDate) }
+    }
+    #endif
 
     /// Date the resource was created, or renamed into or within its parent directory.
     public var addedToDirectoryDate: Date? {
@@ -136,16 +144,9 @@ public class URLResources {
         set { setValue(newValue, for: \.contentAccessDate) }
     }
 
-    /// Date the resource content was last modified.
-    public var contentModificationDate: Date? {
-        get { value(for: .contentModificationDateKey, \.contentModificationDate) }
-        set { setValue(newValue, for: \.contentModificationDate) }
-    }
-
     /// Date the resource’s attributes were last modified.
     public var attributeModificationDate: Date? {
-        get { value(for: .attributeModificationDateKey, \.attributeModificationDate) }
-        set { url.setDate(newValue, attributeModificationDate, ATTR_CMN_CHGTIME) }
+        value(for: .attributeModificationDateKey, \.attributeModificationDate)
     }
 
     /// Number of hard links to the resource.
@@ -242,21 +243,6 @@ public class URLResources {
     /// A Boolean value indicating whether the resource is in the iCloud storage.
     public var isUbiquitousItem: Bool { value(for: .isUbiquitousItemKey, \.isUbiquitousItem) ?? false }
 
-    /// A Boolean value indicating whether the resource has outstanding conflicts.
-    public var ubiquitousItemHasUnresolvedConflicts: Bool { value(for: .ubiquitousItemHasUnresolvedConflictsKey, \.ubiquitousItemHasUnresolvedConflicts) ?? false }
-
-    /// A Boolean value indicating whether the system is downloading the resource.
-    public var ubiquitousItemIsDownloading: Bool { value(for: .ubiquitousItemIsUploadingKey, \.ubiquitousItemIsDownloading) ?? false }
-
-    /// A Boolean value indicating whether data is present in the cloud for the resource.
-    public var ubiquitousItemIsUploaded: Bool { value(for: .ubiquitousItemIsUploadedKey, \.ubiquitousItemIsUploaded) ?? false }
-
-    /// A Boolean value indicating whether the system is uploading the resource.
-    public var ubiquitousItemIsUploading: Bool { value(for: .ubiquitousItemIsUploadingKey, \.ubiquitousItemIsUploading) ?? false }
-
-    /// The download status of the resource.
-    public var ubiquitousItemDownloadingStatus: URLUbiquitousItemDownloadingStatus? { value(for: .ubiquitousItemDownloadingStatusKey, \.ubiquitousItemDownloadingStatus) }
-
     /// The protection level for the resource.
     public var fileProtection: URLFileProtection? { value(for: .fileProtectionKey, \.fileProtection) }
 
@@ -326,6 +312,20 @@ public class URLResources {
             return nil
         }
     }
+    
+    private func setAddedToDirectoryDate(_ date: Date?) {
+        guard date != addedToDirectoryDate, url.isFileURL else { return }
+        var attributes = attrlist()
+        attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
+        attributes.commonattr = attrgroup_t(ATTR_CMN_ADDEDTIME)
+        var value = date?.timespec ?? timespec()
+        guard withUnsafeMutablePointer(to: &value, { value in
+            url.withUnsafeFileSystemRepresentation {
+                setattrlist($0!, &attributes, value, MemoryLayout<timespec>.size, 0)
+            }
+        }) != 0 else { return }
+        URLResources.log((POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno))) as any Error)
+    }
 }
 
 #if os(macOS)
@@ -339,8 +339,8 @@ public extension URLResources {
     }
 
     /// The quarantine properties of the resource.
-    var quarantineProperties: QurantineProperties? {
-        get { QurantineProperties(value(for: .quarantinePropertiesKey, \.quarantineProperties)) }
+    var quarantineProperties: QuarantineProperties? {
+        get { value(for: .quarantinePropertiesKey, \.quarantineProperties).map({ QuarantineProperties($0) }) }
         set { setValue(newValue?.rawValue, for: \.quarantineProperties) }
     }
 
@@ -414,6 +414,14 @@ public extension URLResources {
         /// A Boolean value indicating whether the volume is the root filesystem.
         public var isRootFileSystem: Bool { resources.value(for: .volumeIsRootFileSystemKey, \.volumeIsRootFileSystem) ?? false }
 
+        #if DEBUG
+        // Required Reason APIs. Exposed only in debug builds to avoid introducing these API references into release builds of applications using FZSwiftUtils.
+        
+        /// The total capacity of the volume.
+        public var totalCapacity: DataSize? {
+            resources.value(for: .volumeTotalCapacityKey, \.volumeTotalCapacity)?.dataSize
+        }
+        
         /// The available capacity of the volume.
         public var availableCapacity: DataSize? {
             resources.value(for: .volumeAvailableCapacityKey, \.volumeAvailableCapacity)?.dataSize
@@ -430,10 +438,126 @@ public extension URLResources {
             resources.value(for: .volumeAvailableCapacityForOpportunisticUsageKey,  \.volumeAvailableCapacityForOpportunisticUsage)?.dataSize
         }
         #endif
+        #endif
+    }
+}
 
-        /// The total capacity of the volume.
-        public var totalCapacity: DataSize? {
-            resources.value(for: .volumeTotalCapacityKey, \.volumeTotalCapacity)?.dataSize
+public extension URLResources {
+    /// The iCloud properties of the resource.
+    var ubiquitous: UbiquitousURLResources {
+        UbiquitousURLResources(self)
+    }
+
+    /// The iCloud properties of a resource.
+    struct UbiquitousURLResources {
+        private let resources: URLResources
+
+        fileprivate init(_ resources: URLResources) {
+            self.resources = resources
+        }
+
+        // MARK: - General
+
+        /// A Boolean value indicating whether the resource is stored in iCloud.
+        public var isItem: Bool {
+            resources.value(for: .isUbiquitousItemKey, \.isUbiquitousItem) ?? false
+        }
+
+        /// The name of the resource's iCloud container as displayed to the user.
+        public var containerDisplayName: String? {
+            resources.value(for: .ubiquitousItemContainerDisplayNameKey, \.ubiquitousItemContainerDisplayName)
+        }
+
+        /// A Boolean value indicating whether the resource has unresolved conflicts.
+        public var hasUnresolvedConflicts: Bool {
+            resources.value(for: .ubiquitousItemHasUnresolvedConflictsKey, \.ubiquitousItemHasUnresolvedConflicts) ?? false
+        }
+
+        // MARK: - Downloading
+
+        /// A Boolean value indicating whether downloading of the resource has been requested.
+        public var downloadRequested: Bool {
+            resources.value(for: .ubiquitousItemDownloadRequestedKey, \.ubiquitousItemDownloadRequested) ?? false
+        }
+
+        /// A Boolean value indicating whether the resource is being downloaded.
+        public var isDownloading: Bool {
+            resources.value(for: .ubiquitousItemIsDownloadingKey, \.ubiquitousItemIsDownloading) ?? false
+        }
+
+        /// The download status of the resource.
+        public var downloadingStatus: URLUbiquitousItemDownloadingStatus? {
+            resources.value(for: .ubiquitousItemDownloadingStatusKey, \.ubiquitousItemDownloadingStatus)
+        }
+
+        /// The error that occurred while downloading the resource.
+        public var downloadingError: Error? {
+            resources.value(for: .ubiquitousItemDownloadingErrorKey, \.ubiquitousItemDownloadingError)
+        }
+
+        // MARK: - Uploading
+
+        /// A Boolean value indicating whether the resource has been uploaded.
+        public var isUploaded: Bool {
+            resources.value(for: .ubiquitousItemIsUploadedKey, \.ubiquitousItemIsUploaded) ?? false
+        }
+
+        /// A Boolean value indicating whether the resource is being uploaded.
+        public var isUploading: Bool {
+            resources.value(for: .ubiquitousItemIsUploadingKey, \.ubiquitousItemIsUploading) ?? false
+        }
+
+        /// The error that occurred while uploading the resource.
+        public var uploadingError: Error? {
+            resources.value(for: .ubiquitousItemUploadingErrorKey, \.ubiquitousItemUploadingError)
+        }
+
+        // MARK: - Syncing
+
+        /// A Boolean value indicating whether the resource is excluded from syncing.
+        public var isExcludedFromSync: Bool {
+            resources.value(for: .ubiquitousItemIsExcludedFromSyncKey, \.ubiquitousItemIsExcludedFromSync) ?? false
+        }
+
+        /*
+        /// A Boolean value indicating whether syncing is paused for the resource.
+        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+        public var isSyncPaused: Bool {
+            resources.value(for: .ubiquitousItemIsSyncPausedKey, \.ubiquitousItemIsSyncPaused) ?? false
+        }
+
+        /// The sync controls supported by the resource.
+        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+        public var supportedSyncControls: NSFileManagerSupportedSyncControls? {
+            resources.value(for: .ubiquitousItemSupportedSyncControlsKey, \.ubiquitousItemSupportedSyncControls)
+        }
+        */
+
+        // MARK: - Sharing
+
+        /// A Boolean value indicating whether the resource is shared.
+        public var isShared: Bool {
+            resources.value(for: .ubiquitousItemIsSharedKey, \.ubiquitousItemIsShared) ?? false
+        }
+
+        /// The name components of the resource's owner.
+        public var ownerNameComponents: PersonNameComponents? {
+            resources.value(for: .ubiquitousSharedItemOwnerNameComponentsKey, \.ubiquitousSharedItemOwnerNameComponents)
+        }
+
+        /// The name components of the resource's most recent editor.
+        public var mostRecentEditorNameComponents: PersonNameComponents? {
+            resources.value(for: .ubiquitousSharedItemMostRecentEditorNameComponentsKey, \.ubiquitousSharedItemMostRecentEditorNameComponents)
+        }
+
+        /// The current user's role for the shared resource.
+        public var currentUserRole: URLUbiquitousSharedItemRole? {
+            resources.value(for: .ubiquitousSharedItemCurrentUserRoleKey, \.ubiquitousSharedItemCurrentUserRole)
+        }
+
+        /// The current user's permissions for the shared resource.
+        public var currentUserPermissions: URLUbiquitousSharedItemPermissions? {
+            resources.value(for: .ubiquitousSharedItemCurrentUserPermissionsKey, \.ubiquitousSharedItemCurrentUserPermissions)
         }
     }
 }
@@ -441,7 +565,7 @@ public extension URLResources {
 #if os(macOS)
 public extension URLResources {
     /// The quarantine properties of a resource.
-    struct QurantineProperties: CustomStringConvertible, CustomDebugStringConvertible {
+    struct QuarantineProperties: CustomStringConvertible, CustomDebugStringConvertible {
         /**
          The URL of the resource originally hosting the quarantined item.
 
@@ -508,7 +632,7 @@ public extension URLResources {
             get { rawValue[typed: "LSQuarantineEventIdentifier"] }
         }
 
-        /// The raw representation of the qurantine properties.
+        /// The raw representation of the quarantine properties.
         public var rawValue: [String: Any] = [:]
 
         public var description: String {
@@ -519,36 +643,29 @@ public extension URLResources {
             if let type = type { strings += "type: \(type)" }
             if let isOwned = isOwnedByCurrentUser { strings += "isOwnedByUser: \(isOwned)" }
             if let timestamp = timestamp { strings += "timestamp: \(timestamp)" }
-            return "QurantineProperties(\(strings.joined(separator: ", ")))"
+            return "QuarantineProperties(\(strings.joined(separator: ", ")))"
         }
 
         public var debugDescription: String {
             "\(rawValue)"
         }
 
-        init?(_ dictionary: [String: Any]?) {
-            guard let dictionary = dictionary else { return nil }
+        public init(_ dictionary: [String: Any] = [:]) {
             self.rawValue = dictionary
         }
 
         /// The reason for an item's quarantine.
         public struct QuarantineType: RawRepresentable, ExpressibleByStringLiteral, CustomStringConvertible {
-
             /// The item is from a website download.
             public static let webDownload = Self(kLSQuarantineTypeWebDownload as String)
-
             /// The item is from a download.
             public static let otherDownload = Self(kLSQuarantineTypeOtherDownload as String)
-
             /// The item is an attachment from an email message.
             public static let emailAttachment = Self(kLSQuarantineTypeEmailAttachment as String)
-
             /// The item is an attachment from a message.
             public static let instantMessageAttachment = Self(kLSQuarantineTypeInstantMessageAttachment as String)
-
             /// The item is an attachment from a calendar event.
             public static let calendarEventAttachment = Self(kLSQuarantineTypeCalendarEventAttachment as String)
-
             /// The data is an attachment from a generic source.
             public static let otherAttachment = Self(kLSQuarantineTypeOtherAttachment as String)
 

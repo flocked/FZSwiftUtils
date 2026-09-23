@@ -74,7 +74,8 @@ public class KeyValueObservation: NSObject {
             handler(value, value)
         } else {
             guard fallbackToKeyPathStringObserver, let object, object.isObservable(keyPath, Value.self) else { return nil }
-            self.observer = KeyPathStringObserver(object, keyPath: keyPath, initial: initial, uniqueValues: uniqueValues, handler: handler)
+            guard let observer = KeyPathStringObserver(object, keyPath: keyPath, initial: initial, uniqueValues: uniqueValues, handler: handler) else { return nil }
+            self.observer = observer
         }
     }
     
@@ -112,20 +113,19 @@ public class KeyValueObservation: NSObject {
     }
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: String, initial: Bool = false, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
-        guard object.isObservable(keyPath, Value.self) else { return nil }
-        observer = KeyPathStringObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
+        guard object.isObservable(keyPath, Value.self), let observer = KeyPathStringObserver(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new], handler: { change in
             guard let newValue = change.newValue as? Value else { return }
             handler(change.oldValue as? Value ?? newValue, newValue)
-        }
+        }) else { return nil }
+        self.observer = observer
     }
     
     init?<Object: NSObject, Value>(_ object: Object, keyPath: String, willChange: @escaping (_ oldValue: Value) -> Void) {
-        guard object.isObservable(keyPath, Value.self) else { return nil }
-        guard Object.classInfo().propertyType(at: keyPath) != nil else { return nil }
-        observer = KeyPathStringObserver(object, keyPath: keyPath, options: [.old, .prior]) { change in
+        guard object.isObservable(keyPath, Value.self), let observer = KeyPathStringObserver(object, keyPath: keyPath, options: [.old, .prior], handler: { change in
             guard change.isPrior, let oldValue = change.oldValue as? Value else { return }
             willChange(oldValue)
-        }
+        }) else { return nil }
+        self.observer = observer
     }
     
     private static func observer<Object: NSObject, Value: Equatable>(for object: Object?, keyPath: KeyPath<Object, Value>, uniqueValues: Bool, fallbackToKeyPathObserver: Bool = true, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) -> KVObserver? {
@@ -261,6 +261,7 @@ private extension KeyValueObservation {
             get { object != nil && observation != nil }
             set {
                 guard let object = object else { return }
+                guard newValue != isActive else { return }
                 if newValue {
                     observation = object.observe(keyPath, options: options) { [weak self] object, change in
                         guard let self = self else { return }
@@ -320,7 +321,8 @@ private extension KeyValueObservation {
         let handler: ([NSKeyValueChangeKey: Any]) -> Void
         var context = 0
         
-        init(_ object: Object?, keyPath: String, options: NSKeyValueObservingOptions, handler: @escaping ([NSKeyValueChangeKey: Any]) -> Void) {
+        init?(_ object: Object?, keyPath: String, options: NSKeyValueObservingOptions, handler: @escaping ([NSKeyValueChangeKey: Any]) -> Void) {
+            guard keyPath.isValidKVOKeyPath else { return nil }
             self.object = object
             self.keyPathString = keyPath
             self.options = options
@@ -329,7 +331,7 @@ private extension KeyValueObservation {
             isActive = true
         }
         
-        convenience init<Value: Equatable>(_ object: Object?, keyPath: String, initial: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
+        convenience init?<Value: Equatable>(_ object: Object?, keyPath: String, initial: Bool = false, uniqueValues: Bool, handler: @escaping (_ oldValue: Value, _ newValue: Value) -> Void) {
             self.init(object, keyPath: keyPath, options: initial ? [.old, .new, .initial] : [.old, .new]) { change in
                 guard let new = change.newValue as? Value else { return }
                 if let old = change.oldValue as? Value {
@@ -748,155 +750,6 @@ private extension KeyValueObservation {
     #endif
 }
 
-private extension KeyValueObservation {
-    class TTT<Object: NSObject>: NSObject, KVObserver {
-        let keyPathString: String
-        weak var object: Object?
-        private var context = 0
-        private var _isActive = false
-        let handler: (Any, Any, Bool)->()
-        let options: NSKeyValueObservingOptions
-        
-        var isActive: Bool {
-            get { object != nil && _isActive }
-            set {
-                guard newValue != isActive, let object else { return }
-                _isActive.toggle()
-                if newValue {
-                    object.addObserver(self, forKeyPath: keyPathString, options: options, context: &context)
-                } else {
-                    object.removeObserver(self, forKeyPath: keyPathString, context: &context)
-                }
-            }
-        }
-        
-        deinit {
-            isActive = false
-        }
-        
-        override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-            guard context == &self.context, object != nil, keyPath == keyPathString, let change = change else { return }
-            if change.isPrior, let oldValue = change.oldValue {
-                handler(oldValue, oldValue, true)
-            } else if let newValue = change.newValue {
-                handler(change.oldValue ?? newValue, newValue, false)
-            }
-        }
-        
-        func setObject(_ object: NSObject?, activate: Bool = false) {
-            let object = object as? Object
-            guard object !== self.object else {
-                isActive = activate
-                return
-            }
-            isActive = false
-            self.object = object
-            isActive = activate
-        }
-        
-        init<V>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V)->()) {
-            self.object = object
-            self.keyPathString = keyPath
-            self.options = initial ? [.old, .prior, .initial] : [.old, .prior]
-            self.handler = { old, new,_ in
-                guard let old = old as? V else { return }
-                handler(old)
-            }
-            super.init()
-            isActive = true
-        }
-        
-        init<V: RawRepresentable>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V)->()) {
-            self.object = object
-            self.keyPathString = keyPath
-            self.options = initial ? [.old, .prior, .initial] : [.old, .prior]
-            self.handler = { old, new,_ in
-                if let old = old as? V.RawValue {
-                    guard let old = V(rawValue: old) else { return }
-                    handler(old)
-                } else if let old = old as? V {
-                    handler(old)
-                }
-            }
-            super.init()
-            isActive = true
-        }
-        
-        init<V>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V, V)->()) {
-            self.object = object
-            self.keyPathString = keyPath
-            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
-            self.handler = { old, new,_ in
-                guard let old = old as? V, let new = new as? V else { return }
-                handler(old, new)
-            }
-            super.init()
-            isActive = true
-        }
-        
-        init<V: RawRepresentable>(_ object: Object?, keyPath: String, initial: Bool, handler: @escaping (V, V)->()) {
-            self.object = object
-            self.keyPathString = keyPath
-            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
-            self.handler = { old, new,_ in
-                if let old = old as? V.RawValue, let new = new as? V.RawValue {
-                    guard let old = V(rawValue: old), let new = V(rawValue: new) else { return }
-                    handler(old, new)
-                } else if let old = old as? V, let new = new as? V {
-                    handler(old, new)
-                }
-            }
-            super.init()
-            isActive = true
-        }
-        
-        init<V: Equatable>(_ object: Object?, keyPath: String, initial: Bool, uniqueValues: Bool, handler: @escaping (V, V)->()) {
-            self.object = object
-            self.keyPathString = keyPath
-            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
-            if uniqueValues {
-                self.handler = { old, new, inital in
-                    guard let old = old as? V, let new = new as? V, old != new || inital else { return }
-                    handler(old, new)
-                }
-            } else {
-                self.handler = { old, new,_ in
-                    guard let old = old as? V, let new = new as? V else { return }
-                    handler(old, new)
-                }
-            }
-            super.init()
-            isActive = true
-        }
-        
-        init<V: Equatable & RawRepresentable>(_ object: Object?, keyPath: String, initial: Bool, uniqueValues: Bool, handler: @escaping (V, V)->()) {
-            self.object = object
-            self.keyPathString = keyPath
-            self.options = initial ? [.old, .new, .initial] : [.old, .prior]
-            if uniqueValues {
-                self.handler = { old, new, inital in
-                    if let old = old as? V.RawValue, let new = new as? V.RawValue {
-                        guard let old = V(rawValue: old), let new = V(rawValue: new), old != new || inital else { return }
-                        handler(old, new)
-                    } else if let old = old as? V, let new = new as? V, old != new || inital {
-                        handler(old, new)
-                    }
-                }
-            } else {
-                self.handler = { old, new,_ in
-                    if let old = old as? V.RawValue, let new = new as? V.RawValue {
-                        guard let old = V(rawValue: old), let new = V(rawValue: new) else { return }
-                        handler(old, new)
-                    } else if let old = old as? V, let new = new as? V {
-                        handler(old, new)
-                    }
-                }
-            }
-            super.init()
-            isActive = true
-        }
-    }
-}
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(visionOS)
 fileprivate extension CALayer {
@@ -918,6 +771,7 @@ private protocol KVObserver: NSObject {
 
 private extension NSObject {
     func isObservable<Value>(_ keyPath: String, _: Value.Type) -> Bool {
+        guard keyPath.isValidKVOKeyPath else { return false }
         guard let type = Self.classInfo().propertyType(at: keyPath) else { return false }
         guard type.matches(Value.self) ?? true else { return false }
         let object = NSObject()
@@ -1055,3 +909,17 @@ fileprivate extension NSUIView {
     }
 }
 #endif
+
+extension String {
+    /// A Boolean value indicating whether the string is a syntactically valid KVO key.
+    var isValidKVOKey: Bool {
+        !isEmpty && !contains(".") && !hasPrefix("@")
+    }
+
+    /// A Boolean value indicating whether the string is a syntactically valid KVO key path.
+    var isValidKVOKeyPath: Bool {
+        !isEmpty && split(separator: ".", omittingEmptySubsequences: false).allSatisfy {
+            !$0.isEmpty && !$0.hasPrefix("@")
+        }
+    }
+}

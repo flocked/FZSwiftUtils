@@ -258,6 +258,96 @@ public extension NSObjectProtocol where Self: NSObject {
 }
 
 public extension NSObjectProtocol where Self: NSObject {
+    func associatedValue<V>(_ key: String = #function) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self)
+    }
+    
+    func associatedValue<V>(_ key: String = #function, initial initialValue: @autoclosure () -> V) -> V {
+        FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
+    }
+    
+    func associatedValue<V>(_ key: String = #function, initial initialValue: @autoclosure () -> V?) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
+    }
+    
+    func associatedValue<V: AnyObject>(_ key: String = #function, weakInitial initialValue: @autoclosure () -> V) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
+    }
+    
+    func associatedValue<V: AnyObject>(_ key: String = #function, weakInitial initialValue: @autoclosure () -> V?) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
+    }
+    
+    func associatedValue<V>(_ key: String = #function, initial initialValue: () -> V) -> V {
+        FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
+    }
+    
+    func associatedValue<V>(_ key: String = #function, initial initialValue: () -> V?) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self, initial: initialValue)
+    }
+    
+    func associatedValue<V: AnyObject>(_ key: String = #function, weakInitial initialValue: () -> V) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
+    }
+    
+    func associatedValue<V: AnyObject>(_ key: String = #function, weakInitial initialValue: () -> V?) -> V? {
+        FZSwiftUtils.getAssociatedValue(key, of: self, weakInitial: initialValue)
+    }
+    
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    func setAssociatedValue<V>(_ value: V?, _ key: String = #function) -> V? {
+        FZSwiftUtils.setAssociatedValue(value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    func setAssociatedValue(_ value: Any?, _ key: String = #function) -> Any? {
+        FZSwiftUtils.setAssociatedValue(value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    func setAssociatedValue<V: AnyObject>(weak value: V?, _ key: String = #function) -> V? {
+        FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    func setAssociatedValue(weak value: AnyObject?, _ key: String = #function) -> AnyObject? {
+        FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    static func setAssociatedValue<V>(_ value: V?, _ key: String = #function) -> V? {
+        FZSwiftUtils.setAssociatedValue(value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key to the given value and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    static func setAssociatedValue(_ value: Any?, _ key: String = #function) -> Any? {
+        FZSwiftUtils.setAssociatedValue(value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    static func setAssociatedValue<V: AnyObject>(weak value: V?, _ key: String = #function) -> V? {
+        FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
+    }
+    
+    /// Sets the associated value for the specified key using a weak reference and returns the previous value.
+    @discardableResult
+    @_disfavoredOverload
+    static func setAssociatedValue(weak value: AnyObject?, _ key: String = #function) -> AnyObject? {
+        FZSwiftUtils.setAssociatedValue(weak: value, for: key, of: self)
+    }
+}
+
+public extension NSObjectProtocol where Self: NSObject {
     /// Returns or sets the associated value for the specified key.
     subscript<V>(associated key: String, as type: V.Type = V.self) -> V? {
         get { associatedValue(for: key) }

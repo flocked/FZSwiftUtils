@@ -503,8 +503,15 @@ public extension BidirectionalCollection where Element: OptionalProtocol {
 }
 
 public extension Sequence {
+    /// The sequence as `Array`.
     var asArray: [Element] {
-        /// The sequence as `Array`.
+        Array(self)
+    }
+}
+
+public extension Collection {
+    /// The collection as `Array`.
+    var asArray: [Element] {
         Array(self)
     }
 }

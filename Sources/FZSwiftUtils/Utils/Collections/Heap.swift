@@ -12,7 +12,7 @@ import Foundation
 
  The `Heap` uses a ``SortingComparator`` to determine the ordering of its elements, allowing for flexible sorting criteria such as ascending, descending, or custom key path comparisons.
 
- Elements can be efficiently inserted, removed, and accessed while maintaining the heap property.
+ Elements can be efficiently inserted, removed, and accessed while maintaining the heap property. Collection traversal and subscripting use the heap's backing-array order, which is not necessarily sorted.
  
  The heap can function as a min-heap, max-heap, or any custom order based on the provided comparator.
 
@@ -78,7 +78,10 @@ public struct Heap<Element>: Sequence, Collection {
     
     /// Inserts the new elements into the heap.
     public mutating func insert<S: Sequence<Element>>(_ elements: S) {
-        elements.forEach({insert($0)})
+        let newElements = Array(elements)
+        guard !newElements.isEmpty else { return }
+        self.elements.append(contentsOf: newElements)
+        heapify()
     }
     
     /// Removes and returns the root element (the highest-priority element) of the heap.
@@ -104,38 +107,55 @@ public struct Heap<Element>: Sequence, Collection {
     /// Removes all the elements that satisfy the given predicate.
     @discardableResult
     public mutating func removeAll(where shouldBeRemoved: (Self.Element) throws -> Bool) rethrows -> [Element] {
-        try elements.removeAll(where: shouldBeRemoved)
+        // Apply the potentially throwing operation to a copy so a thrown error
+        // cannot leave the heap with a partially compacted, invalid layout.
+        var remaining = elements
+        let removed: [Element] = try remaining.removeAll(where: shouldBeRemoved)
+        guard !removed.isEmpty else { return removed }
+        elements = remaining
+        heapify()
+        return removed
     }
     
-    /// Removes the first element that satisfy the given predicate.
+    /// Removes the first matching element in the heap's backing-array order.
     @discardableResult
     public mutating func removeFirst(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> Element? {
-        try elements.removeFirst(where: shouldBeRemoved)
+        guard let index = try elements.firstIndex(where: shouldBeRemoved) else { return nil }
+        let removed = elements.remove(at: index)
+        heapify()
+        return removed
     }
     
     /// Removes the specified element from the heap.
     public mutating func remove(_ element: Element) where Element: Equatable {
-        elements.remove(element)
+        guard let index = elements.firstIndex(of: element) else { return }
+        elements.remove(at: index)
+        heapify()
     }
     
     /// Removes the specified element from the heap.
     public mutating func remove(_ element: Element) where Element: AnyObject {
-        elements.remove(element)
+        guard let index = elements.firstIndex(where: { $0 === element }) else { return }
+        elements.remove(at: index)
+        heapify()
     }
     
     /// Removes the specified elements from the heap.
     public mutating func remove<S: Sequence<Element>>(_ elements: S) where Element: Equatable {
         self.elements.remove(elements)
+        heapify()
     }
     
     /// Removes the specified elements from the heap.
     public mutating func remove<S: Sequence<Element>>(_ elements: S) where Element: Hashable {
         self.elements.remove(elements)
+        heapify()
     }
     
     /// Removes the specified elements from the heap.
     public mutating func remove<S: Sequence<Element>>(_ elements: S) where Element: AnyObject {
         self.elements.remove(elements)
+        heapify()
     }
     
     // MARK: - Internal Heap Mechanics

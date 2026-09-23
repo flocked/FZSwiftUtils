@@ -1562,3 +1562,79 @@ public extension StringProtocol {
         return String(self[range])
     }
 }
+
+public extension String {
+    /// The position at which a string is padded.
+    enum PaddingPosition {
+        /// Pads the string at its start.
+        case start
+        /// Pads the string at its middle.
+        case middle
+        /// Pads the string at its end.
+        case end
+    }
+}
+
+public extension StringProtocol {
+    /// Returns a new string formed from the string by either removing characters from the end or by appending as many occurrences as necessary of a given pad string.
+    func padding<T: StringProtocol>(toLength newLength: Int, withPad padString: T) -> String {
+        padding(toLength: newLength, withPad: padString, startingAt: 0)
+    }
+    
+    /// Returns a new string formed by either removing characters or appending spaces as necessary to reach the specified length.
+    func padding(toLength newLength: Int, at position: String.PaddingPosition = .end) -> String {
+        padding(toLength: newLength, withPad: " ", startingAt: 0, at: position)
+    }
+    
+    /// Returns a new string formed by either removing characters or appending as many occurrences as necessary of a given pad string at the specified position.
+    func padding<T: StringProtocol>(toLength newLength: Int, withPad padString: T, startingAt padIndex: Int = 0, at position: String.PaddingPosition) -> String {
+        switch position {
+        case .start:
+            if newLength >= count {
+                let padding = "".padding(toLength: newLength - count, withPad: padString, startingAt: padIndex)
+                return padding + self
+            } else {
+                return String(suffix(newLength))
+            }
+            
+        case .middle:
+            let difference = newLength - count
+            if difference >= 0 {
+                let index = index(startIndex, offsetBy: count / 2)
+                let padding = "".padding(toLength: difference, withPad: padString, startingAt: padIndex)
+                return String(self[..<index]) + padding + String(self[index...])
+            } else {
+                let removalCount = -difference
+                let start = index(startIndex, offsetBy: count / 2 - removalCount / 2)
+                let end = index(start, offsetBy: removalCount)
+                return String(self[..<start]) + String(self[end...])
+            }
+            
+        case .end:
+            return padding(toLength: newLength, withPad: padString, startingAt: padIndex)
+        }
+    }
+    
+    /// Returns a new string formed by appending as many occurrences as necessary of a given pad string to reach the specified minimum length.
+    func padding<T: StringProtocol>(toMinimumLength minimumLength: Int, withPad padString: T, startingAt padIndex: Int = 0, at position: String.PaddingPosition = .end) -> String {
+        guard count < minimumLength else { return String(self) }
+        return padding(toLength: minimumLength, withPad: padString, startingAt: padIndex, at: position)
+    }
+    
+    /// Returns a new string formed by appending spaces as necessary to reach the specified minimum length.
+    func padding(toMinimumLength minimumLength: Int, at position: String.PaddingPosition = .end) -> String {
+        padding(toMinimumLength: minimumLength, withPad: " ", at: position)
+    }
+    
+    /// Returns a new string formed by inserting as many occurrences as necessary of a given pad string at the specified index to reach the specified minimum length.
+    func padding<T: StringProtocol>(toMinimumLength minimumLength: Int, withPad padString: T, startingAt padIndex: Int = 0, at index: Index) -> String {
+        guard count < minimumLength else { return String(self) }
+        let padding = "".padding(toLength: minimumLength - count, withPad: padString, startingAt: padIndex)
+        return String(self[..<index]) + padding + String(self[index...])
+    }
+    
+    /// Returns a new string formed by inserting spaces at the specified index as necessary to reach the specified minimum length.
+    func padding(toMinimumLength minimumLength: Int, at index: Index) -> String {
+        padding(toMinimumLength: minimumLength, withPad: " ", at: index)
+    }
+}

@@ -789,3 +789,121 @@ public extension OrderedSet {
         }
     }
 }
+
+public extension Set {
+    /// Returns the set sorted.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedSet<Element> where Element: Comparable {
+        sorted(by: { $0 }, order)
+    }
+    
+    /// Returns the set sorted.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedSet<Element> where Element: OptionalProtocol, Element.Wrapped: Comparable {
+        sorted(by: { $0.optional }, order)
+    }
+    
+    /**
+     Returns the set sorted by the given keypath.
+
+      - Parameters:
+         - compare: The keypath to compare the elements.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V>, _ order: SortOrder = .ascending) -> OrderedSet<Element> where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    /**
+     Returns the set sorted by the given keypath.
+
+      - Parameters:
+         - compare: The keypath to compare the elements.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, _ order: SortOrder = .ascending) -> OrderedSet<Element> where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    /**
+     Returns the set sorted by the given keypath.
+
+      - Parameters:
+        - keyPath: The keypath to compare the elements.
+        - options: Options for comparing the key path strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> OrderedSet<Element> where V: StringProtocol {
+        sorted {
+            $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order
+        }
+    }
+    
+    /**
+     Returns the set sorted by the given keypath.
+
+      - Parameters:
+        - compare: The keypath to compare the elements.
+        - options: Options for comparing the key path strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> OrderedSet<Element> where V: StringProtocol {
+        sorted {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+    
+    /**
+     Returns the set sorted by the given predicate.
+
+      - Parameters:
+         - compare: A closure that provides a comparable value for each element in the sequence.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by compare: (Element) throws -> V, _ order: SortOrder = .ascending) rethrows -> OrderedSet<Element> where V: Comparable {
+        .init(uncheckedUniqueElements: try sorted { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) })
+    }
+    
+    /**
+     Returns the set sorted by the given predicate.
+
+      - Parameters:
+         - compare: A closure that provides a comparable value for each element in the sequence.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by compare: (Element) throws -> V?, _ order: SortOrder = .ascending) rethrows -> OrderedSet<Element> where V: Comparable {
+        .init(uncheckedUniqueElements: try sorted {
+            switch (try compare($0), try compare($1)) {
+            case let (x?, y?): return order == .ascending ? x < y : x > y
+            case (nil, nil): return false
+            case (nil, _): return false
+            case (_, nil): return true
+            }
+        })
+    }
+    
+    /**
+     Returns the set, sorted using the given predicate as the comparison between elements.
+     
+     - Parameter areInIncreasingOrder: A predicate that returns `true` if its first argument should be ordered before its second argument; otherwise, `false`.
+     - Returns: A sorted dictionary.
+     */
+    @_disfavoredOverload
+    func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> OrderedSet<Element> {
+        try .init(uncheckedUniqueElements: sorted(by: areInIncreasingOrder))
+    }
+}

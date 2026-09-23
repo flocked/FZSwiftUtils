@@ -8,6 +8,22 @@
 import _FZSwiftUtilsObjC
 import Foundation
 
+extension Array {
+    init?<C: BinaryInteger>(_ block: (UnsafeMutablePointer<C>?)->(AutoreleasingUnsafeMutablePointer<Element>?)) {
+        var count: C = 0
+        guard let list = block(&count) else { return nil }
+        defer { free(UnsafeMutableRawPointer(list)) }
+        self = list.array(count: count)
+    }
+    
+    init?<C: BinaryInteger>(_ block: (UnsafeMutablePointer<C>?)->(UnsafeMutablePointer<Element>?)) {
+        var count: C = 0
+        guard let list = block(&count) else { return nil }
+        defer { free(list) }
+        self = list.array(count: count)
+    }
+}
+
 /// Objective-C utilities.
 public enum ObjCRuntime {
     /// Returns all classes.
@@ -22,12 +38,9 @@ public enum ObjCRuntime {
         classNames.reserveCapacity(Int(count))
         let allClasses = classList.buffer(count: count).filter {
             let name = class_getName($0).string
-            if !Self.classNamesToSkip.contains(name) {
-                classNames.append(name)
-                return true
-            } else {
-                return false
-            }
+            guard !Self.classNamesToSkip.contains(name) else { return false }
+            classNames.append(name)
+            return true
         }
         Cache.classes = allClasses
         Cache.classNames = classNames

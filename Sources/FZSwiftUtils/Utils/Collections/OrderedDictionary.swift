@@ -656,18 +656,14 @@ extension OrderedDictionary.Values {
   /// Calls a closure with an unsafe buffer pointer to the values.
   @inlinable
   @inline(__always)
-  public func withUnsafeBufferPointer<R>(
-    _ body: (UnsafeBufferPointer<Value>) throws -> R
-  ) rethrows -> R {
+  public func withUnsafeBufferPointer<R>(_ body: (UnsafeBufferPointer<Value>) throws -> R) rethrows -> R {
     try _base.orderedValues.withUnsafeBufferPointer(body)
   }
 
   /// Calls a closure with an unsafe mutable buffer pointer to the values.
   @inlinable
   @inline(__always)
-  public mutating func withUnsafeMutableBufferPointer<R>(
-    _ body: (inout UnsafeMutableBufferPointer<Value>) throws -> R
-  ) rethrows -> R {
+  public mutating func withUnsafeMutableBufferPointer<R>(_ body: (inout UnsafeMutableBufferPointer<Value>) throws -> R) rethrows -> R {
     try _base.orderedValues.withUnsafeMutableBufferPointer(body)
   }
 }
@@ -935,5 +931,147 @@ public extension OrderedDictionary {
             default: return false
             }
         }
+    }
+}
+
+public extension Dictionary {
+    /// Returns the dictionary sorted by key.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where Key: Comparable {
+        sorted(by: { $0.key }, order)
+    }
+    
+    /// Returns the dictionary sorted by key.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where Key: OptionalProtocol, Key.Wrapped: Comparable {
+        sorted(by: { $0.key.optional }, order)
+    }
+    
+    /// Returns the dictionary sorted by value.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where Value: Comparable {
+        sorted(by: { $0.value }, order)
+    }
+    
+    /// Returns the dictionary sorted by value.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where Value: OptionalProtocol, Value.Wrapped: Comparable {
+        sorted(by: { $0.value.optional }, order)
+    }
+    
+    /// Returns the dictionary sorted by key and value.
+    @_disfavoredOverload
+    func sorted(_ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value>  where Key: Comparable, Value: Comparable {
+        if order == .ascending {
+            return sorted { $0.key != $1.key ? $0.key < $1.key :  $0.value < $1.value }
+        }
+        return sorted { $0.key != $1.key ? $0.key > $1.key :  $0.value > $1.value }
+    }
+}
+
+
+public extension Dictionary {
+    /**
+     The dictionary sorted by the given keypath.
+
+      - Parameters:
+         - compare: The keypath to compare the elements.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V>, _ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    /**
+     The dictionary sorted by the given keypath.
+
+      - Parameters:
+         - compare: The keypath to compare the elements.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, _ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where V: Comparable {
+        sorted(by: { $0[keyPath: keyPath]}, order)
+    }
+    
+    /**
+     The dictionary sorted by the given keypath.
+
+      - Parameters:
+        - keyPath: The keypath to compare the elements.
+        - options: Options for comparing the key path strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where V: StringProtocol {
+        sorted {
+            $0[keyPath: keyPath].compare($1[keyPath: keyPath], options: options, range: range, locale: locale) == order.order
+        }
+    }
+    
+    /**
+     The dictionary sorted by the given keypath.
+
+      - Parameters:
+        - compare: The keypath to compare the elements.
+        - options: Options for comparing the key path strings.
+        - range: The range of the string comparsion.
+        - locale: The local of the string comparsion.
+        - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by keyPath: KeyPath<Element, V?>, options: String.CompareOptions, range: Range<V.Index>? = nil, locale: Locale? = nil, _ order: SortOrder = .ascending) -> OrderedDictionary<Key, Value> where V: StringProtocol {
+        sorted {
+            switch ($0[keyPath: keyPath], $1[keyPath: keyPath]) {
+            case let (a?, b?): return a.compare(b, options: options, range: range, locale: locale) == order.order
+            case (_?, nil): return true
+            default: return false
+            }
+        }
+    }
+    
+    /**
+     Returns the dictionary sorted by the given predicate.
+
+      - Parameters:
+         - compare: A closure that provides a comparable value for each element in the sequence.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by compare: (Element) throws -> V, _ order: SortOrder = .ascending) rethrows -> OrderedDictionary<Key, Value> where V: Comparable {
+        .init(uniqueKeysWithValues: try sorted { order == .ascending ? (try compare($0)) < (try compare($1)) : (try compare($0)) > (try compare($1)) })
+    }
+    
+    /**
+     Returns the dictionary sorted by the given predicate.
+
+      - Parameters:
+         - compare: A closure that provides a comparable value for each element in the sequence.
+         - order: The order of sorting.
+      */
+    @_disfavoredOverload
+    func sorted<V>(by compare: (Element) throws -> V?, _ order: SortOrder = .ascending) rethrows -> OrderedDictionary<Key, Value> where V: Comparable {
+        .init(uniqueKeysWithValues: try sorted {
+            switch (try compare($0), try compare($1)) {
+            case let (x?, y?): return order == .ascending ? x < y : x > y
+            case (nil, nil): return false
+            case (nil, _): return false
+            case (_, nil): return true
+            }
+        })
+    }
+    
+    /**
+     Returns the dictionary, sorted using the given predicate as the comparison between elements.
+     
+     - Parameter areInIncreasingOrder: A predicate that returns `true` if its first argument should be ordered before its second argument; otherwise, `false`.
+     - Returns: A sorted dictionary.
+     */
+    @_disfavoredOverload
+    func sorted(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> OrderedDictionary<Key, Value> {
+        try .init(uniqueKeysWithValues: sorted(by: areInIncreasingOrder))
     }
 }
