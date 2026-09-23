@@ -24,17 +24,28 @@ public final class Defaults {
     let id = UUID()
     let userDefaults: UserDefaults
     var notificationKeys: [String: NotificationKey] = [:]
+    private let notificationKeysLock = NSLock()
 
-    /// Shared instance of `Defaults`, used for ad-hoc access to the user's defaults database throughout the app.
-    public static let shared = Defaults()
+    /// The shared defaults instance backed by the standard user defaults.
+    public static let shared = Defaults(userDefaults: .standard)
 
-    /**
-     An instance of `Defaults` with the specified `UserDefaults` instance.
-
-     - Parameter userDefaults: The `UserDefaults`.
-     */
-    public init(userDefaults: UserDefaults = UserDefaults.standard) {
+    /// Creates a defaults instance backed by the specified user defaults.
+    public init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
+    }
+
+    /// Removes all values from the specified bundle's persistent domain.
+    public func removeAll(for bundle: Bundle = .main) {
+        guard let bundleIdentifier = bundle.bundleIdentifier else { return }
+        removeAll(forDomain: bundleIdentifier)
+    }
+    /// Removes all values from the specified persistent domain.
+    public func removeAll(forDomain domainName: String) {
+        let oldValues = userDefaults.persistentDomain(forName: domainName) ?? [:]
+        userDefaults.removePersistentDomain(forName: domainName)
+        for (key, value) in oldValues {
+            postNotification(key, oldValue: value, value: nil)
+        }
     }
 
     /// The value for the specified key.
@@ -80,7 +91,7 @@ public final class Defaults {
             return decoded
         } catch {
             #if DEBUG
-                print(error)
+            print(error)
             #endif
         }
         return nil
@@ -138,25 +149,9 @@ public final class Defaults {
     public func set<Value: Codable>(_ value: Value?, for key: String) {
         if let value = value {
             let oldValue: Value? = get(key)
-            if isSwiftCodableType(Value.self) {
-                userDefaults.set(value, forKey: key)
-                userDefaults.synchronize()
-                postNotification(key, oldValue: oldValue, value: value)
-                return
-            }
-            do {
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(value)
-                userDefaults.set(encoded, forKey: key)
-                userDefaults.synchronize()
-                postNotification(key, oldValue: oldValue, value: value)
-            } catch {
-                #if DEBUG
-                    print(error)
-                #endif
-            }
+            write(value, for: key, oldValue: oldValue, notificationValue: value)
         } else {
-            clear(key)
+            clear(key, oldValue: get(key) as Value?)
         }
     }
 
@@ -169,9 +164,27 @@ public final class Defaults {
      */
     public func set<Value: RawRepresentable>(_ value: Value?, for key: String) where Value.RawValue: Codable {
         if let value = value {
-            set(value.rawValue, for: key)
+            let oldValue: Value? = get(key)
+            write(value.rawValue, for: key, oldValue: oldValue, notificationValue: value)
         } else {
-            clear(key)
+            clear(key, oldValue: get(key) as Value?)
+        }
+    }
+
+    private func write<StoredValue: Codable>(_ value: StoredValue, for key: String, oldValue: Any?, notificationValue: Any) {
+        if isSwiftCodableType(StoredValue.self) {
+            userDefaults.set(value, forKey: key)
+            postNotification(key, oldValue: oldValue, value: notificationValue)
+            return
+        }
+        do {
+            let encoded = try JSONEncoder().encode(value)
+            userDefaults.set(encoded, forKey: key)
+            postNotification(key, oldValue: oldValue, value: notificationValue)
+        } catch {
+            #if DEBUG
+            print(error)
+            #endif
         }
     }
 
@@ -181,9 +194,11 @@ public final class Defaults {
      - Parameter key: The key.
      */
     public func clear(_ key: String) {
-        let oldValue = userDefaults.value(forKey: key)
+        clear(key, oldValue: userDefaults.value(forKey: key))
+    }
+
+    private func clear(_ key: String, oldValue: Any?) {
         userDefaults.set(nil, forKey: key)
-        userDefaults.synchronize()
         postNotification(key, oldValue: oldValue, value: nil)
     }
 
@@ -201,18 +216,6 @@ public final class Defaults {
 
      - Parameter type: Bundle.
      */
-    public func removeAll(bundle: Bundle = Bundle.main) {
-        var oldValues: [String: Any] = [:]
-        for key in userDefaults.dictionaryRepresentation().keys {
-            oldValues[key] = userDefaults.value(forKey: key)
-        }
-        guard let name = bundle.bundleIdentifier else { return }
-        userDefaults.removePersistentDomain(forName: name)
-        for oldValue in oldValues {
-            postNotification(oldValue.key, oldValue: oldValue.value, value: nil)
-        }
-    }
-    
     /**
      Observes changes for the value with specified key.
      
@@ -416,6 +419,8 @@ public final class Defaults {
     }
     
     func notificationKey(for key: String) -> NotificationKey {
+        notificationKeysLock.lock()
+        defer { notificationKeysLock.unlock() }
         if let notificationKey =  notificationKeys[key] {
             return notificationKey
         }
@@ -462,72 +467,107 @@ fileprivate extension [AnyHashable : Any] {
 }
 
 extension Defaults {
-    public class Key<Value>: _AnyKey, @unchecked Sendable {
+    public class Key<Value>: _AnyKey {
         let defaultValueGetter: () -> Value
+
+        private func configureCodableReset() where Value: Codable {
+            resetAction = { [weak self] in
+                guard let self else { return }
+                let oldValue: Value? = self.defaults.get(self.name)
+                self.defaults.clear(self.name, oldValue: oldValue)
+            }
+        }
+
+        private func configureRawReset() where Value: RawRepresentable, Value.RawValue: Codable {
+            resetAction = { [weak self] in
+                guard let self else { return }
+                let oldValue: Value? = self.defaults.get(self.name)
+                self.defaults.clear(self.name, oldValue: oldValue)
+            }
+        }
+
+        private func configureOptionalReset() {
+            resetAction = { [weak self] in
+                guard let self else { return }
+                let oldValue = self.defaults.userDefaults.value(forKey: self.name)
+                self.defaults.clear(self.name, oldValue: oldValue)
+            }
+        }
 
         public var defaultValue: Value { defaultValueGetter() }
         
         public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: Value) where Value: Codable {
             defaultValueGetter = { defaultValue }
             super.init(name: name, suite: suite)
+            configureCodableReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: @escaping () -> Value) where Value: Codable {
             defaultValueGetter = defaultValue
             super.init(name: name, suite: suite)
+            configureCodableReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard) where Value: OptionalProtocol, Value.Wrapped: Codable {
             defaultValueGetter = { nil }
             super.init(name: name, suite: suite)
+            configureOptionalReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: Value) where Value: RawRepresentable, Value.RawValue: Codable {
             defaultValueGetter = { defaultValue }
             super.init(name: name, suite: suite)
+            configureRawReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: Value) where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
             defaultValueGetter = { defaultValue }
             super.init(name: name, suite: suite)
+            configureOptionalReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: @escaping () -> Value) where Value: RawRepresentable, Value.RawValue: Codable {
             defaultValueGetter = defaultValue
             super.init(name: name, suite: suite)
+            configureRawReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard, default defaultValue: @escaping () -> Value) where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
             defaultValueGetter = defaultValue
             super.init(name: name, suite: suite)
+            configureOptionalReset()
         }
         
         public init(_ name: String, suite: UserDefaults = .standard) where Value: OptionalProtocol, Value.Wrapped: RawRepresentable, Value.Wrapped.RawValue: Codable {
             defaultValueGetter = { nil }
             super.init(name: name, suite: suite)
+            configureOptionalReset()
         }
     }
 
     /// Type-erased key.
-    public class _AnyKey: @unchecked Sendable {
+    public class _AnyKey {
         public typealias Key = Defaults.Key
 
         public let name: String
         public let suite: UserDefaults
-        
-        var defaults: Defaults {
-            .init(userDefaults: suite)
-        }
+        let defaults: Defaults
+        var resetAction: (() -> Void)?
 
         fileprivate init(name: String, suite: UserDefaults) {
-            assert(!(!name.starts(with: "@") && name.allSatisfy { $0 != "." && $0.isASCII }), "The key name must be ASCII, not start with @, and cannot contain a dot (.).")
+            assert(name.starts(with: "@") || name.allSatisfy { $0 != "." && $0.isASCII }, "The key name must be ASCII, not start with @, and cannot contain a dot (.).")
             self.name = name
             self.suite = suite
+            self.defaults = Defaults(userDefaults: suite)
         }
 
         /// Reset the item back to its default value.
         public func reset() {
-            suite.removeObject(forKey: name)
+            if let resetAction {
+                resetAction()
+            } else {
+                defaults.clear(name)
+            }
         }
     }
 
