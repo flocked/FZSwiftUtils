@@ -135,7 +135,11 @@ public class URLResources {
     /// Date the resource was created, or renamed into or within its parent directory.
     public var addedToDirectoryDate: Date? {
         get { value(for: .addedToDirectoryDateKey, \.addedToDirectoryDate) }
-        set { url.setDate(newValue, addedToDirectoryDate, ATTR_CMN_ADDEDTIME) }
+        set {
+            guard newValue != addedToDirectoryDate, url.isFileURL else { return }
+            url.setDate(newValue, of: ATTR_CMN_ADDEDTIME)
+            url.removeCachedResourceValue(forKey: .addedToDirectoryDateKey)
+        }
     }
 
     /// Date the resource content was last accessed.
@@ -1045,19 +1049,21 @@ fileprivate extension BinaryInteger {
 }
 
 fileprivate extension URL {
-    func setDate(_ date: Date?, _ old: Date?,  _ attribute: Int32) {
-        guard date != old, isFileURL else { return }
+    func setDate(_ date: Date?, of attribute: Int32) {
         do {
             var attributes = attrlist()
             attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
             attributes.commonattr = attrgroup_t(attribute)
             var value = date?.timespec ?? timespec()
-            guard withUnsafeMutablePointer(to: &value, { value in
-                withUnsafeFileSystemRepresentation {
-                    setattrlist($0!, &attributes, value, MemoryLayout<timespec>.size, 0)
+            let result = try withUnsafeFileSystemRepresentation { path -> Int32 in
+                guard let path else {
+                    throw CocoaError(.fileNoSuchFile,userInfo: [NSURLErrorKey: self])
                 }
-            }) == 0 else {
-                throw (POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno))) as any Error
+                return setattrlist(path, &attributes, &value, MemoryLayout.size(ofValue: value), 0)
+            }
+
+            guard result == 0 else {
+                throw POSIXError(.init(rawValue: errno) ?? .EIO)
             }
         } catch {
             URLResources.log(error)
