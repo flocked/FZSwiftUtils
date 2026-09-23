@@ -377,7 +377,7 @@ public extension NumberFormatter {
     }
         
     /// The allowed number of digits.
-    enum DigitLength: ExpressibleByIntegerLiteral, CustomStringConvertible {
+    enum DigitLength: ExpressibleByIntegerLiteral, CustomStringConvertible, Hashable {
         /// A fixed number of digits.
         case fixed(Int)
         /// A range of allowed digits.

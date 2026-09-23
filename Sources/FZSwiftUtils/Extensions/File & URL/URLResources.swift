@@ -25,7 +25,7 @@ public extension URL {
 
 /**
  The properties of a file system resource.
- 
+
  Not all properties exist for all files. For example, if a file is located on a volume that doesn’t support creation dates, the creationDate property will return nil.
 
  Some of the properties can be modified. Changing them attempts  to modify the represented file or folder.
@@ -42,7 +42,7 @@ public class URLResources {
         guard url.path.hasPrefix("/_prefetchCheck_") else { return }
         accessedResourceKeyIdentifier = url.path.removingPrefix("/_prefetchCheck_")
     }
-    
+
     /// Returns updated resource values instead of using cached values.
     public var updating: URLResources {
         cacheValues = false
@@ -56,13 +56,19 @@ public class URLResources {
     }
 
     /// Localized or extension-hidden name  as displayed to users.
-    public var localizedName: String? { value(for: .localizedNameKey, \.localizedName) }
+    public var localizedName: String? {
+        value(for: .localizedNameKey, \.localizedName)
+    }
 
     /// A Boolean value indicating whether the resource is a regular file rather than a directory or a symbolic link.
-    public var isRegularFile: Bool { value(for: .isRegularFileKey, \.isRegularFile) ?? false }
+    public var isRegularFile: Bool {
+        value(for: .isRegularFileKey, \.isRegularFile) ?? false
+    }
 
     /// A Boolean value indicating if the resource is a directory.
-    public var isDirectory: Bool { value(for: .isDirectoryKey, \.isDirectory) ?? false }
+    public var isDirectory: Bool {
+        value(for: .isDirectoryKey, \.isDirectory) ?? false
+    }
 
     /**
      The count of file system objects in the directory.
@@ -71,14 +77,18 @@ public class URLResources {
      */
     @available(macOS 14.0, iOS 17.0, tvOS 17.0, watchOS 10.0, visionOS 1.0, *)
     public var directoryEntryCount: Int? {
-        try? url.resourceValues(forKeys: [.directoryEntryCountKey]).directoryEntryCount        
+        value(for: .directoryEntryCountKey, \.directoryEntryCount)
     }
 
     /// A Boolean value indicating if the resource is a isymbolic link.
-    public var isSymbolicLink: Bool { value(for: .isSymbolicLinkKey, \.isSymbolicLink) ?? false }
+    public var isSymbolicLink: Bool {
+        value(for: .isSymbolicLinkKey, \.isSymbolicLink) ?? false
+    }
 
     /// A Boolean value indicating if the resource is a volume.
-    public var isVolume: Bool { value(for: .isVolumeKey, \.isVolume) ?? false }
+    public var isVolume: Bool {
+        value(for: .isVolumeKey, \.isVolume) ?? false
+    }
 
     /**
      A Boolean value indicating if the resource is a packaged directory.
@@ -91,10 +101,14 @@ public class URLResources {
     }
 
     /// A Boolean value indicating if the resource is an application.
-    public var isApplication: Bool { value(for: .isApplicationKey, \.isApplication) ?? false }
+    public var isApplication: Bool {
+        value(for: .isApplicationKey, \.isApplication) ?? false
+    }
 
     /// A Boolean value indicating if the resource is system-immutable.
-    public var isSystemImmutable: Bool { value(for: .isSystemImmutableKey, \.isSystemImmutable) ?? false }
+    public var isSystemImmutable: Bool {
+        value(for: .isSystemImmutableKey, \.isSystemImmutable) ?? false
+    }
 
     /// A Boolean value indicating if the resource is user-immutable.
     public var isUserImmutable: Bool {
@@ -124,7 +138,7 @@ public class URLResources {
         get { value(for: .creationDateKey, \.creationDate) }
         set { setValue(newValue, for: \.creationDate) }
     }
-    
+
     /// Date the resource content was last modified.
     public var contentModificationDate: Date? {
         get { value(for: .contentModificationDateKey, \.contentModificationDate) }
@@ -136,9 +150,14 @@ public class URLResources {
     public var addedToDirectoryDate: Date? {
         get { value(for: .addedToDirectoryDateKey, \.addedToDirectoryDate) }
         set {
-            guard newValue != addedToDirectoryDate, url.isFileURL else { return }
-            url.setDate(newValue, of: ATTR_CMN_ADDEDTIME)
-            url.removeCachedResourceValue(forKey: .addedToDirectoryDateKey)
+            guard let newValue, newValue != addedToDirectoryDate, url.isFileURL else { return }
+            do {
+                try url.setAttribute(ATTR_CMN_ADDEDTIME, to: newValue.timespec)
+                url.removeCachedResourceValue(forKey: .addedToDirectoryDateKey)
+            } catch {
+                URLResources.log(error)
+            }
+            
         }
     }
 
@@ -154,13 +173,19 @@ public class URLResources {
     }
 
     /// Number of hard links to the resource.
-    public var linkCount: Int? { value(for: .linkCountKey, \.linkCount) }
+    public var linkCount: Int? {
+        value(for: .linkCountKey, \.linkCount)
+    }
 
     /// The resource’s parent directory, if any.
-    public var parentDirectory: URL? { value(for: .parentDirectoryURLKey, \.parentDirectory) }
+    public var parentDirectory: URL? {
+        value(for: .parentDirectoryURLKey, \.parentDirectory)
+    }
 
     /// User-visible type or “kind” description of the resource.
-    public var localizedTypeDescription: String? { value(for: .localizedTypeDescriptionKey, \.localizedTypeDescription) }
+    public var localizedTypeDescription: String? {
+        value(for: .localizedTypeDescriptionKey, \.localizedTypeDescription)
+    }
 
     /// The label number assigned to the resource.
     public var labelNumber: Int? {
@@ -169,22 +194,34 @@ public class URLResources {
     }
 
     /// The user-visible label text of the resource.
-    public var labelLocalizedName: String? { value(for: .localizedLabelKey, \.localizedLabel) }
+    public var labelLocalizedName: String? {
+        value(for: .localizedLabelKey, \.localizedLabel)
+    }
 
     /// A value APFS assigns that identifies a file’s content data stream.
-    public var fileContentIdentifier: Int64? { value(for: .fileContentIdentifierKey, \.fileContentIdentifier) }
+    public var fileContentIdentifier: Int64? {
+        value(for: .fileContentIdentifierKey, \.fileContentIdentifier)
+    }
 
     /// The optimal block size when reading or writing this file’s data, or `nil` if not available.
-    public var preferredIOBlockSize: Int? { value(for: .preferredIOBlockSizeKey, \.preferredIOBlockSize) }
+    public var preferredIOBlockSize: Int? {
+        value(for: .preferredIOBlockSizeKey, \.preferredIOBlockSize)
+    }
 
     /// A Boolean value indicating if the resource is readable.
-    public var isReadable: Bool? { value(for: .isReadableKey, \.isReadable) }
+    public var isReadable: Bool? {
+        value(for: .isReadableKey, \.isReadable)
+    }
 
     /// A Boolean value indicating if the resource is writable.
-    public var isWritable: Bool? { value(for: .isWritableKey, \.isWritable) }
+    public var isWritable: Bool? {
+        value(for: .isWritableKey, \.isWritable)
+    }
 
     /// A Boolean value indicating if the resource is executable.
-    public var isExecutable: Bool? { value(for: .isExecutableKey, \.isExecutable) }
+    public var isExecutable: Bool? {
+        value(for: .isExecutableKey, \.isExecutable)
+    }
 
     public var fileSecurity: NSFileSecurity? {
         get { value(for: .fileSecurityKey, \.fileSecurity) }
@@ -198,13 +235,19 @@ public class URLResources {
     }
 
     /// File system path to the resource.
-    public var path: String? { value(for: .pathKey, \.path) }
+    public var path: String? {
+        value(for: .pathKey, \.path)
+    }
 
     /// The resource’s path as a canonical absolute file system path.
-    public var canonicalPath: String? { value(for: .canonicalPathKey, \.canonicalPath) }
+    public var canonicalPath: String? {
+        value(for: .canonicalPathKey, \.canonicalPath)
+    }
 
     /// A Boolean value indicating whether the resource is a file system trigger directory.
-    public var isMountTrigger: Bool? { value(for: .isMountTriggerKey, \.isMountTrigger) }
+    public var isMountTrigger: Bool? {
+        value(for: .isMountTriggerKey, \.isMountTrigger)
+    }
 
     /**
      An opaque generation identifier which can be compared using == to determine if the data in a document has been modified.
@@ -216,7 +259,8 @@ public class URLResources {
      The generation identifier is persistent across system restarts. The generation identifier is tied to a specific document on a specific volume and is not transferred when the document is copied to another volume. This property is not supported by all volumes.
      */
     public var generationIdentifier: (NSCopying & NSSecureCoding & NSObjectProtocol)? {
-        value(for: .generationIdentifierKey, \.generationIdentifier) }
+        value(for: .generationIdentifierKey, \.generationIdentifier)
+    }
 
     /**
      The identifier of the resource.
@@ -224,64 +268,92 @@ public class URLResources {
      The value is assigned by the kernel to identify the resource regardless of where it moves on a volume.
 
      The identifier survives safe-save operation, and is sticky to the path the kernel assigns. [replaceItemAt(_:withItemAt:backupItemName:options:)](https://developer.apple.com/documentation/foundation/filemanager/replaceitemat(_:withitemat:backupitemname:options:)-4210g) is the preferred safe-save API.
-     
+
      The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource. The identifier is only unique within a single volume and not all volumes support this property.
      */
-    public var identifier: Int? { value(for: .documentIdentifierKey, \.documentIdentifier) }
+    public var identifier: Int? {
+        value(for: .documentIdentifierKey, \.documentIdentifier)
+    }
 
     /// A Boolean value indicating whether the file may have extended attributes.
-    public var mayHaveExtendedAttributes: Bool { value(for: .mayHaveExtendedAttributesKey, \.mayHaveExtendedAttributes) ?? false }
+    public var mayHaveExtendedAttributes: Bool {
+        value(for: .mayHaveExtendedAttributesKey, \.mayHaveExtendedAttributes) ?? false
+    }
 
     /// A Boolean value indicating whether the file system can delete the file when the system needs to free space.
-    public var isPurgeable: Bool { value(for: .isPurgeableKey, \.isPurgeable) ?? false }
+    public var isPurgeable: Bool {
+        value(for: .isPurgeableKey, \.isPurgeable) ?? false
+    }
 
     /// A Boolean value indicating whether the file has sparse regions.
-    public var isSparse: Bool { value(for: .isSparseKey, \.isSparse) ?? false }
+    public var isSparse: Bool {
+        value(for: .isSparseKey, \.isSparse) ?? false
+    }
 
     /// A Boolean value indicating whether the cloned files and their original files may share data blocks.
-    public var mayShareFileContent: Bool { value(for: .mayShareFileContentKey, \.mayShareFileContent) ?? false }
+    public var mayShareFileContent: Bool {
+        value(for: .mayShareFileContentKey, \.mayShareFileContent) ?? false
+    }
 
     /// The type of the fresource.
-    public var fileResourceType: URLFileResourceType? { value(for: .fileResourceTypeKey, \.fileResourceType) }
+    public var fileResourceType: URLFileResourceType? {
+        value(for: .fileResourceTypeKey, \.fileResourceType)
+    }
 
     /// A Boolean value indicating whether the resource is in the iCloud storage.
-    public var isUbiquitousItem: Bool { value(for: .isUbiquitousItemKey, \.isUbiquitousItem) ?? false }
+    public var isUbiquitousItem: Bool {
+        value(for: .isUbiquitousItemKey, \.isUbiquitousItem) ?? false
+    }
 
     /// The protection level for the resource.
-    public var fileProtection: URLFileProtection? { value(for: .fileProtectionKey, \.fileProtection) }
+    public var fileProtection: URLFileProtection? {
+        value(for: .fileProtectionKey, \.fileProtection)
+    }
 
     /// The total file size.
-    public var fileSize: DataSize? { value(for: .fileSizeKey, \.fileSize)?.dataSize }
+    public var fileSize: DataSize? {
+        value(for: .fileSizeKey, \.fileSize)?.dataSize
+    }
 
     /// The total allocated size on-disk for the file.
-    public var fileAllocatedSize: DataSize? { value(for: .fileAllocatedSizeKey, \.fileAllocatedSize)?.dataSize }
+    public var fileAllocatedSize: DataSize? {
+        value(for: .fileAllocatedSizeKey, \.fileAllocatedSize)?.dataSize
+    }
 
     /// The total displayable size of the file.
-    public var totalFileSize: DataSize? { value(for: .totalFileSizeKey, \.totalFileSize)?.dataSize }
+    public var totalFileSize: DataSize? {
+        value(for: .totalFileSizeKey, \.totalFileSize)?.dataSize
+    }
 
     /// The total allocated size of the file.
-    public var totalFileAllocatedSize: DataSize? { value(for: .totalFileAllocatedSizeKey, \.totalFileAllocatedSize)?.dataSize }
+    public var totalFileAllocatedSize: DataSize? {
+        value(for: .totalFileAllocatedSizeKey, \.totalFileAllocatedSize)?.dataSize
+    }
 
     /// A Boolean value indicating whether the resource is a Finder alias file or a symlink.
-    public var isAliasFile: Bool { value(for: .isAliasFileKey, \.isAliasFile) ?? false }
+    public var isAliasFile: Bool {
+        value(for: .isAliasFileKey, \.isAliasFile) ?? false
+    }
 
     /// The content type of the resource.
-    public var contentType: UTType? { value(for: .contentTypeKey, \.contentType) }
+    public var contentType: UTType? {
+        value(for: .contentTypeKey, \.contentType)
+    }
 
     /// The macOS Finder tags of the resource.
     public var finderTags: [FinderTag] {
         get {
-            (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap({ FinderTag($0) })
+            (url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] ?? []).compactMap { FinderTag($0) }
         }
         set {
-            url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] = newValue.uniqued().map({$0.rawValue}).nilIfEmpty
+            url.extendedAttributes["com.apple.metadata:_kMDItemUserTags"] = newValue.uniqued().map { $0.rawValue }.nilIfEmpty
         }
     }
-    
+
     #if os(macOS)
     /**
      The macOS Finder tag names of the resource.
-     
+
      To get or change the colors of the tags, use ``finderTags``.
      */
     public var finderTagNames: [String] {
@@ -295,12 +367,12 @@ public class URLResources {
         }
     }
     #endif
-    
+
     /**
      The persistent identifier of the resource.
-        
+
      The identifier is persistent across system restarts, and doesn’t transfer when you copy the resource.
-     
+
      Compard  to ``identifier`` all volumes support this property and its unique accross several volumes.
      */
     var persistentIdentifier: UUID? {
@@ -316,7 +388,7 @@ public class URLResources {
             return nil
         }
     }
-    
+
     private func setAddedToDirectoryDate(_ date: Date?) {
         guard date != addedToDirectoryDate, url.isFileURL else { return }
         var attributes = attrlist()
@@ -335,7 +407,9 @@ public class URLResources {
 #if os(macOS)
 public extension URLResources {
     /// A Boolean value indicating whether the resource is scriptable. Only applies to applications.
-    var applicationIsScriptable: Bool { value(for: .applicationIsScriptableKey, \.applicationIsScriptable) ?? false }
+    var applicationIsScriptable: Bool {
+        value(for: .applicationIsScriptableKey, \.applicationIsScriptable) ?? false
+    }
 
     /// URLs to applications that support opening the file.
     var supportedApplicationURLs: [URL]? {
@@ -344,18 +418,24 @@ public extension URLResources {
 
     /// The quarantine properties of the resource.
     var quarantineProperties: QuarantineProperties? {
-        get { value(for: .quarantinePropertiesKey, \.quarantineProperties).map({ QuarantineProperties($0) }) }
+        get { value(for: .quarantinePropertiesKey, \.quarantineProperties).map { QuarantineProperties($0) } }
         set { setValue(newValue?.rawValue, for: \.quarantineProperties) }
     }
 
     /// The icon stored with the resource.
-    var customIcon: NSUIImage? { value(for: .customIconKey, \.customIcon) }
+    var customIcon: NSUIImage? {
+        value(for: .customIconKey, \.customIcon)
+    }
 
     /// The normal icon for the resource.
-    var effectiveIcon: NSUIImage? { value(for: .effectiveIconKey, \.effectiveIcon) as? NSUIImage }
+    var effectiveIcon: NSUIImage? {
+        value(for: .effectiveIconKey, \.effectiveIcon) as? NSUIImage
+    }
 
     /// The label color of the resource.
-    var labelColor: NSUIColor? { value(for: .labelColorKey, \.labelColor) }
+    var labelColor: NSUIColor? {
+        value(for: .labelColorKey, \.labelColor)
+    }
 }
 #endif
 
@@ -374,58 +454,88 @@ public extension URLResources {
         }
 
         /// The url of the volume.
-        public var url: URL? { resources.value(for: .volumeURLKey, \.volume) }
+        public var url: URL? {
+            resources.value(for: .volumeURLKey, \.volume)
+        }
 
         /// The name of the volume.
-        public var name: String? { resources.value(for: .volumeNameKey, \.volumeName) }
+        public var name: String? {
+            resources.value(for: .volumeNameKey, \.volumeName)
+        }
 
         /// The name of the volume as it should be displayed in the user interface.
-        public var localizedName: String? { resources.value(for: .volumeLocalizedNameKey, \.volumeLocalizedName) }
+        public var localizedName: String? {
+            resources.value(for: .volumeLocalizedNameKey, \.volumeLocalizedName)
+        }
 
         /// The persistent UUID of the volume.
-        public var uuid: String? { resources.value(for: .volumeUUIDStringKey, \.volumeUUIDString) }
+        public var uuid: String? {
+            resources.value(for: .volumeUUIDStringKey, \.volumeUUIDString)
+        }
 
         /// The total number of resources on the volume.
-        public var resourceCount: Int? { resources.value(for: .volumeResourceCountKey, \.volumeResourceCount) }
+        public var resourceCount: Int? {
+            resources.value(for: .volumeResourceCountKey, \.volumeResourceCount)
+        }
 
         /// The creation date of the volume.
-        public var creationDate: Date? { resources.value(for: .volumeCreationDateKey, \.volumeCreationDate) }
+        public var creationDate: Date? {
+            resources.value(for: .volumeCreationDateKey, \.volumeCreationDate)
+        }
 
         /// A Boolean value indicating whether the volume is read-only.
-        public var isReadOnly: Bool { resources.value(for: .volumeIsReadOnlyKey, \.volumeIsReadOnly) ?? true }
+        public var isReadOnly: Bool {
+            resources.value(for: .volumeIsReadOnlyKey, \.volumeIsReadOnly) ?? true
+        }
 
         /// A Boolean value indicating whether the volume supports setting standard access permissions.
-        public var supportsAccessPermissions: Bool { resources.value(for: .volumeSupportsAccessPermissionsKey, \.volumeSupportsAccessPermissions) ?? false }
+        public var supportsAccessPermissions: Bool {
+            resources.value(for: .volumeSupportsAccessPermissionsKey, \.volumeSupportsAccessPermissions) ?? false
+        }
 
         /// A Boolean value indicating whether the volume can be renamed.
-        public var supportsRenaming: Bool { resources.value(for: .volumeSupportsRenamingKey, \.volumeSupportsRenaming) ?? false }
+        public var supportsRenaming: Bool {
+            resources.value(for: .volumeSupportsRenamingKey, \.volumeSupportsRenaming) ?? false
+        }
 
         /// A Boolean value indicating whether the volume supports symbolic links.
-        public var supportsSymbolicLinks: Bool { resources.value(for: .volumeSupportsSymbolicLinksKey,  \.volumeSupportsSymbolicLinks) ?? false }
+        public var supportsSymbolicLinks: Bool {
+            resources.value(for: .volumeSupportsSymbolicLinksKey, \.volumeSupportsSymbolicLinks) ?? false
+        }
 
         /// A Boolean value indicating whether the volume is removable.
-        public var isRemovable: Bool { resources.value(for: .volumeIsRemovableKey, \.volumeIsRemovable) ?? false }
+        public var isRemovable: Bool {
+            resources.value(for: .volumeIsRemovableKey, \.volumeIsRemovable) ?? false
+        }
 
         /// A Boolean value indicating whether the volume is stored on a local device.
-        public var isLocal: Bool { resources.value(for: .volumeIsLocalKey, \.volumeIsLocal) ?? false }
+        public var isLocal: Bool {
+            resources.value(for: .volumeIsLocalKey, \.volumeIsLocal) ?? false
+        }
 
         /// A Boolean value indicating whether the volume’s device is connected to an internal bus, or nil if not available.
-        public var isInternal: Bool { resources.value(for: .volumeIsInternalKey, \.volumeIsInternal) ?? false }
+        public var isInternal: Bool {
+            resources.value(for: .volumeIsInternalKey, \.volumeIsInternal) ?? false
+        }
 
         /// A Boolean value indicating whether the volume is ejectable.
-        public var isEjectable: Bool { resources.value(for: .volumeIsEjectableKey, \.volumeIsEjectable) ?? false }
+        public var isEjectable: Bool {
+            resources.value(for: .volumeIsEjectableKey, \.volumeIsEjectable) ?? false
+        }
 
         /// A Boolean value indicating whether the volume is the root filesystem.
-        public var isRootFileSystem: Bool { resources.value(for: .volumeIsRootFileSystemKey, \.volumeIsRootFileSystem) ?? false }
+        public var isRootFileSystem: Bool {
+            resources.value(for: .volumeIsRootFileSystemKey, \.volumeIsRootFileSystem) ?? false
+        }
 
         #if DEBUG
         // Required Reason APIs. Exposed only in debug builds to avoid introducing these API references into release builds of applications using FZSwiftUtils.
-        
+
         /// The total capacity of the volume.
         public var totalCapacity: DataSize? {
             resources.value(for: .volumeTotalCapacityKey, \.volumeTotalCapacity)?.dataSize
         }
-        
+
         /// The available capacity of the volume.
         public var availableCapacity: DataSize? {
             resources.value(for: .volumeAvailableCapacityKey, \.volumeAvailableCapacity)?.dataSize
@@ -434,12 +544,12 @@ public extension URLResources {
         #if os(macOS) || os(iOS) || os(visionOS)
         /// The volume’s available capacity for storing nonessential resources, in bytes.
         public var availableCapacityForImportantUisage: DataSize? {
-            resources.value(for: .volumeAvailableCapacityForImportantUsageKey,  \.volumeAvailableCapacityForImportantUsage)?.dataSize
+            resources.value(for: .volumeAvailableCapacityForImportantUsageKey, \.volumeAvailableCapacityForImportantUsage)?.dataSize
         }
 
         /// The available capacity of the volume.
         public var volumeAvailableCapacityForOpportunisticUsage: DataSize? {
-            resources.value(for: .volumeAvailableCapacityForOpportunisticUsageKey,  \.volumeAvailableCapacityForOpportunisticUsage)?.dataSize
+            resources.value(for: .volumeAvailableCapacityForOpportunisticUsageKey, \.volumeAvailableCapacityForOpportunisticUsage)?.dataSize
         }
         #endif
         #endif
@@ -524,18 +634,18 @@ public extension URLResources {
         }
 
         /*
-        /// A Boolean value indicating whether syncing is paused for the resource.
-        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-        public var isSyncPaused: Bool {
-            resources.value(for: .ubiquitousItemIsSyncPausedKey, \.ubiquitousItemIsSyncPaused) ?? false
-        }
+         /// A Boolean value indicating whether syncing is paused for the resource.
+         @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+         public var isSyncPaused: Bool {
+             resources.value(for: .ubiquitousItemIsSyncPausedKey, \.ubiquitousItemIsSyncPaused) ?? false
+         }
 
-        /// The sync controls supported by the resource.
-        @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-        public var supportedSyncControls: NSFileManagerSupportedSyncControls? {
-            resources.value(for: .ubiquitousItemSupportedSyncControlsKey, \.ubiquitousItemSupportedSyncControls)
-        }
-        */
+         /// The sync controls supported by the resource.
+         @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+         public var supportedSyncControls: NSFileManagerSupportedSyncControls? {
+             resources.value(for: .ubiquitousItemSupportedSyncControlsKey, \.ubiquitousItemSupportedSyncControls)
+         }
+         */
 
         // MARK: - Sharing
 
@@ -628,12 +738,12 @@ public extension URLResources {
 
         /// A Boolean value indicating whether the quarantined item was created by the current user.
         public var isOwnedByCurrentUser: Bool? {
-            get { rawValue[typed: "LSQuarantineIsOwnedByCurrentUser"] }
+            rawValue[typed: "LSQuarantineIsOwnedByCurrentUser"]
         }
 
         /// The identifier for the quarantine event.
         public var eventIdentifier: String? {
-            get { rawValue[typed: "LSQuarantineEventIdentifier"] }
+            rawValue[typed: "LSQuarantineEventIdentifier"]
         }
 
         /// The raw representation of the quarantine properties.
@@ -641,12 +751,28 @@ public extension URLResources {
 
         public var description: String {
             var strings: [String] = []
-            if let originURL = originURL { strings += "originURL: \(originURL)" }
-            if let dataURL = dataURL { strings += "dataURL: \(dataURL)" }
-            if let agent = agentName, let bundleID = agentBundleIdentifier { strings += "agent: \(agent), \(bundleID)" } else if let agentName = agentName { strings += "agent: \(agentName)" } else if let agentBundleID = agentBundleIdentifier { strings += "agentBundleID: \(agentBundleID)" }
-            if let type = type { strings += "type: \(type)" }
-            if let isOwned = isOwnedByCurrentUser { strings += "isOwnedByUser: \(isOwned)" }
-            if let timestamp = timestamp { strings += "timestamp: \(timestamp)" }
+            if let originURL = originURL {
+                strings += "originURL: \(originURL)"
+            }
+            if let dataURL = dataURL {
+                strings += "dataURL: \(dataURL)"
+            }
+            if let agent = agentName, let bundleID = agentBundleIdentifier {
+                strings += "agent: \(agent), \(bundleID)"
+            } else if let agentName = agentName {
+                strings += "agent: \(agentName)"
+            } else if let agentBundleID = agentBundleIdentifier {
+                strings += "agentBundleID: \(agentBundleID)"
+            }
+            if let type = type {
+                strings += "type: \(type)"
+            }
+            if let isOwned = isOwnedByCurrentUser {
+                strings += "isOwnedByUser: \(isOwned)"
+            }
+            if let timestamp = timestamp {
+                strings += "timestamp: \(timestamp)"
+            }
             return "QuarantineProperties(\(strings.joined(separator: ", ")))"
         }
 
@@ -717,14 +843,14 @@ extension URLResources {
         var dict: [String: String]? {
             switch self {
             case .emoji(let string):
-                guard string.count == 1, string.allSatisfy({$0.isEmoji}) else { return nil }
+                guard string.count == 1, string.allSatisfy({ $0.isEmoji }) else { return nil }
                 return ["emoji": string]
             case .symbolImage(let name):
-                guard Self.symbolNames.withLock ({ $0[name, initial: NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil] }) else { return nil }
+                guard Self.symbolNames.withLock({ $0[name, initial: NSImage(systemSymbolName: name, accessibilityDescription: nil) != nil] }) else { return nil }
                 return ["sym": name]
             }
         }
-        
+
         private static var symbolNames = Mutex([String: Bool]())
     }
 
@@ -760,9 +886,9 @@ extension URLResources {
 }
 #endif
 
-extension URLResources {
+public extension URLResources {
     /// Keys that apply to file system URLs.
-    public struct Keys: Hashable, RawRepresentable, Sendable {
+    struct Keys: Hashable, RawRepresentable, Sendable {
         /// Name of the resource in the file system.
         public static let name = Self(.nameKey)
 
@@ -1041,40 +1167,16 @@ extension URLResources {
     }
 }
 
-
-fileprivate extension BinaryInteger {
+private extension BinaryInteger {
     var dataSize: DataSize {
         DataSize(self)
-    }
-}
-
-fileprivate extension URL {
-    func setDate(_ date: Date?, of attribute: Int32) {
-        do {
-            var attributes = attrlist()
-            attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
-            attributes.commonattr = attrgroup_t(attribute)
-            var value = date?.timespec ?? timespec()
-            let result = try withUnsafeFileSystemRepresentation { path -> Int32 in
-                guard let path else {
-                    throw CocoaError(.fileNoSuchFile,userInfo: [NSURLErrorKey: self])
-                }
-                return setattrlist(path, &attributes, &value, MemoryLayout.size(ofValue: value), 0)
-            }
-
-            guard result == 0 else {
-                throw POSIXError(.init(rawValue: errno) ?? .EIO)
-            }
-        } catch {
-            URLResources.log(error)
-        }
     }
 }
 
 extension URLResources {
     private func value<V>(for resourceKey: URLResourceKey, _ keyPath: KeyPath<URLResourceValues, V?>) -> V? {
         if let identifier = accessedResourceKeyIdentifier {
-            Self.accessedResourceKeys.withLock({ $0[identifier, default: []].insert(resourceKey) })
+            Self.accessedResourceKeys.withLock { $0[identifier, default: []].insert(resourceKey) }
             return nil
         }
         if !cacheValues {
@@ -1098,21 +1200,21 @@ extension URLResources {
             Self.log(error)
         }
     }
-    
+
     fileprivate static func log(_ error: any Error) {
         guard printErrors else { return }
         Swift.print(error)
     }
-    
+
     static var printErrors = true
-    
+
     static func prefetchedKeys(for predicate: ((URL, Int, inout Bool) -> Bool)?) -> [URLResourceKey] {
         guard let predicate = predicate else { return [] }
         let prefetchID = UUID().uuidString
         var shouldStop = false
         _ = predicate(.file("_prefetchCheck_\(prefetchID)"), 0, &shouldStop)
-        return Array(accessedResourceKeys.withLock({ $0.removeValue(forKey: prefetchID) ?? [] }))
+        return Array(accessedResourceKeys.withLock { $0.removeValue(forKey: prefetchID) ?? [] })
     }
-    
+
     private static var accessedResourceKeys = Mutex([String: Set<URLResourceKey>]())
 }

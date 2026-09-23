@@ -138,12 +138,14 @@ public final class FSEventMonitor {
         updateMonitoring()
     }
 
+    #if DEBUG
     /// Start monitoring the files and additionally provide all events that happened since the specified date.
     public func start(withEventsSince date: Date) {
         startEventID = fileURLs.compactMap(\.resources.volume.url).uniqued().compactMap { $0.lastFSEventID(before: date) }.sorted(.smallestFirst).first
         isActive = true
         updateMonitoring()
     }
+    #endif
 
     /// Stops observing the files for events.
     public func stop() {
@@ -273,6 +275,7 @@ extension FSEvent {
     }
 }
 
+#if DEBUG
 fileprivate extension URL {
     var deviceID: dev_t? {
         guard isFileURL else { return nil }
@@ -289,4 +292,5 @@ fileprivate extension URL {
         return FSEventsGetLastEventIdForDeviceBeforeTime(deviceID, date.timeIntervalSince1970)
     }
 }
+#endif
 #endif

@@ -243,3 +243,247 @@ open class ThroughputFormatter: Formatter {
         }
     }
 }
+
+public struct ThroughputFFormatStyle: FormatStyle {
+    private static var formatter: NumberFormatter { NumberFormatter() }
+    
+    public var locale: Locale = .autoupdatingCurrent
+    
+    public func locale(_ locale: Locale) -> Self {
+        var copy = self
+        copy.locale = locale
+        return copy
+    }
+    
+    /**
+     The allowed units to be used for formatting.
+     
+     The default value is `all`.
+     */
+    public var units: Units = .all
+    
+    /**
+     Sets the allowed units to be used for formatting.
+     
+     The default value is `all`.
+     */
+    @discardableResult
+    public func units( _ units: Units) -> Self {
+        var copy = self
+        copy.units = units
+        return copy
+    }
+    
+    /**
+     The unit style.
+     
+     The default value is `short`.
+     */
+    public var unitStyle: UnitStyle = .short
+    
+    public enum UnitStyle: Int, Codable, Hashable {
+        case short
+        case medium
+        case long
+        
+        var formatter: ByteCountFormatter.UnitStyle {
+            switch self {
+            case .short: .short
+            case .medium: .medium
+            case .long: .long
+            }
+        }
+    }
+    
+    /**
+     Sets the unit style.
+     
+     The default value is `short`.
+     */
+    @discardableResult
+    public func unitStyle(_ style: UnitStyle) -> Self {
+        var copy = self
+        copy.unitStyle = style
+        return copy
+    }
+    
+    /**
+     The count style.
+     
+     The default value is `file`.
+     */
+    public var countStyle: CountStyle = .file
+    
+    public enum CountStyle: Int, Codable, Hashable {
+        case file
+        case binary
+        case memory
+        case decimal
+        
+        var factor: Int {
+            self == .binary ? 1024 : 1000
+        }
+    }
+    
+    /**
+     Sets the count style.
+     
+     The default value is `file`.
+     */
+    @discardableResult
+    public func countStyle(_ style: CountStyle) -> Self {
+        var copy = self
+        copy.countStyle = style
+        return copy
+    }
+    
+    /**
+     A Boolean value indicating whether to include the units in the resulting formatted string.
+     
+     The default value is `true`.
+     */
+    public var includesUnit: Bool = true
+    
+    /**
+     Sets the Boolean value indicating whether to include the units in the resulting formatted string.
+     
+     The default value is `true`.
+     */
+    @discardableResult
+    public func includesUnit( _ includes: Bool) -> Self {
+        var copy = self
+        copy.includesUnit = includes
+        return copy
+    }
+    
+    /**
+     A Boolean value indicating whether to include the count in the resulting formatted string.
+     
+     The default value is `true`.
+     */
+    public var includesCount: Bool = true
+    
+    /**
+     Sets the Boolean value indicating whether to include the count in the resulting formatted string.
+     
+     The default value is `true`.
+     */
+    @discardableResult
+    public func includesCount( _ includes: Bool) -> Self {
+        var copy = self
+        copy.includesCount = includes
+        return copy
+    }
+    
+    /// The allowed number of digits after the decimal separator.
+    public var fractionLength: DigitLength = .range(1...6)
+    
+    /// Sets the allowed number of digits after the decimal separator.
+    @discardableResult
+    public func fractionLength( _ length: DigitLength) -> Self {
+        var copy = self
+        copy.fractionLength = length
+        return copy
+    }
+    
+    
+    public struct DigitLength: ExpressibleByIntegerLiteral, CustomStringConvertible, Hashable, Codable {
+        var minValue: Int
+        var maxValue: Int
+        
+        init(_ minValue: Int, _ maxValue: Int) {
+            self.minValue = minValue
+            self.maxValue = maxValue
+        }
+        
+        public init(integerLiteral value: Int) {
+            self.init(value, value)
+        }
+        
+        public static func fixed(_ value: Int) -> Self {
+            Self(value, value)
+        }
+        
+        public static func range(_ range: ClosedRange<Int>) -> Self {
+            Self(range.lowerBound, range.upperBound)
+        }
+        
+        public static func min(_ value: Int) -> Self {
+            Self.init(0, value)
+        }
+        
+        public static func max(_ value: Int) -> Self {
+            Self(value, .max)
+        }
+
+        
+        public var description: String {
+            "[min: \(minValue), max: \(maxValue)]"
+        }
+    }
+    
+    /// Units for formatting data throughput.
+    public struct Units: OptionSet, Codable, Hashable {
+        /// Bytes per second (B/s)
+        public static let bytes = Self(rawValue: 1 << 0)
+        /// Kilobytes per second (KB/s)
+        public static let kilobytes = Self(rawValue: 1 << 1)
+        /// Megabytes per second (MB/s)
+        public static let megabytes = Self(rawValue: 1 << 2)
+        /// Gigabytes per second (GB/s)
+        public static let gigabytes = Self(rawValue: 1 << 3)
+        /// Terabytes per second (TB/s)
+        public static let terabytes = Self(rawValue: 1 << 4)
+        /// Petabytes per second (PB/s)
+        public static let petabytes = Self(rawValue: 1 << 5)
+        /// Exabytes per second (EB/s)
+        public static let exabytes = Self(rawValue: 1 << 6)
+        /// Zettabytes per second (ZB/s)
+        public static let zettabytes = Self(rawValue: 1 << 7)
+        /// Yottabytes per second (YB/s)
+        public static let yottabytes = Self(rawValue: 1 << 8)
+
+        /// All units.
+        public static let all: Self = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .exabytes, .zettabytes, .yottabytes]
+
+        public let rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+        
+        var ordered: [UnitInformationStorage] {
+            var result: [UnitInformationStorage] = []
+            if contains(.bytes) { result += .bytes }
+            if contains(.kilobytes) { result += .kilobytes }
+            if contains(.megabytes) { result += .megabytes }
+            if contains(.gigabytes) { result += .gigabytes }
+            if contains(.terabytes) { result += .terabytes }
+            if contains(.petabytes) { result += .petabytes }
+            if contains(.exabytes) { result += .exabytes }
+            if contains(.zettabytes) { result += .zettabytes }
+            if contains(.yottabytes) { result += .yottabytes }
+            return result
+        }
+    }
+    
+    public func format(_ bytesPerSecond: Int64) -> String {
+        Self.formatter.minimumFractionDigits = fractionLength.minValue
+        Self.formatter.maximumFractionDigits = fractionLength.maxValue
+        let units = (units.isEmpty ? .bytes : units).ordered
+        var speed = Double(bytesPerSecond)
+        var unitIndex = 0
+        while unitIndex < units.count - 1, speed >= 1000 {
+            speed /= Double(countStyle.factor)
+            unitIndex += 1
+        }
+        var strings: [String] = []
+        if includesCount {
+            strings += Self.formatter.string(from: speed)!
+        }
+        if includesUnit {
+            strings += units[unitIndex].localized(to: locale, unitStyle: unitStyle.formatter) + "/s"
+        }
+        return strings.joined(separator: " ")
+    }
+}

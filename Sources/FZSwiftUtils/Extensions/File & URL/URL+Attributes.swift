@@ -8,6 +8,7 @@
 import Foundation
 
 public extension URL {
+    #if DEBUG
     /**
      Returns the value of the specified file system attribute.
 
@@ -17,51 +18,21 @@ public extension URL {
      - Returns: The value of the attribute.
      - Throws: A POSIX error if the attribute couldn't be retrieved.
      */
-    func getAttribute<V: BitwiseCopyable>(_ attribute: Int32, as type: V.Type = V.self) throws -> V {
-        var attributes = attrlist()
-        attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
-        attributes.commonattr = attrgroup_t(attribute)
+    func getAttribute<V: BitwiseCopyable>(_ attribute: Int32) throws -> V {
         let offset = MemoryLayout<UInt32>.size
         var buffer = [UInt8](repeating: 0, count: offset + MemoryLayout<V>.size)
-        try buffer.withUnsafeMutableBytes { buffer in
-            guard withUnsafeFileSystemRepresentation({
-                getattrlist($0!, &attributes, buffer.baseAddress, buffer.count, 0)
-            }) == 0 else {
-                throw POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+        try withUnsafeFileSystemRepresentation { path in
+            guard let path else {
+                throw CocoaError(.fileNoSuchFile, userInfo: [NSURLErrorKey: self])
             }
-        }
-        return buffer.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: offset, as: V.self) }
-    }
-
-    /**
-     Sets the value of the specified file system attribute.
-
-     - Parameters:
-       - attribute: The attribute identifier.
-       - value: The value to set.
-     - Throws: A POSIX error if the attribute couldn't be set.
-     */
-    func setAttribute<V: BitwiseCopyable>(_ attribute: Int32, to value: V) throws {
-        var value = value
-        try withUnsafeMutableBytes(of: &value) { buffer in
             var attributes = attrlist()
             attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
             attributes.commonattr = attrgroup_t(attribute)
-            guard withUnsafeFileSystemRepresentation({
-                setattrlist($0!, &attributes, buffer.baseAddress, buffer.count, 0)
-            }) == 0 else {
-                throw POSIXError.current ?? NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
+            guard buffer.withUnsafeMutableBytes({ getattrlist(path, &attributes, $0.baseAddress, $0.count, 0) }) == 0 else {
+                throw POSIXError(.current ?? .EIO)
             }
         }
-    }
-
-    /// The value of the specified file system attribute.
-    subscript<V: BitwiseCopyable>(attribute attribute: Int32) -> V? {
-        get { try? getAttribute(attribute) }
-        set {
-            guard let newValue else { return }
-            try? setAttribute(attribute, to: newValue)
-        }
+        return buffer.withUnsafeBytes { $0.loadUnaligned(fromByteOffset: offset, as: V.self) }
     }
     
     /**
@@ -80,6 +51,48 @@ public extension URL {
         return value
     }
     
+    /// The value of the specified file system attribute.
+    subscript<V: BitwiseCopyable>(attribute attribute: Int32) -> V? {
+        get { try? getAttribute(attribute) }
+        set {
+            guard let newValue else { return }
+            try? setAttribute(attribute, to: newValue)
+        }
+    }
+    
+    /// The value of the specified file system attribute.
+    subscript<V: RawRepresentable>(attribute attribute: Int32) -> V? where V.RawValue: BitwiseCopyable {
+        get { try? getAttribute(attribute) }
+        set {
+            guard let newValue else { return }
+            try? setAttribute(attribute, to: newValue)
+        }
+    }
+    #endif
+
+    /**
+     Sets the value of the specified file system attribute.
+
+     - Parameters:
+       - attribute: The attribute identifier.
+       - value: The value to set.
+     - Throws: A POSIX error if the attribute couldn't be set.
+     */
+    func setAttribute<V: BitwiseCopyable>(_ attribute: Int32, to value: V) throws {
+        try withUnsafeFileSystemRepresentation { path in
+            guard let path else {
+                throw CocoaError(.fileNoSuchFile, userInfo: [NSURLErrorKey: self])
+            }
+            var attributes = attrlist()
+            attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
+            attributes.commonattr = attrgroup_t(attribute)
+            var value = value
+            guard withUnsafeMutableBytes(of: &value, { setattrlist(path, &attributes, $0.baseAddress, $0.count, 0) }) == 0 else {
+                throw POSIXError(.current ?? .EIO)
+            }
+        }
+    }
+    
     /**
      Sets the value of the specified file system attribute.
 
@@ -91,17 +104,9 @@ public extension URL {
     func setAttribute<V: RawRepresentable>(_ attribute: Int32, to value: V) throws where V.RawValue: BitwiseCopyable {
         try setAttribute(attribute, to: value.rawValue)
     }
-    
-    /// The value of the specified file system attribute.
-    subscript<V: RawRepresentable>(attribute attribute: Int32) -> V? where V.RawValue: BitwiseCopyable {
-        get { try? getAttribute(attribute) }
-        set {
-            guard let newValue else { return }
-            try? setAttribute(attribute, to: newValue)
-        }
-    }
 }
 
+/*
 public extension URL {
     /// A file system attribute that can be read from a URL.
     struct Attribute<Value>: URLAttribute, _URLAttribute {
@@ -231,6 +236,7 @@ public extension URL {
     }
 }
 
+
 /// A file system attribute that can be accessed using a URL.
 public protocol URLAttribute {
     /// The value type of the attribute.
@@ -300,3 +306,4 @@ public extension URL {
         }
     }
 }
+*/

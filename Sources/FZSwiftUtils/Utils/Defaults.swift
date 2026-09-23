@@ -21,6 +21,15 @@ import Foundation
  - Note: These should not be used to store sensitive information that could compromise the application or the user's security and privacy.
  */
 public final class Defaults {
+    private static let jsonStoragePrefix = Data("FZSwiftUtils.JSON\0".utf8)
+
+    /// The encoder and decoder used for values that are not directly
+    /// representable as property-list objects.
+    public enum CodableStrategy {
+        case propertyList
+        case json
+    }
+
     let id = UUID()
     let userDefaults: UserDefaults
     var notificationKeys: [String: NotificationKey] = [:]
@@ -38,27 +47,33 @@ public final class Defaults {
     }
 
     /// The value for the specified key.
-    public subscript<T: Codable>(key: String) -> T? {
+    public subscript<T: Codable>(key: String, using strategy: CodableStrategy = .propertyList, as type: T.Type = T.self) -> T? {
+        get { get(key, using: strategy) }
+        set { set(newValue, for: key, using: strategy) }
+    }
+
+    /// The value for the specified property-list-serializable key.
+    public subscript<T: PropertyListSerializable>(key: String, as type: T.Type = T.self) -> T? {
         get { get(key) }
         set { set(newValue, for: key) }
     }
     
     /// The value for the specified key.
-    public subscript<T: Codable>(key: String, initialValue initialValue: T) -> T {
-        get { get(key, initialValue: initialValue) }
-        set { set(newValue, for: key) }
+    public subscript<T: Codable>(key: String, initialValue initialValue: T, using strategy: CodableStrategy = .propertyList) -> T {
+        get { get(key, initialValue: initialValue, using: strategy) }
+        set { set(newValue, for: key, using: strategy) }
     }
 
     /// The value for the specified key.
-    public subscript<T: RawRepresentable>(key: String) -> T? where T.RawValue: Codable {
-        get { get(key) }
-        set { set(newValue, for: key) }
+    public subscript<T: RawRepresentable>(key: String, using strategy: CodableStrategy = .propertyList) -> T? where T.RawValue: Codable {
+        get { get(key, using: strategy) }
+        set { set(newValue, for: key, using: strategy) }
     }
     
     /// The value for the specified key.
-    public subscript<T: RawRepresentable>(key: String, initialValue initialValue: T) -> T where T.RawValue: Codable {
-        get { get(key, initialValue: initialValue) }
-        set { set(newValue, for: key) }
+    public subscript<T: RawRepresentable>(key: String, initialValue initialValue: T, using strategy: CodableStrategy = .propertyList) -> T where T.RawValue: Codable {
+        get { get(key, initialValue: initialValue, using: strategy) }
+        set { set(newValue, for: key, using: strategy) }
     }
 
     /**
@@ -66,17 +81,29 @@ public final class Defaults {
 
      - Parameter key: The key.
      */
-    public func get<Value: Codable>(_ key: String) -> Value? {
-        if isSwiftCodableType(Value.self) {
-            return userDefaults.value(forKey: key) as? Value
+    public func get<Value: Codable>(_ key: String, using strategy: CodableStrategy = .propertyList) -> Value? {
+        if case .propertyList = strategy {
+            if let value = userDefaults.value(forKey: key) as? Value,
+               PropertyListSerialization.propertyList(value, isValidFor: .binary) {
+                return value
+            }
         }
 
         guard let data = userDefaults.data(forKey: key) else {
             return nil
         }
+        if case .propertyList = strategy, data.starts(with: Self.jsonStoragePrefix) {
+            return nil
+        }
         do {
-            let decoder = JSONDecoder()
-            let decoded = try decoder.decode(Value.self, from: data)
+            let decoded: Value
+            switch strategy {
+            case .propertyList:
+                decoded = try PropertyListDecoder().decode(Value.self, from: data)
+            case .json:
+                guard data.starts(with: Self.jsonStoragePrefix) else { return nil }
+                decoded = try JSONDecoder().decode(Value.self, from: data.dropFirst(Self.jsonStoragePrefix.count))
+            }
             return decoded
         } catch {
             #if DEBUG
@@ -84,6 +111,11 @@ public final class Defaults {
             #endif
         }
         return nil
+    }
+
+    /// The property-list-serializable value for the specified key.
+    public func get<Value: PropertyListSerializable>(_ key: String) -> Value? {
+        userDefaults.value(forKey: key) as? Value
     }
     
     /**
@@ -93,11 +125,11 @@ public final class Defaults {
         - key: The key.
         - initialValue: The initial value for the key.
      */
-    public func get<Value: Codable>(_ key: String, initialValue: Value) -> Value {
-        if let value: Value = get(key) {
+    public func get<Value: Codable>(_ key: String, initialValue: Value, using strategy: CodableStrategy = .propertyList) -> Value {
+        if let value: Value = get(key, using: strategy) {
             return value
         }
-        set(initialValue, for: key)
+        set(initialValue, for: key, using: strategy)
         return initialValue
     }
 
@@ -106,8 +138,8 @@ public final class Defaults {
 
      - Parameter key: The key.
      */
-    public func get<Value: RawRepresentable>(_ key: String) -> Value? where Value.RawValue: Codable {
-        if let raw: Value.RawValue = get(key) {
+    public func get<Value: RawRepresentable>(_ key: String, using strategy: CodableStrategy = .propertyList) -> Value? where Value.RawValue: Codable {
+        if let raw: Value.RawValue = get(key, using: strategy) {
             return Value(rawValue: raw)
         }
         return nil
@@ -120,11 +152,11 @@ public final class Defaults {
         - key: The key.
         - initialValue: The initial value for the key.
      */
-    public func get<Value: RawRepresentable>(_ key: String, initialValue: Value) -> Value where Value.RawValue: Codable {
-        if let value: Value = get(key) {
+    public func get<Value: RawRepresentable>(_ key: String, initialValue: Value, using strategy: CodableStrategy = .propertyList) -> Value where Value.RawValue: Codable {
+        if let value: Value = get(key, using: strategy) {
             return value
         }
-        set(initialValue, for: key)
+        set(initialValue, for: key, using: strategy)
         return initialValue
     }
 
@@ -135,18 +167,24 @@ public final class Defaults {
         - value: The value to set.
         - key: The key.
      */
-    public func set<Value: Codable>(_ value: Value?, for key: String) {
+    public func set<Value: Codable>(_ value: Value?, for key: String, using strategy: CodableStrategy = .propertyList) {
         if let value = value {
-            let oldValue: Value? = get(key)
-            if isSwiftCodableType(Value.self) {
+            let oldValue: Value? = get(key, using: strategy)
+            if case .propertyList = strategy,
+               PropertyListSerialization.propertyList(value, isValidFor: .binary) {
                 userDefaults.set(value, forKey: key)
                 userDefaults.synchronize()
                 postNotification(key, oldValue: oldValue, value: value)
                 return
             }
             do {
-                let encoder = JSONEncoder()
-                let encoded = try encoder.encode(value)
+                let encoded: Data
+                switch strategy {
+                case .propertyList:
+                    encoded = try PropertyListEncoder().encode(value)
+                case .json:
+                    encoded = Self.jsonStoragePrefix + (try JSONEncoder().encode(value))
+                }
                 userDefaults.set(encoded, forKey: key)
                 userDefaults.synchronize()
                 postNotification(key, oldValue: oldValue, value: value)
@@ -160,6 +198,18 @@ public final class Defaults {
         }
     }
 
+    /// Sets a property-list-serializable value for the specified key.
+    public func set<Value: PropertyListSerializable>(_ value: Value?, for key: String) {
+        if let value {
+            let oldValue: Value? = get(key)
+            userDefaults.set(value, forKey: key)
+            userDefaults.synchronize()
+            postNotification(key, oldValue: oldValue, value: value)
+        } else {
+            clear(key)
+        }
+    }
+
     /**
      Sets a value for the specified key.
 
@@ -167,9 +217,9 @@ public final class Defaults {
         - value: The value to set.
         - key: The key.
      */
-    public func set<Value: RawRepresentable>(_ value: Value?, for key: String) where Value.RawValue: Codable {
+    public func set<Value: RawRepresentable>(_ value: Value?, for key: String, using strategy: CodableStrategy = .propertyList) where Value.RawValue: Codable {
         if let value = value {
-            set(value.rawValue, for: key)
+            set(value.rawValue, for: key, using: strategy)
         } else {
             clear(key)
         }
@@ -433,15 +483,6 @@ public final class Defaults {
         }
     }
 
-    func isSwiftCodableType<Value>(_ type: Value.Type) -> Bool {
-        switch type {
-        case is String.Type, is Bool.Type, is Int.Type, is Float.Type, is Double.Type, is URL.Type, is Date.Type:
-            return true
-        default:
-            return false
-        }
-    }
-    
     /**
      Posted whenever a value of `Defaults` updates.
      
@@ -600,23 +641,23 @@ extension Defaults.Key where Value: OptionalProtocol, Value.Wrapped: RawRepresen
 
 extension Defaults {
     /// The value for the specified key.
-    public static subscript<T: Codable>(key: Key<T>) -> T {
-        get { key.defaults.get(key.name, initialValue: key.defaultValue) }
-        set { key.defaults.set(newValue, for: key.name) }
+    public static subscript<T: Codable>(key: Key<T>, using strategy: CodableStrategy = .propertyList) -> T {
+        get { key.defaults.get(key.name, initialValue: key.defaultValue, using: strategy) }
+        set { key.defaults.set(newValue, for: key.name, using: strategy) }
     }
     
     /// The value for the specified key.
-    public static subscript<T: RawRepresentable>(key: Key<T>) -> T where T.RawValue: Codable {
-        get { key.defaults.get(key.name, initialValue: key.defaultValue) }
-        set { key.defaults.set(newValue, for: key.name) }
+    public static subscript<T: RawRepresentable>(key: Key<T>, using strategy: CodableStrategy = .propertyList) -> T where T.RawValue: Codable {
+        get { key.defaults.get(key.name, initialValue: key.defaultValue, using: strategy) }
+        set { key.defaults.set(newValue, for: key.name, using: strategy) }
     }
     
     /// The value for the specified key.
-    public static subscript<T: OptionalProtocol>(key: Key<T>) -> T.Wrapped? where T.Wrapped: RawRepresentable, T.Wrapped.RawValue: Codable {
+    public static subscript<T: OptionalProtocol>(key: Key<T>, using strategy: CodableStrategy = .propertyList) -> T.Wrapped? where T.Wrapped: RawRepresentable, T.Wrapped.RawValue: Codable {
         get {
-            guard let rawValue: T.Wrapped.RawValue = key.defaults.get(key.name, initialValue: key.defaultValue.optional?.rawValue) else { return nil }
+            guard let rawValue: T.Wrapped.RawValue = key.defaults.get(key.name, initialValue: key.defaultValue.optional?.rawValue, using: strategy) else { return nil }
             return T.Wrapped(rawValue: rawValue)
         }
-        set { key.defaults.set(newValue.optional?.rawValue, for: key.name) }
+        set { key.defaults.set(newValue.optional?.rawValue, for: key.name, using: strategy) }
     }
 }

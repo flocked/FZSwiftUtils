@@ -71,7 +71,7 @@ public extension NSError {
 
     /// The string encoding associated with this error.
     var stringEncoding: String.Encoding? {
-        (self[NSStringEncodingErrorKey] as UInt?).map(String.Encoding.init(rawValue:))
+        self[NSStringEncodingErrorKey]
     }
 
     /// The debugging description associated with this error.
@@ -88,6 +88,17 @@ public extension NSError {
     /// Returns the value for the specified key in the error's [userInfo](https://developer.apple.com/documentation/foundation/nserror/userinfo) dictionary.
     subscript<V>(key: String, as type: V.Type = V.self) -> V? {
         userInfo[key] as? V
+    }
+    
+    /// Returns the value for the specified key in the error's [userInfo](https://developer.apple.com/documentation/foundation/nserror/userinfo) dictionary.
+    subscript<V: RawRepresentable>(key: String, as type: V.Type = V.self) -> V? {
+        guard let value = userInfo[key] else { return nil }
+        if let value = value as? V {
+            return value
+        } else if let rawValue = value as? V.RawValue {
+            return V(rawValue: rawValue)
+        }
+        return nil
     }
     
     /// The domain of the error.
