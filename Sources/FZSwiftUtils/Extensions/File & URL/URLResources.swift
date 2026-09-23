@@ -1055,8 +1055,8 @@ fileprivate extension URL {
             attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
             attributes.commonattr = attrgroup_t(attribute)
             var value = date?.timespec ?? timespec()
-            let result = try withUnsafeFileSystemRepresentation {
-                guard let path = $0 else {
+            let result = try withUnsafeFileSystemRepresentation { path -> Int32 in
+                guard let path else {
                     throw CocoaError(.fileNoSuchFile,userInfo: [NSURLErrorKey: self])
                 }
                 return setattrlist(path, &attributes, &value, MemoryLayout.size(ofValue: value), 0)
