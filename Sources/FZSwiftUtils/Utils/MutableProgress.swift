@@ -11,45 +11,54 @@ import Foundation
 /// A progress that allows to add and remove children progresses.
 open class MutableProgress: Progress, @unchecked Sendable {
     
-    private var observedChildren = SynchronizedDictionary<Progress, KeyValueObserver<Progress>>()
-    private var childUpdateWorkItem: DispatchWorkItem?
-    private var childUpdateDebounceTimer = ElapsedTimer()
+    private let observedChildren = SynchronizedValue(OrderedDictionary<Progress, KeyValueObserver<Progress>>())
+    private let throttler = Throttler(interval: .seconds(0.05))
+    private var updateCount = 0
+    private let maxUpdateCount = 30
+    private var delayedUpdate: DispatchWorkItem?
+    
     
     /// A Boolean value indicating whether cancelled children should be removed automatically.
     public var removesCancelledChildren = false
     
     /**
-     Debounce interval for aggregating updates after child notifications.
+    The minimum interval between aggregated child progress updates.
      
      Short values reduce latency at the cost of more CPU.
      */
-    public var childUpdateDebounceInterval: TimeDuration = .seconds(0.05)
-        
+    public var childUpdateInterval: TimeDuration {
+        get { throttler.interval }
+        set { throttler.interval = newValue }
+    }
+    
     /// All the current children progresses.
     @objc dynamic open var children: [Progress] {
-        get { observedChildren.keys }
+        get { observedChildren.value.keys.array }
         set {
-            let diff = children.uniqued().difference(to: newValue)
-            guard !diff.added.isEmpty || !diff.removed.isEmpty else { return }
-            willChangeValue(for: \.fractionCompleted)
-            willChangeValue(for: \.completedUnitCount)
-            willChangeValue(for: \.totalUnitCount)
+            let currentChildren = children
+            let newChildren = newValue.uniqued()
+            let diff = currentChildren.difference(to: newChildren)
+            guard !diff.added.isEmpty || !diff.removed.isEmpty || !diff.changed.isEmpty else { return }
+            reportWillChange()
             diff.removed.forEach { removeChild($0, report: false) }
             diff.added.forEach { addChild($0, report: false) }
-            didChangeValue(for: \.fractionCompleted)
-            didChangeValue(for: \.completedUnitCount)
-            didChangeValue(for: \.totalUnitCount)
+            observedChildren.withMutableValue { value in
+                value = OrderedDictionary(uniqueKeysWithValues: newChildren.compactMap { child in
+                    value[child].map { (child, $0) }
+                })
+            }
+            reportChange()
         }
     }
     
     /// All the current unfinished children progresses.
     open var unfinishedChildren: [Progress] {
-        observedChildren.keys.filter({!$0.isFinished && !$0.isCancelled})
+        children.filter({!$0.isFinished && !$0.isCancelled})
     }
     
-    /// All the current unfinished children progresses.
+    /// All the current finished children progresses.
     open var finishedChildren: [Progress] {
-        observedChildren.keys.filter({$0.isFinished})
+        children.filter({$0.isFinished})
     }
     
     /// The progress of all children progresses combined.
@@ -58,21 +67,32 @@ open class MutableProgress: Progress, @unchecked Sendable {
     /// The progress of all unfinished children progresses combined.
     @objc dynamic public let unfinishedProgress = Progress()
     
+    func _updateProgresses() {
+        let unfinished = unfinishedChildren
+        unfinishedProgress.totalUnitCount = unfinished.map(\.totalUnitCount).sum()
+        unfinishedProgress.completedUnitCount = unfinished.map(\.completedUnitCount).sum()
+        unfinishedProgress.updateEstimatedTimeRemaining()
+
+        let children = children
+        totalProgress.totalUnitCount = children.map(\.totalUnitCount).sum()
+        totalProgress.completedUnitCount = children.map(\.completedUnitCount).sum()
+        totalProgress.updateEstimatedTimeRemaining()
+
+        delayedUpdate?.cancel()
+        if !children.isEmpty, !isFinished, !isCancelled, updateCount < maxUpdateCount {
+            delayedUpdate = DispatchWorkItem { [weak self] in
+                guard let self else { return }
+                self.updateCount += 1
+                self._updateProgresses()
+            }.perform(after: 4.0)
+        }
+    }
+    
     private func updateProgresses() {
-        childUpdateWorkItem?.cancel()
-        childUpdateWorkItem = DispatchWorkItem { [weak self] in
-            guard let self = self else { return }
-            let unfinished = self.unfinishedChildren
-            self.unfinishedProgress.totalUnitCount = unfinished.map({$0.totalUnitCount}).sum()
-            self.unfinishedProgress.completedUnitCount = unfinished.map({$0.completedUnitCount}).sum()
-            self.unfinishedProgress.throughput = Int(unfinished.compactMap({$0.throughput}).average())
-            self.unfinishedProgress.estimatedTimeRemaining = unfinished.compactMap({$0.estimatedTimeRemaining}).average()
-            let children = self.children
-            self.totalProgress.totalUnitCount = children.map({$0.totalUnitCount}).sum()
-            self.totalProgress.completedUnitCount = children.map({$0.completedUnitCount}).sum()
-            self.totalProgress.throughput = Int(children.compactMap({$0.throughput}).average())
-            self.totalProgress.estimatedTimeRemaining = children.compactMap({$0.estimatedTimeRemaining}).average()
-        }.perform(after: childUpdateDebounceTimer.remainingTime(for: childUpdateDebounceInterval))
+        throttler { [weak self] in
+            self?.updateCount = 0
+            self?._updateProgresses()
+        }
     }
 
     /**
@@ -94,72 +114,72 @@ open class MutableProgress: Progress, @unchecked Sendable {
     }
     
     private func addChild(_ child: Progress, report: Bool) {
-        guard observedChildren[child] == nil else { return }
-        if report {
-            willChangeValue(for: \.children)
-            willChangeValue(for: \.fractionCompleted)
-            willChangeValue(for: \.completedUnitCount)
-            willChangeValue(for: \.totalUnitCount)
-        }
-        let observer = KeyValueObserver(child)
-        observedChildren[child] = observer
-        updateProgresses()
-        
-        observer.add(\.totalUnitCount) { [weak self] _, _ in
-            guard let self = self else { return }
-            self.updateProgresses()
-        }
-        observer.add(\.completedUnitCount) { [weak self] _, _ in
-            guard let self = self else { return }
-            self.updateProgresses()
-        }
-        observer.addWillChange(\.fractionCompleted) { [weak self] _ in
-            self?.willChangeValue(for: \.fractionCompleted)
-        }
-        observer.add(\.fractionCompleted) { [weak self] _, _ in
-            self?.didChangeValue(for: \.fractionCompleted)
-        }
-        observer.add(\.isCancelled) { [weak self] _, isCancelled in
-            guard let self = self else { return }
-            if isCancelled, self.removesCancelledChildren {
+        observedChildren.withMutableValue { value in
+            guard value[child] == nil else { return }
+            if report {
+                reportWillChange()
+            }
+            let observer = KeyValueObserver(child)
+            value[child] = observer
+            updateProgresses()
+            
+            observer.add(\.totalUnitCount) { [weak self] _, _ in
+                self?.updateProgresses()
+            }
+            observer.add(\.completedUnitCount) { [weak self] _, _ in
+                self?.updateProgresses()
+            }
+            observer.addWillChange(\.fractionCompleted) { [weak self] _ in
+                self?.willChangeValue(for: \.fractionCompleted)
+            }
+            observer.add(\.fractionCompleted) { [weak self] _, _ in
+                self?.didChangeValue(for: \.fractionCompleted)
+            }
+            observer.add(\.isCancelled) { [weak self] _, isCancelled in
+                guard let self = self, isCancelled, self.removesCancelledChildren else { return }
                 self.removeChild(child)
                 self.updateProgresses()
             }
-        }
-        observer.addWillChange(\.isFinished) { [weak self] _ in
-            self?.willChangeValue(for: \.completedUnitCount)
-        }
-        observer.add(\.isFinished) { [weak self] _,_ in
-            self?.didChangeValue(for: \.completedUnitCount)
-        }
-        if report {
-            didChangeValue(for: \.children)
-            didChangeValue(for: \.fractionCompleted)
-            didChangeValue(for: \.completedUnitCount)
-            didChangeValue(for: \.totalUnitCount)
+            observer.addWillChange(\.isFinished) { [weak self] _ in
+                self?.willChangeValue(for: \.completedUnitCount)
+            }
+            observer.add(\.isFinished) { [weak self] _,_ in
+                self?.didChangeValue(for: \.completedUnitCount)
+            }
+            guard report else { return }
+            reportChange()
         }
     }
     
     private func removeChild(_ child: Progress, report: Bool) {
-        guard observedChildren[child] != nil else { return }
-        if report {
-            willChangeValue(for: \.children)
-            willChangeValue(for: \.fractionCompleted)
-            willChangeValue(for: \.completedUnitCount)
-            willChangeValue(for: \.totalUnitCount)
+        observedChildren.withMutableValue { value in
+            guard value[child] != nil else { return }
+            if report {
+                reportWillChange()
+            }
+            value[child] = nil
+            updateProgresses()
+            guard report else { return }
+            reportChange()
         }
-        observedChildren[child] = nil
-        updateProgresses()
-        if report {
-            didChangeValue(for: \.children)
-            didChangeValue(for: \.totalUnitCount)
-            didChangeValue(for: \.completedUnitCount)
-            didChangeValue(for: \.fractionCompleted)
-        }
+    }
+    
+    private func reportWillChange() {
+        willChangeValue(for: \.children)
+        willChangeValue(for: \.fractionCompleted)
+        willChangeValue(for: \.completedUnitCount)
+        willChangeValue(for: \.totalUnitCount)
+    }
+    
+    private func reportChange() {
+        didChangeValue(for: \.children)
+        didChangeValue(for: \.fractionCompleted)
+        didChangeValue(for: \.completedUnitCount)
+        didChangeValue(for: \.totalUnitCount)
     }
 
     override open var totalUnitCount: Int64 {
-        get { Int64(observedChildren.count) }
+        get { Int64(children.count) }
         set { }
     }
 
@@ -174,9 +194,8 @@ open class MutableProgress: Progress, @unchecked Sendable {
 
     override open var userInfo: [ProgressUserInfoKey: Any] {
         var userinfo = super.userInfo
-        let unfinished = unfinishedChildren
-        userinfo[.throughputKey] = unfinished.compactMap({$0.throughput}).sum()
-        userinfo[.estimatedTimeRemainingKey] = unfinished.compactMap({$0.estimatedTimeRemaining}).average()
+        userinfo[.throughputKey] = unfinishedProgress.throughput
+        userinfo[.estimatedTimeRemainingKey] = unfinishedProgress.estimatedTimeRemaining
         return userinfo
     }
 
@@ -202,37 +221,3 @@ open class MutableProgress: Progress, @unchecked Sendable {
         super.init(parent: nil)
     }
 }
-
-/*
- class AggreateProgress: Progress, @unchecked Sendable {
-     let parent: MutableProgress
-     let isUnfinished: Bool
-     
-     var children: [Progress] {
-         isUnfinished ? parent.unfinishedChildren : parent.children
-     }
-     
-     override var completedUnitCount: Int64 {
-         get { children.map({$0.completedUnitCount}).sum() }
-         set { }
-     }
-     
-     override var totalUnitCount: Int64 {
-         get { children.map({$0.totalUnitCount}).sum() }
-         set { }
-     }
-     
-     override var userInfo: [ProgressUserInfoKey : Any] {
-         get { [.estimatedTimeRemainingKey: children.compactMap({$0.estimatedTimeRemaining}).average(), .throughputKey: Int(children.compactMap({$0.throughput}).average())] }
-         set {
-             
-         }
-     }
-     
-     init(parent: MutableProgress, isUnfinished: Bool = false) {
-         self.parent = parent
-         self.isUnfinished = isUnfinished
-         super.init()
-     }
- }
- */

@@ -771,7 +771,7 @@ public struct DataSizeFormatStyle: FormatStyle {
 
      - Parameters:
         - allowedUnits: The units the format style can use to express the byte count.
-        - unitStyle: The style used to format the data size unit.  Specify ``UnitStyle/none`` to not include the unit.
+        - unitStyle: The style used to format the data size unit. Specify ``UnitStyle/none`` to not include the unit.
         - includesCount: A Boolean value indicating whether to include the numeric value in the formatted string.
         - includesActualByteCount: A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units. For example, `1 kB (1,024 bytes)`.
         - spellsOutZero: A Boolean value that indicates whether the format style should spell out zero-byte values as text, like `Zero kB`.
@@ -781,15 +781,7 @@ public struct DataSizeFormatStyle: FormatStyle {
 
      In situations that can infer the ``DataSizeFormatStyle`` type, you can call ``Foundation/FormatStyle/dataSize(allowedUnits:unitStyle:includesCount:includesActualByteCount:spellsOutZero:isAdaptive:zeroPadsFractionDigits:)`` instead of explicitly using this initializer. This is the case when you call ``DataSize/formatted(_:)`` on a ``DataSize``.
      */
-    public init(allowedUnits: Units = .all,
-                unitStyle: UnitStyle = .short,
-                includesCount: Bool = true,
-                includesActualByteCount: Bool = false,
-                spellsOutZero: Bool = true,
-                isAdaptive: Bool = true,
-                zeroPadsFractionDigits: Bool = false,
-                locale: Locale = .autoupdatingCurrent)
-    {
+    public init(allowedUnits: Units = .all, unitStyle: UnitStyle = .short, includesCount: Bool = true, includesActualByteCount: Bool = false, spellsOutZero: Bool = true, isAdaptive: Bool = true, zeroPadsFractionDigits: Bool = false, locale: Locale = .autoupdatingCurrent) {
         self.allowedUnits = allowedUnits
         self.unitStyle = unitStyle
         self.spellsOutZero = spellsOutZero
@@ -805,7 +797,7 @@ public struct DataSizeFormatStyle: FormatStyle {
 
      - Parameters:
         - fixedUnit: The unit the format style should use to express the byte count.
-        - unitStyle: The style used to format the data size unit.  Specify ``UnitStyle/none`` to not include the unit.
+        - unitStyle: The style used to format the data size unit. Specify ``UnitStyle/none`` to not include the unit.
         - includesCount: A Boolean value indicating whether to include the numeric value in the formatted string.
         - includesActualByteCount: A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units. For example, `1 kB (1,024 bytes)`.
         - spellsOutZero: A Boolean value that indicates whether the format style should spell out zero-byte values as text, like `Zero kB`.
@@ -815,18 +807,11 @@ public struct DataSizeFormatStyle: FormatStyle {
 
      In situations that can infer the ``DataSizeFormatStyle`` type, you can call ``Foundation/FormatStyle/dataSize(fixedUnit:unitStyle:includesCount:includesActualByteCount:spellsOutZero:isAdaptive:zeroPadsFractionDigits:)`` instead of explicitly using this initializer. This is the case when you call ``DataSize/formatted(_:)`` on a ``DataSize``.
      */
-    public init(fixedUnit: Unit,
-                unitStyle: UnitStyle = .short,
-                includesCount: Bool = true,
-                includesActualByteCount: Bool = false,
-                spellsOutZero: Bool = true,
-                isAdaptive: Bool = true,
-                zeroPadsFractionDigits: Bool = false,
-                locale: Locale = .autoupdatingCurrent)
-    {
+    public init(fixedUnit: Unit, unitStyle: UnitStyle = .short, includesCount: Bool = true, includesActualByteCount: Bool = false, spellsOutZero: Bool = true, isAdaptive: Bool = true, zeroPadsFractionDigits: Bool = false, locale: Locale = .autoupdatingCurrent) {
         self.init(allowedUnits: .init(rawValue: fixedUnit.rawValue), unitStyle: unitStyle, includesCount: includesCount, includesActualByteCount: includesActualByteCount, spellsOutZero: spellsOutZero, isAdaptive: isAdaptive, zeroPadsFractionDigits: zeroPadsFractionDigits, locale: locale)
     }
 
+    /// Returns a copy of this format style configured with the specified locale.
     public func locale(_ locale: Locale) -> Self {
         var copy = self
         copy.locale = locale
@@ -837,11 +822,10 @@ public struct DataSizeFormatStyle: FormatStyle {
     public var attributed: Attributed {
         Attributed(style: self)
     }
-
-    /// Formats the specified data size, using this style.
-    public func format(_ dataSize: DataSize) -> String {
-        var string = Self.formatterCache.withLock {
-           $0[FormatterKey(allowedUnits: allowedUnits, countStyle: dataSize.countStyle, includesActualByteCount: includesActualByteCount, spellsOutZero: spellsOutZero, locale: locale, unitStyle: unitStyle, zeroPadsFractionDigits: zeroPadsFractionDigits, isAdaptive: isAdaptive, includesCount: includesCount), default: {
+    
+    func formatter(for dataSize: DataSize) -> ByteCountFormatter {
+        Self.formatterCache.withLock {
+            $0[FormatterKey(allowedUnits: allowedUnits, countStyle: dataSize.countStyle, includesActualByteCount: includesActualByteCount, spellsOutZero: spellsOutZero, locale: locale, unitStyle: unitStyle, zeroPadsFractionDigits: zeroPadsFractionDigits, isAdaptive: isAdaptive, includesCount: includesCount), default: {
                 let formatter = ByteCountFormatter()
                 formatter.spellsOutZero = false
                 formatter.allowedUnits = .init(rawValue: allowedUnits.rawValue)
@@ -854,14 +838,22 @@ public struct DataSizeFormatStyle: FormatStyle {
                 formatter.unitStyle = unitStyle == .none ? .short : .init(rawValue: unitStyle.rawValue) ?? .short
                 formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
                 return formatter
-            }()].string(fromByteCount: Int64(dataSize.bytes))
-        }
+            }()] }
+    }
+
+    /// Formats the specified data size, using this style.
+    public func format(_ dataSize: DataSize) -> String {
+        var string = formatter(for: dataSize).string(fromByteCount: Int64(dataSize.bytes))
+        
         if useSpelloutZero, dataSize == .zero, includesCount {
             let formatter = NumberFormatter.decimal.locale(locale)
-            if let zero = formatter.string(for: 0), let spelledOutZero = formatter.style(.spellOut).formattingContext(.beginningOfSentence).string(for: 0)?.uppercasedFirst(with: locale), let range = string.range(of: zero) {
+            if let zero = formatter.string(for: 0),
+               let spelledOutZero = formatter.style(.spellOut).formattingContext(.beginningOfSentence).string(for: 0)?.uppercasedFirst(with: locale),
+               let range = string.range(of: zero) {
                 string.replaceSubrange(range, with: spelledOutZero)
             }
         }
+        
         return string
     }
 
@@ -869,11 +861,11 @@ public struct DataSizeFormatStyle: FormatStyle {
     public enum UnitStyle: Int, Hashable, Codable, CustomStringConvertible {
         /// No unit.
         case none
-        /// Short (e.g. `KB`, `TB`… )
+        /// Short (e.g. `KB`, `TB`…).
         case short
-        /// Medium (e.g. `kByte`, `TByte`… )
+        /// Medium (e.g. `kByte`, `TByte`…).
         case medium
-        /// Long (e.g. `kilobytes`, `terabytes`… )
+        /// Long (e.g. `kilobytes`, `terabytes`…).
         case long
 
         public var description: String {
@@ -913,7 +905,7 @@ public struct DataSizeFormatStyle: FormatStyle {
         /// A value that indicates a format style should use the most appropriate units to express a byte count.
         public static let `default`: Self = []
         /// A value that allows the use of all byte-count units.
-        public static let all: Self = [.bytes, .kb, .mb, .gb, .tb, .pb, .eb, .zb, .ybOrHigher] // 65535
+        public static let all: Self = [.bytes, .kb, .mb, .gb, .tb, .pb, .eb, .zb, .ybOrHigher]
         /// The bytes unit.
         public static let bytes = Self(rawValue: 1 << 0)
         /// The kilobytes unit.
@@ -975,6 +967,9 @@ public struct DataSizeFormatStyle: FormatStyle {
     }
 }
 
+
+// MARK: - FormatStyle
+
 public extension FormatStyle where Self == DataSizeFormatStyle {
     /// Returns a format style to format a data size value.
     static var dataSize: Self {
@@ -986,10 +981,10 @@ public extension FormatStyle where Self == DataSizeFormatStyle {
 
      - Parameters:
         - allowedUnits: The units the format style can use to express the byte count.
-        - unitStyle: The style used to format the data size unit.  Specify ``UnitStyle/none`` to not include the unit.
+        - unitStyle: The style used to format the data size unit. Specify ``UnitStyle/none`` to not include the unit.
         - includesCount: A Boolean value indicating whether to include the numeric value in the formatted string.
-        - includesActualByteCount: A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units. For example, `1 kB (1,024 bytes)`.
-        - spellsOutZero: A Boolean value that indicates whether the format style should spell out zero-byte values as text, like `Zero kB`.
+        - includesActualByteCount: A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units.
+        - spellsOutZero: A Boolean value that indicates whether the format style should spell out zero-byte values as text.
         - isAdaptive: A Boolean value indicating the display style of the size representation.
         - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
      - Returns: A format style for formatting a data size value, customized with the provided behaviors.
@@ -1003,10 +998,10 @@ public extension FormatStyle where Self == DataSizeFormatStyle {
 
      - Parameters:
         - fixedUnit: The unit the format style should use to express the byte count.
-        - unitStyle: The style used to format the data size unit.  Specify ``UnitStyle/none`` to not include the unit.
+        - unitStyle: The style used to format the data size unit. Specify ``UnitStyle/none`` to not include the unit.
         - includesCount: A Boolean value indicating whether to include the numeric value in the formatted string.
-        - includesActualByteCount: A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units. For example, `1 kB (1,024 bytes)`.
-        - spellsOutZero: A Boolean value that indicates whether the format style should spell out zero-byte values as text, like `Zero kB`.
+        - includesActualByteCount: A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units.
+        - spellsOutZero: A Boolean value that indicates whether the format style should spell out zero-byte values as text.
         - isAdaptive: A Boolean value indicating the display style of the size representation.
         - zeroPadsFractionDigits: A Boolean value indicating whether to zero pad fraction digits so a consistent number of characters is displayed in a representation.
      - Returns: A format style for formatting a data size value, customized with the provided behaviors.
@@ -1015,6 +1010,45 @@ public extension FormatStyle where Self == DataSizeFormatStyle {
         DataSizeFormatStyle(fixedUnit: fixedUnit, unitStyle: unitStyle, includesCount: includesCount, includesActualByteCount: includesActualByteCount, spellsOutZero: spellsOutZero, isAdaptive: isAdaptive, zeroPadsFractionDigits: zeroPadsFractionDigits)
     }
 }
+
+
+// MARK: - Attributed String Attribute
+
+/// A component of a formatted data size.
+public enum DataSizeFormatAttribute: Hashable {
+    /// The numeric value expressed in the selected unit.
+    case count(Double)
+    /// The unit used to express the data size.
+    case unit(DataSizeFormatStyle.Unit)
+    /// The exact byte count.
+    case actualByteCount(Int64)
+}
+
+/// An attributed string key that identifies a component of a formatted data size.
+public struct DataSizeAttribute: AttributedStringKey {
+    public typealias Value = DataSizeFormatAttribute
+    public static let name = "FZSwiftUtils.DataSizeAttribute"
+}
+
+public extension AttributeScopes {
+    /// Attributes used for formatted data sizes.
+    struct DataSizeAttributes: AttributeScope {
+        /// The component of a formatted data size.
+        public let dataSize: DataSizeAttribute
+    }
+    
+    /// Attributes used for formatted data sizes.
+    var dataSize: DataSizeAttributes.Type { DataSizeAttributes.self }
+}
+
+public extension AttributeDynamicLookup {
+    subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.DataSizeAttributes, T>) -> T {
+        self[T.self]
+    }
+}
+
+
+// MARK: - Attributed Format Style
 
 public extension DataSizeFormatStyle {
     /// A format style that returns the formatted data size as an `AttributedString`.
@@ -1030,9 +1064,19 @@ public extension DataSizeFormatStyle {
         }
 
         /**
-         The style used to format the data size unit.
+         Sets the units the format style can use to express the byte count.
+         
+         The default value is ``Units/all``.
+         */
+        @discardableResult
+        public func allowedUnits(_ allowedUnits: Units) -> Self {
+            var copy = self
+            copy.allowedUnits = allowedUnits
+            return copy
+        }
 
-         When this value is ``UnitStyle/none``, the format style doesn't include a unit. For example, a data size that would otherwise be formatted as `723 KB` is formatted as `723`.
+        /**
+         The style used to format the data size unit.
 
          The default value is ``UnitStyle/short``.
          */
@@ -1042,21 +1086,41 @@ public extension DataSizeFormatStyle {
         }
 
         /**
-         A Boolean value that indicates whether the format style zero pads fraction digits.
-
-         When this value is `true`, trailing zeros are added to produce a consistent number of fraction digits. For example, when ``isAdaptive`` is `true`, values that would otherwise be formatted as `1.19 GB` and `1.2 GB` are formatted as `1.19 GB` and `1.20 GB`, respectively.
-
-         The default value is `false`.
+         Sets the style used to format the data size unit.
+         
+         The default value is ``UnitStyle/short``.
          */
-        public var zeroPadsFractionDigits: Bool {
-            get { style.zeroPadsFractionDigits }
-            set { style.zeroPadsFractionDigits = newValue }
+        @discardableResult
+        public func unitStyle(_ unitStyle: UnitStyle) -> Self {
+            var copy = self
+            copy.unitStyle = unitStyle
+            return copy
         }
 
         /**
-         A Boolean value that indicates whether the format style should include the exact byte count, in addition to expressing it in terms of units.
+         A Boolean value that indicates whether the format style includes the numeric value.
 
-         When this value is `true`, a format style produces output like `1 kB (1,024 bytes)`.
+         The default value is `true`.
+         */
+        public var includesCount: Bool {
+            get { style.includesCount }
+            set { style.includesCount = newValue }
+        }
+
+        /**
+         Sets whether the format style includes the numeric value.
+         
+         The default value is `true`.
+         */
+        @discardableResult
+        public func includesCount(_ includesCount: Bool) -> Self {
+            var copy = self
+            copy.includesCount = includesCount
+            return copy
+        }
+
+        /**
+         A Boolean value that indicates whether the format style should include the exact byte count.
 
          The default value is `false`.
          */
@@ -1066,19 +1130,19 @@ public extension DataSizeFormatStyle {
         }
 
         /**
-         The locale to use to format the numeric part of the data size.
-
-         To change the format style’s locale, use ``locale(_:)``.
+         Sets whether the format style includes the exact byte count.
+         
+         The default value is `false`.
          */
-        public var locale: Locale {
-            get { style.locale }
-            set { style.locale = newValue }
+        @discardableResult
+        public func includesActualByteCount(_ includesActualByteCount: Bool) -> Self {
+            var copy = self
+            copy.includesActualByteCount = includesActualByteCount
+            return copy
         }
 
         /**
          A Boolean value that indicates whether the format style should spell out zero-byte values as text.
-
-         When this value is `true`, the format style produces output like `Zero kB`.
 
          The default value is `true`.
          */
@@ -1088,9 +1152,19 @@ public extension DataSizeFormatStyle {
         }
 
         /**
-         A Boolean value that indicates whether the format style adaptively determines the number of fraction digits.
+         Sets whether the format style spells out zero-byte values as text.
+         
+         The default value is `true`.
+         */
+        @discardableResult
+        public func spellsOutZero(_ spellsOutZero: Bool) -> Self {
+            var copy = self
+            copy.spellsOutZero = spellsOutZero
+            return copy
+        }
 
-         When this value is `true`, the format style uses a platform-specific number of fraction digits based on the magnitude of the data size. When `false`, the format style attempts to display at least three significant digits, introducing fraction digits as necessary.
+        /**
+         A Boolean value that indicates whether the format style adaptively determines the number of fraction digits.
 
          The default value is `true`.
          */
@@ -1100,60 +1174,159 @@ public extension DataSizeFormatStyle {
         }
 
         /**
-         A Boolean value that indicates whether the format style includes the numeric value.
-
-         When this value is `false`, the format style includes only the unit.
-
+         Sets whether the format style adaptively determines the number of fraction digits.
+         
          The default value is `true`.
-
-         - Note: Setting this value to `false` and ``unitStyle`` to ``UnitStyle/none`` results in an empty string.
          */
-        public var includesCount: Bool {
-            get { style.includesCount }
-            set { style.includesCount = newValue }
+        @discardableResult
+        public func isAdaptive(_ isAdaptive: Bool) -> Self {
+            var copy = self
+            copy.isAdaptive = isAdaptive
+            return copy
+        }
+
+        /**
+         A Boolean value that indicates whether the format style zero pads fraction digits.
+
+         The default value is `false`.
+         */
+        public var zeroPadsFractionDigits: Bool {
+            get { style.zeroPadsFractionDigits }
+            set { style.zeroPadsFractionDigits = newValue }
+        }
+
+        /**
+         Sets whether the format style zero pads fraction digits.
+         
+         The default value is `false`.
+         */
+        @discardableResult
+        public func zeroPadsFractionDigits(_ zeroPadsFractionDigits: Bool) -> Self {
+            var copy = self
+            copy.zeroPadsFractionDigits = zeroPadsFractionDigits
+            return copy
+        }
+
+        /**
+         The locale to use to format the numeric part of the data size.
+         */
+        public var locale: Locale {
+            get { style.locale }
+            set { style.locale = newValue }
+        }
+
+        /// Sets the locale to use for formatting.
+        public func locale(_ locale: Locale) -> Self {
+            var copy = self
+            copy.locale = locale
+            return copy
         }
 
         private var style: DataSizeFormatStyle
 
-        init(style: DataSizeFormatStyle) {
+        fileprivate init(style: DataSizeFormatStyle) {
             self.style = style
         }
 
-        public func locale(_ locale: Locale) -> Self {
-            Self(style: style.locale(locale))
-        }
-
+        /// Formats the specified data size as an attributed string.
         public func format(_ dataSize: DataSize) -> AttributedString {
             var output = AttributedString(style.format(dataSize))
-            if style.useSpelloutZero {
-                if let zero = NumberFormatter.spellOut.locale(locale).formattingContext(.dynamic).string(for: 0)?.uppercasedFirst(with: locale), let range = output.range(of: zero) {
-                    output[range].byteCount = .spelledOutValue
+            let unit = style.bestUnit(for: dataSize)
+            let unitSize = unit.size(for: dataSize.countStyle)
+            let value = Double(dataSize.bytes) / Double(unitSize)
+
+            if includesCount {
+                if style.useSpelloutZero, dataSize == .zero {
+                    if let zero = NumberFormatter.spellOut.locale(locale).formattingContext(.beginningOfSentence).string(for: 0)?.uppercasedFirst(with: locale),
+                       let range = output.range(of: zero) {
+                        output[range].dataSize = .count(value)
+                    }
+                } else {
+                    let count = style.formattedCount(dataSize, unit: unit)
+                    
+                    if let range = output.range(of: count) {
+                        output[range].dataSize = .count(value)
+                    }
                 }
             }
+
+            if unitStyle != .none {
+                let unitString = style.formattedUnit(dataSize, unit: unit)
+                
+                if let range = output.range(of: unitString) {
+                    output[range].dataSize = .unit(unit)
+                }
+            }
+
+            if includesActualByteCount {
+                let actualByteCount = style.formattedActualByteCount(dataSize)
+                
+                if let range = output.range(of: actualByteCount) {
+                    output[range].dataSize = .actualByteCount(Int64(dataSize.bytes))
+                }
+            }
+
             return output
         }
     }
 }
 
+
+// MARK: - Attributed Formatting Helpers
+
+private extension DataSizeFormatStyle {
+    func makeFormatter(for dataSize: DataSize, allowedUnits: Units, includesCount: Bool, includesUnit: Bool) -> ByteCountFormatter {
+        let formatter = ByteCountFormatter()
+        formatter.spellsOutZero = false
+        formatter.allowedUnits = .init(rawValue: allowedUnits.rawValue)
+        formatter.countStyle = .init(rawValue: dataSize.countStyle.rawValue) ?? .file
+        formatter.includesUnit = includesUnit
+        formatter.includesActualByteCount = false
+        formatter.locale = locale
+        formatter.isAdaptive = isAdaptive
+        formatter.includesCount = includesCount
+        formatter.unitStyle = unitStyle == .none ? .short : .init(rawValue: unitStyle.rawValue) ?? .short
+        formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
+        return formatter
+    }
+    
+    func formattedCount(_ dataSize: DataSize, unit: Unit) -> String {
+        makeFormatter(for: dataSize, allowedUnits: Units(rawValue: unit.rawValue), includesCount: true, includesUnit: false).string(fromByteCount: Int64(dataSize.bytes))
+    }
+    
+    func formattedUnit(_ dataSize: DataSize, unit: Unit) -> String {
+        makeFormatter(for: dataSize, allowedUnits: Units(rawValue: unit.rawValue), includesCount: false, includesUnit: true).string(fromByteCount: Int64(dataSize.bytes))
+    }
+    
+    func formattedActualByteCount(_ dataSize: DataSize) -> String {
+        makeFormatter(for: dataSize, allowedUnits: .bytes, includesCount: true, includesUnit: true).string(fromByteCount: Int64(dataSize.bytes))
+    }
+}
+
+
+// MARK: - Spell-Out Zero
+
 fileprivate extension DataSizeFormatStyle {
     var useSpelloutZero: Bool {
         guard spellsOutZero else { return false }
         guard let languageCode = locale.resolvedLanguageCode else { return false }
+        
         switch languageCode {
         case "ar", "da", "el", "en", "fr", "hi", "hr", "id", "it", "ms", "pt", "ro", "th":
             return true
         default:
             break
         }
+        
         guard !allowedUnits.contains(.kb) else { return false }
-        // These only uses spellout zero with byte but not with kilobyte
+        
+        // These only use spell-out zero with byte but not with kilobyte.
         switch languageCode {
         case "ca", "no":
             return true
         default:
-            break
+            return false
         }
-        return false
     }
 }
 
@@ -1167,6 +1340,9 @@ fileprivate extension Locale {
     }
 }
 
+
+// MARK: - Count Style
+
 extension DataSize.CountStyle {
     var maxSizes: [UInt64] {
         isDecimal ? Self.maxSizes.decimal : Self.maxSizes.binary
@@ -1174,45 +1350,266 @@ extension DataSize.CountStyle {
     
     var isDecimal: Bool {
         switch self {
-        case .file, .decimal: true
-        default: false
+        case .file, .decimal:
+            true
+        default:
+            false
         }
     }
     
     private static let maxSizes: (decimal: [UInt64], binary: [UInt64]) = (
-        [999, 999_499, 999_949_999, 999_994_999_999, 999_994_999_999_999, .max],
-        [1_023, 1_048_063, 1_073_689_395, 1_099_506_259_066, 1_125_894_409_284_485, .max])
+        decimal: [
+            999,
+            999_499,
+            999_949_999,
+            999_994_999_999,
+            999_994_999_999_999,
+            999_994_999_999_999_999,
+            UInt64.max
+        ],
+        binary: [
+            1_023,
+            1_048_063,
+            1_073_689_395,
+            1_099_506_259_066,
+            1_125_894_409_284_485,
+            1_152_917_470_625_546_239,
+            UInt64.max
+        ]
+    )
 }
+
+
+// MARK: - Unit Selection
 
 extension DataSizeFormatStyle {
     func bestUnit(for size: DataSize) -> Unit {
+        let allowedUnits = allowedUnits.isEmpty ? Units.all : allowedUnits
         var bestUnit = allowedUnits.smallestUnit
+        
         for (index, maxSize) in size.countStyle.maxSizes.enumerated() {
-            let unit = Unit(rawValue: UInt(index))!
-            guard allowedUnits.contains(.init(rawValue: unit.rawValue)) else { continue }
+            guard index < Unit.allCases.count else { break }
+            
+            let unit = Unit.allCases[index]
+            
+            guard allowedUnits.contains(Units(rawValue: unit.rawValue)) else {
+                continue
+            }
+            
             bestUnit = unit
-            if size.bytes < maxSize {
+            
+            if size.bytes <= maxSize {
                 break
             }
         }
+        
         return bestUnit
     }
 }
 
+
+// MARK: - Unit Size
+
 extension DataSizeFormatStyle.Unit {
-    private var index: Int {
-        Self.allCases.firstIndex(of: self)!
+    /// Returns the number of bytes represented by the unit for the specified count style.
+    func size(for countStyle: DataSize.CountStyle) -> Double {
+        countStyle.isDecimal ? decimalSize : binarySize
     }
     
-    var decimalSize: Int64 {
-        Self.decimalByteSizes[index]
+    var decimalSize: Double {
+        switch self {
+        case .bytes: 1
+        case .kb: 1e3
+        case .mb: 1e6
+        case .gb: 1e9
+        case .tb: 1e12
+        case .pb: 1e15
+        case .eb: 1e18
+        case .zb: 1e21
+        case .ybOrHigher: 1e24
+        }
     }
 
-    var binarySize: Int64 {
-        Self.binaryByteSizes[index]
+    var binarySize: Double {
+        switch self {
+        case .bytes: 1
+        case .kb: pow(1024, 1)
+        case .mb: pow(1024, 2)
+        case .gb: pow(1024, 3)
+        case .tb: pow(1024, 4)
+        case .pb: pow(1024, 5)
+        case .eb: pow(1024, 6)
+        case .zb: pow(1024, 7)
+        case .ybOrHigher: pow(1024, 8)
+        }
+    }
+}
+
+class DataSizeFormatter: Formatter {
+    private let formatter = ByteCountFormatter()
+    
+    public var countStyle: ByteCountFormatter.CountStyle {
+        get { formatter.countStyle }
+        set { formatter.countStyle = newValue }
     }
     
-    private static let unitNames = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"]
-    private static let decimalByteSizes: [Int64] = [1, 1_000, 1_000_000, 1_000_000_000, 1_000_000_000_000, 1_000_000_000_000_000]
-    private static let binaryByteSizes: [Int64] = [1, 1024, 1048576, 1073741824, 1099511627776, 1125899906842624]
+    public var unitStyle: ByteCountFormatter.UnitStyle {
+        get { formatter.unitStyle }
+        set { formatter.unitStyle = newValue }
+    }
+    
+    public var includesUnit: Bool {
+        get { formatter.includesUnit }
+        set { formatter.includesUnit = newValue }
+    }
+    
+    public var includesCount: Bool {
+        get { formatter.includesCount }
+        set { formatter.includesCount = newValue }
+    }
+    
+    public var isAdaptive: Bool {
+        get { formatter.isAdaptive }
+        set { formatter.isAdaptive = newValue }
+    }
+    
+    public var spellsOutZero: Bool {
+        get { formatter.spellsOutZero }
+        set { formatter.spellsOutZero = newValue }
+    }
+    
+    public var includesActualByteCount: Bool {
+        get { formatter.includesActualByteCount }
+        set { formatter.includesActualByteCount = newValue }
+    }
+    
+    public var zeroPadsFractionDigits: Bool {
+        get { formatter.zeroPadsFractionDigits }
+        set { formatter.zeroPadsFractionDigits = newValue }
+    }
+    
+    public var locale: Locale {
+        get { formatter.locale }
+        set { formatter.locale = newValue }
+    }
+    
+    public var allowedUnits: ByteCountFormatter.Units {
+        get { formatter.allowedUnits }
+        set { formatter.allowedUnits = newValue }
+    }
+    
+    override func string(for obj: Any?) -> String? {
+        formatter.string(for: obj)
+    }
+    
+    public func string(from dataSize: DataSize) -> String {
+        formatter.string(fromByteCount: Int64(dataSize.bytes))
+    }
+}
+
+/*
+ let formatter = ByteCountFormatter()
+ formatter.allowedUnits = .init(rawValue: allowedUnits.rawValue)
+ return formatter
+ */
+
+class CustomByteCountFormatter: ByteCountFormatter {
+    private var components: (count: String, unit: String, byteCount: String) {
+        let includesCount = includesCount
+        let includesUnit = includesUnit
+        let includesActualByteCount = includesActualByteCount
+        defer {
+            self.includesUnit = includesCount
+            self.includesCount = includesCount
+            self.includesActualByteCount = includesActualByteCount
+        }
+        self.includesActualByteCount = false
+        self.includesUnit = false
+        self.includesCount = true
+        let count = string(fromByteCount: 10)
+        self.includesUnit = true
+        self.includesCount = false
+        let unit = string(fromByteCount: 10)
+        self.includesUnit = false
+        self.includesActualByteCount = true
+        return (count, unit, string(fromByteCount: 10))
+    }
+    
+    func attributedString(fromByteCount byteCount: Int64) -> AttributedString {
+        let components = components
+        return ""
+    }
+    
+    override func string(fromByteCount byteCount: Int64) -> String {
+        var string = super.string(fromByteCount: byteCount)
+        if useSpelloutZero, byteCount == .zero, includesCount {
+            zeroString(for: &string)
+        }
+        return string
+    }
+    
+    override func string(for obj: Any?) -> String? {
+        guard var string = super.string(for: obj) else { return nil }
+        if useSpelloutZero, includesCount, (obj as? ZeroComparable)?.isZero == true {
+            zeroString(for: &string)
+        }
+        return string
+    }
+    
+    func zeroString(for string: inout String) {
+        let formatter = NumberFormatter.decimal.locale(locale)
+        if let zero = formatter.string(for: 0),
+           let spelledOutZero = formatter.style(.spellOut).formattingContext(.beginningOfSentence).string(for: 0)?.uppercasedFirst(with: locale),
+           let range = string.range(of: zero) {
+            string.replaceSubrange(range, with: spelledOutZero)
+        }
+    }
+    
+    private var useSpelloutZero: Bool {
+        guard spellsOutZero else { return false }
+        guard let languageCode = locale.resolvedLanguageCode else { return false }
+        
+        switch languageCode {
+        case "ar", "da", "el", "en", "fr", "hi", "hr", "id", "it", "ms", "pt", "ro", "th":
+            return true
+        default:
+            break
+        }
+        guard !allowedUnits.contains(.useKB) else { return false }
+        // These only use spell-out zero with byte but not with kilobyte.
+        switch languageCode {
+        case "ca", "no":
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+
+private protocol ZeroComparable {
+    var isZero: Bool { get }
+}
+
+extension Int: ZeroComparable {}
+extension Int8: ZeroComparable {}
+extension Int16: ZeroComparable {}
+extension Int32: ZeroComparable {}
+extension Int64: ZeroComparable {}
+extension UInt: ZeroComparable {}
+extension UInt8: ZeroComparable {}
+extension UInt16: ZeroComparable {}
+extension UInt32: ZeroComparable {}
+extension UInt64: ZeroComparable {}
+extension Float: ZeroComparable {}
+extension Float16: ZeroComparable {}
+extension Double: ZeroComparable {}
+extension CGFloat: ZeroComparable {}
+
+extension BinaryInteger {
+    var isZero: Bool { self == .zero }
+}
+
+extension BinaryFloatingPoint {
+    var isZero: Bool { self == .zero }
 }

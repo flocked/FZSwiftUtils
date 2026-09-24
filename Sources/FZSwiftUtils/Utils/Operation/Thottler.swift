@@ -29,7 +29,9 @@ open class Throttler {
     }
     
     /// The minimum time interval between successive executions.
-    public var interval: TimeDuration
+    public var interval: TimeDuration {
+        didSet { interval = interval.clamped(min: .zero) }
+    }
 
     /// A Boolean value indicating whether the first execution should occur immediately when throttling.
     public var firesImmediately: Bool
@@ -65,6 +67,10 @@ open class Throttler {
     /// Schedules to run the specified block.
     public func throttle(_ block: @escaping ()->()) {
         callbackJob?.cancel()
+        if interval == .zero {
+            block()
+            return
+        }
         callback = block
         let dispatchTime = calculateDispatchTime()
         nextScheduledTime = dispatchTime

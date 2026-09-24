@@ -7,10 +7,10 @@
 
 import Foundation
 
-/// A formatter that creates string representations of a data throughput (bytes per second) (e.g. `14,66 MB/s`).
+/// A formatter that creates string representations of data throughput in bytes per second, such as `14.66 MB/s`.
 open class ThroughputFormatter: Formatter {
     private let formatter = NumberFormatter()
-
+    
     /**
      The allowed units to be used for formatting.
      
@@ -24,7 +24,7 @@ open class ThroughputFormatter: Formatter {
      The default value is `all`.
      */
     @discardableResult
-    open func units( _ units: Units) -> Self {
+    open func units(_ units: Units) -> Self {
         self.units = units
         return self
     }
@@ -66,19 +66,19 @@ open class ThroughputFormatter: Formatter {
     }
     
     /**
-     A Boolean value indicating whether to include the units in the resulting formatted string.
+     A Boolean value indicating whether to include the unit in the resulting formatted string.
      
      The default value is `true`.
      */
     open var includesUnit: Bool = true
     
     /**
-     Sets the Boolean value indicating whether to include the units in the resulting formatted string.
+     Sets whether to include the unit in the resulting formatted string.
      
      The default value is `true`.
      */
     @discardableResult
-    open func includesUnit( _ includes: Bool) -> Self {
+    open func includesUnit(_ includes: Bool) -> Self {
         includesUnit = includes
         return self
     }
@@ -91,12 +91,12 @@ open class ThroughputFormatter: Formatter {
     open var includesCount: Bool = true
     
     /**
-     Sets the Boolean value indicating whether to include the count in the resulting formatted string.
+     Sets whether to include the count in the resulting formatted string.
      
      The default value is `true`.
      */
     @discardableResult
-    open func includesCount( _ includes: Bool) -> Self {
+    open func includesCount(_ includes: Bool) -> Self {
         includesCount = includes
         return self
     }
@@ -109,7 +109,7 @@ open class ThroughputFormatter: Formatter {
     
     /// Sets the allowed number of digits after the decimal separator.
     @discardableResult
-    open func fractionLength( _ length: NumberFormatter.DigitLength) -> Self {
+    open func fractionLength(_ length: NumberFormatter.DigitLength) -> Self {
         fractionLength = length
         return self
     }
@@ -119,7 +119,10 @@ open class ThroughputFormatter: Formatter {
      
      The default value is `current`.
      */
-    open var locale: Locale = .current
+    open var locale: Locale {
+        get { formatter.locale }
+        set { formatter.locale = newValue }
+    }
     
     /**
      Sets the locale of the formatter.
@@ -143,10 +146,10 @@ open class ThroughputFormatter: Formatter {
         units = coder.decode("units") ?? units
         unitStyle = coder.decode("unitStyle") ?? unitStyle
         countStyle = coder.decode("countStyle") ?? countStyle
-        locale = coder.decode("locale") ?? locale
         includesCount = coder.decode("includesCount") ?? includesCount
         includesUnit = coder.decode("includesUnit") ?? includesUnit
         super.init(coder: coder)
+        locale = coder.decode("locale") ?? .current
         fractionLength = NumberFormatter.DigitLength(coder: coder) ?? fractionLength
     }
     
@@ -158,34 +161,37 @@ open class ThroughputFormatter: Formatter {
         coder.encode(countStyle, forKey: "countStyle")
         coder.encode(includesCount, forKey: "includesCount")
         coder.encode(includesUnit, forKey: "includesUnit")
+        super.encode(with: coder)
     }
     
-    /// The formatter string for the specified throughput (bytes per second).
-    open func string(from dataSizePerSecond: DataSize) -> String {
-        string(from: dataSizePerSecond.bytes)
+    /// Returns the formatted string for the specified throughput in bytes per second.
+    open func string(from throughputPerSecond: DataSize) -> String {
+        string(from: throughputPerSecond.bytes)
     }
     
-    /// The formatted string for the specified throughput (bytes per second).
+    /// Returns the formatted string for the specified throughput in bytes per second.
     open func string<I: BinaryInteger>(from bytesPerSecond: I) -> String {
-        if units.isEmpty {
-            units = [.bytes]
-            defer { units = [] }
-            return string(from: bytesPerSecond)
-        }
-        let units = units.ordered
-        var speed = Double(bytesPerSecond)
-        var unitIndex = 0
-        while unitIndex < units.count - 1, speed >= 1000 {
-            speed /= Double(countStyle.factor)
-            unitIndex += 1
-        }
+        let allowedUnits = units.isEmpty ? Units.bytes : units
+        let availableUnits = Units.orderedUnits.filter { allowedUnits.contains($0.unit) }
+        let factor = Double(countStyle.factor)
+        let bytesPerSecond = Double(bytesPerSecond)
+        let magnitude = abs(bytesPerSecond)
+        
+        let selected = availableUnits.last(where: {
+            magnitude >= pow(factor, Double($0.exponent))
+        }) ?? availableUnits[0]
+        
+        let value = bytesPerSecond / pow(factor, Double(selected.exponent))
         var strings: [String] = []
+        
         if includesCount {
-            strings += formatter.string(from: speed)!
+            strings.append(formatter.string(from: value)!)
         }
+        
         if includesUnit {
-            strings += units[unitIndex].localized(to: locale, unitStyle: unitStyle) + "/s"
+            strings.append(selected.storage.localized(to: locale, unitStyle: unitStyle) + "/s")
         }
+        
         return strings.joined(separator: " ")
     }
     
@@ -198,55 +204,132 @@ open class ThroughputFormatter: Formatter {
         return nil
     }
     
+    /// Returns an attributed string for the specified throughput in bytes per second.
+    open func attributedString<I: BinaryInteger>(from bytesPerSecond: I) -> AttributedString {
+        let allowedUnits = units.isEmpty ? Units.bytes : units
+        let availableUnits = Units.orderedUnits.filter { allowedUnits.contains($0.unit) }
+        let factor = Double(countStyle.factor)
+        let bytesPerSecond = Double(bytesPerSecond)
+        let magnitude = abs(bytesPerSecond)
+        let selected = availableUnits.last(where: { magnitude >= pow(factor, Double($0.exponent)) }) ?? availableUnits[0]
+        let value = bytesPerSecond / pow(factor, Double(selected.exponent))
+        let count = AttributedString(formatter.string(from: value)!) { $0.throughput = .count(value) }
+        let unit = AttributedString(selected.storage.localized(to: locale, unitStyle: unitStyle) + "/s") { $0.throughput = .unit(selected.unit) }
+        
+        if includesCount && includesUnit {
+            return count + " " + unit
+        } else if includesCount {
+            return count
+        } else if includesUnit {
+            return unit
+        }
+        return AttributedString()
+    }
+    
+    /// Returns an attributed string for the specified throughput in bytes per second.
+    open func attributedString(from throughputPerSecond: DataSize) -> AttributedString {
+        attributedString(from: throughputPerSecond.bytes)
+    }
+    
     /// Units for formatting data throughput.
-    public struct Units: OptionSet {
-        /// Bytes per second (B/s)
-        public static let bytes = Units(rawValue: 1 << 0)
-        /// Kilobytes per second (KB/s)
-        public static let kilobytes = Units(rawValue: 1 << 1)
-        /// Megabytes per second (MB/s)
-        public static let megabytes = Units(rawValue: 1 << 2)
-        /// Gigabytes per second (GB/s)
-        public static let gigabytes = Units(rawValue: 1 << 3)
-        /// Terabytes per second (TB/s)
-        public static let terabytes = Units(rawValue: 1 << 4)
-        /// Petabytes per second (PB/s)
-        public static let petabytes = Units(rawValue: 1 << 5)
-        /// Exabytes per second (EB/s)
-        public static let exabytes = Units(rawValue: 1 << 6)
-        /// Zettabytes per second (ZB/s)
-        public static let zettabytes = Units(rawValue: 1 << 7)
-        /// Yottabytes per second (YB/s)
-        public static let yottabytes = Units(rawValue: 1 << 8)
-
+    public struct Units: OptionSet, Hashable, Codable, Sendable {
+        /// Bytes per second (B/s).
+        public static let bytes = Self(rawValue: 1 << 0)
+        /// Kilobytes per second (KB/s).
+        public static let kilobytes = Self(rawValue: 1 << 1)
+        /// Megabytes per second (MB/s).
+        public static let megabytes = Self(rawValue: 1 << 2)
+        /// Gigabytes per second (GB/s).
+        public static let gigabytes = Self(rawValue: 1 << 3)
+        /// Terabytes per second (TB/s).
+        public static let terabytes = Self(rawValue: 1 << 4)
+        /// Petabytes per second (PB/s).
+        public static let petabytes = Self(rawValue: 1 << 5)
+        /// Exabytes per second (EB/s).
+        public static let exabytes = Self(rawValue: 1 << 6)
+        /// Zettabytes per second (ZB/s).
+        public static let zettabytes = Self(rawValue: 1 << 7)
+        /// Yottabytes per second (YB/s).
+        public static let yottabytes = Self(rawValue: 1 << 8)
+        
         /// All units.
-        public static let all: Units = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .exabytes, .zettabytes, .yottabytes]
-
-        public let rawValue: Int
-
-        public init(rawValue: Int) {
+        public static let all: Self = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .exabytes, .zettabytes, .yottabytes]
+        
+        public let rawValue: UInt8
+        
+        public init(rawValue: UInt8) {
             self.rawValue = rawValue
         }
         
-        var ordered: [UnitInformationStorage] {
-            var result: [UnitInformationStorage] = []
-            if contains(.bytes) { result += .bytes }
-            if contains(.kilobytes) { result += .kilobytes }
-            if contains(.megabytes) { result += .megabytes }
-            if contains(.gigabytes) { result += .gigabytes }
-            if contains(.terabytes) { result += .terabytes }
-            if contains(.petabytes) { result += .petabytes }
-            if contains(.exabytes) { result += .exabytes }
-            if contains(.zettabytes) { result += .zettabytes }
-            if contains(.yottabytes) { result += .yottabytes }
-            return result
-        }
+        fileprivate static let orderedUnits: [(unit: Self, storage: UnitInformationStorage, exponent: Int)] = [
+            (.bytes, .bytes, 0),
+            (.kilobytes, .kilobytes, 1),
+            (.megabytes, .megabytes, 2),
+            (.gigabytes, .gigabytes, 3),
+            (.terabytes, .terabytes, 4),
+            (.petabytes, .petabytes, 5),
+            (.exabytes, .exabytes, 6),
+            (.zettabytes, .zettabytes, 7),
+            (.yottabytes, .yottabytes, 8),
+        ]
     }
 }
 
-public struct ThroughputFFormatStyle: FormatStyle {
-    private static var formatter: NumberFormatter { NumberFormatter() }
+/// The component of a formatted throughput value.
+public enum ThroughputFormatAttribute: Hashable {
+    /// The numeric component and its scaled value.
+    case count(Double)
+    /// The unit component and its unit.
+    case unit(ThroughputFormatter.Units)
+}
+
+/// An attributed string key that identifies the component of a formatted throughput value.
+public struct ThroughputAttribute: AttributedStringKey {
+    public typealias Value = ThroughputFormatAttribute
+    public static let name = "FZSwiftUtils.ThroughputAttribute"
+}
+
+public extension AttributeScopes {
+    /// Attributes used for formatted throughput values.
+    struct ThroughputAttributes: AttributeScope {
+        /// The component of a formatted throughput value.
+        public let throughput: ThroughputAttribute
+    }
     
+    /// Attributes used for formatted throughput values.
+    var throughput: ThroughputAttributes.Type { ThroughputAttributes.self }
+}
+
+public extension AttributeDynamicLookup {
+    subscript<T: AttributedStringKey>(dynamicMember keyPath: KeyPath<AttributeScopes.ThroughputAttributes, T>) -> T {
+        self[T.self]
+    }
+}
+
+public struct ThroughputFormatStyle: FormatStyle {
+    /**
+     Creates a format style for formatting data throughput.
+     
+     - Parameters:
+       - units: The allowed units to use for formatting.
+       - countStyle: The style used for counting bytes.
+       - unitStyle: The style used for displaying units.
+       - includesCount: A Boolean value indicating whether the formatted value includes the count.
+       - includesUnit: A Boolean value indicating whether the formatted value includes the unit.
+       - fractionLength: The number of fractional digits to display.
+       - locale: The locale to use for formatting.
+     */
+    public init(units: Units = .all, countStyle: CountStyle = .file, unitStyle: UnitStyle = .short, includesCount: Bool = true, includesUnit: Bool = true, fractionLength: DigitLength = .range(1...6), locale: Locale = .autoupdatingCurrent) {
+        self.units = units
+        self.countStyle = countStyle
+        self.unitStyle = unitStyle
+        self.includesCount = includesCount
+        self.includesUnit = includesUnit
+        self.fractionLength = fractionLength
+        self.locale = locale
+    }
+    
+    /// The locale of the format style.
     public var locale: Locale = .autoupdatingCurrent
     
     public func locale(_ locale: Locale) -> Self {
@@ -281,18 +364,14 @@ public struct ThroughputFFormatStyle: FormatStyle {
      */
     public var unitStyle: UnitStyle = .short
     
+    /// The style used to display throughput units.
     public enum UnitStyle: Int, Codable, Hashable {
-        case short
-        case medium
-        case long
-        
-        var formatter: ByteCountFormatter.UnitStyle {
-            switch self {
-            case .short: .short
-            case .medium: .medium
-            case .long: .long
-            }
-        }
+        /// A short unit style, such as `MB/s`.
+        case short = 1
+        /// A medium unit style, such as `MByte/s`.
+        case medium = 2
+        /// A long unit style, such as `megabytes per second`.
+        case long = 3
     }
     
     /**
@@ -314,15 +393,16 @@ public struct ThroughputFFormatStyle: FormatStyle {
      */
     public var countStyle: CountStyle = .file
     
+    /// The style used to determine the units and scaling of throughput values.
     public enum CountStyle: Int, Codable, Hashable {
-        case file
-        case binary
-        case memory
-        case decimal
-        
-        var factor: Int {
-            self == .binary ? 1024 : 1000
-        }
+        /// A file-size style that uses decimal units.
+        case file = 0
+        /// A memory-size style that uses binary units.
+        case memory = 1
+        /// A decimal style that uses powers of 1000.
+        case decimal = 2
+        /// A binary style that uses powers of 1024.
+        case binary = 3
     }
     
     /**
@@ -375,7 +455,11 @@ public struct ThroughputFFormatStyle: FormatStyle {
         return copy
     }
     
-    /// The allowed number of digits after the decimal separator.
+    /**
+     The allowed number of digits after the decimal separator.
+     
+     The default value is `.range(1...6)`
+     */
     public var fractionLength: DigitLength = .range(1...6)
     
     /// Sets the allowed number of digits after the decimal separator.
@@ -385,8 +469,8 @@ public struct ThroughputFFormatStyle: FormatStyle {
         copy.fractionLength = length
         return copy
     }
-    
-    
+
+    /// The allowed number of digits.
     public struct DigitLength: ExpressibleByIntegerLiteral, CustomStringConvertible, Hashable, Codable {
         var minValue: Int
         var maxValue: Int
@@ -400,18 +484,22 @@ public struct ThroughputFFormatStyle: FormatStyle {
             self.init(value, value)
         }
         
+        /// A fixed number of digits.
         public static func fixed(_ value: Int) -> Self {
             Self(value, value)
         }
         
+        /// A range of allowed digits.
         public static func range(_ range: ClosedRange<Int>) -> Self {
             Self(range.lowerBound, range.upperBound)
         }
         
+        /// A minimum number of digits.
         public static func min(_ value: Int) -> Self {
             Self.init(0, value)
         }
         
+        /// A maximum number of digits.
         public static func max(_ value: Int) -> Self {
             Self(value, .max)
         }
@@ -422,8 +510,8 @@ public struct ThroughputFFormatStyle: FormatStyle {
         }
     }
     
-    /// Units for formatting data throughput.
-    public struct Units: OptionSet, Codable, Hashable {
+    /// Units for formatting the throughput.
+    public struct Units: OptionSet, Hashable, Codable, Sendable {
         /// Bytes per second (B/s)
         public static let bytes = Self(rawValue: 1 << 0)
         /// Kilobytes per second (KB/s)
@@ -446,44 +534,278 @@ public struct ThroughputFFormatStyle: FormatStyle {
         /// All units.
         public static let all: Self = [.bytes, .kilobytes, .megabytes, .gigabytes, .terabytes, .petabytes, .exabytes, .zettabytes, .yottabytes]
 
-        public let rawValue: Int
+        public let rawValue: UInt8
 
-        public init(rawValue: Int) {
+        public init(rawValue: UInt8) {
             self.rawValue = rawValue
-        }
-        
-        var ordered: [UnitInformationStorage] {
-            var result: [UnitInformationStorage] = []
-            if contains(.bytes) { result += .bytes }
-            if contains(.kilobytes) { result += .kilobytes }
-            if contains(.megabytes) { result += .megabytes }
-            if contains(.gigabytes) { result += .gigabytes }
-            if contains(.terabytes) { result += .terabytes }
-            if contains(.petabytes) { result += .petabytes }
-            if contains(.exabytes) { result += .exabytes }
-            if contains(.zettabytes) { result += .zettabytes }
-            if contains(.yottabytes) { result += .yottabytes }
-            return result
         }
     }
     
-    public func format(_ bytesPerSecond: Int64) -> String {
-        Self.formatter.minimumFractionDigits = fractionLength.minValue
-        Self.formatter.maximumFractionDigits = fractionLength.maxValue
-        let units = (units.isEmpty ? .bytes : units).ordered
-        var speed = Double(bytesPerSecond)
-        var unitIndex = 0
-        while unitIndex < units.count - 1, speed >= 1000 {
-            speed /= Double(countStyle.factor)
-            unitIndex += 1
+    var formatter: ThroughputFormatter {
+        Self.cache.withLock {
+            $0[FormatKey(locale: locale, units: units.isEmpty ? .bytes : units, unitStyle: unitStyle, countStyle: countStyle, includesUnit: includesUnit, includesCount: includesCount, fractionLength: fractionLength), initial: {
+                let formatter = ThroughputFormatter()
+                formatter.units = .init(rawValue: (units.isEmpty ? .bytes : units).rawValue)
+                formatter.locale = locale
+                formatter.countStyle = .init(rawValue: countStyle.rawValue)!
+                formatter.unitStyle = .init(rawValue: unitStyle.rawValue)!
+                formatter.includesUnit = includesUnit
+                formatter.includesCount = includesCount
+                formatter.fractionLength = .init(fractionLength.minValue, fractionLength.maxValue)
+                return formatter
+            }]
         }
-        var strings: [String] = []
-        if includesCount {
-            strings += Self.formatter.string(from: speed)!
+    }
+    
+    public func format(_ throughputPerSecond: DataSize) -> String {
+        formatter.string(from: throughputPerSecond)
+    }
+    
+    private struct FormatKey: Hashable {
+        let locale: Locale
+        let units: Units
+        let unitStyle: UnitStyle
+        let countStyle: CountStyle
+        let includesUnit: Bool
+        let includesCount: Bool
+        let fractionLength: DigitLength
+    }
+    
+    private static let cache = Mutex([FormatKey: ThroughputFormatter]())
+}
+
+public extension FormatStyle where Self == ThroughputFormatStyle {
+    /// Returns a format style for formatting data throughput.
+    static var throughput: Self { throughput() }
+    
+    /**
+     Returns a format style for formatting data throughput.
+     
+     - Parameters:
+       - units: The allowed units to use for formatting.
+       - countStyle: The style used for counting bytes.
+       - unitStyle: The style used for displaying units.
+       - includesCount: A Boolean value indicating whether the formatted value includes the count.
+       - includesUnit: A Boolean value indicating whether the formatted value includes the unit.
+       - fractionLength: The number of fractional digits to display.
+       - locale: The locale to use for formatting.
+     */
+    static func throughput(units: Self.Units = .all, countStyle: Self.CountStyle = .file, unitStyle: Self.UnitStyle = .short, includesCount: Bool = true, includesUnit: Bool = true, fractionLength: Self.DigitLength = .range(1...6), locale: Locale = .autoupdatingCurrent) -> Self {
+        Self(units: units, countStyle: countStyle, unitStyle: unitStyle, includesCount: includesCount, includesUnit: includesUnit, fractionLength: fractionLength, locale: locale)
+    }
+}
+
+public extension ThroughputFormatStyle {
+    /// An attributed version of this throughput format style.
+    var attributed: Attributed {
+        Attributed(self)
+    }
+    
+    /// A format style that produces attributed throughput strings.
+    struct Attributed: FormatStyle {
+        private var style: ThroughputFormatStyle
+        
+        /**
+         Creates a format style for formatting data throughput.
+         
+         - Parameters:
+           - units: The allowed units to use for formatting.
+           - countStyle: The style used for counting bytes.
+           - unitStyle: The style used for displaying units.
+           - includesCount: A Boolean value indicating whether the formatted value includes the count.
+           - includesUnit: A Boolean value indicating whether the formatted value includes the unit.
+           - fractionLength: The number of fractional digits to display.
+           - locale: The locale to use for formatting.
+         */
+        public init(units: Units = .all, countStyle: CountStyle = .file, unitStyle: UnitStyle = .short, includesCount: Bool = true, includesUnit: Bool = true, fractionLength: DigitLength = .range(1...6), locale: Locale = .autoupdatingCurrent) {
+            self.style = .init(units: units, countStyle: countStyle, unitStyle: unitStyle, includesCount: includesCount, includesUnit: includesUnit, fractionLength: fractionLength, locale: locale)
         }
-        if includesUnit {
-            strings += units[unitIndex].localized(to: locale, unitStyle: unitStyle.formatter) + "/s"
+        
+        fileprivate init(_ style: ThroughputFormatStyle) {
+            self.style = style
         }
-        return strings.joined(separator: " ")
+
+        
+        /**
+         The allowed units to be used for formatting.
+         
+         The default value is `all`.
+         */
+        public var units: Units {
+            get { style.units }
+            set { style.units = newValue }
+        }
+        
+        /**
+         Sets the allowed units to be used for formatting.
+         
+         The default value is `all`.
+         */
+        @discardableResult
+        public func units(_ units: Units) -> Self {
+            var copy = self
+            copy.units = units
+            return copy
+        }
+        
+        /**
+         The style used for displaying units.
+         
+         The default value is `short`.
+         */
+        public var unitStyle: UnitStyle {
+            get { style.unitStyle }
+            set { style.unitStyle = newValue }
+        }
+        
+        /**
+         Sets the style used for displaying units.
+         
+         The default value is `short`.
+         */
+        @discardableResult
+        public func unitStyle(_ unitStyle: UnitStyle) -> Self {
+            var copy = self
+            copy.unitStyle = unitStyle
+            return copy
+        }
+        
+        /**
+         The style used for determining the units and scaling of throughput values.
+         
+         The default value is `file`.
+         */
+        public var countStyle: CountStyle {
+            get { style.countStyle }
+            set { style.countStyle = newValue }
+        }
+        
+        /**
+         Sets the style used for determining the units and scaling of throughput values.
+         
+         The default value is `file`.
+         */
+        @discardableResult
+        public func countStyle(_ countStyle: CountStyle) -> Self {
+            var copy = self
+            copy.countStyle = countStyle
+            return copy
+        }
+        
+        /**
+         A Boolean value indicating whether the formatted value includes the count.
+         
+         The default value is `true`.
+         */
+        public var includesCount: Bool {
+            get { style.includesCount }
+            set { style.includesCount = newValue }
+        }
+        
+        /**
+         Sets whether the formatted value includes the count.
+         
+         The default value is `true`.
+         */
+        @discardableResult
+        public func includesCount(_ includesCount: Bool) -> Self {
+            var copy = self
+            copy.includesCount = includesCount
+            return copy
+        }
+        
+        /**
+         A Boolean value indicating whether the formatted value includes the unit.
+         
+         The default value is `true`.
+         */
+        public var includesUnit: Bool {
+            get { style.includesUnit }
+            set { style.includesUnit = newValue }
+        }
+        
+        /**
+         Sets whether the formatted value includes the unit.
+         
+         The default value is `true`.
+         */
+        @discardableResult
+        public func includesUnit(_ includesUnit: Bool) -> Self {
+            var copy = self
+            copy.includesUnit = includesUnit
+            return copy
+        }
+        
+        /**
+         The number of fractional digits to display.
+         
+         The default value is `range(1...6)`.
+         */
+        public var fractionLength: DigitLength {
+            get { style.fractionLength }
+            set { style.fractionLength = newValue }
+        }
+        
+        /**
+         Sets the number of fractional digits to display.
+         
+         The default value is `range(1...6)`.
+         */
+        @discardableResult
+        public func fractionLength(_ fractionLength: DigitLength) -> Self {
+            var copy = self
+            copy.fractionLength = fractionLength
+            return copy
+        }
+        
+        /**
+         The locale to use for formatting.
+         
+         The default value is `autoupdatingCurrent`.
+         */
+        public var locale: Locale {
+            get { style.locale }
+            set { style.locale = newValue }
+        }
+        
+        /**
+         Sets the locale to use for formatting.
+         
+         The default value is `autoupdatingCurrent`.
+         */
+        @discardableResult
+        public func locale(_ locale: Locale) -> Self {
+            var copy = self
+            copy.locale = locale
+            return copy
+        }
+        
+        /// Returns an attributed string representation of the specified throughput.
+        public func format(_ value: DataSize) -> AttributedString {
+            style.formatter.attributedString(from: value)
+        }
+    }
+}
+
+public extension FormatStyle where Self == ThroughputFormatStyle.Attributed {
+    /// Returns a format style for formatting data throughput.
+    @_disfavoredOverload
+    static var throughput: Self { throughput() }
+    
+    /**
+     Returns a format style for formatting data throughput.
+     
+     - Parameters:
+       - units: The allowed units to use for formatting.
+       - countStyle: The style used for counting bytes.
+       - unitStyle: The style used for displaying units.
+       - includesCount: A Boolean value indicating whether the formatted value includes the count.
+       - includesUnit: A Boolean value indicating whether the formatted value includes the unit.
+       - fractionLength: The number of fractional digits to display.
+       - locale: The locale to use for formatting.
+     */
+    @_disfavoredOverload
+    static func throughput(units: ThroughputFormatStyle.Units = .all, countStyle: ThroughputFormatStyle.CountStyle = .file, unitStyle: ThroughputFormatStyle.UnitStyle = .short, includesCount: Bool = true, includesUnit: Bool = true, fractionLength: ThroughputFormatStyle.DigitLength = .range(1...6), locale: Locale = .autoupdatingCurrent) -> Self {
+        Self(units: units, countStyle: countStyle, unitStyle: unitStyle, includesCount: includesCount, includesUnit: includesUnit, fractionLength: fractionLength, locale: locale)
     }
 }

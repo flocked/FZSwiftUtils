@@ -668,48 +668,47 @@ extension OrderedSet: CVarArg {
 }
 
 // MARK: - Objective-C bridging
-
 extension OrderedSet: _ObjectiveCBridgeable {
-    public func _bridgeToObjectiveC() -> _OrderedSet<Element> {
+    public func _bridgeToObjectiveC() -> _OrderedSet {
         _OrderedSet(self)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: _OrderedSet<Element>, result: inout Self?) {
+    public static func _forceBridgeFromObjectiveC(_ source: _OrderedSet, result: inout Self?) {
         result = source.value
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: _OrderedSet<Element>, result: inout Self?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _OrderedSet, result: inout Self?) -> Bool {
         result = source.value
         return true
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: _OrderedSet<Element>?) -> Self {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _OrderedSet?) -> Self {
         guard let source else { return Self() }
         var result: Self?
         _forceBridgeFromObjectiveC(source, result: &result)
         return result!
     }
-}
 
 /// The Objective-C class for ``OrderedSet``.
-public final class _OrderedSet<Element: Hashable>: NSObject, NSCopying {
-    let value: OrderedSet<Element>
-
-    init(_ value: OrderedSet<Element>) {
-        self.value = value
-    }
-
-    public func copy(with zone: NSZone? = nil) -> Any {
-        self
-    }
-
-    public override func isEqual(_ object: Any?) -> Bool {
-        guard let other = object as? Self else { return false }
-        return self === other || value == other.value
-    }
-
-    public override var hash: Int {
-        value.hashValue
+    public final class _OrderedSet: NSObject, NSCopying {
+        let value: OrderedSet
+        
+        init(_ value: OrderedSet) {
+            self.value = value
+        }
+        
+        public func copy(with zone: NSZone? = nil) -> Any {
+            self
+        }
+        
+        public override func isEqual(_ object: Any?) -> Bool {
+            guard let other = object as? Self else { return false }
+            return self === other || value == other.value
+        }
+        
+        public override var hash: Int {
+            value.hashValue
+        }
     }
 }
 

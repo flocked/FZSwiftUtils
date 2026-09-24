@@ -68,10 +68,10 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
         }
     }
 
-    private init<S: Sequence>(uniqueKeysWithValues keysAndValues: S, minimumCapacity: Int? = nil) where S.Element == Element {
+    private init<S: Sequence>(uniqueKeysWithValues keysAndValues: S, minimumCapacity: Int? = nil, checkKeys: Bool = true) where S.Element == Element {
         self.init(minimumCapacity: minimumCapacity ?? keysAndValues.underestimatedCount)
         for (key, value) in keysAndValues {
-            precondition(!orderedKeys.contains(key), "[OrderedDictionary] Sequence contains duplicate key (\(key))")
+            precondition(!checkKeys || !orderedKeys.contains(key), "[OrderedDictionary] Sequence contains duplicate key (\(key))")
             orderedKeys.append(key)
             orderedValues.append(value)
         }
@@ -120,9 +120,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
             precondition(indices.contains(index), "[OrderedDictionary] Index is out of bounds")
             return (orderedKeys[index], orderedValues[index])
         }
-        set {
-            update(newValue, at: index)
-        }
+        set { update(newValue, at: index) }
     }
 
     /// The keys in their stored order.
@@ -451,38 +449,30 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
         try OrderedDictionary<Key, T>(keys: orderedKeys, values: ContiguousArray(orderedValues.map(transform)))
     }
 
-    /// Returns an ordered dictionary by transforming each value and discarding nil results.
+    /// Returns an ordered dictionary by transforming each value and discarding `nil` results.
     public func compactMapValues<T>(_ transform: (Value) throws -> T?) rethrows -> OrderedDictionary<Key, T> {
         try OrderedDictionary<Key, T>(uniqueKeysWithValues: compactMap {
             guard let value = try transform($0.value) else { return nil }
             return ($0.key, value)
-        })
+        }, checkKeys: false)
     }
 
     /// Returns an ordered dictionary by transforming each key.
-    public func mapKeys<T: Hashable>(_ transform: (Key) throws -> T) rethrows -> OrderedDictionary<T, Value> {
-        try OrderedDictionary<T, Value>(uniqueKeysWithValues: map { (try transform($0.key), $0.value) })
+    public func mapKeys<T: Hashable>(_ transform: (Key) throws -> T, retainLastOccurrences: Bool = false) rethrows -> OrderedDictionary<T, Value> {
+        try mapKeys(transform) { first, last in retainLastOccurrences ? last : first }
     }
 
-    /// Returns an ordered dictionary by transforming each key and combining duplicate transformed keys.
+    /// Returns an ordered dictionary by transforming each key and combining values for duplicate transformed keys.
     public func mapKeys<T: Hashable>(_ transform: (Key) throws -> T, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> OrderedDictionary<T, Value> {
         try OrderedDictionary<T, Value>(map { (try transform($0.key), $0.value) }, uniquingKeysWith: combine)
     }
 
-    /// Returns an ordered dictionary by transforming each key, choosing either first or last values for duplicate transformed keys.
-    public func mapKeys<T: Hashable>(_ transform: (Key) throws -> T, retainLastOccurrences: Bool) rethrows -> OrderedDictionary<T, Value> {
-        try mapKeys(transform) { first, last in retainLastOccurrences ? last : first }
+    /// Returns an ordered dictionary by transforming each key and resolving duplicate transformed keys using the specified strategy.
+    public func mapKeys<T: Hashable>(_ transform: (Key) throws -> T, uniquingKeysWith strategy: [T: Value].MergeStrategy) throws -> OrderedDictionary<T, Value> {
+        try OrderedDictionary<T, Value>(map { (try transform($0.key), $0.value) }, uniquingKeysWith: strategy.handler)
     }
 
-    /// Returns an ordered dictionary by transforming each key and discarding nil transformed keys.
-    public func compactMapKeys<T: Hashable>(_ transform: (Key) throws -> T?) rethrows -> OrderedDictionary<T, Value> {
-        try OrderedDictionary<T, Value>(uniqueKeysWithValues: compactMap {
-            guard let key = try transform($0.key) else { return nil }
-            return (key, $0.value)
-        })
-    }
-
-    /// Returns an ordered dictionary by transforming each key, discarding nil transformed keys, and combining duplicates.
+    /// Returns an ordered dictionary by transforming each key, discarding `nil` transformed keys, and combining values for duplicates.
     public func compactMapKeys<T: Hashable>(_ transform: (Key) throws -> T?, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> OrderedDictionary<T, Value> {
         try OrderedDictionary<T, Value>(compactMap {
             guard let key = try transform($0.key) else { return nil }
@@ -490,18 +480,20 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
         }, uniquingKeysWith: combine)
     }
 
-    /// Returns an ordered dictionary by transforming each key, discarding nil transformed keys, and choosing either first or last values for duplicates.
-    public func compactMapKeys<T: Hashable>(_ transform: (Key) throws -> T?, retainLastOccurrences: Bool) rethrows -> OrderedDictionary<T, Value> {
+    /// Returns an ordered dictionary by transforming each key, discarding `nil` transformed keys, and resolving duplicates using the specified strategy.
+    public func compactMapKeys<T: Hashable>(_ transform: (Key) throws -> T?, uniquingKeysWith strategy: [T: Value].MergeStrategy) throws -> OrderedDictionary<T, Value> {
+        try compactMapKeys(transform, uniquingKeysWith: strategy.handler)
+    }
+
+    /// Returns an ordered dictionary by transforming each key and discarding `nil` transformed keys.
+    public func compactMapKeys<T: Hashable>(_ transform: (Key) throws -> T?, retainLastOccurrences: Bool = false) rethrows -> OrderedDictionary<T, Value> {
         try compactMapKeys(transform) { first, last in retainLastOccurrences ? last : first }
     }
 
     /// Returns an ordered dictionary containing the key-value pairs that satisfy the specified predicate.
     public func filter(_ isIncluded: (Element) throws -> Bool) rethrows -> Self {
         let elements = try compactMap { try isIncluded($0) ? $0 : nil }
-        return Self(
-            keys: OrderedSet(uncheckedUniqueElements: elements.map(\.key)),
-            values: ContiguousArray(elements.map(\.value))
-        )
+        return Self(keys: OrderedSet(uncheckedUniqueElements: elements.map(\.key)), values: ContiguousArray(elements.map(\.value)))
     }
 
     /// Returns a new ordered dictionary by merging another dictionary into this one.
@@ -522,7 +514,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     public mutating func merge(_ other: [Key: Value], strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
         for (key, newValue) in other {
             if let oldValue = self[key] {
-                self[key] = strategy.handler(oldValue, newValue)
+                self[key] = (try? strategy.handler(oldValue, newValue)) ?? newValue
             } else {
                 self[key] = newValue
             }
@@ -533,7 +525,7 @@ public struct OrderedDictionary<Key: Hashable, Value>: RandomAccessCollection, M
     public mutating func merge(_ other: Self, strategy: Dictionary<Key, Value>.MergeStrategy = .overwrite) {
         for (key, newValue) in other {
             if let oldValue = self[key] {
-                self[key] = strategy.handler(oldValue, newValue)
+                self[key] = (try? strategy.handler(oldValue, newValue)) ?? newValue
             } else {
                 self[key] = newValue
             }
@@ -582,14 +574,6 @@ extension OrderedDictionary: Decodable where Key: Decodable, Value: Decodable {
         }
     }
 }
-
-private struct KeyValuePair<Key, Value> {
-    let key: Key
-    let value: Value
-}
-
-extension KeyValuePair: Encodable where Key: Encodable, Value: Encodable {}
-extension KeyValuePair: Decodable where Key: Decodable, Value: Decodable {}
 
 extension OrderedDictionary: CustomStringConvertible, CustomDebugStringConvertible, CustomReflectable {
     /// A textual representation of the ordered dictionary.
@@ -823,37 +807,37 @@ private func _arrayDescription<C: Collection>(for elements: C) -> String {
 }
 
 extension OrderedDictionary: _ObjectiveCBridgeable {
-    public func _bridgeToObjectiveC() -> _OrderedDictionary<Key, Value> {
+    public func _bridgeToObjectiveC() -> _OrderedDictionary {
         _OrderedDictionary(self)
     }
 
-    public static func _forceBridgeFromObjectiveC(_ source: _OrderedDictionary<Key, Value>, result: inout Self?) {
+    public static func _forceBridgeFromObjectiveC(_ source: _OrderedDictionary, result: inout Self?) {
         result = source.value
     }
 
-    public static func _conditionallyBridgeFromObjectiveC(_ source: _OrderedDictionary<Key, Value>, result: inout Self?) -> Bool {
+    public static func _conditionallyBridgeFromObjectiveC(_ source: _OrderedDictionary, result: inout Self?) -> Bool {
         result = source.value
         return true
     }
 
-    public static func _unconditionallyBridgeFromObjectiveC(_ source: _OrderedDictionary<Key, Value>?) -> Self {
+    public static func _unconditionallyBridgeFromObjectiveC(_ source: _OrderedDictionary?) -> Self {
         guard let source else { return Self() }
         var result: Self?
         _forceBridgeFromObjectiveC(source, result: &result)
         return result!
     }
-}
 
-/// The Objective-C class for ``OrderedDictionary``.
-public final class _OrderedDictionary<Key: Hashable, Value>: NSObject, NSCopying {
-    let value: OrderedDictionary<Key, Value>
-
-    init(_ value: OrderedDictionary<Key, Value>) {
-        self.value = value
-    }
-
-    public func copy(with zone: NSZone? = nil) -> Any {
-        self
+    /// The Objective-C class for ``OrderedDictionary``.
+    public final class _OrderedDictionary: NSObject, NSCopying {
+        let value: OrderedDictionary
+        
+        init(_ value: OrderedDictionary) {
+            self.value = value
+        }
+        
+        public func copy(with zone: NSZone? = nil) -> Any {
+            self
+        }
     }
 }
 

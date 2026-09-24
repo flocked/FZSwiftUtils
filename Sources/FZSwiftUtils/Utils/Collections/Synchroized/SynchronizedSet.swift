@@ -12,19 +12,23 @@ import Foundation
 
 /// A thread-safe, synchronized set.
 public final class SynchronizedSet<Element: Hashable>: Collection, ExpressibleByArrayLiteral {
-    private let queue = DispatchQueue(label: "com.FZSwiftUtils.SynchronizedSet", attributes: .concurrent)
-    private var storage: Set<Element>
+    private let storage: SynchronizedStorage<Set<Element>>
     
     public typealias Index = Set<Element>.Index
 
     /// Creates a new, empty synchronized set.
     public required init() {
-        storage = []
+        storage = SynchronizedStorage([])
+    }
+
+    /// Creates a new, empty synchronized set using the specified synchronization mechanism.
+    public init(usingMutex: Bool = false) {
+        storage = SynchronizedStorage([], usingMutex: usingMutex)
     }
     
     /// Creates a synchronized set from the specified set.
-    public init(_ set: Set<Element>) {
-        storage = set
+    public init(_ set: Set<Element>, usingMutex: Bool = false) {
+        storage = SynchronizedStorage(set, usingMutex: usingMutex)
     }
     
     /**
@@ -33,7 +37,12 @@ public final class SynchronizedSet<Element: Hashable>: Collection, ExpressibleBy
      - Parameter elements: The sequence of elements to turn into an set.
      */
     public required init<S>(_ elements: S) where S : Sequence<Element> {
-        storage = .init(elements)
+        storage = SynchronizedStorage(Set(elements))
+    }
+
+    /// Creates a synchronized set containing the elements of a sequence using the specified synchronization mechanism.
+    public init<S>(_ elements: S, usingMutex: Bool) where S: Sequence<Element> {
+        storage = SynchronizedStorage(Set(elements), usingMutex: usingMutex)
     }
 
     /**
@@ -42,271 +51,261 @@ public final class SynchronizedSet<Element: Hashable>: Collection, ExpressibleBy
      - Parameter elements: The elements to turn into an set.
      */
     public required init(arrayLiteral elements: Element...) {
-        storage = .init(elements)
+        storage = SynchronizedStorage(Set(elements))
     }
     
     public required init(from decoder: Decoder) throws where Element: Decodable {
-        storage = try .init(from: decoder)
+        storage = SynchronizedStorage(try Set(from: decoder))
     }
 }
 
 public extension SynchronizedSet {
-    /// Returns the set synchronious.
+    /// Returns the set synchronously. Access is synchronized for both reads and writes.
     var synchronized: Set<Element> {
-        get { queue.sync { self.storage } }
-        set { queue.async(flags: .barrier) { [weak self] in self?.storage = newValue } }
+        get { storage.read { $0 } }
+        set { storage.write { $0 = newValue } }
     }
     
-    func edit(_ edit: @escaping (inout Set<Element>) -> Void) {
-        queue.async(flags: .barrier) { edit(&self.storage) }
+    func edit(_ edit: (inout Set<Element>) throws -> Void) rethrows {
+        try storage.write(edit)
     }
     
     func index(_ i: Index, offsetBy distance: Int) -> Index {
-        queue.sync { self.storage.index(i, offsetBy: distance) }
+        storage.read { $0.index(i, offsetBy: distance) }
     }
     
     func index(_ i: Index, offsetBy distance: Int, limitedBy limit: Index) -> Index? {
-        queue.sync { self.storage.index(i, offsetBy: distance, limitedBy: limit) }
+        storage.read { $0.index(i, offsetBy: distance, limitedBy: limit) }
     }
     
     func formIndex(after i: inout Index) {
-        queue.sync { self.storage.formIndex(after: &i) }
+        storage.read { $0.formIndex(after: &i) }
     }
     
     func distance(from start: Index, to end: Index) -> Int {
-        queue.sync { self.storage.distance(from: start, to: end) }
+        storage.read { $0.distance(from: start, to: end) }
     }
     
     func index(after i: Index) -> Index {
-        queue.sync { self.storage.index(after: i) }
+        storage.read { $0.index(after: i) }
     }
     
     var startIndex: Index {
-        queue.sync { self.storage.startIndex }
+        storage.read { $0.startIndex }
     }
     
     var endIndex: Index {
-        queue.sync { self.storage.endIndex }
+        storage.read { $0.endIndex }
     }
     
     var count: Int {
-        queue.sync { self.storage.count }
+        storage.read { $0.count }
     }
     
     func firstIndex(of element: Element) -> Index? where Element: Equatable {
-        queue.sync { self.storage.firstIndex(of: element) }
+        storage.read { $0.firstIndex(of: element) }
     }
     
     func firstIndex(where predicate: (Element) throws -> Bool) rethrows -> Index? {
-        try queue.sync { try self.storage.firstIndex(where: predicate) }
+        try storage.read { try $0.firstIndex(where: predicate) }
     }
     
     var first: Element? {
-        queue.sync { self.storage.first }
+        storage.read { $0.first }
     }
     
     var isEmpty: Bool {
-        queue.sync { self.storage.isEmpty }
+        storage.read { $0.isEmpty }
     }
     
     subscript(index: Index) -> Element {
-        get { queue.sync { self.storage[index] } }
+        get { storage.read { $0[index] } }
     }
     
     func contains(_ member: Element) -> Bool {
-        queue.sync { self.storage.contains(member) }
+        storage.read { $0.contains(member) }
     }
     
     func contains(where predicate: (Element) throws -> Bool) rethrows -> Bool {
-        try queue.sync { try self.storage.contains(where: predicate) }
+        try storage.read { try $0.contains(where: predicate) }
     }
     
     func contains<S: Sequence<Element>>(any members: S) -> Bool {
-        queue.sync { self.storage.contains(any: members) }
+        storage.read { $0.contains(any: members) }
     }
     
     func contains<S: Sequence<Element>>(all members: S) -> Bool {
-        queue.sync { self.storage.contains(all: members) }
+        storage.read { $0.contains(all: members) }
     }
     
     func insert(_ element: Element) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.insert(element) }
+        storage.write { _ = $0.insert(element) }
     }
     
     @_disfavoredOverload
     func insert(_ element: Element, completion: ((_ inserted: Bool, _ memberAfterInsert: Element) -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            let insert = self.storage.insert(element)
+        storage.write {
+            let insert = $0.insert(element)
             DispatchQueue.main.async { completion?(insert.inserted, insert.memberAfterInsert) }
         }
     }
     
     func insert<S: Sequence<Element>>(_ elements: S) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.insert(elements) }
+        storage.write { $0.insert(elements) }
     }
     
     @_disfavoredOverload
     func insert<S: Sequence<Element>>(_ elements: S, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.storage.insert(elements)
+        storage.write {
+            $0.insert(elements)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func remove(_ element: Element) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.remove(element) }
+        storage.write { _ = $0.remove(element) }
     }
     
     @_disfavoredOverload
     func remove(_ element: Element, completion: ((Element?) -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            let removed = self.storage.remove(element)
+        storage.write {
+            let removed = $0.remove(element)
             DispatchQueue.main.async { completion?(removed) }
         }
     }
     
     func remove<S: Sequence<Element>>(_ elements: S) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.remove(elements) }
+        storage.write { $0.remove(elements) }
     }
     
     @_disfavoredOverload
     func remove<S: Sequence<Element>>(_ elements: S, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.storage.remove(elements)
+        storage.write {
+            $0.remove(elements)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func removeAll() {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.removeAll() }
+        storage.write { $0.removeAll() }
     }
     
     func removeAll(where shouldBeRemoved: @escaping (Element) throws -> Bool) rethrows {
-        queue.async(flags: .barrier) { [weak self] in  _ = try? self?.storage.removeAll(where: shouldBeRemoved) }
+        storage.write {  _ = try? $0.removeAll(where: shouldBeRemoved) }
     }
     
     @_disfavoredOverload
     func removeAll(where shouldBeRemoved: @escaping (Element) throws -> Bool, completion: (() -> ())? = nil) rethrows {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            _ = try? self.storage.removeAll(where: shouldBeRemoved)
+        storage.write {
+            _ = try? $0.removeAll(where: shouldBeRemoved)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func union(_ other: Set<Element>) -> Set<Element> {
-        queue.sync { Set(storage.union(other)) }
+        storage.read { Set($0.union(other)) }
     }
     
     func formUnion(_ other: Set<Element>) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.formUnion(other) }
+        storage.write { $0.formUnion(other) }
     }
     
     @_disfavoredOverload
     func formUnion(_ other: Set<Element>, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.storage.formUnion(other)
+        storage.write {
+            $0.formUnion(other)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func intersection(_ other: Set<Element>) -> Set<Element> {
-        queue.sync { Set(storage.intersection(other)) }
+        storage.read { Set($0.intersection(other)) }
     }
     
     func formIntersection(_ other: Set<Element>) {
-        queue.async(flags: .barrier) { [weak self] in  self?.storage.formIntersection(other) }
+        storage.write {  $0.formIntersection(other) }
     }
     
     @_disfavoredOverload
     func formIntersection(_ other: Set<Element>, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.storage.formIntersection(other)
+        storage.write {
+            $0.formIntersection(other)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func symmetricDifference(_ other: Set<Element>) -> Set<Element> {
-        queue.sync { Set(storage.symmetricDifference(other)) }
+        storage.read { Set($0.symmetricDifference(other)) }
     }
     
     func formSymmetricDifference(_ other: Set<Element>) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.formSymmetricDifference(other) }
+        storage.write { $0.formSymmetricDifference(other) }
     }
     
     @_disfavoredOverload
     func formSymmetricDifference(_ other: Set<Element>, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.storage.formSymmetricDifference(other)
+        storage.write {
+            $0.formSymmetricDifference(other)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func subtracting(_ other: Set<Element>) -> Set<Element> {
-        queue.sync { Set(storage.subtracting(other)) }
+        storage.read { Set($0.subtracting(other)) }
     }
     
     func subtract(_ other: Set<Element>) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.subtract(other) }
+        storage.write { $0.subtract(other) }
     }
     
     @_disfavoredOverload
     func subtract(_ other: Set<Element>, completion: (() -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            self.storage.subtract(other)
+        storage.write {
+            $0.subtract(other)
             DispatchQueue.main.async { completion?() }
         }
     }
     
     func isSubset(of other: Set<Element>) -> Bool {
-        queue.sync { storage.isSubset(of: other) }
+        storage.read { $0.isSubset(of: other) }
     }
     
     func isSuperset(of other: Set<Element>) -> Bool {
-        queue.sync { storage.isSuperset(of: other) }
+        storage.read { $0.isSuperset(of: other) }
     }
     
     func isStrictSubset(of other: Set<Element>) -> Bool {
-        queue.sync { storage.isStrictSubset(of: other) }
+        storage.read { $0.isStrictSubset(of: other) }
     }
     
     func isStrictSuperset(of other: Set<Element>) -> Bool {
-        queue.sync { storage.isStrictSuperset(of: other) }
+        storage.read { $0.isStrictSuperset(of: other) }
     }
     
     func isDisjoint(with other: Set<Element>) -> Bool {
-        queue.sync { storage.isDisjoint(with: other) }
+        storage.read { $0.isDisjoint(with: other) }
     }
     
     func update(with newMember: Element) {
-        queue.async(flags: .barrier) { [weak self] in self?.storage.update(with: newMember) }
+        storage.write { _ = $0.update(with: newMember) }
     }
     
     @_disfavoredOverload
     func update(with newMember: Element, completion: ((Element?) -> ())? = nil) {
-        queue.async(flags: .barrier) { [weak self] in
-            guard let self = self else { return }
-            let update = self.storage.update(with: newMember)
+        storage.write {
+            let update = $0.update(with: newMember)
             DispatchQueue.main.async { completion?(update) }
         }
     }
     
     subscript(_ element: Element) -> Bool {
-        get { queue.sync { storage.contains(element) } }
+        get { storage.read { $0.contains(element) } }
         set {
-            queue.async(flags: .barrier) { [weak self] in
+            storage.write { set in
                 if newValue {
-                    self?.insert(element)
+                    set.insert(element)
                 } else {
-                    self?.remove(element)
+                    set.remove(element)
                 }
             }
         }
@@ -345,7 +344,7 @@ public extension SynchronizedSet {
      - Returns: The first element of the sequence that satisfies predicate, or `nil` if there is no element that satisfies predicate.
      */
     func first(where predicate: (Element) -> Bool) -> Element? {
-        queue.sync { self.storage.first(where: predicate) }
+        storage.read { $0.first(where: predicate) }
     }
 
     /**
@@ -355,7 +354,7 @@ public extension SynchronizedSet {
      - Returns: A set of the elements that includeElement allowed.
      */
     func filter(_ isIncluded: @escaping (Element) -> Bool) -> [Element] {
-        queue.sync { self.storage.filter(isIncluded) }
+        storage.read { $0.filter(isIncluded) }
     }
 
     /**
@@ -365,7 +364,7 @@ public extension SynchronizedSet {
      - Returns: The index of the first element for which predicate returns `true`. If no elements in the collection satisfy the given predicate, returns `nil`.
      */
     func firstIndex(where predicate: (Element) -> Bool) -> Index? {
-        queue.sync { self.storage.firstIndex(where: predicate) }
+        storage.read { $0.firstIndex(where: predicate) }
     }
 
     /**
@@ -375,21 +374,21 @@ public extension SynchronizedSet {
      - Returns: A sorted set of the collection’s elements.
      */
     func sorted(by areInIncreasingOrder: (Element, Element) -> Bool) -> [Element] {
-        queue.sync { self.storage.sorted(by: areInIncreasingOrder) }
+        storage.read { $0.sorted(by: areInIncreasingOrder) }
     }
 
     /**
      A set of the elements sorted by the given keypath.
      */
     func sorted<Value>(by keyPath: KeyPath<Element, Value>, _ order: SortOrder = .ascending) -> [Element] where Value : Comparable {
-        queue.sync { self.storage.sorted(by: keyPath, order) }
+        storage.read { $0.sorted(by: keyPath, order) }
     }
 
     /**
      A set of the elements sorted by the given keypath.
      */
     func sorted<Value>(by keyPath: KeyPath<Element, Value?>, _ order: SortOrder = .ascending) -> [Element] where Value : Comparable {
-        queue.sync { self.storage.sorted(by: keyPath, order) }
+        storage.read { $0.sorted(by: keyPath, order) }
     }
 
     /**
@@ -399,7 +398,7 @@ public extension SynchronizedSet {
      - Returns: A set of the non-`nil` results of calling transform with each element of the sequence.
      */
     func map<ElementOfResult>(_ transform: @escaping (Element) -> ElementOfResult) -> [ElementOfResult] {
-        queue.sync { self.storage.map(transform) }
+        storage.read { $0.map(transform) }
     }
 
     /**
@@ -409,7 +408,7 @@ public extension SynchronizedSet {
      - Returns: A set of the non-`nil` results of calling transform with each element of the sequence.
      */
     func compactMap<ElementOfResult>(_ transform: (Element) -> ElementOfResult?) -> [ElementOfResult] {
-        queue.sync { self.storage.compactMap(transform) }
+        storage.read { $0.compactMap(transform) }
     }
 
     /**
@@ -421,7 +420,7 @@ public extension SynchronizedSet {
      - Returns: The final accumulated value. If the sequence has no elements, the result is initialResult.
      */
     func reduce<ElementOfResult>(_ initialResult: ElementOfResult, _ nextPartialResult: @escaping (ElementOfResult, Element) -> ElementOfResult) -> ElementOfResult {
-        queue.sync { self.storage.reduce(initialResult, nextPartialResult) }
+        storage.read { $0.reduce(initialResult, nextPartialResult) }
     }
 
     /**
@@ -433,7 +432,7 @@ public extension SynchronizedSet {
      - Returns: The final accumulated value. If the sequence has no elements, the result is initialResult.
      */
     func reduce<ElementOfResult>(into initialResult: ElementOfResult, _ updateAccumulatingResult: @escaping (inout ElementOfResult, Element) -> Void) -> ElementOfResult {
-        queue.sync { self.storage.reduce(into: initialResult, updateAccumulatingResult) }
+        storage.read { $0.reduce(into: initialResult, updateAccumulatingResult) }
     }
 
     /**
@@ -442,7 +441,7 @@ public extension SynchronizedSet {
      - Parameter body: A closure that takes an element of the sequence as a parameter.
      */
     func forEach(_ body: (Element) -> Void) {
-        queue.sync { self.storage.forEach(body) }
+        storage.read { $0.forEach(body) }
     }
 
     /**
@@ -452,7 +451,7 @@ public extension SynchronizedSet {
      - Returns: true if the sequence contains an element that satisfies predicate; otherwise, false.
      */
     func contains(where predicate: (Element) -> Bool) -> Bool {
-        queue.sync { self.storage.contains(where: predicate) }
+        storage.read { $0.contains(where: predicate) }
     }
 
     /**
@@ -462,17 +461,17 @@ public extension SynchronizedSet {
      - Returns: true if the sequence contains only elements that satisfy predicate; otherwise, false.
      */
     func allSatisfy(_ predicate: (Element) -> Bool) -> Bool {
-        queue.sync { self.storage.allSatisfy(predicate) }
+        storage.read { $0.allSatisfy(predicate) }
     }
     
     /// Returns a sequence of pairs (n, x), where n represents a consecutive integer starting at zero and x represents an element of the sequence.
     func enumerated() -> EnumeratedSequence<Set<Element>> {
-        queue.sync { self.storage.enumerated() }
+        storage.read { $0.enumerated() }
     }
     
     func count<E>(where predicate: (Element) throws(E) -> Bool) throws(E) -> Int where E : Error {
         do {
-            return try queue.sync { try self.storage.count(where: predicate) }
+            return try storage.read { try $0.count(where: predicate) }
         } catch let error as E {
             throw error
         } catch {
@@ -482,20 +481,20 @@ public extension SynchronizedSet {
     
     /// Returns the elements of the sequence, shuffled.
     func shuffled() -> [Element] {
-        queue.sync {  self.storage.shuffled() }
+        storage.read {  $0.shuffled() }
     }
     
     /// Returns an set containing the elements of this set in reverse order.
     func reversed() -> [Element] {
-        queue.sync {  self.storage.reversed() }
+        storage.read {  $0.reversed() }
     }
     
     func randomElement() -> Element? {
-        queue.sync { self.storage.randomElement() }
+        storage.read { $0.randomElement() }
     }
 
     func randomElement<T>(using generator: inout T) -> Element? where T: RandomNumberGenerator {
-        queue.sync { self.storage.randomElement(using: &generator) }
+        storage.read { $0.randomElement(using: &generator) }
     }
     
     static func == (lhs: SynchronizedSet<Element>, rhs: SynchronizedSet<Element>) -> Bool {
@@ -506,23 +505,23 @@ public extension SynchronizedSet {
 public extension SynchronizedSet where Element: Comparable {
     /// Returns the elements of the sequence, sorted.
     func sorted() -> [Element] {
-        queue.sync {  self.storage.sorted() }
+        storage.read {  $0.sorted() }
     }
     
     func min() -> Element? {
-        queue.sync { self.storage.min() }
+        storage.read { $0.min() }
     }
     
     func min(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> Element? {
-        try queue.sync { try self.storage.min(by: areInIncreasingOrder)}
+        try storage.read { try $0.min(by: areInIncreasingOrder)}
     }
     
     func max() -> Element? {
-        queue.sync { self.storage.max() }
+        storage.read { $0.max() }
     }
     
     func max(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> Element? {
-        try queue.sync { try self.storage.max(by: areInIncreasingOrder)}
+        try storage.read { try $0.max(by: areInIncreasingOrder)}
     }
 }
 
@@ -563,7 +562,7 @@ extension SynchronizedSet: CVarArg {
 
 extension SynchronizedSet: _ObjectiveCBridgeable {
     public func _bridgeToObjectiveC() -> NSSet {
-        storage._bridgeToObjectiveC()
+        storage.read { $0._bridgeToObjectiveC() }
     }
 
     public static func _forceBridgeFromObjectiveC(_ source: NSSet, result: inout SynchronizedSet?) {

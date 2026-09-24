@@ -28,10 +28,7 @@ extension Progress {
 
     /// Updates the estimate time remaining and throughput.
     public func updateEstimatedTimeRemaining() {
-        eta.addSample(completedUnitCount)
-        throughput = isCancelled ? nil : isFinished ? 0 : Int(eta.samples.compactMap({$0.changed}).weightedAverage())
-        estimatedTimeRemaining = isCancelled ? nil : isFinished || throughput == 0 ? 0 : Double(totalUnitCount - completedUnitCount) / Double(throughput ?? 0)
-        
+        updateETA()
         eta.delayedUpdate?.cancel()
         if autoUpdateEstimatedTimeRemaining, !isFinished, !isCancelled, eta.count != eta.maxCount {
             eta.delayedUpdate = DispatchWorkItem { [weak self] in
@@ -40,6 +37,12 @@ extension Progress {
                 self.updateEstimatedTimeRemaining()
             }.perform(after: 4.0)
         }
+    }
+    
+    func updateETA() {
+        eta.addSample(completedUnitCount)
+        throughput = isCancelled ? nil : isFinished ? 0 : Int(eta.samples.map(\.changed).weightedAverage())
+        estimatedTimeRemaining = isCancelled ? nil : isFinished || throughput == 0 ? 0 : Double(totalUnitCount - completedUnitCount) / Double(throughput ?? 0)
     }
     
     /**
@@ -75,23 +78,33 @@ extension Progress {
                 eta.count = 0
                 eta.observations += observeChanges(for: \.isPaused) { [weak self] old, new in
                     guard let self = self else { return }
-                    self.eta.count = 0
-                    self.updateEstimatedTimeRemaining()
+                    self.scheduleEstimatedTimeRemainingUpdate()
                 }
                 eta.observations += observeChanges(for: \.isCancelled) { [weak self] old, new in
                     guard let self = self else { return }
-                    self.eta.count = 0
-                    self.updateEstimatedTimeRemaining()
+                    self.scheduleEstimatedTimeRemainingUpdate()
                 }
-                eta.observations += observeChanges(for: \.fractionCompleted, sendInitialValue: true) { [weak self] old, new in
+                eta.observations += observeChanges(for: \.completedUnitCount, sendInitialValue: true) { [weak self] old, new in
                     guard let self = self else { return }
-                    self.eta.count = 0
-                    self.updateEstimatedTimeRemaining()
+                    self.scheduleEstimatedTimeRemainingUpdate()
+                }
+                eta.observations += observeChanges(for: \.totalUnitCount) { [weak self] old, new in
+                    guard let self = self else { return }
+                    self.scheduleEstimatedTimeRemainingUpdate()
                 }
             } else {
                 eta.delayedUpdate?.cancel()
+                eta.throttler.cancel()
                 eta.observations = []
             }
+        }
+    }
+
+    private func scheduleEstimatedTimeRemainingUpdate() {
+        eta.throttler { [weak self] in
+            guard let self = self, self.autoUpdateEstimatedTimeRemaining else { return }
+            self.eta.count = 0
+            self.updateEstimatedTimeRemaining()
         }
     }
 
@@ -99,6 +112,16 @@ extension Progress {
     public var estimateTimeEvaluationTimeInterval: TimeInterval {
         get { eta.sampleEvaluationTimeInterval }
         set { eta.sampleEvaluationTimeInterval = newValue }
+    }
+    
+    /**
+     The minimum interval between automatic updates of the estimated time remaining and throughput.
+     
+     A shorter interval provides more responsive updates but may increase CPU usage.
+     */
+    public var estimatedTimeRemainingUpdateInterval: TimeDuration {
+        get { eta.throttler.interval }
+        set { eta.throttler.interval = newValue }
     }
     
     var eta: ETA {
@@ -111,11 +134,15 @@ extension Progress {
         let sampleLimit = 30
         var sampleEvaluationTimeInterval: TimeInterval = 30
         var delayedUpdate: DispatchWorkItem?
+        var throttler = Throttler(interval: .seconds(0.05), firesImmediately: true)
         var observations: [KeyValueObservation] = []
         var count = 0
         let maxCount = 30
         
         mutating func addSample(_ completed: Int64) {
+            if let last = samples.last, completed < last.completed {
+                samples.removeAll(keepingCapacity: true)
+            }
             samples += (Date(), completed, completed - (samples.last?.completed ?? completed))
             samples = samples.filter({ $0.date > Date(timeIntervalSinceNow: -sampleEvaluationTimeInterval) }).suffix(sampleLimit)
         }

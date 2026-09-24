@@ -11,7 +11,9 @@ import Foundation
 public final class Debouncer {
     
     /// The debounce interval.
-    public var delay: TimeDuration
+    public var delay: TimeDuration {
+        didSet { delay = delay.clamped(min: .zero) }
+    }
     
     /// The dispatch queue on which scheduled closures are executed.
     public let queue: DispatchQueue
@@ -40,6 +42,10 @@ public final class Debouncer {
      */
     public func debounce(_ action: @escaping () -> Void) {
         workItem?.cancel()
+        if delay == .zero {
+            action()
+            return
+        }
         workItem = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             action()

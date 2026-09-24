@@ -7,67 +7,22 @@
 
 import Foundation
 
-/// The differences between two dictionaries.
-public struct KeyValueDifference<Key: Hashable, Value: Equatable> {
-    /// The key-value pairs that were removed.
-    public let removed: [Key: Value]
-    /// The key-value pairs that were added.
-    public let added: [Key: Value]
-    /// The key-value pairs whose values changed.
-    public let changed: [Key: Change]
-    
-    /// The old and new values of a changed key-value pair.
-    public struct Change {
-        /// The previous value.
-        public let oldValue: Value
-        /// The new value.
-        public let newValue: Value
-        
-        public init(oldValue: Value, newValue: Value) {
-            self.oldValue = oldValue
-            self.newValue = newValue
+public extension Dictionary {    
+    /**
+     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
+     
+     - Parameters:
+        - values: A sequence of values to group into a dictionary.
+        - keyForValue: A closure that returns a potential key for each element in `values`.
+     */
+    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?) rethrows where Value == [S.Element], S: Sequence {
+        self = try values.reduce(into: [:]) {
+            if let key = try keyForValue($1) {
+                $0[key, default: []].append($1)
+            }
         }
     }
     
-    /// A Boolean value indicating whether no differences were found.
-    public var isEmpty: Bool {
-        removed.isEmpty && added.isEmpty && changed.isEmpty
-    }
-    
-    public init(removed: [Key: Value], added: [Key: Value], changed: [Key: Change]) {
-        self.removed = removed
-        self.added = added
-        self.changed = changed
-    }
-}
-
-extension KeyValueDifference.Change: Equatable where Value: Equatable {}
-extension KeyValueDifference.Change: Hashable where Value: Hashable {}
-extension KeyValueDifference.Change: Codable where Value: Codable {}
-extension KeyValueDifference.Change: Sendable where Value: Sendable {}
-
-extension KeyValueDifference: Equatable where Value: Equatable {}
-extension KeyValueDifference: Hashable where Value: Hashable {}
-extension KeyValueDifference: Codable where Key: Codable, Value: Codable {}
-extension KeyValueDifference: Sendable where Key: Sendable, Value: Sendable {}
-
-extension KeyValueDifference.Change: CustomStringConvertible {
-    public var description: String {
-        "\(oldValue) -> \(newValue)"
-    }
-}
-
-extension KeyValueDifference: CustomStringConvertible {
-    public var description: String {
-        """
-        removed: \(removed)
-        added: \(added)
-        changed: \(changed)
-        """
-    }
-}
-
-public extension Dictionary {
     /**
      Removes all key-value pairs that satisfy the given predicate.
 
@@ -148,17 +103,6 @@ public extension Dictionary {
     subscript(default key: Key) -> Value where Value: ExpressibleByDictionaryLiteral {
         get { self[key, default: [:]] }
         set { self[key] = newValue }
-    }
-    
-    /**
-     Initializes an ordered dictionary from a sequence of key-value pairs.
-
-     - Parameters:
-        - keysAndValues: A sequence of key-value pairs to use for the new ordered dictionary. Every key in `keysAndValues` must be unique.
-        - retainLastOccurrences: A Boolean value indicating whether if an key occurs more than once, only the last instance will be included.
-     */
-    init<S: Sequence>(_ keysAndValues: S, retainLastOccurrences: Bool = false) where S.Element == (Key, Value) {
-        self = Self(keysAndValues) { val1, val2 in retainLastOccurrences ? val2 : val1 }
     }
         
     /// Returns the values for the specified keys.
@@ -255,104 +199,6 @@ public extension Dictionary {
         let values = Set(values)
         return compactMap { values.contains($0.value) ? $0.key : nil }.sorted()
     }
-
-    /**
-     Transforms the keys of the dictionary using the given closure.
-
-     - Parameters:
-       - transform: The closure that transforms a key of the dictionary.
-       - retainLastOccurrences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
-     - Returns: A new dictionary with transformed keys and the same values.
-     */
-    func mapKeys<NewKey>(_ transform: (Key) throws -> NewKey, retainLastOccurrences: Bool = true) rethrows -> [NewKey: Value] {
-        try mapKeys(transform) { val1, val2 in retainLastOccurrences ? val2 : val1 }
-    }
-    
-    /**
-     Transforms the keys of the dictionary using the given closure, combining values for duplicate keys using the provided closure.
-
-     - Parameters:
-       - transform: The closure that transforms a key of the dictionary.
-       - combine: A closure that takes two values for a duplicate key and returns a single value.
-     - Returns: A new dictionary with transformed keys and combined values for duplicates.
-     */
-    func mapKeys<NewKey>(_ transform: (Key) throws -> NewKey, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [NewKey: Value] {
-        try .init(map { try (transform($0.key), $0.value) }, uniquingKeysWith: combine)
-    }
-    
-    /**
-     Transforms the keys of the dictionary using the given closure.
-
-     - Parameters:
-       - transform: The closure that transforms a key of the dictionary.
-       - retainLastOccurrences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
-     - Returns: A new dictionary with transformed keys and the same values.
-     */
-    func compactMapKeys<NewKey>(_ transform: (Key) throws -> NewKey?, retainLastOccurrences: Bool = true) rethrows -> [NewKey: Value] {
-        try compactMapKeys(transform) { val1, val2 in retainLastOccurrences ? val2 : val1 }
-    }
-    
-    /**
-     Transforms the keys of the dictionary using the given closure, discarding any keys that map to `nil` and combining values for duplicate keys.
-
-     - Parameters:
-       - transform: The closure that transforms a key of the dictionary.
-       - combine: A closure that takes two values for a duplicate key and returns a single value.
-     - Returns: A new dictionary with non-nil transformed keys and combined values for duplicates.
-     */
-    func compactMapKeys<NewKey>(_ transform: (Key) throws -> NewKey?, uniquingKeysWith combine: (Value, Value) throws -> Value) rethrows -> [NewKey: Value] {
-        return try .init(compactMap {
-            guard let key = try transform($0.key) else { return nil }
-            return (key, $0.value) }, uniquingKeysWith: combine)
-    }
-    
-    /**
-     Transforms both keys and values of the dictionary.
-
-     - Parameters:
-       - transform: The closure that transforms a key-value pair of the dictionary.
-       - retainLastOccurrences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
-     - Returns: A new dictionary with transformed keys and values.
-     */
-    func mapKeyValues<K, V>(_ transform: ((key: Key, value: Value)) throws -> ((K, V)), retainLastOccurrences: Bool = true) rethrows -> [K: V] {
-        try .init(map(transform), retainLastOccurrences: retainLastOccurrences)
-    }
-    
-    /**
-     Transforms both keys and values of the dictionary, combining values for duplicate keys using the provided closure.
-
-     - Parameters:
-       - transform: The closure that transforms a key-value pair of the dictionary.
-       - combine: A closure that takes two values for a duplicate key and returns a single value.
-     - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
-     */
-    func mapKeyValues<K, V>(_ transform: ((key: Key, value: Value)) throws -> ((K, V)), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K: V] {
-        try .init(map(transform), uniquingKeysWith: combine)
-    }
-    
-    /**
-     Transforms both keys and values of the dictionary.
-
-     - Parameters:
-       - transform: The closure that transforms a key-value pair of the dictionary.
-       - retainLastOccurrences: A Boolean value indicating whether to keep the last occurrence when duplicate keys are produced.
-     - Returns: A new dictionary with transformed keys and values.
-     */
-    func compactMapKeyValues<K, V>(_ transform: ((key: Key, value: Value)) throws -> ((K, V)?), retainLastOccurrences: Bool = true) rethrows -> [K: V] {
-        try .init(compactMap(transform), retainLastOccurrences: retainLastOccurrences)
-    }
-    
-    /**
-     Transforms both keys and values of the dictionary, combining values for duplicate keys using the provided closure.
-
-     - Parameters:
-       - transform: The closure that transforms a key-value pair of the dictionary.
-       - combine: A closure that takes two values for a duplicate key and returns a single value.
-     - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
-     */
-    func compactMapKeyValues<K, V>(_ transform: ((key: Key, value: Value)) throws -> ((K, V)?), uniquingKeysWith combine: (V, V) throws -> V) rethrows -> [K: V] {
-        try .init(compactMap(transform), uniquingKeysWith: combine)
-    }
     
     /**
      Sets the specified value for the keys.
@@ -385,21 +231,6 @@ public extension Dictionary {
         var copy = self
         keys.forEach({ copy.removeValue(forKey: $0) })
         return copy
-    }
-    
-    /**
-     Creates a new dictionary whose keys are the groupings returned by the given closure and whose values are arrays of the elements that returned each key.
-     
-     - Parameters:
-        - values: A sequence of values to group into a dictionary.
-        - keyForValue: A closure that returns a potential key for each element in `values`.
-     */
-    init<S>(grouping values: S, byNonNil keyForValue: (S.Element) throws -> Key?) rethrows where Value == [S.Element], S: Sequence {
-        self = try values.reduce(into: [:]) {
-            if let key = try keyForValue($1) {
-                $0[key, default: []].append($1)
-            }
-        }
     }
 
     /// Returns an array with the elements of the dictionary.
@@ -526,15 +357,15 @@ public extension Dictionary where Value: Collection {
 }
 
 public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable {
-    /// Returns the dictionary with non optional keys.
+    /// Returns the dictionary with non-optional keys.
     @_disfavoredOverload
     var nonNil: [Key.Wrapped: Value] {
-        compactMapKeys { $0.optional }
+        compactMapKeys( { $0.optional })
     }
 }
 
 public extension Dictionary where Value: OptionalProtocol {
-    /// Returns the dictionary with non optional values.
+    /// Returns the dictionary with non-optional values.
     @_disfavoredOverload
     var nonNil: [Key: Value.Wrapped] {
         compactMapValues { $0.optional }
@@ -542,37 +373,9 @@ public extension Dictionary where Value: OptionalProtocol {
 }
 
 public extension Dictionary where Key: OptionalProtocol, Key.Wrapped: Hashable, Value: OptionalProtocol {
-    /// Returns the dictionary with non optional keys and values
+    /// Returns the dictionary with non-optional keys and values.
     var nonNil: [Key.Wrapped: Value.Wrapped] {
         compactMapKeys { $0.optional }.compactMapValues { $0.optional }
-    }
-}
-
-public extension Dictionary where Value: Equatable {
-    /**
-     Returns the differences needed to transform this dictionary into the specified dictionary.
-
-     - Parameter other: The dictionary to compare against.
-     - Returns: The removed, added, and changed key-value pairs.
-     */
-    func difference(to other: Self) -> KeyValueDifference<Key, Value> {
-        var removed: [Key: Value] = [:]
-        var added: [Key: Value] = [:]
-        var changed: [Key: KeyValueDifference<Key, Value>.Change] = [:]
-
-        for (key, oldValue) in self {
-            guard let newValue = other[key] else {
-                removed[key] = oldValue
-                continue
-            }
-            if oldValue != newValue {
-                changed[key] = .init(oldValue: oldValue, newValue: newValue)
-            }
-        }
-        for (key, newValue) in other where self[key] == nil {
-            added[key] = newValue
-        }
-        return .init(removed: removed, added: added, changed: changed)
     }
 }
 
