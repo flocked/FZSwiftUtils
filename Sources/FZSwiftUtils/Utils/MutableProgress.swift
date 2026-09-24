@@ -17,7 +17,6 @@ open class MutableProgress: Progress, @unchecked Sendable {
     private let maxUpdateCount = 30
     private var delayedUpdate: DispatchWorkItem?
     
-    
     /// A Boolean value indicating whether cancelled children should be removed automatically.
     public var removesCancelledChildren = false
     

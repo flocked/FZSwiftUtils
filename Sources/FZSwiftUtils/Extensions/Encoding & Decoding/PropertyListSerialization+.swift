@@ -74,7 +74,7 @@ public extension PropertyListSerialization {
         - format: The property list format.
      - Returns: A data containing the property list in the format specified by format.
      */
-    static func data<T>(from value: T, format: PropertyListFormat) throws -> Data where T: PropertyListSerializable {
+    static func data<T>(from value: T, format: PropertyListFormat) throws -> Data where T: PropertyListValue {
         try data(fromPropertyList: value, format: format, options: 0)
     }
     
@@ -86,7 +86,7 @@ public extension PropertyListSerialization {
         - format: The property list format.
      - Returns: A data containing the property list in the format specified by format.
      */
-    static func data<T>(from type: T, format: PropertyListFormat) throws -> Data where T: RawRepresentable, T.RawValue: PropertyListSerializable {
+    static func data<T>(from type: T, format: PropertyListFormat) throws -> Data where T: RawRepresentable, T.RawValue: PropertyListValue {
         try data(fromPropertyList: type.rawValue, format: format, options: 0)
     }
      
@@ -99,7 +99,7 @@ public extension PropertyListSerialization {
      - Returns: A property list corresponding to the representation in data and the format of the property list.
      */
     @_disfavoredOverload
-    static func propertyList<T>(from data: Data) throws -> (propertyList: T, format: PropertyListFormat) where T: PropertyListSerializable {
+    static func propertyList<T>(from data: Data) throws -> (propertyList: T, format: PropertyListFormat) where T: PropertyListValue {
         var format = PropertyListFormat.binary
         let propertyList: Any = try propertyList(from: data, format: &format)
         guard let propertyList = propertyList as? T else {
@@ -120,28 +120,42 @@ public extension PropertyListSerialization {
     - `String`
     - `Data`
     - `Date`
-    - `Array` with elements conforming to ``PropertyListSerializable``.
-    - `Dictionary`: Supported if its `Key` is `String` and its `Value` type conforms to ``PropertyListSerializable``.
+    - `Array` with elements conforming to ``PropertyListValue``.
+    - `Dictionary`: Supported if its `Key` is `String` and its `Value` type conforms to ``PropertyListValue``.
  */
-public protocol PropertyListSerializable { }
-extension Int: PropertyListSerializable { }
-extension Int8: PropertyListSerializable { }
-extension Int16: PropertyListSerializable { }
-extension Int32: PropertyListSerializable { }
-extension Int64: PropertyListSerializable { }
-extension UInt: PropertyListSerializable { }
-extension UInt8: PropertyListSerializable { }
-extension UInt16: PropertyListSerializable { }
-extension UInt32: PropertyListSerializable { }
-extension UInt64: PropertyListSerializable { }
-extension Double: PropertyListSerializable { }
-extension Float: PropertyListSerializable { }
-extension Bool: PropertyListSerializable { }
-extension NSDate: PropertyListSerializable { }
-extension NSData: PropertyListSerializable { }
-extension NSNumber: PropertyListSerializable { }
-extension String: PropertyListSerializable { }
-extension Data: PropertyListSerializable { }
-extension Date: PropertyListSerializable { }
-extension Array: PropertyListSerializable where Element == (any PropertyListSerializable) { }
-extension Dictionary: PropertyListSerializable where Key == String, Value == (any PropertyListSerializable) { }
+public protocol PropertyListValue { }
+extension Int: PropertyListValue { }
+extension Int8: PropertyListValue { }
+extension Int16: PropertyListValue { }
+extension Int32: PropertyListValue { }
+extension Int64: PropertyListValue { }
+extension UInt: PropertyListValue { }
+extension UInt8: PropertyListValue { }
+extension UInt16: PropertyListValue { }
+extension UInt32: PropertyListValue { }
+extension UInt64: PropertyListValue { }
+extension Double: PropertyListValue { }
+extension Float: PropertyListValue { }
+extension Bool: PropertyListValue { }
+extension NSDate: PropertyListValue { }
+extension NSData: PropertyListValue { }
+extension NSNumber: PropertyListValue { }
+extension String: PropertyListValue { }
+extension Data: PropertyListValue { }
+extension Date: PropertyListValue { }
+extension Array: PropertyListValue where Element == (any PropertyListValue) { }
+extension Dictionary: PropertyListValue where Key == String, Value == (any PropertyListValue) { }
+
+/**
+ A collection type that can be converted from and to a property list using [PropertyListSerialization](https://developer.apple.com/documentation/foundation/propertylistserialization).
+ 
+ Only the following collection types are supported:
+ 
+    - `Array` with elements conforming to ``PropertyListValue``.
+    - `Set` with elements conforming to ``PropertyListValue``.
+    - `Dictionary`: Supported if its `Key` is `String` and its `Value` type conforms to ``PropertyListValue``.
+ */
+public protocol PropertyListCollection { }
+extension Array: PropertyListCollection where Element: PropertyListValue { }
+extension Dictionary: PropertyListCollection where Key == String, Value: PropertyListValue { }
+extension Set: PropertyListCollection where Element: PropertyListValue { }

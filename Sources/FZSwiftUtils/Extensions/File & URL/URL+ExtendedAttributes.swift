@@ -135,7 +135,7 @@ public extension URL {
         private func setPropertyList<T>(_ value: T?, for key: String, flags: Flags) throws {
             if let value = value {
                 guard PropertyListSerialization.propertyList(value, isValidFor: .binary) else {
-                    throw Errors.valueNotPropertyListSerializable(for: key, type: type(of: value))
+                    throw Errors.valueNotPropertyListValue(for: key, type: type(of: value))
                 }
                 try setData(PropertyListSerialization.data(fromPropertyList: value, format: .binary), for: key, flags: flags)
             } else {
@@ -342,7 +342,7 @@ public extension URL {
         
         private enum Errors: LocalizedError {
             case propertyListTypeMismatch(for: String, expected: Any.Type, actual: Any.Type)
-            case valueNotPropertyListSerializable(for: String, type: Any.Type)
+            case valueNotPropertyListValue(for: String, type: Any.Type)
 
             var errorDescription: String? {
                 switch self {
@@ -352,7 +352,7 @@ public extension URL {
                     \(String(reflecting: actual)), but a value of type \
                     \(String(reflecting: expected)) was expected.
                     """
-                case let .valueNotPropertyListSerializable(key, type):
+                case let .valueNotPropertyListValue(key, type):
                     """
                     The value of type \(String(reflecting: type)) for extended attribute \
                     "\(key)" cannot be serialized as a property list.
@@ -363,7 +363,7 @@ public extension URL {
                 switch self {
                 case .propertyListTypeMismatch:
                     "The stored property list value does not match the expected type."
-                case .valueNotPropertyListSerializable:
+                case .valueNotPropertyListValue:
                     "The value is not a supported property list type."
                 }
             }

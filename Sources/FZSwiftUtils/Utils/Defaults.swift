@@ -53,7 +53,7 @@ public final class Defaults {
     }
 
     /// The value for the specified property-list-serializable key.
-    public subscript<T: PropertyListSerializable>(key: String, as type: T.Type = T.self) -> T? {
+    public subscript<T: PropertyListValue>(key: String, as type: T.Type = T.self) -> T? {
         get { get(key) }
         set { set(newValue, for: key) }
     }
@@ -114,7 +114,7 @@ public final class Defaults {
     }
 
     /// The property-list-serializable value for the specified key.
-    public func get<Value: PropertyListSerializable>(_ key: String) -> Value? {
+    public func get<Value: PropertyListValue>(_ key: String) -> Value? {
         userDefaults.value(forKey: key) as? Value
     }
     
@@ -199,7 +199,7 @@ public final class Defaults {
     }
 
     /// Sets a property-list-serializable value for the specified key.
-    public func set<Value: PropertyListSerializable>(_ value: Value?, for key: String) {
+    public func set<Value: PropertyListValue>(_ value: Value?, for key: String) {
         if let value {
             let oldValue: Value? = get(key)
             userDefaults.set(value, forKey: key)
