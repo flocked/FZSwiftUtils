@@ -160,6 +160,18 @@ public extension NSObject {
 
     /// Returns the value of the instance variable with the specified name.
     func ivarValue<T>(named name: String, as type: T.Type = T.self, verifyType:  Bool = false) -> T? {
+        ivar(named: name, verifyType: verifyType)
+    }
+    
+    /// Returns the value of the instance variable with the specified name.
+    func ivarValue<T: RawRepresentable>(named name: String, as type: T.Type = T.self, verifyType:  Bool = false) -> T? {
+        if let rawValue: T.RawValue = ivar(named: name, verifyType: verifyType) {
+            return T(rawValue: rawValue)
+        }
+        return ivar(named: name, verifyType: verifyType)
+    }
+    
+    private func ivar<T>(named name: String, as type: T.Type = T.self, verifyType:  Bool = false) -> T? {
         guard let ivar = Self.instanceVariable(named: name), let info = ObjCIvarInfo(ivar) else { return nil }
         guard !verifyType || info.type?.matches(T.self) == true else { return nil }
 
@@ -366,31 +378,272 @@ public extension NSObject {
         let imp = method_getImplementation(method)
         return unsafeBitCast(imp, to: F.self)
     }
-    
+    /*
     /// All active key value (`KVO`) observances on this object.
     var kvoObservances: [KeyValueObservance] {
-        guard let observances: [NSObject] = observationInfo?.unretained(as: NSObject.self).value(forKey: "_observances") else { return [] }
-        return observances.compactMap({ KeyValueObservance($0) })
+        kvoObservationInfo?.kvoObservanceObjects.compactMap({ KeyValueObservance($0) }) ?? []
     }
     
     /// Represents a single key-value (`KVO`) observation on an object.
-    struct KeyValueObservance: CustomStringConvertible {
+    struct KeyValueObservance: CustomStringConvertible, Hashable {
         /// The object that observers the property.
         public let observer: NSObject
         /// The key path of the property being observed.
         public let keyPath: String
         /// The options of the observation.
         public let options: NSKeyValueObservingOptions
+                
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(keyPath)
+            hasher.combine(options.rawValue)
+            hasher.combine(observer.objectID)
+        }
+        
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.observer === rhs.observer && lhs.keyPath == rhs.keyPath && lhs.options == rhs.options
+        }
         
         public var description: String {
             "KeyValueObservance(observer: \(type(of: observer)), keyPath: \(keyPath), options: \(options))"
         }
 
-        init?(_ obj: NSObject) {
-            guard let obj = obj.value(forKeySafely: "_observer") as? NSObject else { return nil }
-            observer = obj
-            keyPath = (obj.value(forKeySafely: "property") as? NSObject)?.value(forKeyPath: "keyPath") ?? "unknown"
-            options = NSKeyValueObservingOptions(rawValue: obj.ivarValue(named: "_options") ?? 0)
+        init?(_ observance: NSObject) {
+            guard let object: NSObject = observance.value(forKey: "_observer"), let keyPath: String = value(forKeyPath: "property.keyPath") else { return nil }
+            self.observer = object
+            self.keyPath = keyPath
+            self.options = .init(rawValue: observance.ivarValue(named: "_options") ?? 0)
+        }
+    }
+    
+    var kvoObservers: [KVObserver] {
+        kvoObservances.grouped(by: \.observer.objectID).map({ KVObserver($0.value) })
+    }
+    
+    struct KVObserver: Hashable {
+        /// The object that observers the property.
+        public let observer: NSObject
+        /// The properties that the object observes.
+        public let observations: [Observation]
+        
+        init(_ observances: [KeyValueObservance]) {
+            self.observer = observances.first!.observer
+            self.observations = observances.map({ Observation($0.keyPath, $0.options) }).sorted(by: {
+                $0.keyPath != $1.keyPath ? $0.keyPath < $1.keyPath : $0.options.rawValue < $1.options.rawValue
+            })
+        }
+                
+        /// The property that an object observes.
+        public struct Observation: Hashable {
+            /// The key path of the property being observed.
+            public let keyPath: String
+            /// The options of the observation.
+            public let options: NSKeyValueObservingOptions
+            
+            init(_ keyPath: String, _ options: NSKeyValueObservingOptions) {
+                self.keyPath = keyPath
+                self.options = options
+            }
+        }
+        
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(observer.objectID)
+            hasher.combine(observations)
+        }
+        
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.observer === rhs.observer && lhs.observations == rhs.observations
+        }
+    }
+    
+    fileprivate var kvoObservationInfo: NSObject? {
+        observationInfo?.unretained(as: NSObject.self)
+    }
+    
+    fileprivate var kvoObservanceObjects: [NSObject] {
+        value(forKey: "_observances") ?? []
+    }
+    */
+}
+
+public extension NSObject {
+    /// All active key-value (`KVO`) observances on this object.
+    var kvoObservances: [KeyValueObservance] {
+        kvoObservationInfo?.kvoObservanceObjects.compactMap(KeyValueObservance.init) ?? []
+    }
+    
+    /**
+     Observes changes to the key-value (`KVO`) observances of the object.
+
+     Keep the returned observation alive for as long as you want to receive changes.
+
+     - Parameter handler: The handler to call when the key-value observances change.
+     - Returns: An observation that monitors changes to the key-value observances, or `nil` if observation couldn't be established.
+     */
+    func observeKVOObservances(handler: @escaping (_ change: KeyValueObservanceObservation.Change) -> Void) -> KeyValueObservanceObservation? {
+        KeyValueObservanceObservation(object: self, handler: handler)
+    }
+
+    /// Represents a key-value (`KVO`) observance on an object.
+    struct KeyValueObservance: CustomStringConvertible, Hashable {
+        /// The observer, if it is still alive.
+        public let observer: NSObject
+
+        /// The key path of the property being observed.
+        public let keyPath: String
+
+        /// The options of the observation.
+        public let options: NSKeyValueObservingOptions
+
+        public func hash(into hasher: inout Hasher) {
+            hasher.combine(observer.objectID)
+            hasher.combine(keyPath)
+            hasher.combine(options.rawValue)
+        }
+
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.observer === rhs.observer && lhs.keyPath == rhs.keyPath && lhs.options == rhs.options
+        }
+
+        public var description: String {
+            "KeyValueObservance(observer: \(type(of: observer)), keyPath: \(keyPath), options: \(options))"
+        }
+
+        init?(_ observance: NSObject) {
+            guard let observer: NSObject = observance.value(forKey: "_observer"), let keyPath: String = observance.value(forKeyPath: "property.keyPath") else { return nil }
+            self.observer = observer
+            self.keyPath = keyPath
+            self.options = .init(rawValue: observance.ivarValue(named: "_options") ?? 0)
+        }
+    }
+
+    fileprivate var kvoObservationInfo: NSObject? {
+        observationInfo?.unretained(as: NSObject.self)
+    }
+
+    fileprivate var kvoObservanceObjects: [NSObject] {
+        value(forKey: "_observances") ?? []
+    }
+}
+
+/**
+ An object that monitors changes to the key-value (`KVO`) observances of an object.
+ 
+ Keep the observation alive for as long as you want to receive changes.
+ */
+public final class KeyValueObservanceObservation: NSObject {
+    typealias Observance = Change.Observance
+    
+    private var context = 0
+    private weak var object: NSObject?
+    private var observances: [Observance] = []
+    private let handler: (_ change: Change) -> Void
+    private var deinitObservation: DeinitObservation?
+
+    private func processObservationInfo(_ info: NSObject) {
+        let observances = info.kvoObservanceObjects.compactMap(Observance.init).uniqued()
+        if observances != self.observances {
+            let change = Change(old: self.observances, new: observances)
+            self.observances = observances
+            handler(change)
+        }
+        deinitObservation = info.observeDeinit { [weak self] in
+            guard let info = self?.object?.kvoObservationInfo else { return }
+            self?.deinitObservation = nil
+            self?.processObservationInfo(info)
+        }
+    }
+
+    init?(object: NSObject, handler: @escaping (_ change: Change) -> Void) {
+        self.object = object
+        self.handler = handler
+        super.init()
+        object.addObserver(self, forKeyPath: "_KeyValueObservanceKey", options: [], context: &context)
+        guard let info = object.kvoObservationInfo else {
+            object.removeObserver(self, forKeyPath: "_KeyValueObservanceKey", context: &context)
+            return nil
+        }
+        processObservationInfo(info)
+    }
+
+    deinit {
+        object?.removeObserver(self, forKeyPath: "_KeyValueObservanceKey", context: &context)
+    }
+}
+
+extension KeyValueObservanceObservation {
+    public struct Change: Hashable, CustomStringConvertible {
+        /// The previous observances, in the order they were added.
+        public let old: [Observance]
+
+        /// The current observances, in the order they were added.
+        public let new: [Observance]
+
+        /// The key paths currently being observed, in observation order.
+        public var keyPaths: [String] {
+            new.map(\.keyPath).uniqued()
+        }
+
+        /// The currently active observers that are observing the object, in observation order.
+        public var observers: [NSObject] {
+            new.uniqued(by: \.observerID).compactMap(\.observer)
+        }
+
+        /// The observances that were added.
+        public var added: [Observance] {
+            new.filter { !old.contains($0) }
+        }
+
+        /// The observances that were removed.
+        public var removed: [Observance] {
+            old.filter { !new.contains($0) }
+        }
+        
+        public var description: String {
+            "KeyValueObservanceChange(old: \(old), new: \(new))"
+        }
+
+        /// Represents a key-value (`KVO`) observance.
+        public struct Observance: CustomStringConvertible, Hashable {
+            /// The observer, if it is still alive.
+            public weak var observer: NSObject?
+
+            /// The identifier of the observer.
+            public let observerID: ObjectIdentifier
+
+            /// The key path of the property being observed.
+            public let keyPath: String
+
+            /// The options of the observation.
+            public let options: NSKeyValueObservingOptions
+
+            public func hash(into hasher: inout Hasher) {
+                hasher.combine(observerID)
+                hasher.combine(keyPath)
+                hasher.combine(options.rawValue)
+            }
+
+            public static func == (lhs: Self, rhs: Self) -> Bool {
+                lhs.observerID == rhs.observerID && lhs.keyPath == rhs.keyPath && lhs.options == rhs.options
+            }
+
+            public var description: String {
+                "Observance(observer: \(observer.map { String(describing: type(of: $0)) } ?? "nil"), keyPath: \(keyPath), options: \(options))"
+            }
+            
+            init(_ observer: NSObject, _ keyPath: String, _ options: NSKeyValueObservingOptions) {
+                self.observer = observer
+                self.observerID = observer.objectID
+                self.keyPath = keyPath
+                self.options = options
+            }
+
+            init?(_ observance: NSObject) {
+                guard let observer: NSObject = observance.value(forKey: "_observer"), let keyPath: String = observance.value(forKeyPath: "property.keyPath"), keyPath != "_KeyValueObservanceKey" else { return nil }
+                self.observer = observer
+                self.observerID = observer.objectID
+                self.keyPath = keyPath
+                self.options = .init(rawValue: observance.ivarValue(named: "_options") ?? 0)
+            }
         }
     }
 }
@@ -554,83 +807,52 @@ private extension NSObject {
     }
 }
 
+
+extension NSKeyValueObservingOptions: Swift.Equatable, Swift.Hashable { }
+
 /*
-public extension NSObject {
-    func bitfieldValueAlt<T>(for name: String, type: T.Type = T.self) -> T? {
-        guard let ivar = Self.instanceVariable(named: name) else { return nil }
-        return bitfieldValueAlt(for: ivar)
-    }
+ fileprivate extension Array where Element == KeyValueObservanceObservation.Observance {
+     var observers: [NSObject] {
+         uniqued(by: \.observerID).compactMap(\.observer)
+     }
+     
+     var keyPaths: [String] {
+         map(\.keyPath).uniqued()
+     }
+ }
 
-    func bitfieldValueAlt<T>(for ivar: Ivar, type: T.Type = T.self) -> T? {
-        guard let info = bitfieldInfoAlt(for: ivar) else { return nil }
-        
-        let basePtr = Unmanaged.passUnretained(self).toOpaque().advanced(by: info.byteOffset)
-        
-        // Load the storage bytes into a 64-bit container safely
-        var container: UInt64 = 0
-        withUnsafeMutableBytes(of: &container) { buffer in
-            buffer.copyMemory(from: UnsafeRawBufferPointer(start: basePtr, count: info.storageBytes))
-        }
-        let mask: UInt64 = (info.width >= 64) ? .max : (1 << UInt64(info.width)) - 1
-        let extracted = (container >> UInt64(info.bitOffset)) & mask
-        return Self.fromUInt64(extracted, width: info.width)
-    }
-    
-    func setBitfieldValueAlt(_ value: Any, for name: String) {
-        guard let ivar = Self.instanceVariable(named: name) else { return }
-        setBitfieldValueAlt(value, for: ivar)
-    }
+ fileprivate struct WeakObject: Hashable {
+     weak var object: NSObject?
+     let objectID: ObjectIdentifier
+     
+     func hash(into hasher: inout Hasher) {
+         hasher.combine(objectID)
+     }
+     
+     static func == (lhs: Self, rhs: Self) -> Bool {
+         lhs.objectID == rhs.objectID
+     }
+     
+     init(_ object: NSObject) {
+         self.object = object
+         self.objectID = object.objectID
+     }
+ }
 
-    func setBitfieldValueAlt(_ value: Any, for ivar: Ivar) {
-        guard let info = bitfieldInfoAlt(for: ivar), let rawNewValue = Self.toUInt64(value) else { return }
-        let basePtr = Unmanaged.passUnretained(self).toOpaque().advanced(by: info.byteOffset)
-        // 1. Load existing bytes
-        var container: UInt64 = 0
-        withUnsafeMutableBytes(of: &container) { buffer in
-            buffer.copyMemory(from: UnsafeRawBufferPointer(start: basePtr, count: info.storageBytes))
-        }
-        // 2. Clear old bits and set new bits
-        let mask: UInt64 = (info.width >= 64) ? .max : (1 << UInt64(info.width)) - 1
-        let shiftedMask = mask << UInt64(info.bitOffset)
-        let shiftedValue = (rawNewValue & mask) << UInt64(info.bitOffset)
-        container = (container & ~shiftedMask) | shiftedValue
-        // 3. Write back to memory
-        withUnsafeBytes(of: &container) { buffer in
-            basePtr.copyMemory(from: buffer.baseAddress!, byteCount: info.storageBytes)
-        }
-    }
-
-    // MARK: - Metadata & Caching
-
-    private func bitfieldInfoAlt(for ivar: Ivar) -> BitfieldInfo? {
-        let key = UnsafeRawPointer(ivar)
-        if let cached = Self.bitfieldCache[key] {
-            return cached
-        }
-        var count: UInt32 = 0
-        guard let list = class_copyIvarList(type(of: self), &count) else { return nil }
-        defer { free(list) }
-
-        let targetOffset = ivar_getOffset(ivar)
-        var bitOffset = 0
-        var totalBits = 0
-        var targetWidth: Int?
-
-        for iv in list.buffer(count: count) {
-            guard ivar_getOffset(iv) == targetOffset, let enc = ivar_getTypeEncoding(iv)?.string else { continue }
-            guard enc.first == "b", let width = Int(enc.dropFirst()) else { continue }
-            if iv == ivar {
-                targetWidth = width
-                bitOffset = totalBits
-            }
-            totalBits += width
-        }
-        guard let width = targetWidth else { return nil }
-        let storageBytes = (totalBits + 7) / 8
-        let info = BitfieldInfo(byteOffset: targetOffset, bitOffset: bitOffset, width: width, storageBytes: storageBytes)
-        Self.bitfieldCache[key] = info
-        return info
-    }
-    
-}
-*/
+ fileprivate extension NSObject {
+     var weak: WeakObject { WeakObject(self) }
+ }
+ 
+ private func processObservationInfoAlt(_ info: NSObject) {
+     let kvoObjects = info.kvoObservanceObjects
+     var observances: [Observance] = .init(reserveCapacity: kvoObjects.count)
+     var observerIDs: OrderedSet<WeakObject> = []
+     var keyPaths: OrderedSet<String> = []
+     for observance in kvoObjects {
+         guard let observer: NSObject = observance.value(forKey: "_observer"), let keyPath: String = observance.value(forKeyPath: "property.keyPath") else { continue }
+         observerIDs.insert(observer.weak)
+         keyPaths.insert(keyPath)
+         observances.append(Observance(observer, keyPath, .init(rawValue: observance.ivarValue(named: "_options") ?? 0)))
+     }
+ }
+ */
