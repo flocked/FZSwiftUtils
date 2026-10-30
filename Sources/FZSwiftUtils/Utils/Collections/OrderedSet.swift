@@ -7,7 +7,8 @@
 import Foundation
 
 /// An ordered collection of unique elements.
-public struct OrderedSet<Element: Hashable>: RandomAccessCollection, BidirectionalCollection, SetAlgebra, ExpressibleByArrayLiteral {
+public struct OrderedSet<Member: Hashable>: RandomAccessCollection, BidirectionalCollection, SetAlgebra, ExpressibleByArrayLiteral {
+    public typealias Element = Member
     private var _elements: ContiguousArray<Element>
     private var indexes: [Element: Int]
 
