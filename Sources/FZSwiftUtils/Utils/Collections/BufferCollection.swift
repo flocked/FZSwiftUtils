@@ -71,9 +71,15 @@ public struct BufferCollection<Element>: RandomAccessCollection, CustomDebugStri
         storage.buffer.makeIterator()
     }
     
-    public func filter<E>(_ isIncluded: (Element) throws(E) -> Bool) throws(E) -> [Element] where E: Error {
+    #if compiler(>=6.2)
+    public func filter<E: Error>(_ isIncluded: (Element) throws(E) -> Bool) throws(E) -> [Element] {
         try storage.buffer.filter(isIncluded)
     }
+    #else
+    public func filter(_ isIncluded: (Element) throws -> Bool) throws -> [Element] {
+        try storage.buffer.filter(isIncluded)
+    }
+    #endif
     
     public func map<T, E: Error>(_ transform: (Element) throws(E) -> T) throws(E) -> [T] {
         try storage.buffer.map(transform)
