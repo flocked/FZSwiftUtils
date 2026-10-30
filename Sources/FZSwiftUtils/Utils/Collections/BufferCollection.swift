@@ -71,7 +71,7 @@ public struct BufferCollection<Element>: RandomAccessCollection, CustomDebugStri
         storage.buffer.makeIterator()
     }
     
-    #if compiler(>=6.2)
+    #if compiler(>=6.2) && canImport(Swift, _version: 6.2)
     public func filter<E: Error>(_ isIncluded: (Element) throws(E) -> Bool) throws(E) -> [Element] {
         try storage.buffer.filter(isIncluded)
     }
