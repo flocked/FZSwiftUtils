@@ -306,6 +306,7 @@ extension Calendar.Identifier: SwiftCodeRepresentable {
         case .republicOfChina: return ".republicOfChina"
         case .islamicTabular: return ".islamicTabular"
         case .islamicUmmAlQura: return ".islamicUmmAlQura"
+        #if compiler(>=6.2)
         case .bangla: return ".bangla"
         case .gujarati: return ".gujarati"
         case .kannada: return ".kannada"
@@ -317,6 +318,7 @@ extension Calendar.Identifier: SwiftCodeRepresentable {
         case .vikram: return ".vikram"
         case .dangi: return ".dangi"
         case .vietnamese: return ".vietnamese"
+        #endif
         @unknown default: return ".gregorian /* unknown calendar identifier: \(String(describing: self)) */"
         }
     }

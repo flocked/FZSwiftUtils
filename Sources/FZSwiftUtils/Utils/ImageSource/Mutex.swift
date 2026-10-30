@@ -122,7 +122,9 @@ public struct Mutex<Value: ~Copyable>: ~Copyable {
 }
 
 extension Mutex: Sendable where Value: Escapable {}
+#if compiler(>=6.2) && canImport(Swift, _version: 6.2)
 extension Mutex: SendableMetatype where Value: Escapable {}
+#endif
 
 public extension Mutex where Value: Sendable {
     /// The value protected by the mutex.

@@ -420,8 +420,9 @@ public extension BidirectionalDictionary {
 // MARK: - Sendable
 
 extension BidirectionalDictionary: Sendable where Left: Sendable, Right: Sendable {}
+#if compiler(>=6.2) && canImport(Swift, _version: 6.2)
 extension BidirectionalDictionary: SendableMetatype {}
-
+#endif
 
 // MARK: - Reflection
 

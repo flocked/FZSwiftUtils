@@ -303,6 +303,7 @@ public extension URLRequest {
         return self
     }
     
+    #if compiler(>=6.2)
     /// Sets the Boolean value that indicates whether the receiver is allowed to use an interface marked as ultra-constrained to satify the request.
     @available(macOS 26.1, iOS 26.1, tvOS 26.1, watchOS 26.1, visionOS 26.1, *)
     func allowsUltraConstrainedNetworkAccess(_ allows: Bool) -> Self {
@@ -310,6 +311,7 @@ public extension URLRequest {
         request.allowsUltraConstrainedNetworkAccess = allows
         return self
     }
+    #endif
     
     /// Sets the cookie partition identifier.
     @available(macOS 15.2, iOS 18.2, tvOS 18.2, watchOS 11.2, visionOS 2.2, *)
